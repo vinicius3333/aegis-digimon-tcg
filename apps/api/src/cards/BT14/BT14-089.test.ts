@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-089.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT14-089", () => {
@@ -91,5 +91,44 @@ describe("BT14-089", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-074")).toBe(true);
+  });
+});
+
+describe("BT14-089 Mega Flame — KB Q&A rulings", () => {
+  async function playMegaFlamePreferringSixThousand(ownDigimon: string): Promise<EngineSetup> {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: ownDigimon, as: "own" }], hand: [{ card: "BT14-089", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT14-074", as: "sixThousand", dp: 6000 },
+            { card: "BT14-069", as: "fourThousand", dp: 4000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("sixThousand").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    return s;
+  }
+
+  const opponentBoard = (s: EngineSetup): (string | undefined)[] =>
+    s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId);
+
+  it("deletes the lowest-DP Digimon with no choice of target while you have a [Greymon] (Q2465)", async () => {
+    const withoutGreymon = await playMegaFlamePreferringSixThousand("BT14-007");
+    expect(opponentBoard(withoutGreymon)).toEqual(["BT14-069"]);
+
+    const withGreymon = await playMegaFlamePreferringSixThousand("BT14-012");
+    expect(opponentBoard(withGreymon)).toEqual(["BT14-074"]);
+    const offeredTargets = withGreymon.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredTargets).not.toContain(withGreymon.perm("sixThousand").topCard!.instanceId);
   });
 });

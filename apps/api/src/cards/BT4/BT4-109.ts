@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "lastTargetDpAtLeast",
-            value: 13000,
+            value: 16000,
           },
         },
         {
@@ -58,7 +58,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "lastTargetDpAtLeast",
-            value: 13000,
+            value: 16000,
           },
         },
         {
@@ -80,7 +80,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "lastTargetDpAtLeast",
-            value: 13000,
+            value: 16000,
           },
         },
       ],

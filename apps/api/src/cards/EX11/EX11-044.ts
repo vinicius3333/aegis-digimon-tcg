@@ -162,8 +162,9 @@ const compiled: CompiledCard = {
                   ],
                 },
                 from: ["trash"],
-                count: 3,
+                count: 1,
               },
+              count: 3,
               underFilter: {
                 isSelfRef: true,
               },

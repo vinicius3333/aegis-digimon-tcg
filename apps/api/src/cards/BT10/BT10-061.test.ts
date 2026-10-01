@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, type PlayerState } from "@aegis/shared";
+import { effectiveExactNames, getCardDefinition, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT10-061.js";
 import "./BT10-066.js";
@@ -164,5 +165,91 @@ describe("BT10-061 SkullKnightmon: Mighty Axe Mode", () => {
       reason: "invalid-material",
     });
     expect(play(["mightyAxeMode", "deadlyAxemon"])).toEqual({ ok: true });
+  });
+});
+
+describe("BT10-061 SkullKnightmon: Mighty Axe Mode — KB Q&A rulings", () => {
+  async function playWithUnhelpfulReveal(materialCards: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT10-061", as: "source" },
+            ...materialCards.map((card, index) => ({ card, as: `material${index}` })),
+          ],
+          deck: ["BT10-062", "BT10-064", "BT10-065"],
+        },
+        1: { battleArea: [{ card: "BT7-058", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        ...(materialCards.length > 0
+          ? {
+              digiXros: {
+                materialInstanceIds: materialCards.map((_, index) => s.inst(`material${index}`).instanceId),
+              },
+            }
+          : {}),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.trash.length === 3);
+    await settle();
+    return s;
+  }
+
+  it("still deletes after a two-card DigiXros even when the reveal adds nothing to hand (Q1987)", async () => {
+    const digiXrosed = await playWithUnhelpfulReveal(["BT7-058", "BT7-059"]);
+    expect(digiXrosed.state.players[0]!.hand).toHaveLength(0);
+    expect(digiXrosed.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual([
+      "BT10-062",
+      "BT10-064",
+      "BT10-065",
+    ]);
+    expect(digiXrosed.state.players[1]!.battleArea).toHaveLength(0);
+    expect(digiXrosed.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT7-058"]);
+
+    const plainPlay = await playWithUnhelpfulReveal([]);
+    expect(plainPlay.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("is always also named [SkullKnightmon] and [DeadlyAxemon], even among digivolution cards (Q1988)", async () => {
+    expect(effectiveExactNames(getCardDefinition("BT10-061")!)).toEqual(
+      expect.arrayContaining(["SkullKnightmon: Mighty Axe Mode", "SkullKnightmon", "DeadlyAxemon"]),
+    );
+
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT10-066",
+              as: "darkKnightmon",
+              under: [
+                { card: "BT10-061", as: "mightyAxeMode" },
+                { card: "BT10-062", as: "golemon" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const mightyAxeModeId = s.inst("mightyAxeMode").instanceId;
+    preferred.push(s.inst("golemon").instanceId);
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("darkKnightmon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === mightyAxeModeId));
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("golemon").instanceId]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([mightyAxeModeId]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT10-066");
   });
 });

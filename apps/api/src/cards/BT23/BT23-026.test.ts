@@ -411,19 +411,19 @@ describe("BT23-026 Lopmon", () => {
     const s = setupEngine(
       {
         0: {
-        battleArea: [
-          { card: "BT23-026", as: "lopmon" },
-          { card: "BT23-082", as: "makiko" },
-        ],
-        hand: [
-          { card: "BT3-038", as: "otherAntylamon" },
-          { card: "BT23-007", as: "musclemon" },
-        ],
-        deck: [
-          { card: "BT1-009", as: "draw" },
-          { card: "BT1-010", as: "bottom" },
-        ],
-      },
+          battleArea: [
+            { card: "BT23-026", as: "lopmon" },
+            { card: "BT23-082", as: "makiko" },
+          ],
+          hand: [
+            { card: "BT3-038", as: "otherAntylamon" },
+            { card: "BT23-007", as: "musclemon" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "draw" },
+            { card: "BT1-010", as: "bottom" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoDeclineOptional: true },
@@ -586,4 +586,48 @@ describe("BT23-026 Lopmon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+});
+
+describe("BT23-026 Lopmon — KB Q&A rulings", () => {
+  it.each([true, false])(
+    "combines its Makiko Date digivolve path with P-105 Physical Training's digivolve effect (Makiko=%s) (Q5255)",
+    async (withMakiko) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "P-105", as: "training" },
+              { card: "BT23-026", as: "lopmon" },
+              ...(withMakiko ? [{ card: "BT23-082", as: "makiko" }] : []),
+            ],
+            hand: [{ card: "BT23-029", as: "antylamon" }],
+            deck: ["BT1-009", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnCount = 1;
+      await s.ready();
+      s.state.memory = 5;
+      const [delay] = JSON.parse(s.perm("training").activatableEffectsJson || "[]") as { effectKey: string }[];
+      expect(delay).toBeDefined();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("training").instanceId,
+          effectKey: delay!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("training").instanceId),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const antylamonId = s.inst("antylamon").instanceId;
+      expect(s.perm("lopmon").topCard.instanceId).toBe(withMakiko ? antylamonId : s.inst("lopmon").instanceId);
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === antylamonId)).toBe(!withMakiko);
+      expect(s.state.memory).toBe(withMakiko ? 5 - (3 - 2) : 5);
+    },
+  );
 });

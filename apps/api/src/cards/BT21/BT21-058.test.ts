@@ -490,3 +490,43 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
   });
 });
+
+describe("BT21-058 Snatchmon — KB Q&A rulings", () => {
+  it("adds a revealed card that mentions [Vemmon] only in its effect text, but not one without it (Q4562)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: SNATCHMON, as: "played" }],
+          deck: [
+            { card: "BT2-060", as: "megadramon" },
+            { card: "BT21-087", as: "zenith" },
+            { card: PLAIN_CARD, as: "plain" },
+            { card: PLAIN_CARD, as: "unrevealed" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("zenith").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const revealPick = s.decisions.find(({ req }) =>
+      (req.options?.candidateInstanceIds ?? []).includes(s.inst("zenith").instanceId),
+    );
+    expect(revealPick?.req.options?.candidateInstanceIds).not.toContain(s.inst("megadramon").instanceId);
+    expect(revealPick?.req.options?.candidateInstanceIds).not.toContain(s.inst("plain").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("megadramon").instanceId, s.inst("plain").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("unrevealed").instanceId]);
+  });
+});

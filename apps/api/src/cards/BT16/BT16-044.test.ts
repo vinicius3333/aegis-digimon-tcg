@@ -143,3 +143,33 @@ describe("BT16-044", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
+
+describe("BT16-044 Pistmon — KB Q&A rulings", () => {
+  it("activates both the suspend-and-lock and the gain 2 memory clauses with exactly 3 security cards (Q2636)", async () => {
+    async function playPistmonWithSecurity(securityCount: number) {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "BT16-044", as: "pistmon" }], security: securityCount },
+          1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 6;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pistmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      return s;
+    }
+
+    const exactlyThree = await playPistmonWithSecurity(3);
+    expect(exactlyThree.perm("opponent").isSuspended).toBe(true);
+    expect(observe(exactlyThree.engine).isRestricted(exactlyThree.perm("opponent"), "unsuspend")).toBe(true);
+    expect(exactlyThree.state.memory).toBe(2);
+
+    const two = await playPistmonWithSecurity(2);
+    expect(two.perm("opponent").isSuspended).toBe(false);
+    expect(observe(two.engine).isRestricted(two.perm("opponent"), "unsuspend")).toBe(false);
+    expect(two.state.memory).toBe(2);
+  });
+});

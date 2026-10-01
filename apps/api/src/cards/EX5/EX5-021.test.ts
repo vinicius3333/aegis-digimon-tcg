@@ -2,6 +2,7 @@ import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-021.js";
+import { crimsonBlazeMemoryDelta, taomonReducedPaymentUse } from "./optionUse.testSupport.js";
 import "./EX5-006.js";
 import "./EX5-051.js";
 import "../BT9/BT9-047.js";
@@ -327,5 +328,19 @@ describe("EX5-021 Majiramon", () => {
 
   it("keeps the no-evolution catalog boundary explicit", () => {
     expect(getCardDefinition("EX5-021")?.evoCosts).toEqual([]);
+  });
+});
+
+describe("EX5-021 Majiramon — KB Q&A rulings", () => {
+  it("does not gain memory when a hand cost reduction lowers the Option's use cost itself to 0 (Q5504)", async () => {
+    expect(await crimsonBlazeMemoryDelta("EX5-021", 6)).toBe(0);
+    expect(await crimsonBlazeMemoryDelta("EX5-021", 5)).toBe(-1 + 1);
+  });
+
+  it("gains memory when only the cost to pay of a 2-cost Option is reduced to 0 (Q5505)", async () => {
+    const s = await taomonReducedPaymentUse("EX5-021");
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.memory).toBe(1);
   });
 });

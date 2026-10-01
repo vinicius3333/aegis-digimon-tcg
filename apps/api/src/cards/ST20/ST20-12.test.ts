@@ -59,3 +59,49 @@ describe("ST20-12 Sora & Kari", () => {
     );
   });
 });
+
+describe("ST20-12 Sora Takenouchi & Kari Kamiya — KB Q&A rulings", () => {
+  it.each([
+    { acceptedSources: ["ST20-12", "ST20-13"], reduction: 2 },
+    { acceptedSources: ["ST20-12"], reduction: 1 },
+  ])(
+    "reduces an [ADVENTURE] Digimon's play cost by $reduction when $acceptedSources activate (Q4463, Q4464)",
+    async ({ acceptedSources, reduction }) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [
+            { card: "ST20-12", as: "sora" },
+            { card: "ST20-13", as: "tai" },
+          ],
+          hand: [{ card: "ST20-07", as: "adventure" }],
+        },
+      });
+      s.state.turnSeat = 0;
+      s.state.memory = 5;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("adventure").instanceId })).toEqual({
+        ok: true,
+      });
+      const offeredSources: string[] = [];
+      await settle(() => {
+        const pending = s.state.pendingDecision;
+        if (pending?.kind === "optional") {
+          const sourceCardId = s.decisions.at(-1)!.req.sourceCardId!;
+          offeredSources.push(sourceCardId);
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: pending.decisionId,
+            response: { kind: "optional", accept: acceptedSources.includes(sourceCardId) },
+          });
+          return false;
+        }
+        return s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("adventure").instanceId);
+      });
+
+      expect(offeredSources.sort()).toEqual(["ST20-12", "ST20-13"]);
+      expect(s.state.memory).toBe(5 - (3 - reduction));
+      expect(s.perm("sora").isSuspended).toBe(acceptedSources.includes("ST20-12"));
+      expect(s.perm("tai").isSuspended).toBe(acceptedSources.includes("ST20-13"));
+    },
+  );
+});

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT6-033.js";
 
@@ -70,5 +70,60 @@ describe("BT6-033 Pulsemon", () => {
     s.state.players[0]!.security.pop();
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+  });
+});
+
+function setupPulsemonPlay(securityCount: number) {
+  const securityCards = ["BT6-034", "BT6-035", "BT6-036", "BT6-037", "BT6-038"].slice(0, securityCount);
+  const s = setupEngine({
+    0: {
+      hand: [{ card: "BT6-033", as: "source" }],
+      security: securityCards,
+    },
+  });
+  s.state.memory = 3;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+    ok: true,
+  });
+  return s;
+}
+
+describe("BT6-033 Pulsemon — KB Q&A rulings", () => {
+  it("does not force trashing down to three security cards; trashing zero is allowed (Q1422)", async () => {
+    const s = setupPulsemonPlay(5);
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const decision = s.state.pendingDecision!;
+    expect(JSON.parse(decision.payloadJson)).toMatchObject({
+      choices: ["Trash 0 security cards", "Trash 1 security card", "Trash 2 security cards"],
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    expect(s.state.players[0]!.security).toHaveLength(5);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does nothing when you already have three or fewer security cards (Q1423)", async () => {
+    const withFour = setupPulsemonPlay(4);
+    await settle(() => withFour.state.pendingDecision?.kind === "chooseOption");
+
+    for (const securityCount of [3, 2]) {
+      const s = setupPulsemonPlay(securityCount);
+      await drainMicrotasks();
+
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.state.players[0]!.security).toHaveLength(securityCount);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.memory).toBe(0);
+    }
   });
 });

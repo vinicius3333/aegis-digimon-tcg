@@ -115,6 +115,79 @@ describe("BT16-069", () => {
   });
 });
 
+describe("BT16-069 Gesomon (X Antibody) — KB Q&A rulings", () => {
+  it("still locks a sourceless opponent Digimon when neither [Gesomon] nor [X Antibody] is under it (Q4708)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-067", as: "demiDevimon" }],
+          hand: [{ card: "BT16-069", as: "geso" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "sourced", under: ["BT1-009", "BT1-010", "BT1-011"] },
+            { card: "BT1-009", as: "bare" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("sourced").topCard!.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("demiDevimon").permanentId,
+        instanceId: s.inst("geso").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("bare"), "suspend"));
+
+    expect(s.perm("demiDevimon").topCard?.cardId).toBe("BT16-069");
+    expect(s.perm("sourced").stack).toHaveLength(3);
+    expect(observe(s.engine).isRestricted(s.perm("bare"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("sourced"), "suspend")).toBe(false);
+  });
+
+  it("treats a Digimon with one or more stacked cards as having cards under it (Q4709)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-022", as: "gesomon" }],
+          hand: [{ card: "BT16-069", as: "geso" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "oneLeft", under: ["BT1-009", "BT1-010", "BT1-011", "BT1-013"] },
+            { card: "BT1-009", as: "bare" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("oneLeft").topCard!.instanceId);
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gesomon").permanentId,
+        instanceId: s.inst("geso").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("bare"), "suspend"));
+
+    expect(s.perm("oneLeft").stack).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(s.perm("oneLeft"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("bare"), "suspend")).toBe(true);
+  });
+});
+
 describe("BT16-069 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT16-069")).toEqual(X_ANTIBODY_NAME_PROBES);

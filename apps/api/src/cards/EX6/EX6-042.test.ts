@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectDuration } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-042.js";
 import "./EX6-007.js";
@@ -166,5 +168,133 @@ describe("EX6-042 RaijiLudomon", () => {
     });
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("host").permanentId));
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("host").permanentId)).toBe(false);
+  });
+});
+
+describe("EX6-042 RaijiLudomon — KB Q&A rulings", () => {
+  it("cannot pay 2 cost without a Digimon to place this card under (Q3764)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-014", as: "ineligible" }], hand: [{ card: "EX6-042", as: "raiji" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const handEffects = () => JSON.parse(s.inst("raiji").activatableEffectsJson || "[]") as unknown[];
+    expect(handEffects()).toEqual([]);
+    expect(s.state.memory).toBe(5);
+
+    s.putOnBoard(0, { card: "EX6-009", as: "eligible" });
+    await s.ready();
+    expect(handEffects()).toHaveLength(1);
+  });
+
+  type Board = ReturnType<typeof setupEngine>;
+
+  async function forceAttacksOn(opponents: PermanentSpec[], prepare?: (s: Board) => Promise<void>) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: opponents.map((_, index) => ({ card: "EX6-009", as: `host${index}` })),
+          hand: opponents.map((_, index) => ({ card: "EX6-042", as: `raiji${index}` })),
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: opponents, deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await prepare?.(s);
+    for (const [index, opponent] of opponents.entries()) {
+      preferred.splice(0, preferred.length, s.perm(opponent.as!).topCard!.instanceId);
+      const [effect] = JSON.parse(s.inst(`raiji${index}`).activatableEffectsJson || "[]") as Array<{
+        effectKey: string;
+      }>;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst(`raiji${index}`).instanceId,
+          effectKey: effect!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((host) =>
+            host.stack.some((card) => card.instanceId === s.inst(`raiji${index}`).instanceId),
+          ) && s.state.pendingDecision === undefined,
+      );
+    }
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).finishAttack();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    return s;
+  }
+
+  it("can target a Digimon that can't attack, but that Digimon then makes no attack (Q3765)", async () => {
+    const s = await forceAttacksOn([{ card: "BT1-080", as: "grounded" }], async (board) => {
+      await advance(board.engine).verb.restrict(
+        board.perm("grounded").permanentId,
+        "attack",
+        EffectDuration.UntilOpponentTurnEnd,
+      );
+    });
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("grounded"))).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(5);
+
+    const free = await forceAttacksOn([{ card: "BT1-080", as: "free" }]);
+    expect(observe(free.engine).hasAttackedThisTurn(free.perm("free"))).toBe(true);
+    expect(free.state.players[0]!.security).toHaveLength(4);
+  });
+
+  it("lets only the first of two simultaneous forced attacks happen (Q3766)", async () => {
+    const s = await forceAttacksOn([
+      { card: "BT1-080", as: "first" },
+      { card: "BT1-080", as: "second" },
+    ]);
+    const attacked = ["first", "second"].filter((alias) => observe(s.engine).hasAttackedThisTurn(s.perm(alias)));
+    expect(attacked).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(4);
+  });
+
+  it("targets a Digimon immune only during its opponent's turn, which then attacks on its own turn (Q3767)", async () => {
+    const s = await forceAttacksOn([{ card: "BT1-080", as: "immune" }], async (board) => {
+      await advance(board.engine).verb.restrict(
+        board.perm("immune").permanentId,
+        "beAffected",
+        EffectDuration.UntilEachTurnEnd,
+        {
+          byOpponentEffectsOnly: true,
+        },
+      );
+    });
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("immune"))).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(4);
+  });
+
+  it("can trash RaijiLudomon itself from the digivolution cards to prevent the deletion (Q3768)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-044", as: "host", under: [{ card: "EX6-042", as: "raiji" }] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "redSource" }], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("host").stack.length === 0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([hostId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("raiji").instanceId]);
   });
 });

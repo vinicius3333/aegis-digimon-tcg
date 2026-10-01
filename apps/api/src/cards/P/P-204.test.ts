@@ -491,3 +491,38 @@ describe("P-204 Release of the Sealed Knight!", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-204 Release of the Sealed Knight! — KB Q&A rulings", () => {
+  it.each([
+    ["the trash is declined", "BT9-109", { autoDeclineOptional: true }],
+    ["no X Antibody or Chronicle card is in hand", "BT1-010", { autoAcceptOptional: true, autoSelectCards: true }],
+  ] as const)("skips the placement after 'then' when %s (Q5199)", async (_, handCard, options) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-204", as: "option" }, { card: handCard, as: "other" }],
+          battleArea: [{ card: "BT19-065", as: "color" }],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+      },
+      options,
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId) && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("other").instanceId]);
+  });
+});

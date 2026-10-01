@@ -1,13 +1,6 @@
 import { EffectTiming, type CardInstance, type ServerEvent } from "@aegis/shared";
 import { rollTurnActivity } from "../turnActivity.js";
-import {
-  lookupDefinition,
-  definitionOf,
-  isDigimon,
-  isTamer,
-  intrinsicDigivolutionCostReduction,
-} from "../cards/cardData.js";
-import { tamerOntoDigivolveLevel } from "../cards/tamerOntoDigivolve.js";
+import { lookupDefinition, definitionOf, isDigimon, intrinsicDigivolutionCostReduction } from "../cards/cardData.js";
 import { type IntentRouterDeps } from "../intentRouter.js";
 import { type ActivateEffectDeps } from "../actions/activateEffect.js";
 import { matchingDnaDigivolveCost } from "../effects/primitives.js";
@@ -46,6 +39,7 @@ import { digivolvedFromTamerBase } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
 import { applyIntent, checkTurnEndAfterVerb, findInstance, findLooseInstance } from "./intents.js";
 import {
+  breedingPlayCostEffects,
   crossPermanentPlayReducerWatchers,
   fireBeforeDigivolveCost,
   fireBeforePayCost,
@@ -54,11 +48,13 @@ import {
   fireTimingForPermanent,
   projectLooseUseCost,
   residentPlayCostEffects,
+  wouldBePlayedRuleTrashMaterials,
 } from "./timing.js";
 import {
   nestedTriggerSourceStillResident,
   parkedEntryCollected,
   pendingWindowCollected,
+  pendingWindowWatchersCollected,
   withPendingSubTriggers,
 } from "./subTriggers.js";
 import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
@@ -99,10 +95,10 @@ export function resolutionDeps(
     }
     return [...unique.values()];
   };
-  const pendingWhileOptionResolves = (): CollectedEffect[] => {
-    const deferredPrintedEffects = new Set(engine.pendingNestedTimingEffects);
-    return pendingWindowCollected(engine).filter((pending) => !deferredPrintedEffects.has(pending));
-  };
+  // A card an Option plays waits with its [On Play] and the watchers its play event armed
+  // until the Option finishes (Q2577); only the Option's other pending watchers resolve here.
+  const pendingWhileOptionResolves = (): CollectedEffect[] => pendingWindowWatchersCollected(engine);
+  const unannounced = new Set<CollectedEffect>();
   return {
     // The outermost loop settles deferred queues between effects. A nested resolver normally
     // cannot reach into the enclosing pool while its card body is still running; a settlement
@@ -154,6 +150,10 @@ export function resolutionDeps(
       // A deferred trigger belongs to its original event, not every nested resolver that
       // can see engine pending pool. Retire it before its body can open another window.
       engine.pendingNestedTimingEffects = engine.pendingNestedTimingEffects.filter((pending) => pending !== collected);
+      if (collected.effect.announce?.() === false) {
+        unannounced.add(collected);
+        return;
+      }
       const stableOptWatcher = collected.effect.effectKey.startsWith("subtrigger/opt/");
       const announcementKey = `${engine.state.turnCount}:${collected.effect.effectKey}`;
       if (stableOptWatcher && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
@@ -177,6 +177,7 @@ export function resolutionDeps(
       });
     },
     onResolved: (timing, collected) => {
+      if (unannounced.delete(collected)) return;
       engine.hooks.emit({
         kind: "effectResolved",
         seat: collected.source.ownerSeat,
@@ -252,12 +253,20 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       return false;
     },
     prepareDigivolveCost: (_state, _seat, target, evolving) => fireBeforeDigivolveCost(engine, evolving, target),
-    potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
+    potentialInteractiveDigivolveReduction: (state, seat, target, into, baseAsDigimon) => {
       if (engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
-      const liveReduction = engine.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, into, {
-        hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
-        markFired: (key) => engine.tracker.register(key, "replacement"),
-      });
+      const liveReduction = engine.subTriggers.potentialInteractiveReductionFor(
+        "wouldDigivolve",
+        seat,
+        target,
+        into,
+        {
+          hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
+          markFired: (key) => engine.tracker.register(key, "replacement"),
+        },
+        undefined,
+        baseAsDigimon,
+      );
       const evolving = state.players[seat]?.hand.find(({ cardId }) => cardId === into.cardId);
       if (evolving === undefined) return liveReduction;
       const ctx = buildEffectContext(engine, cardSourceOf(engine, evolving), {});
@@ -267,7 +276,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       );
       return liveReduction + intrinsicReduction;
     },
-    activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId) => {
+    activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId, baseAsDigimon) => {
       if (engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
       const liveReduction = await engine.subTriggers.activateInteractiveReductionsFor(
         "wouldDigivolve",
@@ -289,6 +298,9 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
           markFired: (key) => engine.tracker.register(key, "replacement"),
         },
+        undefined,
+        undefined,
+        baseAsDigimon,
       );
       const evolving = findLooseInstance(engine, evolvingInstanceId);
       if (evolving === undefined) return liveReduction;
@@ -338,9 +350,11 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       if (permanent.isSuspended) return false;
       if (!engine.continuous.isUnsuspendedDigivolveProhibited(permanent.controllerSeat)) return false;
       const base = permanent.topCard === undefined ? undefined : definitionOf(permanent.topCard.cardId);
-      if (base === undefined) return false;
-      return isDigimon(base) || (isTamer(base) && tamerOntoDigivolveLevel(evolving.cardId) !== undefined);
+      return base !== undefined && isDigimon(base);
     },
+    digivolveLockedAsDigimon: (_state, permanent, asDigimon) =>
+      engine.continuous.isDigivolveLockedAsDigimon(permanent.permanentId, asDigimon) ||
+      (!permanent.isSuspended && engine.continuous.isUnsuspendedDigivolveProhibited(permanent.controllerSeat)),
     // Alternate-requirement non-memory placement cost (BT7-112): availability gate + payment.
     // Generic over `placementCost` (kind ∈ kinds OR trait ∈ traits, across hand/trash).
     alternatePlacementPayable: (_state, seat, requirement) =>
@@ -362,6 +376,17 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       // Empty/short response (decision timeout safe-default): fall back to the deterministic
       // hand-then-trash pick — payment is mandatory once the alternate path was chosen (Q1681).
       const ids = chosen.length === need ? chosen : candidates.slice(0, need).map((c) => c.instanceId);
+      // KB BT7-112 Q1691: the returned cards are revealed to the opponent before they go under the deck.
+      const returned = ids.flatMap((id) => candidates.filter((c) => c.instanceId === id));
+      for (const card of returned) {
+        engine.hooks.emit({
+          kind: "cardRevealed",
+          seat,
+          cardId: card.cardId,
+          ...(card.artId ? { artId: card.artId } : {}),
+          sourceCardId: evolving.cardId,
+        });
+      }
       await engine.primitives.returnToDeck(ids, { toTop: false });
       return true;
     },
@@ -488,6 +513,17 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
   };
 }
 
+async function placePendingReducerCards(
+  engine: GameEngine,
+  playedInstanceId: string,
+  permanentId: string,
+): Promise<void> {
+  const ids = engine.pendingPlayReducerPlacements.get(playedInstanceId);
+  if (ids === undefined || ids.length === 0) return;
+  engine.pendingPlayReducerPlacements.delete(playedInstanceId);
+  await engine.primitives.placeUnder(permanentId, ids);
+}
+
 /**
  * Assemble the side-effect dependencies the play-card action needs (subsystem:
  * play-card). Memory math is delegated to the shared MemoryGauge (its single
@@ -537,7 +573,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
         (effect) => effect.costWindow !== "digivolve",
       ) ||
       wouldBePlayedSelfReducersFor(instance.cardId).length > 0 ||
-      (engine.state.players[cardSourceOf(engine, instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
+      breedingPlayCostEffects(engine, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       crossPermanentPlayReducerWatchers(engine, instance, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       residentPlayCostEffects(engine, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", cardSourceOf(engine, instance).ownerSeat) ||
@@ -547,11 +583,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was
     // committed/selected for engine play.
     placePendingDigivolution: async (playedInstanceId, permanentId) => {
-      const ids = engine.pendingPlayReducerPlacements.get(playedInstanceId);
-      if (ids !== undefined && ids.length > 0) {
-        engine.pendingPlayReducerPlacements.delete(playedInstanceId);
-        await engine.primitives.placeUnder(permanentId, ids);
-      }
+      await placePendingReducerCards(engine, playedInstanceId, permanentId);
       const relocations = engine.pendingSelfReducerRelocations.get(playedInstanceId);
       if (relocations !== undefined && relocations.length > 0) {
         engine.pendingSelfReducerRelocations.delete(playedInstanceId);
@@ -726,12 +758,15 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
       ];
     },
     canSubstituteMaterial: (permanentId) => engine.continuous.hasKeyword(permanentId, "DigiXrosSubstitute"),
+    ruleTrashMaterialCandidates: (playedInstance) => wouldBePlayedRuleTrashMaterials(engine, playedInstance),
     digiXrosExpandedZones: (seat, playedInstanceId) =>
       engine.primitives.digiXrosExpandedZones?.(seat, playedInstanceId) ?? [],
     digiXrosExpandedZoneCounts: (seat, playedInstanceId) =>
       engine.primitives.digiXrosExpandedZoneCounts?.(seat, playedInstanceId) ?? {},
     nextPermanentId: () => nextPermanentId(engine),
     placeUnder: (targetPermanentId, instanceIds) => engine.primitives.placeUnder(targetPermanentId, instanceIds),
+    placePendingReducerCards: (playedInstanceId, permanentId) =>
+      placePendingReducerCards(engine, playedInstanceId, permanentId),
     placePendingDigivolution: playCardDeps(engine).placePendingDigivolution,
     relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
       engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),
@@ -926,7 +961,7 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
       // work finishes. A very fast client can therefore submit a legal verb while
       // engine finalizer is still pending. Route through the guarded post-verb check:
       // if that verb has an active effect window, it owns the eventual turn-end
-      // check (including Blitz) and engine stale entry finalizer must do nothing.
+      // check and engine stale entry finalizer must do nothing.
       checkTurnEndAfterVerb(engine);
     },
     isGameOver: () => engine.state.gameOver,
@@ -945,10 +980,7 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
         rollTurnActivity(engine.state);
         engine.tracker.resetForNewTurn();
         engine.combat.attackedThisTurn.clear();
-        engine.resolvedBlitzOpportunities.clear();
-        engine.acceptedBlitzAttackers.clear();
         engine.crossedMemoryRushAttackers.clear();
-        engine.blitzDecisionInFlight = false;
       }
       await sweepDurations(engine, boundary);
     },

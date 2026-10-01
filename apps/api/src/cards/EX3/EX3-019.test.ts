@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT12/BT12-028.js";
 import "../BT4/BT4-011.js";
+import { digivolveIntoGrowlmonPastCostIncrease } from "./takatoBlitz.testSupport.js";
 import { compiled } from "./EX3-019.js";
 
 function opponentTurn<T extends ReturnType<typeof setupEngine>>(s: T, memory: number): T {
@@ -340,5 +341,16 @@ describe("EX3-019 Paledramon", () => {
       await settle(() => s.perm("tamer").topCard.cardId === "BT4-011");
       expect(s.state.memory).toBe(hasSource ? -4 : -6);
     }
+  });
+});
+
+describe("EX3-019 Paledramon — KB Q&A rulings", () => {
+  it("lets Takato's would-digivolve Blitz grant land even though this cost increase then fails the digivolution (Q3348)", async () => {
+    const { memoryAtBlitzGrant, finalTopCardId, growlmonStillInHand } =
+      await digivolveIntoGrowlmonPastCostIncrease("EX3-019");
+
+    expect(memoryAtBlitzGrant).toBe(-8);
+    expect(finalTopCardId).toBe("EX2-008");
+    expect(growlmonStillInHand).toBe(true);
   });
 });

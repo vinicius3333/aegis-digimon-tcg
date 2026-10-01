@@ -624,3 +624,121 @@ describe("EX3-024 Slayerdramon", () => {
     expect(s.perm("invalidBase").stack).toHaveLength(0);
   });
 });
+
+describe("EX3-024 Slayerdramon — KB Q&A rulings", () => {
+  async function payCostAndReachAttackerChoice() {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-024", as: "slayerdramon" },
+          { card: "EX3-020", as: "dramonCost" },
+        ],
+        security: ["BT8-090", "BT8-090"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-029", as: "firstAttacker" },
+          { card: "BT1-030", as: "secondAttacker" },
+        ],
+        hand: [{ card: "BT1-010", as: "handDigimon" }],
+        security: ["BT8-090"],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    const flow = s.engine.runOneTurn();
+    const optional = await waitForNewDecision(s, 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    const cost = await waitForNewDecision(s, 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: cost.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("dramonCost").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    const attacker = await waitForNewDecision(s, 2);
+    return { s, flow, attacker };
+  }
+
+  it("has the opponent, not the Slayerdramon player, choose which of their Digimon attacks (Q3395)", async () => {
+    const { s, flow, attacker } = await payCostAndReachAttackerChoice();
+
+    expect(attacker.seat).toBe(1);
+    expect(s.decisions.at(-1)!.req.sourceCardId).toBe("EX3-024");
+    expect(candidateIds(attacker)).toEqual(
+      expect.arrayContaining([s.perm("firstAttacker").permanentId, s.perm("secondAttacker").permanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attacker.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("firstAttacker").permanentId] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: attacker.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("secondAttacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    const attackTarget = await waitForNewDecision(s, 3);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: attackTarget.decisionId,
+        response: { kind: "selectCards", instanceIds: ["player"] },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.perm("secondAttacker").isSuspended).toBe(true);
+    expect(s.perm("firstAttacker").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await flow;
+  });
+
+  it("asks for the attacker immediately after the cost suspension, before the opponent can act in Main (Q3396)", async () => {
+    const { s, flow, attacker } = await payCostAndReachAttackerChoice();
+
+    expect(s.decisions.map(({ req }) => [req.seat, req.kind])).toEqual([
+      [0, "optional"],
+      [0, "chooseTargets"],
+      [1, "chooseTargets"],
+    ]);
+    expect(s.perm("dramonCost").isSuspended).toBe(true);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("handDigimon").instanceId }).ok).toBe(false);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handDigimon").instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: attacker.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("firstAttacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    const attackTarget = await waitForNewDecision(s, 3);
+    expect(attackTarget.seat).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: attackTarget.decisionId,
+        response: { kind: "selectCards", instanceIds: ["player"] },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.security.length === 1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await flow;
+  });
+});

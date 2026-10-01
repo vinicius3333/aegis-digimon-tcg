@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { Zone } from "@aegis/shared";
+import { getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT9/BT9-047.js";
 import "../ST12/ST12-03.js";
@@ -246,5 +246,94 @@ describe("BT20-013 BaoHuckmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-084")).toBe(false);
     expect(s.state.memory).toBe(5);
+  });
+});
+
+describe("BT20-013 BaoHuckmon — KB Q&A rulings", () => {
+  function activateMain(s: EngineSetup, alias: string) {
+    const [effect] = observe(s.engine).activatableEffects(s.perm(alias)) as { effectKey: string }[];
+    return s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm(alias).topCard.instanceId,
+      effectKey: effect!.effectKey,
+    });
+  }
+
+  it("cannot stack both copies' [Main] effects onto one play for a 4-cost reduction (Q4293)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-013", as: "firstBao" },
+            { card: "BT20-013", as: "secondBao" },
+          ],
+          hand: [
+            { card: "BT20-084", as: "sistermon" },
+            { card: "BT20-084", as: "secondSistermon" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(activateMain(s, "firstBao")).toEqual({ ok: true });
+    const isFirstBaoPrompt = ({ req }: EngineSetup["decisions"][number]) =>
+      req.kind === "optional" && req.sourceInstanceId === s.perm("firstBao").topCard.instanceId;
+    await settle(() => s.decisions.some(isFirstBaoPrompt));
+    expect(activateMain(s, "secondBao").ok).toBe(false);
+
+    const prompt = s.decisions.find(isFirstBaoPrompt)!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: prompt.req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-084"));
+
+    const printedCost = getCardDefinition("BT20-084")!.playCost!;
+    expect(s.state.memory).toBe(10 - (printedCost - 2));
+
+    // Control: once the first effect has finished, the second copy's [Main] is its own separate play.
+    expect(activateMain(s, "secondBao")).toEqual({ ok: true });
+    const isSecondBaoPrompt = ({ req }: EngineSetup["decisions"][number]) =>
+      req.kind === "optional" && req.sourceInstanceId === s.perm("secondBao").topCard.instanceId;
+    await settle(() => s.decisions.some(isSecondBaoPrompt));
+    const secondPrompt = s.decisions.find(isSecondBaoPrompt)!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondPrompt.req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT20-084").length === 2,
+    );
+    expect(s.state.memory).toBe(10 - 2 * (printedCost - 2));
+  });
+
+  it("adds Gankoomon's own 4-cost reduction to this effect's 2 for a total of 6 (Q4294)", async () => {
+    async function playGankoomon(throughBaoHuckmon: boolean): Promise<number> {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: "BT20-013", as: "bao" }], hand: [{ card: "BT20-057", as: "gankoomon" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const result = throughBaoHuckmon
+        ? activateMain(s, "bao")
+        : s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gankoomon").instanceId });
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-057"));
+      return 10 - s.state.memory;
+    }
+
+    const printedCost = getCardDefinition("BT20-057")!.playCost!;
+    expect(await playGankoomon(true)).toBe(printedCost - 6);
+    expect(await playGankoomon(false)).toBe(printedCost - 4);
   });
 });

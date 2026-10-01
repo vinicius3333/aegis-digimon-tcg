@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup, type SeatSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-055.js";
 
@@ -135,5 +135,69 @@ describe("BT12-055 Dinobeemon", () => {
       attackerPermanentId: offTurn.perm("host").permanentId,
     });
     expect(offTurn.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+describe("BT12-055 Dinobeemon — KB Q&A rulings", () => {
+  const attackTargetRequests = (decisions: EngineSetup["decisions"]) =>
+    decisions.filter(({ req }) => req.kind === "selectCards" && (req.promptText ?? "").includes("attack target"));
+
+  const digivolveFromOgremon = async (opponent: SeatSpec) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-069", as: "dino" }],
+          hand: [{ card: "BT12-055", as: "card" }],
+          deck: ["BT1-010"],
+        },
+        1: opponent,
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dino").permanentId,
+        instanceId: s.inst("card").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dino").topCard.cardId === "BT12-055");
+    await drainMicrotasks();
+    return s;
+  };
+
+  it("ends without an attack when the opponent has no Digimon that can be attacked (Q2181)", async () => {
+    const s = await digivolveFromOgremon({
+      battleArea: [{ card: "BT1-009", as: "target" }],
+      security: ["BT1-011"],
+    });
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("dino"))).toBe(false);
+    expect(attackTargetRequests(s.decisions)).toEqual([]);
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("dino").topCard.cardId).toBe("BT12-055");
+
+    const control = await digivolveFromOgremon({
+      battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+      security: ["BT1-011"],
+    });
+    expect(observe(control.engine).hasAttackedThisTurn(control.perm("dino"))).toBe(true);
+    expect(attackTargetRequests(control.decisions)).toHaveLength(1);
+  });
+
+  it("still attacks an opponent's Digimon after the 'then' when it did not DNA digivolve (Q4706)", async () => {
+    const s = await digivolveFromOgremon({
+      battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+      security: ["BT1-011"],
+    });
+    const targetInstanceId = s.inst("target").instanceId;
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("dino"))).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(targetInstanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("dino").currentDP).toBe(8000);
   });
 });

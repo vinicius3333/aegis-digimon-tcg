@@ -339,3 +339,50 @@ describe("EX12-026 Shellmon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("EX12-026 Shellmon — KB Q&A rulings", () => {
+  it("keeps the attack and block lock after the restricted Digimon gains two or more sources (Q6753)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-026", as: "source" }], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "EX12-024", as: "target", under: ["BT1-009", "BT1-010", "BT1-011"] }],
+          hand: [{ card: "EX12-032", as: "digivolution" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "block"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").stack).toHaveLength(1);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("target").permanentId,
+        instanceId: s.inst("digivolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "EX12-032");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("target").stack.length).toBeGreaterThanOrEqual(2);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+  });
+});

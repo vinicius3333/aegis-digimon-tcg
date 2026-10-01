@@ -4,8 +4,11 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import type { PermanentSpec } from "../../engine/testkit/harness.js";
 import "./BT12-100.js";
+import "./BT12-112.js";
+import "../BT5/BT5-031.js";
 
 describe("BT12-100 compiled IR module", () => {
   it("registers its Main and Security clauses through the declarative record", () => {
@@ -138,4 +141,55 @@ it("prompts for the Shoutmon X7 target when more than one is present", async () 
   expect(s.perm("firstShoutmon").isSuspended).toBe(true);
   expect(s.perm("secondShoutmon").isSuspended).toBe(false);
   expect(observe(s.engine).isAttacking()).toBe(false);
+});
+
+describe("BT12-100 Final Xros Blade — KB Q&A rulings", () => {
+  async function playFinalXrosBlade(shoutmon: PermanentSpec) {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT12-100", as: "option" }], battleArea: [shoutmon] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 9;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("cannot attack with a Shoutmon X7: Superior Mode that was played this turn (Q2235)", async () => {
+    const playedThisTurn = await playFinalXrosBlade({
+      card: "BT12-112",
+      as: "shoutmon",
+      suspended: true,
+      enteredThisTurn: true,
+    });
+    expect(playedThisTurn.state.players[1]!.battleArea).toHaveLength(0);
+    expect(playedThisTurn.perm("shoutmon").isSuspended).toBe(false);
+    expect(playedThisTurn.state.players[1]!.security).toHaveLength(1);
+    expect(observe(playedThisTurn.engine).isAttacking()).toBe(false);
+
+    const inPlayBefore = await playFinalXrosBlade({ card: "BT12-112", as: "shoutmon", suspended: true });
+    expect(inPlayBefore.state.players[1]!.security).toHaveLength(0);
+    expect(inPlayBefore.perm("shoutmon").isSuspended).toBe(true);
+  });
+
+  it("activates the attacking Digimon's [When Attacking] effect for the effect attack (Q2236)", async () => {
+    const attacked = await playFinalXrosBlade({
+      card: "BT12-112",
+      as: "shoutmon",
+      suspended: true,
+      under: ["BT5-031"],
+    });
+    expect(attacked.state.players[1]!.security).toHaveLength(0);
+    expect(attacked.state.memory).toBe(1);
+
+    const withoutWhenAttacking = await playFinalXrosBlade({ card: "BT12-112", as: "shoutmon", suspended: true });
+    expect(withoutWhenAttacking.state.players[1]!.security).toHaveLength(0);
+    expect(withoutWhenAttacking.state.memory).toBe(0);
+  });
 });

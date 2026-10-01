@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../EX4/EX4-074.js";
 import { compiled } from "./BT11-077.js";
 
 describe("BT11-077 Chikurimon", () => {
@@ -94,5 +95,38 @@ describe("BT11-077 Chikurimon", () => {
     await settle(() => s.state.memory === -1);
 
     expect(s.state.memory).toBe(-1);
+  });
+});
+
+describe("BT11-077 Chikurimon — KB Q&A rulings", () => {
+  it("cannot activate [On Play] when an already active DP reduction deletes it at 0 DP on play (Q2105)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-077", as: "chikurimon" }],
+          deck: ["BT11-082", "BT1-009", "BT1-010", "BT1-015", "BT1-020"],
+          battleArea: [{ card: "BT1-038", as: "witness" }],
+        },
+        1: { battleArea: [{ card: "EX4-074", as: "ruin-mode" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const witnessPrintedDp = s.perm("witness").currentDP;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("ruin-mode").permanentId], "byEffect");
+    await settle(() => s.perm("witness").currentDP === witnessPrintedDp - 5000);
+    expect(s.perm("witness").currentDP).toBe(witnessPrintedDp - 5000);
+    const chikurimonId = s.inst("chikurimon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: chikurimonId })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === chikurimonId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(chikurimonId);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-082")).toBe(false);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "BT11-077")).toBe(false);
   });
 });

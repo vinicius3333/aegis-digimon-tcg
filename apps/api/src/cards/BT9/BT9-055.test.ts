@@ -55,3 +55,37 @@ describe("BT9-055 GrandisKuwagamon", () => {
     expect(s.perm("target").isSuspended).toBe(true);
   });
 });
+
+describe("BT9-055 GrandisKuwagamon — KB Q&A rulings", () => {
+  const attackWithSourceUnder = async (sourceCardId: string) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-055", as: "attacker", under: [sourceCardId] }] },
+        1: { battleArea: [{ card: "BT1-015", as: "defender" }], security: 1 },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    return s;
+  };
+
+  it("needs a card named [X Antibody] in its digivolution cards; an [X Antibody] trait alone does not count (Q1850)", async () => {
+    for (const traitOnlySource of ["BT9-052", "BT10-080"]) {
+      const traitOnly = await attackWithSourceUnder(traitOnlySource);
+      expect(traitOnly.perm("defender").isSuspended).toBe(false);
+      expect(traitOnly.perm("attacker").isSuspended).toBe(true);
+    }
+
+    const namedXAntibody = await attackWithSourceUnder("BT9-109");
+    expect(namedXAntibody.perm("defender").isSuspended).toBe(true);
+    expect(namedXAntibody.perm("attacker").isSuspended).toBe(false);
+  });
+});

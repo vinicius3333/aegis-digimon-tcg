@@ -86,3 +86,32 @@ describe("EX4-067 Full Metal Blaze", () => {
   });
   ex4CardBehaviorTests("EX4-067");
 });
+
+describe("EX4-067 Full Metal Blaze — KB Q&A rulings", () => {
+  it("counts the Digimon it just returned toward the 8-card hand check (Q3506)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-031", as: "blue" }], hand: [{ card: "EX4-067", as: "subject" }] },
+        1: {
+          hand: Array(7).fill("BT1-009"),
+          battleArea: [
+            { card: "BT1-013", as: "low" },
+            { card: "BT1-044", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.hand).toHaveLength(8);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("low").instanceId);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("high").instanceId);
+  });
+});

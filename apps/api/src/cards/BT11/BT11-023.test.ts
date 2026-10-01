@@ -204,3 +204,70 @@ describe("BT11-023 Veemon", () => {
     expect(nonBlue.state.memory).toBe(6);
   });
 });
+
+describe("BT11-023 Veemon — KB Q&A rulings", () => {
+  function playVeemonRevealing(deck: string[]) {
+    const s = setupEngine({ 0: { hand: [{ card: "BT11-023", as: "veemon" }], deck } });
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({
+      ok: true,
+    });
+    return s;
+  }
+
+  function revealedCardIdOf(s: ReturnType<typeof playVeemonRevealing>, instanceId: string) {
+    return s.state.players[0]!.deck.find((card) => card.instanceId === instanceId)?.cardId;
+  }
+
+  it("still adds the Veedramon Digimon when no blue Tamer is revealed (Q2066)", async () => {
+    const s = playVeemonRevealing(["BT11-027", "BT1-085", "BT1-009"]);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const pick = s.decisions.at(-1)!;
+    const candidates = pick.req.options?.candidateInstanceIds ?? [];
+    expect(candidates.map((id) => revealedCardIdOf(s, id))).toEqual(["BT11-027"]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pick.req.decisionId,
+        response: { kind: "selectCards", instanceIds: candidates },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT11-027"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-085"]);
+  });
+
+  it("must add both the Veedramon Digimon and the blue Tamer when both are revealed (Q2067)", async () => {
+    const s = playVeemonRevealing(["BT11-027", "BT11-090", "BT1-009"]);
+
+    for (const expectedCardId of ["BT11-027", "BT11-090"]) {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const pick = s.decisions.at(-1)!;
+      const candidates = pick.req.options?.candidateInstanceIds ?? [];
+      expect(pick.req.options).toMatchObject({ min: 1, max: 1 });
+      expect(candidates.map((id) => revealedCardIdOf(s, id))).toEqual([expectedCardId]);
+
+      const skip = s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pick.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      });
+      expect(skip.ok).toBe(false);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pick.req.decisionId,
+          response: { kind: "selectCards", instanceIds: candidates },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT11-027", "BT11-090"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+  });
+});

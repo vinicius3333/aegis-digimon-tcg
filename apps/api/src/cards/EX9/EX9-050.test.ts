@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-050", () => {
-  it("does not evolve into a legal black level 5 without Ver.1", async () => {
+  it("does not evolve into a legal black level 5 without Ver.1, but may still place the Ver.1 cards (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -22,8 +22,14 @@ describe("EX9-050", () => {
     await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-050");
-    expect(s.perm("source").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-007", "EX9-016", "EX9-061"]);
+    expect(
+      s
+        .perm("source")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual(["EX9-007", "EX9-016", "EX9-061"]);
+    expect(s.perm("source").stack.every(({ faceUp }) => !faceUp)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
     expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -191,5 +197,49 @@ describe("EX9-050", () => {
     expect(s.perm("blocker").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("EX9-050 Numemon — KB Q&A rulings", () => {
+  it("never accepts fewer than 3 placed Ver.1 cards as the 'by' condition (Q4805)", async () => {
+    const partial = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-050", as: "source" }],
+          trash: ["EX9-007", "EX9-016"],
+          hand: ["EX9-053"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(partial.engine).runTurn(0);
+    await settle();
+    expect(partial.perm("source").topCard.cardId).toBe("EX9-050");
+    expect(partial.perm("source").stack).toHaveLength(0);
+    expect(partial.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-007", "EX9-016"]);
+    expect(partial.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-053"]);
+
+    const full = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-050", as: "source" }],
+          trash: ["EX9-007", "EX9-016", "EX9-061", "EX9-007"],
+          hand: ["EX9-053"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    full.state.memory = 5;
+    await advance(full.engine).runTurn(0);
+    await settle();
+    const placement = full.decisions.find(
+      ({ req }) =>
+        req.sourceCardId === "EX9-050" &&
+        (req.kind === "selectCards" || req.kind === "chooseTargets") &&
+        (req.options?.candidateInstanceIds ?? []).length === 4,
+    );
+    expect(placement?.req.options).toMatchObject({ min: 3, max: 3 });
+    expect(full.perm("source").topCard.cardId).toBe("EX9-053");
+    expect(full.perm("source").stack.filter(({ faceUp }) => !faceUp)).toHaveLength(3);
   });
 });

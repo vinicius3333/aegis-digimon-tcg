@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: ["battleArea", "breeding"],
               kind: ["Digimon", "Tamer"],
               nameOrTrait: [
                 {
@@ -48,10 +49,12 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenDigimonWouldLeave",
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "instead",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
@@ -59,39 +62,21 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 5 },
+                  nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              levelComparison: { op: "lte", value: 5 },
-              nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          optional: true,
         },
       ],
     },

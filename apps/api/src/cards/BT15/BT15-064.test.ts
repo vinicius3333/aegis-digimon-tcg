@@ -150,3 +150,77 @@ describe("BT15-064", () => {
     await nextTurn;
   });
 });
+
+describe("BT15-064 Megadramon — KB Q&A rulings", () => {
+  it("places the only revealed Machine/Cyborg/SoC card under itself and adds nothing to hand (Q2550)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-064", as: "source" }],
+          deck: [
+            { card: "BT1-009", as: "firstFiller" },
+            { card: "BT15-066", as: "onlyMachine" },
+            { card: "BT1-009", as: "secondFiller" },
+            { card: "BT15-061", as: "unrevealedMachine" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("secondFiller").instanceId),
+    );
+
+    const player = s.state.players[0]!;
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("onlyMachine").instanceId]);
+    expect(player.hand).toHaveLength(0);
+    expect(player.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("firstFiller").instanceId, s.inst("secondFiller").instanceId].sort(),
+    );
+    expect(player.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrevealedMachine").instanceId]);
+  });
+
+  it("adds only a Machine/Cyborg/SoC trait card to hand, never a revealed card without the trait (Q2551)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-064", as: "source" }],
+          deck: [
+            { card: "BT15-066", as: "firstMachine" },
+            { card: "BT1-009", as: "withoutTrait" },
+            { card: "BT15-061", as: "secondMachine" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    preferred.push(s.inst("withoutTrait").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("withoutTrait").instanceId),
+    );
+
+    const player = s.state.players[0]!;
+    const machineIds = [s.inst("firstMachine").instanceId, s.inst("secondMachine").instanceId];
+    const placedUnder = s.perm("source").stack.map(({ instanceId }) => instanceId);
+    const addedToHand = player.hand.map(({ instanceId }) => instanceId);
+    expect(placedUnder).toHaveLength(1);
+    expect(addedToHand).toHaveLength(1);
+    expect([...placedUnder, ...addedToHand].sort()).toEqual([...machineIds].sort());
+    expect(player.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("withoutTrait").instanceId]);
+  });
+});

@@ -286,3 +286,88 @@ describe("EX5-007 Coronamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-007 Coronamon — KB Q&A rulings", () => {
+  function activatePlacement(s: ReturnType<typeof setupEngine>, sourceInstanceId: string) {
+    const effect = observe(s.engine)
+      .activatableEffects(s.perm("host"))
+      .find((entry) => entry.instanceId === sourceInstanceId && /Gain 2 memory/i.test(entry.description ?? ""));
+    expect(effect).toBeDefined();
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: effect!.effectKey })).toEqual(
+      { ok: true },
+    );
+  }
+
+  it("counts its own placement as an effect placing the top card, so Sunmon below it reacts (Q3526)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-008", as: "host", under: ["EX5-001", { card: "EX5-007", as: "coronamon" }] }],
+          hand: [{ card: "BT1-014", as: "evolution" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    activatePlacement(s, s.inst("coronamon").instanceId);
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-014");
+
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX5-008", "EX5-001", "EX5-007"]);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("puts the level 4 top card under itself, leaving a level 3 Coronamon (Q3527)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX5-008", as: "host", under: [{ card: "EX5-007", as: "coronamon" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(getCardDefinition(s.perm("host").topCard!.cardId)?.level).toBe(4);
+
+    activatePlacement(s, s.inst("coronamon").instanceId);
+    await settle(() => s.perm("host").topCard?.cardId === "EX5-007");
+
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("coronamon").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX5-008"]);
+    expect(getCardDefinition(s.perm("host").topCard!.cardId)?.level).toBe(3);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("keeps each copy's once-per-turn record after it leaves the stack, so the loop stops (Q3528)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX5-008",
+              as: "host",
+              under: [
+                { card: "EX5-007", as: "lower" },
+                { card: "EX5-007", as: "upper" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    activatePlacement(s, s.inst("upper").instanceId);
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("upper").instanceId);
+    activatePlacement(s, s.inst("lower").instanceId);
+    await settle(() => s.perm("host").topCard?.instanceId === s.inst("lower").instanceId);
+
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("upper").instanceId);
+    expect(
+      observe(s.engine)
+        .activatableEffects(s.perm("host"))
+        .filter((entry) => /Gain 2 memory/i.test(entry.description ?? "")),
+    ).toEqual([]);
+    expect(s.state.memory).toBe(4);
+  });
+});

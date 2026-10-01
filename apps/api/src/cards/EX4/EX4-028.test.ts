@@ -480,3 +480,30 @@ describe("EX4-028 Doumon", () => {
     await loop;
   });
 });
+
+describe("EX4-028 Doumon — KB Q&A rulings", () => {
+  it("is played from Kuzuhamon's sources as a [Taomon] through its name rule (Q3472)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-030", as: "kuzuhamon", under: [{ card: "EX4-028", as: "doumon" }] }],
+          hand: [{ card: "BT1-102", as: "option" }],
+          deck: DECK,
+          security: SECURITY,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    const played = s.state.players[0]!.battleArea.find((perm) => perm.permanentId !== s.perm("kuzuhamon").permanentId);
+    expect(played?.topCard.instanceId).toBe(s.inst("doumon").instanceId);
+    expect(s.perm("kuzuhamon").stack).toHaveLength(0);
+  });
+});

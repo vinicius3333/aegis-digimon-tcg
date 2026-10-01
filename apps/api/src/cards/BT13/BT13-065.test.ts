@@ -1,7 +1,11 @@
 import "../ST1/ST1-10.js";
+import "./BT13-014.js";
+import "../BT16/BT16-011.js";
+import "../BT16/BT16-015.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-065.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("BT13-065 PlatinumSukamon", () => {
   it("uses De-Digivolve 1 stopping at level 3 and the inherited deletion replacement", () => {
@@ -100,5 +104,81 @@ describe("BT13-065 PlatinumSukamon", () => {
 
     expect(s.perm("target").topCard?.cardId).toBe("BT13-066");
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT13-072")).toBe(true);
+  });
+});
+
+describe("BT13-065 PlatinumSukamon — KB Q&A rulings", () => {
+  it("does not let Sukamon A's inherited effect activate again when Sukamon B's effect deletes A in answer (Q2308)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-040", as: "sukamonA", under: ["BT13-065"] },
+            { card: "BT11-040", as: "sukamonB", under: ["BT13-065"] },
+          ],
+        },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const sukamonAId = s.perm("sukamonA").permanentId;
+    const sukamonBId = s.perm("sukamonB").permanentId;
+    const onBoard = (permanentId: string) =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: sukamonAId,
+        target: { kind: "permanent", permanentId: s.perm("phoenix").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 3000);
+
+    const activationOffers = s.decisions.filter(({ seat, req }) => seat === 0 && req.kind === "optional");
+    expect(activationOffers).toHaveLength(2);
+    expect(onBoard(sukamonAId)).toBe(false);
+    expect(onBoard(sukamonBId)).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT13-065")).toHaveLength(1);
+  });
+
+  it("removes Phoenixmon (X Antibody)'s [End of Attack] grant with its De-Digivolve, so a pending Garudamon (X Antibody) inherited effect can't activate (Q2615)", async () => {
+    async function attackAndDeleteWithGarudamon(opponentDigimon: string) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT16-015", as: "phoenixmonX", under: ["BT13-014", "BT16-011", "BT2-019"] }] },
+          1: {
+            battleArea: [{ card: opponentDigimon, as: "prey" }],
+            security: ["BT1-010", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT13-014"] },
+      );
+      await s.ready();
+      const preyId = s.perm("prey").permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("phoenixmonX").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking(), 3000);
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preyId)).toBe(false);
+      return {
+        attackerTopCardId: s.perm("phoenixmonX").topCard.cardId,
+        opponentSecurity: s.state.players[1]!.security.length,
+      };
+    }
+
+    expect(await attackAndDeleteWithGarudamon("BT13-065")).toEqual({
+      attackerTopCardId: "BT2-019",
+      opponentSecurity: 1,
+    });
+    expect(await attackAndDeleteWithGarudamon("BT1-010")).toEqual({
+      attackerTopCardId: "BT16-015",
+      opponentSecurity: 0,
+    });
   });
 });

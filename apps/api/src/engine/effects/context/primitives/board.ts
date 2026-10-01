@@ -1,4 +1,4 @@
-import type { CardColor, CardInstance, Permanent, Seat } from "@aegis/shared";
+import type { CardColor, CardInstance, Permanent, Seat, ZoneRef } from "@aegis/shared";
 
 /**
  * Putting cards onto the board and moving them once there: play, digivolve,
@@ -26,6 +26,11 @@ export interface BoardPrimitives {
    * continuous hand-use reductions as an ordinary Option use.
    */
   effectiveLooseUseCost?(instanceId: string, controllerSeat: Seat): number | undefined;
+  /**
+   * Cost of a loose card while it sits in hand: printed cost minus only the reductions that
+   * apply continuously in hand, not "when you would use this card" ones (KB Q1501).
+   */
+  inHandCost?(instanceId: string, controllerSeat: Seat): number | undefined;
   /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
@@ -59,6 +64,8 @@ export interface BoardPrimitives {
       assemblyMaterialInstanceIdsByPlay?: Record<string, string[]>;
       /** Resolved host permanent for stack-origin instances, when the source is a stack zone. */
       hostPermanentIds?: Record<string, string>;
+      /** The zone the rules play the cards from when it differs from where they now sit. */
+      playedFromZone?: ZoneRef;
     },
   ): Promise<Permanent[]>;
   /**
@@ -80,6 +87,11 @@ export interface BoardPrimitives {
       payCost?: boolean;
       draw?: boolean;
       costDelta?: number;
+      /**
+       * A reduction counted only after would-digivolve cost replacements resolve, so a
+       * "for each suspended Digimon" scaling sees Digimon those replacements suspended (Q4276).
+       */
+      deferredCostReduction?: () => number;
       costOverride?: number;
       /** Choose a matching alternate digivolution requirement when printed and alternate paths both match. */
       useAlternateCost?: boolean;
@@ -93,6 +105,16 @@ export interface BoardPrimitives {
       suppressWhenDigivolving?: boolean;
     },
   ): Promise<Permanent | undefined>;
+  /**
+   * Whether a "can't digivolve" rule stops `digivolveFromInstance` from digivolving
+   * `targetPermanentId` into `evolvingCardId`. With `virtualBase`, a Tamer is checked as the
+   * Digimon it digivolves as (KB Q1157).
+   */
+  isEffectDigivolveBlocked?(
+    targetPermanentId: string,
+    evolvingCardId: string,
+    virtualBase?: { level: number; colors: CardColor[] },
+  ): boolean;
   /**
    * DNA-digivolve: consume `materialPermanentIds` (two or more battle-area permanents)
    * and play `resultInstanceId` (a loose card) as a single new permanent that carries

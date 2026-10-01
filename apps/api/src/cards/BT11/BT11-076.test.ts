@@ -1,9 +1,10 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT11-016.js";
 import "./BT11-086.js";
+import "../BT10/BT10-111.js";
 import { compiled } from "./BT11-076.js";
 
 describe("BT11-076 Ignitemon", () => {
@@ -192,5 +193,68 @@ describe("BT11-076 Ignitemon", () => {
     expect(s.state.memory).toBe(-7);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
+  });
+});
+
+describe("BT11-076 Ignitemon — KB Q&A rulings", () => {
+  it("activates its inherited effect when the effect-played DigiXros Digimon has it as a DigiXros material (Q2104)", async () => {
+    async function mervamonPlaysShoutmonKingVersion(useIgnitemonAsMaterial: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT11-086", as: "mervamon" }],
+            hand: [{ card: "BT11-076", as: "ignitemon" }],
+            trash: [{ card: "BT10-111", as: "shoutmonKing" }],
+          },
+        },
+        { autoAcceptOptional: true, autoOrderTriggers: true },
+      );
+      const ignitemonId = s.inst("ignitemon").instanceId;
+      const shoutmonKingId = s.inst("shoutmonKing").instanceId;
+      const answered = new Set<string>();
+      const answerCardSelections = (): void => {
+        for (const { seat, req } of s.decisions) {
+          if (req.kind !== "selectCards" || answered.has(req.decisionId)) continue;
+          answered.add(req.decisionId);
+          const candidates = req.options?.candidateInstanceIds ?? [];
+          const isDigiXrosPicker = req.options?.digiXrosCardId !== undefined;
+          const instanceIds = isDigiXrosPicker ? (useIgnitemonAsMaterial ? [ignitemonId] : []) : candidates.slice(0, 1);
+          s.engine.applyIntent(seat, {
+            type: "respondDecision",
+            decisionId: req.decisionId,
+            response: { kind: "selectCards", instanceIds },
+          });
+        }
+      };
+      s.state.memory = 0;
+      await s.ready();
+
+      const onPlay = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+      await settle(() => {
+        answerCardSelections();
+        return (
+          s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === shoutmonKingId) &&
+          s.state.pendingDecision === undefined
+        );
+      });
+      await onPlay;
+      await settle();
+      const shoutmonKing = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === shoutmonKingId);
+      const digiXrosCandidates = s.decisions.find(({ req }) => req.options?.digiXrosCardId === "BT10-111")?.req.options
+        ?.candidateInstanceIds;
+      expect(digiXrosCandidates).toContain(ignitemonId);
+      return { s, stackIds: shoutmonKing?.stack.map(({ instanceId }) => instanceId) ?? [] };
+    }
+
+    const digiXrosed = await mervamonPlaysShoutmonKingVersion(true);
+    expect(digiXrosed.stackIds).toEqual([digiXrosed.s.inst("ignitemon").instanceId]);
+    expect(digiXrosed.s.state.memory).toBe(1);
+
+    const withoutIgnitemon = await mervamonPlaysShoutmonKingVersion(false);
+    expect(withoutIgnitemon.stackIds).toEqual([]);
+    expect(withoutIgnitemon.s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      withoutIgnitemon.s.inst("ignitemon").instanceId,
+    ]);
+    expect(withoutIgnitemon.s.state.memory).toBe(0);
   });
 });

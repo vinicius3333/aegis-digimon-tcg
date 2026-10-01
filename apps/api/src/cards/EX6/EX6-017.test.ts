@@ -146,3 +146,40 @@ describe("EX6-017 Luxmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 });
+
+describe("EX6-017 Luxmon — KB Q&A rulings", () => {
+  async function playRevealing(deck: string[]) {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX6-017", as: "revealer" }], deck } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revealer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revealer").instanceId),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("adds the one matching card when only an Angel/Archangel Digimon or a Three Great Angels card is revealed (Q3712)", async () => {
+    const onlyTrait = await playRevealing(["EX6-019", "BT1-009", "BT1-010"]);
+    expect(onlyTrait.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX6-019"]);
+    expect(onlyTrait.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+
+    const onlyOther = await playRevealing(["BT1-009", "EX6-027", "BT1-010"]);
+    expect(onlyOther.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX6-027"]);
+    expect(onlyOther.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+  });
+
+  it("must add both an Angel/Archangel Digimon and a Three Great Angels card when both are revealed (Q3713)", async () => {
+    const s = await playRevealing(["EX6-019", "EX6-027", "BT1-009"]);
+    const revealPicks = s.decisions.filter(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets");
+    expect(revealPicks.every(({ req }) => (req.options?.min ?? 1) >= 1)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX6-019", "EX6-027"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+});

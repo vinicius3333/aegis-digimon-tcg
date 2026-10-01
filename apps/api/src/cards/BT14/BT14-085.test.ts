@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-085.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type PermanentSpec } from "../../engine/testkit/harness.js";
+import "../EX13/EX13-051.js";
 import "../index.js";
 
 describe("BT14-085", () => {
@@ -9,7 +10,9 @@ describe("BT14-085", () => {
       kind: "RevealAdd",
       revealCount: 3,
       rest: "deckBottom",
-      add: [{ to: "hand", filter: { nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Fairy"], match: "trait" }] } }],
+      add: [
+        { to: "hand", filter: { nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Fairy"], match: "traitContains" }] } },
+      ],
     }));
   it("watches effect suspension of any Digimon rather than only Mimi", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
@@ -32,6 +35,17 @@ describe("BT14-085", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT14-044"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-044")).toBe(true);
     expect(s.state.players[0]!.deck.slice(-2).map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+  });
+
+  it("counts a card whose trait only contains [Plant] (e.g. [Carnivorous Plant])", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT14-085", as: "mimi" }], deck: ["BT1-071", "BT1-009", "BT1-010"] } },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mimi").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-071");
   });
 
   it("naturally gains memory when an effect suspends a Digimon", async () => {
@@ -78,5 +92,48 @@ describe("BT14-085", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-085"));
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-085")).toBe(true);
+  });
+});
+
+describe("BT14-085 Mimi Tachikawa — KB Q&A rulings", () => {
+  async function deleteOpponentSolarmon(opponentBattleArea: PermanentSpec[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-085", as: "mimi" },
+            { card: "BT1-009", as: "redDigimon" },
+          ],
+          hand: [{ card: "BT2-091", as: "deleteOption" }],
+        },
+        1: { battleArea: opponentBattleArea },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deleteOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.trash.length > 0);
+    return s;
+  }
+
+  it("gains memory when the opponent's own effect suspends one of the opponent's Digimon (Q2458)", async () => {
+    const s = await deleteOpponentSolarmon([
+      { card: "EX13-051", as: "guardromon" },
+      { card: "BT20-047", as: "solarmon" },
+    ]);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["EX13-051", "BT20-047"]);
+    expect(s.perm("guardromon").isSuspended).toBe(true);
+    expect(s.perm("mimi").isSuspended).toBe(true);
+    expect(s.perm("redDigimon").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(3);
+
+    const withoutSuspension = await deleteOpponentSolarmon([{ card: "BT20-047", as: "solarmon" }]);
+    expect(withoutSuspension.state.players[1]!.battleArea).toHaveLength(0);
+    expect(withoutSuspension.perm("mimi").isSuspended).toBe(false);
+    expect(withoutSuspension.state.memory).toBe(2);
   });
 });

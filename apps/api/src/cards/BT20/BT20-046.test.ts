@@ -141,3 +141,32 @@ describe("BT20-046 Espimon", () => {
     expect(s.perm("host").currentDP).toBe(5000);
   });
 });
+
+describe("BT20-046 Espimon — KB Q&A rulings", () => {
+  it("does not reduce the digivolution cost while Espimon is in the breeding area (Q4369)", async () => {
+    async function memoryAfterDigivolvingIntoMachine(zone: "battleArea" | "breeding"): Promise<number> {
+      const s = setupEngine({
+        0: {
+          ...(zone === "battleArea"
+            ? { battleArea: [{ card: "BT20-046", as: "espimon" }] }
+            : { breeding: { card: "BT20-046", as: "espimon" } }),
+          hand: [{ card: "BT20-049", as: "machine" }],
+        },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("espimon").permanentId,
+          instanceId: s.inst("machine").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("espimon").topCard.cardId === "BT20-049");
+      return s.state.memory;
+    }
+
+    expect(await memoryAfterDigivolvingIntoMachine("breeding")).toBe(1);
+    expect(await memoryAfterDigivolvingIntoMachine("battleArea")).toBe(2);
+  });
+});

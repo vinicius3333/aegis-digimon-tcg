@@ -9,6 +9,8 @@ import "./LM-021.js";
 import "../BT17/BT17-018.js";
 import "../BT17/BT17-010.js";
 import "../AD1/AD1-002.js";
+import "../EX10/EX10-056.js";
+import "./LM-020.js";
 
 describe("LM-026 Megidramon", () => {
   it("registers complete leave replacement, rule name, and inherited deletion ceiling IR", () => {
@@ -263,5 +265,118 @@ describe("LM-026 Megidramon", () => {
     expect(definition?.colors).toEqual(["Purple", "Red"]);
     expect(definition?.isAce).toBe(true);
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+});
+
+describe("LM-026 Megidramon — KB Q&A rulings", () => {
+  function guilmonHost(s: ReturnType<typeof setupEngine>) {
+    return s.state.players[0]!.battleArea.find((perm) => perm.topCard.cardId === "BT2-009");
+  }
+
+  const preferred: string[] = [];
+
+  async function megidramonWithGuilmonInTrash() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-026", as: "megidramon" },
+            { card: "BT1-009", as: "other" },
+          ],
+          trash: ["BT2-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    return s;
+  }
+
+  it("treats deletion, returning to hand or deck, moving to breeding, placing under another card and placing in security as leaving the battle area (Q4029)", async () => {
+    const removals: [string, (s: ReturnType<typeof setupEngine>, instanceId: string) => Promise<unknown>][] = [
+      ["delete", (s) => advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId])],
+      ["return to hand", (s, instanceId) => advance(s.engine).verb.returnToHand([instanceId])],
+      ["return to deck", (s, instanceId) => advance(s.engine).verb.returnToDeck([instanceId])],
+      // P-143 Drimogemon's MovePermanent is the only breeding move in the card pool, and it moves only itself.
+      ["move to breeding area", (s) => advance(s.engine).verb.moveToBreeding(s.perm("megidramon").permanentId)],
+      [
+        "place under",
+        async (s) => {
+          const bagramon = s.putOnBoard(1, "EX10-056");
+          preferred.splice(
+            0,
+            preferred.length,
+            s.perm("megidramon").permanentId,
+            s.perm("megidramon").topCard.instanceId,
+          );
+          await advance(s.engine).fire(EffectTiming.WhenDigivolving, bagramon);
+        },
+      ],
+      [
+        "place in security",
+        async (s) => {
+          const quantumon = s.putOnBoard(1, "LM-020");
+          preferred.splice(
+            0,
+            preferred.length,
+            s.perm("megidramon").permanentId,
+            s.perm("megidramon").topCard.instanceId,
+          );
+          await advance(s.engine).fire(EffectTiming.WhenDigivolving, quantumon);
+        },
+      ],
+    ];
+    for (const [label, remove] of removals) {
+      preferred.length = 0;
+      const s = await megidramonWithGuilmonInTrash();
+      const megidramonCard = s.perm("megidramon").topCard.instanceId;
+
+      await remove(s, megidramonCard);
+      await settle(() => s.state.pendingDecision === undefined, 2000);
+
+      expect(
+        guilmonHost(s)?.stack.map((card) => card.instanceId),
+        label,
+      ).toEqual([megidramonCard]);
+      expect(
+        s.state.players[0]!.hand.some((card) => card.cardId === "LM-026"),
+        label,
+      ).toBe(false);
+      expect(
+        s.state.players[0]!.deck.some((card) => card.cardId === "LM-026"),
+        label,
+      ).toBe(false);
+      expect(
+        s.perm("other").stack.some((card) => card.cardId === "LM-026"),
+        label,
+      ).toBe(false);
+      expect(
+        s.state.players[0]!.security.some((card) => card.cardId === "LM-026"),
+        label,
+      ).toBe(false);
+      expect(s.state.players[0]!.breeding, label).toBeUndefined();
+    }
+  });
+
+  it("does not apply <Overflow> when it becomes the played Guilmon's digivolution card (Q4030)", async () => {
+    const replaced = await megidramonWithGuilmonInTrash();
+    const before = replaced.state.memory;
+    await advance(replaced.engine).verb.deletePermanent([replaced.perm("megidramon").permanentId]);
+    await settle(() => replaced.state.pendingDecision === undefined, 2000);
+    expect(guilmonHost(replaced)?.stack.map((card) => card.cardId)).toEqual(["LM-026"]);
+    expect(replaced.state.memory).toBe(before);
+
+    const control = setupEngine(
+      { 0: { battleArea: [{ card: "LM-026", as: "megidramon" }] } },
+      { autoAcceptOptional: true },
+    );
+    control.state.turnSeat = 1;
+    await control.ready();
+    const controlBefore = control.state.memory;
+    await advance(control.engine).verb.deletePermanent([control.perm("megidramon").permanentId]);
+    await settle(() => control.state.pendingDecision === undefined, 2000);
+    expect(control.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["LM-026"]);
+    expect(Math.abs(control.state.memory - controlBefore)).toBe(4);
   });
 });

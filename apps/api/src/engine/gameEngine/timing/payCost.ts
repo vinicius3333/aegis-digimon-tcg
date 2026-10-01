@@ -1,9 +1,10 @@
-import { EffectTiming, type Permanent, type CardInstance, type ZoneRef } from "@aegis/shared";
+import { EffectTiming, type Permanent, type CardInstance, type Seat, type ZoneRef } from "@aegis/shared";
 import { canActivate, canTrigger } from "../../effects/kernel.js";
 import { effectsOf } from "../../effects/collect.js";
 import {
   applyWouldBePlayedSelfReducer,
   potentialWouldBePlayedSelfReduction,
+  wouldBePlayedRuleTrashCandidates,
   wouldBePlayedSelfReducersFor,
 } from "../../effects/interpreter.js";
 import type { EffectContext } from "../../effects/EffectContext.js";
@@ -16,6 +17,19 @@ import {
   residentPlayCostEffects,
   runCrossPermanentPlayReducers,
 } from "./playReducers.js";
+
+/** Pay-time effects of the breeding permanent: its top card's own and its sources' inherited ones. */
+export function breedingPlayCostEffects(engine: GameEngine, seat: Seat) {
+  const breeding = engine.state.players[seat]?.breeding;
+  return [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].flatMap((card, index) => {
+    if (card === undefined) return [];
+    const residentSource = cardSourceOf(engine, card);
+    return effectsOf(EffectTiming.BeforePayCost, residentSource)
+      .filter((effect) => effect.costWindow === undefined)
+      .filter((effect) => index === 0 || effect.isInherited)
+      .map((effect) => ({ effect, source: residentSource }));
+  });
+}
 
 /**
  * The pay-time interactive cost-reduction hook (subsystem: play-card / effect-framework). Fired
@@ -38,6 +52,7 @@ export async function fireBeforePayCost(
   useAsOption = false,
   originZone?: ZoneRef,
   projectOnly = false,
+  simultaneousPlayCount = 1,
 ): Promise<number> {
   const source = cardSourceOf(engine, instance);
   const reductionBlocked = engine.continuous.blocksCostReduction(source.ownerSeat, "play");
@@ -56,17 +71,9 @@ export async function fireBeforePayCost(
   // Cross-permanent reducers: a permanent OTHER than the played card (BT10-093 / EX3-040)
   // that reduces the cost of a matching played card. Scanned so the early-return below does not
   // skip the pay-time window when only such a reducer applies.
-  const crossWatchers = crossPermanentPlayReducerWatchers(engine, instance, source.ownerSeat);
+  const crossWatchers = crossPermanentPlayReducerWatchers(engine, instance, source.ownerSeat, simultaneousPlayCount);
   const residentEffects = residentPlayCostEffects(engine, source.ownerSeat);
-  const breeding = engine.state.players[source.ownerSeat]?.breeding;
-  const breedingResidentEffects = [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].flatMap((card, index) => {
-    if (card === undefined) return [];
-    const residentSource = cardSourceOf(engine, card);
-    return effectsOf(EffectTiming.BeforePayCost, residentSource)
-      .filter((effect) => effect.costWindow === undefined)
-      .filter((effect) => index === 0 || effect.isInherited)
-      .map((effect) => ({ effect, source: residentSource }));
-  });
+  const breedingResidentEffects = breedingPlayCostEffects(engine, source.ownerSeat);
   if (
     effects.length === 0 &&
     selfReducers.length === 0 &&
@@ -250,11 +257,20 @@ export async function fireBeforePayCost(
     // its cost may still be paid (KB Q4443 — under Psychemon the 2 Digimon are suspended and the
     // original cost is paid), and the delta it earns is discarded below. A cost-less reducer has
     // nothing to offer while blocked.
-    for (const reducer of selfReducers) {
+    for (const [index, reducer] of selfReducers.entries()) {
       const paysSomething =
         reducer.cost !== undefined || reducer.pay !== undefined || reducer.costActions !== undefined;
       if (reductionBlocked && !paysSomething) continue;
-      await applyWouldBePlayedSelfReducer(ctx, reducer);
+      // Only the final reduction source can be forced: while another reducer is still to come,
+      // the player keeps the choice of which one pays for the play.
+      const isLastReductionSource = index === selfReducers.length - 1 && crossWatchers.length === 0;
+      const unaffordableWithout =
+        engine.memory.maxCostFor(source.ownerSeat) < baseCost - Math.max(0, ctx.playCostDelta ?? 0);
+      await applyWouldBePlayedSelfReducer(
+        ctx,
+        reducer,
+        !reductionBlocked && isLastReductionSource && unaffordableWithout,
+      );
     }
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at engine point. Stash
@@ -274,6 +290,17 @@ export async function fireBeforePayCost(
   } finally {
     engine.payingPlayCost = wasPayingPlayCost;
   }
+}
+
+/** Digivolution cards the played card's own "would be played" costs may trash by rule. */
+export function wouldBePlayedRuleTrashMaterials(engine: GameEngine, instance: CardInstance): CardInstance[] {
+  const reducers = wouldBePlayedSelfReducersFor(instance.cardId);
+  if (reducers.length === 0) return [];
+  const ctx = buildEffectContext(engine, cardSourceOf(engine, instance), {
+    wouldBePlayedInstanceId: instance.instanceId,
+    wouldBePlayedCardId: instance.cardId,
+  });
+  return reducers.flatMap((reducer) => wouldBePlayedRuleTrashCandidates(ctx, reducer));
 }
 
 /** Resolve the in-hand half of BeforePayCost for an imminent digivolution. */

@@ -184,3 +184,97 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
     expect(s.state.memory).toBe(5);
   });
 });
+
+describe("BT15-068 Gizamon — KB Q&A rulings", () => {
+  it("does not gain memory when an effect plays an opponent's Digimon into the breeding area (Q2554)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-083", as: "gizamonHost", under: ["BT15-068"] }],
+          trash: Array.from({ length: 10 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "EX10-009", as: "creepymon" }],
+          trash: [{ card: "BT1-013", as: "breedingPlay" }],
+          hand: [{ card: "BT1-009", as: "battleAreaPlay" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("creepymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.breeding?.topCard?.instanceId === s.inst("breedingPlay").instanceId &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
+
+    expect(s.state.players[1]!.breeding?.inBreeding).toBe(true);
+    expect(s.state.memory).toBe(3);
+
+    await advance(s.engine).verb.playInstances([s.inst("battleAreaPlay").instanceId], "EX10-009");
+    await settle(() => s.state.memory === 2 && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
+      s.inst("battleAreaPlay").instanceId,
+    );
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("gains memory when one of my own effects plays an opponent's Digimon (Q2555)", async () => {
+    const attackWithWaruSeadramon = async (under: string[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT15-078", as: "waruSeadramon", under }],
+            security: ["BT1-009", "BT1-009"],
+            deck: ["BT1-009", "BT1-009"],
+          },
+          1: {
+            trash: [{ card: "BT1-009", as: "playedByMyEffect" }],
+            security: ["BT1-009", "BT1-009"],
+            deck: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      s.state.memory = 0;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("waruSeadramon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[1]!.battleArea.some(
+            (permanent) => permanent.topCard?.instanceId === s.inst("playedByMyEffect").instanceId,
+          ) &&
+          !observe(s.engine).isAttacking() &&
+          s.state.pendingDecision === undefined,
+        5000,
+      );
+      return s.state.memory;
+    };
+
+    expect(await attackWithWaruSeadramon(["BT15-068", "BT15-072"])).toBe(1);
+    expect(await attackWithWaruSeadramon(["BT15-072"])).toBe(0);
+  });
+});

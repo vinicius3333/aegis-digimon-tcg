@@ -1,4 +1,4 @@
-import { EffectDuration, requireCardDefinition } from "@aegis/shared";
+import { CardKind, EffectDuration, requireCardDefinition, type Permanent } from "@aegis/shared";
 import type { EvoCostMatch } from "../modifiers.js";
 import type { Primitives } from "../EffectContext.js";
 import { normalizeCost } from "../verbs/cardPlacement.js";
@@ -9,6 +9,12 @@ import type { PrimitivesContext } from "./context.js";
 /**
  * DP, keywords and cost adjustments held for a duration.
  */
+
+/** CR 4-3-1: a Digi-Egg on the field is a Digimon, so only other kinds need a treatment. */
+function isNativeDigimon(permanent: Permanent): boolean {
+  const kinds = requireCardDefinition(permanent.topCard.cardId).kinds;
+  return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.DigiEgg);
+}
 
 export function createStatsVerbs(pc: PrimitivesContext) {
   const {
@@ -29,12 +35,12 @@ export function createStatsVerbs(pc: PrimitivesContext) {
   const modifyDP: Primitives["modifyDP"] = (permanentId, delta, duration, opts): void => {
     const before = access.permanentById(permanentId);
     if (before === undefined) return; // no such battle-area permanent; nothing to buff
-    // "DP can't be reduced" (§15-1-3). Every printed instance of this protection says REDUCED
-    // (BT3-105, EX1-073, BT23-085, BT7-064, BT9-098, BT19-089), so it gates negative deltas
-    // only — a buff still lands on a DP-immune Digimon.
+    // "DP can't be reduced" (§15-1-3) gates negative deltas only. The ledger suppresses a
+    // reduction while `dpImmune` holds rather than dropping it, so it applies for the rest
+    // of its duration once the protection ends.
     const byOpponentEffect = pc.helpers.isOpponentEffectAgainst(permanentId);
-    if (delta < 0 && continuous.hasRestriction(permanentId, "dpImmune", undefined, { byOpponentEffect })) return;
     ledger.addDpModifier(state, permanentId, delta, durationForTarget(permanentId, duration), {
+      byOpponentEffect,
       ...(opts?.continuous === undefined ? continuousOpt() : { continuous: opts.continuous }),
       ...(opts?.sourceInstanceId !== undefined ? { sourceInstanceId: opts.sourceInstanceId } : {}),
       ...((opts?.sourceSeat ?? effectSeatStack.at(-1)) !== undefined
@@ -61,10 +67,6 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     });
   };
 
-  const restoreDpReductions: Primitives["restoreDpReductions"] = (permanentId): void => {
-    ledger.restoreDpReductions(state, permanentId);
-  };
-
   const setBaseDP = (permanentId: string, value: number, duration: EffectDuration): void => {
     const before = access.permanentById(permanentId);
     if (before === undefined) return; // no such battle-area permanent; nothing to override
@@ -78,7 +80,7 @@ export function createStatsVerbs(pc: PrimitivesContext) {
       ...continuousOpt(),
       ...(effectSeatStack.at(-1) === undefined ? {} : { sourceSeat: effectSeatStack.at(-1) }),
       ...(effectSourceKindsStack.at(-1) === undefined ? {} : { sourceKinds: effectSourceKindsStack.at(-1) }),
-      ...(continuous.originalCardInfoOverride(permanentId) === undefined ? {} : { requiresDigimonTop: true }),
+      ...(isNativeDigimon(before) ? {} : { treatsAsDigimon: true }),
     });
     // currentDP was recomputed by the ledger (override replaces base, deltas sum on top).
   };
@@ -167,10 +169,12 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     return ledger.playCostFor({ def: definition, controllerSeat }, normalizeCost(definition.playCost));
   };
 
+  const inHandCost: NonNullable<Primitives["inHandCost"]> = (instanceId, controllerSeat) =>
+    engine.inHandCost?.(instanceId, controllerSeat);
+
   return {
     modifyDP,
     modifyPlayerDP,
-    restoreDpReductions,
     setBaseDP,
     grantPierce,
     changeEvoCost,
@@ -178,5 +182,6 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     canAffordEffectPlay,
     effectivePlayCost,
     effectiveLooseUseCost,
+    inHandCost,
   };
 }

@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-048.js";
+import { expectOptionalRevealThenMandatoryAdd } from "./machineReveal.testSupport.js";
 
 describe("EX1-048 Andromon", () => {
   it("reveals 3, adds a level 6 Machine, and trashes the rest when digivolving", async () => {
@@ -139,5 +140,11 @@ describe("EX1-048 Andromon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("EX1-048 Andromon — KB Q&A rulings", () => {
+  it("may skip the reveal, but once revealed must add the level 6 Machine and trash the rest (Q3233)", async () => {
+    expect(await expectOptionalRevealThenMandatoryAdd("EX1-048")).toEqual(["BT1-011", "BT11-072"]);
   });
 });

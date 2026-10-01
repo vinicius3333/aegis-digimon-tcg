@@ -2,6 +2,7 @@ import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@a
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "../EX7/EX7-031.js";
@@ -11,6 +12,13 @@ import "./EX11-062.js";
 import "./EX11-074.js";
 import "./EX11-048.js";
 import "../BT16/BT16-033.js";
+import {
+  attackPermanent,
+  attackPlayer,
+  eventIndex,
+  isDeletionOf,
+  suspendOneDigimonFrom,
+} from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-032";
 
@@ -104,6 +112,27 @@ describe("EX11-032 GrandGalemon", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT16-007")).toBe(true);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("BT1-009");
     assertNoLoudGap(s);
+  });
+
+  it("counts a card whose trait only contains [Bird] (e.g. [Ancient Bird])", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "grand" }],
+          hand: [{ card: "ST18-06", as: "ancientBird" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("opponent").topCard.instanceId, s.inst("ancientBird").instanceId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("grand"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST18-06")).toBe(true);
   });
 
   it("uses the hand Main route by placing Galemon under a Pteromon, then digivolving for 3", async () => {
@@ -399,5 +428,139 @@ describe("EX11-032 GrandGalemon", () => {
     expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("BT19-013");
     expect(s.perm("base").isSuspended).toBe(false);
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-032 GrandGalemon — KB Q&A rulings", () => {
+  function activateHandMain(s: ReturnType<typeof setupEngine>) {
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("grand"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith(`${cardId}/`),
+    );
+    expect(effect).toBeDefined();
+    return s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: source.instanceId,
+      effectKey: effect!.effectKey,
+    });
+  }
+
+  it("combines with EX7-031 Pteromon's reduction so the hand route costs 2 (Q5838)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-031", as: "pteromon" },
+            { card: "EX11-062", as: "shoto" },
+          ],
+          hand: [{ card: cardId, as: "grand" }],
+          trash: [{ card: "EX11-028", as: "galemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(activateHandMain(s)).toEqual({ ok: true });
+    await settle(() => s.perm("pteromon").topCard.cardId === cardId);
+
+    expect(s.perm("pteromon").stack.map(({ cardId: id }) => id)).toEqual(["EX11-028", "EX7-031"]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("cannot ride P-106 Agility Training's digivolution, so that effect finds no GrandGalemon route (Q5839)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-106", as: "delay" },
+            { card: "EX11-026", as: "pteromon" },
+            { card: "EX11-062", as: "shoto" },
+          ],
+          hand: [{ card: cardId, as: "grand" }],
+          trash: [{ card: "EX11-028", as: "galemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnCount = 1;
+    await s.ready();
+    const ability = JSON.parse(s.perm("delay").activatableEffectsJson) as { effectKey: string }[];
+    expect(ability).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("delay").instanceId,
+        effectKey: ability[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-106"),
+    );
+
+    expect(s.perm("pteromon").topCard.cardId).toBe("EX11-026");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("grand").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("galemon").instanceId);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it.each(["ally", "opponent"] as const)(
+    "offers both players' Digimon to its [When Digivolving] suspension and suspends the chosen one (%s) (Q5840)",
+    async (pick) => {
+      const { s, offeredAlly, offeredOpponent } = await suspendOneDigimonFrom(
+        cardId,
+        EffectTiming.WhenDigivolving,
+        pick,
+      );
+
+      expect(offeredAlly).toBe(true);
+      expect(offeredOpponent).toBe(true);
+      expect(s.perm(pick).isSuspended).toBe(true);
+    },
+  );
+
+  it("unsuspends for the battle win only after the losing Digimon is deleted (Q5841)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-034", as: "host", under: [cardId] }] },
+        1: { battleArea: [{ card: "BT1-012", as: "target", suspended: true }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+
+    await attackPermanent(s, 0, "host", "target");
+
+    const deletion = eventIndex(s, isDeletionOf(targetId));
+    const battleWin = eventIndex(s, (event) => event.kind === "effectResolved" && event.sourceCardId === cardId);
+    expect(deletion).toBeGreaterThanOrEqual(0);
+    expect(battleWin).toBeGreaterThan(deletion);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
+
+  it("unsuspends after beating a Security Digimon (Q5842)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-034", as: "host", under: [cardId] }] },
+        1: { security: [{ card: "BT1-012", as: "securityDigimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await attackPlayer(s, 0, "host");
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityDigimon").instanceId,
+    );
+    expect(s.perm("host").isSuspended).toBe(false);
   });
 });

@@ -4,7 +4,11 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-106.js";
+import "./BT12-045.js";
+import "../BT10/BT10-018.js";
+import "../BT19/BT19-022.js";
 
 describe("BT12-106 compiled module", () => {
   it("registers its printed OnUseOption effect from declarative IR", () => {
@@ -115,4 +119,72 @@ it("keeps a Digimon played after resolution suspended in the opponent's next uns
 
   expect(s.perm("entrant").isSuspended).toBe(true);
   expect(flipped).not.toContain(s.perm("entrant").permanentId);
+});
+
+describe("BT12-106 Gypt Particle Cannon — KB Q&A rulings", () => {
+  it("keeps a Digimon the opponent played suspended after the [Main] effect from unsuspending in their next unsuspend phase (Q2242)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT12-106", as: "option" }],
+          battleArea: [
+            { card: "BT12-045", as: "green" },
+            { card: "BT1-009", as: "attacker", dp: 9000 },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          hand: [{ card: "BT19-022", as: "entrant" }],
+          battleArea: [{ card: "BT10-018", as: "gaossmon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const entrantInstanceId = s.inst("entrant").instanceId;
+    const entrantOnField = () =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === entrantInstanceId);
+
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("gaossmon").isSuspended);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("gaossmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(entrantOnField);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("entrant").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("entrant").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const laterTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("entrant").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await laterTurn;
+  });
 });

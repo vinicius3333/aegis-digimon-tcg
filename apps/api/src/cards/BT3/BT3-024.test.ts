@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT2/BT2-079.js";
+import "../ST3/ST3-12.js";
 import "./BT3-024.js";
 
 describe("BT3-024 Airdramon", () => {
@@ -86,5 +87,56 @@ describe("BT3-024 Airdramon", () => {
     );
     expect(playIndex).toBeGreaterThan(firstCheckIndex);
     expect(secondCheckIndex).toBeGreaterThan(playIndex);
+  });
+});
+
+describe("BT3-024 Airdramon — KB Q&A rulings", () => {
+  it("is a normal Digimon, not a Security Digimon, once its [Security] effect plays it (Q1061)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["ST3-12"],
+        security: [{ card: "BT3-024", as: "airdramon" }, "BT1-011"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "attacker", dp: 5000 }],
+        security: [{ card: "BT1-009", as: "opponentSecurity" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const instanceId = s.inst("airdramon").instanceId;
+    const attackerId = s.perm("attacker").permanentId;
+    expect(observe(s.engine).securityDp(0)).toBe(2000);
+
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 5000);
+
+    // As a Security Digimon, T.K.'s +2000 made Airdramon 6000 DP and it beat the 5000 DP attacker.
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
+    const airdramon = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === instanceId);
+    expect(airdramon).toBeDefined();
+    expect(observe(s.engine).securityDp(0)).toBe(2000);
+    expect(airdramon!.currentDP).toBe(4000);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === instanceId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+
+    s.state.turnSeat = 0;
+    s.state.turnCount += 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: airdramon!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 5000);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentSecurity").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === instanceId)?.isSuspended).toBe(true);
+    expect(s.state.gameOver).toBeFalsy();
   });
 });

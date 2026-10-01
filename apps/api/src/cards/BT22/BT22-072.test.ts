@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup, type PermanentSpec } from "../../engine/testkit/harness.js";
 import "./BT22-072.js";
-import "./index.js";
+import "../index.js";
+import { baseFor, digivolveOnto, sameLevelCases } from "./sameLevel.testSupport.js";
 
 type EngineInternals = {
   primitives: {
@@ -145,5 +146,52 @@ describe("BT22-072 Lekismon", () => {
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-069")).toHaveLength(2);
+  });
+});
+
+describe("BT22-072 Lekismon — KB Q&A rulings", () => {
+  async function digivolveLekismon(under: string[], field: PermanentSpec[] = []) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [baseFor(under), ...field],
+          hand: [
+            { card: "BT22-072", as: "lekismon" },
+            { card: "BT22-102", as: "sayo" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(digivolveOnto(s, "base", "lekismon")).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT22-072");
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  const sayoInPlay = (s: EngineSetup) =>
+    s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("sayo").instanceId);
+
+  it.each(sameLevelCases(4))(
+    "counts every card in its stack, itself included, for 2 same-level cards: $stack (Q4930)",
+    async ({ under, sameLevel }) => {
+      const s = await digivolveLekismon(under);
+
+      expect(sayoInPlay(s)).toBe(sameLevel);
+    },
+  );
+
+  it("plays Sayo while Koh & Sayo is in the battle area, since their names differ (Q4931)", async () => {
+    const [sameLevelStack] = sameLevelCases(4);
+    const s = await digivolveLekismon(sameLevelStack!.under, [{ card: "EX5-064", as: "kohAndSayo" }]);
+
+    expect(sayoInPlay(s)).toBe(true);
+    expect(s.perm("kohAndSayo").topCard.cardId).toBe("EX5-064");
+
+    const withSayo = await digivolveLekismon(sameLevelStack!.under, [{ card: "BT22-102", as: "fieldSayo" }]);
+    expect(sayoInPlay(withSayo)).toBe(false);
   });
 });

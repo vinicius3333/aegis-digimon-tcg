@@ -1,6 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT9/BT9-074.js";
 import "../BT9/BT9-076.js";
 import "../BT9/BT9-091.js";
@@ -196,5 +197,53 @@ describe("BT8-082 Ophanimon Falldown Mode", () => {
     expect(s.perm("meiko").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("maycrackmon").instanceId)).toBe(true);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT8-082 Ophanimon Falldown Mode — KB Q&A rulings", () => {
+  async function digivolveIntoOphanimon(hostSpec: { card: string; as: string; under?: string[] }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [hostSpec],
+          hand: [{ card: "BT8-082", as: "ophanimon" }],
+          deck: [
+            { card: "BT1-009", as: "evolutionDraw" },
+            { card: "BT1-010", as: "recovery" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm(hostSpec.as).permanentId,
+        instanceId: s.inst("ophanimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.security.length === 1);
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("activates both parts when separate purple and yellow cards are in its digivolution cards (Q1761)", async () => {
+    const s = await digivolveIntoOphanimon({ card: "BT3-088", as: "purpleHost", under: ["BT8-034"] });
+
+    const sources = s.perm("purpleHost").stack.filter((card) => card.cardId !== "BT8-082");
+    expect(sources.map((card) => getCardDefinition(card.cardId)?.colors)).toEqual([["Yellow"], ["Purple"]]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-015");
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("recovery").instanceId);
+  });
+
+  it("activates both parts when a single purple and yellow multicolor card is its only digivolution card (Q1762)", async () => {
+    const s = await digivolveIntoOphanimon({ card: "BT9-076", as: "multicolorHost" });
+
+    const sources = s.perm("multicolorHost").stack.filter((card) => card.cardId !== "BT8-082");
+    expect(sources.map((card) => getCardDefinition(card.cardId)?.colors)).toEqual([["Purple", "Yellow"]]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-015");
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("recovery").instanceId);
   });
 });

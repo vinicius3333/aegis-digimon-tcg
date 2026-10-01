@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -340,5 +341,91 @@ describe("P-203 Justimon: Accel Arm", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-203 Justimon: Accel Arm — KB Q&A rulings", () => {
+  async function boardWithOptions() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-203", as: "source" }, { card: "P-035", as: "ownOption" }],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-076", as: "victim", under: ["BT1-066", "BT1-073"] },
+            { card: "P-036", as: "opponentOption" },
+          ],
+          deck: Array(10).fill("BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] as string[] },
+    );
+    await s.ready();
+    return s;
+  }
+
+  const inTrash = (s: Awaited<ReturnType<typeof boardWithOptions>>, seat: 0 | 1, instanceId: string) =>
+    s.state.players[seat]!.trash.some((card) => card.instanceId === instanceId);
+
+  it("may pay the Option cost with an opponent's battle-area Option card (Q5197)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-203", as: "source" }, { card: "P-035", as: "ownOption" }],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-076", as: "victim", under: ["BT1-066", "BT1-073"] },
+            { card: "P-036", as: "opponentOption" },
+          ],
+          deck: Array(10).fill("BT1-009"),
+          security: Array(5).fill("BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const opponentOptionId = s.inst("opponentOption").instanceId;
+    const ownOptionId = s.inst("ownOption").instanceId;
+    preferred.push(opponentOptionId);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && inTrash(s, 1, opponentOptionId));
+
+    expect(inTrash(s, 1, opponentOptionId)).toBe(true);
+    expect(inTrash(s, 0, ownOptionId)).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("source"))).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("source"), "SecurityAttack")).toBe(1);
+    await advance(s.engine).finishAttack();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it.each([
+    ["mine", 0, "ownOption"],
+    ["the opponent's", 1, "opponentOption"],
+  ] as const)("activates the [All Turns] watcher when %s battle-area Option is trashed (Q5198)", async (_, seat, alias) => {
+    const s = await boardWithOptions();
+    const optionId = s.inst(alias).instanceId;
+    expect(observe(s.engine).isRestricted(s.perm("victim"), "digivolve")).toBe(false);
+
+    await advance(s.engine).verb.trash([optionId], 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(inTrash(s, seat, optionId)).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("victim"), "digivolve")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("victim"), "attackPlayers")).toBe(true);
   });
 });

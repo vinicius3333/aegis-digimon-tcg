@@ -45,7 +45,6 @@ describe("BT11-102 High Mega Blaster", () => {
     expect(s.perm("low").isSuspended).toBe(true);
     expect(s.perm("eligible").isSuspended).toBe(true);
     expect(s.perm("tooLarge").isSuspended).toBe(false);
-    expect(s.perm("tooLarge").isSuspended).toBe(false);
   });
 
   it("Security suspends two opponent Digimon", async () => {
@@ -67,5 +66,46 @@ describe("BT11-102 High Mega Blaster", () => {
 
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(true);
+  });
+});
+
+describe("BT11-102 High Mega Blaster — KB Q&A rulings", () => {
+  it("must suspend 2 opponent Digimon when 2 or more are eligible, not 1 or none (Q2131)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT11-058", as: "insect" }], hand: [{ card: "BT11-102", as: "option" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "first" },
+          { card: "BT1-011", as: "second" },
+          { card: "BT1-012", as: "third" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.options?.targetFate === "suspend"));
+    const suspendRequest = s.decisions.find(({ req }) => req.options?.targetFate === "suspend")!.req;
+    expect(suspendRequest.options).toMatchObject({ min: 2, max: 2 });
+
+    const respondWith = (instanceIds: string[]) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendRequest.decisionId,
+        response: { kind: "chooseTargets", instanceIds },
+      });
+    const first = s.perm("first").permanentId;
+    const second = s.perm("second").permanentId;
+
+    expect(respondWith([])).toMatchObject({ ok: false });
+    expect(respondWith([first])).toMatchObject({ ok: false });
+    expect(s.perm("first").isSuspended).toBe(false);
+
+    expect(respondWith([first, second])).toEqual({ ok: true });
+    await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
+    expect(s.perm("third").isSuspended).toBe(false);
   });
 });

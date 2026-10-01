@@ -81,7 +81,7 @@ describe("EX4-027 GoldVeedramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("goldVeedramon"), "Armor Purge")).toBe(true);
   });
 
-  it("qualifies an 8000-DP target only after the public -2000 reduction reaches 6000", async () => {
+  it("qualifies an 8000-DP target only after the public -2000 reduction reaches 6000 (Q3470)", async () => {
     const s = setupEngine(
       {
         0: {

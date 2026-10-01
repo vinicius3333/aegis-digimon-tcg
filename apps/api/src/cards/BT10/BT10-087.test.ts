@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type EngineSetup, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-087.js";
+import "../BT5/BT5-087.js";
 
 describe("BT10-087 Taiki Kudo", () => {
   it("adds one Xros Heart card and places a different Xros Heart Digimon under itself on play", async () => {
@@ -173,5 +174,198 @@ describe("BT10-087 Taiki Kudo", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-087")).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+const GREYMON = "BT10-019";
+const MAILBIRDRAMON = "BT10-021";
+const METALGREYMON = "BT10-024";
+const OTHER_TAMER = "BT10-089";
+const SKULLKNIGHTMON = "BT7-058";
+const DEADLYAXEMON = "BT7-059";
+const MIGHTY_AXE_MODE = "BT10-061";
+const DARKKNIGHTMON = "BT10-066";
+const NON_XROS_DIGIMON = "BT2-070";
+const OMNIMON_ZWART = "BT5-087";
+const DECK_FILLER = ["BT1-009", "BT1-010", "BT1-012", "BT1-013", "BT1-009", "BT1-010"];
+
+function playMetalGreymonFrom(s: EngineSetup, options: { expander: boolean; underTamerHostAlias?: string }) {
+  return s.engine.applyIntent(0, {
+    type: "playCard",
+    instanceId: s.inst("metalGreymon").instanceId,
+    digiXros: {
+      materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+      ...(options.expander ? { expanderPermanentIds: [s.perm("taiki").permanentId] } : {}),
+      ...(options.underTamerHostAlias !== undefined
+        ? { underTamerHostPermanentId: s.perm(options.underTamerHostAlias).permanentId }
+        : {}),
+    },
+  });
+}
+
+async function playFromTrashWithOmnimonZwart(trash: string[]) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          {
+            card: "BT10-087",
+            as: "taiki",
+            under: [
+              { card: SKULLKNIGHTMON, as: "skullKnightmon" },
+              { card: DEADLYAXEMON, as: "deadlyAxemon" },
+            ],
+          },
+          { card: OMNIMON_ZWART, as: "zwart" },
+        ],
+        trash: trash.map((card, index) => ({ card, as: `played${index}` })),
+        deck: [...DECK_FILLER],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+
+  await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zwart"));
+  await settle(() =>
+    trash.every((_card, index) =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst(`played${index}`).instanceId,
+      ),
+    ),
+  );
+
+  const taikiInstanceId = s.inst("taiki").instanceId;
+  const taikiWasOffered = s.decisions.some(
+    ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(taikiInstanceId) === true,
+  );
+  const underTaiki = s.perm("taiki").stack.map((card) => card.instanceId);
+  const materialIds = [s.inst("skullKnightmon").instanceId, s.inst("deadlyAxemon").instanceId];
+  return { s, taikiWasOffered, underTaiki, materialIds };
+}
+
+describe("BT10-087 Taiki Kudo — KB Q&A rulings", () => {
+  it("lets a DigiXros use Digimon cards placed under a Tamer, which is not possible without its effect (Q2011)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT10-087",
+            as: "taiki",
+            under: [
+              { card: GREYMON, as: "greymon" },
+              { card: MAILBIRDRAMON, as: "mailbirdramon" },
+            ],
+          },
+        ],
+        hand: [{ card: METALGREYMON, as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(playMetalGreymonFrom(s, { expander: false })).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.perm("taiki").stack).toHaveLength(2);
+
+    expect(playMetalGreymonFrom(s, { expander: true })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.cardId === METALGREYMON && permanent.stack.length === 2,
+      ),
+    );
+
+    const metalGreymon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.cardId === METALGREYMON,
+    )!;
+    expect(metalGreymon.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId]),
+    );
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.perm("taiki").stack).toHaveLength(0);
+  });
+
+  it("also lets a DigiXros use cards placed under a Tamer other than this Tamer (Q2012)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-087", as: "taiki" },
+          {
+            card: OTHER_TAMER,
+            as: "otherTamer",
+            under: [
+              { card: GREYMON, as: "greymon" },
+              { card: MAILBIRDRAMON, as: "mailbirdramon" },
+            ],
+          },
+        ],
+        hand: [{ card: METALGREYMON, as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(playMetalGreymonFrom(s, { expander: false, underTamerHostAlias: "otherTamer" })).toEqual({
+      ok: false,
+      reason: "invalid-material",
+    });
+
+    expect(playMetalGreymonFrom(s, { expander: true, underTamerHostAlias: "otherTamer" })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.cardId === METALGREYMON && permanent.stack.length === 2,
+      ),
+    );
+
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.perm("otherTamer").stack).toHaveLength(0);
+    expect(s.perm("otherTamer").isSuspended).toBe(false);
+  });
+
+  it("does not let a DigiXros use the digivolution cards of a Digimon that digivolved from a Tamer (Q2013)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-087", as: "taiki" },
+          {
+            card: "BT1-010",
+            as: "digivolvedTamer",
+            under: [OTHER_TAMER, { card: GREYMON, as: "greymon" }, { card: MAILBIRDRAMON, as: "mailbirdramon" }],
+          },
+        ],
+        hand: [{ card: METALGREYMON, as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(playMetalGreymonFrom(s, { expander: true })).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.perm("taiki").isSuspended).toBe(false);
+    expect(s.perm("digivolvedTamer").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("metalGreymon").instanceId]);
+  });
+
+  it("cannot activate when 2 Digimon cards with DigiXros requirements are played at the same time (Q2014)", async () => {
+    const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
+    expect(single.taikiWasOffered).toBe(true);
+    expect(single.s.perm("taiki").isSuspended).toBe(true);
+    expect(single.underTaiki).toEqual([]);
+
+    const pair = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE, DARKKNIGHTMON]);
+    expect(pair.taikiWasOffered).toBe(false);
+    expect(pair.s.perm("taiki").isSuspended).toBe(false);
+    expect(pair.underTaiki).toEqual(pair.materialIds);
+  });
+
+  it("cannot activate when 1 DigiXros Digimon and 1 Digimon without DigiXros requirements are played at the same time (Q2015)", async () => {
+    const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
+    expect(single.taikiWasOffered).toBe(true);
+    expect(single.underTaiki).toEqual([]);
+
+    const mixed = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE, NON_XROS_DIGIMON]);
+    expect(mixed.taikiWasOffered).toBe(false);
+    expect(mixed.s.perm("taiki").isSuspended).toBe(false);
+    expect(mixed.underTaiki).toEqual(mixed.materialIds);
   });
 });

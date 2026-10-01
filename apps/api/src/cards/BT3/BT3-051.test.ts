@@ -86,3 +86,50 @@ describe("BT3-051 Dokugumon", () => {
     expect(player.trash[0]?.instanceId).toBe(s.inst("remainder").instanceId);
   });
 });
+
+describe("BT3-051 Dokugumon — KB Q&A rulings", () => {
+  const playDokugumonRevealing = async (deck: { card: string; as: string }[]) => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT3-051", as: "source" }], deck } }, { autoSelectCards: true });
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    const player = s.state.players[0] as PlayerState;
+    await settle(() => player.deck.length === 0 && player.hand.length + player.trash.length === 3);
+    return { s, player };
+  };
+
+  it("adds a revealed level 6 Digimon even when no level 5 Digimon is revealed (Q1085)", async () => {
+    const { s, player } = await playDokugumonRevealing([
+      { card: "BT3-050", as: "levelFour" },
+      { card: "BT3-057", as: "levelSix" },
+      { card: "BT3-050", as: "otherLevelFour" },
+    ]);
+
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("levelSix").instanceId]);
+    expect(player.trash.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("levelFour").instanceId, s.inst("otherLevelFour").instanceId].sort(),
+    );
+  });
+
+  it("adds two revealed Mephistomon because each counts as both level 5 and level 6 (Q2827)", async () => {
+    const control = await playDokugumonRevealing([
+      { card: "BT3-052", as: "firstRapidmon" },
+      { card: "BT3-052", as: "secondRapidmon" },
+      { card: "BT3-050", as: "remainder" },
+    ]);
+    expect(control.player.hand).toHaveLength(1);
+    expect(control.player.trash).toHaveLength(2);
+
+    const { s, player } = await playDokugumonRevealing([
+      { card: "BT17-068", as: "firstMephistomon" },
+      { card: "BT17-068", as: "secondMephistomon" },
+      { card: "BT3-050", as: "remainder" },
+    ]);
+
+    expect(player.hand.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("firstMephistomon").instanceId, s.inst("secondMephistomon").instanceId].sort(),
+    );
+    expect(player.trash.map((card) => card.instanceId)).toEqual([s.inst("remainder").instanceId]);
+  });
+});

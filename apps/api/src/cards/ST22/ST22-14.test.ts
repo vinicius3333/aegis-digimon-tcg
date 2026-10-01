@@ -71,3 +71,37 @@ describe("ST22-14 Barbamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("ST22-14 Barbamon — KB Q&A rulings", () => {
+  async function memoryPaidToPlay(opponentHand: number, opponentTrash: number): Promise<number> {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST22-14", as: "barbamon" }] },
+        1: {
+          hand: Array.from({ length: opponentHand }, () => "BT1-009"),
+          trash: Array.from({ length: opponentTrash }, () => "BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("barbamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("barbamon").instanceId),
+    );
+    return 12 - s.state.memory;
+  }
+
+  it("does not reduce the cost when the opponent's hand and trash only total 10 cards (Q5447)", async () => {
+    expect(await memoryPaidToPlay(5, 5)).toBe(12);
+    expect(await memoryPaidToPlay(10, 0)).toBe(7);
+    expect(await memoryPaidToPlay(0, 10)).toBe(7);
+  });
+
+  it("reduces the cost by 5 only once when both the hand and the trash have 10 cards (Q5448)", async () => {
+    expect(await memoryPaidToPlay(10, 10)).toBe(7);
+  });
+});

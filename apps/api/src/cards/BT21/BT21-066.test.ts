@@ -409,3 +409,37 @@ describe("BT21-066 Arresterdramon", () => {
     expect(s.perm("host").currentDP).toBe(8000);
   });
 });
+
+describe("BT21-066 Arresterdramon — KB Q&A rulings", () => {
+  it("digivolves from a level 3 that only mentions <Save> in its digivolution requirement and inherited effect (Q4574)", async () => {
+    async function digivolveFrom(base: string) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: base, as: "base" }],
+          hand: [{ card: "BT21-066", as: "arresterdramon" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("arresterdramon").instanceId,
+        alternateRequirementIndex: 0,
+      });
+      await settle(() => s.state.pendingDecision === undefined);
+      return { s, result };
+    }
+
+    const saveReference = await digivolveFrom("BT12-035");
+    expect(saveReference.result).toEqual({ ok: true });
+    expect(saveReference.s.perm("base").topCard.cardId).toBe("BT21-066");
+    expect(saveReference.s.state.memory).toBe(3);
+
+    const noSaveText = await digivolveFrom("BT1-045");
+    expect(noSaveText.result).toMatchObject({ ok: false });
+    expect(noSaveText.s.perm("base").topCard.cardId).toBe("BT1-045");
+    expect(noSaveText.s.state.memory).toBe(5);
+  });
+});

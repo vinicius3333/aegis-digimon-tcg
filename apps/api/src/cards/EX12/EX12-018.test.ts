@@ -313,6 +313,69 @@ describe("EX12-018 Siriusmon", () => {
     expect(s.perm("attacker").stack.map((card) => card.cardId)).toContain("EX12-013");
   });
 
+  it.each([
+    ["from hand", false],
+    ["through Proximamon's [When Digivolving]", true],
+  ] as const)(
+    "resolves the Arts Digivolve [When Digivolving] before the attack checks security (%s)",
+    async (_label, throughProximamon) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: throughProximamon
+            ? {
+                battleArea: [
+                  { card: "EX12-018", as: "siriusmon" },
+                  { card: "EX12-014", as: "attacker" },
+                ],
+                hand: [{ card: "EX12-077", as: "proximamon" }],
+                trash: [{ card: "EX12-013", as: "material" }],
+              }
+            : {
+                battleArea: [{ card: "EX12-014", as: "attacker" }],
+                hand: [{ card: "EX12-018", as: "option" }],
+                trash: [{ card: "EX12-013", as: "material" }],
+              },
+          1: {
+            battleArea: [{ card: "BT1-011", as: "deletion", dp: 5000 }],
+            security: ["BT1-090", "BT1-090"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      preferred.push(s.perm("attacker").permanentId, s.perm("attacker").topCard.instanceId);
+      if (throughProximamon) preferred.push(s.perm("siriusmon").topCard.instanceId);
+
+      expect(
+        s.engine.applyIntent(
+          0,
+          throughProximamon
+            ? {
+                type: "digivolve",
+                permanentId: s.perm("siriusmon").permanentId,
+                instanceId: s.inst("proximamon").instanceId,
+                useAlternateCost: true,
+              }
+            : ({ type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+        ),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "securityRevealed"));
+
+      const whenDigivolving = s.events.findIndex(
+        (event) =>
+          event.kind === "effectTriggered" &&
+          event.sourceCardId === "EX12-018" &&
+          event.sourcePermanentId === s.perm("attacker").permanentId,
+      );
+      const securityRevealed = s.events.findIndex((event) => event.kind === "securityRevealed");
+      expect(s.perm("attacker").topCard.cardId).toBe("EX12-018");
+      expect(whenDigivolving).toBeGreaterThanOrEqual(0);
+      expect(whenDigivolving).toBeLessThan(securityRevealed);
+    },
+  );
+
   it("has Progress and Piercing, and checks two security after winning a Digimon battle", async () => {
     const s = setupEngine(
       {

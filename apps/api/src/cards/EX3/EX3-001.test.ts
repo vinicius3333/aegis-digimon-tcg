@@ -1,8 +1,9 @@
 import { getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX3-001.js";
+import "./EX3-070.js";
 
 async function unsuspend(s: ReturnType<typeof setupEngine>, seat: Seat = 0): Promise<string[]> {
   return s.engine.unsuspendForActivePhase(seat);
@@ -134,5 +135,42 @@ describe("EX3-001 Bebydomon", () => {
     const twoInitial = two.perm("carrier").currentDP;
     await unsuspend(two);
     expect(two.perm("carrier").currentDP).toBe(twoInitial + 2000);
+  });
+});
+
+describe("EX3-001 Bebydomon — KB Q&A rulings", () => {
+  it("does not activate when an unsuspend effect chooses a carrier that is already unsuspended (Q3369)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX3-018", under: ["EX3-001"], as: "carrier" },
+            { card: "BT1-088", as: "greenTamer" },
+          ],
+          hand: [{ card: "EX3-070", as: "unsuspendOption" }],
+        },
+      },
+      { autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const initial = s.perm("carrier").currentDP;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspendOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("unsuspendOption").instanceId),
+    );
+
+    expect(s.decisions.map(({ req }) => [req.kind, req.sourceCardId])).toEqual([["chooseOption", "EX3-070"]]);
+    expect(s.perm("carrier").isSuspended).toBe(false);
+    expect(s.perm("carrier").currentDP).toBe(initial);
+
+    await advance(s.engine).verb.suspend([s.perm("carrier").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("carrier").permanentId]);
+    expect(s.perm("carrier").currentDP).toBe(initial + 1000);
   });
 });

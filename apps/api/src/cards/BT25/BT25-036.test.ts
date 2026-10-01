@@ -488,3 +488,97 @@ describe("BT25-036 Craftmon", () => {
     );
   });
 });
+
+describe("BT25-036 Craftmon — KB Q&A rulings", () => {
+  it("still activates with 0 security cards and only performs <Recovery +1> (Q6302)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-036", as: "craftmon" }],
+          deck: [
+            { card: "BT1-010", as: "recovered" },
+            { card: "BT1-011", as: "untouched" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("craftmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("recovered").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("untouched").instanceId]);
+  });
+
+  it.each([
+    ["EX10-024", "BT26-051"],
+    ["BT26-051", "EX10-024"],
+  ])("App Fuses a %s with a linked %s through the public intent (Q6303)", async (topCardId, linkedCardId) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: topCardId, as: "host", linked: [{ card: linkedCardId, as: "link" }] }],
+        hand: [{ card: "BT25-036", as: "craftmon" }],
+        deck: ["BT1-010", "BT1-011"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("craftmon").instanceId,
+        linkedInstanceId: s.inst("link").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT25-036");
+
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual([topCardId, linkedCardId]);
+    expect(s.perm("host").linked).toHaveLength(0);
+  });
+
+  it("rejects App Fusion when the linked card has the same name as the Digimon (Q6303)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX10-024", as: "host", linked: [{ card: "EX10-024", as: "link" }] }],
+        hand: [{ card: "BT25-036", as: "craftmon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "appFusion",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("craftmon").instanceId,
+        linkedInstanceId: s.inst("link").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("host").topCard.cardId).toBe("EX10-024");
+  });
+
+  // Ecomon and Puzzlemon have no printed cards yet, so the remaining pairs are checked through the
+  // same name-based cost lookup the appFusion intent uses.
+  it("allows exactly the 12 ordered pairs of 2 different listed names (Q6303)", () => {
+    const names = ["Kabemon", "Gomimon", "Ecomon", "Puzzlemon"];
+    const legalPairs = names.flatMap((topName) =>
+      names
+        .filter((linkedName) => appFusionCostFor("BT25-036", { topName, linkedNames: [linkedName] }) === 0)
+        .map((linkedName) => `${topName}+${linkedName}`),
+    );
+    expect(legalPairs).toHaveLength(12);
+    expect(legalPairs).toEqual(
+      names.flatMap((topName) =>
+        names.filter((linkedName) => linkedName !== topName).map((linkedName) => `${topName}+${linkedName}`),
+      ),
+    );
+  });
+});

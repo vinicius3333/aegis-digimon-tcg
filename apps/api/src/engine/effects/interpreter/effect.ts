@@ -28,11 +28,13 @@ import {
   whenTrashedFromBattleArea,
 } from "../builders.js";
 import type { BuilderOptions } from "../builders.js";
+import { isBlitzGrant } from "./actions/combat.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { borrowedProcessingCost } from "./borrowedProcessingCost.js";
-import { canAttemptDigivolve } from "./actions/digivolve.js";
+import { canAttemptDigivolveBeforeCost } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
+import { mayDeclareAttack } from "./actions/meta.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost, costIsAskedAsSelection, payCost } from "./costs.js";
 import { describeAction, describeCost } from "./describe.js";
@@ -830,19 +832,17 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         const outerActionPath = ctxWithSelections.activeActionPath;
         const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
         const outerAttackContinuation = ctxWithSelections.continueEffectAfterAttackDeclaration;
-        const outerModalContinuation = ctxWithSelections.resumeAfterDeferredModal;
         ctxWithSelections.activeActionPath = `${actionIndex}`;
         ctxWithSelections.nextActionChainsSameTarget =
           (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
         let attackContinuationRan = false;
-        if (action.kind === "Attack" && actionIndex + 1 < actions.length) {
+        // A processed ＜Blitz＞ attacks like an Attack clause, so the rest of its effect also
+        // resolves right after the declaration, before When Attacking effects (Q777).
+        if ((mayDeclareAttack(action) || isBlitzGrant(action)) && actionIndex + 1 < actions.length) {
           ctxWithSelections.continueEffectAfterAttackDeclaration = async () => {
             attackContinuationRan = true;
             await runActionsFrom(actionIndex + 1);
           };
-        }
-        if (action.kind === "Modal") {
-          ctxWithSelections.resumeAfterDeferredModal = async () => runActionsFrom(actionIndex + 1);
         }
         let abort: boolean;
         try {
@@ -855,7 +855,6 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           ctxWithSelections.activeActionPath = outerActionPath;
           ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;
           ctxWithSelections.continueEffectAfterAttackDeclaration = outerAttackContinuation;
-          ctxWithSelections.resumeAfterDeferredModal = outerModalContinuation;
         }
         if (abort || attackContinuationRan) return;
       }
@@ -979,11 +978,10 @@ export function canActivateEffect(
       // runAction/runDigivolve check the live candidates before offering or paying
       // for the evolution. Manual declarations retain their destination preflight.
       if (options.collectsTriggeredEffect === true) return true;
-      const costProducedTarget =
-        action.cost?.kind === "place" &&
-        action.cost.bindHostAs !== undefined &&
-        action.cost.bindHostAs === action.target.fromSelectionRef;
-      return costProducedTarget || canAttemptDigivolve(ctx, action);
+      // §15-8-4-4-1: a [Main] with a printed "By" condition is declarable while the condition
+      // itself can be paid, even with no legal destination.
+      if (allowsOptionalProcessingCostWithoutTarget(action)) return true;
+      return canAttemptDigivolveBeforeCost(ctx, action);
     }
     if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
     if (action.kind === "MindLink") return canAttemptMindLink(ctx, action);

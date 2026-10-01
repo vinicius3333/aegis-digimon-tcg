@@ -1,7 +1,16 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import {
+  assertNoLoudGap,
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type CardSpec,
+  type EngineSetup,
+} from "../../engine/testkit/harness.js";
+import "../BT10/BT10-016.js";
+import "../BT10/BT10-085.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../BT7/BT7-091.js";
@@ -263,5 +272,49 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
     assertNoLoudGap(s);
+  });
+});
+
+async function digivolveByCielEffect(hostStack: CardSpec[]): Promise<EngineSetup> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT10-011", as: "host", under: hostStack }],
+        hand: [
+          { card: "BT10-085", as: "sistermonCiel" },
+          { card: "BT10-016", as: "jesmonX" },
+        ],
+        deck: [{ card: "BT1-011", as: "bonusDraw" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+  );
+  s.state.memory = 10;
+
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermonCiel").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId));
+  await drainMicrotasks();
+  return s;
+}
+
+describe("BT17-083 Koji Minamoto — KB Q&A rulings", () => {
+  it("does not activate from the digivolution bonus draw of a digivolution by an effect (Q2862)", async () => {
+    const withKoji = await digivolveByCielEffect([{ card: KOJI, as: "koji" }]);
+    const withoutKoji = await digivolveByCielEffect([]);
+
+    expect(withKoji.perm("host").topCard.cardId).toBe("BT10-016");
+    expect(withKoji.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      withKoji.inst("bonusDraw").instanceId,
+    );
+    expect(withKoji.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === KOJI)).toBe(
+      false,
+    );
+    expect(observe(withKoji.engine).hasKeyword(withKoji.perm("host"), "Jamming")).toBe(false);
+    expect(withKoji.state.memory).toBe(withoutKoji.state.memory);
+    assertNoLoudGap(withKoji);
+    assertNoLoudGap(withoutKoji);
   });
 });

@@ -188,3 +188,63 @@ describe("BT13-012 GeoGreymon", () => {
     await nextOwnTurn;
   });
 });
+
+describe("BT13-012 GeoGreymon — KB Q&A rulings", () => {
+  it("searches every security card privately and may reveal and play an eligible Tamer from any depth (Q2270)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-008", as: "agumon" }],
+          hand: [{ card: "BT13-012", as: "geogreymon" }],
+          security: [
+            { card: "BT1-086", as: "blueTamer" },
+            { card: "BT1-085", as: "redTamer" },
+            { card: "BT1-010", as: "digimon" },
+            { card: "BT12-092", as: "marcus" },
+          ],
+          deck: ["BT1-009", { card: "BT1-010", as: "recovered" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("marcus").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("geogreymon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-092"));
+    await settle();
+    const securitySearch = s.decisions.find(({ req }) => req.kind === "selectCards");
+    expect(securitySearch?.seat).toBe(0);
+    expect(securitySearch?.req.options?.candidateInstanceIds).toEqual([
+      s.inst("redTamer").instanceId,
+      s.inst("marcus").instanceId,
+    ]);
+    expect(s.decisions.some(({ seat }) => seat === 1)).toBe(false);
+
+    expect(s.perm("agumon").topCard.cardId).toBe("BT13-012");
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("marcus").instanceId,
+    );
+    const unplayedIds = ["blueTamer", "redTamer", "digimon"].map((alias) => s.inst(alias).instanceId);
+    const security = s.state.players[0]!.security;
+    expect(security.map((card) => card.instanceId).sort()).toEqual(
+      [...unplayedIds, s.inst("recovered").instanceId].sort(),
+    );
+    expect(security.every((card) => !card.faceUp)).toBe(true);
+    const eventsNamingUnplayedCards = s.events.filter((event) =>
+      unplayedIds.some((instanceId) => JSON.stringify(event).includes(`"${instanceId}"`)),
+    );
+    expect(eventsNamingUnplayedCards).toEqual([]);
+    const revealedCardIds = s.events.flatMap((event) => (event.kind === "cardRevealed" ? [event.cardId] : []));
+    expect(revealedCardIds.filter((cardId) => cardId === "BT1-086" || cardId === "BT1-085")).toEqual([]);
+  });
+});

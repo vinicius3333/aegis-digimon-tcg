@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-096.js";
+import "../index.js";
+import { emblemDelayDigivolution } from "./emblemDelay.testSupport.js";
 
 describe("BT22-096 Unique Emblem: Poseidia Lagoon", () => {
   it("requires both Aquatic and LIBERATOR traits for the Delay digivolution", () => {
@@ -81,5 +83,17 @@ describe("BT22-096 Unique Emblem: Poseidia Lagoon", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT22-027");
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lagoon").instanceId)).toBe(true);
+  });
+});
+
+describe("BT22-096 Unique Emblem: Poseidia Lagoon — KB Q&A rulings", () => {
+  it.each([
+    { traits: "[Aquatic] and [LIBERATOR]", candidate: "BT19-019", digivolves: true },
+    { traits: "only [Aquatic]", candidate: "BT2-024", digivolves: false },
+    { traits: "only [LIBERATOR]", candidate: "EX11-039", digivolves: false },
+  ])("lets <Delay> digivolve only into a card with both traits: $traits (Q4966)", async ({ candidate, digivolves }) => {
+    const top = await emblemDelayDigivolution("BT22-096", "BT22-086", "EX11-013", candidate);
+
+    expect(top).toBe(digivolves ? candidate : "EX11-013");
   });
 });

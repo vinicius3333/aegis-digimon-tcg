@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-107.js";
 import "./BT9-107.js";
 import "./BT9-109.js";
+import "../BT17/BT17-016.js";
 
 describe("BT9-107 Metal Impulse", () => {
   it("matches catalog values and repeated bound De-Digivolve, then-delete, and security IR", () => {
@@ -246,5 +248,133 @@ describe("BT9-107 Metal Impulse", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === hostPermanentId));
 
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(hostCardIds));
+  });
+});
+
+async function resolveSecurityMetalImpulseAgainstGallantmon(opponentMemory: number) {
+  const s = setupEngine(
+    {
+      0: {
+        security: [{ card: "BT9-107", as: "impulse" }],
+        hand: ["BT9-071", "BT9-072"],
+      },
+      1: {
+        battleArea: [
+          {
+            card: "BT1-020",
+            as: "host",
+            under: [
+              { card: "BT1-009", as: "level3" },
+              { card: "BT17-016", as: "gallantmon" },
+            ],
+          },
+        ],
+      },
+    },
+    { autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.turnSeat = 1;
+  s.state.memory = opponentMemory;
+  await s.engine.recomputeContinuousEffects();
+
+  await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("impulse"));
+  await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 0);
+  return s;
+}
+
+describe("BT9-107 Metal Impulse — KB Q&A rulings", () => {
+  it("De-Digivolves only the one chosen Digimon for 2 trashed cards, and the Then deletion may pick another (Q1915)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT9-070", "BT10-022"],
+        hand: [
+          { card: "BT9-107", as: "option" },
+          { card: "BT9-071", as: "discard1" },
+          { card: "BT9-072", as: "discard2" },
+        ],
+      },
+      1: {
+        battleArea: [
+          {
+            card: "BT1-020",
+            as: "chosen",
+            under: [
+              { card: "BT1-009", as: "chosenBottom" },
+              { card: "BT1-016", as: "chosenLevel4" },
+              { card: "BT1-020", as: "chosenLevel5" },
+            ],
+          },
+          { card: "BT1-016", as: "other", under: [{ card: "BT1-009", as: "otherSource" }] },
+        ],
+      },
+    });
+    const otherTopId = s.perm("other").topCard.instanceId;
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.decisions.at(-1)!.req.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("discard1").instanceId, s.inst("discard2").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const dedigivolveChoice = s.decisions.at(-1)!.req;
+    expect(dedigivolveChoice.options).toMatchObject({ min: 1, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: dedigivolveChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => {
+      const latest = s.state.pendingDecision;
+      return latest?.kind === "chooseTargets" && latest.decisionId !== dedigivolveChoice.decisionId;
+    });
+    expect(s.perm("chosen").topCard.instanceId).toBe(s.inst("chosenLevel4").instanceId);
+    expect(s.perm("chosen").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("chosenBottom").instanceId]);
+    expect(s.perm("other").topCard.instanceId).toBe(otherTopId);
+    expect(s.perm("other").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("otherSource").instanceId]);
+
+    const deleteChoice = s.decisions.at(-1)!.req;
+    expect(new Set(deleteChoice.options?.candidateInstanceIds)).toEqual(
+      new Set([s.perm("chosen").permanentId, s.perm("other").permanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deleteChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("other").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === otherTopId));
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("chosen").permanentId,
+    ]);
+  });
+
+  it("applies De-Digivolve 1 twice, so an immune card exposed by the first is not trashed by the second (Q1916)", async () => {
+    const immune = await resolveSecurityMetalImpulseAgainstGallantmon(0);
+    expect(immune.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT17-016"]);
+    expect(immune.perm("host").topCard.instanceId).toBe(immune.inst("gallantmon").instanceId);
+    expect(immune.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([immune.inst("level3").instanceId]);
+    expect(immune.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-020"]);
+
+    const notImmune = await resolveSecurityMetalImpulseAgainstGallantmon(1);
+    expect(notImmune.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([notImmune.inst("gallantmon").instanceId]),
+    );
   });
 });

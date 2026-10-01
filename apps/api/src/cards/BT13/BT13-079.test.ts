@@ -4,7 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-079.js";
+import "../BT10/BT10-078.js";
 import "../BT2/BT2-073.js";
+import "../BT21/BT21-010.js";
 import "../ST1/ST1-10.js";
 import "../ST1/ST1-16.js";
 
@@ -119,5 +121,89 @@ describe("BT13-079 Falcomon", () => {
 
     expect(s.state.players[1]!.hand).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+});
+
+describe("BT13-079 Falcomon — KB Q&A rulings", () => {
+  it("lets the opponent choose which hand card its inherited effect trashes (Q2321)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT2-073", as: "host", under: ["BT13-079"] }] },
+      1: {
+        hand: [
+          { card: "BT1-009", as: "kept" },
+          { card: "ST1-16", as: "chosen" },
+        ],
+      },
+    });
+    await s.ready();
+
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(decision.seat).toBe(1);
+    const chosenId = s.inst("chosen").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [chosenId] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [chosenId] },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle();
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([chosenId]);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+  });
+
+  it("trashes from the opponent's hand when its Digimon is deleted by a battled Digimon's Retaliation (Q2322)", async () => {
+    const attackRetaliator = async (defenderHasRetaliation: boolean, attackerDP: number) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT2-073", as: "attacker", dp: attackerDP, under: ["BT13-079"] }] },
+          1: {
+            battleArea: [
+              {
+                card: "BT10-078",
+                as: "defender",
+                dp: 4000,
+                suspended: true,
+                under: defenderHasRetaliation ? ["BT21-010"] : [],
+              },
+            ],
+            hand: ["BT1-001"],
+          },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      await settle();
+      return s;
+    };
+
+    const retaliated = await attackRetaliator(true, 9000);
+    expect(retaliated.state.players[0]!.battleArea).toHaveLength(0);
+    expect(retaliated.state.players[1]!.battleArea).toHaveLength(0);
+    expect(retaliated.state.players[1]!.hand).toHaveLength(0);
+
+    const lostBattle = await attackRetaliator(false, 2000);
+    expect(lostBattle.state.players[0]!.battleArea).toHaveLength(0);
+    expect(lostBattle.state.players[1]!.battleArea).toHaveLength(1);
+    expect(lostBattle.state.players[1]!.hand).toHaveLength(1);
   });
 });

@@ -53,7 +53,7 @@ describe("EX4-069 Gaia Reactor", () => {
     });
   });
 
-  it("lets the Option user choose tied highest-cost survivors on both sides", async () => {
+  it("lets the Option user choose tied highest-cost survivors on both sides (Q3512)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -89,6 +89,7 @@ describe("EX4-069 Gaia Reactor", () => {
       expect.arrayContaining([s.perm("ownKeep").permanentId, s.perm("ownTie").permanentId]),
     );
     expect(ownCandidates).not.toContain(s.perm("ownLow").permanentId);
+    expect(ownRequest.seat).toBe(0);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -105,6 +106,7 @@ describe("EX4-069 Gaia Reactor", () => {
       expect.arrayContaining([s.perm("opponentKeep").permanentId, s.perm("opponentTie").permanentId]),
     );
     expect(opponentCandidates).not.toContain(s.perm("opponentLow").permanentId);
+    expect(opponentRequest.seat).toBe(0);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

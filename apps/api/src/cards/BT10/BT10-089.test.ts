@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import "./BT10-089.js";
 
 describe("BT10-089 Akari Hinomoto", () => {
@@ -91,5 +91,52 @@ describe("BT10-089 Akari Hinomoto", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-089")).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT10-089 Akari Hinomoto — KB Q&A rulings", () => {
+  async function playAkari(dorulumonHost: PermanentSpec) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [dorulumonHost],
+          hand: [{ card: "BT10-089", as: "akari" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("akari").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("akari").instanceId),
+    );
+    return s;
+  }
+
+  it("cannot play [Dorulumon] from the digivolution cards of a Digimon that digivolved from a Tamer (Q2021)", async () => {
+    const s = await playAkari({
+      card: "BT1-010",
+      as: "digivolvedTamer",
+      under: [{ card: "BT1-085" }, { card: "BT10-034", as: "dorulumon" }],
+    });
+
+    const dorulumonId = s.inst("dorulumon").instanceId;
+    expect(s.perm("digivolvedTamer").stack.map((card) => card.instanceId)).toContain(dorulumonId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === dorulumonId)).toBe(
+      false,
+    );
+    expect(s.decisions.some(({ req }) => (req.options?.candidateInstanceIds ?? []).includes(dorulumonId))).toBe(false);
+
+    const control = await playAkari({ card: "BT1-085", as: "tai", under: [{ card: "BT10-034", as: "dorulumon" }] });
+    expect(
+      control.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === control.inst("dorulumon").instanceId,
+      ),
+    ).toBe(true);
+    expect(control.perm("tai").stack).toHaveLength(0);
   });
 });

@@ -579,3 +579,78 @@ describe("EX13-010 Growlmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX13-010 Growlmon — KB Q&A rulings", () => {
+  it("must delete an available 4000 DP Digimon, so declining to pick cannot claim Raid and +3000 DP (Q7231)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "base" }],
+          hand: [{ card: cardId, as: "host" }],
+          deck: ["BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-014", as: "first", dp: 4000 },
+            { card: "BT1-014", as: "second", dp: 3000 },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1, 20);
+
+    const targetChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets");
+    expect(targetChoice?.req.options?.min).toBe(1);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(false);
+    expect(s.perm("base").currentDP).toBe(6000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("adds 2000 to a host's 'delete 8000 DP or less' so a 10000 DP Digimon is deleted and 11000 DP is not (Q7233)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-012", as: "base", under: [cardId] }],
+          hand: [{ card: "BT19-015", as: "host" }],
+          deck: ["BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "inRange", dp: 10_000 },
+            { card: "BT1-010", as: "outOfRange", dp: 11_000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1, 20);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("inRange").instanceId]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toEqual([
+      s.inst("outOfRange").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

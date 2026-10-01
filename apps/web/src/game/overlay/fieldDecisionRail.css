@@ -119,6 +119,8 @@
   .board-prompt[data-variant="field-selection"] .board-prompt__art .game-card-mini,
   .board-prompt[data-variant="field-selection"] .board-prompt__art > div {
     width: 3.5rem !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1.4;
   }
 
   .board-prompt[data-variant="field-selection"] .board-prompt__actions {
@@ -145,10 +147,10 @@
      The printed clause is available on demand instead of permanently covering
      the eligible cards. */
   .board-prompt--target-selection[data-variant="field-selection"] {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "heading detail"
-      "actions actions";
+      "body heading detail"
+      "actions actions actions";
     max-height: min(34dvh, 15rem);
   }
 
@@ -163,8 +165,33 @@
     white-space: nowrap;
   }
 
-  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__body {
+  /* Collapsed, the body is only the asking card's art, a small cue beside the question;
+     the clause waits behind "Show effect". */
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    .board-prompt__body {
+    display: block;
+  }
+
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    .board-prompt__clause {
     display: none;
+  }
+
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    :is(.board-prompt__art .game-card-mini, .board-prompt__art > div) {
+    width: 2.5rem !important;
+  }
+
+  /* With the clause folded away, the prompt is the only line saying what to tap. */
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    .board-prompt__text[data-quiet] {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    margin: 0;
+    clip-path: none;
+    white-space: normal;
   }
 
   .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__actions {
@@ -173,11 +200,15 @@
     gap: var(--ds-space-2);
   }
 
-  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__actions > button:first-child {
+  /* An odd count leaves one button over: it takes the full top row. */
+  .board-prompt--target-selection[data-variant="field-selection"]
+    .board-prompt__actions
+    > button:first-child:nth-last-child(odd) {
     grid-column: 1 / -1;
   }
 
   .board-prompt--target-selection.board-prompt--effect-expanded[data-variant="field-selection"] {
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
       "heading detail"
       "body body"
@@ -196,7 +227,8 @@
    instruction and the decision action in the thumb zone. */
 @media (width < 480px) {
   .board-prompt--block[data-variant="field-selection"] .board-prompt__art,
-  .board-prompt--alliance[data-variant="field-selection"] .board-prompt__body {
+  .board-prompt--alliance[data-variant="field-selection"] .board-prompt__body,
+  .board-prompt--counter[data-variant="field-selection"] .board-prompt__body {
     display: none;
   }
 
@@ -222,5 +254,41 @@
   .board-prompt.combat-prompt[data-variant="field-selection"] {
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
     max-height: min(56dvh, 22rem) !important;
+  }
+}
+
+/* Counter asks yes/no about a card already on the board. On a phone the full sheet
+   would cover the viewer's battle area, where that card sits, so the question and a
+   small art share one row above the two buttons. */
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
+  .board-prompt.board-prompt--counter[data-variant="prompt"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "heading body"
+      "actions actions";
+    column-gap: var(--ds-space-3);
+    row-gap: var(--ds-space-3);
+    align-items: center;
+    padding-top: var(--ds-space-3);
+  }
+  .board-prompt--counter[data-variant="prompt"] .board-prompt__grip {
+    display: none;
+  }
+  .board-prompt--counter[data-variant="prompt"] .board-prompt__heading {
+    grid-area: heading;
+    min-width: 0;
+  }
+  .board-prompt--counter[data-variant="prompt"] .board-prompt__body {
+    grid-area: body;
+  }
+  .board-prompt--counter[data-variant="prompt"] .board-prompt__art .game-card-mini,
+  .board-prompt--counter[data-variant="prompt"] .board-prompt__art > div {
+    width: 4.75rem !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1.4;
+  }
+  .board-prompt--counter[data-variant="prompt"] .board-prompt__actions {
+    grid-area: actions;
   }
 }

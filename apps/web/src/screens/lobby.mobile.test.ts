@@ -12,14 +12,12 @@ describe("lobby single-column layout", () => {
     // Grid tracks size to content (a deck thumbnail's 430px source image once
     // stretched the column past the phone viewport), and a definite-height grid
     // scroller drops padding/margins from its scrollable overflow, hiding the
-    // sidebar's bottom under the fixed launch bar + nav. Block flow avoids both.
+    // page's bottom under the fixed nav. Block flow avoids both.
     expect(narrowRules).toBeDefined();
     expect(narrowRules).toMatch(/\.lobby-page \{[^}]*display:\s*block\s*!important/);
     expect(narrowRules).not.toMatch(/\.lobby-page \{[^}]*grid-template-columns/);
-    expect(narrowRules).toMatch(
-      /\.lobby-page \{[^}]*padding-bottom:\s*calc\(var\(--ds-nav-height-narrow\) \+ var\(--ds-launch-bar-height\)/,
-    );
-    expect(narrowRules).toMatch(/\.lobby-content,\s*\.lobby-summary \{\s*min-width:\s*0/);
+    expect(narrowRules).toMatch(/\.lobby-page \{[^}]*padding-bottom:\s*calc\(var\(--ds-nav-height-narrow\)/);
+    expect(narrowRules).toMatch(/\.lobby-content \{\s*min-width:\s*0/);
   });
 
   it("keeps the selected deck pinned at the top of the scroller", () => {

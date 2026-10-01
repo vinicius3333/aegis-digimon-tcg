@@ -3,6 +3,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-073.js";
 import "./BT22-073.js";
+import { baseFor, digivolveOnto, sameLevelCases } from "./sameLevel.testSupport.js";
 
 type DeletePrimitives = {
   primitives: { deletePermanent(ids: string[], cause: "byBattle" | "byEffect"): Promise<unknown> };
@@ -135,4 +136,32 @@ describe("BT22-073 Crescemon", () => {
       expect.arrayContaining(["BT22-073", "BT22-074"]),
     );
   });
+});
+
+describe("BT22-073 Crescemon — KB Q&A rulings", () => {
+  it.each(sameLevelCases(5))(
+    "counts every card in its stack, itself included, for 2 same-level cards: $stack (Q4932)",
+    async ({ under, sameLevel }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [baseFor(under)],
+            hand: [{ card: "BT22-073", as: "crescemon" }],
+            deck: ["BT1-010", "BT1-011"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(digivolveOnto(s, "base", "crescemon")).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "BT22-073");
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.trash).toHaveLength(1);
+      expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(sameLevel);
+    },
+  );
 });

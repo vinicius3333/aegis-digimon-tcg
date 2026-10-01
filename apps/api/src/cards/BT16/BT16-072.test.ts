@@ -86,3 +86,40 @@ describe("BT16-072", () => {
     );
   });
 });
+
+async function deleteTwoCopiesWithTamersInTrash(trashTamers: string[]) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT16-072", as: "first" },
+          { card: "BT16-072", as: "second" },
+        ],
+        trash: trashTamers,
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+
+  await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId, s.perm("second").permanentId], "byEffect");
+  await settle(() => s.state.pendingDecision === undefined);
+  return s;
+}
+
+function tamerIdsOnField(s: Awaited<ReturnType<typeof deleteTwoCopiesWithTamersInTrash>>): string[] {
+  return s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.cardId).sort();
+}
+
+describe("BT16-072 Arukenimon — KB Q&A rulings", () => {
+  it("cannot use the second simultaneous [On Deletion] to play a Tamer with the same name as the one the first played (Q2659)", async () => {
+    const sameName = await deleteTwoCopiesWithTamersInTrash(["BT8-093", "BT8-093"]);
+
+    expect(tamerIdsOnField(sameName)).toEqual(["BT8-093"]);
+    expect(sameName.state.players[0]!.trash.filter((card) => card.cardId === "BT8-093")).toHaveLength(1);
+
+    const differentNames = await deleteTwoCopiesWithTamersInTrash(["BT8-093", "BT16-089"]);
+
+    expect(tamerIdsOnField(differentNames)).toEqual(["BT16-089", "BT8-093"]);
+  });
+});

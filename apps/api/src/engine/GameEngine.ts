@@ -35,6 +35,7 @@ import type { VisibilityPort } from "./state/access.js";
 import { GameStateAccess, markRoutedUsedOption } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { printedKeywordsOf } from "./combat/keywords.js";
+import { hasCollision } from "./combat/legality.js";
 import { WinCheck } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
@@ -88,10 +89,12 @@ import {
   cardSourceOf,
   effectEnvironment,
   forgetUsesOfCardsLeavingField,
+  trackGrantsOfCardsCrossingField,
 } from "./gameEngine/effectContext.js";
 import { engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
 import { unsuspendAllForSeat, unsuspendForActivePhase } from "./gameEngine/turnFlow.js";
 import { buildPrimitives } from "./gameEngine/effectContext.js";
+import type { PendingBlitzAttack } from "./gameEngine/blitz.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -238,6 +241,12 @@ export class GameEngine {
    * apart from {@link pendingNestedTimingEffects}, which any outermost window may drain.
    */
   pendingPlayCostDeletionEffects: CollectedEffect[] = [];
+  /**
+   * Effects triggered while a would-leave "instead" replacement resolved (a Tamer's [On Play]),
+   * waiting for the replaced leave's [On Deletion] window so the controller orders them together
+   * (Q2934, Q2994, Q3021).
+   */
+  pendingLeaveReplacementEffects: CollectedEffect[] = [];
 
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   readonly deferredSecurityRemovalTriggers: Array<{
@@ -293,13 +302,10 @@ export class GameEngine {
   readonly resolverDecisions: ResolverDecisions;
   /** Lobby readiness per seat (analogue of RoomManager AllPlayerIsReady). */
   readonly readySeats = new Set<Seat>();
-  /** Blitz opportunities answered during this turn, separate from attack eligibility. */
-  readonly resolvedBlitzOpportunities = new Set<string>();
-  /** Blitz attackers explicitly accepted by their controller and awaiting declaration. */
-  readonly acceptedBlitzAttackers = new Set<string>();
+  /** An activated ＜Blitz＞ whose resolving effect waits for the attack declaration. */
+  pendingBlitzAttack: PendingBlitzAttack | undefined;
   /** Publicly played Rush attackers whose play crossed memory and still have their one action window. */
   readonly crossedMemoryRushAttackers = new Set<string>();
-  blitzDecisionInFlight = false;
   matchSetupStarted = false;
   /** Guards {@link GameEngineHooks.onBothReady} against firing more than once. */
   bothReadyFired = false;
@@ -369,6 +375,7 @@ export class GameEngine {
       ...hooks,
       emit: (event) => {
         forgetUsesOfCardsLeavingField(this, event);
+        trackGrantsOfCardsCrossingField(this, event);
         // The same seam marks the movement that routes a used Option out of its no-area slot,
         // whichever area the Option's own effect sent it to.
         hooks.emit(markRoutedUsedOption(this.state, event));
@@ -393,7 +400,13 @@ export class GameEngine {
             (candidate) => candidate.permanentId === permanentId,
           );
           if (permanent === undefined) continue;
-          const keywords = new Set(printedKeywordsOf(lookupDefinition(permanent.topCard.cardId)?.effectText));
+          const topDefinition = lookupDefinition(permanent.topCard.cardId);
+          const keywords = new Set(printedKeywordsOf(topDefinition?.effectText));
+          const hostKinds = [...(topDefinition?.kinds ?? []), ...this.continuous.grantedKinds(permanentId)];
+          // BT5-094 Q1372: a stack topped by a Tamer is not a Digimon and has no inherited
+          // effects, unless an effect also treats it as a Digimon (BT25-104 Q6499).
+          const inheritsFromStack = hostKinds.includes(CardKind.Digimon) || hostKinds.includes(CardKind.DigiEgg);
+          if (!inheritsFromStack) return [...keywords];
           for (const card of permanent.stack) {
             for (const keyword of printedKeywordsOf(lookupDefinition(card.cardId)?.inheritedEffectText)) {
               keywords.add(keyword);
@@ -410,6 +423,7 @@ export class GameEngine {
         }
         return undefined;
       },
+      (permanentId) => (collisionGrantsBlocker(this, permanentId) ? ["Blocker"] : []),
     );
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
@@ -462,7 +476,7 @@ export class GameEngine {
       memory: this.memory,
       tracker: this.tracker,
       continuousDpSeedState: this.continuousDpSeedState,
-      acceptedBlitzAttackers: this.acceptedBlitzAttackers,
+      pendingBlitzAttack: () => this.pendingBlitzAttack,
       effectEnvironment: (trigger) => effectEnvironment(this, trigger),
       buildEffectContext: (source, trigger) => buildEffectContext(this, source, trigger),
       isNewlyPlayedRushAttacker: (permanentId) => isNewlyPlayedRushAttacker(this, permanentId),
@@ -559,6 +573,8 @@ export class GameEngine {
    * (a deletion can fire an [On Deletion] effect that itself drives `resolveTiming`, which
    */
   ruleProcessing = false;
+  /** The seat whose end-of-turn window is resolving; undefined outside that window. */
+  turnEndWindowSeat: Seat | undefined = undefined;
   /** Barrier costs trigger security-removal effects before the current security battle continues. */
   resolvingBarrierSecurityCost = false;
 
@@ -659,7 +675,13 @@ export class GameEngine {
     permanentIds: string[],
     cause: RemovalCause = "byEffect",
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
+    opts?: {
+      isBounce?: boolean;
+      insteadOnly?: boolean;
+      playerAction?: boolean;
+      isDigiXros?: boolean;
+      includeEvade?: boolean;
+    },
   ): Promise<Set<string>> {
     return engineConsultLeavePrevention(this, permanentIds, cause, resolvingSeat, opts);
   }
@@ -812,8 +834,20 @@ export class GameEngine {
     return reactivateOnPlay(this, permanentId, opts);
   }
 
-  /** Public legality signal used by clients/tests to know the confirmed Blitz window is ready. */
+  /** Whether an activated ＜Blitz＞ is waiting for `permanentId` to declare its attack. */
   hasAcceptedBlitzAttack(permanentId: string): boolean {
-    return this.acceptedBlitzAttackers.has(permanentId);
+    return this.pendingBlitzAttack?.attackerPermanentId === permanentId;
   }
+}
+
+/** ＜Collision＞ (§16-30): during its attack, every Digimon of the attacker's opponent has ＜Blocker＞ (Q2601). */
+function collisionGrantsBlocker(engine: GameEngine, permanentId: string): boolean {
+  const attackerId = engine.combat?.currentAttackerId;
+  if (attackerId === undefined || attackerId === permanentId) return false;
+  const attacker = engine.access.permanentById(attackerId);
+  const permanent = engine.access.permanentById(permanentId);
+  if (attacker === undefined || permanent === undefined) return false;
+  if (permanent.controllerSeat === attacker.controllerSeat) return false;
+  const definition = lookupDefinition(permanent.topCard.cardId);
+  return definition !== undefined && isDigimon(definition) && hasCollision(attacker, engine.continuous);
 }

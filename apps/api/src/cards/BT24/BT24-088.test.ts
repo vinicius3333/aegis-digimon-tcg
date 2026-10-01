@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -493,4 +494,40 @@ describe("BT24-088 Asuna Shiroki", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+});
+
+describe("BT24-088 Asuna Shiroki — KB Q&A rulings", () => {
+  it.each([
+    [4, true],
+    [0, true],
+    [-3, true],
+    [5, false],
+  ])(
+    "reads 4 or less memory as the gauge at 4 or further right on your side, so %i memory plays: %s (Q5676)",
+    async (memory, plays) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-088", as: "asuna" }],
+            deck: [{ card: "BT1-013", as: "deckCard" }],
+            trash: [{ card: "BT24-010", as: "target" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = memory;
+      await s.ready();
+
+      await advance(s.engine).fire(EffectTiming.StartOfYourTurn, s.perm("asuna"));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const boardTops = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+      expect(boardTops.includes(s.inst("target").instanceId)).toBe(plays);
+      expect(boardTops.includes(s.inst("asuna").instanceId)).toBe(!plays);
+      expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(
+        plays ? s.inst("asuna").instanceId : s.inst("deckCard").instanceId,
+      );
+      expect(s.state.memory).toBe(memory);
+    },
+  );
 });

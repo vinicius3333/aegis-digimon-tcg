@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { printedModalPreamble, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
 import { CardMini } from "../../../design/cards";
+import { Icons } from "../../../design/icons";
+import { Button } from "../../../design/primitives";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../../../design/useMediaQuery";
 import { useTranslation } from "../../../i18n";
 import { useCardOpener } from "../../cardLinks";
@@ -14,6 +16,7 @@ import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
 import { DecisionChoiceCards } from "./DecisionChoiceCards";
 import { DecisionChooseFooter } from "./DecisionChooseFooter";
 import { DecisionClauseChoice } from "./DecisionClauseChoice";
+import { DecisionDigivolveCostChoice } from "./DecisionDigivolveCostChoice";
 import { DecisionEffectChoice } from "./DecisionEffectChoice";
 import { trapDialogFocus } from "./decisionFocusTrap";
 import { DecisionOptionalFooter } from "./DecisionOptionalFooter";
@@ -29,6 +32,21 @@ import "../effectPromptFamily.css";
 /** The art of the card asking the question, big enough to recognise beside its clause. */
 const DECISION_SOURCE_ART_WIDTH = 64;
 
+type DialogWidthParams = {
+  docksOnRail: boolean;
+  isResolutionPlan: boolean;
+  wideDialog: boolean;
+  itemCount: number;
+};
+
+/** A choice or yes/no prompt docks on the left rail at its own width (redesignArena.css). */
+function dialogWidth({ docksOnRail, isResolutionPlan, wideDialog, itemCount }: DialogWidthParams): number | undefined {
+  if (docksOnRail) return undefined;
+  if (isResolutionPlan) return 760;
+  if (wideDialog && itemCount > 3) return 1000;
+  return 560;
+}
+
 export function DecisionOverlay({
   request,
   sourceCardId,
@@ -37,6 +55,7 @@ export function DecisionOverlay({
   triggerDetails = [],
   onTogglePick,
   onRespond,
+  onChangeSourceHost,
 }: {
   request: DecisionRequest;
   sourceCardId?: string;
@@ -46,6 +65,11 @@ export function DecisionOverlay({
   triggerDetails?: readonly TriggerDetail[];
   onTogglePick: (instanceId: string) => void;
   onRespond: (response: DecisionResponse) => void;
+  /**
+   * Set when the pick is narrowed to one Digimon's digivolution cards: the dialog then shows
+   * only those cards, without the effect text, and offers to go back to choosing a Digimon.
+   */
+  onChangeSourceHost?: () => void;
 }) {
   const { t } = useTranslation();
   const openCard = useCardOpener();
@@ -58,6 +82,7 @@ export function DecisionOverlay({
   const choiceClauses = request.options?.choiceClauses;
   const isOptional = request.kind === "optional";
   const isChoose = request.kind === "chooseOption";
+  const docksOnRail = isChoose || isOptional;
   const choosesPrintedBullet =
     isChoose &&
     choiceEffects === undefined &&
@@ -154,6 +179,27 @@ export function DecisionOverlay({
     return <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />;
   }
 
+  const digivolveCostChoice = isChoose ? request.options?.digivolveCostChoice : undefined;
+  if (digivolveCostChoice !== undefined && digivolveCostChoice.costs.length === choices.length) {
+    return (
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("game.digivolve")}
+        className="game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family decision-overlay--side"
+        onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
+      >
+        <DecisionDigivolveCostChoice
+          choice={digivolveCostChoice}
+          onChoose={(optionIndex) => onRespond({ kind: "chooseOption", optionIndex })}
+          onViewBoard={() => setIsViewingBoard(true)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       ref={panelRef}
@@ -161,13 +207,18 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={dialogLabel}
-      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}`}
+      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
       onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
       /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
          hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
       style={{
-        width: isResolutionPlan ? 760 : wideDialog && Math.max(candidates.length, triggerKeys.length) > 3 ? 1000 : 560,
+        width: dialogWidth({
+          docksOnRail,
+          isResolutionPlan,
+          wideDialog,
+          itemCount: Math.max(candidates.length, triggerKeys.length),
+        }),
       }}
     >
       {/* Artwork and the question share the same compact header as combat prompts. */}
@@ -196,8 +247,13 @@ export function DecisionOverlay({
               {isResolutionPlan ? t("overlay.orderPendingEffects") : promptText}
             </h2>
           </div>
-          {!isOrderTriggers && sourceEffectText ? (
+          {!isOrderTriggers && sourceEffectText && onChangeSourceHost === undefined ? (
             <p className="decision-overlay__effect-text">{sourceEffectText}</p>
+          ) : null}
+          {onChangeSourceHost ? (
+            <Button size="sm" variant="ghost" icon={Icons.ArrowLeft} onClick={onChangeSourceHost}>
+              {t("overlay.chooseAnotherSourceHost")}
+            </Button>
           ) : null}
         </div>
       </div>

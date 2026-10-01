@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT1-085.js";
 import "./BT1-101.js";
+import "../ST2/ST2-12.js";
 
 describe("BT1-085 Tai Kamiya", () => {
   it("sets memory to 3 and grants Security Attack +1 to a red Digimon with 4 sources", async () => {
@@ -183,5 +184,77 @@ describe("BT1-085 Tai Kamiya", () => {
     expect(s.perm("attacker").stack).toHaveLength(0);
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+describe("BT1-085 Tai Kamiya — KB Q&A rulings", () => {
+  async function startTurnMemory(firstCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-085", as: "tai" },
+            { card: "ST2-12", as: "matt" },
+          ],
+        },
+        1: { battleArea: ["ST2-03"] },
+      },
+      { preferTriggerKeys: [firstCardId] },
+    );
+    s.state.memory = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const memory = s.state.memory;
+    const offeredOrder = s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req.options?.triggerCardIds;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return { memory, offeredOrder };
+  }
+
+  it("resolves alongside Matt Ishida in any order, reaching 4 memory when Tai resolves first (Q945)", async () => {
+    const taiFirst = await startTurnMemory("BT1-085");
+    expect(taiFirst.offeredOrder).toEqual(expect.arrayContaining(["BT1-085", "ST2-12"]));
+    expect(taiFirst.memory).toBe(4);
+
+    const mattFirst = await startTurnMemory("ST2-12");
+    expect(mattFirst.memory).toBe(3);
+  });
+
+  it("loses Security Attack +1 when a security effect cuts its sources to 3 or fewer, skipping the second check (Q947)", async () => {
+    async function attackInto(security: string[], isDone: (s: ReturnType<typeof setupEngine>) => boolean) {
+      const s = setupEngine({
+        0: {
+          battleArea: [
+            { card: "BT1-085", as: "tai" },
+            { card: "BT1-024", as: "attacker", dp: 20000, under: ["BT1-001", "BT1-010", "BT1-015", "BT1-020"] },
+          ],
+        },
+        1: { security },
+      });
+      await s.ready();
+      expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => isDone(s), 5000);
+      return s;
+    }
+
+    const trashed = await attackInto(
+      ["BT1-101", "BT1-010"],
+      (s) =>
+        s.perm("attacker").stack.length === 0 &&
+        s.state.players[1]!.trash.some((card) => card.cardId === "BT1-101") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(observe(trashed.engine).keywordAmount(trashed.perm("attacker"), "SecurityAttack")).toBe(0);
+    expect(trashed.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
+
+    const control = await attackInto(["BT1-010", "BT1-011"], (s) => s.state.players[1]!.security.length === 0);
+    expect(control.state.players[1]!.security).toHaveLength(0);
   });
 });

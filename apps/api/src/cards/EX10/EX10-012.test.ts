@@ -7,6 +7,11 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-012.js";
 import "../index.js";
+import {
+  expectFaceUpSecurityChecksLikeAnyOther,
+  expectFaceUpSecurityStaysRevealedAndCounts,
+  expectShuffleTurnsFaceUpSecurityFaceDown,
+} from "./faceUpSecurity.testSupport.js";
 
 function reducedCostPlayEffectKey(s: EngineSetup, instance: CardInstance): string {
   const found = ownEffectKeys(s, instance, EffectTiming.OnDeclaration)[0];
@@ -745,5 +750,47 @@ describe("EX10-012 — [Security] free play", () => {
 
     expect(s.state.players[1]!.hand.map((c) => c.cardId).sort()).toEqual(["BT1-013", "BT15-031"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("EX10-012 MetalSeadramon — KB Q&A rulings", () => {
+  it("counts a Digimon whose only [Dark Masters] mention is in its effect text (Q5030)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX10-012", as: "metal" }],
+          battleArea: [{ card: "BT15-072", as: "textOnly" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = 6;
+    const metalId = s.inst("metal").instanceId;
+    expect(getCardDefinition("BT15-072")!.types ?? []).not.toContain("Dark Masters");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: metalId,
+        effectKey: reducedCostPlayEffectKey(s, s.inst("metal")),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => onField(s, metalId));
+
+    expect(onField(s, metalId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("keeps a face-up security card revealed while it still counts as security (Q5031)", async () => {
+    await expectFaceUpSecurityStaysRevealedAndCounts("EX10-012");
+  });
+
+  it("checks a face-up security card like any other: it battles, then is trashed (Q5032)", async () => {
+    await expectFaceUpSecurityChecksLikeAnyOther("EX10-012");
+  });
+
+  it("turns every face-up security card face down when the stack is shuffled (Q5034)", async () => {
+    await expectShuffleTurnsFaceUpSecurityFaceDown("EX10-012");
   });
 });

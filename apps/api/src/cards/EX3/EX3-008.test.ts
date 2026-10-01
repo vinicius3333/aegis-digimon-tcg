@@ -446,21 +446,26 @@ describe("EX3-008 Flamedramon", () => {
   });
 
   it("filters partners and results for its inherited end-of-turn DNA decision", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX3-010", under: ["EX3-008"], as: "host" },
-          { card: "EX3-061", as: "compatiblePartner" },
-          { card: "EX3-061", as: "secondCompatiblePartner" },
-          { card: "EX3-058", as: "incompatiblePartner" },
-        ],
-        hand: [
-          { card: "EX3-063", as: "dragonMode" },
-          { card: "EX3-063", as: "secondDragonMode" },
-          { card: "EX3-044", as: "normalEvolutionOnly" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX3-010", under: ["EX3-008"], as: "host" },
+            { card: "EX3-061", as: "compatiblePartner" },
+            { card: "EX3-061", as: "secondCompatiblePartner" },
+            { card: "EX3-058", as: "incompatiblePartner" },
+          ],
+          hand: [
+            { card: "EX3-063", as: "dragonMode" },
+            { card: "EX3-063", as: "secondDragonMode" },
+            { card: "EX3-044", as: "normalEvolutionOnly" },
+          ],
+        },
       },
-    });
+      // The resulting [When Digivolving] <Blitz> may attack at End of Turn (Q2854); this
+      // test is about the DNA choice, so it declines the attack.
+      { declinePrompts: ["Activate Blitz?"] },
+    );
     await s.ready();
     const compatiblePartnerId = s.perm("compatiblePartner").permanentId;
     const secondCompatiblePartnerId = s.perm("secondCompatiblePartner").permanentId;
@@ -553,6 +558,8 @@ describe("EX3-008 Flamedramon", () => {
         autoAcceptOptional: true,
         autoSelectCards: true,
         preferOptionIndex: 1,
+        // The resulting [When Digivolving] <Blitz> may attack at End of Turn (Q2854).
+        declinePrompts: ["Activate Blitz?"],
       },
     );
     s.state.memory = 1;

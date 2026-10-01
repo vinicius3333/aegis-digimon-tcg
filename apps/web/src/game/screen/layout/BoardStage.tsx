@@ -5,12 +5,15 @@
    is never clipped by the board's own overflow; the ghost that follows a held card goes
    to the document body for the same reason. */
 
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
+import type { ArenaBoardLook } from "../../arenaLook";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
 import { canAttackPlayerWith, canAttackWith, otherSeat } from "../../boardModel";
 import { type LogLine } from "../../matchLog";
 import { intents } from "../../../net/intents";
+import { SurrenderDialog } from "./SurrenderDialog";
+import { useTranslation } from "../../../i18n";
 import { CardOpenerProvider } from "../../cardLinks";
 import { NarrationStack } from "../../NarrationStack";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
@@ -129,7 +132,7 @@ export function BoardStage({
   opponent,
   viewerSeat,
   room,
-  battlefield,
+  look,
   layout,
   anchors,
   cues,
@@ -158,7 +161,7 @@ export function BoardStage({
   opponent: PlayerState;
   viewerSeat: Seat;
   room: Parameters<typeof intents.surrender>[0] | undefined;
-  battlefield: CSSProperties;
+  look: ArenaBoardLook;
   layout: ReturnType<typeof useArenaLayout>;
   anchors: BoardAnchors;
   cues: MatchCues;
@@ -189,36 +192,49 @@ export function BoardStage({
   onInspectPermanent: { viewer: (perm: Permanent) => void; opponent: (perm: Permanent) => void };
   onOpenCard: (cardId: string, artId?: string) => void;
 }) {
+  const { t } = useTranslation();
   const other = otherSeat(viewerSeat);
   const { shownViewer, shownOpponent, breedingViewer, breedingOpponent } = seats;
+  const surrenderDialog = overlays.surrenderConfirmOpen ? (
+    <SurrenderDialog
+      onConfirm={() => {
+        overlays.setSurrenderConfirmOpen(false);
+        if (room) intents.surrender(room);
+      }}
+      onClose={() => overlays.setSurrenderConfirmOpen(false)}
+    />
+  ) : null;
+
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
     // decision dialogs — opens it through this one blow-up.
     <CardOpenerProvider onOpenCard={onOpenCard}>
       <main
-        className="game-layout"
+        className="game-layout aegis-arena"
         style={{
           height: "100%",
           display: "flex",
           background: "var(--ds-background)",
           overflow: "clip",
           ...BATTLE_TIMING_STYLE,
+          ...look.style,
         }}
       >
         <div
-          className="game-board"
+          className="game-board aegis-arena-surface"
           ref={anchors.board}
+          data-art={look.hasArt || undefined}
           style={{
             flex: 1,
             position: "relative",
             display: "flex",
             flexDirection: "column",
-            ...battlefield,
-            ...({ "--arena-background": battlefield.backgroundImage } as CSSProperties),
           }}
         >
           <OpponentBar
             handStripRef={anchors.opponentHandStrip}
+            opponentName={opponent.displayName || t("game.opponent")}
+            opponentAvatarId={opponent.avatarId}
             viewerSeat={viewerSeat}
             displayedTurnSeat={readouts.displayedTurnSeat}
             displayedTurnCount={readouts.displayedTurnCount}
@@ -233,7 +249,8 @@ export function BoardStage({
             skippable={cues.presenting || cues.decisionAnimationsPending}
             onOpenLog={() => overlays.setHistoryOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
-            onSurrender={() => room && intents.surrender(room)}
+            onOpenArenaLook={() => overlays.setArenaLookOpen(true)}
+            onSurrender={() => overlays.setSurrenderConfirmOpen(true)}
             onSkipPresentation={() => cues.skipAnimations()}
           />
 
@@ -371,6 +388,18 @@ export function BoardStage({
               breedingBurst={
                 breedingOpponent.breeding ? cues.permanentBursts.get(breedingOpponent.breeding.permanentId) : undefined
               }
+              breedingEffectSource={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.effectSourcePermanentIds.has(breedingOpponent.breeding.permanentId)
+              }
+              breedingEffectLinked={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.effectLinkedPermanentIds.has(breedingOpponent.breeding.permanentId)
+              }
+              breedingHighlight={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.decisionHighlightPermanentId === breedingOpponent.breeding.permanentId
+              }
               securityCount={
                 cues.securityDealCounts.get(other) ??
                 shieldSecurityCount(shownOpponent.securityCount, cues.heldSecurityCounts.get(other))
@@ -406,6 +435,8 @@ export function BoardStage({
           </div>
 
           <PlayerDock
+            playerName={viewer.displayName || t("game.you")}
+            playerAvatarId={viewer.avatarId}
             breedingDock={!layout.portraitArena ? breedingDock : null}
             handDockRef={anchors.viewerHandDock}
             cardWidth={layout.handCardWidth}
@@ -463,12 +494,14 @@ export function BoardStage({
             narrow
             log={readouts.log}
             onHatchOrMove={actions.onBreeding}
-            onSurrender={() => room && intents.surrender(room)}
+            onSurrender={() => overlays.setSurrenderConfirmOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
           />
         ) : null}
 
         {stageEl ? createPortal(overlayStack, stageEl) : overlayStack}
+
+        {surrenderDialog && stageEl ? createPortal(surrenderDialog, stageEl) : surrenderDialog}
 
         {drag.cardId ? (
           <DragGhost

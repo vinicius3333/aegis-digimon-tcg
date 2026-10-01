@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -165,5 +165,110 @@ describe("BT11-092 Analogman", () => {
     expect(s.perm("analogman").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === machineId)).toBe(false);
+  });
+});
+
+describe("BT11-092 Analogman — KB Q&A rulings", () => {
+  async function runTurnWithBreedingMove(startingMemory: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-092", as: "analogman" }],
+          breeding: { card: "BT1-009", dp: 3000, as: "mover" },
+          hand: [{ card: "AD1-003", as: "cyborg" }],
+          deck: [{ card: "BT1-010", as: "drawn" }, "BT1-010"],
+          eggDeck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT8-094", as: "emperor" }, "BT1-009"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = startingMemory;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
+    return { s, turn };
+  }
+
+  it("does not activate [Start of Your Main Phase] when the memory crossed to the opponent before the main phase (Q2117)", async () => {
+    const crossed = await runTurnWithBreedingMove(1);
+    await crossed.turn;
+
+    const phases = crossed.s.events.flatMap((event) => (event.kind === "phaseChanged" ? [event.phase] : []));
+    expect(phases).not.toContain(Phase.Main);
+    expect(crossed.s.state.memory).toBe(-1);
+    expect(crossed.s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      crossed.s.inst("cyborg").instanceId,
+    ]);
+    expect(
+      crossed.s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT11-092"),
+    ).toBe(false);
+
+    const control = await runTurnWithBreedingMove(3);
+    await advance(control.s.engine).waitForMainPhase(0);
+    expect(control.s.state.memory).toBe(2);
+    expect(control.s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      control.s.inst("drawn").instanceId,
+    ]);
+    advance(control.s.engine).endMainPhaseIfOpen(0);
+    await control.turn;
+  });
+
+  it("still switches the target after <Raid> moved a direct attack onto a Digimon (Q2118)", async () => {
+    async function attackWithRaid(target: "player" | "suspended") {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT11-092", as: "analogman" },
+              { card: "BT15-066", as: "machine", dp: 11000 },
+              { card: "BT1-010", as: "raidTarget", dp: 13000 },
+              { card: "BT1-009", as: "sleeper", dp: 1000, suspended: true },
+            ],
+            security: ["BT1-009"],
+          },
+          1: { battleArea: [{ card: "BT11-010", as: "grizzly", dp: 20000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      const defenderIds = new Map(
+        ["machine", "raidTarget"].map((alias) => [alias, s.perm(alias).permanentId] as const),
+      );
+      const declared =
+        target === "player"
+          ? ({ kind: "player" } as const)
+          : ({ kind: "permanent", permanentId: s.perm("sleeper").permanentId } as const);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("grizzly").permanentId,
+          target: declared,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some(({ kind }) => kind === "attackDeclared") && !observe(s.engine).isAttacking());
+      const inPlay = (alias: "machine" | "raidTarget") =>
+        s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === defenderIds.get(alias));
+      return { s, inPlay };
+    }
+
+    const declaredOnDigimon = await attackWithRaid("suspended");
+    expect(declaredOnDigimon.s.perm("analogman").isSuspended).toBe(false);
+    expect(declaredOnDigimon.inPlay("machine")).toBe(true);
+
+    const direct = await attackWithRaid("player");
+    expect(direct.s.decisions.map(({ seat, req }) => `${seat}:${req.kind}`)).toEqual(["1:selectCards", "0:optional"]);
+    expect(direct.s.perm("analogman").isSuspended).toBe(true);
+    expect(direct.inPlay("machine")).toBe(false);
+    expect(direct.inPlay("raidTarget")).toBe(true);
+    expect(direct.s.state.players[0]!.security).toHaveLength(1);
   });
 });

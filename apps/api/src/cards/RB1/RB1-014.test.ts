@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { digivolveTrashingUnderCards } from "./underCardTrash.testSupport.js";
 
 describe("RB1-014 Thetismon", () => {
   it("pays blue cards and trashes cards under an opponent stack", async () => {
@@ -176,5 +177,47 @@ describe("RB1-014 Thetismon", () => {
     expect(s.perm("host").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
+  });
+});
+
+describe("RB1-014 Thetismon — KB Q&A rulings", () => {
+  it("trashes a card under a different opponent Digimon and Tamer for each blue card (Q4088)", async () => {
+    const { s } = await digivolveTrashingUnderCards({
+      baseId: "RB1-013",
+      evolvingId: "RB1-014",
+      opponent: [
+        { card: "RB1-024", as: "digimon", under: [{ card: "RB1-017", as: "digimonLower" }, { card: "RB1-020", as: "digimonUpper" }] },
+        { card: "RB1-034", as: "tamer", under: [{ card: "BT1-010", as: "tamerLower" }, { card: "BT1-011", as: "tamerUpper" }] },
+      ],
+      targetAliases: ["digimon", "tamer"],
+      underAliases: ["digimonLower", "tamerUpper"],
+    });
+
+    expect(s.perm("digimon").stack.map((card) => card.instanceId)).toEqual([s.inst("digimonUpper").instanceId]);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("tamerLower").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-011", "RB1-017"]);
+  });
+
+  it("limits the can't-suspend target to Digimon without digivolution cards and Tamers with nothing under them (Q4089)", async () => {
+    const { s, targetCandidates } = await digivolveTrashingUnderCards({
+      baseId: "RB1-013",
+      evolvingId: "RB1-014",
+      blueCards: 0,
+      opponent: [
+        { card: "RB1-024", as: "stackedDigimon", under: ["RB1-017"] },
+        { card: "RB1-034", as: "stackedTamer", under: ["BT1-010"] },
+        { card: "RB1-020", as: "bareDigimon" },
+        { card: "RB1-032", as: "bareTamer" },
+      ],
+      targetAliases: ["bareTamer"],
+      underAliases: [],
+    });
+
+    expect(targetCandidates).toHaveLength(1);
+    expect([...targetCandidates[0]!].sort()).toEqual(
+      [s.perm("bareDigimon").permanentId, s.perm("bareTamer").permanentId].sort(),
+    );
+    expect(observe(s.engine).hasRestriction(s.perm("bareTamer"), "suspend")).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("stackedTamer"), "suspend")).toBe(false);
   });
 });

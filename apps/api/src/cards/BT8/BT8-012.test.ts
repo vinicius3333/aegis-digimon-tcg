@@ -20,8 +20,10 @@ describe("BT8-012 Flamedramon", () => {
     await settle(() => s.perm("flamedramon").currentDP > before);
     expect(s.perm("flamedramon").currentDP).toBe(before + 3000);
   });
+});
 
-  it("keeps the attack DP grant after Armor Purge promotes its red level-3 base", async () => {
+describe("BT8-012 Flamedramon — KB Q&A rulings", () => {
+  it("keeps the [When Attacking] +3000 DP for the turn after Armor Purge trashes Flamedramon (Q1701)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -53,6 +55,7 @@ describe("BT8-012 Flamedramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === baseInstanceId);
+    await settle();
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-012")).toBe(true);
     expect(s.perm("base").currentDP).toBe(s.perm("base").baseDP + 3000);

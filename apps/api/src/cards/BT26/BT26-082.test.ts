@@ -4,6 +4,7 @@ import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { identityVisibility } from "../ST24/tamerStack.testSupport.js";
 import "../index.js";
 
 describe("BT26-082 compiled behavior", () => {
@@ -519,5 +520,68 @@ describe("BT26-082 compiled behavior", () => {
         optional: true,
         labels: ["Delete this Digimon", "Trash 2 bottom face-down cards from under your Tamers"],
       });
+  });
+});
+
+describe("BT26-082 Ravemon — KB Q&A rulings", () => {
+  it("stays revealed as a face-up security card that is otherwise checked like any other (Q7118)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-082", as: "ravemon" }],
+          security: [{ card: "BT1-009", as: "topSecurity" }],
+        },
+        1: {
+          battleArea: [{ card: "AD1-001", as: "attacker" }],
+          hand: [{ card: "BT1-010", as: "discard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const ravemonId = s.inst("ravemon").instanceId;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("ravemon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === ravemonId));
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: ravemonId, faceUp: true });
+    expect(identityVisibility(s, s.inst("ravemon"))).toEqual({ owner: true, opponent: true });
+    expect(identityVisibility(s, s.inst("topSecurity")).opponent).toBe(false);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("topSecurity").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: ravemonId, faceUp: true });
+  });
+
+  it("triggers a face-up security card's [Security] effect when it is checked (Q7120)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
+      1: { security: [{ card: "BT26-089", as: "faceUpTamer", faceUp: true }] },
+    });
+    const tamerId = s.inst("faceUpTamer").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([tamerId]);
   });
 });

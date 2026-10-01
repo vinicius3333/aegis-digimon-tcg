@@ -129,3 +129,34 @@ describe("P-230 engine behavior", () => {
     expect(s.state.memory).toBe(memoryBeforeDigivolve - Math.max(0, printedCost - 3));
   });
 });
+
+describe("P-230 Unique Emblem: Honeycomb Commander — KB Q&A rulings", () => {
+  it("treats a card with [Royal Base] as a trait or in its effect text as having it in its text (Q5964)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-230", as: "emblem" }],
+          deck: [
+            { card: "BT23-083", as: "effectText" },
+            { card: "BT18-044", as: "trait" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          battleArea: ["BT1-009", "BT1-037", "BT1-063", "BT1-088", "P-016", "ST6-03", "BT1-084"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emblem").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const royalBaseChoice = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    const offered = new Set(royalBaseChoice.options?.candidateInstanceIds ?? []);
+    expect(offered.has(s.inst("effectText").instanceId)).toBe(true);
+    expect(offered.has(s.inst("trait").instanceId)).toBe(true);
+    expect(offered.has(s.inst("unrelated").instanceId)).toBe(false);
+  });
+});

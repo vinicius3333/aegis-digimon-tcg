@@ -1,9 +1,15 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-031.js";
 import "./index.js";
+import "../BT1/BT1-102.js";
+import "../BT2/BT2-099.js";
+import "../BT10/BT10-100.js";
+import "../BT24/BT24-085.js";
+import "../BT24/BT24-092.js";
 
 describe("BT17-031", () => {
   it("reveals three and adds a Kyubimon/Taomon/Sakuyamon or Rika Nonaka option", () => {
@@ -261,5 +267,202 @@ describe("BT17-031", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
+  });
+});
+
+const RENAMON_HOST = { card: "BT17-032", as: "host", under: ["BT17-031"] };
+const FILLER_DECK = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+const YELLOW_TAMER = "BT1-087";
+
+type Setup = ReturnType<typeof setupEngine>;
+
+function securityAttackOf(s: Setup, alias: string): number {
+  return observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack");
+}
+
+async function useGloriousBurstWithYellowTamers(tamerCount: number): Promise<Setup> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [...Array.from({ length: tamerCount }, () => YELLOW_TAMER), RENAMON_HOST],
+        hand: [{ card: "BT2-099", as: "burst" }],
+        deck: [...FILLER_DECK],
+      },
+      1: { battleArea: [{ card: "BT2-050", as: "target", dp: 20000 }], deck: [...FILLER_DECK] },
+    },
+    { autoSelectCards: true, autoAcceptOptional: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  const burstId = s.inst("burst").instanceId;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: burstId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === burstId));
+  await settle();
+  return s;
+}
+
+describe("BT17-031 Renamon — KB Q&A rulings", () => {
+  it("activates only after the used Option card's [Main] effect has resolved (Q2778)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [RENAMON_HOST],
+          hand: [{ card: "BT1-102", as: "blade" }],
+          deck: [{ card: "BT1-013", as: "drawnByBlade" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const bladeId = s.inst("blade").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: bladeId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawnByBlade").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(bladeId);
+    expect(securityAttackOf(s, "first")).toBe(0);
+    expect(securityAttackOf(s, "second")).toBe(0);
+
+    const { decisionId } = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("second").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => securityAttackOf(s, "second") === -1);
+
+    expect(securityAttackOf(s, "first")).toBe(0);
+    expect(securityAttackOf(s, "second")).toBe(-1);
+  });
+
+  it("does not trigger when an Option card's effect activates without using the card, such as by <Delay> (Q2779)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [RENAMON_HOST],
+          hand: [{ card: "BT10-100", as: "delayed" }],
+          deck: [...FILLER_DECK],
+          security: ["BT1-009", "BT1-011", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: [...FILLER_DECK] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const delayedId = s.inst("delayed").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: delayedId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === delayedId));
+    await settle(() => securityAttackOf(s, "target") === -1);
+    expect(securityAttackOf(s, "target")).toBe(-1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(securityAttackOf(s, "target")).toBe(0);
+
+    const delayEffects = observe(s.engine).activatableEffects(s.perm("delayed"));
+    expect(delayEffects.length).toBeGreaterThan(0);
+    const memoryBeforeDelay = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delayedId,
+        effectKey: delayEffects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === delayedId));
+    await settle();
+
+    expect(s.state.memory).toBe(memoryBeforeDelay + 2);
+    expect(securityAttackOf(s, "target")).toBe(0);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not trigger for an Option whose use cost is reduced to 1 in the hand, like [Glorious Burst] (Q2780)", async () => {
+    const useCostOne = await useGloriousBurstWithYellowTamers(8);
+    expect(useCostOne.state.memory).toBe(9);
+    expect(securityAttackOf(useCostOne, "target")).toBe(0);
+
+    const useCostTwo = await useGloriousBurstWithYellowTamers(7);
+    expect(useCostTwo.state.memory).toBe(8);
+    expect(securityAttackOf(useCostTwo, "target")).toBe(-1);
+  });
+
+  it("triggers when only the cost to pay of a use-cost-2 Option is reduced to 0, as by [Taomon] (Q2781)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "host", under: ["BT17-031"] }],
+          hand: [
+            { card: "BT17-035", as: "taomon" },
+            { card: "BT1-102", as: "blade" },
+          ],
+          deck: [...FILLER_DECK],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const bladeId = s.inst("blade").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("taomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === bladeId));
+    await settle(() => securityAttackOf(s, "target") === -1);
+
+    expect(s.perm("host").topCard?.cardId).toBe("BT17-035");
+    expect(s.state.memory).toBe(2);
+    expect(securityAttackOf(s, "target")).toBe(-1);
+  });
+
+  it("triggers when an effect uses an Option with an original use cost of 2 or more without paying the cost (Q5453)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [RENAMON_HOST, { card: "BT24-085", as: "tamer" }],
+          hand: [{ card: "BT24-092", as: "shockPlasma" }],
+          deck: [...FILLER_DECK],
+        },
+        1: { battleArea: [{ card: "BT11-111", as: "target" }], deck: [...FILLER_DECK] },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = -3;
+    await s.ready();
+    const shockPlasmaId = s.inst("shockPlasma").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("tamer"));
+    await settle(() => securityAttackOf(s, "target") === -1);
+
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(shockPlasmaId);
+    expect(s.perm("target").currentDP).toBe(8000);
+    expect(securityAttackOf(s, "target")).toBe(-1);
   });
 });

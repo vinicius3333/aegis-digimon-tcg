@@ -63,3 +63,32 @@ describe("BT8-016 MasterTyrannomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+describe("BT8-016 MasterTyrannomon — KB Q&A rulings", () => {
+  it("grants itself Security Attack +1 because its own name contains Tyrannomon (Q1702)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-016", as: "master" }] },
+      1: { security: ["BT8-034", "BT8-034", "BT8-034"] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("master"), "SecurityAttack")).toBe(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("master").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length <= 1);
+    await settle();
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    const opponentsTurn = setupEngine({ 0: { battleArea: [{ card: "BT8-016", as: "master" }] } });
+    opponentsTurn.state.turnSeat = 1;
+    await opponentsTurn.ready();
+    expect(observe(opponentsTurn.engine).keywordAmount(opponentsTurn.perm("master"), "SecurityAttack")).toBe(0);
+  });
+});

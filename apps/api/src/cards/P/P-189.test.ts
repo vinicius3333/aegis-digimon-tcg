@@ -5,6 +5,7 @@ import { assertNoLoudGap } from "../../engine/testkit/harness.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-189.js";
+import "../BT16/BT16-033.js";
 
 describe("P-189 Dimetromon", () => {
   it("plays an optional LIBERATOR card costing 4 or less from hand or trash in Security", () => {
@@ -207,5 +208,108 @@ describe("P-189 Dimetromon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("P-189 Dimetromon — KB Q&A rulings", () => {
+  async function attackIntoDimetromon(attacker: { card: string; under?: string[] }) {
+    const s = setupEngine(
+      {
+        0: {
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          trash: [{ card: "BT18-060", as: "liberator" }],
+          security: [{ card: "P-189", as: "dimetromon" }, "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ ...attacker, as: "attacker" }],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    const eventsBefore = s.events.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    const finish = async () => {
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, events: s.events.slice(eventsBefore), finish };
+  }
+
+  it("activates the [Security] effect before the turn player's security-removal trigger (Q4979)", async () => {
+    const { s, events, finish } = await attackIntoDimetromon({ card: "BT1-009", under: ["P-189"] });
+    const securityEffect = events.findIndex(
+      (event) => event.kind === "effectResolved" && event.seat === 0 && event.sourceCardId === "P-189",
+    );
+    const removalTrigger = events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.seat === 1 && event.sourceCardId === "P-189",
+    );
+    expect(securityEffect).toBeGreaterThanOrEqual(0);
+    expect(removalTrigger).toBeGreaterThan(securityEffect);
+    expect(events.some((event) => event.kind === "memoryChanged" && event.reason === "gainMemory")).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("liberator").instanceId,
+    );
+    await finish();
+  });
+
+  it("activates the [Security] effect before the turn player's security-check and security-removal triggers (Q4979)", async () => {
+    const { s, events, finish } = await attackIntoDimetromon({ card: "BT16-033", under: ["P-189"] });
+    const securityEffect = events.findIndex(
+      (event) => event.kind === "effectResolved" && event.seat === 0 && event.sourceCardId === "P-189",
+    );
+    const checkTrigger = events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.seat === 1 && event.sourceCardId === "BT16-033",
+    );
+    const removalTrigger = events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.seat === 1 && event.sourceCardId === "P-189",
+    );
+    expect(securityEffect).toBeGreaterThanOrEqual(0);
+    expect(checkTrigger).toBeGreaterThan(securityEffect);
+    expect(removalTrigger).toBeGreaterThan(securityEffect);
+    expect(events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory")).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("liberator").instanceId,
+    );
+    await finish();
+  });
+
+  it("activates its [Security] effect, then battles the attacking Digimon (Q6520)", async () => {
+    const { s, events, finish } = await attackIntoDimetromon({ card: "BT1-009" });
+    const played = events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT18-060");
+    const battle = events.findIndex((event) => event.kind === "securityChecked");
+    const attackerDeleted = events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" && (event.deletedPermanents ?? []).some(({ cardId }) => cardId === "BT1-009"),
+    );
+    expect(played).toBeGreaterThanOrEqual(0);
+    expect(attackerDeleted).toBeGreaterThan(played);
+    expect(events[battle]).toMatchObject({
+      revealedCardId: "P-189",
+      resolution: "battle",
+      battle: { attackerDeleted: true, securityDigimonDeleted: false },
+    });
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("liberator").instanceId,
+    );
+    await finish();
   });
 });

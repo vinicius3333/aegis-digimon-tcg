@@ -202,3 +202,62 @@ describe("BT21-064 Guilmon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT21-064 Guilmon — KB Q&A rulings", () => {
+  async function deleteHostCarrying(topCard: string, under: string[], firstTrigger: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: topCard,
+              as: "host",
+              under: under.map((card) => ({ card, as: card === "BT21-068" ? "growlmon" : card })),
+            },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: [firstTrigger],
+        preferInstanceIds: preferred,
+      },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    if (under.includes("BT21-068")) preferred.push(s.inst("growlmon").instanceId);
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+    await settle();
+    return s;
+  }
+
+  const handHas = (s: Awaited<ReturnType<typeof deleteHostCarrying>>, cardId: string) =>
+    s.state.players[0]!.hand.some((card) => card.cardId === cardId);
+
+  it("cannot activate its inherited memory gain once Gigimon returns the deleted top Growlmon to the hand (Q5758)", async () => {
+    const gigimonFirst = await deleteHostCarrying("BT21-068", ["P-177", "BT21-064"], "P-177");
+    expect(handHas(gigimonFirst, "BT21-068")).toBe(true);
+    expect(gigimonFirst.state.memory).toBe(0);
+
+    const guilmonFirst = await deleteHostCarrying("BT21-068", ["P-177", "BT21-064"], "BT21-064");
+    expect(guilmonFirst.state.memory).toBe(1);
+    expect(handHas(guilmonFirst, "BT21-068")).toBe(true);
+  });
+
+  it("still activates the inherited memory gains when Gigimon returns a Growlmon digivolution card from under the deleted WarGrowlmon (Q5759)", async () => {
+    const s = await deleteHostCarrying("BT21-076", ["P-177", "BT21-064", "BT21-068"], "P-177");
+    const triggerPrompts = s.decisions.flatMap(({ req }) =>
+      req.kind === "orderTriggers" ? [[...(req.options?.triggerCardIds ?? [])].sort()] : [],
+    );
+    expect(triggerPrompts).toEqual([
+      ["BT21-064", "BT21-068", "P-177"],
+      ["BT21-064", "BT21-068"],
+    ]);
+    expect(handHas(s, "BT21-068")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-076")).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+});

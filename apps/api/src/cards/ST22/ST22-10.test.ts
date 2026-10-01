@@ -63,3 +63,168 @@ describe("ST22-10 OnDiscardSecurity (effect trashes this card from security)", (
     expect(s.perm("oppPerm").currentDP).toBe(3000);
   });
 });
+
+describe("ST22-10 Amethyst Mandala — KB Q&A rulings", () => {
+  it.each([
+    { where: "face up in security", security: [{ card: ST22, as: "mandala", faceUp: true }], hand: [], protects: true },
+    {
+      where: "face down in security",
+      security: [{ card: ST22, as: "mandala", faceUp: false }],
+      hand: [],
+      protects: false,
+    },
+    { where: "in the hand", security: [], hand: [{ card: ST22, as: "mandala" }], protects: false },
+  ])(
+    "activates its {Security} effect only while face up in security ($where) (Q5436)",
+    async ({ security, hand, protects }) => {
+      const s = setupEngine(
+        {
+          0: { security: [...security, "BT1-090"], hand, battleArea: [{ card: "ST22-03", as: "kyubimon" }] },
+          1: { battleArea: [{ card: OPP_DIGIMON, dp: 12000, as: "oppPerm" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      const kyubimonId = s.perm("kyubimon").permanentId;
+
+      const removed = await advance(s.engine).verb.deletePermanent([kyubimonId], "byEffect");
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(removed).toBe(protects ? 0 : 1);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === kyubimonId)).toBe(protects);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("mandala").instanceId)).toBe(protects);
+    },
+  );
+
+  it("lets a second face-up copy activate after the first already kept the Digimon (Q5437)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: ST22, as: "first", faceUp: true }, { card: ST22, as: "second", faceUp: true }, "BT1-090"],
+          battleArea: [{ card: "ST22-03", as: "kyubimon" }],
+        },
+        1: { battleArea: [{ card: OPP_DIGIMON, dp: 30000, as: "oppPerm" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const kyubimonId = s.perm("kyubimon").permanentId;
+
+    await advance(s.engine).verb.deletePermanent([kyubimonId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined && s.perm("oppPerm").currentDP === 12000);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === kyubimonId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("oppPerm").currentDP).toBe(12000);
+  });
+
+  it.each([
+    { copies: 1, survivors: ["ST22-03"] },
+    { copies: 2, survivors: ["ST22-03", "ST22-02"] },
+  ])("keeps 1 of several leaving Digimon per face-up copy ($copies copies) (Q5438)", async ({ copies, survivors }) => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [
+            ...Array.from({ length: copies }, (_, index) => ({ card: ST22, as: `copy${index}`, faceUp: true })),
+            "BT1-090",
+          ],
+          battleArea: [
+            { card: "ST22-03", as: "kyubimon" },
+            { card: "ST22-02", as: "renamon" },
+          ],
+        },
+        1: { battleArea: [{ card: OPP_DIGIMON, dp: 30000, as: "oppPerm" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const kyubimonId = s.perm("kyubimon").permanentId;
+    const renamonId = s.perm("renamon").permanentId;
+    // The engine asks every copy about every leaving Digimon, Kyubimon first. Decline the second
+    // copy for the already-kept Kyubimon so that copy stays available for Renamon.
+    const script: [string, boolean][] =
+      copies === 1
+        ? [
+            [kyubimonId, true],
+            [renamonId, true],
+          ]
+        : [
+            [kyubimonId, true],
+            [kyubimonId, false],
+            [renamonId, true],
+            [renamonId, true],
+          ];
+
+    const deletion = advance(s.engine).verb.deletePermanent([kyubimonId, renamonId], "byEffect");
+    for (const [subject, accept] of script) {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const decision = s.state.pendingDecision!;
+      expect(JSON.parse(decision.payloadJson).affectedPermanentIds).toEqual([subject]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(survivors);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it.each(["ST22-10", "ST22-06"])(
+    "lets the turn player order it with a simultaneous security-removal effect, %s first (Q5435)",
+    async (first) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "ST22-06", as: "maid" }],
+            hand: [{ card: "BT4-037", as: "kudamon" }],
+            security: [{ card: ST22, as: "mandala", faceUp: true }, "BT1-090", "BT1-090"],
+          },
+          1: {
+            battleArea: [
+              { card: OPP_DIGIMON, dp: 12000, as: "oppPerm" },
+              { card: "BT1-009", as: "lowest" },
+            ],
+            security: ["BT1-090", "BT1-090"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [first] },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kudamon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.events.filter(
+            (event) =>
+              event.kind === "effectResolved" && (event.sourceCardId === "ST22-10" || event.sourceCardId === "ST22-06"),
+          ).length === 2 && s.state.pendingDecision === undefined,
+      );
+
+      const order = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+      expect(order?.seat).toBe(0);
+      expect(order?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["ST22-10", "ST22-06"]));
+      const resolved = s.events.flatMap((event) =>
+        event.kind === "effectResolved" && (event.sourceCardId === "ST22-10" || event.sourceCardId === "ST22-06")
+          ? [event.sourceCardId]
+          : [],
+      );
+      expect(resolved).toEqual(first === "ST22-10" ? ["ST22-10", "ST22-06"] : ["ST22-06", "ST22-10"]);
+    },
+  );
+});

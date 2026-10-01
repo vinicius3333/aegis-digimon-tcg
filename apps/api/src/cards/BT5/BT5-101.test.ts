@@ -75,3 +75,36 @@ describe("BT5-101 You Can't Actually Fly?", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
   });
 });
+
+describe("BT5-101 You Can't Actually Fly? — KB Q&A rulings", () => {
+  const playAgainstLevel7 = async (security: string[]) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT5-046"], hand: [{ card: "BT5-101", as: "option" }] },
+        1: { battleArea: [{ card: "BT5-085", as: "level7" }], security },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("level7").isSuspended);
+    await settle();
+    return s;
+  };
+
+  it("does not win the game when the opponent has a level 7 Digimon but no security cards (Q1375)", async () => {
+    const control = await playAgainstLevel7(["BT5-001"]);
+    expect(control.state.players[1]!.security).toHaveLength(0);
+    expect(control.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT5-001");
+    expect(control.state.gameOver).toBe(false);
+
+    const s = await playAgainstLevel7([]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.gameOver).toBe(false);
+    expect(s.state.winnerSeat).toBe(-1);
+    expect(s.events.some((event) => event.kind === "gameOver")).toBe(false);
+    expect(s.state.turnSeat).toBe(0);
+  });
+});

@@ -1,8 +1,10 @@
 import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT1-088.js";
+import "./BT1-093.js";
 
 describe("BT1-088 Izzy Izumi", () => {
   it("suspends to add a revealed Digimon to hand when a level 5 green Digimon is in play", async () => {
@@ -101,7 +103,7 @@ describe("BT1-088 Izzy Izumi", () => {
   it.each<[string, { battleArea?: string[]; breeding?: string }]>([
     ["a green level 4", { battleArea: ["BT1-070"] }],
     ["a non-green level 5", { battleArea: ["BT1-020"] }],
-    ["a green level 5 only in the breeding area (Q954)", { breeding: "BT1-078" }],
+    ["a green level 5 only in the breeding area", { breeding: "BT1-078" }],
   ])("cannot activate with %s", async (_label, support) => {
     const s = setupEngine({
       0: {
@@ -116,5 +118,109 @@ describe("BT1-088 Izzy Izumi", () => {
     expect(s.perm("izzy").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck[0]?.instanceId).toBe(s.inst("top").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+});
+
+describe("BT1-088 Izzy Izumi — KB Q&A rulings", () => {
+  const FILLER = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"];
+
+  const activateIzzy = (s: EngineSetup, effectKey: string) =>
+    s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("izzy").topCard!.instanceId,
+      effectKey,
+    });
+
+  it("activates [Main] during the main phase but not to interrupt an attack or another effect (Q953)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-088", as: "izzy" },
+          { card: "BT1-078", as: "green" },
+          { card: "BT1-010", as: "attacker" },
+        ],
+        hand: [{ card: "BT1-093", as: "tornado" }],
+        deck: [{ card: "BT1-077", as: "revealed" }, ...FILLER],
+      },
+      1: {
+        battleArea: [{ card: "BT1-072", as: "blocker" }],
+        deck: [...FILLER],
+        security: ["BT1-090", "BT1-090"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 5;
+    const [izzyEffect] = observe(s.engine).activatableEffects(s.perm("izzy"));
+    expect(izzyEffect).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+
+    expect(activateIzzy(s, izzyEffect!.effectKey)).toEqual({ ok: false, reason: "wrong-phase" });
+    expect(s.perm("izzy").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck[0]?.instanceId).toBe(s.inst("revealed").instanceId);
+
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    const tornadoId = s.inst("tornado").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: tornadoId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    expect(activateIzzy(s, izzyEffect!.effectKey)).toEqual({ ok: false, reason: "decision-pending" });
+    expect(s.perm("izzy").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck[0]?.instanceId).toBe(s.inst("revealed").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("attacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === tornadoId));
+
+    expect(activateIzzy(s, izzyEffect!.effectKey)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("revealed").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("revealed").instanceId));
+    expect(s.perm("izzy").isSuspended).toBe(true);
+  });
+
+  it("does not count a level 5 green Digimon in the breeding area (Q954)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-088", as: "izzy" }],
+          breeding: "BT1-078",
+          deck: [{ card: "BT1-077", as: "revealed" }, ...FILLER],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(observe(s.engine).activatableEffects(s.perm("izzy"))).toEqual([]);
+    expect(s.perm("izzy").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck[0]?.instanceId).toBe(s.inst("revealed").instanceId);
+
+    s.putOnBoard(0, "BT1-078");
+    await s.ready();
+    const [izzyEffect] = observe(s.engine).activatableEffects(s.perm("izzy"));
+    expect(izzyEffect).toBeDefined();
+    expect(activateIzzy(s, izzyEffect!.effectKey)).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("revealed").instanceId));
+    expect(s.perm("izzy").isSuspended).toBe(true);
   });
 });

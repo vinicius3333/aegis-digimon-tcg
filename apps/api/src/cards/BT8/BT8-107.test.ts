@@ -68,3 +68,26 @@ describe("BT8-107 Pandemonium Flame", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-107")).toBe(true);
   });
 });
+
+describe("BT8-107 Pandemonium Flame — KB Q&A rulings", () => {
+  it("still deletes the player's own Digimon when no opposing Digimon has a level at or below it (Q1788)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT8-073", as: "ownLevelThree" }], hand: [{ card: "BT8-107", as: "option" }] },
+        1: { battleArea: [{ card: "BT8-032", as: "levelSix" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    const ownInstanceId = s.perm("ownLevelThree").topCard!.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-107"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === ownInstanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT8-032"]);
+  });
+});

@@ -126,6 +126,7 @@ export class ContinuousEffectLedger {
   private stackEffectConferrals: StackEffectConferral[] = [];
   private onDeletionAtEndOfAttackProjections: OnDeletionAtEndOfAttackProjection[] = [];
   private customEffectGrants: CustomEffectGrant[] = [];
+  private readonly grantsOfCardsThatLeftField = new WeakSet<CustomEffectGrant>();
   private nextCustomEffectGrantId = 1;
   private memoryGainPolicies: MemoryGainPolicy[] = [];
   private costReductionBlocks: CostReductionBlock[] = [];
@@ -136,7 +137,6 @@ export class ContinuousEffectLedger {
   private dnaLevelOverrides: DnaLevelOverride[] = [];
   private readonly battleScopes = new Map<number, { parent?: number; entries: Set<object> }>();
   private readonly durationOwners = new WeakMap<object, Seat>();
-
   // Durations are translated relative to the recipient at installation. A later
   // controller change must not translate that already-installed endpoint again.
   private anchorDuration<T extends object>(entry: T): T {
@@ -218,6 +218,7 @@ export class ContinuousEffectLedger {
       continuous?: boolean;
       fromSourceKind?: string[];
       byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
       originSeat?: Seat;
       sourceKinds?: string[];
     },
@@ -232,6 +233,7 @@ export class ContinuousEffectLedger {
         sourceKinds: opts?.sourceKinds,
         fromSourceKind: opts?.fromSourceKind,
         byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
+        byEffectsOnly: opts?.byEffectsOnly,
       }),
     );
   }
@@ -243,10 +245,33 @@ export class ContinuousEffectLedger {
     restriction: Restriction,
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
-    opts?: { continuous?: boolean },
+    opts?: {
+      continuous?: boolean;
+      matchesAsDigimon?: PlayerRestrictionEntry["matchesAsDigimon"];
+    },
   ): void {
     this.playerRestrictions.push(
-      this.anchorDuration({ seat, ownerSeat, restriction, duration, matches, continuous: opts?.continuous }),
+      this.anchorDuration({
+        seat,
+        ownerSeat,
+        restriction,
+        duration,
+        matches,
+        continuous: opts?.continuous,
+        ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+      }),
+    );
+  }
+
+  /** Whether a "Digimon can't digivolve" rule locks the Tamer `permanentId` digivolving as `asDigimon`. */
+  isDigivolveLockedAsDigimon(permanentId: string, asDigimon: CardDefinition): boolean {
+    if (this.hasRestriction(permanentId, "digivolve")) return true;
+    const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
+    return this.playerRestrictions.some(
+      (entry) =>
+        entry.seat === controllerSeat &&
+        entry.restriction === "digivolve" &&
+        entry.matchesAsDigimon?.(permanentId, asDigimon) === true,
     );
   }
 
@@ -271,12 +296,15 @@ export class ContinuousEffectLedger {
    * on. Leaving it undefined makes such an entry block anyway: a prohibiting effect takes
    * precedence (Comprehensive Rules §15-1-3), and over-blocking surfaces as a failing test
    * whereas under-blocking is the silent no-op this scoping exists to prevent.
+   *
+   * `opts.byEffect: false` marks rule processing or battle, which a `byEffectsOnly` entry
+   * does not block.
    */
   hasRestriction(
     permanentId: string,
     restriction: Restriction,
     sourceKind?: string,
-    opts?: { byOpponentEffect?: boolean },
+    opts?: { byOpponentEffect?: boolean; byEffect?: boolean },
   ): boolean {
     // Printed "can't suspend" effects are recorded as `beSuspended` by the
     // interpreter so effect-driven suspension can honor them. The combat
@@ -290,6 +318,7 @@ export class ContinuousEffectLedger {
     const individuallyRestricted = this.restrictions.some((r) => {
       if (r.permanentId !== permanentId || !isEquivalent(r.restriction)) return false;
       if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
+      if (r.byEffectsOnly === true && opts?.byEffect === false) return false;
       if (this.suppressedByEffectImmunity(r)) return false;
       if (r.fromSourceKind === undefined) return true;
       // Qualified entry: block only when sourceKind is known and matches.
@@ -680,7 +709,8 @@ export class ContinuousEffectLedger {
     opts?: {
       continuous?: boolean;
       digiXrosOnly?: boolean;
-      ruleDerived?: boolean;
+      fromRule?: boolean;
+      nameContainsOnly?: boolean;
       dynamicTokens?: () => string[];
     },
   ): void {
@@ -692,26 +722,33 @@ export class ContinuousEffectLedger {
         duration,
         continuous: opts?.continuous,
         digiXrosOnly: opts?.digiXrosOnly,
-        ruleDerived: opts?.ruleDerived,
+        fromRule: opts?.fromRule,
+        nameContainsOnly: opts?.nameContainsOnly,
         dynamicTokens: opts?.dynamicTokens,
       }),
     );
   }
 
+  /**
+   * Name grants in force on a permanent. A `(Rule)` name is original card information, so an
+   * effect that replaces the original name removes it too (Q2081/Q2479).
+   */
+  private activeNameGrants(permanentId: string): NameTraitGrant[] {
+    const originalNameReplaced = this.originalCardInfoOverride(permanentId)?.name !== undefined;
+    return this.nameTraitGrants.filter(
+      (grant) =>
+        grant.permanentId === permanentId &&
+        grant.kind === "name" &&
+        !grant.digiXrosOnly &&
+        !(originalNameReplaced && grant.fromRule === true),
+    );
+  }
+
   /** Extra name aliases granted to a permanent (lowercased tokens), excluding DigiXros-only grants. */
   grantedNames(permanentId: string): string[] {
-    const originalNameReplaced = this.originalCardInfoOverride(permanentId)?.name !== undefined;
-    return this.nameTraitGrants
-      .filter(
-        (g) =>
-          g.permanentId === permanentId &&
-          g.kind === "name" &&
-          !g.digiXrosOnly &&
-          !(originalNameReplaced && g.ruleDerived === true),
-      )
-      .flatMap((g) =>
-        g.dynamicTokens ? g.dynamicTokens().map((t) => t.toLowerCase()) : g.tokens.map((t) => t.toLowerCase()),
-      );
+    return this.activeNameGrants(permanentId).flatMap((g) =>
+      g.dynamicTokens ? g.dynamicTokens().map((t) => t.toLowerCase()) : g.tokens.map((t) => t.toLowerCase()),
+    );
   }
 
   /**
@@ -720,14 +757,8 @@ export class ContinuousEffectLedger {
    * renaming the card to exactly X (EX13-053/Q7377).
    */
   grantedExactNames(permanentId: string): string[] {
-    return this.nameTraitGrants
-      .filter(
-        (grant) =>
-          grant.permanentId === permanentId &&
-          grant.kind === "name" &&
-          !grant.digiXrosOnly &&
-          grant.ruleDerived !== true,
-      )
+    return this.activeNameGrants(permanentId)
+      .filter((grant) => grant.nameContainsOnly !== true)
       .flatMap((grant) =>
         grant.dynamicTokens
           ? grant.dynamicTokens().map((token) => token.toLowerCase())
@@ -868,6 +899,8 @@ export class ContinuousEffectLedger {
     private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined,
     private readonly printedKeywordsOfPermanent?: (permanentId: string) => readonly string[],
     private readonly anyControllerSeatOf?: (permanentId: string) => Seat | undefined,
+    /** Keywords a rule confers without a ledger grant, such as ＜Collision＞'s ＜Blocker＞ during its attack. */
+    private readonly ruleGrantedKeywordsOf?: (permanentId: string) => readonly string[],
   ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
@@ -895,9 +928,12 @@ export class ContinuousEffectLedger {
 
   /** Keywords currently granted to a permanent (with optional amounts). */
   grantedKeywords(permanentId: string): { keyword: string; amount?: number }[] {
-    const direct = this.keywordGrants
-      .filter((g) => g.permanentId === permanentId && this.keywordGrantIsActive(g))
-      .map((g) => ({ keyword: g.keyword, amount: g.amount }));
+    const direct: { keyword: string; amount?: number }[] = [
+      ...this.keywordGrants
+        .filter((g) => g.permanentId === permanentId && this.keywordGrantIsActive(g))
+        .map((g) => ({ keyword: g.keyword, amount: g.amount })),
+      ...(this.ruleGrantedKeywordsOf?.(permanentId) ?? []).map((keyword) => ({ keyword })),
+    ];
     const seat = this.controllerSeatOf?.(permanentId);
     if (seat === undefined) return direct;
     return direct.concat(
@@ -943,13 +979,16 @@ export class ContinuousEffectLedger {
 
   private keywordGrantIsActive(grant: KeywordGrant): boolean {
     const recipientSeat = this.controllerSeatOf?.(grant.permanentId);
-    if (grant.sourceSeat !== undefined && recipientSeat !== undefined && grant.sourceSeat !== recipientSeat) {
+    if (grant.sourceSeat !== undefined && recipientSeat !== undefined) {
+      // An immunity that isn't scoped to the opponent also suppresses its controller's own
+      // grants (LM-020's declared category, KB Q4007/Q4011).
+      const byOpponentEffect = grant.sourceSeat !== recipientSeat;
       const sourceKinds = grant.sourceKinds ?? [];
       const immune =
         sourceKinds.length === 0
-          ? this.hasRestriction(grant.permanentId, "beAffected", undefined, { byOpponentEffect: true })
+          ? this.hasRestriction(grant.permanentId, "beAffected", undefined, { byOpponentEffect })
           : sourceKinds.some((kind) =>
-              this.hasRestriction(grant.permanentId, "beAffected", kind, { byOpponentEffect: true }),
+              this.hasRestriction(grant.permanentId, "beAffected", kind, { byOpponentEffect }),
             );
       if (immune) return false;
     }
@@ -1179,7 +1218,8 @@ export class ContinuousEffectLedger {
     // NOTE: customEffectGrants are anchored on the granted card's INSTANCE, not its permanent, and
     // are intentionally NOT dropped here. The grant must outlive the permanent's field-leave so a
     // granted [On Deletion] still fires on the grantee's OWN deletion (the instance is in trash by
-    // the deletion window). The grant lapses via `sweep` at its duration boundary.
+    // the deletion window). The grant lapses via `sweep` at its duration boundary, or when the card
+    // re-enters the field (`dropCustomEffectGrantsOfReenteringCards`).
     // A security disable lives on its attacker; a timing disable on its suppressed target —
     // either lapses once that permanent leaves the field.
     this.securityEffectDisables = this.securityEffectDisables.filter((d) => d.attackerPermanentId !== permanentId);
@@ -1278,6 +1318,25 @@ export class ContinuousEffectLedger {
     for (const grant of this.customEffectGrants) {
       if (grant.instanceId === priorTopInstanceId) grant.instanceId = newTopInstanceId;
     }
+  }
+
+  /**
+   * A granted card that leaves the field keeps its grants only for the reactions to that exit,
+   * such as its own [On Deletion]. Once it re-enters the field it is a new card without them
+   * (CR §3-1-3-1-2; BT3-109 KB Q1148).
+   */
+  markCustomEffectGrantsLeftField(instanceIds: readonly string[]): void {
+    const leaving = new Set(instanceIds);
+    for (const grant of this.customEffectGrants) {
+      if (leaving.has(grant.instanceId)) this.grantsOfCardsThatLeftField.add(grant);
+    }
+  }
+
+  dropCustomEffectGrantsOfReenteringCards(instanceIds: readonly string[]): void {
+    const entering = new Set(instanceIds);
+    this.customEffectGrants = this.customEffectGrants.filter(
+      (grant) => !entering.has(grant.instanceId) || !this.grantsOfCardsThatLeftField.has(grant),
+    );
   }
 
   /** Active named custom effect grants (the collector compiles each token to a real Effect). */

@@ -111,6 +111,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, traits: ["NSp"], cost: 3, isAlternate: true }],
   dnaDigivolveRequirement: [
     {
       cost: 0,

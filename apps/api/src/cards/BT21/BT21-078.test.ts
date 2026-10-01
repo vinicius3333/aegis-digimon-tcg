@@ -342,3 +342,55 @@ describe("BT21-078 WereGarurumon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Alliance")).toBe(false);
   });
 });
+
+describe("BT21-078 WereGarurumon — KB Q&A rulings", () => {
+  it("lets the Digimon that gains <Alliance> and the Digimon that attacks be different Digimon (Q4589)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-078", as: "weregarurumon" },
+            { card: "BT1-009", as: "allianceRecipient" },
+          ],
+          hand: [{ card: "BT21-057", as: "adventure" }],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const recipientId = s.perm("allianceRecipient").permanentId;
+    const attackerId = s.perm("weregarurumon").permanentId;
+    preferred.push(recipientId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("adventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => observe(s.engine).hasKeyword(recipientId, "Alliance") && s.state.pendingDecision?.kind === "optional",
+    );
+    const attackOffer = s.state.pendingDecision!;
+    preferred.splice(0, preferred.length, attackerId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackOffer.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: attackerId }),
+    );
+    expect(s.events).not.toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: recipientId }),
+    );
+    expect(observe(s.engine).hasKeyword(recipientId, "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(attackerId, "Alliance")).toBe(false);
+    expect(s.perm("weregarurumon").isSuspended).toBe(true);
+    expect(s.perm("allianceRecipient").isSuspended).toBe(false);
+  });
+});

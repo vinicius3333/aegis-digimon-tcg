@@ -372,6 +372,24 @@ describe("EX8-063", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-060"]);
   });
+
+  it("offers the opponent only their own hand for the optional trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-063", as: "source" }], hand: [{ card: "BT1-010", as: "ownCard" }] },
+        1: { hand: [{ card: "BT1-011", as: "opponentCard" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const offer = s.decisions.find(({ req }) => req.sourceCardId === "EX8-063" && req.kind === "selectCards");
+    expect(offer?.seat).toBe(1);
+    expect(offer?.req.options?.candidateInstanceIds).toEqual([s.inst("opponentCard").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("ownCard").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("opponentCard").instanceId]);
+  });
 });
 
 describe("EX8-063 [X Antibody] reference", () => {

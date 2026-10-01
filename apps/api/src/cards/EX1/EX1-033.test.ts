@@ -280,3 +280,145 @@ describe("EX1-033 Tentomon", () => {
     expect(s.state.memory).toBe(-2);
   });
 });
+
+describe("EX1-033 Tentomon — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+
+  async function attackWith(s: Setup, alias: string) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(alias).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm(alias).isSuspended && s.state.pendingDecision === undefined);
+  }
+
+  async function digivolveCost(s: Setup, baseAlias: string, evolutionAlias: string): Promise<number> {
+    const before = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm(baseAlias).permanentId,
+        instanceId: s.inst(evolutionAlias).instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm(baseAlias).topCard.instanceId === s.inst(evolutionAlias).instanceId);
+    return before - s.state.memory;
+  }
+
+  it("reduces the digivolution of a different Digimon than the one holding this card (Q3218)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-070", as: "attacker", under: ["EX1-033"] },
+          { card: "BT1-066", as: "otherDigimon" },
+        ],
+        hand: [{ card: "BT1-070", as: "evolution" }],
+      },
+      1: { security: ["BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    await attackWith(s, "attacker");
+
+    expect(await digivolveCost(s, "otherDigimon", "evolution")).toBe(1);
+  });
+
+  it("keeps the reduction through a non-Insectoid digivolution until an Insectoid one this turn (Q3219)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-070", as: "attacker", under: ["EX1-033"] },
+          { card: "BT1-066", as: "firstBase" },
+          { card: "BT1-066", as: "secondBase" },
+        ],
+        hand: [
+          { card: "BT1-071", as: "plantEvolution" },
+          { card: "BT1-070", as: "insectoidEvolution" },
+        ],
+      },
+      1: { security: ["BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    await attackWith(s, "attacker");
+
+    expect(await digivolveCost(s, "firstBase", "plantEvolution")).toBe(1);
+    expect(await digivolveCost(s, "secondBase", "insectoidEvolution")).toBe(1);
+  });
+
+  it("stacks one reduction per attack and resets after the Insectoid digivolution uses them (Q3220)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-070", as: "attacker", under: ["EX1-033"] },
+            { card: "BT1-030", as: "blueColor" },
+            { card: "BT1-066", as: "firstBase" },
+            { card: "BT1-066", as: "secondBase" },
+          ],
+          hand: [
+            { card: "BT1-036", as: "unsuspender" },
+            { card: "BT1-070", as: "firstEvolution" },
+            { card: "BT1-070", as: "secondEvolution" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    await attackWith(s, "attacker");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("attacker").isSuspended);
+    await attackWith(s, "attacker");
+
+    expect(await digivolveCost(s, "firstBase", "firstEvolution")).toBe(0);
+    expect(await digivolveCost(s, "secondBase", "secondEvolution")).toBe(2);
+  });
+
+  it("does not reduce a digivolution in the breeding area (Q3221)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-070", as: "attacker", under: ["EX1-033"] }],
+        breeding: { card: "BT1-066", as: "breedingBase" },
+        hand: [{ card: "EX1-035", as: "breedingEvolution" }],
+      },
+      1: { security: ["BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    await attackWith(s, "attacker");
+
+    expect(await digivolveCost(s, "breedingBase", "breedingEvolution")).toBe(2);
+  });
+
+  it("does not reduce an Insectoid Digimon digivolving into a non-Insectoid card (Q3222)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-070", as: "attacker", under: ["EX1-033"] },
+          { card: "BT1-066", as: "insectoidBase" },
+        ],
+        hand: [{ card: "BT1-071", as: "plantEvolution" }],
+      },
+      1: { security: ["BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    await attackWith(s, "attacker");
+
+    expect(s.perm("insectoidBase").topCard.cardId).toBe("BT1-066");
+    expect(await digivolveCost(s, "insectoidBase", "plantEvolution")).toBe(1);
+  });
+});

@@ -1,6 +1,14 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import {
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type EngineSetup,
+  type PermanentSpec,
+  type SetupEngineOptions,
+} from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT19-009.js";
 
@@ -313,5 +321,104 @@ describe("BT19-009 Growlmon", () => {
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
     expect(s.perm("host").currentDP).toBe(12_000);
+  });
+});
+
+function gallantmonOverGrowlmon(
+  opponentBattleArea: PermanentSpec[],
+  options: SetupEngineOptions = { autoSelectCards: true },
+) {
+  return setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT19-012", as: "base", under: ["BT19-009"] }],
+        hand: [{ card: "BT19-015", as: "gallantmon" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+      1: { battleArea: opponentBattleArea },
+    },
+    options,
+  );
+}
+
+function digivolveIntoGallantmon(s: EngineSetup) {
+  return s.engine.applyIntent(0, {
+    type: "digivolve",
+    permanentId: s.perm("base").permanentId,
+    instanceId: s.inst("gallantmon").instanceId,
+  });
+}
+
+describe("BT19-009 Growlmon — KB Q&A rulings", () => {
+  it("treats memory on the opponent's side as 0 or less memory for the inherited bonus (Q3064)", async () => {
+    for (const [startingMemory, deletes] of [
+      [1, true],
+      [5, false],
+    ] as const) {
+      const s = gallantmonOverGrowlmon([{ card: "BT1-009", as: "target", dp: 10_000 }]);
+      s.state.memory = startingMemory;
+      await s.ready();
+
+      expect(digivolveIntoGallantmon(s)).toEqual({ ok: true });
+      if (deletes) await settle(() => s.state.players[1]!.battleArea.length === 0, 20);
+      else await drainMicrotasks(20);
+
+      expect(s.perm("base").topCard?.cardId).toBe("BT19-015");
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
+        deletes ? [] : ["BT1-009"],
+      );
+      expect(s.state.memory).toBe(deletes ? startingMemory - 4 + 2 : startingMemory - 4);
+    }
+  });
+
+  it("raises a printed 8000 DP deletion maximum by 2000, to 10000 and not beyond (Q3065)", async () => {
+    const s = gallantmonOverGrowlmon(
+      [
+        { card: "BT1-013", as: "printed", dp: 8000 },
+        { card: "BT1-009", as: "raised", dp: 10_000 },
+        { card: "BT1-010", as: "beyond", dp: 11_000 },
+      ],
+      {},
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(digivolveIntoGallantmon(s)).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"), 20);
+    const decision = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
+    const candidates = decision.options?.candidateInstanceIds ?? [];
+    expect(candidates).toContain(s.perm("printed").permanentId);
+    expect(candidates).toContain(s.perm("raised").permanentId);
+    expect(candidates).not.toContain(s.perm("beyond").permanentId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("raised").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2, 20);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
+      "BT1-013",
+      "BT1-010",
+    ]);
+  });
+
+  it("reads its owner's side of the memory gauge on the opponent's turn (Q3064)", async () => {
+    for (const [turnPlayerMemory, bonus] of [
+      [2, 2000],
+      [0, 2000],
+      [-1, 0],
+    ] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT19-009"] }] } });
+      s.state.turnSeat = 1;
+      s.state.memory = turnPlayerMemory;
+      await s.ready();
+      await advance(s.engine).recompute();
+
+      expect(s.engine.deletionMaxDp.bonusFor(0, s.perm("host").permanentId)).toBe(bonus);
+    }
   });
 });

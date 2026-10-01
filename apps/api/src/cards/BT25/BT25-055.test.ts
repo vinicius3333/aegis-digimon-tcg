@@ -1,7 +1,7 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_055 } from "./BT25-055.js";
 import "../index.js";
 
@@ -219,4 +219,65 @@ describe("BT25-055 Deramon", () => {
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("boundary").instanceId),
     ).toBe(true);
   });
+});
+
+describe("BT25-055 Deramon — KB Q&A rulings", () => {
+  it.each(["own", "theirs"] as const)(
+    "can suspend either player's Digimon with its [On Play] effect (%s) (Q6338)",
+    async (chosen) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "BT25-055", as: "deramon" }], battleArea: [{ card: "BT1-009", as: "own" }] },
+          1: { battleArea: [{ card: "BT1-009", as: "theirs" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm(chosen).permanentId);
+      s.state.memory = 6;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm(chosen).isSuspended && s.state.pendingDecision === undefined);
+
+      const offered = s.decisions
+        .filter(({ req }) => req.sourceCardId === "BT25-055")
+        .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+      expect(offered).toEqual(expect.arrayContaining([s.perm("own").permanentId, s.perm("theirs").permanentId]));
+      expect(s.perm("own").isSuspended).toBe(chosen === "own");
+      expect(s.perm("theirs").isSuspended).toBe(chosen === "theirs");
+    },
+  );
+
+  it.each([
+    ["[Giant Bird] trait", "BT1-014", true],
+    ["[Carnivorous Plant] trait", "BT11-049", true],
+    ["[Vegetation] trait", "BT25-047", true],
+    ["[TS] trait", "BT25-051", true],
+    ["[Mini Dragon] trait", "BT1-009", false],
+    ["[TS] trait over 4000 DP", "BT25-053", false],
+  ] as const)(
+    "decides whether its [All Turns] effect can play a %s Digimon card (Q6339)",
+    async (_label, cardId, playable) => {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: "BT25-055", as: "deramon" }], hand: [{ card: cardId, as: "candidate" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+
+      await advance(s.engine).verb.suspend([s.perm("deramon").permanentId]);
+      await settle(() => s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      const inPlay = s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("candidate").instanceId,
+      );
+      expect(inPlay).toBe(playable);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+        playable ? [] : [s.inst("candidate").instanceId],
+      );
+    },
+  );
 });

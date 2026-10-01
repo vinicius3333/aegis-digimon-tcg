@@ -18,6 +18,7 @@ import {
   type ArmedSubTrigger,
 } from "./subTriggerIdentity.js";
 import { findLooseInstance } from "./intents.js";
+import { trashArrivalOf } from "../state/access.js";
 import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
@@ -25,9 +26,9 @@ import { drainPendingAttackTriggers } from "./timing/fire.js";
 import { ResolutionPlan } from "../decisions/resolutionPlan.js";
 
 /**
- * @param sourceScope Restricts the fire to watchers anchored ON the event subject
- *   (`selfSourceOnly`) or anchored anywhere else (`excludeSelfSource`). Omitted => every
- *   armed watcher runs, which is what all callers but the deletion seam want.
+ * @param sourceScope Restricts the fire to the event subject's own "when this Digimon is
+ *   deleted" clauses (`selfSourceOnly`) or to every other watcher (`excludeSelfSource`).
+ *   Omitted => every armed watcher runs, which is what all callers but the deletion seam want.
  */
 export async function fireSubTrigger(
   engine: GameEngine,
@@ -37,7 +38,9 @@ export async function fireSubTrigger(
 ): Promise<void> {
   const scopedOut = (sub: SubTriggerSubscription): boolean => {
     if (sourceScope === undefined) return false;
-    const isSelfSource = sub.sourcePermanentId === payload.deletedPermanentId;
+    // A class watcher that merely includes its own host ("one of your [Chessmon]") is not a
+    // self clause: it must wait until the deletion is final (Q2311).
+    const isSelfSource = sub.watchesSelf === true && sub.sourcePermanentId === payload.deletedPermanentId;
     return sourceScope === "selfSourceOnly" ? !isSelfSource : isSelfSource;
   };
   const subscriptionsFor = (): SubTriggerSubscription[] =>
@@ -84,8 +87,9 @@ export async function fireSubTrigger(
   // [On Deletion] effects trigger from the same deletion event (CR §15-4). Capture the
   // watcher while the subject is still on the field, where its source filter can inspect
   // the subject's last live state, but let the ensuing OnDestroyedAnyone window activate
-  // both effects from one ordered pool. Self-anchored onDeletionOf clauses are deliberately
-  // excluded: the deletion verb runs those before leave prevention (EX3-013/Q2212).
+  // both effects from one ordered pool. A permanent's own "when this Digimon is deleted"
+  // clauses are deliberately excluded: the deletion verb runs those before leave prevention
+  // (EX3-013/Q2212).
   if (event === "onDeletionOf" && sourceScope === "excludeSelfSource") {
     const subscriptions = subscriptionsFor();
     const contexts = new Map<number, EffectContext>();
@@ -209,6 +213,59 @@ export function prepareSubTrigger(
 }
 
 /**
+ * One rule process can give several permanents the same event at once (CR §6-2: the unsuspend
+ * phase flips them all simultaneously), while the bus publishes it one subject at a time. A
+ * [Once Per Turn] watcher that more than one of those subjects satisfies still activates only
+ * once, and its controller chooses which of those Digimon it affects (KB Q3328). Fire each such
+ * watcher once over every subject it matches, so `sourceRef: "triggerSubject"` offers the whole
+ * group; the per-subject publications that follow then find its turn budget spent.
+ */
+export async function fireOncePerTurnWatchersOverSimultaneousSubjects(
+  engine: GameEngine,
+  event: SubTriggerEventName,
+  subjectIds: readonly string[],
+  payloadFor: (subjectId: string) => TriggerInfo,
+): Promise<void> {
+  if (subjectIds.length < 2) return;
+  const matchesSubject = (sub: SubTriggerSubscription, subjectId: string): boolean => {
+    const ctx = buildSubTriggerContext(engine, sub, payloadFor(subjectId));
+    return ctx !== undefined && (sub.matches === undefined || sub.matches(ctx));
+  };
+  const groups = engine.subTriggers
+    .subscriptionsFor(event)
+    .filter((sub) => sub.oncePerTurnKey !== undefined)
+    .map((sub) => ({ sub, subjects: subjectIds.filter((subjectId) => matchesSubject(sub, subjectId)) }))
+    .filter(({ subjects }) => subjects.length > 1);
+  for (const { sub, subjects } of groups) {
+    if (engine.tracker.count(sub.oncePerTurnKey!, "subtrigger") > 0) continue;
+    const payload: TriggerInfo = { subjectPermanentIds: subjects, subjectPermanentId: subjects[0] };
+    await withTriggeredMutations(engine, () => fireSubTriggerSnapshot(engine, [sub], payload));
+  }
+}
+
+/**
+ * Arm an event's watchers now and activate them later, after windows that may remove the
+ * event's subject. The subject's identity was settled when the event happened, so `matches`
+ * is not re-read; the watcher's own source must still be present, and `canFire` is re-checked
+ * when it activates (Q2670: the Digimon moved from breeding may already be deleted at 0 DP).
+ */
+export function prepareSubjectFrozenSubTrigger(
+  engine: GameEngine,
+  event: SubTriggerEventName,
+  payload: TriggerInfo,
+): () => Promise<void> {
+  const boundPayload = { ...payload };
+  const armed = armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), boundPayload).map(({ sub }) => ({
+    ...sub,
+    matches: undefined,
+  }));
+  return async () => {
+    if (armed.length === 0) return;
+    await withTriggeredMutations(engine, () => fireSubTriggerSnapshot(engine, armed, boundPayload));
+  };
+}
+
+/**
  * Capture a SubTrigger's eligibility at the event boundary and defer only its activation.
  *
  * Battle deletion has a small but important ordering seam: the losing permanent must leave
@@ -261,12 +318,13 @@ export function prepareFrozenSubTrigger(
     contextAtFireTime: () => {
       // A watcher on a surviving Digimon is still only pending. Another effect in
       // this simultaneous deletion group may remove its source before it activates.
-      // A watcher on a Digimon deleted by this very event keeps its last-live source.
+      // Only a watcher on the very Digimon this event deletes keeps its last-live source;
+      // one whose host dies beside that Digimon in the same battle cannot activate (Q2602).
       const sourceId = item.sub.sourcePermanentId;
       if (
         (event === "onDeletionOf" || event === "whenLeavesPlay") &&
         sourceId !== undefined &&
-        !boundPayload.deletedPermanentIds?.includes(sourceId) &&
+        !(sourceId === boundPayload.deletedPermanentId && boundPayload.deletedPermanentIds?.includes(sourceId)) &&
         buildSubTriggerContext(engine, item.sub, boundPayload) === undefined
       )
         return undefined;
@@ -388,10 +446,14 @@ export function armedSubTriggers(
     if (ctx === undefined) continue;
     if (sub.matches !== undefined && !sub.matches(ctx)) continue;
     if (sub.canFire !== undefined && !sub.canFire(ctx)) continue;
+    const selfTrashedInstanceId = selfTrashedSourceInstanceId(sub, payload);
     armed.push({
       sub,
       ctx,
       occurrence,
+      ...(selfTrashedInstanceId === undefined
+        ? {}
+        : { sourceTrashArrival: trashArrivalOf(engine.state, selfTrashedInstanceId) }),
       contextAtFireTime: () =>
         boundContexts?.get(sub.id) === undefined
           ? buildSubTriggerContext(engine, sub, payload)
@@ -544,6 +606,14 @@ function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTri
   // leaves in the same rule-check fixpoint (BT25-084/Q6399). Self deletion
   // grants deliberately activate from their deleted host (BT15-039).
   if (sub.event === "onDeletionOf" && sub.sourcePermanentId === item.ctx.trigger.deletedPermanentId) return true;
+  // "When this card is trashed from ..." activates from the trash. A card that left the trash
+  // before activation can't activate it, even if it came back: a used Option is in no area
+  // until it is trashed again (Q5160, Q6383, Q6396).
+  const selfTrashedInstanceId = selfTrashedSourceInstanceId(sub, item.ctx.trigger);
+  if (selfTrashedInstanceId !== undefined) {
+    const arrival = trashArrivalOf(engine.state, selfTrashedInstanceId);
+    return arrival !== undefined && arrival === item.sourceTrashArrival;
+  }
   if (sub.event !== "onDeletionOf" && sub.event !== "whenHandTrashed") return true;
   const live = buildSubTriggerSourceContext(engine, sub, item.ctx.trigger);
   if (live === undefined) return false;
@@ -555,6 +625,23 @@ function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTri
   if (sub.isInheritedSource === true) return permanent.stack.some((card) => card.instanceId === sub.sourceInstanceId);
   if (sub.isLinkedSource === true) return permanent.linked.some((card) => card.instanceId === sub.sourceInstanceId);
   return permanent.topCard?.instanceId === sub.sourceInstanceId;
+}
+
+/** The watcher's own source card, when the event is that card being trashed. */
+function selfTrashedSourceInstanceId(sub: SubTriggerSubscription, payload: TriggerInfo): string | undefined {
+  const sourceInstanceId = sub.sourceInstanceId;
+  if (sourceInstanceId === undefined) return undefined;
+  switch (sub.event) {
+    case "whenTrashedFromHand":
+      return payload.trashedFromHandInstanceId === sourceInstanceId ? sourceInstanceId : undefined;
+    case "onDigivolutionCardDiscarded":
+      return payload.trashedDigivolutionInstanceId === sourceInstanceId ? sourceInstanceId : undefined;
+    case "onDigivolutionCardsDiscardedBatch":
+    case "onDigiBurstCardDiscarded":
+      return payload.trashedDigivolutionInstanceIds?.includes(sourceInstanceId) === true ? sourceInstanceId : undefined;
+    default:
+      return undefined;
+  }
 }
 
 /**
@@ -595,17 +682,31 @@ export function pendingWindowCollected(engine: GameEngine): CollectedEffect[] {
   return [
     ...engine.pendingNestedTimingEffects.filter((pending) => nestedTriggerSourceStillResident(engine, pending)),
     ...parkedEntryCollected(engine),
-    ...armedAsPendingCollected(
-      engine,
-      uniqueOncePerTurnWatcherOccurrences(
-        engine.pendingWindowSubTriggers.filter(
-          (item) =>
-            !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
-            subTriggerStillActivatable(engine, item),
-        ),
+    ...pendingWindowWatchersCollected(engine),
+  ];
+}
+
+/** The enclosing window's own armed watchers, without the parked or printed pending halves. */
+export function pendingWindowWatchersCollected(engine: GameEngine): CollectedEffect[] {
+  return armedAsPendingCollected(
+    engine,
+    uniqueOncePerTurnWatcherOccurrences(
+      engine.pendingWindowSubTriggers.filter(
+        (item) =>
+          !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
+          subTriggerStillActivatable(engine, item),
       ),
     ),
-  ];
+  );
+}
+
+function isContextlessOneShot(sub: SubTriggerSubscription): boolean {
+  return (
+    sub.sourcePermanentId === undefined &&
+    sub.sourceInstanceId === undefined &&
+    sub.activationContext === undefined &&
+    sub.matches === undefined
+  );
 }
 
 /**
@@ -640,12 +741,32 @@ export async function withPendingSubTriggers(
     engine.ruleProcessing || payload === undefined
       ? []
       : events.flatMap((event) => armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload));
+  // An anchor-less delayed one-shot (BT1-021's end-of-turn memory loss) has no context, so
+  // `armedSubTriggers` cannot snapshot it. It still belongs to the event it was set up before.
+  const initialContextless =
+    opts.onlyInitiallyArmed === true
+      ? events.flatMap((event) => engine.subTriggers.subscriptionsFor(event).filter(isContextlessOneShot))
+      : [];
   const busFire = async (): Promise<void> => {
     if (opts.onlyInitiallyArmed === true) {
       const remaining = armed.filter(
         (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
       );
-      await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, remaining));
+      await withTriggeredMutations(engine, async () => {
+        await runSubTriggersInChosenOrder(engine, remaining);
+        const stillSubscribed = initialContextless.filter((sub) =>
+          engine.subTriggers.subscriptionsFor(sub.event).includes(sub),
+        );
+        if (stillSubscribed.length === 0) return;
+        await engine.subTriggers.fireSnapshot(
+          stillSubscribed,
+          () => undefined,
+          engine.activeWindowToken,
+          subTriggerTurnLedger(engine),
+          undefined,
+          (sub, ctx) => announceSubTrigger(engine, sub, ctx),
+        );
+      });
       return;
     }
     const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();

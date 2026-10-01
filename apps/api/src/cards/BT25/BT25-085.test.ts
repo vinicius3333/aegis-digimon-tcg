@@ -2,6 +2,7 @@ import { CardKind, EffectTiming, digivolutionRequirementsFor, requireCardDefinit
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT25-085.js";
 
@@ -140,5 +141,130 @@ describe("BT25-085 BeelStarmon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("beel"));
     expect(s.perm("beel").isSuspended).toBe(true);
     expect(s.perm("tamer").linked).toHaveLength(1);
+  });
+});
+
+describe("BT25-085 BeelStarmon — KB Q&A rulings", () => {
+  it.each([
+    ["only its traits", "BT6-017", { ok: true }],
+    ["only its effect text", "BT6-060", { ok: true }],
+    ["nowhere in its text", "BT1-009", { ok: false, reason: "color-requirement-unmet" }],
+  ] as const)(
+    "counts a field Digimon with [Three Musketeers] in %s for Fly Bullet's use requirement (Q6402)",
+    async (_case, fieldCard, result) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: fieldCard, as: "field" }], hand: [{ card: CARD_ID, as: "flyBullet" }] },
+          1: { battleArea: [{ card: "BT1-013", as: "victim" }] },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flyBullet").instanceId, useAs: "option" }),
+      ).toEqual(result);
+      if (result.ok) await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+      expect(s.state.players[1]!.battleArea).toHaveLength(result.ok ? 0 : 1);
+    },
+  );
+
+  it.each([
+    { firstDescription: "this Digimon unsuspends", unsuspended: true, opponentDigimon: 1 },
+    { firstDescription: "without paying the cost", unsuspended: false, opponentDigimon: 0 },
+  ])(
+    "lets its controller order its simultaneous When Digivolving effects (first: $firstDescription) (Q6403)",
+    async ({ firstDescription, unsuspended, opponentDigimon }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: CARD_ID, as: "beel", suspended: true, under: [CARD_ID] }] },
+          1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+        },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoOrderTriggers: false,
+          declinePrompts: ["Arts Digivolve"],
+        },
+      );
+      await s.ready();
+
+      const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("beel"));
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const pending = s.state.pendingDecision!;
+      const options = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req.options!;
+      expect(options.triggerCardIds).toEqual([CARD_ID, CARD_ID]);
+      const first = options.triggerDescriptions!.findIndex((text) => text.includes(firstDescription));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "orderTriggers", order: [options.triggerKeys![first]!] },
+        }),
+      ).toEqual({ ok: true });
+      await resolving;
+
+      expect(s.perm("beel").isSuspended).toBe(!unsuspended);
+      expect(s.state.players[1]!.battleArea).toHaveLength(opponentDigimon);
+    },
+  );
+
+  it("allows no second [Counter] effect in the same attack after its [Counter] unsuspends it (Q6716)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "beel", suspended: true, under: [CARD_ID] },
+            { card: "BT25-103", as: "grace", under: ["BT24-014", "BT25-018"] },
+          ],
+          security: ["BT1-009", "BT1-019"],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 20000, as: "attacker", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const counterOf = (alias: string) =>
+      opened.eligibleCounters.find((entry) => entry.instanceId === s.perm(alias).topCard.instanceId)!;
+    const beelCounter = counterOf("beel");
+    const graceCounter = counterOf("grace");
+    expect(graceCounter).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: beelCounter.instanceId,
+        effectKey: beelCounter.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("beel").isSuspended);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: graceCounter.instanceId,
+        effectKey: graceCounter.effectKey,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.events.filter((event) => event.kind === "counterWindowOpened")).toHaveLength(1);
+    expect(s.perm("grace").stack).toHaveLength(2);
+    expect(s.perm("attacker").stack).toHaveLength(1);
   });
 });

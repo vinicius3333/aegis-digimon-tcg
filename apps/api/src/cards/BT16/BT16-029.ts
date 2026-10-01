@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
                 {
                   controllerDefault: "mine",
                   multicolor: true,
+                  colorCount: 2,
                 },
               ],
               count: 1,

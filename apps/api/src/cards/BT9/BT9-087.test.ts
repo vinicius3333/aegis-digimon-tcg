@@ -1,9 +1,23 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { type BoardSpec, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-087.js";
 import "./BT9-087.js";
+
+const FILLER = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+async function memoryGainedAtStartOfTurn(board: BoardSpec): Promise<number> {
+  const s = setupEngine(board);
+  s.state.memory = 0;
+  await s.ready();
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const gained = s.state.memory;
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await turn;
+  return gained;
+}
 
 describe("BT9-087 T.K. Takaishi & Izzy Izumi", () => {
   it("matches catalog values and the independent memory, DP, and security IR", () => {
@@ -82,5 +96,21 @@ describe("BT9-087 T.K. Takaishi & Izzy Izumi", () => {
     });
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("target").currentDP).toBe(2000);
+  });
+});
+
+describe("BT9-087 T.K. Takaishi & Izzy Izumi — KB Q&A rulings", () => {
+  it("gains 2 memory at the start of the main phase when both players have a level 5 or higher Digimon (Q1890)", async () => {
+    const tamer = { card: "BT9-087" };
+    const both = await memoryGainedAtStartOfTurn({
+      0: { battleArea: [tamer, { card: "BT9-065" }], deck: FILLER, security: 3 },
+      1: { battleArea: [{ card: "BT9-065" }], deck: FILLER, security: 3 },
+    });
+    const opponentOnlyLevel4 = await memoryGainedAtStartOfTurn({
+      0: { battleArea: [tamer, { card: "BT9-065" }], deck: FILLER, security: 3 },
+      1: { battleArea: [{ card: "BT1-015" }], deck: FILLER, security: 3 },
+    });
+    expect(both).toBe(2);
+    expect(opponentOnlyLevel4).toBe(1);
   });
 });

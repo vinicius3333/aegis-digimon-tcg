@@ -381,3 +381,46 @@ describe("BT21-080 Hiro Amanokawa", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+describe("BT21-080 Hiro Amanokawa — KB Q&A rulings", () => {
+  it("treats a Digimon whose [Gammamon] appears only in its effect text as having [Gammamon] in its text (Q4592)", async () => {
+    const runPlacementUnder = async (hostCard: string) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT21-080", as: "hiro" },
+              { card: hostCard, as: "host" },
+              { card: "BT21-056", as: "evolutionBase" },
+            ],
+            hand: [{ card: "BT21-058", as: "snatchmon" }],
+            trash: [
+              { card: "BT21-056", as: "placedA" },
+              { card: "BT21-056", as: "placedB" },
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm("host").topCard.instanceId);
+      s.state.memory = 8;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("evolutionBase").permanentId,
+          instanceId: s.inst("snatchmon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("placedA").instanceId));
+      await settle();
+      return { hiroSuspended: s.perm("hiro").isSuspended, memory: s.state.memory };
+    };
+
+    // Canoweissmon names [Gammamon] only in its digivolution requirement and effects, and has no [Hero] trait.
+    expect(await runPlacementUnder("BT21-022")).toEqual({ hiroSuspended: true, memory: 6 });
+    expect(await runPlacementUnder("BT1-080")).toEqual({ hiroSuspended: false, memory: 5 });
+  });
+});

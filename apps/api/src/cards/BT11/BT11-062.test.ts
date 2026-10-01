@@ -106,3 +106,101 @@ describe("BT11-062 Agumon (X Antibody)", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });
+
+describe("BT11-062 Agumon (X Antibody) — KB Q&A rulings", () => {
+  it("adds the only revealed category card when the other category is missing (Q2095)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-062", as: "agumon" }],
+          deck: [
+            { card: "BT11-064", as: "greymon" },
+            { card: "BT1-009", as: "firstMiss" },
+            { card: "BT1-010", as: "secondMiss" },
+            { card: "BT10-092", as: "unrevealedTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("greymon").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("unrevealedTamer").instanceId,
+      s.inst("firstMiss").instanceId,
+      s.inst("secondMiss").instanceId,
+    ]);
+  });
+
+  it("must add both a Greymon/X Antibody card and a black Tamer when both are revealed (Q2096)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT11-062", as: "agumon" }],
+        deck: [
+          { card: "BT11-064", as: "greymon" },
+          { card: "BT10-092", as: "tamer" },
+          { card: "BT1-009", as: "miss" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    const revealSelections = async (count: number) => {
+      await settle(
+        () =>
+          s.decisions.filter(({ req }) => req.kind === "selectCards" && req.options?.visibleCards !== undefined)
+            .length >= count,
+      );
+      return s.decisions.filter(({ req }) => req.kind === "selectCards" && req.options?.visibleCards !== undefined);
+    };
+
+    const [greymonSlot] = await revealSelections(1);
+    expect(greymonSlot!.req.options?.min).toBe(1);
+    const skipGreymon = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: greymonSlot!.req.decisionId,
+      response: { kind: "selectCards", instanceIds: [] },
+    });
+    expect(skipGreymon.ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: greymonSlot!.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("greymon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+
+    const tamerSlot = (await revealSelections(2))[1]!;
+    expect(tamerSlot.req.options?.min).toBe(1);
+    const skipTamer = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: tamerSlot.req.decisionId,
+      response: { kind: "selectCards", instanceIds: [] },
+    });
+    expect(skipTamer.ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: tamerSlot.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("tamer").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greymon").instanceId, s.inst("tamer").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+});

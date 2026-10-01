@@ -250,7 +250,7 @@ describe("EX2-044 Beelzemon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("does not trigger when Beelzemon is only revealed by another effect", async () => {
+  it("does not trigger when Beelzemon is only revealed by another effect (Q3340)", async () => {
     const s = setupEngine(
       {
         0: {

@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-087.js";
+import "../BT13/BT13-022.js";
 
 describe("BT8-087 T.K. Takaishi", () => {
   it("suspends and draws when the opponent attacks one of your blue Digimon", async () => {
@@ -81,5 +82,55 @@ describe("BT8-087 T.K. Takaishi", () => {
         (permanent) => permanent.topCard.instanceId === s.inst("securityTk").instanceId,
       ),
     ).toBe(true);
+  });
+});
+
+describe("BT8-087 T.K. Takaishi — KB Q&A rulings", () => {
+  it("does not trigger when your blue Digimon blocks an attack aimed elsewhere (Q1765)", async () => {
+    const opponentAttacks = async (target: "player" | "kamemon") => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT8-087", as: "tamer" },
+              { card: "BT13-022", as: "kamemon", suspended: target === "kamemon" },
+            ],
+            deck: ["BT8-033"],
+            security: ["BT8-034"],
+          },
+          1: { battleArea: [{ card: "BT8-017", as: "attacker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target:
+            target === "player"
+              ? { kind: "player" }
+              : { kind: "permanent", permanentId: s.perm("kamemon").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      return s;
+    };
+
+    const blocked = await opponentAttacks("player");
+    await settle(() => blocked.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      blocked.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blocked.perm("kamemon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => blocked.events.some((event) => event.kind === "combatResolved"));
+    expect(blocked.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT8-087"]);
+    expect(blocked.perm("tamer").isSuspended).toBe(false);
+    expect(blocked.state.players[0]!.hand).toHaveLength(0);
+
+    const targeted = await opponentAttacks("kamemon");
+    await settle(() => targeted.events.some((event) => event.kind === "combatResolved"));
+    expect(targeted.perm("tamer").isSuspended).toBe(true);
+    expect(targeted.state.players[0]!.hand).toHaveLength(1);
   });
 });

@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-033.js";
 import "../BT17/BT17-049.js";
 import "../BT23/BT23-041.js";
+import "../BT17/BT17-046.js";
+import "./EX4-063.js";
 
 describe("EX4-033 Terriermon Assistant", () => {
   it("is also treated as Terriermon and gains 4000 DP when an effect suspends it", () => {
@@ -139,5 +142,58 @@ describe("EX4-033 Terriermon Assistant", () => {
     expect(s.perm("host").topCard?.cardId).toBe("BT23-041");
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolution").instanceId)).toBe(true);
     expect(s.state.memory).toBe(10);
+  });
+});
+
+describe("EX4-033 Terriermon Assistant — KB Q&A rulings", () => {
+  it("is played from hand as a [Terriermon] by Henry Wong & Shu-Chong Wong (Q3478)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-063", as: "tamer" }],
+          hand: [{ card: "EX4-033", as: "assistant" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    const played = s.state.players[0]!.battleArea.find(
+      (perm) => perm.topCard?.instanceId === s.inst("assistant").instanceId,
+    );
+    expect(played).toBeDefined();
+    expect(observe(s.engine).isRestricted(played!, "digivolve")).toBe(true);
+  });
+
+  it("keeps the (Rule) [Terriermon] name while it is a digivolution card (Q3479)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-063", as: "tamer" },
+            { card: "BT1-064", as: "carrier", under: ["EX4-033"] },
+          ],
+          hand: [{ card: "BT17-046", as: "gargomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("carrier").permanentId,
+        instanceId: s.inst("gargomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("carrier").topCard?.cardId === "BT17-046");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("tamer").isSuspended).toBe(true);
   });
 });

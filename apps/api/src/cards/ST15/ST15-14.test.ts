@@ -84,3 +84,42 @@ describe("ST15-14 Tai Kamiya", () => {
     expect(digimon.currentDP).toBe(3000);
   });
 });
+
+describe("ST15-14 Tai Kamiya — KB Q&A rulings", () => {
+  it("activates when the opponent blocks your attacking Digimon (Q815)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST15-14", as: "tai" },
+            { card: "BT1-009", as: "attacker" },
+          ],
+          deck: ["BT1-001", "BT1-001"],
+        },
+        1: { battleArea: [{ card: "ST15-12", as: "blocker", dp: 1000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const handBefore = s.state.players[0]!.hand.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.perm("tai").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
+
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.perm("tai").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
+    expect(s.perm("attacker").currentDP).toBe(5000);
+  });
+});

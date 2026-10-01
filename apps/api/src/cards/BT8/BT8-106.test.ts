@@ -74,3 +74,94 @@ describe("BT8-106 Senbon Dokkān", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("remainder").instanceId)).toBe(true);
   });
 });
+
+describe("BT8-106 Senbon Dokkān — KB Q&A rulings", () => {
+  it("lets the player play fewer revealed Mamemon cards than the 15-cost budget allows (Q1786)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT8-059"],
+        hand: [{ card: "BT8-106", as: "option" }],
+        deck: [
+          { card: "BT8-065", as: "catchMamemon" },
+          { card: "BT6-064", as: "mamemon" },
+          { card: "BT8-001", as: "remainder" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT8-023", as: "firstTarget" },
+          { card: "BT8-026", as: "secondTarget" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const reveal = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    expect(reveal.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("catchMamemon").instanceId, s.inst("mamemon").instanceId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: reveal.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("catchMamemon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
+    const deletion = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deletion.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [deletion.options!.candidateInstanceIds![0]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-106"));
+
+    const ownTops = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId);
+    expect(ownTops).toContain(s.inst("catchMamemon").instanceId);
+    expect(ownTops).not.toContain(s.inst("mamemon").instanceId);
+    const ownTrash = s.state.players[0]!.trash.map((card) => card.instanceId);
+    expect(ownTrash).toEqual(expect.arrayContaining([s.inst("mamemon").instanceId, s.inst("remainder").instanceId]));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
+  });
+
+  it("reads the deletion limit as the opposing Digimon's play cost, not its digivolution cost (Q1787)", async () => {
+    const preferredTargets: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT8-059"],
+          hand: [{ card: "BT8-106", as: "option" }],
+          deck: [{ card: "BT8-065", as: "catchMamemon" }, "BT8-001", "BT8-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT8-041", as: "playCostSeven", under: ["BT8-023"] },
+            { card: "BT8-065", as: "playCostSix", under: ["BT8-061"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredTargets },
+    );
+    s.state.memory = 10;
+    const playCostSevenInstanceId = s.perm("playCostSeven").topCard!.instanceId;
+    const playCostSixInstanceId = s.perm("playCostSix").topCard!.instanceId;
+    preferredTargets.push(playCostSevenInstanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === playCostSixInstanceId));
+
+    const opposingTops = s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId);
+    expect(opposingTops).toEqual([playCostSevenInstanceId]);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === playCostSixInstanceId)).toBe(true);
+  });
+});

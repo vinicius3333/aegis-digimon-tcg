@@ -170,3 +170,52 @@ describe("BT18-098 Dragon's Roar", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
   });
 });
+
+describe("BT18-098 Dragon's Roar — KB Q&A rulings", () => {
+  it("does not activate its security-trash effect when it is only looked at and revealed from security (Q3049)", async () => {
+    const removeFromSecurityWith = async (playedCard: string) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: ["BT18-036"],
+            hand: [{ card: playedCard, as: "played" }],
+            security: [{ card: "BT18-098", as: "roar" }, "BT1-110"],
+            deck: ["BT1-010", "BT1-010"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-010", as: "victim", dp: 3000 },
+              { card: "BT1-009", as: "survivor", dp: 12500 },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.inst("roar").instanceId, s.perm("survivor").topCard!.instanceId);
+      s.state.memory = 5;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision === undefined);
+      return s;
+    };
+
+    const revealed = await removeFromSecurityWith("BT1-087");
+    expect(revealed.state.players[0]!.hand.map((card) => card.instanceId)).toContain(revealed.inst("roar").instanceId);
+    expect(revealed.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([
+      revealed.perm("victim").permanentId,
+      revealed.perm("survivor").permanentId,
+    ]);
+
+    const trashedByEffect = await removeFromSecurityWith("BT18-098");
+    expect(trashedByEffect.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      trashedByEffect.inst("roar").instanceId,
+    );
+    expect(trashedByEffect.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([
+      trashedByEffect.perm("survivor").permanentId,
+    ]);
+    expect(trashedByEffect.perm("survivor").currentDP).toBe(6500);
+  });
+});

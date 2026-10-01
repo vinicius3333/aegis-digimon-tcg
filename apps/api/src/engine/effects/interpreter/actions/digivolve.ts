@@ -12,7 +12,12 @@ import { scaleFactor } from "../scaling.js";
 import { canPayCost } from "../costs.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
-import { digivolutionRequirementHasSideEffect, nameIncludesToken } from "@aegis/shared";
+import {
+  digivolutionRequirementHasSideEffect,
+  effectiveExactNames,
+  effectiveStaticNames,
+  nameIncludesToken,
+} from "@aegis/shared";
 import type { Action, CardColor, CardDefinition, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 type ProjectedBase = { permanent: Permanent; definition: CardDefinition };
@@ -89,6 +94,7 @@ function legalIntoCandidates(
         : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
   if (baseDef === undefined) return [];
   return pool.filter((c) => {
+    if (ctx.fx.isEffectDigivolveBlocked?.(basePermanentId, c.cardId, virtualBase) === true) return false;
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
     const ordinary = ignoreLevel ? matchingEvoCostIgnoringLevel(intoDef, baseDef) : matchingEvoCost(intoDef, baseDef);
     const sourceZone = (["hand", "trash"] as const).find((zone) =>
@@ -104,9 +110,12 @@ function legalIntoCandidates(
             ...(sourceZone === undefined ? {} : { sourceZone }),
           })
         : undefined;
+    // Burst digivolution is a separately declared digivolution; an effect that digivolves a
+    // Digimon never burst digivolves it (KB Q4039).
     const alternate =
       base !== undefined &&
       matchedAlternate !== undefined &&
+      !matchedAlternate.burstDigivolve &&
       alternateRequirementAvailable(ctx.game.state, base.controllerSeat, base, matchedAlternate)
         ? matchedAlternate
         : undefined;
@@ -251,6 +260,31 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
   }
   const targets = candidatePermanents(ctx, target);
   return targets.length > 0 ? targets.some((permanent) => hasLegalDestination(permanent.permanentId)) : allowNoTarget;
+}
+
+/**
+ * `canAttemptDigivolve` before the action's cost is paid. A placement cost binds the exact
+ * base that the following digivolve must use; before payment that binding does not exist, so
+ * preflight against the cost's host filter instead. This keeps the cost transactional: with no
+ * legal evolution, the source card is not first moved under the host (EX10-066, KB Q6558).
+ */
+export function canAttemptDigivolveBeforeCost(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Digivolve" }>,
+): boolean {
+  if (!action.target) return false;
+  const hostBindingFilter =
+    action.cost?.kind === "place" &&
+    action.cost.bindHostAs !== undefined &&
+    action.cost.bindHostAs === action.target.fromSelectionRef
+      ? (action.cost.underFilter ??
+        (action.cost.host !== undefined && action.cost.host !== null && typeof action.cost.host === "object"
+          ? action.cost.host.filter
+          : undefined))
+      : undefined;
+  return hostBindingFilter === undefined
+    ? canAttemptDigivolve(ctx, action)
+    : canAttemptDigivolve(ctx, { ...action, target: { filter: hostBindingFilter, count: 1 } });
 }
 
 /** Cards the controller can see in the source zones while choosing what to digivolve into. */
@@ -434,10 +468,12 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         baseName === undefined
           ? []
           : candidates.filter((candidate) => {
-              const candidateName = ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn.toLowerCase();
+              const candidateDefinition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+              const exactNames = effectiveExactNames(candidateDefinition).map((name) => name.toLowerCase());
               return (
-                (action.nameIncludesDigivolvingTarget !== true || nameIncludesToken(candidateName, baseName)) &&
-                (action.differentNameFromDigivolvingTarget !== true || candidateName !== baseName)
+                (action.nameIncludesDigivolvingTarget !== true ||
+                  effectiveStaticNames(candidateDefinition).some((name) => nameIncludesToken(name, baseName))) &&
+                (action.differentNameFromDigivolvingTarget !== true || !exactNames.includes(baseName))
               );
             });
     }
@@ -492,6 +528,18 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       visibleDigivolveSourceIds(ctx, action, zones, candidates),
     );
     if (chosen.length === 0) continue;
+    // Older compiled IR carries the folded reduction as positive `reduceCost` (the
+    // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
+    // stays effective. reduceCost is a reduction amount, so it negates into the delta.
+    const reduceCost = (action as { reduceCost?: number }).reduceCost;
+    const fixedDelta = action.costDelta ?? (reduceCost !== undefined ? -reduceCost : undefined);
+    // A `reduceCostScaling` reduction (BT21-082 "for each of your red Tamers with different
+    // names") stacks with any fixed delta. The verb counts the board only after would-digivolve
+    // replacements resolve: Hidden Potential Discovered! suspending a Digimon while paying for
+    // Galemon's digivolution adds to Galemon's "for every other suspended Digimon" (Q4276).
+    // The cost-choice prompt shows the count before those replacements.
+    const { reduceCostScaling } = action;
+    const promptCostDelta = (fixedDelta ?? 0) - (reduceCostScaling ? scaleFactor(ctx, reduceCostScaling) : 0);
     let useAlternateCost = action.useAlternateCost;
     if (useAlternateCost === undefined) {
       const base = ctx.game.permanentById(pid);
@@ -521,6 +569,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         const alternate =
           base !== undefined &&
           matchedAlternate !== undefined &&
+          !matchedAlternate.burstDigivolve &&
           alternateRequirementAvailable(ctx.game.state, base.controllerSeat, base, matchedAlternate)
             ? matchedAlternate
             : undefined;
@@ -555,30 +604,33 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
                   ...(chosenCandidate.artId ? { artId: chosenCandidate.artId } : {}),
                 },
               ],
+              digivolveCostChoice: {
+                fromCardId: actualBaseDef.cardId,
+                intoCardId: chosenCandidate.cardId,
+                ...(chosenCandidate.artId ? { intoArtId: chosenCandidate.artId } : {}),
+                costs: [printed.memoryCost, alternate.cost],
+                costDelta: promptCostDelta,
+              },
             },
           );
           useAlternateCost = choice === 1;
-        } else if (alternate !== undefined) {
+        } else if (
+          alternate !== undefined &&
+          (printed === undefined || !digivolutionRequirementHasSideEffect(alternate))
+        ) {
           // Effect-driven digivolution still uses a printed alternate requirement when it is
           // the only legal route (notably Hybrid-over-Tamer). Leaving this undefined makes the
           // legality pre-filter offer the Tamer, then the production verb silently reject it.
+          // A cost-free digivolution with a printed route keeps it when the alternate path
+          // carries its own cost, such as BT7-112's placement.
           useAlternateCost = true;
         }
       }
     }
-    // Older compiled IR carries the folded reduction as positive `reduceCost` (the
-    // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
-    // stays effective. reduceCost is a reduction amount, so it negates into the delta.
-    const reduceCost = (action as { reduceCost?: number }).reduceCost;
-    const fixedDelta = action.costDelta ?? (reduceCost !== undefined ? -reduceCost : undefined);
-    // A `reduceCostScaling` reduction is counted at resolution time and folded into the same
-    // verb (BT21-082 "for each of your red Tamers with different names"), stacking with any
-    // fixed delta. The board is counted per base so a multi-target digivolve re-reads it.
-    const scaledReduction = action.reduceCostScaling ? scaleFactor(ctx, action.reduceCostScaling) : 0;
-    const costDelta = scaledReduction > 0 ? (fixedDelta ?? 0) - scaledReduction : fixedDelta;
     const result = await ctx.fx.digivolveFromInstance(pid, chosen[0]!, {
       payCost: pays,
-      costDelta,
+      costDelta: fixedDelta,
+      ...(reduceCostScaling === undefined ? {} : { deferredCostReduction: () => scaleFactor(ctx, reduceCostScaling) }),
       costOverride,
       useAlternateCost,
       ignoreLevel,

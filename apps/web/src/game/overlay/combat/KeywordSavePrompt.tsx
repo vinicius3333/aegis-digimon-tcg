@@ -1,12 +1,11 @@
-import type { ReactNode } from "react";
 import { Button } from "../../../design/primitives";
-import { CardPromptFrame } from "./CardPromptFrame";
-import "../effectPromptFamily.css";
+import { BoardPromptRail } from "../../BoardDecisionRail";
 
 /**
- * The yes/no sheet for a keyword that can save a Digimon from deletion (＜Evade＞,
- * ＜Barrier＞). It shows the card and the keyword's rules text; the buttons carry the
- * question, so the box is sized by them and the text wraps to that width.
+ * The yes/no question for a keyword that can save a Digimon from deletion (＜Evade＞,
+ * ＜Barrier＞). It sits on the same left rail as every other board prompt, so the
+ * board stays visible while the player decides; the answers stack, so long localized
+ * labels never push past the rail.
  */
 export function KeywordSavePrompt({
   keyword,
@@ -19,28 +18,28 @@ export function KeywordSavePrompt({
 }: {
   keyword: string;
   cardId: string | undefined;
-  rulesText: ReactNode;
+  rulesText: string;
   acceptLabel: string;
   declineLabel: string;
   onAccept: () => void;
   onDecline: () => void;
 }) {
   return (
-    <CardPromptFrame
-      cardId={cardId}
-      eyebrow=""
-      title={keyword}
-      description={rulesText}
+    <BoardPromptRail
+      variant="prompt"
       className="keyword-save-overlay"
+      label={keyword}
+      eyebrow={keyword}
+      art={cardId}
+      prompt={keyword}
+      clause={rulesText}
     >
-      <div className="game-actions-row">
-        <Button full onClick={onAccept}>
-          {acceptLabel}
-        </Button>
-        <Button full variant="secondary" onClick={onDecline}>
-          {declineLabel}
-        </Button>
-      </div>
-    </CardPromptFrame>
+      <Button full onClick={onAccept}>
+        {acceptLabel}
+      </Button>
+      <Button full variant="secondary" onClick={onDecline}>
+        {declineLabel}
+      </Button>
+    </BoardPromptRail>
   );
 }

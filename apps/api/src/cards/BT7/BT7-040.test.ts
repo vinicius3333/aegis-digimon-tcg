@@ -4,6 +4,7 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import "./BT7-040.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("BT7-040 Rasenmon — Main Digi-Burst", () => {
   it("trashes up to 4 digivolution cards and gives one opposing Digimon -3000 DP per card", async () => {
@@ -21,7 +22,7 @@ describe("BT7-040 Rasenmon — Main Digi-Burst", () => {
       },
       { autoSelectCards: true },
     );
-    const source = (s.engine as any).cardSourceOf(s.perm("rasenmon").topCard!);
+    const source = observe(s.engine).cardSource(s.perm("rasenmon"));
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT7-040/"),
     )!.effectKey;
@@ -47,7 +48,7 @@ describe("BT7-040 Rasenmon — Main Digi-Burst", () => {
       },
       { autoSelectCards: true },
     );
-    const source = (s.engine as any).cardSourceOf(s.perm("rasenmon").topCard!);
+    const source = observe(s.engine).cardSource(s.perm("rasenmon"));
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT7-040/"),
     )!.effectKey;
@@ -146,5 +147,42 @@ describe("A3 BT7-040 (CR-01) — hand-resident SET cost is owner-scoped (no cros
     await s.engine.recomputeContinuousEffects();
     const into = requireCardDefinition("BT7-040");
     expect(advance(s.engine).ledgers.modifiers.evoCostFor(s.perm("base1"), into)).toEqual({ fixed: 4 });
+  });
+});
+
+describe("BT7-040 Rasenmon — KB Q&A rulings", () => {
+  it("gives only 1 opposing Digimon the scaled -DP when 2 digivolution cards are trashed (Q1570)", async () => {
+    const preferredTargets: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-040", under: ["BT7-031", "BT7-034"], as: "rasenmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT7-040", dp: 15000, as: "firstTarget" },
+            { card: "BT7-039", dp: 15000, as: "secondTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferredTargets },
+    );
+    preferredTargets.push(s.perm("firstTarget").topCard!.instanceId);
+    const source = observe(s.engine).cardSource(s.perm("rasenmon"));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT7-040/"),
+    )!.effectKey;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("rasenmon").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rasenmon").stack.length === 0 && s.perm("firstTarget").currentDP === 9000);
+
+    const targetPrompt = s.decisions.find((decision) => decision.req.kind === "chooseTargets");
+    expect(targetPrompt?.req.options?.max).toBe(1);
+    expect(s.perm("firstTarget").currentDP).toBe(9000);
+    expect(s.perm("secondTarget").currentDP).toBe(15000);
   });
 });

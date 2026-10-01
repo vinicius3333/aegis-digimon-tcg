@@ -70,3 +70,44 @@ describe("BT16-100 Thunderflame Crusher", () => {
     });
   });
 });
+
+describe("BT16-100 Thunderflame Crusher — KB Q&A rulings", () => {
+  it("can trash only 1 of 5 security cards to reduce the cost by 2 (Q2697)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-039", as: "pulsemon" }],
+          hand: [{ card: "BT16-100", as: "option" }],
+          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT16-020", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 6;
+    const trashPrompts = () =>
+      s.decisions.filter(({ req }) => req.promptText === "Trash the top security card to reduce the cost");
+    const answerLatestTrashPrompt = (accept: boolean) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: trashPrompts().at(-1)!.req.decisionId,
+        response: { kind: "optional", accept },
+      });
+
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => trashPrompts().length === 1);
+    expect(answerLatestTrashPrompt(true)).toEqual({ ok: true });
+    await settle(() => trashPrompts().length === 2);
+    expect(s.state.players[0]?.security).toHaveLength(4);
+    expect(answerLatestTrashPrompt(false)).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-020"));
+
+    expect(trashPrompts()).toHaveLength(2);
+    expect(s.state.players[0]?.security).toHaveLength(4);
+    expect(s.state.players[0]?.trash.map((card) => card.cardId)).toContain("BT1-001");
+    expect(s.state.memory).toBe(2);
+  });
+});

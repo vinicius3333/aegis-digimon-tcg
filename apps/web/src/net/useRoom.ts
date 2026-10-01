@@ -16,19 +16,24 @@ import {
   type RoomSlot,
 } from "./client";
 import { intents } from "./intents";
-import { clearReconnectSession, loadReconnectSession, saveReconnectSession } from "./reconnectSession";
+import {
+  RECONNECT_GRACE_MS,
+  clearReconnectSession,
+  loadReconnectSession,
+  saveReconnectSession,
+  type ReconnectSession,
+} from "./reconnectSession";
+import { ResumeCancelledError, resumeSeat } from "./resumeSeat";
 import type { AegisJoinOptions } from "./types";
 
 export type ConnectionStatus = "connecting" | "connected" | "reconnecting" | "error" | "closed";
 
-/** WebSocket close code for a clean, consented close — not a candidate for reconnect. */
 const WS_NORMAL_CLOSURE = 1000;
-/** Reconnect attempts before giving up. Bounded backoff must fit the server grace window. */
-const MAX_RECONNECT_ATTEMPTS = 8;
+/** Grace runs from the drop, not the join, so a live seat keeps its saved session fresh. */
+const SESSION_HEARTBEAT_MS = 5_000;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Resolves once the page is visible — immediately if it already is. */
 const waitUntilVisible = (): Promise<void> => {
   if (typeof document === "undefined" || !document.hidden) return Promise.resolve();
   return new Promise((resolve) => {
@@ -46,7 +51,6 @@ export interface DecisionSyncState {
   confirmedDecisionId: string | undefined;
 }
 
-/** Close only the exact decision the player has already answered. */
 export function acknowledgeDecisionResponse({
   current,
   decisionId,
@@ -58,7 +62,6 @@ export function acknowledgeDecisionResponse({
   return { decision: undefined, confirmedDecisionId: undefined };
 }
 
-/** Reconcile the decision message with the latest synchronized pending-decision id. */
 export function reconcileDecisionPatch({
   current,
   pendingDecisionId,
@@ -75,10 +78,8 @@ export function reconcileDecisionPatch({
       confirmedDecisionId: current.decision.decisionId,
     };
   }
-  // Decision messages and Colyseus state patches use separate channels. A new
-  // message can arrive before a late patch that clears the previous decision;
-  // only a decision already observed in synchronized state may be cleared by a
-  // later mismatching/empty patch.
+  // Decisions and patches use separate channels, so a late patch can trail a new decision.
+  // Only a decision already seen in synchronized state may be cleared.
   if (current.confirmedDecisionId === current.decision.decisionId) {
     return { decision: undefined, confirmedDecisionId: undefined };
   }
@@ -89,38 +90,21 @@ export interface UseRoomResult {
   room: AegisRoom | undefined;
   status: ConnectionStatus;
   state: GameState | undefined;
-  /** Carries `seq`/`batch`/`stateVersion` (SequencedServerEvent) — every event over the wire
-   * does — so a consumer that needs to correlate a live-log entry with the presentation queue's
-   * progress (e.g. barrier-gating a combat prompt the same way a decision is) can read
-   * `event.stateVersion` without re-deriving it from `batches`. */
   events: SequencedServerEvent[];
-  /**
-   * The same events grouped as the server resolved them, appended when a batch closes.
-   * The presentation sequences by batch; `events` remains the flat log the HUD and the
-   * match log read.
-   */
+  /** `events` grouped by server batch; the presentation sequences by these. */
   batches: readonly ServerBatch[];
   decision: DecisionRequest | undefined;
   acknowledgeDecision: (decisionId: string) => void;
   error: string | undefined;
-  /** This client's Colyseus session id; matches PlayerState.sessionId for our seat. */
   sessionId: string | undefined;
   /**
-   * Monotonic counter bumped on every state patch. Because Colyseus mutates the same
-   * GameState instance in place, consumers that memoize on the state reference (e.g.
-   * a Pixi redraw effect) must also depend on this to react to each patch.
-   *
-   * Named for the patch it counts, not for the server's `GameState.stateVersion`: the
-   * server bumps that once per closed batch, while several patches can land inside one
-   * batch and a patch can carry no batch at all.
+   * Bumped on every patch. Colyseus mutates GameState in place, so memoize on this, not on
+   * the state reference. Unlike `GameState.stateVersion`, it is not per batch.
    */
   patchVersion: number;
-  /**
-   * The board at each recent server revision, oldest first. `GameScreen` renders from the
-   * one the presentation has reached rather than from the live state (presentedState.ts).
-   */
+  /** The board at each recent server revision, oldest first (presentedState.ts). */
   snapshots: readonly StateSnapshot[];
-  /** The private room code (non-empty only for the host of a private room). */
+  /** Non-empty only for the host of a private room. */
   roomCode: string;
 }
 
@@ -177,18 +161,10 @@ function connectRoom(
 }
 
 /**
- * Subscribe to the AegisRoom: join on mount, surface the synchronized state, the
- * server event log, and the current decision request. The board renderer and React
- * HUD read from here; nothing here decides game legality (ARCHITECTURE.md 4).
- *
- * Colyseus mutates the same GameState instance in place on every patch, so a naive
- * `setState(room.state)` would no-op after the first patch (React bails on an equal
- * reference). We hold the live instance in a ref and force a re-render with a
- * monotonically increasing `version`; consumers read the always-current ref.
+ * The live GameState sits in a ref because Colyseus mutates it in place and React would
+ * skip `setState` on the same reference; `patchVersion` forces each re-render.
  */
 export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled = false): UseRoomResult {
-  // A resumable session means this mount reconnects instead of matchmaking, so the
-  // very first render must not show the "finding a match" state.
   const [status, setStatus] = useState<ConnectionStatus>(() =>
     !disabled && loadReconnectSession() ? "reconnecting" : "connecting",
   );
@@ -214,36 +190,44 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     answeredDecisionsRef.current.clear();
     setDecision(undefined);
 
-    // Register all room handlers. Called on the initial join and again on each
-    // reconnected Room instance (client.reconnect returns a fresh Room).
+    let stopHeartbeat = () => {};
+
     const bindRoom = (room: AegisRoom) => {
-      // attemptReconnect below owns recovery (persisted token, hidden-tab wait, intent
-      // flush). The SDK's built-in reconnection would race it for the same seat.
+      // attemptReconnect owns recovery; the SDK's own reconnection would race it for the seat.
       room.reconnection.enabled = false;
       answeredDecisionsRef.current.clear();
       roomRef.current = room;
       roomSlotRef.current = connectionSlot(room);
       setSessionId(room.sessionId);
-      saveReconnectSession({
+      const session: ReconnectSession = {
         reconnectionToken: room.reconnectionToken,
         roomId: room.roomId,
         slot: roomSlotRef.current,
         savedAt: Date.now(),
-      });
+      };
+      let gameOver = false;
+      const stampSession = () => {
+        if (cancelled || gameOver || roomRef.current !== room || !room.connection.isOpen) return;
+        saveReconnectSession({ ...session, savedAt: Date.now() });
+      };
+      stampSession();
+      stopHeartbeat();
+      const heartbeat = setInterval(stampSession, SESSION_HEARTBEAT_MS);
+      stopHeartbeat = () => clearInterval(heartbeat);
 
       room.onStateChange((next) => {
         stateRef.current = next;
-        if (next.gameOver) clearReconnectSession();
-        // The client is mounted and has synchronized state; signal the server it is
-        // ready to start (ARCHITECTURE.md / API-CONTRACT "ready"). Sent once per
-        // fresh join so the match no longer races the client's asset loading.
+        if (next.gameOver) {
+          gameOver = true;
+          stopHeartbeat();
+          clearReconnectSession();
+        }
+        // Once per join, so the match start does not race the client's asset loading.
         if (!readySentRef.current) {
           readySentRef.current = true;
           intents.ready(room);
         }
-        // Pick up the private room code on the first state sync.
         if (next.roomCode) setRoomCode(next.roomCode);
-        // Clear a stale local decision once the server is no longer waiting on it.
         const pending = next.pendingDecision;
         setDecision((current) => {
           const reconciled = reconcileDecisionPatch({
@@ -286,23 +270,18 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         setError(`${code}: ${message ?? "room error"}`);
       });
       room.onLeave((code) => {
+        stopHeartbeat();
         if (cancelled) return;
-        // A clean close is the end of the line; anything else (server restart,
-        // dropped socket) is an unexpected drop we try to recover from.
         if (code === WS_NORMAL_CLOSURE) {
           clearReconnectSession();
           setStatus("closed");
           return;
         }
-        void attemptReconnect();
+        void attemptReconnect(Date.now() + RECONNECT_GRACE_MS);
       });
     };
 
-    // Recover a dropped connection within the server's grace window. Reconnect
-    // resumes the same seat; the server re-sends the pending decision and the
-    // queued intents are flushed. If the room is gone (e.g. a deploy restarted
-    // the server, discarding the in-memory match), give up and surface "closed".
-    const attemptReconnect = async () => {
+    const attemptReconnect = async (deadline: number) => {
       const token = roomRef.current?.reconnectionToken;
       if (!token) {
         clearReconnectSession();
@@ -310,69 +289,52 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         return;
       }
       setStatus("reconnecting");
-      for (let attempt = 0; attempt < MAX_RECONNECT_ATTEMPTS; attempt++) {
-        if (cancelled) return;
-        // A hidden tab (mobile browser backgrounded) has a suspended network and
-        // throttled timers, so attempts made there fail without meaning and the
-        // bounded budget is spent before the player comes back. Hold the attempt
-        // until the tab is visible again and restart the backoff — the server
-        // grace window is what bounds the total wait.
-        if (typeof document !== "undefined" && document.hidden) {
-          await waitUntilVisible();
-          attempt = 0;
-        }
-        if (cancelled) return;
-        try {
-          const saved = loadReconnectSession() ?? {
-            reconnectionToken: token,
-            roomId: roomRef.current?.roomId ?? "",
-            slot: roomSlotRef.current,
-            savedAt: Date.now(),
-          };
-          const next = await resumeReconnectSession({ ...saved, reconnectionToken: token });
-          if (cancelled) {
-            void next.leave();
-            return;
-          }
-          bindRoom(next);
-          setStatus("connected");
-          flushIntents(next);
-          return;
-        } catch {
-          await delay(Math.min(1000 * 2 ** attempt, 8000));
-        }
+      const saved = loadReconnectSession() ?? {
+        reconnectionToken: token,
+        roomId: roomRef.current?.roomId ?? "",
+        slot: roomSlotRef.current,
+        savedAt: Date.now(),
+      };
+      let next: AegisRoom;
+      try {
+        next = await resumeSeat({
+          resume: () => resumeReconnectSession({ ...saved, reconnectionToken: token }),
+          deadline,
+          isCancelled: () => cancelled,
+          waitUntilVisible,
+        });
+      } catch (error) {
+        if (cancelled || error instanceof ResumeCancelledError) return;
+        clearPendingIntents();
+        clearReconnectSession();
+        setStatus("closed");
+        setError(error instanceof Error ? error.message : String(error));
+        return;
       }
-      if (cancelled) return;
-      clearPendingIntents();
-      clearReconnectSession();
-      setStatus("closed");
-      setError("Connection lost. We could not resume the match.");
+      if (cancelled) {
+        void next.leave();
+        return;
+      }
+      bindRoom(next);
+      setStatus("connected");
+      flushIntents(next);
     };
 
-    // A page reload tears down the client while the server still holds the seat.
-    // Resume that seat from the persisted token before considering matchmaking;
-    // the two paths are sequential, so a fresh join never races the resume.
     const resumeOrConnect = async (): Promise<AegisRoom> => {
       const saved = loadReconnectSession();
       if (saved) {
         setStatus("reconnecting");
-        for (let attempt = 0; attempt < MAX_RECONNECT_ATTEMPTS; attempt++) {
-          if (cancelled) throw new Error("cancelled");
-          if (typeof document !== "undefined" && document.hidden) {
-            await waitUntilVisible();
-            attempt = 0;
-          }
-          if (cancelled) throw new Error("cancelled");
-          try {
-            return await resumeReconnectSession(saved);
-          } catch {
-            if (attempt < MAX_RECONNECT_ATTEMPTS - 1) {
-              await delay(Math.min(1000 * 2 ** attempt, 8000));
-            }
-          }
+        try {
+          return await resumeSeat({
+            resume: () => resumeReconnectSession(saved),
+            deadline: saved.savedAt + RECONNECT_GRACE_MS,
+            isCancelled: () => cancelled,
+            waitUntilVisible,
+          });
+        } catch (error) {
+          if (!(error instanceof ResumeCancelledError)) clearReconnectSession();
+          throw error;
         }
-        clearReconnectSession();
-        throw new Error("Connection lost. We could not resume the match.");
       }
       if (cancelled) throw new Error("cancelled");
       setStatus("connecting");
@@ -396,8 +358,8 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
 
     return () => {
       cancelled = true;
-      // Unmounting is a consented departure (exit to lobby, starting another match);
-      // a reload never runs this, which is exactly when the token must survive.
+      stopHeartbeat();
+      // A reload never runs this cleanup, so only a deliberate exit forgets the seat.
       clearReconnectSession();
       void roomRef.current?.leave();
       roomRef.current = undefined;
@@ -406,10 +368,8 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       readySentRef.current = false;
       clearPendingIntents();
     };
-    // A mounted GameScreen owns one connection lifecycle. Account/deck hydration
-    // can change options after mount; restarting here would leave a resumed room,
-    // erase its token and accidentally matchmake a second game. Starting another
-    // match unmounts this screen and creates a fresh lifecycle with fresh options.
+    // Options can change after mount (account/deck hydration); restarting would drop a
+    // resumed seat and matchmake a second game. A new match remounts with fresh options.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [disabled]);
 

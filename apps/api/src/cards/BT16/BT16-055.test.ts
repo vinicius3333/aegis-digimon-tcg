@@ -88,3 +88,43 @@ describe("BT16-055", () => {
     expect(digimon.some((permanent) => observe(s.engine).isRestricted(permanent, "cantBeDeDigivolved"))).toBe(true);
   });
 });
+
+describe("BT16-055 Namakemon — KB Q&A rulings", () => {
+  async function playNamakemonWithSecurity(securityCount: number) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT16-055", as: "namakemon" }],
+          security: securityCount,
+          battleArea: [{ card: "BT1-010", as: "ally" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("namakemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await settle();
+
+    const view = observe(s.engine);
+    const digimon = s.state.players[0]!.battleArea;
+    return {
+      protectedCount: digimon.filter(
+        (permanent) => view.isRestricted(permanent, "dpImmune") && view.isRestricted(permanent, "cantBeDeDigivolved"),
+      ).length,
+      blockerRebootCount: digimon.filter(
+        (permanent) => view.hasKeyword(permanent, "Blocker") && view.hasKeyword(permanent, "Reboot"),
+      ).length,
+    };
+  }
+
+  it("activates both the protection and the Blocker/Reboot grant at exactly 3 security cards (Q2644)", async () => {
+    expect(await playNamakemonWithSecurity(3)).toEqual({ protectedCount: 1, blockerRebootCount: 1 });
+    expect(await playNamakemonWithSecurity(4)).toEqual({ protectedCount: 1, blockerRebootCount: 0 });
+    expect(await playNamakemonWithSecurity(2)).toEqual({ protectedCount: 0, blockerRebootCount: 1 });
+  });
+});

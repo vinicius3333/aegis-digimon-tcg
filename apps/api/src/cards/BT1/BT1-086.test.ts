@@ -2,6 +2,7 @@ import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST2/ST2-12.js";
 import "./BT1-086.js";
 
 describe("BT1-086 Matt Ishida", () => {
@@ -213,5 +214,33 @@ describe("BT1-086 Matt Ishida", () => {
         (permanent) => permanent.topCard?.instanceId === s.inst("securityMatt").instanceId,
       ),
     ).toBe(true);
+  });
+});
+
+describe("BT1-086 Matt Ishida — KB Q&A rulings", () => {
+  async function memoryAfterStartOfTurn(preferredFirst: string): Promise<number> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-086", "ST2-12"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-011"],
+        },
+        1: { battleArea: ["ST2-03"], deck: ["BT1-009"], security: ["BT1-009"] },
+      },
+      { preferTriggerKeys: [preferredFirst] },
+    );
+    s.state.memory = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const memory = s.state.memory;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return memory;
+  }
+
+  it("lets the player resolve this Matt before ST2-12 Matt to go from 1 memory to 4 (Q948)", async () => {
+    expect(await memoryAfterStartOfTurn("BT1-086")).toBe(4);
+    expect(await memoryAfterStartOfTurn("ST2-12")).toBe(3);
   });
 });

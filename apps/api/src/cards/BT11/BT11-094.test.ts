@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT11-094.js";
 
@@ -37,7 +37,6 @@ describe("BT11-094 Mirei Mikagura", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const _mireiPerm = s.perm("mireiPerm");
 
     s.state.memory = 3;
     s.state.turnSeat = 0;
@@ -125,5 +124,79 @@ describe("BT11-094 Mirei Mikagura", () => {
 
     expect(s.perm("mirei").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("same-name").instanceId)).toBe(true);
+  });
+});
+
+type AngelName = "Angewomon" | "LadyDevimon";
+
+const ANGEL_CARD_IDS: Record<AngelName, string> = { Angewomon: "BT11-042", LadyDevimon: "BT11-083" };
+
+async function digivolveWithMireiInPlay({ into, hand }: { into: AngelName; hand: AngelName[] }) {
+  const preferInstanceIds: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT11-094", as: "mirei" },
+          { card: "BT10-074", as: "base" },
+        ],
+        hand: [
+          { card: ANGEL_CARD_IDS[into], as: "evolving" },
+          ...hand.map((name, index) => ({ card: ANGEL_CARD_IDS[name], as: `hand-${index}` })),
+        ],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+  );
+  s.state.memory = 10;
+  const sameNameIds = hand.flatMap((name, index) => (name === into ? [s.inst(`hand-${index}`).instanceId] : []));
+  preferInstanceIds.push(...sameNameIds);
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("base").topCard.cardId === ANGEL_CARD_IDS[into]);
+  await drainMicrotasks();
+  await settle(() => !s.perm("mirei").isSuspended || s.state.players[0]!.battleArea.length === 3);
+
+  const player = s.state.players[0]!;
+  return {
+    mireiSuspended: s.perm("mirei").isSuspended,
+    playedCardIds: player.battleArea
+      .filter((permanent) => permanent.permanentId !== s.perm("base").permanentId)
+      .map((permanent) => permanent.topCard.cardId)
+      .filter((cardId) => cardId !== "BT11-094"),
+    sameNameStillInHand: sameNameIds.every((id) => player.hand.some(({ instanceId }) => instanceId === id)),
+  };
+}
+
+describe("BT11-094 Mirei Mikagura — KB Q&A rulings", () => {
+  it("plays [LadyDevimon] after digivolving into [Angewomon] and [Angewomon] after digivolving into [LadyDevimon] (Q2122)", async () => {
+    expect(await digivolveWithMireiInPlay({ into: "Angewomon", hand: ["LadyDevimon"] })).toMatchObject({
+      mireiSuspended: true,
+      playedCardIds: ["BT11-083"],
+    });
+    expect(await digivolveWithMireiInPlay({ into: "LadyDevimon", hand: ["Angewomon"] })).toMatchObject({
+      mireiSuspended: true,
+      playedCardIds: ["BT11-042"],
+    });
+  });
+
+  it("cannot play a card with the same name as the Digimon it digivolved into (Q2123)", async () => {
+    expect(await digivolveWithMireiInPlay({ into: "LadyDevimon", hand: ["LadyDevimon"] })).toEqual({
+      mireiSuspended: false,
+      playedCardIds: [],
+      sameNameStillInHand: true,
+    });
+    expect(await digivolveWithMireiInPlay({ into: "Angewomon", hand: ["Angewomon", "LadyDevimon"] })).toEqual({
+      mireiSuspended: true,
+      playedCardIds: ["BT11-083"],
+      sameNameStillInHand: true,
+    });
   });
 });

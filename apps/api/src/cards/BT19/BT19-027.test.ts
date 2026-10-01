@@ -323,3 +323,98 @@ describe("BT19-027 Ryugumon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT19-027 Ryugumon — KB Q&A rulings", () => {
+  it("is always treated as [Aquatic], so an [Aqua] trait filter picks it from the hand (Q3082)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-013", as: "host" }],
+          hand: [
+            { card: "BT19-024", as: "placer" },
+            { card: "BT19-020", as: "nearMiss" },
+            { card: "BT19-027", as: "ryugu" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-013"],
+        },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const ryuguInstanceId = s.inst("ryugu").instanceId;
+    const nearMissInstanceId = s.inst("nearMiss").instanceId;
+    // The near-miss is preferred first, so it would be placed if the filter wrongly accepted it.
+    preferInstanceIds.push(nearMissInstanceId, ryuguInstanceId, s.perm("host").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("placer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.length === 1);
+    await settle();
+
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([ryuguInstanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([nearMissInstanceId]);
+  });
+
+  it("triggers the Decode-played Digimon's [On Play] together with the one Lucemon: Chaos Mode plays (Q3084)", async () => {
+    const opponentBoardWhenOwnOnPlayTriggered: string[][] = [];
+    const effectTimeline: string[] = [];
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-027", as: "ryugu", under: [{ card: "BT1-041", as: "zudomon" }] }],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: [...filler],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "EX6-054", as: "chaos", under: [{ card: "EX10-013", as: "lucemon" }] }],
+          trash: [{ card: "EX6-056", as: "beelzemon" }],
+          deck: [...filler],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds,
+        onEvent: (event) => {
+          if (event.kind === "effectResolved" && event.sourceCardId === "BT19-027") {
+            effectTimeline.push("Ryugumon effect resolved");
+          }
+          if (event.kind !== "effectTriggered") return;
+          effectTimeline.push(`${event.sourceCardId} triggered`);
+          if (event.sourceCardId === "BT1-041") {
+            opponentBoardWhenOwnOnPlayTriggered.push(s.state.players[1]!.battleArea.map((p) => p.topCard!.cardId));
+          }
+        },
+      },
+    );
+    preferInstanceIds.push(s.perm("ryugu").topCard!.instanceId);
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.players[1]!.trash.length === 4);
+    await settle();
+
+    expect(opponentBoardWhenOwnOnPlayTriggered).toEqual([["EX6-056"]]);
+    expect(effectTimeline).toEqual([
+      "BT19-027 triggered",
+      "Ryugumon effect resolved",
+      "BT1-041 triggered",
+      "EX6-056 triggered",
+    ]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([s.inst("zudomon").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.instanceId)).toEqual([s.inst("beelzemon").instanceId]);
+    expect(s.state.players[1]!.trash).toHaveLength(4);
+    expect(s.state.players[1]!.deck.slice(-2).map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("chaos").instanceId, s.inst("lucemon").instanceId]),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

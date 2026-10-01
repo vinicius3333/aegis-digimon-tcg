@@ -47,3 +47,53 @@ describe("BT3-104 Positron Laser", () => {
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "attack")).toBe(true);
   });
 });
+
+describe("BT3-104 Positron Laser — KB Q&A rulings", () => {
+  async function playOptionThenBlue(blueInPlayAtActivation: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: blueInPlayAtActivation ? ["BT3-044", "BT3-020"] : ["BT3-044"],
+          hand: [
+            { card: "BT3-104", as: "option" },
+            { card: "BT3-020", as: "lateBlue" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT3-045", as: "suspendedTarget", suspended: true },
+            { card: "BT3-046", as: "restricted" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "attack"));
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lateBlue").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 0);
+    await settle();
+
+    return {
+      returnedToHand: s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("suspendedTarget").instanceId),
+      stillInPlay: s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT3-045"),
+    };
+  }
+
+  it("does not return a suspended Digimon when the blue Digimon is played only after the effect resolves (Q1141)", async () => {
+    const lateBlue = await playOptionThenBlue(false);
+    expect(lateBlue.returnedToHand).toBe(false);
+    expect(lateBlue.stillInPlay).toBe(true);
+
+    const blueAtActivation = await playOptionThenBlue(true);
+    expect(blueAtActivation.returnedToHand).toBe(true);
+    expect(blueAtActivation.stillInPlay).toBe(false);
+  });
+});

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT22-082.js";
+import { itFollowsTamerDigivolutionRulings } from "./tamerDigivolution.testSupport.js";
 
 describe("BT22-082 Eater Adam", () => {
   it("deletes an opposing play-cost-7-or-lower Digimon and places Arata underneath when empty", () => {
@@ -123,5 +126,45 @@ describe("BT22-082 Eater Adam", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === adamArataId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === decoyArataId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-082")).toBe(true);
+  });
+});
+
+describe("BT22-082 Eater Adam — KB Q&A rulings", () => {
+  itFollowsTamerDigivolutionRulings(
+    { digimon: "BT22-082", tamer: "BT22-091", securityTamer: "BT22-091" },
+    {
+      noAttackTheTurnTheTamerEntered: "Q4949",
+      digivolvesAsTamer: "Q6698",
+      bonusDraw: "Q6699",
+      tamerIsDigivolutionCard: "Q6700",
+      noSecurityEffect: "Q6701",
+    },
+  );
+
+  it("gains the inherited effect of the Arata Sanada in its digivolution cards (Q6702)", async () => {
+    const securityAfterOpponentAttacksPlayer = async (under: string[]) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT22-082", as: "adam", under }], security: ["BT1-010", "BT1-011"] },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      return s.state.players[0]!.security.length;
+    };
+
+    expect(await securityAfterOpponentAttacksPlayer(["BT22-091"])).toBe(2);
+    expect(await securityAfterOpponentAttacksPlayer([])).toBe(1);
   });
 });

@@ -211,6 +211,7 @@ export function playedTrigger(engine: GameEngine, playedPermanentId: string | un
   const definition = played?.topCard === undefined ? undefined : definitionOf(played.topCard.cardId);
   return {
     subjectPermanentId: playedPermanentId,
+    ...(played === undefined ? {} : { playedSubject: played.clone() }),
     ...(definition?.level !== undefined ? { playedLevel: definition.level } : {}),
     ...(definition?.playCost !== undefined ? { playedPlayCost: definition.playCost } : {}),
   };
@@ -238,7 +239,12 @@ export function playedTrigger(engine: GameEngine, playedPermanentId: string | un
 export async function reactivateOnPlay(
   engine: GameEngine,
   permanentId: string,
-  opts?: { timings?: EffectTiming[]; chooseOne?: boolean; outsideTriggerWindow?: boolean },
+  opts?: {
+    timings?: EffectTiming[];
+    chooseOne?: boolean;
+    outsideTriggerWindow?: boolean;
+    continueEffectAfterAttackDeclaration?: () => Promise<void>;
+  },
 ): Promise<boolean> {
   const permanent = engine.access.permanentById(permanentId);
   if (permanent?.topCard === undefined) return false;
@@ -305,6 +311,10 @@ export async function reactivateOnPlay(
     isTimingActivationDisabled(engine.continuous, chosenSourcePermanentId, chosen.timing)
   )
     return false;
+  if (opts?.continueEffectAfterAttackDeclaration !== undefined)
+    chosen.ctx.continueEffectAfterAttackDeclaration = opts.continueEffectAfterAttackDeclaration;
+  // KB Q4963: an effect activated by another effect still spends its [Once Per Turn].
+  engine.tracker.register(chosen.source.instanceId, chosen.effect.effectKey);
   await chosen.effect.resolve(chosen.ctx);
   await engine.recomputeContinuousEffects();
   return true;

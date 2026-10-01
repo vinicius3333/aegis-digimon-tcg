@@ -200,3 +200,96 @@ describe("BT10-053 Ajatarmon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT10-053 Ajatarmon — KB Q&A rulings", () => {
+  it("can suspend itself as the only green Digimon to pay its [Main] effect cost (Q1977)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-053", as: "ajatarmon" },
+            { card: "BT1-009", as: "redDigimon" },
+          ],
+          hand: [{ card: "BT10-046", as: "palmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+    const source = s.perm("ajatarmon");
+    const [mainEffect] = observe(s.engine).activatableEffects(source) as Array<{ effectKey: string }>;
+    expect(mainEffect).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: source.topCard.instanceId,
+        effectKey: mainEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("palmon").instanceId),
+    );
+
+    const offeredCostTargets = s.decisions
+      .filter(({ req }) => req.kind === "chooseTargets")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredCostTargets).not.toContain(s.perm("redDigimon").permanentId);
+    expect(s.perm("ajatarmon").isSuspended).toBe(true);
+    expect(s.perm("redDigimon").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("does not gain memory when a <Blitz> attack suspends the attacker (Q1978)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-010", as: "host", under: ["BT10-053"] },
+            { card: "BT10-043", as: "ally" },
+          ],
+          hand: [{ card: "BT10-014", as: "evolving" }],
+        },
+        1: { security: ["BT10-062", "BT10-062"] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const blitz = s.state.pendingDecision!;
+    expect(JSON.parse(blitz.payloadJson)).toMatchObject({ promptKey: "activateBlitz" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: blitz.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("host").permanentId));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").stack.some(({ cardId }) => cardId === "BT10-053")).toBe(true);
+    expect(s.state.memory).toBe(-1);
+
+    await advance(s.engine).verb.suspend([s.perm("ally").permanentId]);
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+});

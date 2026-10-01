@@ -1,15 +1,25 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-085.js";
 import "../BT14/BT14-062.js";
 import "../BT19/BT19-077.js";
 import "./BT17-010.js";
 import "./BT17-080.js";
+import "../BT15/BT15-009.js";
 import { compiled } from "./BT17-008.js";
 
 const guilmonHost = () => ({ card: "BT17-008", as: "guilmon", under: ["BT17-001"] });
+
+const targetChoices = (s: EngineSetup) => s.decisions.filter(({ req }) => req.kind === "chooseTargets");
+
+const pendingTargetChoice = (s: EngineSetup) =>
+  targetChoices(s).find(({ req }) => s.state.pendingDecision?.decisionId === req.decisionId)?.req;
+
+const chooseTargets = (s: EngineSetup, decisionId: string, instanceIds: string[]) =>
+  s.engine.applyIntent(0, { type: "respondDecision", decisionId, response: { kind: "chooseTargets", instanceIds } });
 
 describe("BT17-008", () => {
   it("matches the catalog printed text, stats and evolution costs", () => {
@@ -399,5 +409,198 @@ describe("BT17-008", () => {
     ).toBe(false);
     expect(offColor.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-003");
     expect(offColor.state.players[0]!.hand).toHaveLength(1);
+  });
+});
+
+describe("BT17-008 Guilmon — KB Q&A rulings", () => {
+  it("must delete a valid 3000 DP target and cannot skip the deletion to gain memory (Q2710)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [guilmonHost()],
+        hand: [
+          { card: "BT17-080", as: "takato" },
+          { card: "BT1-009", as: "spare" },
+        ],
+        deck: ["BT1-010", "BT1-011"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "chosenTarget" },
+          { card: "BT1-009", as: "otherTarget" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const chosenPermanentId = s.perm("chosenTarget").permanentId;
+    const otherPermanentId = s.perm("otherTarget").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takato").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => pendingTargetChoice(s) !== undefined);
+    const choice = pendingTargetChoice(s)!;
+
+    expect(choice.options?.min).toBe(1);
+    expect(chooseTargets(s, choice.decisionId, []).ok).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(choice.decisionId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+    expect(chooseTargets(s, choice.decisionId, [chosenPermanentId])).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([otherPermanentId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("chosenTarget").instanceId]);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("may target a 3000 DP Digimon that can't be deleted by opponent effects and then gains 1 memory (Q2711)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [guilmonHost()],
+        hand: [
+          { card: "BT17-080", as: "takato" },
+          { card: "BT1-009", as: "spare" },
+        ],
+        deck: ["BT1-010", "BT1-011"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT14-062", as: "immuneTarget", dp: 2000 },
+          { card: "BT1-009", as: "plainTarget" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const immunePermanentId = s.perm("immuneTarget").permanentId;
+    const plainPermanentId = s.perm("plainTarget").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takato").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => pendingTargetChoice(s) !== undefined);
+    const choice = pendingTargetChoice(s)!;
+
+    expect([...(choice.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+      [immunePermanentId, plainPermanentId].sort(),
+    );
+    expect(chooseTargets(s, choice.decisionId, [immunePermanentId])).toEqual({ ok: true });
+    await settle(() => s.state.memory === 8);
+
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId).sort()).toEqual(
+      [immunePermanentId, plainPermanentId].sort(),
+    );
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("treats memory on the opponent's side as 0 or less, so the inherited bonus still applies (Q2712)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [guilmonHost()],
+          hand: [
+            { card: "BT17-010", as: "growlmon" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "fiveKTarget" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.perm("fiveKTarget").currentDP).toBe(5000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.memory).toBe(-1);
+    expect(s.engine.deletionMaxDp.bonusFor(0, s.perm("guilmon").permanentId)).toBe(2000);
+    expect(s.perm("guilmon").topCard.cardId).toBe("BT17-010");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-013"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("adds 2000 to Growlmon's printed 4000 DP deletion maximum, allowing up to 6000 DP (Q2713)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [guilmonHost()],
+        hand: [
+          { card: "BT17-010", as: "growlmon" },
+          { card: "BT1-009", as: "spare" },
+        ],
+        deck: ["BT1-011", "BT1-012"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "atRaisedMaximum", dp: 6000 },
+          { card: "BT1-009", as: "aboveRaisedMaximum", dp: 7000 },
+        ],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 || pendingTargetChoice(s) !== undefined);
+
+    // A single legal target resolves without a prompt, so no prompt proves 7000 DP is out of range.
+    expect(targetChoices(s)).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("aboveRaisedMaximum").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("atRaisedMaximum").instanceId]);
+  });
+
+  it("does not raise a deletion maximum that compares against this Digimon's DP instead of a number (Q2714)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000, under: ["BT17-008"] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "equalDp", dp: 4000 },
+          { card: "BT1-009", as: "withinFlatBonus", dp: 5000 },
+        ],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const [effect] = observe(s.engine).activatableEffects(s.perm("meramon")) as { effectKey: string }[];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("meramon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 || pendingTargetChoice(s) !== undefined);
+
+    // A single legal target resolves without a prompt, so no prompt proves 5000 DP is out of range.
+    expect(targetChoices(s)).toHaveLength(0);
+    expect(s.state.memory).toBe(-2);
+    expect(s.engine.deletionMaxDp.bonusFor(0, s.perm("meramon").permanentId)).toBe(2000);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("withinFlatBonus").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("equalDp").instanceId]);
   });
 });

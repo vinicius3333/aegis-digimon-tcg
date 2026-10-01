@@ -318,3 +318,34 @@ describe("BT25-078 Gazimon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("BT25-078 Gazimon — KB Q&A rulings", () => {
+  it.each([
+    ["only in its effect", "BT6-068", true],
+    ["only in its digivolution requirements", "BT21-054", true],
+    ["only in its traits", "ST14-09", true],
+    ["nowhere", "BT25-081", false],
+  ] as const)("adds a card with [Three Musketeers] %s to the hand: %s -> %s (Q6379)", async (_where, cardId, added) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gazimon" }],
+          deck: [{ card: cardId, as: "candidate" }, "BT25-079", "BT25-079"],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gazimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => battlePermanent(s).topCard?.cardId === CARD_ID && s.state.players[0]!.deck.length < 3 === added);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).includes(s.inst("candidate").instanceId)).toBe(
+      added,
+    );
+  });
+});

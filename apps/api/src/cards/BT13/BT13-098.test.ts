@@ -1,10 +1,12 @@
 import "./BT13-060.js";
 import "./BT13-097.js";
+import "../EX3/EX3-029.js";
+import "../P/P-078.js";
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./BT13-098.js";
 
@@ -153,5 +155,111 @@ describe("BT13-098 Richard Sampson", () => {
     await settle(() => s.perm("kudamon").topCard.cardId === "BT13-046");
     expect(s.perm("richard").isSuspended).toBe(true);
     expect(s.perm("kudamon").topCard.cardId).toBe("BT13-046");
+  });
+});
+
+describe("BT13-098 Richard Sampson — KB Q&A rulings", () => {
+  function richardInPlay(s: ReturnType<typeof setupEngine>): boolean {
+    return s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === s.inst("richard").instanceId,
+    );
+  }
+
+  it("does not play itself when revealed or searched from security, only when an effect trashes it (Q2345)", async () => {
+    const revealed = setupEngine(
+      {
+        0: { security: [{ card: "BT13-098", as: "richard" }] },
+        1: { hand: [{ card: "P-078", as: "espimon" }], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    revealed.state.turnSeat = 1;
+    revealed.state.memory = 5;
+    await revealed.ready();
+    expect(
+      revealed.engine.applyIntent(1, { type: "playCard", instanceId: revealed.inst("espimon").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => revealed.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-078"));
+    await drainMicrotasks();
+    expect(revealed.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      revealed.inst("richard").instanceId,
+    ]);
+    expect(richardInPlay(revealed)).toBe(false);
+    expect(
+      revealed.events.some(
+        (event) =>
+          event.kind === "cardsMoved" &&
+          event.from === "security" &&
+          event.instanceIds.includes(revealed.inst("richard").instanceId),
+      ),
+    ).toBe(true);
+    expect(revealed.decisions.filter(({ seat }) => seat === 0)).toEqual([]);
+
+    const searched = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-029", as: "airdramon" }],
+          security: [{ card: "BT13-098", as: "richard" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    searched.state.memory = 10;
+    await searched.ready();
+    expect(
+      searched.engine.applyIntent(0, { type: "playCard", instanceId: searched.inst("airdramon").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      searched.state.players[0]!.hand.some((card) => card.instanceId === searched.inst("richard").instanceId),
+    );
+    await drainMicrotasks();
+    expect(searched.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      searched.inst("richard").instanceId,
+    );
+    expect(richardInPlay(searched)).toBe(false);
+    expect(searched.decisions.filter(({ req }) => req.kind === "optional")).toEqual([]);
+
+    const trashed = setupEngine(
+      { 0: { security: [{ card: "BT13-098", as: "richard" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    trashed.state.turnSeat = 1;
+    await trashed.ready();
+    await advance(trashed.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => richardInPlay(trashed));
+    expect(trashed.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("counts both players' security stacks together for the 6-or-fewer condition (Q2346)", async () => {
+    async function memoryAfterStartOfMain(mySecurity: number, opponentSecurity: number): Promise<number> {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT13-098", as: "richard" }],
+          hand: ["BT1-009"],
+          security: mySecurity,
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { security: opponentSecurity },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const memory = s.state.memory;
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+      return memory;
+    }
+
+    expect(await memoryAfterStartOfMain(3, 3)).toBe(4);
+    expect(await memoryAfterStartOfMain(2, 4)).toBe(4);
+    expect(await memoryAfterStartOfMain(0, 6)).toBe(4);
+    expect(await memoryAfterStartOfMain(3, 4)).toBe(3);
+    expect(await memoryAfterStartOfMain(7, 0)).toBe(3);
   });
 });

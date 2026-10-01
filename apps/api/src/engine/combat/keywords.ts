@@ -68,6 +68,8 @@ const GLOBAL_PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = PRINT
 const printedKeywordCache = new Map<string, readonly string[]>();
 
 const GRANT_CLAUSE = /\b(?:gain|gains|gained|getting|gets|has)\b/i;
+/** "Change ＜Security Attack -＞ to ＜Security Attack +＞" (EX6-031) rewrites other Digimon's keywords. */
+const CHANGE_CLAUSE = /\]\s*Change\b/;
 const CONDITIONAL_CLAUSE = /\b(?:if|unless|as long as|while)\b/i;
 const FILTER_CLAUSE = /\bwith(?:out)?\s+[^.!?\n]{0,80}$/i;
 const USE_CLAUSE = /\b(?:use|using)\s*$/i;
@@ -112,7 +114,7 @@ function scanPrintedKeywords(printedText: string): readonly string[] {
       // <Piercing> and <Blocker>" reject both markers, not only the first one.
       // The continuous ledger publishes those keywords only while their actual
       // conditions/durations are active.
-      if (GRANT_CLAUSE.test(clausePrefix)) continue;
+      if (GRANT_CLAUSE.test(clausePrefix) || CHANGE_CLAUSE.test(clausePrefix)) continue;
       // A token's keyword specification belongs to the token, not to the card that creates it.
       if (/\btoken\b/i.test(clausePrefix) || /\btoken\b/i.test(abilityPrefix)) continue;
       if (FILTER_CLAUSE.test(clausePrefix)) continue;

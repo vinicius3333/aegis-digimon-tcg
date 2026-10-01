@@ -8,6 +8,8 @@ import "./BT10-068.js";
 import { compiled } from "./BT10-112.js";
 import "../BT8/BT8-038.js";
 import "../BT6/BT6-044.js";
+import "../BT6/BT6-070.js";
+import "../BT14/BT14-015.js";
 describe("BT10-112 Jesmon GX", () => {
   it("registers the Royal Knight level-6 alternate digivolution path", () => {
     const requirement = [{ level: 6, traits: ["Royal Knight"], cost: 5, isAlternate: true }];
@@ -268,5 +270,113 @@ describe("BT10-112 Jesmon GX", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     await turn;
+  });
+});
+
+describe("BT10-112 Jesmon GX — KB Q&A rulings", () => {
+  type MainPhaseProbe = { mainPhase: { isOpen: boolean } };
+
+  function setupBlitzWithJesmonX(board: { baseUnder: string[]; opponentBattleArea: string[] }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-111", as: "base", under: board.baseUnder }],
+          hand: [
+            { card: "BT10-112", as: "gx" },
+            { card: "BT10-016", as: "jesmonX" },
+            { card: "BT6-082", as: "sistermon" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: board.opponentBattleArea, security: ["BT1-003", "BT1-004"], deck: ["BT1-007"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT14-015"] },
+    );
+    s.state.memory = 4;
+    return s;
+  }
+
+  async function digivolveIntoGxAndAcceptBlitz(s: ReturnType<typeof setupBlitzWithJesmonX>) {
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as MainPhaseProbe).mainPhase;
+    await settle(() => mainPhase.isOpen);
+    const handSizeAtMain = s.state.players[0]!.hand.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("base").permanentId));
+    const cardsLeavingHand = ["gx", "jesmonX", "sistermon"].length;
+    const digivolutionDraw = 1;
+    const handSizeWithoutOnPlayDraw = handSizeAtMain - cardsLeavingHand + digivolutionDraw;
+    return { turn, mainPhase, handSizeWithoutOnPlayDraw };
+  }
+
+  async function declareBlitzAttackAndFinishTurn(
+    s: ReturnType<typeof setupBlitzWithJesmonX>,
+    flow: Awaited<ReturnType<typeof digivolveIntoGxAndAcceptBlitz>>,
+  ) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !flow.mainPhase.isOpen);
+    await flow.turn;
+  }
+
+  it("resolves the placed card's [When Digivolving] effect inside its own effect, before the Blitz attack (Q2043)", async () => {
+    const s = setupBlitzWithJesmonX({ baseUnder: [], opponentBattleArea: [] });
+    const flow = await digivolveIntoGxAndAcceptBlitz(s);
+
+    const gxPrompts = s.decisions
+      .filter((decision) => decision.req.sourceCardId === "BT10-112")
+      .map((decision) => decision.req.promptText);
+    expect(gxPrompts).toEqual(["Place 1 card(s) under", "Play without paying the cost", "Activate Blitz?"]);
+    expect(s.decisions.some((decision) => decision.req.kind === "orderTriggers")).toBe(false);
+    expect(s.perm("base").stack[0]!.instanceId).toBe(s.inst("jesmonX").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("sistermon").instanceId,
+      ),
+    ).toBe(true);
+
+    await declareBlitzAttackAndFinishTurn(s, flow);
+    expect(s.state.players[1]!.security.length).toBeLessThan(2);
+  });
+
+  it("treats the Sistermon Blanc play and the Blitz attack as simultaneous, letting the turn player order [On Play] and [When Attacking] (Q2044)", async () => {
+    const s = setupBlitzWithJesmonX({ baseUnder: ["BT14-015"], opponentBattleArea: ["BT1-009"] });
+    const flow = await digivolveIntoGxAndAcceptBlitz(s);
+    const handSizeBeforeAttack = s.state.players[0]!.hand.length;
+
+    await declareBlitzAttackAndFinishTurn(s, flow);
+
+    expect(handSizeBeforeAttack).toBe(flow.handSizeWithoutOnPlayDraw);
+    const simultaneousOrder = s.decisions.find(
+      (decision) =>
+        decision.req.kind === "orderTriggers" &&
+        (decision.req.options?.triggerCardIds ?? []).includes("BT6-082") &&
+        (decision.req.options?.triggerCardIds ?? []).includes("BT14-015"),
+    );
+    expect(simultaneousOrder).toBeDefined();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(flow.handSizeWithoutOnPlayDraw + 1);
+  });
+
+  it("does not activate Sistermon Blanc's pending [On Play] once the Blitz attack's effects delete it first (Q2045)", async () => {
+    const s = setupBlitzWithJesmonX({ baseUnder: ["BT14-015"], opponentBattleArea: ["BT6-070"] });
+    const flow = await digivolveIntoGxAndAcceptBlitz(s);
+
+    await declareBlitzAttackAndFinishTurn(s, flow);
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT6-070");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("sistermon").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(flow.handSizeWithoutOnPlayDraw);
   });
 });

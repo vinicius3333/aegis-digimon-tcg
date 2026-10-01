@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-057.js";
 import "./index.js";
@@ -113,5 +114,43 @@ describe("BT22-057 Kurisarimon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
     ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT5-084")).toBe(true);
+  });
+});
+
+describe("BT22-057 Kurisarimon — KB Q&A rulings", () => {
+  async function deleteHostOverKurisarimon(hostCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: hostCardId, as: "host", under: ["BT22-057"] },
+            { card: "BT5-084", as: "other-diaboromon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    await settle();
+    const hostSurvived = s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId);
+    const otherDiaboromonDeleted = s.state.players[0]!.trash.some((card) => card.cardId === "BT5-084");
+    return { hostSurvived, otherDiaboromonDeleted };
+  }
+
+  it("treats a Digimon whose effect text names [Diaboromon] or whose name contains it as having [Diaboromon] in its text (Q4910)", async () => {
+    await expect(deleteHostOverKurisarimon("BT22-059")).resolves.toEqual({
+      hostSurvived: true,
+      otherDiaboromonDeleted: true,
+    });
+    await expect(deleteHostOverKurisarimon("BT24-065")).resolves.toEqual({
+      hostSurvived: true,
+      otherDiaboromonDeleted: true,
+    });
+    await expect(deleteHostOverKurisarimon("BT1-021")).resolves.toEqual({
+      hostSurvived: false,
+      otherDiaboromonDeleted: false,
+    });
   });
 });

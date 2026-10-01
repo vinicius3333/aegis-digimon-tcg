@@ -5,6 +5,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-160.js";
 import "../BT8/BT8-016.js";
+import "./P-113.js";
+import "../EX8/EX8-014.js";
+import "../EX8/EX8-065.js";
 
 describe("P-160 Tyrannomon (X Antibody)", () => {
   it("requires non-X-Antibody Tyrannomon for zero-cost digivolution", () => {
@@ -167,5 +170,85 @@ describe("P-160 Tyrannomon (X Antibody)", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-160 Tyrannomon (X Antibody) — KB Q&A rulings", () => {
+  it("lets the player order its simultaneous <Raid> and [When Attacking] triggers (Q4273)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-160", as: "attacker", under: ["BT1-016"] }],
+          hand: [{ card: "EX8-014", as: "master" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "raidTarget", dp: 12000 }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, declinePrompts: ["Suspend 1 target"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+
+    const order = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(order?.seat).toBe(0);
+    expect(order?.req.options?.triggerDescriptions).toEqual([
+      expect.stringContaining("[When Attacking]"),
+      expect.stringContaining("＜Raid＞"),
+    ]);
+    expect(s.perm("attacker").topCard.cardId).toBe("EX8-014");
+  });
+
+  it("can't activate its pending <Raid> or [When Attacking] after EX8-065 digivolves it away (Q4274)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-160", as: "attacker", under: ["BT1-016"] },
+            { card: "EX8-065", as: "tamer" },
+          ],
+          hand: [
+            { card: "EX8-014", as: "master" },
+            { card: "P-113", as: "rust" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "raidTarget", dp: 12000 }], security: ["BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds,
+        preferTriggerKeys: ["subtrigger"],
+        declinePrompts: ["Suspend 1 target"],
+      },
+    );
+    preferInstanceIds.push(s.inst("master").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("attacker").topCard.cardId).toBe("EX8-014");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("rust").instanceId]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("raidTarget").permanentId,
+    ]);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "P-160")).toBe(false);
   });
 });

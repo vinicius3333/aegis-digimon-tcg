@@ -504,3 +504,57 @@ describe("BT23-033 Beautymon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT23-033 Beautymon — KB Q&A rulings", () => {
+  it.each([
+    ["on play", false],
+    ["when digivolving", true],
+  ])(
+    "cannot link a level-4-or-lower card without <Link> from the trash or its digivolution cards %s (Q5280)",
+    async (_label, digivolve) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: digivolve
+              ? [{ card: "BT1-051", as: "base", under: [{ card: "BT1-009", as: "stackNoLink" }] }]
+              : [],
+            hand: [{ card: "BT23-033", as: "beautymon" }],
+            trash: [{ card: "BT1-010", as: "trashNoLink" }],
+            security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+            deck: ["BT1-014", "BT1-015"],
+          },
+          1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 10;
+      const beautymonId = s.inst("beautymon").instanceId;
+
+      expect(
+        s.engine.applyIntent(
+          0,
+          digivolve
+            ? { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: beautymonId }
+            : { type: "playCard", instanceId: beautymonId },
+        ),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === beautymonId),
+      );
+      await settle();
+
+      const beautymon = s.state.players[0]!.battleArea.find(
+        (permanent) => permanent.topCard.instanceId === beautymonId,
+      )!;
+      expect(beautymon.linked).toHaveLength(0);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("trashNoLink").instanceId]);
+      if (digivolve) {
+        expect(beautymon.stack.map((card) => card.instanceId)).toContain(s.inst("stackNoLink").instanceId);
+      }
+      expect(s.state.players[0]!.security).toHaveLength(5);
+      expect(s.perm("target").currentDP).toBe(10000);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+});

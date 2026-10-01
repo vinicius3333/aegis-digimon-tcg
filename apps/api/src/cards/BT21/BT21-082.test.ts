@@ -331,3 +331,45 @@ describe("BT21-082 Takuya Kanbara", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT21-082 Takuya Kanbara — KB Q&A rulings", () => {
+  it("resolves the checked card's [Security] effect before the turn player's security-removal trigger (Q4596)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-013", as: "attacker", under: [{ card: "BT21-082", as: "inheritedSource" }] }],
+          hand: [{ card: "BT1-085", as: "redTamer" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          security: [{ card: "BT21-082", as: "opponentSecurityTakuya" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-085"),
+    );
+
+    const playIndex = (seat: 0 | 1, cardId: string) =>
+      s.events.findIndex((event) => event.kind === "cardPlayed" && event.seat === seat && event.cardId === cardId);
+    const securityEffectPlay = playIndex(1, "BT21-082");
+    const turnPlayerTriggerPlay = playIndex(0, "BT1-085");
+    expect(securityEffectPlay).toBeGreaterThanOrEqual(0);
+    expect(turnPlayerTriggerPlay).toBeGreaterThanOrEqual(0);
+    expect(securityEffectPlay).toBeLessThan(turnPlayerTriggerPlay);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082")).toBe(true);
+  });
+});

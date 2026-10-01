@@ -6,6 +6,7 @@
  */
 export interface AegisJoinOptions {
   displayName: string;
+  avatarId?: string;
   deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids
   deckId?: string;
   deckName?: string;
@@ -38,9 +39,23 @@ export interface AegisJoinOptions {
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
     | "arena-ex7-seventh-fascination-turn"
+    | "arena-p240-arcturusmon-vb-routes"
+    | "arena-ex12-proximamon-dual-siriusmon"
+    | "arena-ex12-virus-busters-effect-attack"
     | "arena-ex7-seventh-fascination-trash-turn"
+    | "arena-bt22-rie-kishibe-delete-without-digivolve"
+    | "arena-bt14-chuumon-security-reveal"
+    | "arena-bt20-omnimon-each-player-survivor"
+    | "arena-bt20-ouryuken-reduction-resumes"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
+    | "arena-ex13-craniamon-assembly"
+    | "arena-p220-millenniummon-assembly"
+    | "arena-ex9-kimeramon-skullgreymon-assembly"
+    | "arena-bt24-masterblimpmon-assembly"
+    | "arena-bt22-boltmon-assembly"
+    | "arena-ex13-gotsumon-promo-knightmon"
+    | "arena-rainbow-evo-cost"
     | "arena-mightyaxe-mode-digixros"
     | "arena-hand-reconnect-sync"
     | "arena-p097-zubamon-reveal-order"
@@ -49,6 +64,8 @@ export interface AegisJoinOptions {
     | "arena-de-digivolve-visibility"
     | "arena-st24-dna-charge-start-of-main"
     | "arena-ex13-giromon-block-triggers"
+    | "arena-ex13-kentaurosmon-each-player-security"
+    | "arena-ex13-kentaurosmon-two-counters"
     | "arena-ex13-deletion-trigger-ordering"
     | "arena-gate-deadly-sins-effect-order"
     | "arena-rika-optional-effect-presets"
@@ -66,6 +83,9 @@ export interface AegisJoinOptions {
     | "arena-ex5-attack-priority"
     | "arena-ex5-biting-crush-delay"
     | "arena-p108-training-delay-no-target"
+    | "arena-bt13-royal-purge-delay-rush"
+    | "arena-p206-digital-gate-breeding-color"
+    | "arena-ex13-merciful-mode-attack-order"
     | "arena-ex10-god-grade-raising-color"
     | "arena-ex10-malomyotismon-trash-main"
     | "arena-issue-4888-app-fusion"
@@ -79,6 +99,7 @@ export interface AegisJoinOptions {
     | "arena-mirage-hidden-hand"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
+    | "arena-bt13-king-drasil-source-count"
     | "arena-hellscythe-onplay-priority"
     | "arena-vikemon-live-source-lock"
     | "arena-rizegreymon-derived-priority"

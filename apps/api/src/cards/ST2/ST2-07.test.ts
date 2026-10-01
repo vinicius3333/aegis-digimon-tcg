@@ -1,6 +1,7 @@
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST2-07.js";
 
@@ -60,5 +61,35 @@ describe("ST2-07 Grizzlymon", () => {
     await settle(() => s.perm("blocker").isSuspended);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("blocker").isSuspended).toBe(true);
+  });
+});
+
+describe("ST2-07 Grizzlymon — KB Q&A rulings", () => {
+  it("can attack with less than 2 memory and the turn only passes after the attack ends (Q610)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST2-07", as: "grizzlymon" }] },
+      1: { security: ["ST1-02", "ST1-02"] },
+    });
+    s.state.memory = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("grizzlymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.memory).toBe(-1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    const checkedIndex = s.events.findIndex((event) => event.kind === "securityChecked");
+    const turnEndedIndex = s.events.findIndex(
+      (event) => event.kind === "turnEnded" && event.endingSeat === 0 && event.nextSeat === 1,
+    );
+    expect(checkedIndex).toBeGreaterThanOrEqual(0);
+    expect(turnEndedIndex).toBeGreaterThan(checkedIndex);
   });
 });

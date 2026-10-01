@@ -270,3 +270,48 @@ describe("EX9-028", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-063")).toBe(true);
   });
 });
+
+describe("EX9-028 Nanimon — KB Q&A rulings", () => {
+  it("never accepts fewer than 3 placed Ver.4 cards as the 'by' condition (Q4782)", async () => {
+    const partial = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-028", as: "source" }],
+          trash: ["EX9-008", "EX9-035"],
+          hand: ["EX9-064"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await runEndOfTurn(partial);
+    await settle();
+    expect(partial.perm("source").topCard.cardId).toBe("EX9-028");
+    expect(partial.perm("source").stack).toHaveLength(0);
+    expect(partial.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-008", "EX9-035"]);
+    expect(partial.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX9-064");
+
+    const full = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-028", as: "source" }],
+          trash: ["EX9-008", "EX9-035", "EX9-051", "EX9-008"],
+          hand: ["EX9-064"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    full.state.memory = 5;
+    await runEndOfTurn(full);
+    await settle();
+    const placement = full.decisions.find(
+      ({ req }) =>
+        req.sourceCardId === "EX9-028" &&
+        (req.kind === "selectCards" || req.kind === "chooseTargets") &&
+        (req.options?.candidateInstanceIds ?? []).length === 4,
+    );
+    expect(placement?.req.options).toMatchObject({ min: 3, max: 3 });
+    expect(full.perm("source").topCard.cardId).toBe("EX9-064");
+  });
+});

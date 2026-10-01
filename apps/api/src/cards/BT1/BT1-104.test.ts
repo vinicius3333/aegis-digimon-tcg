@@ -3,6 +3,7 @@ import { getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../EX1/EX1-035.js";
 import { compiled } from "./BT1-104.js";
 
 describe("BT1-104 Golden Ripper", () => {
@@ -208,5 +209,53 @@ describe("BT1-104 Golden Ripper", () => {
 
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+});
+
+describe("BT1-104 Golden Ripper — KB Q&A rulings", () => {
+  it("still activates the gained [When Attacking] after the attacker digivolves by another effect (Q969)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-087", { card: "EX1-035", as: "attacker" }],
+          hand: [
+            { card: "BT1-104", as: "option" },
+            { card: "BT1-076", as: "evolution" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-016", as: "dpTarget", dp: 5000 }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["EX1-035"] },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-104"));
+    expect(s.perm("dpTarget").currentDP).toBe(5000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "BT1-076" && s.perm("dpTarget").currentDP === 3000);
+
+    expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("evolution").instanceId);
+    expect(s.perm("dpTarget").currentDP).toBe(3000);
+    const digivolvedAt = s.events.findIndex((event) => event.kind === "digivolved");
+    const gainedEffectResolvedAt = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" && event.timing === "whenAttacking" && event.sourceCardId === "BT1-104",
+    );
+    expect(digivolvedAt).toBeGreaterThanOrEqual(0);
+    expect(gainedEffectResolvedAt).toBeGreaterThan(digivolvedAt);
   });
 });

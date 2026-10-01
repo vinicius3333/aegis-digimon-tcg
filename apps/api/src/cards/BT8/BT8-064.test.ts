@@ -58,3 +58,37 @@ describe("BT8-064 Greymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
   });
 });
+
+describe("BT8-064 Greymon — KB Q&A rulings", () => {
+  it("counts its own red host as the red Digimon in play, so the inherited Blocker applies (Q1746)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "redHost", under: ["BT8-064"] }],
+          security: ["BT8-034"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(observe(s.engine).hasKeyword(s.perm("redHost"), "Blocker")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("redHost").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+
+    const blackHost = setupEngine({ 0: { battleArea: [{ card: "BT10-065", as: "blackHost", under: ["BT8-064"] }] } });
+    blackHost.state.turnSeat = 1;
+    await blackHost.ready();
+    expect(observe(blackHost.engine).hasKeyword(blackHost.perm("blackHost"), "Blocker")).toBe(false);
+  });
+});

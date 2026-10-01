@@ -198,6 +198,23 @@ function insertIntoSyncedArray(
   }
 }
 
+/**
+ * A serial stamped on every entry into a trash. A card that leaves the trash and comes back is a
+ * different card to the rules (KB Q5160, Q6396), but keeps its instance id, so a pending effect
+ * compares serials to tell whether its card stayed in the trash since it triggered.
+ */
+const trashArrivals = new WeakMap<CardInstance, number>();
+let lastTrashArrival = 0;
+
+/** The card's trash arrival serial (0 when never stamped), or undefined when it is not in a trash. */
+export function trashArrivalOf(state: GameState, instanceId: string): number | undefined {
+  for (const owner of state.players) {
+    const card = owner?.trash.find((candidate) => candidate.instanceId === instanceId);
+    if (card !== undefined) return trashArrivals.get(card) ?? 0;
+  }
+  return undefined;
+}
+
 /** Insert a card into a loose zone at the top or bottom (default bottom). */
 export function insertCard(
   player: PlayerState,
@@ -205,6 +222,7 @@ export function insertCard(
   instance: CardInstance,
   position: ZonePosition = "bottom",
 ): void {
+  if (zone === Zone.Trash) trashArrivals.set(instance, ++lastTrashArrival);
   const arr = zoneArrayOf(player, zone);
   if (position === "top") {
     insertIntoSyncedArray(arr, instance, 0, (card) => notifyCardEntered(player, zone, card));
@@ -492,7 +510,7 @@ export function applyOverflow(
   for (const card of ordered) {
     const value = overflowValueOf(card);
     if (value === undefined || value === 0) continue;
-    // Charges `card.ownerSeat`. §4-10-2 defines the rules' "owner" as the CONTROLLER
+    // Charges `card.ownerSeat`. §4-11-2 defines the rules' "owner" as the CONTROLLER
     // ("the player that is currently using that card"), not deck-owner. The engine has no
     // control-changing effect today (`controllerSeat` is assigned once at creation), so
     // ownerSeat and controllerSeat always coincide; this only diverges if one is ever added.

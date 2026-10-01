@@ -61,3 +61,49 @@ describe("P-066 Huckmon", () => {
     );
   });
 });
+
+describe("P-066 Huckmon — KB Q&A rulings", () => {
+  async function checkHuckmon(opponentField: { card: string; as: string; dp?: number }[]) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { deck: [{ card: "BT1-009", as: "drawn" }], security: [{ card: "P-066", as: "huckmon" }] },
+        1: { battleArea: [{ card: "BT1-025", as: "attacker" }, ...opponentField] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    for (const { as } of opponentField) preferred.push(s.perm(as).permanentId);
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("huckmon").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    return s;
+  }
+
+  it("still adds itself to hand when no opposing Digimon with 4000 DP or less is deleted (Q4170)", async () => {
+    const s = await checkHuckmon([{ card: "BT1-009", as: "large", dp: 5000 }]);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(s.perm("large").permanentId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("huckmon").instanceId, s.inst("drawn").instanceId].sort(),
+    );
+  });
+
+  it("adds itself to hand after 'then' even when a deletion means the ＜Draw 1＞ condition isn't met (Q4845)", async () => {
+    const s = await checkHuckmon([{ card: "BT1-009", as: "victim" }]);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009")).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("huckmon").instanceId]);
+  });
+});

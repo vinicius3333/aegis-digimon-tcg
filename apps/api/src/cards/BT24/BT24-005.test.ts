@@ -372,3 +372,46 @@ describe("BT24-005 Kyokyomon", () => {
     expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(3);
   });
 });
+
+describe("BT24-005 Kyokyomon — KB Q&A rulings", () => {
+  it("shows both players the revealed cards and the order they go back to the deck (Q5577)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-054", as: "host", under: ["BT24-005", { card: "BT24-085", as: "addedTamer" }] }],
+          deck: [
+            { card: "BT1-013", as: "first" },
+            { card: "BT1-015", as: "second" },
+            { card: "BT1-045", as: "third" },
+            "BT1-009",
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false, preferOptionIndex: 1 },
+    );
+    await s.ready();
+    const trigger = advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("addedTamer").instanceId],
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    expect(s.events.filter((event) => event.kind === "cardRevealed").map((event) => event.cardId)).toEqual([
+      "BT1-013",
+      "BT1-015",
+      "BT1-045",
+    ]);
+    const order = [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "orderCards", order },
+      }),
+    ).toEqual({ ok: true });
+    await trigger;
+
+    const returned = s.events.find((event) => event.kind === "cardsMoved" && event.to === "deckBottom");
+    expect(returned).toMatchObject({ instanceIds: order, seat: 0, cardIds: ["BT1-045", "BT1-013", "BT1-015"] });
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-045", "BT1-013", "BT1-015"]);
+  });
+});

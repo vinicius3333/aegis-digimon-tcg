@@ -249,3 +249,100 @@ describe("BT13-046 Kentaurosmon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT13-046 Kentaurosmon — KB Q&A rulings", () => {
+  async function playKentaurosmon(ownSecurity: number, opponentSecurity: number) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT13-046", as: "kent" },
+            { card: "BT13-036", as: "yellow" },
+          ],
+          security: Array.from({ length: ownSecurity }, () => "BT1-009"),
+        },
+        1: { security: Array.from({ length: opponentSecurity }, () => "BT1-009") },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kent").instanceId })).toEqual({ ok: true });
+    await settle();
+    return s;
+  }
+
+  async function digivolveIntoKentaurosmon(revealCard: string, opts: { autoDeclineOptional?: boolean }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-041", as: "base" }],
+          hand: [
+            { card: "BT13-046", as: "kent" },
+            { card: revealCard, as: "revealed" },
+          ],
+          security: [{ card: "BT1-009", as: "old-top" }, "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, ...opts },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kent").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT13-046");
+    await settle();
+    return s;
+  }
+
+  it("counts your security plus your opponent's security toward the six-card total (Q2291)", async () => {
+    const threePlusTwo = await playKentaurosmon(3, 2);
+    expect(threePlusTwo.state.memory).toBe(0);
+    expect(threePlusTwo.state.players[0]!.security[0]!.instanceId).toBe(threePlusTwo.inst("yellow").instanceId);
+
+    const threePlusFour = await playKentaurosmon(3, 4);
+    expect(threePlusFour.state.memory).toBe(-3);
+    expect(threePlusFour.state.players[0]!.security).toHaveLength(3);
+    expect(threePlusFour.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      threePlusFour.inst("yellow").instanceId,
+    ]);
+  });
+
+  it("must reveal a hand card and place a yellow one in security even when the player would rather not (Q2292)", async () => {
+    const s = await digivolveIntoKentaurosmon("BT13-036", { autoDeclineOptional: true });
+    const revealedId = s.inst("revealed").instanceId;
+    const skippableHandSelection = s.decisions.some(
+      ({ seat, req }) =>
+        seat === 0 && (req.kind === "optional" || (req.kind === "selectCards" && (req.options?.min ?? 1) === 0)),
+    );
+    expect(skippableHandSelection).toBe(false);
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      revealedId,
+      s.inst("old-top").instanceId,
+      expect.any(String),
+      expect.any(String),
+    ]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === revealedId)).toBe(false);
+  });
+
+  it("places a revealed two-color card that includes yellow on top of security instead of returning it (Q2293)", async () => {
+    const s = await digivolveIntoKentaurosmon("BT13-095", {});
+    const revealedId = s.inst("revealed").instanceId;
+    expect(s.state.players[0]!.security).toHaveLength(4);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(revealedId);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === revealedId)).toBe(false);
+
+    const redOnly = await digivolveIntoKentaurosmon("BT1-009", {});
+    const redOnlyId = redOnly.inst("revealed").instanceId;
+    expect(redOnly.state.players[0]!.security).toHaveLength(3);
+    expect(redOnly.state.players[0]!.hand.some(({ instanceId }) => instanceId === redOnlyId)).toBe(true);
+  });
+});

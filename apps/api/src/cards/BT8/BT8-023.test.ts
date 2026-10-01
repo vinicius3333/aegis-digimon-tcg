@@ -88,3 +88,37 @@ describe("BT8-023 Submarimon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("submarimon").instanceId)).toBe(true);
   });
 });
+
+describe("BT8-023 Submarimon — KB Q&A rulings", () => {
+  it("still gives -3000 DP to a source-less Digimon when no opposing Digimon has a digivolution card to trash (Q1713)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-027", as: "base" }], hand: [{ card: "BT8-023", as: "evolving" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "untouched" },
+            { card: "BT1-015", as: "weakened" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("weakened").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("weakened").currentDP === s.perm("weakened").baseDP - 3000);
+
+    expect(s.perm("weakened").currentDP).toBe(s.perm("weakened").baseDP - 3000);
+    expect(s.perm("untouched").currentDP).toBe(s.perm("untouched").baseDP);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+});

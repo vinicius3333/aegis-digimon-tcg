@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT13/BT13-077.js";
 import "./ST14-04.js";
 
 describe("ST14-04 Phascomon", () => {
@@ -39,5 +41,46 @@ describe("ST14-04 Phascomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("phas").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+});
+
+describe("ST14-04 Phascomon — KB Q&A rulings", () => {
+  it("attacks an opponent's suspended Digimon when forced to attack, and does not attack if only the player is a target (Q799)", async () => {
+    const runForcedAttack = async (craniamonSuspended: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT13-077", as: "craniamon", suspended: craniamonSuspended }],
+            security: [{ card: "BT1-009", as: "security" }],
+          },
+          1: { battleArea: [{ card: "ST14-04", as: "phascomon" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await turn;
+      return s;
+    };
+
+    const withSuspendedTarget = await runForcedAttack(true);
+    const declared = withSuspendedTarget.events.filter((event) => event.kind === "attackDeclared");
+    expect(declared).toHaveLength(1);
+    expect(declared[0]).toMatchObject({
+      attackerCardId: "ST14-04",
+      target: { kind: "permanent", permanentId: withSuspendedTarget.perm("craniamon").permanentId },
+    });
+    expect(withSuspendedTarget.state.players[0]!.security).toHaveLength(1);
+
+    const onlyPlayerTarget = await runForcedAttack(false);
+    expect(
+      onlyPlayerTarget.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT13-077"),
+    ).toBe(true);
+    expect(onlyPlayerTarget.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(onlyPlayerTarget.perm("phascomon").isSuspended).toBe(false);
+    expect(onlyPlayerTarget.state.players[0]!.security).toHaveLength(1);
   });
 });

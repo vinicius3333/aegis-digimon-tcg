@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-034.js";
+import { answerRevealSlotsRejectingEmpty } from "./livePlayTestHelpers.js";
 import "../BT17/BT17-049.js";
 import "../BT23/BT23-041.js";
 import "../BT19/BT19-046.js";
@@ -117,5 +118,58 @@ describe("EX4-034 Lopmon", () => {
     await settle(() => s.perm("host").isSuspended);
     expect(s.perm("host").topCard?.cardId).toBe("BT1-010");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(true);
+  });
+});
+
+describe("EX4-034 Lopmon — KB Q&A rulings", () => {
+  it("must add a card to each slot that has a revealed match (Q3481)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-034", as: "subject" }],
+          deck: [
+            { card: "BT10-055", as: "multicolor" },
+            { card: "EX2-059", as: "shuChong" },
+            { card: "EX4-007", as: "miss" },
+            "EX2-061",
+          ],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerRevealSlotsRejectingEmpty(s, 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("multicolor").instanceId, s.inst("shuChong").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("miss").instanceId);
+  });
+
+  it("adds the single revealed target when only one slot matches (Q3480)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-034", as: "subject" }],
+          deck: [{ card: "EX2-059", as: "shuChong" }, "EX4-007", "EX2-061", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 3 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("shuChong").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-010", "EX2-061", "EX4-007"]);
   });
 });

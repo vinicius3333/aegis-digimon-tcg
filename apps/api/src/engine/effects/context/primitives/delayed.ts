@@ -40,7 +40,10 @@ export interface DelayedPrimitives {
   consumeDigiXrosPlayExpansions?(seat: Seat, pendingPlayInstanceId?: string): void;
   /** Resolve matching wouldBePlayed replacements before effect-driven DigiXros material selection. */
   prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
-  prepareDigiXrosPlays?(instanceIds: readonly string[]): Promise<Record<string, string[]>>;
+  prepareDigiXrosPlays?(
+    instanceIds: readonly string[],
+    simultaneousPlayCount?: number,
+  ): Promise<Record<string, string[]>>;
 
   /** Spawn a token Digimon as a new battle-area permanent. */
   playToken(
@@ -125,6 +128,11 @@ export interface DelayedPrimitives {
    */
   reactivateOnPlay?(
     permanentId: string,
-    opts?: { timings?: EffectTiming[]; chooseOne?: boolean; outsideTriggerWindow?: boolean },
+    opts?: {
+      timings?: EffectTiming[];
+      chooseOne?: boolean;
+      outsideTriggerWindow?: boolean;
+      continueEffectAfterAttackDeclaration?: () => Promise<void>;
+    },
   ): Promise<boolean>;
 }

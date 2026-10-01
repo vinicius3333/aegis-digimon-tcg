@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-060.js";
@@ -23,7 +24,7 @@ describe("BT22-060 Datamon", () => {
     }
   });
 
-  it("lets the opponent choose an attacker at end of their turn", () => {
+  it("lets its owner choose the opponent's attacker at end of the opponent's turn", () => {
     const inherited = compiled.effects.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({
       frequency: "OncePerTurn",
@@ -31,8 +32,9 @@ describe("BT22-060 Datamon", () => {
         {
           kind: "Attack",
           optional: true,
+          attackPlayer: true,
           drainTimingWindowDuringAttack: true,
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, chooser: "opponent" },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
         },
       ],
     });
@@ -162,5 +164,91 @@ describe("BT22-060 Datamon", () => {
 
     expect(s.perm("base").currentDP).toBe(7000);
     expect(observe(s.engine).isRestricted(s.perm("base"), "cantBeDeDigivolved")).toBe(true);
+  });
+});
+
+describe("BT22-060 Datamon — KB Q&A rulings", () => {
+  const datamonHost = { card: "BT22-065", as: "host", dp: 20000, under: ["BT22-060"] };
+  const mySecurity = ["BT1-010", "BT1-010", "BT1-010"];
+
+  /** Run the opponent's turn to its end, with Datamon's inherited effect under seat 0's host. */
+  async function runOpponentTurn(
+    opponent: BoardSpec[1],
+    options: { accept: boolean; preferred?: string; preferredOnceAttacking?: string; memory?: number },
+    duringMain?: (s: EngineSetup) => Promise<void>,
+  ) {
+    const preferInstanceIds: string[] = [];
+    const s: EngineSetup = setupEngine(
+      { 0: { battleArea: [datamonHost], security: mySecurity }, 1: opponent },
+      {
+        autoSelectCards: true,
+        preferInstanceIds,
+        ...(options.accept ? { autoAcceptOptional: true } : { autoDeclineOptional: true }),
+        onEvent(event) {
+          if (event.kind !== "attackDeclared" || options.preferredOnceAttacking === undefined) return;
+          preferInstanceIds.splice(
+            0,
+            preferInstanceIds.length,
+            s.perm(options.preferredOnceAttacking).topCard.instanceId,
+          );
+        },
+      },
+    );
+    if (options.preferred !== undefined) preferInstanceIds.push(s.perm(options.preferred).topCard.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = options.memory ?? 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await duringMain?.(s);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    await settle(() => !observe(s.engine).isAttacking());
+    return s;
+  }
+
+  it("lets you choose none of your opponent's Digimon, and then nothing attacks (Q4911)", async () => {
+    const s = await runOpponentTurn({ battleArea: [{ card: "BT1-009", as: "legal" }] }, { accept: false });
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT22-060")).toBe(true);
+    expect(s.perm("legal").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
+  it("does not make a chosen Digimon that can't attack attack (Q4912)", async () => {
+    const s = await runOpponentTurn(
+      { battleArea: [{ card: "BT19-077", as: "calumon" }] },
+      { accept: true, preferred: "calumon" },
+    );
+
+    expect(s.perm("calumon").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
+  it("does not make the chosen Digimon attack while an end-of-turn attack is already in progress (Q4913)", async () => {
+    const s = await runOpponentTurn(
+      {
+        battleArea: [
+          { card: "BT1-009", as: "attacker", under: ["P-191"] },
+          { card: "BT1-010", as: "chosen" },
+        ],
+      },
+      { accept: true, preferred: "attacker", preferredOnceAttacking: "chosen" },
+    );
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT22-060")).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("chosen").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("can choose a Digimon that isn't affected by your effects, and it must attack (Q4914)", async () => {
+    const s = await runOpponentTurn(
+      { battleArea: [{ card: "BT17-016", as: "gallantmon" }] },
+      { accept: true, preferred: "gallantmon", memory: 0 },
+    );
+
+    expect(s.perm("gallantmon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 });

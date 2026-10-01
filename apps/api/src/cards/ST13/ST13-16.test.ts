@@ -132,3 +132,75 @@ describe("ST13-16 Legend-Arms Alliance", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST13-04")).toBe(true);
   });
 });
+
+describe("ST13-16 Legend-Arms Alliance — KB Q&A rulings", () => {
+  it("still places itself in the battle area when the eligible Legend-Arms play is declined (Q794)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST13-12"],
+          hand: [
+            { card: "ST13-16", as: "alliance" },
+            { card: "ST13-04", as: "legendArm" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alliance").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-16"));
+    await settle();
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-16")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("legendArm").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("returns every card revealed by Delay to the same end of the deck (Q795)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST13-16", as: "alliance", enteredThisTurn: true }],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", { card: "BT1-014", as: "unrevealed" }],
+        },
+        1: { deck: ["BT1-009"] },
+      },
+      { autoDeclineOptional: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.perm("alliance").placedByEffect = true;
+    await s.ready();
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.phase = "Main" as typeof s.state.phase;
+    await s.engine.recomputeContinuousEffects();
+    const [delay] = JSON.parse(s.perm("alliance").activatableEffectsJson) as { effectKey: string }[];
+    expect(delay).toBeDefined();
+    const decisionsBefore = s.decisions.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("alliance").topCard.instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 5 && s.state.players[0]!.deck.every((card) => !card.faceUp));
+    await settle();
+
+    const placementPrompts = s.decisions.slice(decisionsBefore).filter(({ req }) => req.kind === "chooseOption");
+    expect(placementPrompts).toHaveLength(1);
+    expect(placementPrompts[0]!.req.options?.choices).toEqual(["Top of deck", "Bottom of deck"]);
+    expect(placementPrompts[0]!.req.options?.visibleInstanceIds).toHaveLength(4);
+
+    const deck = s.state.players[0]!.deck.map((card) => card.cardId);
+    expect(deck[0]).toBe("BT1-014");
+    expect(deck.slice(1).sort()).toEqual(["BT1-010", "BT1-011", "BT1-012", "BT1-013"]);
+  });
+});

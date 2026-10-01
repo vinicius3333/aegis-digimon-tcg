@@ -79,7 +79,7 @@ describe("EX6-058 Creepymon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(3);
   });
 
-  it("trashes no deck cards when the deleted lowest-DP Digimon has no level", async () => {
+  it("trashes no deck cards when the deleted lowest-DP Digimon has no level (Q3796)", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX6-058", as: "creepy" }], deck: ["BT1-009", "BT1-010"] },
@@ -152,5 +152,77 @@ describe("EX6-058 Creepymon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.breeding?.stack.at(-1)?.instanceId).toBe(s.inst("material").instanceId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(false);
+  });
+});
+
+describe("EX6-058 Creepymon — KB Q&A rulings", () => {
+  type Board = ReturnType<typeof setupEngine>;
+  const leaveRoutes: [string, boolean, (s: Board) => Promise<unknown>][] = [
+    [
+      "deleted by an effect",
+      true,
+      (s) => advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect"),
+    ],
+    ["returned to the hand", true, (s) => advance(s.engine).verb.returnToHand([s.inst("leaving").instanceId])],
+    ["returned to the deck", true, (s) => advance(s.engine).verb.returnToDeck([s.inst("leaving").instanceId])],
+    [
+      "deleted in battle",
+      false,
+      async (s) => {
+        s.state.turnSeat = 1;
+        expect(
+          s.engine.applyIntent(1, {
+            type: "attack",
+            attackerPermanentId: s.perm("attacker").permanentId,
+            target: { kind: "permanent", permanentId: s.perm("leaving").permanentId },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.state.players[0]!.battleArea.length === 0);
+        await advance(s.engine).finishAttack();
+      },
+    ],
+  ];
+
+  it.each(leaveRoutes)(
+    "places a trash card under the Gate only when leaving other than by battle: %s (Q3797)",
+    async (_route, places, leave) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX6-058", as: "leaving", suspended: true }],
+            breeding: { card: "EX6-006", as: "gate" },
+            trash: [{ card: "EX6-059", as: "lord" }],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 30_000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await leave(s);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.breeding?.stack.map((card) => card.instanceId)).toEqual(
+        places ? [s.inst("lord").instanceId] : [],
+      );
+    },
+  );
+
+  it("cannot place the leaving Creepymon itself under the Gate (Q3798)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-058", as: "leaving" }],
+          breeding: { card: "EX6-006", as: "gate" },
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("leaving").instanceId));
+
+    expect(s.state.players[0]!.breeding?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("leaving").instanceId]);
   });
 });

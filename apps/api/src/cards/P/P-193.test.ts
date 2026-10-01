@@ -200,3 +200,32 @@ describe("P-193 The Wicked God Emerges!", () => {
     await loop;
   });
 });
+
+describe("P-193 The Wicked God Emerges! — KB Q&A rulings", () => {
+  it.each([
+    ["no Composite or Wicked God card in hand", ["ST1-16"], { autoAcceptOptional: true }],
+    ["the hand cost is declined", ["BT19-065", "ST1-16"], { autoDeclineOptional: true }],
+  ])("is not placed in the battle area when %s (Q4987)", async (_label, handCards, answers) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-193", as: "option" }, ...handCards],
+          battleArea: [{ card: "BT19-065", as: "color" }],
+          deck: ["BT1-009", "BT1-028"],
+        },
+      },
+      { autoSelectCards: true, ...answers },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual([...handCards].sort());
+  });
+});

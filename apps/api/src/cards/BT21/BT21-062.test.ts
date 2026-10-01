@@ -415,3 +415,93 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT21-062 Galacticmon — KB Q&A rulings", () => {
+  it("accepts cards with [Vemmon] in their name, effects, or inherited effects as the four placed digivolution cards (Q4569)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-058", as: "snatchmon" }],
+          hand: [{ card: GALACTICMON, as: "galacticmon" }],
+          trash: [
+            { card: "BT21-056", as: "vemmonInName" },
+            { card: "BT11-065", as: "vemmonInEffect" },
+            { card: "BT21-006", as: "vemmonInInheritedEffect" },
+            { card: "BT18-092", as: "vemmonInTamerEffect" },
+            { card: PLAIN_DIGIMON, as: "noVemmon" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("noVemmon").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("snatchmon").permanentId,
+        instanceId: s.inst("galacticmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("snatchmon").stack.length === 5 && s.state.pendingDecision === undefined);
+
+    const stackIds = s.perm("snatchmon").stack.map((card) => card.instanceId);
+    for (const alias of ["vemmonInName", "vemmonInEffect", "vemmonInInheritedEffect", "vemmonInTamerEffect"]) {
+      expect(stackIds).toContain(s.inst(alias).instanceId);
+    }
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("noVemmon").instanceId]);
+  });
+
+  it("lets P-244 <Delay> digivolve the Galacticmon into EX11-046 after its When Digivolving placement adds Vemmon (Q6932)", async () => {
+    async function digivolveIntoGalacticmonBeside(trash: string[]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT21-058", as: "host" },
+              { card: "P-244", as: "emblem" },
+            ],
+            hand: [
+              { card: GALACTICMON, as: "galacticmon" },
+              { card: "EX11-046", as: "assemblyGalacticmon" },
+            ],
+            trash,
+            deck: ["BT1-001", "BT1-002", "BT1-003"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("galacticmon").instanceId,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && s.perm("host").topCard.cardId !== "BT21-058");
+      await settle();
+      return s;
+    }
+
+    // BT21-056 Vemmon's inherited effect reduces the Delay digivolution by 1, so it costs 5 - 3 - 1.
+    const delayed = await digivolveIntoGalacticmonBeside(["BT21-056", "BT11-065", "BT11-065", "BT11-065"]);
+    expect(delayed.perm("host").topCard.instanceId).toBe(delayed.inst("assemblyGalacticmon").instanceId);
+    expect(delayed.perm("host").stack.map((card) => card.instanceId)).toContain(delayed.inst("galacticmon").instanceId);
+    expect(delayed.state.players[0]!.trash.map((card) => card.instanceId)).toContain(delayed.inst("emblem").instanceId);
+    expect(delayed.state.memory).toBe(10 - 9 - (5 - 3 - 1));
+
+    const noVemmonPlaced = await digivolveIntoGalacticmonBeside(["BT11-065", "BT11-065", "BT11-065", "BT11-065"]);
+    expect(noVemmonPlaced.perm("host").stack.filter((card) => card.cardId === "BT11-065")).toHaveLength(4);
+    expect(noVemmonPlaced.perm("host").topCard.instanceId).toBe(noVemmonPlaced.inst("galacticmon").instanceId);
+    expect(noVemmonPlaced.perm("emblem").topCard.cardId).toBe("P-244");
+    expect(noVemmonPlaced.state.memory).toBe(1);
+  });
+});

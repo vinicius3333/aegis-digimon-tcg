@@ -5,19 +5,30 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",
+      timing: "endOfBattle",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          raw: "At the end of the battle, play this card without paying its memory cost.",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              from: ["trash"],
+              payCost: false,
             },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          ],
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "OnPlay",

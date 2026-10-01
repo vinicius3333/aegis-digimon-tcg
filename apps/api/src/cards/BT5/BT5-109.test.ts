@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "../EX2/EX2-073.js";
+import "../P/P-029.js";
+import "../P/P-030.js";
+import "../P/P-103.js";
 import "./BT5-019.js";
 import "./BT5-109.js";
 
@@ -159,5 +163,208 @@ describe("BT5-109 Mega Digimon Fusion!", () => {
     const s = setupEngine({ 0: { security: [{ card: "BT5-109", as: "securityOption", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
+  });
+});
+
+type EndOfTurnOrderSetup = ReturnType<typeof setupEngine>;
+
+async function playMegaDigimonFusion(s: EndOfTurnOrderSetup): Promise<void> {
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+}
+
+async function digivolveIntoOmnimon(s: EndOfTurnOrderSetup, permanentId: string): Promise<void> {
+  expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("omnimon").instanceId })).toEqual(
+    { ok: true },
+  );
+  await settle(() => s.perm("base").topCard.cardId === "BT5-086" && s.state.pendingDecision === undefined);
+}
+
+const promoDeletionTrigger = "Delete this Digimon";
+const fusionReturnTrigger = "return the Digimon that digivolved with this effect";
+
+function offeredEndOfTurnChoices(s: EndOfTurnOrderSetup): string[][] {
+  return s.decisions
+    .filter(({ req }) => req.kind === "orderTriggers" && req.options?.triggerTimings?.includes("endOfTurn"))
+    .map(({ req }) => req.options?.triggerDescriptions ?? []);
+}
+
+function expectBothEndOfTurnEffectsOffered(s: EndOfTurnOrderSetup): void {
+  expect(offeredEndOfTurnChoices(s)).toEqual([
+    expect.arrayContaining([
+      expect.stringContaining(promoDeletionTrigger),
+      expect.stringContaining(fusionReturnTrigger),
+    ]),
+  ]);
+}
+
+async function agunimonThenMegaDigimonFusion(firstTrigger: string) {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "P-029", as: "base" },
+          { card: "BT5-086", as: "whiteEnabler" },
+        ],
+        hand: [
+          { card: "BT5-109", as: "option" },
+          { card: "BT4-113", as: "ancientGreymon" },
+          { card: "BT5-086", as: "omnimon" },
+        ],
+        deck: ["BT1-010", "BT1-011"],
+      },
+      1: { security: ["BT1-009", "BT1-009"] },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      preferInstanceIds: preferred,
+      preferTriggerKeys: [firstTrigger],
+    },
+  );
+  preferred.push(s.inst("ancientGreymon").instanceId);
+  s.state.memory = 10;
+  const permanentId = s.perm("base").permanentId;
+  await playMegaDigimonFusion(s);
+
+  expect(
+    s.engine.applyIntent(0, { type: "attack", attackerPermanentId: permanentId, target: { kind: "player" } }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.perm("base").topCard.cardId === "BT4-113" &&
+      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+  );
+  await settle();
+  expect(s.state.memory).toBe(8);
+
+  await digivolveIntoOmnimon(s, permanentId);
+  expect(s.state.memory).toBe(8);
+
+  await advance(s.engine).fireSubTrigger("endOfTurn");
+  await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId));
+  return s;
+}
+
+async function lobomonThenMegaDigimonFusion(firstTrigger: string) {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT1-027", as: "base" },
+          { card: "BT5-086", as: "whiteEnabler" },
+        ],
+        hand: [
+          { card: "BT5-109", as: "option" },
+          { card: "P-030", as: "lobomon" },
+          { card: "BT4-114", as: "ancientGarurumon" },
+          { card: "BT5-086", as: "omnimon" },
+        ],
+        deck: ["BT1-010", "BT1-011"],
+      },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      preferInstanceIds: preferred,
+      preferTriggerKeys: [firstTrigger],
+    },
+  );
+  preferred.push(s.inst("ancientGarurumon").instanceId);
+  s.state.memory = 10;
+  const permanentId = s.perm("base").permanentId;
+  await playMegaDigimonFusion(s);
+
+  expect(s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("lobomon").instanceId })).toEqual(
+    { ok: true },
+  );
+  await settle(() => s.perm("base").topCard.cardId === "BT4-114" && s.state.pendingDecision === undefined);
+  const memoryBeforeOmnimon = s.state.memory;
+
+  await digivolveIntoOmnimon(s, permanentId);
+  expect(s.state.memory).toBe(memoryBeforeOmnimon);
+
+  await advance(s.engine).fireSubTrigger("endOfTurn");
+  await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId));
+  return s;
+}
+
+function omnimonLocation(s: EndOfTurnOrderSetup): "deckBottom" | "trash" | "elsewhere" {
+  const omnimonId = s.inst("omnimon").instanceId;
+  if (s.state.players[0]!.deck.at(-1)?.instanceId === omnimonId) return "deckBottom";
+  if (s.state.players[0]!.trash.some((card) => card.instanceId === omnimonId)) return "trash";
+  return "elsewhere";
+}
+
+describe("BT5-109 Mega Digimon Fusion! — KB Q&A rulings", () => {
+  it("reduces a level 6-to-7 digivolution that another card's effect performs (Q1383)", async () => {
+    async function delayDigivolveIntoGallantmon(withFusion: boolean): Promise<EndOfTurnOrderSetup> {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "P-103", as: "delay" },
+              { card: "BT5-019", as: "base", under: [{ card: "BT5-014", as: "source" }] },
+              { card: "BT5-086", as: "whiteEnabler" },
+            ],
+            hand: [...(withFusion ? [{ card: "BT5-109", as: "option" }] : []), { card: "EX2-073", as: "gallantmon" }],
+            deck: ["BT1-010", "BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm("base").topCard.instanceId, s.inst("gallantmon").instanceId);
+      s.state.memory = 10;
+      s.state.turnCount = 1;
+      await s.ready();
+      if (withFusion) await playMegaDigimonFusion(s);
+      const delayAbility = JSON.parse(s.perm("delay").activatableEffectsJson) as { effectKey: string }[];
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("delay").instanceId,
+          effectKey: delayAbility[0]!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX2-073" && s.state.pendingDecision === undefined);
+      return s;
+    }
+
+    const withoutFusion = await delayDigivolveIntoGallantmon(false);
+    expect(withoutFusion.state.memory).toBe(6);
+
+    const withFusion = await delayDigivolveIntoGallantmon(true);
+    expect(withFusion.state.memory).toBe(10);
+    const permanentId = withFusion.perm("base").permanentId;
+    await advance(withFusion.engine).fireSubTrigger("endOfTurn");
+    await settle(
+      () => !withFusion.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId),
+    );
+    expect(withFusion.state.players[0]!.deck.at(-1)!.instanceId).toBe(withFusion.inst("gallantmon").instanceId);
+  });
+
+  it("lets the player order P-029's end-of-turn deletion and its bottom-deck return, and the first one wins (Q4139)", async () => {
+    const returnedFirst = await agunimonThenMegaDigimonFusion(fusionReturnTrigger);
+    expectBothEndOfTurnEffectsOffered(returnedFirst);
+    expect(omnimonLocation(returnedFirst)).toBe("deckBottom");
+
+    const deletedFirst = await agunimonThenMegaDigimonFusion(promoDeletionTrigger);
+    expectBothEndOfTurnEffectsOffered(deletedFirst);
+    expect(omnimonLocation(deletedFirst)).toBe("trash");
+  });
+
+  it("lets the player order P-030's end-of-turn deletion and its bottom-deck return, and the first one wins (Q4142)", async () => {
+    const returnedFirst = await lobomonThenMegaDigimonFusion(fusionReturnTrigger);
+    expectBothEndOfTurnEffectsOffered(returnedFirst);
+    expect(omnimonLocation(returnedFirst)).toBe("deckBottom");
+
+    const deletedFirst = await lobomonThenMegaDigimonFusion(promoDeletionTrigger);
+    expectBothEndOfTurnEffectsOffered(deletedFirst);
+    expect(omnimonLocation(deletedFirst)).toBe("trash");
   });
 });

@@ -68,15 +68,30 @@ function registeredBorrowedEffect(ctx: EffectContext, borrowed: BorrowableEffect
   )[borrowed.triggerOrdinal];
 }
 
+/**
+ * The permanent whose timing lock ("can't activate [On Play]") gates a borrowed effect.
+ * An effect transferred "as an effect of this card" is the activator's, so only the
+ * activator's lock applies (BT20-037 Q4351/Q4352). A stack card lends its printed effect,
+ * but the host activates it (EX9-073 Q4841). Keep this timing identity separate from
+ * lender registration and usage identity.
+ */
+function timingGatePermanentId(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "ActivateForeignEffect" }>,
+  borrowed: BorrowableEffect,
+): string | undefined {
+  const activatorPermanentId = ctx.source.permanent()?.permanentId;
+  if (action.asEffectOf !== undefined && action.useLenderAsSource !== true) return activatorPermanentId;
+  return borrowed.sourcePermanentId ?? activatorPermanentId;
+}
+
 function availableBorrowedEffects(
   ctx: EffectContext,
+  action: Extract<Action, { kind: "ActivateForeignEffect" }>,
   effects: BorrowableEffect[],
-  stackHostId?: string,
 ): BorrowableEffect[] {
   return effects.filter((borrowed) => {
-    // A stack card lends its printed effect, but the host activates it (EX9-073 Q4841).
-    // Keep this timing identity separate from lender registration and usage identity.
-    const timingPermanentId = borrowed.sourcePermanentId ?? stackHostId ?? ctx.source.permanent()?.permanentId;
+    const timingPermanentId = timingGatePermanentId(ctx, action, borrowed);
     const disabledTiming = disabledTimingForTrigger(borrowed.effect.trigger);
     if (
       disabledTiming !== undefined &&
@@ -206,11 +221,7 @@ function collectForeignCandidates(
         );
       }
     }
-    const available = availableBorrowedEffects(
-      ctx,
-      borrowable,
-      action.zone === "digivolutionCards" ? ctx.source.permanent()?.permanentId : undefined,
-    );
+    const available = availableBorrowedEffects(ctx, action, borrowable);
     if (available.length === 0) continue;
     out.push({ instanceId: src.instanceId, cardId: src.cardId, permanentId: src.permanentId, borrowable: available });
   }
@@ -318,7 +329,7 @@ export async function runActivateForeignEffect(
     try {
       const eff = borrowed.effect;
       const timing = disabledTimingForTrigger(eff.trigger);
-      const timingPermanentId = borrowed.sourcePermanentId ?? ctx.source.permanent()?.permanentId;
+      const timingPermanentId = timingGatePermanentId(ctx, action, borrowed);
       if (
         timing !== undefined &&
         timingPermanentId !== undefined &&
@@ -475,7 +486,10 @@ function optionUseCandidates(
     const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
     const useCost = ctx.fx.effectiveLooseUseCost?.(candidate.instanceId, seat) ?? def.playCost;
     const effectiveFilter = filter === undefined ? undefined : projectUseCostCeilings(filter, useCost, costCap);
-    if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) return;
+    // Exact-cost filters ("an Option with a memory cost of 7") read the cost the card has in
+    // hand, which excludes reductions that apply only when it would be used (Q1501).
+    const inHandCost = ctx.fx.inHandCost?.(candidate.instanceId, seat) ?? def.playCost;
+    if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, { ...def, playCost: inHandCost })) return;
     if (!def.kinds.includes(CardKind.Option)) return;
     if (
       action.waiveColorRequirement !== true &&

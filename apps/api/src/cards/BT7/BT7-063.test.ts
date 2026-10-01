@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT8/BT8-097.js";
 import "./BT7-063.js";
 
 describe("BT7-063 DarkKnightmon", () => {
@@ -223,5 +224,90 @@ describe("BT7-063 DarkKnightmon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("skull").instanceId, s.inst("deadly").instanceId]),
     );
+  });
+});
+
+describe("BT7-063 DarkKnightmon — KB Q&A rulings", () => {
+  const playDarkKnightmonWith = async (materials: { hand?: string[]; trash?: string[] }) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT7-063", as: "darkKnightmon" }, ...(materials.hand ?? [])],
+          trash: materials.trash ?? [],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    const darkKnightmonId = s.inst("darkKnightmon").instanceId;
+    const darkKnightmon = () =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === darkKnightmonId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: darkKnightmonId })).toEqual({ ok: true });
+    await settle(() => darkKnightmon() !== undefined && s.state.pendingDecision === undefined);
+    return { s, darkKnightmon };
+  };
+
+  it("may place only one of the named cards when the other is in neither hand nor trash (Q1621)", async () => {
+    const onlySkullKnightmon = await playDarkKnightmonWith({ hand: ["BT7-058", "BT1-009"] });
+    expect(onlySkullKnightmon.darkKnightmon()?.stack.map((card) => card.cardId)).toEqual(["BT7-058"]);
+    expect(onlySkullKnightmon.s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
+
+    const onlyDeadlyAxemon = await playDarkKnightmonWith({ trash: ["BT7-059", "BT1-010"] });
+    expect(onlyDeadlyAxemon.darkKnightmon()?.stack.map((card) => card.cardId)).toEqual(["BT7-059"]);
+    expect(onlyDeadlyAxemon.s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010"]);
+  });
+
+  it("may place a SkullKnightmon from hand and a DeadlyAxemon from trash together (Q1622)", async () => {
+    const { s, darkKnightmon } = await playDarkKnightmonWith({ hand: ["BT7-058", "BT1-009"], trash: ["BT7-059"] });
+
+    expect(darkKnightmon()?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT7-058", "BT7-059"]));
+    expect(darkKnightmon()?.stack).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("cannot play SkullKnightmon or DeadlyAxemon from its stack after Crimson Blaze deletes it (Q1775)", async () => {
+    const opponentDarkKnightmon = {
+      card: "BT7-063",
+      as: "darkKnightmon",
+      dp: 6_000,
+      under: [
+        { card: "BT7-058", as: "skull" },
+        { card: "BT7-059", as: "deadly" },
+      ],
+    };
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT8-007"], hand: [{ card: "BT8-097", as: "crimsonBlaze" }] },
+        1: { battleArea: [opponentDarkKnightmon] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crimsonBlaze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097") && s.state.pendingDecision === undefined,
+    );
+    await drainMicrotasks();
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("skull").instanceId, s.inst("deadly").instanceId]),
+    );
+
+    const control = setupEngine(
+      { 1: { battleArea: [opponentDarkKnightmon] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(control.engine).verb.deletePermanent([control.perm("darkKnightmon").permanentId], "byEffect");
+    expect(control.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "BT7-058",
+      "BT7-059",
+    ]);
   });
 });

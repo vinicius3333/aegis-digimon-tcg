@@ -26,10 +26,14 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "opponent",
+              zone: "hand",
               kind: ["Tamer"],
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
+          from: ["hand"],
           payCost: false,
           optional: true,
         },

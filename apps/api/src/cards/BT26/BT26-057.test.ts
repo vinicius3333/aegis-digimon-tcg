@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, EffectDuration } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-057.js";
 import "../index.js";
@@ -305,6 +305,163 @@ describe("BT26-057 Bearcatmon", () => {
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
     expect(s.perm("bearcatmon").isSuspended).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("BT26-057 Bearcatmon — KB Q&A rulings", () => {
+  /**
+   * Digivolve Cougarmon into Bearcatmon. With `payCost`, the Tamer's bottom card is face down,
+   * so the [When Digivolving] cost is paid and Bearcatmon ignores opposing Digimon effects;
+   * without it, the only card under the Tamer is face up and nothing is gained.
+   */
+  function bearcatmonBoard(payCost: boolean, opponentHand: string[] = []): BoardSpec {
+    return {
+      0: {
+        battleArea: [
+          { card: "BT25-035", as: "base" },
+          { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", faceUp: !payCost }] },
+        ],
+        hand: [{ card: "BT26-057", as: "bearcatmon" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        security: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+      1: {
+        hand: opponentHand.map((card, index) => ({ card, as: `opponentCard${index}` })),
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        security: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+    };
+  }
+
+  async function digivolveIntoBearcatmon(s: EngineSetup): Promise<void> {
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("bearcatmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-057" && s.state.pendingDecision === undefined);
+  }
+
+  async function opponentPlays(s: EngineSetup, alias: string): Promise<void> {
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst(alias).instanceId),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+  }
+
+  it.each([
+    { payCost: true, dp: 11000, suspended: false },
+    { payCost: false, dp: 5000, suspended: true },
+  ])(
+    "is neither suspended nor reduced by opposing Digimon effects that choose it (immune=$payCost) (Q7061)",
+    async ({ payCost, dp, suspended }) => {
+      const preferred: string[] = [];
+      const s = setupEngine(bearcatmonBoard(payCost, ["ST22-04", "BT26-038"]), {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      });
+      await s.ready();
+      await digivolveIntoBearcatmon(s);
+      preferred.push(s.perm("base").permanentId, s.perm("base").topCard.instanceId);
+
+      s.state.turnSeat = 1;
+      s.state.memory = 20;
+      await opponentPlays(s, "opponentCard0");
+      await opponentPlays(s, "opponentCard1");
+
+      expect(s.perm("base").currentDP).toBe(dp);
+      expect(s.perm("base").isSuspended).toBe(suspended);
+    },
+  );
+
+  it.each([
+    { payCost: true, securityAttack: 0 },
+    { payCost: false, securityAttack: -2 },
+  ])(
+    "can be chosen and given <Security A. -2>, but does not have it while immune (immune=$payCost) (Q7063)",
+    async ({ payCost, securityAttack }) => {
+      const preferred: string[] = [];
+      const board = bearcatmonBoard(payCost, ["BT22-031"]);
+      board[0]!.battleArea!.push({ card: "BT1-009", as: "decoy" });
+      const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+      await s.ready();
+      await digivolveIntoBearcatmon(s);
+      const bearcatmon = s.perm("base");
+      preferred.push(bearcatmon.permanentId, bearcatmon.topCard.instanceId);
+
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      await opponentPlays(s, "opponentCard0");
+
+      const offeredBearcatmon = s.decisions.some(
+        ({ seat, req }) =>
+          seat === 1 &&
+          (req.options?.candidateInstanceIds ?? []).some(
+            (id) => id === bearcatmon.permanentId || id === bearcatmon.topCard.instanceId,
+          ),
+      );
+      expect(offeredBearcatmon).toBe(true);
+      expect(observe(s.engine).keywordAmount(s.perm("decoy"), "SecurityAttack")).toBe(0);
+      expect(observe(s.engine).keywordAmount(bearcatmon, "SecurityAttack")).toBe(securityAttack);
+    },
+  );
+
+  it.each([
+    { payCost: true, securityAttack: 0 },
+    { payCost: false, securityAttack: -2 },
+  ])(
+    "stops being affected by an opposing Digimon effect the moment it gains the immunity (immune=$payCost) (Q7064)",
+    async ({ payCost, securityAttack }) => {
+      const s = setupEngine(bearcatmonBoard(payCost, ["BT22-031"]), {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+      });
+      await s.ready();
+
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      await opponentPlays(s, "opponentCard0");
+      expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(-2);
+
+      s.state.turnSeat = 0;
+      await digivolveIntoBearcatmon(s);
+
+      expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(securityAttack);
+    },
+  );
+
+  it("is affected by effects it gained while immune once the immunity ends (Q7065)", async () => {
+    const s = setupEngine(bearcatmonBoard(true, ["BT22-031", "ST22-04"]), {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await digivolveIntoBearcatmon(s);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 20;
+    await opponentPlays(s, "opponentCard0");
+    await opponentPlays(s, "opponentCard1");
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("base"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(0);
+    expect(s.perm("base").currentDP).toBe(11000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("base"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(-2);
+    expect(s.perm("base").currentDP).toBe(5000);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 });

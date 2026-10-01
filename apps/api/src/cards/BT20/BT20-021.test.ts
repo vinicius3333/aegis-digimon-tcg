@@ -402,3 +402,139 @@ describe("BT20-021 Jesmon GX", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnight").instanceId)).toBe(false);
   });
 });
+
+describe("BT20-021 Jesmon GX — KB Q&A rulings", () => {
+  it("cannot use its [Jesmon] + [Gankoomon] DNA requirement through Blast Digivolve in counter timing (Q4310)", async () => {
+    const mainPhase = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-017", as: "jesmon" },
+          { card: "BT20-057", as: "gankoomon" },
+        ],
+        hand: [{ card: "BT20-021", as: "gx" }],
+      },
+    });
+    await mainPhase.ready();
+    const mainPhaseMaterials = [mainPhase.perm("jesmon").permanentId, mainPhase.perm("gankoomon").permanentId];
+    expect(
+      mainPhase.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: mainPhaseMaterials,
+        instanceId: mainPhase.inst("gx").instanceId,
+        useBlastDigivolve: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      mainPhase.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: mainPhaseMaterials,
+        instanceId: mainPhase.inst("gx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => mainPhase.state.players[0]!.battleArea.length === 1);
+    expect(mainPhase.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-021");
+    expect(mainPhase.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId).sort()).toEqual([
+      "BT20-017",
+      "BT20-057",
+    ]);
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-017", as: "jesmon" },
+            { card: "BT20-057", as: "gankoomon" },
+          ],
+          hand: [{ card: "BT20-021", as: "gx" }],
+          deck: ["BT20-047", "BT20-047"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-010", as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT20-047", "BT20-047"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    const jesmonId = s.perm("jesmon").permanentId;
+    const gankoomonId = s.perm("gankoomon").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.findLast((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const gxChoices = opened.eligibleCounters.filter((entry) => entry.instanceId === s.inst("gx").instanceId);
+    expect(gxChoices.map((entry) => entry.effectKey).sort()).toEqual(
+      [`blast-digivolve:${jesmonId}`, `blast-digivolve:${gankoomonId}`].sort(),
+    );
+
+    const ontoJesmon = gxChoices.find((entry) => entry.effectKey === `blast-digivolve:${jesmonId}`)!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: ontoJesmon.instanceId,
+        effectKey: ontoJesmon.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("jesmon").topCard.cardId === "BT20-021");
+    expect(s.perm("jesmon").stack.map((card) => card.cardId)).toEqual(["BT20-017"]);
+    expect(s.perm("gankoomon").topCard.cardId).toBe("BT20-057");
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("lets the player choose the activation order of its simultaneous [When Attacking] effects (Q4311)", async () => {
+    const remainingSecurityAfterOrder = async (firstIndex: 0 | 1) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-021", as: "gx", under: ["BT20-019"] }],
+            hand: [{ card: "BT20-017", as: "royalKnight" }],
+          },
+          1: {
+            battleArea: [{ card: "BT20-010", dp: 1000, as: "low" }],
+            security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("gx").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const request = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+      if (request.kind !== "orderTriggers") throw new Error("attack trigger order decision missing");
+      const keys = request.options?.triggerKeys ?? [];
+      expect(keys).toHaveLength(2);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: request.decisionId,
+          response: { kind: "orderTriggers", order: [keys[firstIndex]!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      expect(s.perm("gx").isSuspended).toBe(false);
+      expect(s.perm("gx").stack.map((card) => card.cardId)).toEqual(["BT20-017", "BT20-019"]);
+      return s.state.players[1]!.security.length;
+    };
+
+    const placementFirst = await remainingSecurityAfterOrder(0);
+    const unsuspendFirst = await remainingSecurityAfterOrder(1);
+    expect(placementFirst).toBe(2);
+    expect(unsuspendFirst).toBe(3);
+  });
+});

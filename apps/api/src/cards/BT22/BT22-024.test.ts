@@ -3,6 +3,9 @@ import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../BT21/BT21-031.js";
+import "../P/P-104.js";
+import "./BT22-086.js";
 import { compiled } from "./BT22-024.js";
 
 describe("BT22-024 MarineBullmon", () => {
@@ -221,5 +224,112 @@ describe("BT22-024 MarineBullmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-021"));
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-021"]);
+  });
+});
+
+describe("BT22-024 MarineBullmon — KB Q&A rulings", () => {
+  function handEffectKeyOf(s: ReturnType<typeof setupEngine>): { sourceInstanceId: string; effectKey: string } {
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("marineBullmon"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("BT22-024/"),
+    );
+    expect(effect).toBeDefined();
+    return { sourceInstanceId: source.instanceId, effectKey: effect!.effectKey };
+  }
+
+  it("reduces its fixed digivolution cost of 3 to 2 with BT21-031 Sangomon's reduction (Q4876)", async () => {
+    async function memoryAfterHandDigivolve(sangomonCardId: string) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: sangomonCardId, as: "sangomon" },
+              { card: "BT22-086", as: "yao" },
+            ],
+            hand: [{ card: "BT22-024", as: "marineBullmon" }],
+            trash: [{ card: "BT22-021", as: "shellmon" }],
+            deck: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 5;
+
+      expect(s.engine.applyIntent(0, { type: "activateEffect", ...handEffectKeyOf(s) })).toEqual({ ok: true });
+      await settle(() => s.perm("sangomon").topCard?.cardId === "BT22-024");
+      await settle();
+
+      expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", sangomonCardId]);
+      return s.state.memory;
+    }
+
+    expect(await memoryAfterHandDigivolve("BT21-031")).toBe(3);
+    // BT4-022 Sangomon has no cost reduction, so the fixed cost of 3 applies unchanged.
+    expect(await memoryAfterHandDigivolve("BT4-022")).toBe(2);
+  });
+
+  it("cannot be activated while P-104 Mental Training's digivolve effect is resolving (Q4877)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-104", as: "training" },
+          { card: "BT21-031", as: "sangomon" },
+          { card: "BT22-086", as: "yao" },
+        ],
+        hand: [
+          { card: "BT22-024", as: "marineBullmon" },
+          { card: "BT22-022", as: "veedramon" },
+        ],
+        trash: [{ card: "BT22-021", as: "shellmon" }],
+        deck: ["BT1-009", "BT1-009"],
+      },
+    });
+    s.state.memory = 10;
+    s.state.turnCount = 1;
+    await s.ready();
+    const marineBullmonEffect = handEffectKeyOf(s);
+    const delay = JSON.parse(s.perm("training").activatableEffectsJson) as { effectKey: string }[];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("training").instanceId,
+        effectKey: delay[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    expect(s.state.pendingDecision).toBeDefined();
+
+    expect(s.engine.applyIntent(0, { type: "activateEffect", ...marineBullmonEffect })).toEqual({
+      ok: false,
+      reason: "decision-pending",
+    });
+    await settle();
+    expect(s.perm("sangomon").topCard?.cardId).toBe("BT21-031");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("shellmon").instanceId);
+
+    const marineBullmonId = s.inst("marineBullmon").instanceId;
+    while (s.state.pendingDecision !== undefined) {
+      const pending = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+      const candidates = pending.options?.candidateInstanceIds ?? [];
+      const pick = candidates.includes(marineBullmonId) ? [marineBullmonId] : candidates.slice(0, 1);
+      const response =
+        pending.kind === "optional"
+          ? { kind: "optional" as const, accept: true }
+          : pending.kind === "chooseTargets"
+            ? { kind: "chooseTargets" as const, instanceIds: pick }
+            : { kind: "selectCards" as const, instanceIds: pick };
+      expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response })).toEqual({
+        ok: true,
+      });
+      await settle();
+    }
+
+    expect(s.perm("sangomon").topCard?.cardId).toBe("BT22-022");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("marineBullmon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("shellmon").instanceId);
   });
 });

@@ -4,6 +4,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-079.js";
 import "./index.js";
+import "../EX1/EX1-062.js";
+import "../P/P-095.js";
 
 describe("BT17-079 Takuya Kanbara", () => {
   it("plays itself from Security and gains memory when the opponent has a Digimon", () => {
@@ -186,5 +188,50 @@ describe("BT17-079 Takuya Kanbara", () => {
 
     expect(belowThreshold.perm("host").currentDP).toBe(7000);
     expect(observe(belowThreshold.engine).hasPierce(belowThreshold.perm("host"))).toBe(false);
+  });
+});
+
+describe("BT17-079 Takuya Kanbara — KB Q&A rulings", () => {
+  it("keeps checking with <Piercing> after a [Security] effect drops the host below 10000 DP mid-check (Q2852)", async () => {
+    async function attackWith(under: string[]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "EX1-062", as: "host", under }] },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "defender", suspended: true }],
+            security: [
+              { card: "P-095", as: "shrinkOption" },
+              { card: "BT1-009", as: "secondCheck" },
+            ],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      await s.ready();
+      const hostId = s.perm("host").permanentId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: hostId,
+          target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      await settle();
+      return { s, hostId };
+    }
+
+    const { s, hostId } = await attackWith(["BT17-079"]);
+    const revealedAttackerDp = s.events.flatMap((event) =>
+      event.kind === "securityRevealed" && event.attackerPermanentId === hostId ? [event.attackerDP] : [],
+    );
+    expect(revealedAttackerDp).toEqual([10_000, 4000]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondCheck").instanceId);
+
+    const withoutTakuya = await attackWith(["BT1-009"]);
+    expect(withoutTakuya.s.state.players[1]!.security).toHaveLength(2);
   });
 });

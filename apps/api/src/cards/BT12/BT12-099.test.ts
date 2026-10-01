@@ -4,7 +4,8 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup, type PermanentSpec } from "../../engine/testkit/harness.js";
+import "../BT17/BT17-023.js";
 import "./BT12-099.js";
 
 describe("BT12-099 compiled IR module", () => {
@@ -112,4 +113,53 @@ it("allows the boosted eligible Hybrid to attack a player", async () => {
   expect(s.perm("hybrid").currentDP).toBe(s.perm("hybrid").baseDP + 3000);
   expect(s.perm("hybrid").isSuspended).toBe(true);
   expect(s.state.players[1]!.security).toHaveLength(0);
+});
+
+describe("BT12-099 Pyro Dragons — KB Q&A rulings", () => {
+  async function usePyroDragons(hybrid: PermanentSpec, deck: string[] = []): Promise<EngineSetup> {
+    const redForColorRequirement: PermanentSpec = { card: "BT1-009", suspended: true };
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT12-099", as: "option" }], battleArea: [hybrid, redForColorRequirement], deck },
+        1: { battleArea: [{ card: "BT1-009", dp: 5000 }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT12-099") &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    return s;
+  }
+
+  it("does not let a suspended Hybrid or one played this turn attack (Q2233)", async () => {
+    const suspended = await usePyroDragons({ card: "BT12-013", as: "hybrid", suspended: true });
+    expect(suspended.state.players[1]!.battleArea).toHaveLength(0);
+    expect(suspended.perm("hybrid").currentDP).toBe(suspended.perm("hybrid").baseDP + 3000);
+    expect(suspended.state.players[1]!.security).toHaveLength(1);
+
+    const playedThisTurn = await usePyroDragons({ card: "BT12-013", as: "hybrid", enteredThisTurn: true });
+    expect(playedThisTurn.perm("hybrid").currentDP).toBe(playedThisTurn.perm("hybrid").baseDP + 3000);
+    expect(playedThisTurn.perm("hybrid").isSuspended).toBe(false);
+    expect(playedThisTurn.state.players[1]!.security).toHaveLength(1);
+
+    const ready = await usePyroDragons({ card: "BT12-013", as: "hybrid" });
+    expect(ready.perm("hybrid").isSuspended).toBe(true);
+    expect(ready.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("activates the attacking Hybrid's [When Attacking] effect (Q2234)", async () => {
+    const s = await usePyroDragons({ card: "BT17-023", as: "hybrid" }, ["BT1-010", "BT1-011"]);
+    expect(s.perm("hybrid").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
 });

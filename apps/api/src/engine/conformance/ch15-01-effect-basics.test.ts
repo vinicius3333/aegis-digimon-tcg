@@ -10,10 +10,19 @@ import {
 } from "@aegis/shared";
 import { cite } from "./_kb.js";
 import "./not-testable.js";
-import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
+import {
+  setupEngine as setup,
+  makeInstance as instance,
+  makeDigimon as digimon,
+  settle,
+} from "../testkit/harness.js";
+import { observe } from "../testkit/observe.js";
 import { GameStateAccess } from "../state/access.js";
 import { ModifierLedger } from "../effects/modifiers.js";
 import "../../cards/index.js";
+
+const COMPREHENSIVE_0336 = "1ccfa04eca0b7004bd8f4e50dcbfaa13a60a7486443bfb337cd5a90ccc4c0b58";
+const COMPREHENSIVE_0205 = "42b657be0e270630261926e36228a7ca6748167ef9d6ed21f8a3140eb6fff88c";
 
 /**
  * Comprehensive Rules chapter 15 "Effect Rules" — §15-1 through §15-3, §15-9,
@@ -280,7 +289,6 @@ describe('§15-15-2 "Gains" (comprehensive-0200)', () => {
   });
 });
 
-// §15-1-9/15-1-10 Effects (comprehensive-0158)
 describe("§15-12-2 Effects That Change Information (comprehensive-0190)", () => {
   it("(structural) the DP change-information ledger applies 'most recently applied wins' — the same rule §15-12-1-3 states for added information", () => {
     cite(
@@ -304,4 +312,259 @@ describe("§15-12-2 Effects That Change Information (comprehensive-0190)", () =>
     ledger.addBaseDpOverride(state, "p1", 5000, EffectDuration.Permanent);
     expect(perm.currentDP).toBe(5000); // the LATER override (activatedAt) wins, not the first
   });
+});
+
+describe("§15-1-8..15-1-10 Effects (comprehensive-0336)", () => {
+
+  // BT4-025 Lobomon (5000 DP) attacks into BT1-020 Groundramon (6000 DP) as a Security Digimon.
+  // With BT17-029 Agumon under it, its inherited "[Your Turn] All of your opponent's security
+  // Digimon get -3000 DP" applies.
+  async function attackIntoSecurityDigimon(under: string[]) {
+    const s = setup({
+      0: { battleArea: [{ card: "BT4-025", dp: 5000, under, as: "attacker" }] },
+      1: { security: [{ card: "BT1-020", as: "securityDigimon" }] },
+    });
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    const securityDpBeforeAttack = observe(s.engine).securityDp(1);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    const attackerSurvived = s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId);
+    return { s, securityDpBeforeAttack, attackerSurvived };
+  }
+
+  it("15-1-8: an effect that references Security Digimon changes the DP a Security Digimon battles with", async () => {
+    cite(
+      "comprehensive-0336",
+      "15-1-8 effects that reference Security Digimon can affect Security Digimon: BT17-029's " +
+        "-3000 DP turns a losing battle against a 6000 DP Security Digimon into a win",
+      COMPREHENSIVE_0336,
+    );
+
+    const control = await attackIntoSecurityDigimon([]);
+    expect(control.securityDpBeforeAttack).toBe(0);
+    expect(control.attackerSurvived).toBe(false);
+
+    const { s, securityDpBeforeAttack, attackerSurvived } = await attackIntoSecurityDigimon(["BT17-029"]);
+    expect(securityDpBeforeAttack).toBe(-3000);
+    expect(attackerSurvived).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("securityDigimon").instanceId]);
+  });
+
+  // BT4-031 MarinChimairamon: "[On Play] You may return 1 of your other Digimon to its owner's
+  // hand to return 1 of your opponent's Digimon with no digivolution cards to its owner's hand."
+  async function playMarinChimairamonReturning(ownCardId: string) {
+    const s = setup(
+      {
+        0: {
+          hand: [{ card: "BT4-031", as: "source" }],
+          eggDeck: ["BT1-001"],
+          battleArea: [{ card: ownCardId, as: "own" }],
+        },
+        1: { battleArea: [{ card: "BT4-025", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    const ownInstanceId = s.perm("own").topCard!.instanceId;
+    const ownPermanentId = s.perm("own").permanentId;
+    const targetInstanceId = s.perm("target").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT4-031") &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
+    return { s, ownInstanceId, ownPermanentId, targetInstanceId };
+  }
+
+  it.each([
+    { label: "Digi-Egg EX2-007 Mother D-Reaper", ownCardId: "EX2-007" },
+    { label: "token", ownCardId: "TOKEN-Diaboromon" },
+  ])(
+    "15-1-9: returning a $label to the hand meets the 'return to hand' processing condition although it never reaches the hand",
+    async ({ ownCardId }) => {
+      cite(
+        "comprehensive-0336",
+        "15-1-9 a 'place in a non-field area' condition is met even when a Digi-Egg or token " +
+          "isn't actually placed there (BT4-031 cost, KB Q1198/Q1199)",
+        COMPREHENSIVE_0336,
+      );
+      const { s, ownInstanceId, ownPermanentId, targetInstanceId } = await playMarinChimairamonReturning(ownCardId);
+      const mine = s.state.players[0]!;
+
+      expect(mine.battleArea.some((permanent) => permanent.permanentId === ownPermanentId)).toBe(false);
+      expect(mine.hand.some((card) => card.instanceId === ownInstanceId)).toBe(false);
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([targetInstanceId]);
+    },
+  );
+
+  // BT4-105 Tactical Retreat!: "[Main] Place 1 of your Digimon on top of your security stack face
+  // down." EX1-031 carries EX1-030 Angewomon, whose inherited "[Your Turn][Once Per Turn] When a
+  // card is added to your security stack, 1 of your opponent's Digimon gets -2000 DP" watches.
+  async function retreatOnto(chosen: "plain" | "mother" | "token") {
+    const preferred: string[] = [];
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-031", as: "watcherHost", under: ["EX1-030"] },
+            { card: "EX2-007", as: "mother" },
+            { card: "TOKEN-Diaboromon", as: "token" },
+            { card: "BT1-009", as: "plain" },
+          ],
+          eggDeck: ["BT1-001"],
+          security: ["BT4-033"],
+          hand: [{ card: "BT4-105", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponentDigimon", dp: 5000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    const chosenInstanceId = s.perm(chosen).topCard!.instanceId;
+    const chosenPermanentId = s.perm(chosen).permanentId;
+    preferred.push(chosenInstanceId);
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === chosenPermanentId) &&
+        s.state.pendingDecision === undefined,
+    );
+    return { s, chosenInstanceId };
+  }
+
+  it("15-1-10: a 'card added to the security stack' trigger fires for a Digimon card but not for a Digi-Egg or token", async () => {
+    cite(
+      "comprehensive-0336",
+      "15-1-10 a 'card being added to' a non-field area trigger isn't met by a Digi-Egg or " +
+        "token, which aren't actually placed there (BT4-105 + EX1-030 watcher, KB Q1270/Q1271)",
+      COMPREHENSIVE_0336,
+    );
+
+    const control = await retreatOnto("plain");
+    expect(control.s.state.players[0]!.security[0]?.instanceId).toBe(control.chosenInstanceId);
+    expect(control.s.perm("opponentDigimon").currentDP).toBe(3000);
+
+    for (const chosen of ["mother", "token"] as const) {
+      const { s, chosenInstanceId } = await retreatOnto(chosen);
+      const mine = s.state.players[0]!;
+      expect(mine.security.map((card) => card.instanceId)).not.toContain(chosenInstanceId);
+      expect(mine.security).toHaveLength(1);
+      expect(s.perm("opponentDigimon").currentDP).toBe(5000);
+    }
+  });
+});
+
+describe("§15-15-6 Effects That Can Replace DigiXros Requirements (comprehensive-0205)", () => {
+
+  // BT10-111 Shoutmon (King Version): "[On Play] Return 1 card with a DigiXros requirement from
+  // your trash to your hand. When DigiXrosing this turn, you may use this Digimon in place of one
+  // of the DigiXros requirements." Its On Play returns the DigiXros card this test then plays.
+  async function playKingVersionReturning(digiXrosCardId: string, fieldMaterials: { card: string; as: string }[]) {
+    const s = setup(
+      {
+        0: {
+          battleArea: fieldMaterials,
+          hand: [{ card: "BT10-111", as: "king" }],
+          trash: [{ card: digiXrosCardId, as: "digiXrosCard" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digiXrosCard").instanceId));
+    const king = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("king").instanceId,
+    )!;
+    await settle(() => observe(s.engine).hasKeyword(king, "DigiXrosSubstitute"));
+    return { s, kingInstanceId: king.topCard.instanceId };
+  }
+
+  function playWithMaterials(s: ReturnType<typeof setup>, materialInstanceIds: string[]) {
+    return s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("digiXrosCard").instanceId,
+      digiXros: { materialInstanceIds },
+    });
+  }
+
+  it("15-15-6-1: the replacing Digimon stands in for a bracketed requirement ([Greymon] of BT10-024)", async () => {
+    cite(
+      "comprehensive-0205",
+      "15-15-6-1 an effect that can replace DigiXros requirements replaces a bracketed card: " +
+        "BT10-111 fills [Greymon] in BT10-024's '[Greymon] + [MailBirdramon]'",
+      COMPREHENSIVE_0205,
+    );
+    const { s, kingInstanceId } = await playKingVersionReturning("BT10-024", [
+      { card: "BT10-021", as: "mailBirdramon" },
+      { card: "BT10-049", as: "ballistamon" },
+    ]);
+    const mailBirdramonId = s.perm("mailBirdramon").topCard.instanceId;
+
+    expect(playWithMaterials(s, [s.perm("ballistamon").topCard.instanceId, mailBirdramonId])).toEqual({
+      ok: false,
+      reason: "invalid-material",
+    });
+    expect(s.state.memory).toBe(5);
+
+    expect(playWithMaterials(s, [kingInstanceId, mailBirdramonId])).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024") &&
+        s.state.pendingDecision === undefined,
+    );
+    const metalGreymon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT10-024")!;
+    expect(metalGreymon.stack.map((card) => card.instanceId).sort()).toEqual([kingInstanceId, mailBirdramonId].sort());
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("15-15-6-2 control: BT19-065 accepts a material that meets its printed requirement", async () => {
+    cite(
+      "comprehensive-0205",
+      "15-15-6-2 control: a Lv.5-or-lower [Cyborg] Digimon meets BT19-065's '5 Lv.5 or lower " +
+        "[Cyborg]/[Composite] trait Digimon cards w/different card numbers' without replacement",
+      COMPREHENSIVE_0205,
+    );
+    const { s } = await playKingVersionReturning("BT19-065", [{ card: "BT3-067", as: "tankmon" }]);
+
+    expect(playWithMaterials(s, [s.perm("tankmon").topCard.instanceId])).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT19-065") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(-5);
+  });
+
+  it(
+    "15-15-6-2: the replacing Digimon can't stand in for a 'different card numbers' requirement (BT19-065)",
+    async () => {
+      cite(
+        "comprehensive-0205",
+        "15-15-6-2 an effect that can replace DigiXros requirements can't replace a requirement " +
+          "that specifies a card not the same as another; BT10-111 can't fill a slot of BT19-065",
+        COMPREHENSIVE_0205,
+      );
+      const { s, kingInstanceId } = await playKingVersionReturning("BT19-065", [{ card: "BT3-067", as: "tankmon" }]);
+      const memoryBefore = s.state.memory;
+
+      expect(playWithMaterials(s, [kingInstanceId, s.perm("tankmon").topCard.instanceId])).toEqual({
+        ok: false,
+        reason: "invalid-material",
+      });
+      expect(s.state.memory).toBe(memoryBefore);
+    },
+  );
 });

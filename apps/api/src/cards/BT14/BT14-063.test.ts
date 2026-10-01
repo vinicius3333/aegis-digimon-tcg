@@ -97,3 +97,74 @@ describe("BT14-063", () => {
     ).toBe(true);
   });
 });
+
+describe("BT14-063 BlackKingNumemon — KB Q&A rulings", () => {
+  const deleteBlackKingNumemonRevealing = async (deck: string[], autoSelectCards: boolean) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-063", as: "source", suspended: true }], deck },
+        1: { battleArea: [{ card: "BT14-042", as: "attacker", dp: 9000 }] },
+      },
+      { autoSelectCards },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  };
+
+  it("still adds or plays the one matching card when only one kind is revealed (Q2434)", async () => {
+    const onlyMonzaemon = await deleteBlackKingNumemonRevealing(["BT1-038", "BT1-009", "BT14-089"], true);
+    await settle(() => onlyMonzaemon.state.players[0]!.hand.some((card) => card.cardId === "BT1-038"));
+    expect(onlyMonzaemon.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-038"]);
+    expect(onlyMonzaemon.state.players[0]!.battleArea).toHaveLength(0);
+    expect(onlyMonzaemon.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT14-089"]);
+
+    const onlyNumemon = await deleteBlackKingNumemonRevealing(["BT14-058", "BT1-009", "BT14-089"], true);
+    await settle(() =>
+      onlyNumemon.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-058"),
+    );
+    expect(onlyNumemon.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT14-058"]);
+    expect(onlyNumemon.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("must both add the Monzaemon card and play the Numemon card when both are revealed (Q2435)", async () => {
+    const s = await deleteBlackKingNumemonRevealing(["BT1-038", "BT14-058", "BT14-089"], false);
+    const monzaemonId = s.state.players[0]!.deck[0]!.instanceId;
+    const numemonId = s.state.players[0]!.deck[1]!.instanceId;
+
+    const answerRefusingThenPicking = async (expectedCandidateId: string) => {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const decision = s.decisions.at(-1)!.req;
+      expect(decision.options).toMatchObject({ min: 1, max: 1, candidateInstanceIds: [expectedCandidateId] });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toMatchObject({ ok: false });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [expectedCandidateId] },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    await answerRefusingThenPicking(monzaemonId);
+    await answerRefusingThenPicking(numemonId);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === numemonId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([monzaemonId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([numemonId]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT14-089"]);
+  });
+});

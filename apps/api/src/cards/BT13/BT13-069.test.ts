@@ -165,3 +165,48 @@ describe("BT13-069 KingSukamon", () => {
     ).toMatchObject({ ok: false });
   });
 });
+
+describe("BT13-069 KingSukamon — KB Q&A rulings", () => {
+  it("does not let the first Sukamon activate its inherited effect again inside the chain it started (Q2310)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-069", as: "sukamonA", under: [{ card: "BT13-069", as: "sourceA" }] },
+            { card: "BT13-069", as: "sukamonB", under: [{ card: "BT13-069", as: "sourceB" }] },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    const sukamonAId = s.perm("sukamonA").permanentId;
+    const sukamonATopId = s.perm("sukamonA").topCard.instanceId;
+    const sukamonBId = s.perm("sukamonB").permanentId;
+    const gaiaId = s.inst("gaia").instanceId;
+    preferInstanceIds.push(sukamonATopId);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const decisionsBefore = s.decisions.length;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: gaiaId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === gaiaId));
+    await settle();
+
+    const preventOffers = s.decisions
+      .slice(decisionsBefore)
+      .filter(({ seat, req }) => seat === 0 && req.kind === "optional" && req.promptText?.includes("Prevent"));
+    expect(preventOffers.map(({ req }) => req.sourcePermanentId)).toEqual([sukamonAId, sukamonBId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([sukamonBId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sukamonAId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([sukamonATopId, s.inst("sourceA").instanceId]),
+    );
+    expect(s.perm("sukamonB").stack.map((card) => card.instanceId)).toEqual([s.inst("sourceB").instanceId]);
+  });
+});

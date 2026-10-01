@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-038.js";
+import { describeColorWaiverRuling } from "./colorWaiverRulings.testSupport.js";
 
 describe("LM-038 Grape Memory Boost!", () => {
   it("reveals three, adds a purple or green Digimon, bottoms the rest and places itself", async () => {
@@ -109,4 +110,14 @@ describe("LM-038 Grape Memory Boost!", () => {
     expect(compiled?.effects[0]?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", color: "green" });
     expect(compiled?.effects.some((effect) => (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"))).toBe(true);
   });
+});
+
+describeColorWaiverRuling({
+  cardId: "LM-038",
+  name: "Grape Memory Boost!",
+  qno: "Q4073",
+  waivedDigimon: "BT1-064",
+  waivedTamer: "BT1-089",
+  unrelatedDigimon: "BT1-009",
+  unrelatedTamer: "BT1-085",
 });

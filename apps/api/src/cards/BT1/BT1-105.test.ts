@@ -308,3 +308,86 @@ describe("BT1-105 Blast Fire", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
   });
 });
+
+describe("BT1-105 Blast Fire — KB Q&A rulings", () => {
+  it("treats the target's printed DP as 3000 while other Digimon keep their printed DP (Q972)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT1-047"], hand: [{ card: "BT1-105", as: "blastFire" }] },
+        1: {
+          battleArea: [
+            { card: "ST1-09", as: "target" },
+            { card: "BT1-016", as: "untouched" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").topCard.instanceId);
+    s.state.memory = 4;
+    await s.ready();
+    expect(getCardDefinition("ST1-09")?.dp).toBe(7000);
+    expect(s.perm("target").currentDP).toBe(7000);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blastFire").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 3000);
+
+    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.perm("untouched").currentDP).toBe(getCardDefinition("BT1-016")?.dp);
+  });
+
+  it("keeps the digivolved Digimon at 3000 DP instead of its new printed DP (Q976)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-047"],
+          hand: [{ card: "BT1-105", as: "blastFire" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "ST1-09", as: "target" }],
+          hand: [{ card: "ST1-11", as: "warGreymon" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const controllerTurn = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main);
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blastFire").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 3000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await controllerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("target").permanentId,
+        instanceId: s.inst("warGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "ST1-11");
+    await s.engine.recomputeContinuousEffects();
+
+    expect(getCardDefinition("ST1-11")?.dp).toBe(12_000);
+    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await opponentTurn;
+
+    expect(s.perm("target").currentDP).toBe(12_000);
+  });
+});

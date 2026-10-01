@@ -202,3 +202,72 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
+
+describe("BT13-060 Rosemon: Burst Mode — KB Q&A rulings", () => {
+  async function securityLeftAfterAttack(tamerSuspended: boolean): Promise<number> {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-060", as: "attacker" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-015", as: "suspendedDigimon", suspended: true },
+          { card: "BT13-100", as: "tamer", suspended: tamerSuspended },
+        ],
+        security: ["BT1-009", "BT1-010", "BT1-010"],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("suspendedDigimon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    return s.state.players[1]!.security.length;
+  }
+
+  it("counts 1 suspended Digimon plus 1 suspended Tamer as 2 for its [When Attacking] security trash (Q2304)", async () => {
+    expect(await securityLeftAfterAttack(true)).toBe(2);
+    expect(await securityLeftAfterAttack(false)).toBe(3);
+  });
+
+  it("cannot return the opponent's Yoshino Fujieda for Burst Digivolve, only its own (Q2305)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-057", as: "base" }],
+          hand: [{ card: "BT13-060", as: "burst" }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT13-100", as: "opponentYoshino" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const burstDigivolve = {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("burst").instanceId,
+      alternateRequirementIndex: 0,
+    } as const;
+
+    expect(s.engine.applyIntent(0, burstDigivolve)).toMatchObject({ ok: false });
+    expect(s.perm("base").topCard.cardId).toBe("BT13-057");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT13-100");
+
+    const ownYoshino = s.putOnBoard(0, { card: "BT13-100", as: "ownYoshino" });
+    const ownYoshinoCardId = ownYoshino.topCard.instanceId;
+    expect(s.engine.applyIntent(0, burstDigivolve)).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT13-060");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(ownYoshinoCardId);
+    expect(s.perm("opponentYoshino").topCard.cardId).toBe("BT13-100");
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+});

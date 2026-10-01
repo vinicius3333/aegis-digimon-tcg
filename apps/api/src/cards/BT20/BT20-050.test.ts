@@ -2,9 +2,12 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-050.js";
 import "../BT1/BT1-036.js";
+import "../BT19/BT19-079.js";
+import "../BT5/BT5-037.js";
 import "./index.js";
 
 describe("BT20-050 HoverEspimon", () => {
@@ -195,5 +198,174 @@ describe("BT20-050 HoverEspimon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(8000);
+  });
+});
+
+describe("BT20-050 HoverEspimon — KB Q&A rulings", () => {
+  async function digivolveIntoHoverEspimon(s: EngineSetup): Promise<void> {
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hover").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-050" && s.state.pendingDecision === undefined);
+  }
+
+  async function attackPlayerWithHoverEspimon(s: EngineSetup): Promise<void> {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+  }
+
+  it("flips the 2nd security card when only the top one is already face up (Q4370)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-046", as: "base" }], hand: [{ card: "BT20-050", as: "hover" }] },
+      1: {
+        security: [
+          { card: "BT1-009", faceUp: true, as: "alreadyFaceUp" },
+          { card: "BT1-010", as: "second" },
+          { card: "BT1-011", as: "third" },
+        ],
+      },
+    });
+    await digivolveIntoHoverEspimon(s);
+    const security = s.state.players[1]!.security;
+    expect(security.map((card) => card.instanceId)).toEqual([
+      s.inst("alreadyFaceUp").instanceId,
+      s.inst("second").instanceId,
+      s.inst("third").instanceId,
+    ]);
+    expect(s.inst("alreadyFaceUp").faceUp).toBe(true);
+    expect(s.inst("second").faceUp).toBe(true);
+    expect(s.inst("third").faceUp).toBe(false);
+  });
+
+  it("keeps a flipped card revealed in place as an ordinary security card (Q4371)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-046", as: "base" }],
+        hand: [{ card: "BT20-050", as: "hover" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        security: [{ card: "BT1-010", as: "flipped" }, "BT1-011", "BT1-012"],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    await digivolveIntoHoverEspimon(s);
+    expect(s.inst("flipped").faceUp).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    const security = s.state.players[1]!.security;
+    expect(security).toHaveLength(3);
+    expect(security[0]?.instanceId).toBe(s.inst("flipped").instanceId);
+    expect(s.inst("flipped").faceUp).toBe(true);
+    expect(security.slice(1).every((card) => !card.faceUp)).toBe(true);
+  });
+
+  it("checks a face-up security card as a normal security check and battles it (Q4372)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-046", as: "base" }],
+        hand: [{ card: "BT20-050", as: "hover" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        security: [
+          { card: "BT1-009", as: "monodramon" },
+          { card: "BT1-010", as: "remaining" },
+        ],
+      },
+    });
+    await digivolveIntoHoverEspimon(s);
+    expect(s.inst("monodramon").faceUp).toBe(true);
+
+    await attackPlayerWithHoverEspimon(s);
+
+    expect(s.events.flatMap((event) => (event.kind === "securityRevealed" ? [event.revealedCardId] : []))).toEqual([
+      "BT1-009",
+    ]);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("monodramon").instanceId);
+    expect(s.perm("base").topCard.cardId).toBe("BT20-050");
+  });
+
+  it("activates the [Security] effect of a security card checked while face up (Q4373)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-046", as: "base" }],
+          hand: [{ card: "BT20-050", as: "hover" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { security: [{ card: "BT19-079", as: "taiki" }, "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await digivolveIntoHoverEspimon(s);
+    expect(s.inst("taiki").faceUp).toBe(true);
+
+    await attackPlayerWithHoverEspimon(s);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("taiki").instanceId,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("taiki").instanceId);
+  });
+
+  it("turns every face-up card face down when that security stack is shuffled (Q4374)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-046", as: "base" }],
+          hand: [{ card: "BT20-050", as: "hover" }],
+        },
+        1: {
+          hand: [{ card: "BT5-037", as: "gladimon" }],
+          security: [{ card: "BT1-009", faceUp: true }, "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await digivolveIntoHoverEspimon(s);
+    const securityBefore = s.state.players[1]!.security;
+    expect(securityBefore.map((card) => card.faceUp)).toEqual([true, true, false, false]);
+    const instanceIdsBefore = securityBefore.map((card) => card.instanceId).sort();
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gladimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT5-037") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const securityAfter = s.state.players[1]!.security;
+    expect(securityAfter.map((card) => card.instanceId).sort()).toEqual(instanceIdsBefore);
+    expect(securityAfter.map((card) => card.faceUp)).toEqual([false, false, false, false]);
   });
 });

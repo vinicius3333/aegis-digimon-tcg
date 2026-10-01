@@ -51,3 +51,35 @@ describe("BT8-072 DemiDevimon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT8-072 DemiDevimon — KB Q&A rulings", () => {
+  it("cannot trash a revealed non-purple Digimon card (Q1758)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT8-072", as: "source" }],
+          deck: [
+            { card: "BT1-010", as: "redDigimon" },
+            { card: "BT8-093", as: "tamer" },
+            { card: "BT8-034", as: "yellowDigimon" },
+            { card: "BT1-009", as: "unrevealed" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-072"));
+
+    expect(player.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
+    expect(player.trash).toHaveLength(0);
+    expect(player.deck[0]?.instanceId).toBe(s.inst("unrevealed").instanceId);
+    expect(player.deck.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("unrevealed").instanceId, s.inst("redDigimon").instanceId, s.inst("yellowDigimon").instanceId].sort(),
+    );
+  });
+});

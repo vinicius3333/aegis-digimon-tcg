@@ -8,15 +8,10 @@ function actions(card: typeof blackRapidmon, trigger: string) {
 }
 
 describe("EX4-036 BlackRapidmon and EX4-057 Antylamon", () => {
-  it("keeps BlackRapidmon's level-3 stopping boundary while de-digivolving", () => {
+  it("De-Digivolves 1 at End of Attack without trashing further sources", () => {
     const endOfAttack = actions(blackRapidmon, "EndOfAttack");
-    expect(endOfAttack[0]).toMatchObject({
-      kind: "TrashDigivolution",
-      amount: 99,
-      stopAtLevel: 3,
-      fromTop: true,
-    });
-    expect(endOfAttack[1]).toMatchObject({ kind: "DeDigivolve", amount: 1 });
+    expect(endOfAttack).toHaveLength(1);
+    expect(endOfAttack[0]).toMatchObject({ kind: "DeDigivolve", amount: 1 });
     expect(getCardDefinition("EX4-036")).toMatchObject({ level: 5, colors: ["Green", "Black"] });
   });
 

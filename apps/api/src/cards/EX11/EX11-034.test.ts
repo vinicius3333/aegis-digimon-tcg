@@ -1,10 +1,18 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import { identityVisibility } from "../ST24/tamerStack.testSupport.js";
+import {
+  allSecurityFaceDown,
+  checkFaceUpSecurity,
+  expectFaceUpCardCheckedNormally,
+  publicSecurity,
+  shuffleSecurityHolding,
+} from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-034";
 
@@ -103,7 +111,7 @@ describe("EX11-034 QueenBeemon", () => {
             { card: cardId, as: "source" },
             { card: "EX11-025", as: "royalBase" },
           ],
-          security: [{ card: "BT1-009", faceUp: true }],
+          security: ["BT1-009"],
         },
         1: { security: [{ card: "BT1-009" }], battleArea: [{ card: "BT1-080", as: "cost10" }] },
       },
@@ -291,5 +299,123 @@ describe("EX11-034 QueenBeemon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-034 QueenBeemon — KB Q&A rulings", () => {
+  it.each([0, 1])(
+    "lets its controller order its simultaneous [When Digivolving] effects (effect %i first) (Q5851)",
+    async (first) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: cardId, as: "queen" }],
+            hand: [{ card: "EX11-025", as: "royalBase" }],
+            security: [{ card: "BT1-009", faceUp: true }],
+          },
+        },
+        { autoDeclineOptional: true, autoOrderTriggers: false },
+      );
+      await s.ready();
+
+      const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("queen"));
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const decision = s.state.pendingDecision!;
+      const { triggerKeys, triggerCardIds } = JSON.parse(decision.payloadJson) as {
+        triggerKeys: string[];
+        triggerCardIds: string[];
+      };
+      expect(triggerCardIds).toEqual([cardId, cardId]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderTriggers", order: [triggerKeys[first]!] },
+        }),
+      ).toEqual({ ok: true });
+      await resolution;
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const triggered = s.events.flatMap((event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === cardId ? [event.effectKey] : [],
+      );
+      const effectKeyOf = (triggerKey: string) => triggerKey.split("::").at(-1);
+      expect(triggered).toEqual([effectKeyOf(triggerKeys[first]!), effectKeyOf(triggerKeys[1 - first]!)]);
+    },
+  );
+
+  it("keeps the card it places face up revealed to both players as an ordinary security card (Q5852)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "queen" }],
+          hand: [{ card: "EX11-025", as: "royalBase" }],
+          security: [{ card: "BT1-009", as: "faceDown" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("queen"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(publicSecurity(s, 0)).toEqual([
+      { faceUp: false, cardId: "" },
+      { faceUp: true, cardId: "EX11-025" },
+    ]);
+    expect(identityVisibility(s, s.inst("royalBase"))).toEqual({ owner: true, opponent: true });
+  });
+
+  it("checks a face-up security card with it left revealed, otherwise like any security check (Q5853)", async () => {
+    const s = await expectFaceUpCardCheckedNormally(cardId);
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({ resolution: "battle" });
+  });
+
+  it("activates a face-up security card's [Security] effect when it is checked (Q5854)", async () => {
+    const s = await checkFaceUpSecurity("EX11-062");
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("checked").instanceId,
+    ]);
+  });
+
+  it("turns face-up security cards face down when the security stack is shuffled (Q5855)", async () => {
+    const s = await shuffleSecurityHolding(["EX11-025"]);
+
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toContain("EX11-025");
+    expect(allSecurityFaceDown(s, 0)).toBe(true);
+  });
+
+  it("plays a card whose [Royal Base] appears only in its effect text, with the face-up reduction (Q5856)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "queen" }],
+          hand: [
+            { card: "BT1-090", as: "unrelated" },
+            { card: "EX11-063", as: "winr" },
+          ],
+          security: [
+            { card: "BT1-009", faceUp: true },
+            { card: "BT1-010", faceUp: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("unrelated").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("queen"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("winr").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrelated").instanceId]);
+    expect(s.state.memory).toBe(2);
   });
 });

@@ -82,6 +82,8 @@ interface ResolvedMaterial {
   fieldPermanentId?: string;
   /** When source === "underTamer": the Tamer permanent hosting the material. */
   hostPermanentId?: string;
+  /** A digivolution card declared from the trash it will reach when a "would be played" cost places its host. */
+  awaitsRuleTrash?: boolean;
 }
 
 export type DigiXrosCheck =
@@ -121,6 +123,11 @@ export interface DigiXrosDeps {
   digiXrosNamesOf?(instanceId: string): string[];
   /** Whether this field permanent may replace exactly one otherwise-required DigiXros slot. */
   canSubstituteMaterial?(permanentId: string): boolean;
+  /**
+   * Digivolution cards the played card's own "would be played" cost may trash by rule before the
+   * DigiXros (BT12-112 Q2253). They count as trash materials.
+   */
+  ruleTrashMaterialCandidates?(playedInstance: CardInstance): readonly CardInstance[];
   nextPermanentId(): string;
   /** Fire On Play for the placed permanent through the effect stack.
    *  `materialCount` carries the number of DigiXros materials used, threaded into the trigger
@@ -134,6 +141,12 @@ export interface DigiXrosDeps {
   ): Promise<void>;
   /** Place loose cards (hand / trash / under-Tamer) under a permanent as bottom digivolution cards. */
   placeUnder(targetPermanentId: string, instanceIds: string[]): Promise<unknown>;
+  /**
+   * Place the cards a cross-permanent play-cost reducer (BT10-093) committed. Its "when you would
+   * play" effect resolves before the DigiXros, so the DigiXros materials go beneath these cards
+   * (KB Q2025).
+   */
+  placePendingReducerCards?(playedInstanceId: string, permanentId: string): Promise<void>;
   /** Place costs committed while the played permanent did not yet exist. */
   placePendingDigivolution?(playedInstanceId: string, permanentId: string): Promise<void>;
   /** Move a whole battle-area permanent under another as digivolution cards. */
@@ -182,6 +195,7 @@ export function validateDigiXros(
     | "canReducePlayCost"
     | "digiXrosNamesOf"
     | "canSubstituteMaterial"
+    | "ruleTrashMaterialCandidates"
     | "digiXrosExpandedZones"
     | "digiXrosExpandedZoneCounts"
   >,
@@ -276,9 +290,10 @@ export function validateDigiXros(
   const materials: ResolvedMaterial[] = [];
   let trashUsed = 0;
   let underTamerUsed = 0;
+  const ruleTrashCandidates = deps.ruleTrashMaterialCandidates?.(instance) ?? [];
   for (const materialId of materialIds) {
     if (materialId === instance.instanceId) return { ok: false, reason: "invalid-material" };
-    const resolved = resolveMaterial(player, materialId);
+    const resolved = resolveMaterial(player, materialId) ?? resolveRuleTrashMaterial(ruleTrashCandidates, materialId);
     if (resolved === undefined) return { ok: false, reason: "invalid-material" };
     if (resolved.source === "trash") {
       trashUsed += 1;
@@ -403,6 +418,9 @@ export async function applyDigiXros(
   // (4) Place each material under the new permanent. A battle-area material contributes only its
   //     TOP card — §7-2-2-7 removes it from the battle area, so anything under it is trashed
   //     (`shedOwnCards`). A hand / trash / under-Tamer material is a single loose card already.
+  //     "Would be played" placements resolve first, so a card they trash by rule can be a material (Q2252/Q2253).
+  await deps.placePendingReducerCards?.(instance.instanceId, permanent.permanentId);
+  await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
   const placedIds: string[] = [];
   const orderedMaterialIndices =
     digiXrosMaterialOrder(
@@ -435,6 +453,9 @@ export async function applyDigiXros(
         }
       }
     } else {
+      if (material.awaitsRuleTrash === true && !player.trash.some((card) => card.instanceId === material.instanceId)) {
+        continue;
+      }
       await deps.placeUnder(permanent.permanentId, [material.instanceId]);
     }
     placedIds.push(material.instanceId);
@@ -451,7 +472,6 @@ export async function applyDigiXros(
     deps.emit?.({ kind: "memoryChanged", from: memoryBefore, to: state.memory, reason: "playCard" });
     cost += restoredCost;
   }
-  await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
 
   // (5) Fire On Play, carrying the material count so `digiXrosCount` conditions can gate on it.
   await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, placedIds.length);
@@ -516,8 +536,22 @@ function resolveMaterial(player: PlayerState, instanceId: string): ResolvedMater
   return undefined;
 }
 
+function resolveRuleTrashMaterial(
+  candidates: readonly CardInstance[],
+  instanceId: string,
+): ResolvedMaterial | undefined {
+  const card = candidates.find((candidate) => candidate.instanceId === instanceId);
+  if (card === undefined) return undefined;
+  return { instanceId, source: "trash", definition: definitionOf(card.cardId), awaitsRuleTrash: true };
+}
+
 function materialMatchesSlot(def: CardDefinition, slot: DigiXrosMaterial, digiXrosNames?: string[]): boolean {
   return digiXrosSlotMatches(def, slot, { hasTrait: cardHasTrait, matchNameOrTrait }, digiXrosNames ?? []);
+}
+
+/** §15-15-6-2: a requirement for a card that isn't the same as another can't be replaced. */
+function slotAcceptsSubstitute(slot: DigiXrosMaterial): boolean {
+  return slot.differentCardNumbers !== true && slot.differentNames !== true;
 }
 
 /**
@@ -546,7 +580,9 @@ export function materialsSatisfyRecipe(
       const mismatchIndex = materials.findIndex(
         (material, index) => !materialMatchesSlot(material, slot, digiXrosNamesAt?.(index)),
       );
-      if (mismatchIndex < 0 || canSubstituteAt?.(mismatchIndex) !== true) return false;
+      if (mismatchIndex < 0 || !slotAcceptsSubstitute(slot) || canSubstituteAt?.(mismatchIndex) !== true) {
+        return false;
+      }
     }
     // "with different card numbers" (BT19-065, BT21-030, EX3-013): no two placed materials may
     // share a printed card number (cardId).
@@ -585,7 +621,8 @@ export function digiXrosMaterialOrder(
     for (let s = 0; s < slots.length; s++) {
       if (usedSlots[s]) continue;
       const matches = materialMatchesSlot(materials[i]!, slots[s]!, digiXrosNamesAt?.(i));
-      const substitutes = !matches && !substitutionUsed && canSubstituteAt?.(i) === true;
+      const substitutes =
+        !matches && !substitutionUsed && slotAcceptsSubstitute(slots[s]!) && canSubstituteAt?.(i) === true;
       if (!matches && !substitutes) continue;
       usedSlots[s] = true;
       assignedSlots[i] = s;

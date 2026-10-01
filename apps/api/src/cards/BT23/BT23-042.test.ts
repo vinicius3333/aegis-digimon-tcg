@@ -433,3 +433,49 @@ describe("BT23-042 Waspmon", () => {
     expect(s.perm("control").currentDP).toBe(8000);
   });
 });
+
+describe("BT23-042 Waspmon — KB Q&A rulings", () => {
+  it.each([
+    ["BT19-084 Winr, which names it only in an effect", "BT19-084", true],
+    ["EX11-063 Winr, which names it only in an effect", "EX11-063", true],
+    ["Fei, which names it only in an effect", "BT23-083", true],
+    ["Erika Mishima, which never names it", "BT23-084", false],
+    ["Mimi Tachikawa, which never names it", "BT1-089", false],
+  ] as const)(
+    "treats a Tamer as having [Royal Base] in its text by any of its text: %s (Q5303)",
+    async (_label, tamerCard, expectPlayed) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT23-038", as: "base" }],
+            hand: [
+              { card: "BT23-042", as: "wasp" },
+              { card: tamerCard, as: "tamer" },
+            ],
+            deck: ["BT1-009", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 3;
+      const tamerId = s.inst("tamer").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("wasp").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "BT23-042" && s.state.pendingDecision === undefined);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === tamerId)).toBe(
+        expectPlayed,
+      );
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === tamerId)).toBe(!expectPlayed);
+    },
+  );
+});

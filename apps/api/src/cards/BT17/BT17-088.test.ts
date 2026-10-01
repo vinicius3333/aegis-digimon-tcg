@@ -257,3 +257,43 @@ describe("BT17-088 Willis", () => {
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
   });
 });
+
+describe("BT17-088 Willis — KB Q&A rulings", () => {
+  it("digivolves a Digimon other than the one that was just played (Q2871)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-088", as: "willis" },
+            { card: "BT17-043", as: "otherTerriermon" },
+          ],
+          hand: [
+            { card: "BT17-043", as: "playedTerriermon" },
+            { card: "BT17-046", as: "gargomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("otherTerriermon").permanentId, s.inst("gargomon").instanceId);
+    s.state.memory = 3;
+
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTerriermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("otherTerriermon").topCard?.cardId === "BT17-046");
+
+    const playedPermanent = s.state.players[0]!.battleArea.find((permanent) =>
+      [permanent.topCard, ...permanent.stack].some(
+        (card) => card?.instanceId === s.inst("playedTerriermon").instanceId,
+      ),
+    );
+    expect(s.perm("otherTerriermon").topCard?.instanceId).toBe(s.inst("gargomon").instanceId);
+    expect(playedPermanent?.topCard?.instanceId).toBe(s.inst("playedTerriermon").instanceId);
+    expect(playedPermanent?.stack).toHaveLength(0);
+    expect(s.perm("willis").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+});

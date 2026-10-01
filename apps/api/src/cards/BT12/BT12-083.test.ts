@@ -5,9 +5,13 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT12-083.js";
+import "./BT12-038.js";
+import "../BT15/BT15-047.js";
+import "../BT17/BT17-087.js";
 
 function fakeDef(cardId: string, kind: CardKind = CardKind.Digimon): CardDefinition {
   return {
@@ -122,6 +126,7 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
       kind: "PlaceUnder",
       targetIsPermanent: true,
       shedOwnCards: true,
+      position: "bottom",
       scaling: { per: 1, unit: "colors", levelCeilingAdd: 1 },
     });
   });
@@ -212,5 +217,303 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
     await plain.ready();
     await advance(plain.engine).fire(EffectTiming.OnUseAttack, plain.perm("host"));
     expect(plain.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT1-010");
+  });
+});
+
+describe("BT12-083 Arresterdramon: Superior Mode — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+  const FILLER = ["BT1-009", "BT1-009", "BT1-009"];
+
+  function arresterBoard(own: SeatSpec, opponent: SeatSpec, preferred: string[] = []): Setup {
+    return setupEngine(
+      {
+        0: {
+          deck: FILLER,
+          security: ["BT1-009", "BT1-009"],
+          ...own,
+          battleArea: [{ card: "BT4-080", as: "base" }, ...(own.battleArea ?? [])],
+          hand: [{ card: "BT12-083", as: "arrester" }, ...(own.hand ?? [])],
+        },
+        1: { deck: FILLER, security: ["BT1-009", "BT1-009"], ...opponent },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+  }
+
+  async function digivolveIntoArrester(s: Setup): Promise<void> {
+    s.state.turnSeat = 0;
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("arrester").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT12-083");
+    await drainMicrotasks();
+  }
+
+  const opponentBoardIds = (s: Setup): string[] => s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId);
+
+  it("adds 1 to the max level per distinct color among your Tamers, counting a multicolor Tamer once for its new colors (Q2216)", async () => {
+    const threeColors = arresterBoard(
+      {
+        battleArea: [
+          { card: "BT1-085", as: "red" },
+          { card: "BT21-085", as: "redBlue" },
+          { card: "ST24-13", as: "blueYellow" },
+        ],
+      },
+      {
+        battleArea: [
+          { card: "BT1-080", as: "levelSix" },
+          { card: "BT1-085", as: "opponentTamer" },
+        ],
+      },
+    );
+    await digivolveIntoArrester(threeColors);
+    expect(opponentBoardIds(threeColors)).toEqual(["BT1-085"]);
+    expect(threeColors.perm("opponentTamer").stack.map(({ cardId }) => cardId)).toEqual(["BT1-080"]);
+
+    const twoColorsFromThreeTamers = arresterBoard(
+      {
+        battleArea: [
+          { card: "BT1-085", as: "red" },
+          { card: "BT12-088", as: "differentRedTamer" },
+          { card: "BT21-085", as: "redBlue" },
+        ],
+      },
+      {
+        battleArea: [
+          { card: "BT1-080", as: "levelSix" },
+          { card: "BT1-085", as: "opponentTamer" },
+        ],
+      },
+    );
+    await digivolveIntoArrester(twoColorsFromThreeTamers);
+    expect(opponentBoardIds(twoColorsFromThreeTamers)).toEqual(["BT1-080", "BT1-085"]);
+    expect(twoColorsFromThreeTamers.perm("opponentTamer").stack).toHaveLength(0);
+  });
+
+  it("places the Digimon at the bottom of the cards already stacked under the opponent's Tamer (Q2217)", async () => {
+    const s = arresterBoard(
+      {},
+      {
+        battleArea: [
+          { card: "BT1-009", as: "placed" },
+          { card: "BT1-085", as: "opponentTamer", under: [{ card: "BT1-013", as: "alreadyUnder" }] },
+        ],
+      },
+    );
+    const placedInstanceId = s.perm("placed").topCard.instanceId;
+    await digivolveIntoArrester(s);
+
+    expect(s.perm("opponentTamer").stack.map(({ instanceId }) => instanceId)).toEqual([
+      placedInstanceId,
+      s.inst("alreadyUnder").instanceId,
+    ]);
+  });
+
+  it("cannot place the Digimon under an opponent's Digimon that isn't affected by its effects (Q2218)", async () => {
+    const immuneHost = arresterBoard(
+      {},
+      {
+        battleArea: [
+          { card: "BT1-009", as: "levelThree" },
+          { card: "BT15-047", as: "kabuterimon", suspended: true },
+        ],
+      },
+    );
+    await digivolveIntoArrester(immuneHost);
+    expect(opponentBoardIds(immuneHost)).toEqual(["BT1-009", "BT15-047"]);
+    expect(immuneHost.perm("kabuterimon").stack).toHaveLength(0);
+
+    const affectableHost = arresterBoard(
+      {},
+      {
+        battleArea: [
+          { card: "BT1-009", as: "levelThree" },
+          { card: "BT15-047", as: "kabuterimon", suspended: false },
+        ],
+      },
+    );
+    await digivolveIntoArrester(affectableHost);
+    expect(opponentBoardIds(affectableHost)).toEqual(["BT15-047"]);
+    expect(affectableHost.perm("kabuterimon").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("removes the placed Digimon from the battle area and trashes its own digivolution cards (Q4995)", async () => {
+    const s = arresterBoard(
+      {},
+      {
+        battleArea: [
+          { card: "BT1-009", as: "placed", under: [{ card: "BT1-001", as: "placedEgg" }] },
+          { card: "BT1-080", as: "host", under: [{ card: "BT1-013", as: "hostSource" }] },
+        ],
+      },
+    );
+    const placedPermanentId = s.perm("placed").permanentId;
+    const placedInstanceId = s.perm("placed").topCard.instanceId;
+    await digivolveIntoArrester(s);
+
+    const opponent = s.state.players[1]!;
+    expect(opponent.battleArea.map(({ permanentId }) => permanentId)).not.toContain(placedPermanentId);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
+      placedInstanceId,
+      s.inst("hostSource").instanceId,
+    ]);
+    expect(opponent.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("placedEgg").instanceId]);
+  });
+
+  it("a Tamer does not gain the inherited effect of a Digimon placed under it (Q4996)", async () => {
+    const s = arresterBoard(
+      { battleArea: [{ card: "BT1-085", as: "ownTamer" }] },
+      {
+        battleArea: [
+          { card: "BT12-038", as: "geo" },
+          { card: "BT1-085", as: "opponentTamer" },
+        ],
+      },
+    );
+    const geoInstanceId = s.perm("geo").topCard.instanceId;
+    await digivolveIntoArrester(s);
+    expect(s.perm("opponentTamer").stack.map(({ instanceId }) => instanceId)).toEqual([geoInstanceId]);
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("opponentTamer"), "BT12-038")).toBe(false);
+
+    s.state.turnSeat = 1;
+    const arresterDP = s.perm("base").currentDP;
+    await advance(s.engine).verb.suspend([s.perm("opponentTamer").permanentId]);
+    await drainMicrotasks();
+    expect(s.perm("opponentTamer").isSuspended).toBe(true);
+    expect(s.perm("base").currentDP).toBe(arresterDP);
+
+    const digimonHost = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-083", as: "arresterOnBoard" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-013", as: "host", under: ["BT12-038"] },
+            { card: "BT1-085", as: "opponentTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    digimonHost.state.turnSeat = 1;
+    await digimonHost.ready();
+    const controlDP = digimonHost.perm("arresterOnBoard").currentDP;
+    await advance(digimonHost.engine).verb.suspend([digimonHost.perm("opponentTamer").permanentId]);
+    await settle(() => digimonHost.perm("arresterOnBoard").currentDP === controlDP - 2000);
+    expect(digimonHost.perm("arresterOnBoard").currentDP).toBe(controlDP - 2000);
+  });
+
+  it("a Tamer treated as a Digimon gains the inherited effect of a Digimon placed under it until it stops being a Digimon (Q4997)", async () => {
+    const preferred: string[] = [];
+    const s = arresterBoard(
+      { battleArea: [{ card: "BT1-085", as: "ownTamer" }] },
+      {
+        battleArea: [{ card: "BT12-038", as: "geo" }],
+        hand: [
+          { card: "BT17-087", as: "marcus" },
+          { card: "BT17-087", as: "secondMarcus" },
+        ],
+      },
+      preferred,
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker"));
+    const geoInstanceId = s.perm("geo").topCard.instanceId;
+    preferred.push(geoInstanceId, s.perm("geo").permanentId);
+
+    await digivolveIntoArrester(s);
+    const marcusId = s.perm("marcus").permanentId;
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([marcusId]);
+    expect(s.perm("marcus").stack.map(({ instanceId }) => instanceId)).toEqual([geoInstanceId]);
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("marcus"), "BT12-038")).toBe(true);
+
+    s.state.turnSeat = 1;
+    const dpBeforeSuspend = s.perm("base").currentDP;
+    await advance(s.engine).verb.suspend([marcusId]);
+    await settle(() => s.perm("base").currentDP === dpBeforeSuspend - 2000);
+    expect(s.perm("base").currentDP).toBe(dpBeforeSuspend - 2000);
+
+    await advance(s.engine).verb.unsuspend([marcusId]);
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker")).toBe(false);
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("marcus"), "BT12-038")).toBe(false);
+
+    const dpAfterDigimonStatusEnds = s.perm("base").currentDP;
+    await advance(s.engine).verb.suspend([marcusId]);
+    await drainMicrotasks();
+    expect(s.perm("marcus").isSuspended).toBe(true);
+    expect(s.perm("base").currentDP).toBe(dpAfterDigimonStatusEnds);
+
+    // Control: a second Marcus's [On Play] makes the GeoGreymon host a Digimon again, so the
+    // unchanged DP above comes from the lost Digimon status, not a spent [Once Per Turn].
+    await advance(s.engine).verb.unsuspend([marcusId]);
+    preferred.push(s.perm("marcus").topCard.instanceId);
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker"));
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("marcus"), "BT12-038")).toBe(true);
+    const dpBeforeRegrantedSuspend = s.perm("base").currentDP;
+    await advance(s.engine).verb.suspend([marcusId]);
+    await settle(() => s.perm("base").currentDP === dpBeforeRegrantedSuspend - 2000);
+    expect(s.perm("base").currentDP).toBe(dpBeforeRegrantedSuspend - 2000);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
+  it("attacks with the [End of Your Turn] effect even while this Digimon is suspended (Q4998)", async () => {
+    async function endTurnWithSuspendedArrester(digivolutionCards: string[]): Promise<Setup> {
+      const s = setupEngine(
+        {
+          0: {
+            deck: FILLER,
+            battleArea: [{ card: "BT12-083", as: "arrester", under: digivolutionCards }],
+          },
+          1: { deck: FILLER, security: ["BT1-009", "BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      await advance(s.engine).verb.suspend([s.perm("arrester").permanentId]);
+      await drainMicrotasks();
+      expect(s.perm("arrester").isSuspended).toBe(true);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await settle(() => s.events.some(({ kind }) => kind === "turnEnded"));
+      await advance(s.engine).finishAttack();
+      await turn;
+      return s;
+    }
+
+    const fourSources = await endTurnWithSuspendedArrester(["BT1-009", "BT1-009", "BT1-009", "BT1-009"]);
+    expect(observe(fourSources.engine).hasAttackedThisTurn(fourSources.perm("arrester"))).toBe(true);
+    expect(fourSources.events.some(({ kind }) => kind === "attackDeclared")).toBe(true);
+    expect(fourSources.state.players[1]!.security).toHaveLength(1);
+
+    const threeSources = await endTurnWithSuspendedArrester(["BT1-009", "BT1-009", "BT1-009"]);
+    expect(observe(threeSources.engine).hasAttackedThisTurn(threeSources.perm("arrester"))).toBe(false);
+    expect(threeSources.events.some(({ kind }) => kind === "attackDeclared")).toBe(false);
+    expect(threeSources.state.players[1]!.security).toHaveLength(2);
   });
 });

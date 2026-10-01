@@ -17,6 +17,10 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-060.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT24/BT24-018.js";
+import "../BT10/BT10-078.js";
 
 const card = (id: string, seat: Seat): CardInstance =>
   ({ cardId: id, instanceId: `${id}-${seat}`, ownerSeat: seat, faceUp: true }) as CardInstance;
@@ -429,4 +433,71 @@ describe("EX4-060 Omnimon Alter-S", () => {
     ).toBe(true);
   });
   ex4CardBehaviorTests("EX4-060");
+});
+
+describe("EX4-060 Omnimon Alter-S — KB Q&A rulings", () => {
+  async function attackOmnimon(under: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-060", as: "subject", dp: 7000, suspended: true, under }],
+          security: ["BT1-009", "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 12000 }], security: ["BT1-009", "BT1-013"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("subject").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("keeps resolving When Digivolving after an opponent's would-leave effect removes it (Q3501)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-060", as: "subject" }], security: ["BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT10-078", as: "dragonkin" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const styracomonPermanentId = s.perm("styracomon").permanentId;
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.deck.length === 1);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.decisions.map(({ seat, req }) => [seat, req.kind])).toEqual([[1, "optional"]]);
+    expect(s.perm("dragonkin").topCard.cardId).toBe("BT10-078");
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === styracomonPermanentId)).toBe(false);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT24-018"]);
+  });
+
+  it("must play both BlitzGreymon and CresGarurumon when both are in its digivolution cards (Q6031)", async () => {
+    const s = await attackOmnimon(["EX4-051", "EX4-049"]);
+
+    const tops = s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort();
+    expect(tops).toEqual(["EX4-049", "EX4-051"]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("subject").instanceId);
+  });
+
+  it("plays BlitzGreymon alone when it is the only named card available (Q6032)", async () => {
+    const s = await attackOmnimon(["EX4-051", "BT1-013"]);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX4-051"]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("subject").instanceId);
+  });
 });

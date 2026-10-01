@@ -470,3 +470,128 @@ describe("BT16-102", () => {
     }
   });
 });
+
+async function raidIntoImmuneMagnamon(options: { acceptRaid: boolean }) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT21-036", as: "magna", suspended: true }],
+        hand: [{ card: "BT16-102", as: "magnaX" }],
+        security: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT11-010", as: "raider" }] },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      declinePrompts: options.acceptRaid ? [] : ["＜Raid＞"],
+    },
+  );
+  s.state.memory = 5;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("magna").permanentId,
+      instanceId: s.inst("magnaX").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("magna").topCard?.cardId === "BT16-102" && !s.perm("magna").isSuspended);
+  await settle();
+  expect(observe(s.engine).isRestricted(s.perm("magna"), "beAffected")).toBe(true);
+
+  s.state.turnSeat = 1;
+  const raiderId = s.perm("raider").permanentId;
+  expect(
+    s.engine.applyIntent(1, { type: "attack", attackerPermanentId: raiderId, target: { kind: "player" } }),
+  ).toEqual({ ok: true });
+  await settle(() => observe(s.engine).blockingSeat() === 0);
+  expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+  await settle(() => !observe(s.engine).isAttacking());
+  await settle();
+  return {
+    raiderSurvived: s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === raiderId),
+    defenderSecurityCount: s.state.players[0]!.security.length,
+    magnamonDP: s.perm("magna").currentDP,
+  };
+}
+
+async function playBlindingRayBesideSuspendedMagnamon(securityCardIds: string[]) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT16-102", as: "magna", suspended: true, under: ["BT21-036"] }],
+        security: securityCardIds,
+        hand: [{ card: "BT4-104", as: "blindingRay" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 1;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blindingRay").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.memory === 3 && s.state.pendingDecision === undefined);
+  await settle();
+  return s;
+}
+
+async function digivolveSuspendedMagnamonX(baseCardId: "BT1-038" | "BT21-036") {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: baseCardId, as: "base", suspended: true }],
+        hand: [{ card: "BT16-102", as: "magna" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 6;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("magna").instanceId,
+      useAlternateCost: baseCardId === "BT21-036",
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("base").topCard?.cardId === "BT16-102");
+  await settle();
+  return s;
+}
+
+describe("BT16-102 Magnamon (X Antibody) — KB Q&A rulings", () => {
+  it("lets an opponent's Raid switch the attack target to Magnamon X while it is unaffected by opponent effects (Q2699)", async () => {
+    const raided = await raidIntoImmuneMagnamon({ acceptRaid: true });
+    expect(raided).toEqual({ raiderSurvived: false, defenderSecurityCount: 1, magnamonDP: 15000 });
+
+    const notRaided = await raidIntoImmuneMagnamon({ acceptRaid: false });
+    expect(notRaided).toMatchObject({ raiderSurvived: true, defenderSecurityCount: 0 });
+  });
+
+  it("activates its All Turns effect when its owner's own effect trashes their security card (Q2700)", async () => {
+    const s = await playBlindingRayBesideSuspendedMagnamon(["BT1-001"]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("magna").isSuspended).toBe(false);
+    expect(s.perm("magna").currentDP).toBe(15000);
+
+    const control = await playBlindingRayBesideSuspendedMagnamon([]);
+    expect(control.perm("magna").isSuspended).toBe(true);
+    expect(control.perm("magna").currentDP).toBe(12000);
+  });
+
+  it("unsuspends through the part after Then even when the digivolution-card condition is not met (Q2701)", async () => {
+    const withoutArmorForm = await digivolveSuspendedMagnamonX("BT1-038");
+    expect(withoutArmorForm.perm("base").isSuspended).toBe(false);
+    expect(withoutArmorForm.perm("base").currentDP).toBe(12000);
+    expect(observe(withoutArmorForm.engine).isRestricted(withoutArmorForm.perm("base"), "beAffected")).toBe(false);
+
+    const withArmorForm = await digivolveSuspendedMagnamonX("BT21-036");
+    expect(withArmorForm.perm("base").isSuspended).toBe(false);
+    expect(withArmorForm.perm("base").currentDP).toBe(15000);
+    expect(observe(withArmorForm.engine).isRestricted(withArmorForm.perm("base"), "beAffected")).toBe(true);
+  });
+});

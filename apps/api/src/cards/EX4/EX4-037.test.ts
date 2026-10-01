@@ -329,3 +329,25 @@ describe("EX4-037 BlackMegaGargomon", () => {
 
   ex4CardBehaviorTests("EX4-037");
 });
+
+describe("EX4-037 BlackMegaGargomon — KB Q&A rulings", () => {
+  it("digivolves for 4 only from a level 5 in either alternate branch (Q3485)", () => {
+    function alternateDigivolve(baseCardId: string) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX4-037", as: "card" }] },
+      });
+      s.state.memory = 4;
+      return s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+        useAlternateCost: true,
+      }).ok;
+    }
+
+    expect(alternateDigivolve("ST17-07")).toBe(true);
+    expect(alternateDigivolve("BT17-049")).toBe(true);
+    expect(alternateDigivolve("BT8-039")).toBe(false);
+    expect(alternateDigivolve("BT23-041")).toBe(false);
+  });
+});

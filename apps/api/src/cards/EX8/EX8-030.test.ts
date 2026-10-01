@@ -163,3 +163,38 @@ describe("EX8-030", () => {
     expect(observe(s.engine).canGainMemoryFromEffect(0, ["Digimon"])).toBe(true);
   });
 });
+
+describe("EX8-030 Tapirmon — KB Q&A rulings", () => {
+  it("stops the opponent's Digimon-effect memory gain but lets their Tamer effect gain memory (Q3913)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-021", as: "attacker" }],
+          hand: [{ card: "BT13-102", as: "keenan" }],
+          deck: ["BT1-028", "BT1-037"],
+        },
+        1: { battleArea: [{ card: "EX8-030", as: "tapirmon" }], security: ["BT1-009"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("keenan").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-102"));
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 1);
+    expect(s.state.memory).toBe(1);
+  });
+});

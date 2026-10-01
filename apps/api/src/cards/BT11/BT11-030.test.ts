@@ -213,3 +213,87 @@ describe("BT11-030 MetalGreymon + Cyber Launcher", () => {
     expect(s.state.players[0]!.trash.some((c) => c.cardId === "BT11-030")).toBe(true);
   });
 });
+
+describe("BT11-030 MetalGreymon + Cyber Launcher — KB Q&A rulings", () => {
+  it("is always treated as [MetalGreymon] and [Cyberdramon] for name-based digivolution (Q2068)", async () => {
+    async function digivolveWithAlternateCost(baseCardId: string, digivolutionCardId: string) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: digivolutionCardId, as: "digivolution" }],
+        },
+      });
+      s.state.memory = 5;
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("digivolution").instanceId,
+        useAlternateCost: true,
+      });
+      if (result.ok) await settle(() => s.perm("base").topCard.cardId === digivolutionCardId);
+      return { result, s };
+    }
+
+    const zeigGreymon = await digivolveWithAlternateCost("BT11-030", "BT11-031");
+    expect(zeigGreymon.result).toEqual({ ok: true });
+    expect(zeigGreymon.s.state.memory).toBe(3);
+
+    const cyberdramonXAntibody = await digivolveWithAlternateCost("BT11-030", "EX8-052");
+    expect(cyberdramonXAntibody.result).toEqual({ ok: true });
+    expect(cyberdramonXAntibody.s.state.memory).toBe(5);
+
+    // MetalGreymon: Alterous Mode only contains the name, so ZeigGreymon falls back to its printed red cost of 3.
+    const partialMetalGreymonName = await digivolveWithAlternateCost("BT5-015", "BT11-031");
+    expect(partialMetalGreymonName.result).toEqual({ ok: true });
+    expect(partialMetalGreymonName.s.state.memory).toBe(2);
+
+    const unnamedBase = await digivolveWithAlternateCost("BT11-028", "EX8-052");
+    expect(unnamedBase.result).not.toEqual({ ok: true });
+    expect(unnamedBase.s.perm("base").topCard.cardId).toBe("BT11-028");
+  });
+
+  it("returns a level 4 Digimon when another copy of itself is in its digivolution cards (Q2069)", async () => {
+    async function digivolveLauncherOnto(baseCardId: string) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: baseCardId, as: "base" }],
+            hand: [{ card: "BT11-030", as: "launcher" }],
+          },
+          1: {
+            battleArea: [
+              { card: "BT11-024", as: "level3" },
+              { card: "AD1-001", as: "level4" },
+            ],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      const level3Id = s.inst("level3").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("launcher").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[1]!.deck.some(({ instanceId }) => instanceId === level3Id) &&
+          s.state.pendingDecision === undefined,
+      );
+      return { s, level4Id: s.inst("level4").instanceId };
+    }
+
+    const withCopy = await digivolveLauncherOnto("BT11-030");
+    expect(withCopy.s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT11-030");
+    expect(withCopy.s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(withCopy.s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(withCopy.level4Id);
+
+    const withoutCopy = await digivolveLauncherOnto("BT11-028");
+    expect(withoutCopy.s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      withoutCopy.level4Id,
+    ]);
+  });
+});

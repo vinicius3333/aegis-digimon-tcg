@@ -181,3 +181,77 @@ describe("EX1-051 Infermon", () => {
     await loop;
   });
 });
+
+describe("EX1-051 Infermon — KB Q&A rulings", () => {
+  it("does not gain memory for an opponent's breeding-area digivolution to level 5, only a battle-area one (Q3236)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-051", as: "infermon" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "EX1-047", as: "fieldBase" }],
+          breeding: { card: "EX1-047", as: "breedingBase" },
+          hand: [{ card: "EX1-050", as: "breedingEvolution" }, { card: "EX1-050", as: "fieldEvolution" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.phase === "Breeding" && s.state.turnSeat === 1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    s.state.memory = 10;
+    const gains = () =>
+      s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory").length;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("breedingBase").permanentId,
+        instanceId: s.inst("breedingEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-050" && s.state.pendingDecision === undefined);
+    expect(gains()).toBe(0);
+    expect(s.state.memory).toBe(7);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("fieldBase").permanentId,
+        instanceId: s.inst("fieldEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => gains() === 1);
+    expect(s.state.memory).toBe(3);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("buffs Digimon named like the Digimon holding this card, not [Infermon] (Q3237)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT2-082", as: "host", under: ["EX1-051"] },
+          { card: "BT17-059", as: "otherDiaboromon", dp: 12000 },
+          { card: "BT2-062", as: "otherInfermon", dp: 6000 },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("otherDiaboromon").currentDP).toBe(14000);
+    expect(s.perm("otherInfermon").currentDP).toBe(6000);
+  });
+});

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-142.js";
 
@@ -119,5 +120,33 @@ describe("P-142 Falcomon", () => {
     expect(s.perm("ravemon").stack.some((card) => card.cardId === "P-142")).toBe(true);
     expect(s.perm("ravemon").isSuspended).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+  });
+});
+
+describe("P-142 Falcomon — KB Q&A rulings", () => {
+  it("does not let a suspended [Ravemon] Digimon attack through its [On Play] effect (Q4249)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-142", as: "falcomon" }],
+          battleArea: [{ card: "BT13-089", as: "ravemon", suspended: true }],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length >= 1 && s.state.pendingDecision === undefined);
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("target").permanentId]);
+    assertNoLoudGap(s);
   });
 });

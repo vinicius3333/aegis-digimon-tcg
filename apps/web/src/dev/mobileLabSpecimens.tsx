@@ -743,7 +743,7 @@ export const SPECIMENS: readonly Specimen[] = [
     group: "Overlays",
     title: "Opponent disconnected",
     surface: "board",
-    render: () => <OpponentDroppedOverlay />,
+    render: () => <OpponentDroppedOverlay onLeave={() => undefined} />,
   },
 ];
 

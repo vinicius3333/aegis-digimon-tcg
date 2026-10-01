@@ -42,3 +42,31 @@ describe("BT6-106 Iron-Fisted Onslaught", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("BT6-106 Iron-Fisted Onslaught — KB Q&A rulings", () => {
+  it("deletes every opposing Digimon tied for the highest play cost and keeps the cheaper one (Q1491)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT6-055"], hand: [{ card: "BT6-106", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "ST1-06", as: "tiedHighestA" },
+            { card: "ST1-07", as: "tiedHighestB" },
+            { card: "BT6-056", as: "cheaper" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const cheaperId = s.perm("cheaper").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([cheaperId]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["ST1-06", "ST1-07"]);
+  });
+});

@@ -26,6 +26,7 @@ const compiled: CompiledCard = {
           kind: "Restrict",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           restriction: "beDeleted",
+          byEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
           condition: { kind: "ifThisEffectActed" },
         },

@@ -33,6 +33,7 @@ export const compiled: CompiledCard = {
             kind: "return",
             target: { filter: { isSelfRef: true }, count: 1 },
             to: "deckBottom",
+            raw: "By returning this Tamer to the bottom of the deck",
           },
         },
       ],

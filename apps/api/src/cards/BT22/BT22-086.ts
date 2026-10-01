@@ -8,6 +8,8 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "CostGatedBlock",
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "return",
             to: "deckBottom",
@@ -67,7 +69,7 @@ export const compiled: CompiledCard = {
           triggerFilter: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }],
+            nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
           },
           actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
           cost: {

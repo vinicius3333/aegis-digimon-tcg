@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { isDigimonOrDigiEgg } from "../../engine/gameEngine/boardQueries.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-098.js";
 import "./index.js";
 
@@ -255,5 +256,66 @@ describe("BT17-098 Hacker Pride", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === textlessTopId)).toBe(false);
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+});
+
+describe("BT17-098 Hacker Pride — KB Q&A rulings", () => {
+  async function activateDelayWithHost(under: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-098", as: "option" },
+            { card: "BT17-036", as: "host", under },
+          ],
+          hand: ["BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    await s.ready();
+    s.state.turnCount += 1;
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    const hostPermanentId = s.perm("host").permanentId;
+    const hostTopId = s.perm("host").topCard!.instanceId;
+    const effects = observe(s.engine).activatableEffects(s.perm("option")) as Array<{ effectKey: string }>;
+    const result =
+      effects[0] === undefined
+        ? { ok: false }
+        : s.engine.applyIntent(0, {
+            type: "activateEffect",
+            sourceInstanceId: s.inst("option").instanceId,
+            effectKey: effects[0].effectKey,
+          });
+    if (result.ok) await drainMicrotasks();
+    const host = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === hostPermanentId);
+    return { s, host, hostTopId };
+  }
+
+  it("cannot place the top card of a [Pulsemon]-text Digimon with no digivolution cards on security (Q2892)", async () => {
+    const bare = await activateDelayWithHost([]);
+
+    expect(bare.s.state.players[0]!.security).toHaveLength(0);
+    expect(bare.s.state.memory).toBe(0);
+    expect(bare.host?.topCard.instanceId).toBe(bare.hostTopId);
+
+    const stacked = await activateDelayWithHost(["BT17-034"]);
+
+    expect(stacked.s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([stacked.hostTopId]);
+    expect(stacked.s.state.memory).toBe(2);
+  });
+
+  it("places a host with only a Tamer under it on security and leaves the Tamer in play as a Tamer (Q2893)", async () => {
+    const { s, host, hostTopId } = await activateDelayWithHost(["BT17-080"]);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([hostTopId]);
+    expect(s.state.memory).toBe(2);
+    expect(host).toBeDefined();
+    expect(host!.topCard.cardId).toBe("BT17-080");
+    expect(host!.stack).toHaveLength(0);
+    expect(isDigimonOrDigiEgg(host!)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-080")).toBe(false);
   });
 });

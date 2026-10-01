@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST13-03.js";
 
 describe("ST13-03 ZubaEagermon", () => {
@@ -63,5 +63,32 @@ describe("ST13-03 ZubaEagermon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("too-large").permanentId);
+  });
+});
+
+describe("ST13-03 ZubaEagermon — KB Q&A rulings", () => {
+  it("may decline its [On Play] placement and stays in the battle area as a Digimon (Q769)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST13-05", as: "host" }], hand: [{ card: "ST13-03", as: "zubaEagermon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zubaEagermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.length > 0 && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    expect(s.decisions.map(({ req }) => [req.kind, req.sourceCardId])).toEqual([["optional", "ST13-03"]]);
+    expect(s.perm("zubaEagermon").topCard.instanceId).toBe(s.inst("zubaEagermon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.perm("host").stack.map((card) => card.cardId)).not.toContain("ST13-03");
+    expect(s.perm("target").topCard.cardId).toBe("BT1-009");
+    expect(s.state.memory).toBe(5);
   });
 });

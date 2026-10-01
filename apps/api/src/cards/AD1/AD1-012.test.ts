@@ -240,3 +240,130 @@ describe("AD1-012 CresGarurumon", () => {
     expect(continuous.hasRestriction(s.perm("host").permanentId, "attackTargetChange")).toBe(true);
   });
 });
+
+describe("AD1-012 CresGarurumon — KB Q&A rulings", () => {
+  function opponentAttackDnaFixture() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-012", as: "cres" },
+            { card: "AD1-009", as: "blitz" },
+          ],
+          hand: [{ card: "EX4-060", as: "alter-s" }],
+          deck: [{ card: "BT1-011", as: "bonusDraw" }, "BT1-012"],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 7000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    return s;
+  }
+
+  async function declareOpponentAttack(s: ReturnType<typeof opponentAttackDnaFixture>) {
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" &&
+            event.sourceCardId === "EX4-060" &&
+            event.description.includes("[When Digivolving]"),
+        ),
+      5000,
+    );
+  }
+
+  it("performs the DNA digivolution bonus draw right after stacking, before the attack redirect after 'Then' (Q6079)", async () => {
+    const s = opponentAttackDnaFixture();
+    const bonusDrawId = s.inst("bonusDraw").instanceId;
+
+    await declareOpponentAttack(s);
+
+    const dnaIndex = s.events.findIndex(
+      (event) => event.kind === "cardPlayed" && event.cardId === "EX4-060" && event.mechanic === "dna",
+    );
+    const bonusDrawIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" && event.drawReason === "digivolution" && event.instanceIds.includes(bonusDrawId),
+    );
+    const redirectIndex = s.events.findIndex((event) => event.kind === "attackDeclared" && event.redirected === true);
+
+    expect(dnaIndex).toBeGreaterThanOrEqual(0);
+    expect(bonusDrawIndex).toBeGreaterThan(dnaIndex);
+    expect(redirectIndex).toBeGreaterThan(bonusDrawIndex);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(bonusDrawId);
+  });
+
+  it("does not activate Omnimon Alter-S [When Digivolving] before the attack redirect after 'Then' (Q6080)", async () => {
+    const s = opponentAttackDnaFixture();
+
+    await declareOpponentAttack(s);
+
+    const omnimonPermanentId = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.cardId === "EX4-060",
+    )?.permanentId;
+    const redirectIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "attackDeclared" &&
+        event.redirected === true &&
+        event.target.kind === "permanent" &&
+        event.target.permanentId === omnimonPermanentId,
+    );
+    const whenDigivolvingIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === "EX4-060" &&
+        event.description.includes("[When Digivolving]"),
+    );
+
+    expect(omnimonPermanentId).toBeDefined();
+    expect(redirectIndex).toBeGreaterThanOrEqual(0);
+    expect(whenDigivolvingIndex).toBeGreaterThan(redirectIndex);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("keeps <Raid> from changing the attack target of a Digimon whose attack target can't change (Q6081)", async () => {
+    const attackWithRaid = async (under: string[]) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "AD1-004", as: "raider", under }] },
+          1: { battleArea: [{ card: "BT1-010", as: "raidTarget", dp: 6000 }], security: ["BT1-009", "BT1-009"] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("raider").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length < 2 || s.state.players[1]!.battleArea.length === 0, 5000);
+      await settle();
+      return s;
+    };
+
+    const locked = await attackWithRaid(["AD1-012"]);
+    expect(locked.events.some((event) => event.kind === "attackDeclared" && event.redirected === true)).toBe(false);
+    expect(locked.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      locked.perm("raidTarget").permanentId,
+    ]);
+    expect(locked.state.players[1]!.security).toHaveLength(1);
+
+    const unlocked = await attackWithRaid(["BT1-010"]);
+    expect(unlocked.events.some((event) => event.kind === "attackDeclared" && event.redirected === true)).toBe(true);
+    expect(unlocked.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

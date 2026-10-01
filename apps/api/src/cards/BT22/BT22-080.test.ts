@@ -1,7 +1,10 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-080.js";
+import { playEaterWithBreedingReductions } from "./eaterBreeding.testSupport.js";
+import "../index.js";
 import "./index.js";
 
 describe("BT22-080 Eater (Human Form)", () => {
@@ -157,5 +160,62 @@ describe("BT22-080 Eater (Human Form)", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009"));
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT22-080 Eater (Human Form) — KB Q&A rulings", () => {
+  it("lets you use just 1 of 2 copies in the breeding area to reduce an [Eater] play by 1 (Q4945)", async () => {
+    expect(await playEaterWithBreedingReductions("BT22-080", "breeding", [true, false])).toEqual({
+      memory: 3 - 2,
+      reductionPrompts: 2,
+    });
+    expect(await playEaterWithBreedingReductions("BT22-080", "breeding", [true, true])).toEqual({
+      memory: 3 - 1,
+      reductionPrompts: 2,
+    });
+  });
+
+  it("resolves the checked [Security] effect first, then the turn player's check trigger, then the opponent's removal trigger (Q4946)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-080", as: "eater" }],
+          hand: [{ card: "BT22-101", as: "csTamer" }],
+          deck: ["BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT4-097", as: "kari" }],
+          security: [{ card: "BT22-083", as: "securityYuuko" }, "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("eater").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kari").isSuspended);
+    await advance(s.engine).finishAttack();
+
+    const played = (cardId: string) =>
+      s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === cardId);
+    const kariTriggered = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT4-097",
+    );
+    expect(played("BT22-083")).toBeGreaterThan(-1);
+    expect(played("BT22-083")).toBeLessThan(played("BT22-101"));
+    expect(played("BT22-101")).toBeLessThan(kariTriggered);
+  });
+
+  it("uses its {Breeding} effect only from the breeding area (Q4947)", async () => {
+    expect(await playEaterWithBreedingReductions("BT22-080", "battleArea", [true, true])).toEqual({
+      memory: 0,
+      reductionPrompts: 0,
+    });
   });
 });

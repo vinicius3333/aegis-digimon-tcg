@@ -56,3 +56,48 @@ describe("BT6-016 Jesmon", () => {
     expect(jesmon.currentDP).toBe(baseDp + 3000);
   });
 });
+
+describe("BT6-016 Jesmon — KB Q&A rulings", () => {
+  async function attackWithJesmon(playSistermon: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-016", as: "jesmon" }],
+          hand: [{ card: "BT6-082", as: "sistermon" }],
+        },
+        1: { security: ["BT1-010"] },
+      },
+      playSistermon
+        ? { autoAcceptOptional: true, autoSelectCards: true }
+        : { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const jesmon = s.perm("jesmon");
+    const baseDp = jesmon.currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: jesmon.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    return { s, jesmon, baseDp };
+  }
+
+  it("gains +3000 DP and Piercing when its own [When Attacking] effect plays a Sistermon (Q1409)", async () => {
+    const played = await attackWithJesmon(true);
+    await settle(
+      () =>
+        played.s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-082") &&
+        played.jesmon.currentDP === played.baseDp + 3000,
+    );
+    expect(observe(played.s.engine).hasPierce(played.jesmon)).toBe(true);
+
+    const declined = await attackWithJesmon(false);
+    await settle(() => declined.s.state.players[1]!.security.length === 0);
+    expect(declined.s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-082")).toBe(
+      false,
+    );
+    expect(declined.jesmon.currentDP).toBe(declined.baseDp);
+    expect(observe(declined.s.engine).hasPierce(declined.jesmon)).toBe(false);
+  });
+});

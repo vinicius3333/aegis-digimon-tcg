@@ -15,7 +15,7 @@ describe("BT18-051 Entmon", () => {
           kind: "Replacement",
           event: "wouldDigivolve",
           sourceFilter: { isSelfRef: true, suspended: true },
-          into: { levels: [6], nameOrTrait: [{ tokens: ["Plant", "Vegetation"], match: "trait" }] },
+          into: { levels: [6], nameOrTrait: [{ tokens: ["Plant", "Vegetation"], match: "traitContains" }] },
           actions: [{ kind: "Replacement", mode: "reduceCost", amount: 2 }],
         },
       ],
@@ -64,6 +64,29 @@ describe("BT18-051 Entmon", () => {
     expect(inactive.state.memory).toBe(5);
     assertNoLoudGap(s);
     assertNoLoudGap(inactive);
+  });
+
+  it("counts a card whose trait only contains [Plant] (e.g. [Ancient Plant])", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }],
+        hand: [{ card: "BT18-055", as: "ancientTroymon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("entmon").permanentId,
+        instanceId: s.inst("ancientTroymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("entmon").topCard?.cardId === "BT18-055" && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(8);
   });
 
   it("does not discount another suspended Digimon's qualifying evolution", async () => {

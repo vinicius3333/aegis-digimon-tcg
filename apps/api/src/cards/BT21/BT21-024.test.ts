@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-024.js";
 import "../index.js";
 
@@ -274,5 +275,81 @@ describe("BT21-024 Cyberdramon", () => {
     expect(s.perm("level4").currentDP).toBe(18000);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
+  });
+});
+
+describe("BT21-024 Cyberdramon — KB Q&A rulings", () => {
+  it("trashes the next top security card, not the card already being checked, after a mid-check digivolution (Q4518)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-015", as: "host", under: ["BT21-001"] }],
+          hand: [{ card: "BT21-024", as: "cyberdramon" }],
+        },
+        1: {
+          hand: [{ card: "BT1-010", as: "placedFromHand" }],
+          security: [
+            { card: "BT1-009", as: "checked" },
+            { card: "BT1-013", as: "nextTop" },
+            { card: "BT1-014", as: "lower" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("cyberdramon").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("lower").instanceId,
+      s.inst("placedFromHand").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("checked").instanceId, s.inst("nextTop").instanceId]),
+    );
+  });
+
+  it("still trashes the top security card when the opponent has more than 5 security cards (Q4534)", async () => {
+    async function playWithSecurityCount(securityCount: number) {
+      const security = Array.from({ length: securityCount }, (_, index) => ({
+        card: "BT1-001",
+        as: `security${index}`,
+      }));
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "BT21-024", as: "cyberdramon" }] },
+          1: { hand: [{ card: "BT1-009", as: "handCard" }], security },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyberdramon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.trash.length === 1 && s.state.pendingDecision === undefined);
+      return {
+        trashedTop: s.state.players[1]!.trash[0]?.instanceId === s.inst("security0").instanceId,
+        handCardInSecurity: s.state.players[1]!.security.some(
+          (card) => card.instanceId === s.inst("handCard").instanceId,
+        ),
+        securityCount: s.state.players[1]!.security.length,
+      };
+    }
+
+    const sevenSecurity = await playWithSecurityCount(7);
+    expect(sevenSecurity).toEqual({ trashedTop: true, handCardInSecurity: false, securityCount: 6 });
+
+    const fiveSecurity = await playWithSecurityCount(5);
+    expect(fiveSecurity).toEqual({ trashedTop: true, handCardInSecurity: true, securityCount: 5 });
   });
 });

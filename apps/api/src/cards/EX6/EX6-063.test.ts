@@ -173,3 +173,39 @@ describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("EX6-063 T.K. Takaishi & Kari Kamiya — KB Q&A rulings", () => {
+  it.each([
+    { base: "BT1-051", evolution: "BT1-060", triggers: true, memoryAfter: 1 },
+    { base: "BT10-035", evolution: "BT1-057", triggers: false, memoryAfter: 1 },
+  ])(
+    "checks the traits of the Digimon after it digivolves ($base -> $evolution, triggers=$triggers) (Q3808)",
+    async ({ base, evolution, triggers, memoryAfter }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX6-063", as: "tamer" },
+              { card: base, as: "base" },
+            ],
+            hand: [{ card: evolution, as: "evolution" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === evolution && s.state.pendingDecision === undefined);
+
+      expect(s.perm("tamer").isSuspended).toBe(triggers);
+      expect(s.state.memory).toBe(memoryAfter);
+    },
+  );
+});

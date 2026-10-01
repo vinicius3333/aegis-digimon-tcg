@@ -198,3 +198,46 @@ describe("EX5-065 Sayo & Koh", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-065 Sayo & Koh — KB Q&A rulings", () => {
+  it("does not activate the played Digimon's [On Play] once it became a DNA digivolution card (Q3670)", async () => {
+    const preferredIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-065", as: "sayo" },
+            { card: "EX5-017", as: "host", under: [{ card: "BT1-070", as: "kuwagamon" }] },
+            { card: "BT12-052", as: "otherMaterial" },
+          ],
+          hand: [{ card: "ST9-05", as: "dnaResult" }],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-025", as: "opponent" }],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferredIds },
+    );
+    preferredIds.push(s.perm("host").permanentId, s.inst("kuwagamon").instanceId);
+    await s.ready();
+    const openingTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await openingTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST9-05"));
+
+    const dnaResult = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "ST9-05")!;
+    expect(dnaResult.stack.map((card) => card.instanceId)).toContain(s.inst("kuwagamon").instanceId);
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "BT1-070")).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+});

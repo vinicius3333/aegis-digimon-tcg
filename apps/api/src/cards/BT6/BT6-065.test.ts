@@ -89,3 +89,78 @@ describe("BT6-065 Gundramon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });
+
+describe("BT6-065 Gundramon — KB Q&A rulings", () => {
+  it("does not force using a revealed cost-7 Option and deletes a play-cost-4-or-lower Digimon instead (Q1458)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT6-065", under: ["BT6-061"], as: "gundramon" }],
+        deck: [{ card: "BT6-109", as: "option" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "target" },
+          { card: "BT2-020", as: "levelSix" },
+        ],
+      },
+    });
+    const targetInstanceId = s.perm("target").topCard.instanceId;
+    const levelSix = s.perm("levelSix");
+    await s.ready();
+
+    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gundramon"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.decisions.at(-1)!.req;
+    expect(selection.options?.min).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId));
+    await resolution;
+
+    expect(s.decisions.some((decision) => decision.req.sourceCardId === "BT6-109")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([levelSix.permanentId]);
+  });
+
+  it("still activates with 4 or fewer cards in deck, revealing what it can and deleting as normal (Q1459)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-061", as: "base" }],
+          hand: [{ card: "BT6-065", as: "gundramon" }],
+          deck: [
+            { card: "BT1-011", as: "drawn" },
+            { card: "BT1-012", as: "revealedOne" },
+            { card: "BT1-013", as: "revealedTwo" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const targetInstanceId = s.perm("target").topCard.instanceId;
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gundramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId));
+
+    const player = s.state.players[0]!;
+    expect(player.deck).toHaveLength(0);
+    expect(player.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(player.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("revealedOne").instanceId, s.inst("revealedTwo").instanceId]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

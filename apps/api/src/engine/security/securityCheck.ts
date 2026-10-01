@@ -98,6 +98,13 @@ export interface SecurityCheckDeps {
   permanentById(permanentId: string): Permanent | undefined;
 
   /**
+   * Whether the permanent is still a battle-area Digimon. A permanent whose top card
+   * leaves and exposes a Tamer is no longer the attacking Digimon, so the check ends
+   * without a battle (Q4720, Q4723). Optional; absent => presence in play is enough.
+   */
+  isBattleAreaDigimon?(permanentId: string): boolean;
+
+  /**
    * Fire the effect stack for a timing window during the check (OnSecurityCheck,
    * OnLoseSecurity). GameEngine binds this to its own resolveTiming.
    */
@@ -238,6 +245,8 @@ export async function runSecurityCheck(
     return;
   }
 
+  const attackerIsDigimon = () =>
+    deps.isBattleAreaDigimon?.(attacker.permanentId) ?? deps.permanentById(attacker.permanentId) !== undefined;
   let checkedCount = 0;
   // Security checks resolve one card at a time. Re-read the attacker's live Strike
   // before every next card: a resolved Security effect can add/remove
@@ -250,8 +259,8 @@ export async function runSecurityCheck(
     // before deciding whether the next card is checked (BT1-085 Q947).
     await deps.recomputeContinuousEffects?.();
     if (checkedCount >= deps.strikeFor(attacker)) break;
-    // Stop if the attacker left play (Source: StopSecurityCheck()).
-    if (deps.permanentById(attacker.permanentId) === undefined && options.allowMissingAttacker !== true) break;
+    // Stop if the attacker left play or stopped being a Digimon (Source: StopSecurityCheck()).
+    if (!attackerIsDigimon() && options.allowMissingAttacker !== true) break;
     if (defender.security.length === 0) break;
     if (win.isGameOver) break;
 
@@ -303,10 +312,7 @@ export async function runSecurityCheck(
     let securityBattleScopeId: number | undefined;
     let securityBattleScopeClosed = false;
     await withCheckedCard(state, { card: revealed, seat: defenderSeat }, async () => {
-      securityBattleScopeId =
-        deps.isDigimon(revealed) && deps.permanentById(attacker.permanentId) !== undefined
-          ? deps.beginBattleScope?.()
-          : undefined;
+      securityBattleScopeId = deps.isDigimon(revealed) && attackerIsDigimon() ? deps.beginBattleScope?.() : undefined;
       const activateCheckTriggers = deps.prepareCheckTriggers?.({
         attackerPermanentId: attacker.permanentId,
         securityInstanceId: revealed.instanceId,
@@ -343,8 +349,7 @@ export async function runSecurityCheck(
 
       const stillChecked = peekCheckedCard(state, revealed.instanceId) !== undefined;
       const hadSecurityEffect = securityEffectActivated || !stillChecked;
-      const battlesAttacker =
-        stillChecked && deps.isDigimon(revealed) && deps.permanentById(attacker.permanentId) !== undefined;
+      const battlesAttacker = stillChecked && deps.isDigimon(revealed) && attackerIsDigimon();
       const resolution: "effect" | "battle" | "trashed" = battlesAttacker
         ? "battle"
         : hadSecurityEffect

@@ -117,7 +117,7 @@ describe("ContinuousEffectLedger", () => {
     const ledger = new ContinuousEffectLedger();
     const permanent = { permanentId: "P1" } as Permanent;
     ledger.addNameTraitGrant("P1", "name", ["Numemon"], EffectDuration.Permanent, {
-      ruleDerived: true,
+      fromRule: true,
     });
     ledger.addNameTraitGrant("P1", "name", ["Effect Alias"], EffectDuration.Permanent);
     ledger.addOriginalCardInfoOverride("P1", { name: "Sukamon" }, EffectDuration.UntilOpponentTurnEnd);
@@ -129,7 +129,8 @@ describe("ContinuousEffectLedger", () => {
     const ledger = new ContinuousEffectLedger();
     const permanent = { permanentId: "P1" } as Permanent;
     ledger.addNameTraitGrant("P1", "name", ["Mamemon"], EffectDuration.Permanent, {
-      ruleDerived: true,
+      fromRule: true,
+      nameContainsOnly: true,
     });
 
     expect(ledger.grantedNames("P1")).toEqual(["mamemon"]);

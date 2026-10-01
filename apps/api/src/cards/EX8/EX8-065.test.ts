@@ -4,6 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
 import "./index.js";
+import "../P/P-113.js";
+import "../P/P-160.js";
+import "../P/P-202.js";
 import { compiled } from "./EX8-065.js";
 
 describe("EX8-065", () => {
@@ -255,5 +258,136 @@ describe("EX8-065", () => {
     expect(s.perm("attacker").topCard.cardId).toBe("BT1-010");
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-024");
+  });
+});
+
+describe("EX8-065 Ryutaro Williams — KB Q&A rulings", () => {
+  it("resolves the digivolved Digimon's When Digivolving before the other pending attack-digivolve effect (Q3952)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-016", as: "attacker" },
+            { card: "EX8-065", as: "firstTamer" },
+            { card: "EX8-065", as: "secondTamer" },
+          ],
+          hand: [
+            { card: "EX8-014", as: "master" },
+            { card: "P-113", as: "rust" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "foe", dp: 5000 }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("master").instanceId, s.perm("foe").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    const foeId = s.inst("foe").instanceId;
+    const tamerIds = [s.perm("firstTamer").permanentId, s.perm("secondTamer").permanentId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard?.cardId === "P-113" && s.state.pendingDecision === undefined);
+
+    const eventIndex = (predicate: (event: (typeof s.events)[number]) => boolean) => s.events.findIndex(predicate);
+    const tamerSuspensions = tamerIds.map((tamerId) =>
+      eventIndex(
+        (event) => event.kind === "cardsMoved" && event.to === "suspended" && event.instanceIds.includes(tamerId),
+      ),
+    );
+    const foeDeletion = eventIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(foeId),
+    );
+    const [earlierTamer, laterTamer] = [...tamerSuspensions].sort((a, b) => a - b);
+
+    expect(earlierTamer).toBeGreaterThanOrEqual(0);
+    expect(foeDeletion).toBeGreaterThan(earlierTamer!);
+    expect(laterTamer).toBeGreaterThan(foeDeletion);
+    expect(s.perm("attacker").stack.map((card) => card.cardId)).toEqual(["BT1-016", "EX8-014"]);
+  });
+
+  it("does not activate the digivolved-away card's pending Raid or When Attacking effect (Q4274)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-160", as: "attacker", under: ["BT1-016"] },
+            { card: "EX8-065", as: "tamer" },
+          ],
+          hand: [
+            { card: "EX8-014", as: "master" },
+            { card: "P-113", as: "rust" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "raidTarget", dp: 12000 }], security: ["BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds,
+        preferTriggerKeys: ["subtrigger"],
+        declinePrompts: ["Suspend 1 target"],
+      },
+    );
+    preferInstanceIds.push(s.inst("master").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("attacker").topCard?.cardId).toBe("EX8-014");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("rust").instanceId]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("raidTarget").permanentId,
+    ]);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "P-160")).toBe(false);
+  });
+
+  it("stacks its reduction with Tyrannomon's own suspended-digivolve reduction for 2 total (Q5194)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-202", as: "attacker" },
+            { card: "EX8-065", as: "tamer" },
+          ],
+          hand: [{ card: "EX8-014", as: "master" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, declinePrompts: ["Suspend 1 target"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard?.cardId === "EX8-014" && s.state.pendingDecision === undefined);
+
+    const costChoice = s.decisions.find(({ req }) => req.options?.digivolveCostChoice !== undefined);
+    expect(costChoice?.req.options?.digivolveCostChoice?.costs[0]).toBe(4);
+    expect(s.state.memory).toBe(8);
   });
 });

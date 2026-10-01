@@ -4,7 +4,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import { evaluateCondition } from "../conditions.js";
 import type { ActionScope } from "../dispatch.js";
-import { definitionMatches } from "../matching/definition.js";
+import { definitionMatches, hasExactName } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
@@ -466,7 +466,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               if (used.has(card.instanceId)) return false;
               const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
               return (
-                definition.nameEn === requiredName &&
+                hasExactName(definition, requiredName) &&
                 (totalPlayCostBudget === undefined || spent + playCostOf(card) <= totalPlayCostBudget)
               );
             });

@@ -3,11 +3,12 @@ import type { Express, Request, Response } from "express";
 import type { AuthSession } from "../accounts/AccountStore.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
 import {
-  ALLOWED_LINK_HOSTS,
+  FEEDBACK_KINDS,
   MAX_BUG_REPORT_CARDS,
   MAX_BUG_REPORT_DESCRIPTION,
   MAX_BUG_REPORT_OPPONENT_DECK,
   MAX_BUG_REPORT_SUMMARY,
+  type FeedbackKind,
   type IssueTracker,
   type NewBugReport,
 } from "./GitHubIssueTracker.js";
@@ -87,35 +88,38 @@ export function installBugReportRoutes({ app, tracker, session }: BugReportRoute
 
 /** Why a submission was refused, in the vocabulary the client renders. */
 export type BugReportFailure =
+  | "invalid_kind"
   | "empty_summary"
   | "summary_too_long"
   | "empty_description"
   | "description_too_long"
   | "opponent_deck_too_long"
-  | "invalid_attachment_url"
   | "too_many_cards"
   | "unknown_card";
 
 type SubmitBody = {
+  kind?: unknown;
   summary?: unknown;
   cardIds?: unknown;
   description?: unknown;
   opponentDeck?: unknown;
-  attachmentUrl?: unknown;
   clientRevision?: unknown;
   userAgent?: unknown;
 };
 
 /**
- * The rules a report must satisfy before it becomes a public issue: a summary and a description
- * within their length budgets, card ids that name real cards, and an attachment link that points at
- * a host a screenshot can actually live on.
+ * The rules a report must satisfy before it becomes a public issue: a known kind, a summary and a
+ * description within their length budgets, and card ids that name real cards.
  *
  * The client-carried context (revision, user agent) is trimmed rather than refused — a report is
  * worth filing even when a browser sends something odd.
  */
 export function validate(body: unknown, reporterName?: string): NewBugReport | { error: BugReportFailure } {
   const input = (body ?? {}) as SubmitBody;
+
+  // Clients from before feedback kinds existed send none, and everything they sent was a bug.
+  const kind = input.kind ?? "bug";
+  if (!isFeedbackKind(kind)) return { error: "invalid_kind" };
 
   const summary = text(input.summary);
   if (!summary) return { error: "empty_summary" };
@@ -130,10 +134,6 @@ export function validate(body: unknown, reporterName?: string): NewBugReport | {
     return { error: "opponent_deck_too_long" };
   }
 
-  const link = text(input.attachmentUrl);
-  const attachmentUrl = link ? allowedLink(link) : undefined;
-  if (link && !attachmentUrl) return { error: "invalid_attachment_url" };
-
   const raw = Array.isArray(input.cardIds) ? input.cardIds : [];
   if (!raw.every((cardId) => typeof cardId === "string")) return { error: "unknown_card" };
   const cardIds = [...new Set((raw as string[]).map((cardId) => cardId.trim().toUpperCase()).filter(Boolean))];
@@ -142,11 +142,11 @@ export function validate(body: unknown, reporterName?: string): NewBugReport | {
 
   return {
     ...(reporterName ? { reporterName } : {}),
+    kind,
     summary,
     cardIds,
     description,
     ...(opponentDeck ? { opponentDeck } : {}),
-    ...(attachmentUrl ? { attachmentUrl } : {}),
     ...optional("clientRevision", clip(input.clientRevision, MAX_CLIENT_REVISION)),
     ...optional("userAgent", clip(input.userAgent, MAX_USER_AGENT)),
   };
@@ -164,17 +164,6 @@ function optional<K extends string>(key: K, value: string | undefined): Record<K
   return value ? ({ [key]: value } as Record<K, string>) : {};
 }
 
-/**
- * Accepts only an https link on a host the project already trusts, and returns the URL normalized —
- * so what the issue shows is what the browser will open.
- */
-function allowedLink(value: string): string | undefined {
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    return undefined;
-  }
-  if (url.protocol !== "https:") return undefined;
-  return ALLOWED_LINK_HOSTS.includes(url.hostname.toLowerCase()) ? url.toString() : undefined;
+function isFeedbackKind(value: unknown): value is FeedbackKind {
+  return FEEDBACK_KINDS.includes(value as FeedbackKind);
 }

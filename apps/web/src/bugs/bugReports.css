@@ -1,17 +1,70 @@
-/* Bug reporting: the floating entry point and the report modal. Layout only —
-   colors, spacing and radii come from the design tokens the rest of the client uses. */
+/* The feedback modal. Layout only — colors, spacing and radii come from the design tokens the rest
+   of the client uses. */
 
-.bug-report-button {
-  display: inline-flex;
+.aegis-mobile-bar__actions {
+  display: flex;
+  /* Sit with the player chip on the right rather than floating mid-bar. */
+  margin-left: auto;
+  margin-right: var(--ds-space-2);
+  align-items: center;
+}
+
+.bug-report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.bug-report__match-id-row {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.bug-report__match-id-row .aegis-field__control {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+}
+
+.bug-report__title {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.bug-report__title > svg {
+  flex: none;
+  color: var(--ds-brand-accent-soft);
+}
+
+.bug-report__head p {
+  margin: var(--ds-space-2) 0 0;
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
+}
+
+.bug-report__kinds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.bug-report__kind {
+  position: relative;
+  display: flex;
   min-height: var(--ds-touch-target);
   gap: var(--ds-space-2);
   align-items: center;
-  padding: var(--ds-space-2) var(--ds-space-3);
-  border: 1px solid var(--ds-brand-interactive-strong);
-  border-radius: var(--ds-radius-sm);
-  background: transparent;
-  color: var(--ds-brand-on-ink-muted);
-  font: inherit;
+  justify-content: center;
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+  color: var(--ds-fg-secondary);
   font-size: var(--ds-text-sm);
   font-weight: 600;
   cursor: pointer;
@@ -21,61 +74,38 @@
     border-color var(--ds-motion-fast);
 }
 
-.bug-report-button:hover {
-  border-color: var(--ds-brand-accent-soft);
-  background: var(--ds-brand-interactive);
-  color: var(--ds-brand-on-ink);
+/* The segments share borders, so only the outer corners are rounded. */
+.bug-report__kind + .bug-report__kind {
+  margin-left: -1px;
 }
 
-/* The mobile bar has room for the icon only; the label would crowd out the player name. */
-.aegis-mobile-bar__actions {
-  display: flex;
-  /* Sit with the player chip on the right rather than floating mid-bar. */
-  margin-left: auto;
-  margin-right: var(--ds-space-2);
-  align-items: center;
+.bug-report__kind:first-of-type {
+  border-radius: var(--ds-radius-sm) 0 0 var(--ds-radius-sm);
 }
 
-.aegis-mobile-bar .bug-report-button {
-  min-width: 40px;
-  min-height: 40px;
-  justify-content: center;
-  padding: 0;
+.bug-report__kind:last-of-type {
+  border-radius: 0 var(--ds-radius-sm) var(--ds-radius-sm) 0;
 }
 
-.aegis-mobile-bar .bug-report-button > span {
-  display: none;
+.bug-report__kind:hover {
+  background: var(--ds-surface-muted);
 }
 
-.bug-report {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-4);
-  width: min(560px, 92vw);
-  max-height: 86vh;
-  overflow-y: auto;
+.bug-report__kind:has(input:checked) {
+  border-color: var(--ds-accent);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
 }
 
-.bug-report__head h2 {
-  margin: 0;
-  color: var(--ds-fg);
+.bug-report__kind:has(input:focus-visible) {
+  box-shadow: var(--ds-focus-ring);
 }
 
-.bug-report__head p {
-  margin: var(--ds-space-1) 0 0;
-  color: var(--ds-fg-muted);
-  font-size: 0.9rem;
-}
-
-.bug-report__rules {
-  margin: var(--ds-space-2) 0 0;
-  padding-left: var(--ds-space-4);
-  color: var(--ds-fg-muted);
-  font-size: 0.78rem;
-}
-
-.bug-report__rules li + li {
-  margin-top: 2px;
+/* The native radio keeps arrow-key navigation and the group's semantics; the label is the control. */
+.bug-report__kind input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .bug-report__cards {
@@ -147,26 +177,33 @@
   display: inline-flex;
   gap: var(--ds-space-2);
   align-items: center;
-  padding: 2px var(--ds-space-2);
-  border: 1px solid var(--ds-border);
-  border-radius: 999px;
-  background: var(--ds-surface-muted);
-  color: var(--ds-fg-secondary);
-  font-size: 0.78rem;
+  padding: 2px var(--ds-space-1) 2px var(--ds-space-2);
+  border: 1px solid color-mix(in srgb, var(--ds-accent) 35%, transparent);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-accent-surface);
+  color: var(--ds-accent);
+  font: 600 var(--ds-text-xs) / 1.4 var(--ds-font-mono);
 }
 
 .bug-report__chip button {
   display: inline-flex;
+  min-width: 24px;
+  min-height: 24px;
   align-items: center;
+  justify-content: center;
   padding: 0;
   border: 0;
+  border-radius: var(--ds-radius-sm);
   background: transparent;
   color: var(--ds-fg-muted);
   cursor: pointer;
 }
 
+.bug-report__chip button:hover {
+  color: var(--ds-danger);
+}
+
 .bug-report__description textarea {
-  min-height: 160px;
   resize: vertical;
 }
 
@@ -192,11 +229,13 @@
   /* `.aegis-dialog` also carries a padding and a max-height; the sheet wins by
      naming both classes rather than by load order. */
   .aegis-dialog.bug-report {
+    --aegis-dialog-pad: var(--ds-space-4);
+
     width: 100%;
     max-height: 92dvh;
     /* No bottom padding of its own: the pinned actions carry it, so nothing scrolls
        into the strip below them. */
-    padding: var(--ds-space-4) var(--ds-space-4) 0;
+    padding: var(--aegis-dialog-pad) var(--aegis-dialog-pad) 0;
     border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
   }
 

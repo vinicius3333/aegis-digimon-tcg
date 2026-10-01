@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, type EngineSetup, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-087.js";
+import "./BT18-046.js";
 import { compiled } from "./BT18-044.js";
 
 describe("BT18-044 FunBeemon", () => {
@@ -103,6 +105,171 @@ describe("BT18-044 FunBeemon", () => {
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(5000);
+    assertNoLoudGap(s);
+  });
+});
+
+describe("BT18-044 FunBeemon — KB Q&A rulings", () => {
+  const GREYMON = "BT1-015";
+  const MUCHOMON = "BT1-013";
+  const BIYOMON = "BT1-012";
+  const MONODRAMON = "BT1-009";
+  const TK_TAKAISHI = "BT1-087";
+  const WASPMON = "BT18-046";
+  const FILLER = [MONODRAMON, BIYOMON, MUCHOMON];
+
+  const attackPlayer = (s: EngineSetup, attackerAlias: string) =>
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(attackerAlias).permanentId,
+      target: { kind: "player" },
+    });
+
+  it("a card placed face up in security stays revealed and is still a normal security card (Q2969)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT18-044", as: "funbeemon" },
+            { card: WASPMON, as: "waspmon" },
+          ],
+          security: [
+            { card: MONODRAMON, as: "topSecurity" },
+            { card: WASPMON, as: "faceDownWaspmon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.at(-1)?.instanceId === s.inst("waspmon").instanceId);
+    await s.ready();
+
+    const security = s.state.players[0]!.security;
+    expect(security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("faceDownWaspmon").instanceId,
+      s.inst("waspmon").instanceId,
+    ]);
+    expect(security.map(({ faceUp }) => faceUp === true)).toEqual([false, true]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("topSecurity").instanceId]);
+    // Both security cards are Waspmon; only the face-up one's [Security] [All Turns] applies: 1000 base + 1000.
+    expect(s.perm("funbeemon").currentDP).toBe(2000);
+    assertNoLoudGap(s);
+  });
+
+  it("checks a face-up security card like any other, revealed, and it battles with its own DP (Q2970)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: GREYMON, as: "attacker" }], deck: [...FILLER], security: [...FILLER] },
+        1: {
+          security: [
+            { card: MUCHOMON, as: "faceUpSecurity", faceUp: true },
+            { card: BIYOMON, as: "faceDownSecurity" },
+          ],
+          deck: [...FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const checkedId = s.inst("faceUpSecurity").instanceId;
+    await s.ready();
+
+    expect(attackPlayer(s, "attacker")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === checkedId));
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityRevealed", seat: 1, revealedCardId: MUCHOMON, securityCardDP: 5000 }),
+    );
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityChecked", seat: 1, revealedCardId: MUCHOMON, resolution: "battle" }),
+    );
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("faceDownSecurity").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(GREYMON);
+    assertNoLoudGap(s);
+  });
+
+  it("a face-up security card's [Security] effect still activates when it is checked (Q2971)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: GREYMON, as: "attacker" }], deck: [...FILLER], security: [...FILLER] },
+        1: {
+          security: [
+            { card: TK_TAKAISHI, as: "faceUpTamer", faceUp: true },
+            { card: BIYOMON, as: "faceDownSecurity" },
+          ],
+          deck: [...FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const tamerId = s.inst("faceUpTamer").instanceId;
+    expect(s.state.players[1]!.security[0]?.faceUp).toBe(true);
+    await s.ready();
+
+    expect(attackPlayer(s, "attacker")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === tamerId));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([tamerId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(tamerId);
+    // The played Tamer's [On Play] then adds the remaining security card to the hand.
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("faceDownSecurity").instanceId,
+    ]);
+    assertNoLoudGap(s);
+  });
+
+  it("shuffling a security stack turns its face-up cards face down (Q2972)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT18-044", as: "funbeemon" },
+            { card: WASPMON, as: "placedWaspmon" },
+            { card: TK_TAKAISHI, as: "shuffler" },
+          ],
+          deck: [...FILLER],
+          security: [
+            { card: MONODRAMON, as: "topSecurity" },
+            { card: BIYOMON, as: "faceDownSecurity" },
+            { card: WASPMON, as: "seededWaspmon", faceUp: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.at(-1)?.instanceId === s.inst("placedWaspmon").instanceId);
+    await s.ready();
+    expect(s.state.players[0]!.security.filter(({ faceUp }) => faceUp === true)).toHaveLength(2);
+    expect(s.perm("funbeemon").currentDP).toBe(3000);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shuffler").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === TK_TAKAISHI));
+    await settle(() => s.state.players[0]!.security.every(({ faceUp }) => faceUp !== true));
+    await s.ready();
+
+    const securityIds = s.state.players[0]!.security.map(({ instanceId }) => instanceId);
+    expect(securityIds).toHaveLength(2);
+    expect(
+      securityIds.some((id) => id === s.inst("placedWaspmon").instanceId || id === s.inst("seededWaspmon").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.security.map(({ faceUp }) => faceUp === true)).toEqual(securityIds.map(() => false));
+    expect(s.perm("funbeemon").currentDP).toBe(1000);
     assertNoLoudGap(s);
   });
 });

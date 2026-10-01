@@ -2,11 +2,12 @@ import type { Seat } from "@aegis/shared";
 import type { EffectContext } from "./effectContext.js";
 
 /**
- * Restrict one SubTrigger fire to watchers anchored on (or off) the event's subject permanent.
+ * Restrict one SubTrigger fire to (or away from) the subject permanent's own self clauses.
  *
  * Used by the deletion seam: a permanent's OWN "when this Digimon is deleted" clause resolves
- * before a leave-prevention replacement can save it (Q2212), while a third party's "when a
- * Digimon is deleted" watcher must only see the permanents that actually left (Q6030).
+ * before a leave-prevention replacement can save it (Q2212), while every other "when a
+ * Digimon is deleted" watcher, including one on the subject itself, must only see the
+ * permanents that actually left (Q6030, Q2311).
  */
 export type SubTriggerSourceScope = "selfSourceOnly" | "excludeSelfSource";
 
@@ -87,6 +88,8 @@ export interface SubTriggerInstall {
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
+  /** See `SubTriggerSubscription.watchesSelf`. */
+  watchesSelf?: boolean;
   sourcePermanentId?: string;
   /**
    * Anchor for a watcher installed by a card that is NOT a live battle-area Permanent —

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, type Permanent } from "@aegis/shared";
+import { getCardDefinition, Zone, type Permanent } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { syncPublicCounts } from "../../engine/state/visibility.js";
 import "../index.js";
 
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
@@ -485,5 +486,141 @@ describe("BT19-100 D-Reaper Zone — [Security] free play scaled by digivolution
 
     expect(hand(s, 1)).toEqual(["BT1-012", "EX2-051", "EX2-054"]);
     expect(permanentIds(s, 1)).toEqual(["EX2-007"]);
+  });
+});
+
+describe("BT19-100 D-Reaper Zone — KB Q&A rulings", () => {
+  function attackWatcherTriggers(s: EngineSetup) {
+    return s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === "BT19-100" && event.timing === "whenOpponentAttacks",
+    );
+  }
+
+  function breedingOnlyBoard(motherInBattleArea: boolean) {
+    const attackerDp: number[] = [];
+    let handle: EngineSetup | undefined;
+    const mother = { card: "EX2-007", as: "mother", under: ["BT1-009", "BT1-013"] };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-024", as: "attacker" }],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+        1: {
+          battleArea: motherInBattleArea ? [mother, { card: "EX2-051", as: "peer" }] : [],
+          breeding: motherInBattleArea ? { card: "BT1-009", as: "breedingPeer" } : mother,
+          deck: [...FILLER],
+          security: [{ card: "BT19-100", as: "zone", faceUp: true }, "BT1-013", "BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: () => {
+          const attacker = handle?.state.players[0]!.battleArea.find(
+            (permanent) => permanent.topCard?.cardId === "BT1-024",
+          );
+          if (attacker !== undefined) attackerDp.push(attacker.currentDP);
+        },
+      },
+    );
+    handle = s;
+    return { s, attackerDp };
+  }
+
+  it("does not activate its [Security] effect when only the breeding area holds a [D-Reaper] Digimon (Q3178)", async () => {
+    const { s, attackerDp } = breedingOnlyBoard(false);
+    await s.ready();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.breeding?.topCard?.cardId).toBe("EX2-007");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT19-100"));
+
+    expect(attackWatcherTriggers(s)).toEqual([]);
+    expect(Math.min(...attackerDp)).toBe(10000);
+
+    const control = breedingOnlyBoard(true);
+    await control.s.ready();
+    expect(
+      control.s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: control.s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => control.s.state.players[1]!.trash.some((card) => card.cardId === "BT19-100"));
+
+    expect(attackWatcherTriggers(control.s)).not.toEqual([]);
+    expect(Math.min(...control.attackerDp)).toBe(8000);
+  });
+
+  it("keeps a card placed face up by its [Main] effect revealed as an ordinary security card (Q3180)", async () => {
+    const s = mainBoard({});
+    s.state.memory = 10;
+    await s.ready();
+    const zoneId = s.inst("zone").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: zoneId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === zoneId));
+
+    const view = syncPublicCounts(s.state).players[0]!;
+    expect(view.securityCount).toBe(2);
+    expect(view.securityView.map((card) => [card.faceUp, card.cardId])).toEqual([
+      [true, "BT19-100"],
+      [false, ""],
+    ]);
+
+    const secondZone = s.give(0, Zone.Hand, { card: "BT19-100", as: "secondZone" });
+    const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: secondZone.instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === secondZone.instanceId));
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(securityBefore);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+  });
+
+  it("turns every face-up security card face down when the security stack is shuffled (Q3184)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT5-037", as: "gladimon" }],
+          deck: [...FILLER],
+          security: [
+            { card: "BT19-100", as: "zone", faceUp: true },
+            { card: "BT1-013", faceUp: true },
+            "BT1-009",
+            "BT1-013",
+          ],
+        },
+        1: { deck: [...FILLER], security: [...SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const securityIds = s.state.players[0]!.security.map((card) => card.instanceId).sort();
+    expect(s.state.players[0]!.security.filter((card) => card.faceUp === true)).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gladimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT5-037"));
+    await settle();
+
+    const stack = s.state.players[0]!.security;
+    expect(stack.map((card) => card.instanceId).sort()).toEqual(securityIds);
+    expect(stack.every((card) => card.faceUp !== true)).toBe(true);
+    expect(syncPublicCounts(s.state).players[0]!.securityView.every((card) => !card.faceUp && card.cardId === "")).toBe(
+      true,
+    );
   });
 });

@@ -45,6 +45,7 @@ export function createSharedHelpers(pc: PrimitivesContext) {
     explicitOverride?: number,
     originZone?: ZoneRef,
     projectOnly = false,
+    simultaneousPlayCount = 1,
   ): Promise<number> => {
     const printed = normalizeCost(definition.playCost);
     const overrideBlocked =
@@ -55,7 +56,16 @@ export function createSharedHelpers(pc: PrimitivesContext) {
       ? 0
       : Math.max(0, explicitReduction);
     const reduced = Math.max(0, adjusted - allowedReduction);
-    return engine.finalizeEffectPlayCost?.(instanceId, reduced, useAsOption, originZone, projectOnly) ?? reduced;
+    return (
+      engine.finalizeEffectPlayCost?.(
+        instanceId,
+        reduced,
+        useAsOption,
+        originZone,
+        projectOnly,
+        simultaneousPlayCount,
+      ) ?? reduced
+    );
   };
 
   const adjustedEvoCost = (seat: Seat, target: Permanent, base: number, into: CardDefinition): number => {
@@ -343,10 +353,15 @@ export function createSharedHelpers(pc: PrimitivesContext) {
   const isRestricted = (permanentId: string, restriction: Restriction): boolean => {
     const byOpponentEffect = isOpponentEffectAgainst(permanentId);
     if (continuous.hasRestriction(permanentId, restriction, undefined, { byOpponentEffect })) return true;
-    if (byOpponentEffect !== true) return false;
+    if (byOpponentEffect === undefined) return false;
     // Target selection may preserve an immune target so downstream clauses can observe
     // a failed mutation. Progress must therefore also protect the mutation itself.
-    if (continuous.hasKeyword(permanentId, "Progress") && engine.combat?.currentAttackerId === permanentId) return true;
+    if (
+      byOpponentEffect &&
+      continuous.hasKeyword(permanentId, "Progress") &&
+      engine.combat?.currentAttackerId === permanentId
+    )
+      return true;
     const sourceKinds = effectSourceKindsStack.at(-1) ?? [];
     if (sourceKinds.length === 0) {
       return continuous.hasRestriction(permanentId, "beAffected", undefined, { byOpponentEffect });

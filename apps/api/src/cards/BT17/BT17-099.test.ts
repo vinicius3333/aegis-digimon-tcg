@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-099.js";
 import "../BT10/BT10-069.js";
 import "../BT13/BT13-031.js";
@@ -406,5 +406,73 @@ describe("BT17-099 Awakening of the Sun", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === aliasedId)).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT17-099 Awakening of the Sun — KB Q&A rulings", () => {
+  async function deleteTamerToOpenDelay(hostCard: string, shineZone: "hand" | "trash") {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-099", as: "option" },
+            { card: hostCard, as: "host" },
+            { card: "BT17-087", as: "marcus" },
+          ],
+          hand: ["BT1-012"],
+          [shineZone]: [{ card: "BT17-039", as: "shine" }],
+        },
+        1: {
+          battleArea: [{ card: "BT10-066", as: "darkKnightmon" }],
+          hand: [{ card: "BT10-069", as: "darkKnightmonX" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    await s.ready();
+    s.state.turnCount += 1;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("darkKnightmon").permanentId,
+        instanceId: s.inst("darkKnightmonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-087"));
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("digivolves only into a [ShineGreymon] card whose digivolution requirements are met (Q2894)", async () => {
+    const unmet = await deleteTamerToOpenDelay("BT1-009", "hand");
+
+    expect(unmet.perm("host").topCard.cardId).toBe("BT1-009");
+    expect(unmet.perm("host").stack).toHaveLength(0);
+    expect(unmet.state.players[0]!.hand.some((card) => card.instanceId === unmet.inst("shine").instanceId)).toBe(true);
+
+    const met = await deleteTamerToOpenDelay("BT17-037", "hand");
+
+    expect(met.perm("host").topCard.cardId).toBe("BT17-039");
+    expect(met.perm("host").stack.map((card) => card.cardId)).toEqual(["BT17-037"]);
+  });
+
+  it("takes the [ShineGreymon] card from the hand, not from the trash (Q2895)", async () => {
+    const fromTrash = await deleteTamerToOpenDelay("BT17-037", "trash");
+
+    expect(fromTrash.perm("host").topCard.cardId).toBe("BT17-037");
+    expect(
+      fromTrash.state.players[0]!.trash.some((card) => card.instanceId === fromTrash.inst("shine").instanceId),
+    ).toBe(true);
+
+    const fromHand = await deleteTamerToOpenDelay("BT17-037", "hand");
+
+    expect(fromHand.perm("host").topCard.cardId).toBe("BT17-039");
+    expect(fromHand.state.players[0]!.hand.some((card) => card.instanceId === fromHand.inst("shine").instanceId)).toBe(
+      false,
+    );
   });
 });

@@ -26,7 +26,8 @@ describe("BT5 Shoutmon DX historical deck gauntlet", () => {
           deck: ["BT1-002"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      // The placement effect goes first: a Blitz ordered first would attack before it (Q1299).
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT5-019/ir-7-1"] },
     );
     s.state.memory = 3;
 

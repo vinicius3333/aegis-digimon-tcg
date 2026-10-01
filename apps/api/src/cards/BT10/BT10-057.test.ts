@@ -116,3 +116,86 @@ describe("BT10-057 Bloomlordmon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("bloom"), "SecurityAttack")).toBe(0);
   });
 });
+
+describe("BT10-057 Bloomlordmon — KB Q&A rulings", () => {
+  it("may suspend itself with [When Digivolving], gain 2 memory, then unsuspend and gain Piercing (Q1980)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-011", as: "base" },
+            { card: "BT10-046", as: "suspendedVegetation", suspended: true },
+            { card: "BT1-009", as: "unsuspendedBystander" },
+          ],
+          hand: [{ card: "BT10-057", as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("base").permanentId, s.inst("evolving").instanceId);
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 2);
+
+    const suspendChoice = s.decisions.find(({ req }) =>
+      req.options?.candidateInstanceIds?.includes(s.perm("unsuspendedBystander").permanentId),
+    );
+    expect(suspendChoice?.req.options?.candidateInstanceIds).toContain(s.perm("base").permanentId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.cardId).toBe("BT10-057");
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.perm("unsuspendedBystander").isSuspended).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
+  });
+
+  it("gains +4000 DP and Security Attack +2 with 4 suspended Digimon (Q1981)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-057", as: "bloom" },
+          { card: "BT10-043", suspended: true },
+          { card: "BT10-046", suspended: true },
+          { card: "BT10-047", suspended: true },
+          { card: "BT1-009", as: "fourth", suspended: true },
+        ],
+      },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("bloom").currentDP).toBe(16000);
+    expect(observe(s.engine).keywordAmount(s.perm("bloom"), "SecurityAttack")).toBe(2);
+
+    s.perm("fourth").isSuspended = false;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("bloom").currentDP).toBe(14000);
+    expect(observe(s.engine).keywordAmount(s.perm("bloom"), "SecurityAttack")).toBe(1);
+  });
+
+  it("counts itself as a suspended Digimon for its [Your Turn] effect (Q1982)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-057", as: "bloom", suspended: true },
+          { card: "BT1-009", suspended: true },
+        ],
+      },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("bloom").currentDP).toBe(14000);
+    expect(observe(s.engine).keywordAmount(s.perm("bloom"), "SecurityAttack")).toBe(1);
+
+    s.perm("bloom").isSuspended = false;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("bloom").currentDP).toBe(12000);
+    expect(observe(s.engine).keywordAmount(s.perm("bloom"), "SecurityAttack")).toBe(0);
+  });
+});

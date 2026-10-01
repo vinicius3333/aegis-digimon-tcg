@@ -57,6 +57,7 @@ const compiled: CompiledCard = {
               },
             },
             count: 1,
+            chooser: "opponent",
           },
           from: ["trash"],
           payCost: false,

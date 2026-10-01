@@ -2,9 +2,10 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type SeatSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-083.js";
+import "../BT1/BT1-085.js";
 import "./index.js";
 
 describe("BT20-083 Omekamon", () => {
@@ -363,5 +364,110 @@ describe("BT20-083 Omekamon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT20-083 Omekamon — KB Q&A rulings", () => {
+  async function attackOwnerSecurity(board: SeatSpec, options: { autoAcceptOptional: boolean }) {
+    const s = setupEngine(
+      {
+        0: { ...board, deck: ["BT20-010", "BT20-010"] },
+        1: {
+          battleArea: [{ card: "BT20-076", dp: 20000, as: "attacker" }],
+          deck: ["BT20-010", "BT20-010"],
+        },
+      },
+      { autoAcceptOptional: options.autoAcceptOptional, autoDeclineOptional: false, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    const memoryBeforeAttack = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const finish = async () => {
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, memoryBeforeAttack, finish };
+  }
+
+  it("activates the [Breeding] inherited effect only from the breeding area, not from a battle-area stack (Q4409)", async () => {
+    const { s, finish } = await attackOwnerSecurity(
+      {
+        breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "breedingOmekamon" }], as: "kingDrasil" },
+        battleArea: [{ card: "BT23-072", under: [{ card: "BT20-083", as: "fieldOmekamon" }], as: "fieldHost" }],
+        security: ["BT20-010"],
+      },
+      { autoAcceptOptional: true },
+    );
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.security.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("kingDrasil").isSuspended).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("breedingOmekamon").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.perm("fieldHost").isSuspended).toBe(false);
+    expect(s.perm("fieldHost").stack.map((card) => card.instanceId)).toContain(s.inst("fieldOmekamon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    await finish();
+  });
+
+  it("resolves the [Security] effect of the checked card before Omekamon's security-removed effect (Q4410)", async () => {
+    const { s, finish } = await attackOwnerSecurity(
+      {
+        breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "breedingOmekamon" }], as: "kingDrasil" },
+        security: [{ card: "BT1-085", as: "securityTai" }],
+      },
+      { autoAcceptOptional: false },
+    );
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.state.pendingDecision?.kind).toBe("optional");
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("securityTai").instanceId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("securityTai").instanceId,
+      s.inst("breedingOmekamon").instanceId,
+    ]);
+    await finish();
+  });
+
+  it("can suspend the breeding-area Digimon to play this Omekamon from its own digivolution cards (Q4411)", async () => {
+    const { s, memoryBeforeAttack, finish } = await attackOwnerSecurity(
+      {
+        breeding: { card: "BT13-007", under: [{ card: "BT20-083", as: "breedingOmekamon" }], as: "kingDrasil" },
+        security: ["BT20-010"],
+      },
+      { autoAcceptOptional: true },
+    );
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 1);
+    expect(s.perm("kingDrasil").isSuspended).toBe(true);
+    expect(s.state.players[0]!.breeding?.stack.map((card) => card.instanceId)).not.toContain(
+      s.inst("breedingOmekamon").instanceId,
+    );
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("breedingOmekamon").instanceId);
+    expect(s.state.memory).toBe(memoryBeforeAttack);
+    await finish();
   });
 });

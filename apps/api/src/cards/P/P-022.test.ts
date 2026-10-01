@@ -148,3 +148,42 @@ describe("P-022 DNA Digivolution-Hearts United", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-022 DNA Digivolution-Hearts United — KB Q&A rulings", () => {
+  for (const { alias, card } of [
+    { alias: "exVeemon", card: "BT3-025" },
+    { alias: "stingmon", card: "BT3-050" },
+  ]) {
+    it(`can be used with only ${alias} in hand, but bottoms nothing and plays no Paildramon (Q4131)`, async () => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: ["BT3-093", "BT3-094"],
+            hand: [
+              { card: "P-022", as: "option" },
+              { card, as: alias },
+              { card: "BT3-027", as: "paildramon" },
+            ],
+            deck: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+        [s.inst(alias).instanceId, s.inst("paildramon").instanceId].sort(),
+      );
+      expect(s.state.players[0]!.deck).toHaveLength(1);
+      expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    });
+  }
+});

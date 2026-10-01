@@ -8,6 +8,7 @@ import { viableColorCandidates } from "../targeting/colorMatching.js";
 import { seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "../targeting/loose.js";
+import { revealPrivateRequirementPicks } from "../targeting/privateReveal.js";
 import {
   candidatePermanents,
   raiseDeletionDpCap,
@@ -20,6 +21,7 @@ import {
 import type { Action, CardInstance, Permanent, Seat, Target } from "@aegis/shared";
 import { definitionMatches } from "../matching/definition.js";
 import { COLOR_MAP } from "../maps.js";
+import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
 
 function isCompleteCardOrder(candidates: readonly string[], order: readonly string[]): order is string[] {
   return (
@@ -45,6 +47,20 @@ function deletedPermanentSnapshots(
       ? []
       : [{ permanentId, controllerSeat: permanent.controllerSeat, topCard }];
   });
+}
+
+/**
+ * The one Digimon whose digivolution cards a stack-card trash names ("this Digimon's", the
+ * trigger subject's, a bound Digimon's), or undefined for a pooled "any of your Digimon" trash.
+ */
+function designatedDigivolutionHost(ctx: EffectContext, target: Target): string | undefined {
+  const hostFilter = target.filter.hostFilter;
+  if (target.filter.isSelfRef === true || hostFilter?.isSelfRef === true) return ctx.source.permanent()?.permanentId;
+  if (hostFilter?.sourceRef === "triggerSubject") {
+    return ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
+  }
+  const boundRef = (hostFilter as { boundRef?: string } | undefined)?.boundRef;
+  return boundRef === undefined ? undefined : ctx.selections?.get(boundRef);
 }
 
 async function returnDigivolutionCardsFirst(
@@ -298,86 +314,38 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "DeleteBudget": {
-      // P-094 Destromon: select opponent permanents up to a total play-cost budget.
-      // Resolve candidate permanents, sort ascending by printed play cost, iterate
-      // accumulating cost until budget is exhausted.
-      // BT19-096: optional scaling.budgetAdd increases the effective budget based on
-      // a counted pool (e.g. face-up security cards). effectiveBudget = budget + units * budgetAdd.
+      // Q1783: the controller picks any combination whose printed play costs fit the budget.
+      // BT19-096: optional scaling.budgetAdd raises the budget per counted unit.
       let effectiveBudget = action.budget;
       if (action.scaling !== undefined && action.scaling.budgetAdd !== undefined) {
         const units = scaleFactor(ctx, action.scaling);
         effectiveBudget += units * action.scaling.budgetAdd;
       }
-      const candidates = candidatePermanents(ctx, {
-        filter: action.filter,
-        count: "all",
-      } as Target);
-      if (action.minimum !== undefined && candidates.length < action.minimum) {
+      const printedPlayCost = (permanent: Permanent) =>
+        permanent.topCard === undefined ? 0 : (ctx.game.definitionOf(permanent.topCard).playCost ?? 0);
+      // Cheapest first, so an auto-responder or timeout default fits the most Digimon.
+      const affordable = candidatePermanents(ctx, { filter: action.filter, count: "all" } as Target)
+        .filter((candidate) => printedPlayCost(candidate) <= effectiveBudget)
+        .sort((first, second) => printedPlayCost(first) - printedPlayCost(second));
+      const minimum = action.minimum ?? 0;
+      if (affordable.length === 0 || affordable.length < minimum) {
         ctx.lastDeleteCount = 0;
         return false;
       }
-      if (candidates.length === 0) {
-        ctx.lastDeleteCount = 0;
-        return false;
-      }
-      if ((action as { chooseTargets?: boolean }).chooseTargets === true) {
-        const picked = await ctx.ask.selectPermanents(ctx, {
-          candidates: candidates.map((candidate) => candidate.permanentId),
-          min: 0,
-          max: candidates.length,
-          maxTotalPlayCost: effectiveBudget,
-        });
-        const costs = new Map(
-          candidates.map((candidate) => [
-            candidate.permanentId,
-            candidate.topCard === undefined ? 0 : (ctx.game.definitionOf(candidate.topCard).playCost ?? 0),
-          ]),
-        );
-        const selected: string[] = [];
-        let spent = 0;
-        for (const id of picked) {
-          const cost = costs.get(id);
-          if (cost !== undefined && spent + cost <= effectiveBudget) {
-            selected.push(id);
-            spent += cost;
-          }
-        }
-        ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
-        return false;
-      }
-      // Sort ascending by printed play cost
-      const byCost = candidates
-        .map((p) => {
-          const cost = p.topCard !== undefined ? (ctx.game.definitionOf(p.topCard).playCost ?? 0) : 0;
-          return { permanentId: p.permanentId, cost };
-        })
-        .sort((a, b) => a.cost - b.cost);
-      // Sequential selection: prompt controller for each cheapest candidate
+      const picked = await ctx.ask.selectPermanents(ctx, {
+        candidates: affordable.map((candidate) => candidate.permanentId),
+        min: minimum,
+        max: affordable.length,
+        maxTotalPlayCost: effectiveBudget,
+      });
+      const costById = new Map(affordable.map((candidate) => [candidate.permanentId, printedPlayCost(candidate)]));
       const selected: string[] = [];
       let spent = 0;
-      for (const candidate of byCost) {
-        // "up to" still requires the declared minimum. EX4-073's Q3519 makes the first
-        // legal deletion mandatory after the effect has been activated; only subsequent
-        // candidates may be declined.
-        if (action.upTo && spent + candidate.cost > effectiveBudget) continue;
-        if (spent + candidate.cost > effectiveBudget) break; // cannot afford this one
-        const mustMeetMinimum = action.minimum !== undefined && selected.length < action.minimum;
-        const yes =
-          action.upTo && !mustMeetMinimum
-            ? await ctx.ask.optional(
-                ctx,
-                `Delete ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${effectiveBudget})?`,
-              )
-            : true;
-        if (yes) {
-          selected.push(candidate.permanentId);
-          spent += candidate.cost;
-        }
-        if (spent >= effectiveBudget && !action.upTo) break;
-      }
-      if (action.minimum !== undefined && selected.length < action.minimum) {
-        ctx.lastDeleteCount = 0;
-        return false;
+      for (const permanentId of picked) {
+        const cost = costById.get(permanentId);
+        if (cost === undefined || spent + cost > effectiveBudget) continue;
+        selected.push(permanentId);
+        spent += cost;
       }
       ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
       return false;
@@ -520,6 +488,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         // (the controller reaching into a hand, e.g. "trash 1 of your opponent's cards in
         // their hand") is unchanged.
         const asker = action.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
+        const visible = action.blind === true ? [] : undefined;
         let chosen: string[];
         if (action.target.untilHandSize !== undefined) {
           // "Trash cards from your hand until you have untilHandSize left" (BT20-077).
@@ -531,7 +500,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             chosen = [];
           } else {
             const untilCandidates = candidateLooseInstances(ctx, { ...action.target, count: toTrash }, ["hand"]);
-            chosen = await pickLoose(ctx, { ...action.target, count: toTrash }, untilCandidates, undefined, asker);
+            chosen = await pickLoose(
+              ctx,
+              { ...action.target, count: toTrash },
+              untilCandidates,
+              undefined,
+              asker,
+              visible,
+            );
           }
         } else {
           const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
@@ -541,6 +517,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             candidates,
             undefined,
             asker,
+            visible,
           );
         }
         const movedResult = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
@@ -621,11 +598,28 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return false;
       }
       if (action.target.filter.zone === "digivolutionCards") {
-        const candidates = candidateLooseInstances(ctx, action.target, ["digivolutionCards"]);
-        const chosen = await pickLoose(ctx, action.target, candidates);
+        let candidates = candidateLooseInstances(ctx, action.target, ["digivolutionCards"]);
+        let chooser = ctx.ask;
+        const designatedHostId = designatedDigivolutionHost(ctx, action.target);
+        if (designatedHostId !== undefined) {
+          const redirect = await redirectDigivolutionTrash(ctx, [designatedHostId]);
+          const hostId = redirect.hostPermanentIds[0];
+          if (hostId !== designatedHostId) {
+            chooser = redirect.chooser;
+            const { hostFilter: _hostFilter, isSelfRef: _isSelfRef, ...cardFilter } = action.target.filter;
+            candidates = candidateLooseInstances(
+              ctx,
+              { ...action.target, filter: { ...cardFilter, controller: "any" } },
+              ["digivolutionCards"],
+            ).filter((candidate) => candidate.hostPermanentId === hostId);
+          }
+        }
+        const chosen = await pickLoose(ctx, action.target, candidates, undefined, chooser);
         if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
         ctx.lastEffectActed = chosen.length > 0;
-        return false;
+        // A "by trashing N" condition trashes as many as it can but is met only by all N (Q2006).
+        const required = action.target.upTo === true ? undefined : action.target.count;
+        return action.abortOnDecline === true && typeof required === "number" && chosen.length < required;
       }
       const permanentIds = await resolvePermanentTargets(ctx, action.target);
       if (action.returnDigivolutionCardsFirst) {
@@ -833,6 +827,8 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           }
           return false;
         }
+        if (action.to === "hand" || action.to === "deckTop" || action.to === "deckBottom")
+          revealPrivateRequirementPicks(ctx, returnTarget, candidates, chosen);
         let ordered = chosen;
         if (action.order === "any" && chosen.length > 1) {
           ordered =

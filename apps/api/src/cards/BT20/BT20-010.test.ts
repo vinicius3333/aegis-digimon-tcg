@@ -162,3 +162,33 @@ describe("BT20-010 Ryudamon", () => {
     ).toBe(false);
   });
 });
+
+describe("BT20-010 Ryudamon — KB Q&A rulings", () => {
+  it("does not reduce the cost when it digivolves from the breeding area into [Ginryumon] or a [Chronicle] Digimon (Q4292)", async () => {
+    expect(getCardDefinition("BT20-051")!.types).toContain("Chronicle");
+    for (const target of ["BT20-012", "BT20-051"]) {
+      const printedCost = getCardDefinition(target)!.evoCosts[0]!.memoryCost;
+      for (const zone of ["breeding", "battleArea"] as const) {
+        const ryudamon = { card: "BT20-010", as: "ryudamon" };
+        const s = setupEngine({
+          0: {
+            ...(zone === "breeding" ? { breeding: ryudamon } : { battleArea: [ryudamon] }),
+            hand: [{ card: target, as: "target" }],
+          },
+        });
+        s.state.memory = 5;
+        await s.ready();
+        expect(
+          s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("ryudamon").permanentId,
+            instanceId: s.inst("target").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.perm("ryudamon").topCard.cardId === target);
+        const expectedCost = zone === "breeding" ? printedCost : printedCost - 1;
+        expect(s.state.memory).toBe(5 - expectedCost);
+      }
+    }
+  });
+});

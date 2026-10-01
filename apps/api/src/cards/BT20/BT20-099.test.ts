@@ -1,7 +1,8 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import type { EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-099.js";
 import "./index.js";
 
@@ -226,5 +227,45 @@ describe("BT20-099 Singularity of Chaos", () => {
     });
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-099"]);
     expect(s.state.memory).toBe(10);
+  });
+});
+
+describe("BT20-099 Singularity of Chaos — KB Q&A rulings", () => {
+  const filler = ["BT1-010", "BT1-010", "BT1-010", "BT1-010"];
+
+  async function endOpponentTurnWithValdurSources(sources: string[]): Promise<EngineSetup> {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-037", under: sources, as: "valdur" }], deck: filler, security: ["BT1-010"] },
+        1: { deck: filler, security: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("lets Valdur Arm Partition when this inherited effect drops its DP to 0 and deletes it (Q4605)", async () => {
+    const withSingularity = await endOpponentTurnWithValdurSources(["BT20-099", "BT20-035", "BT20-036"]);
+    expect(withSingularity.state.players[1]!.security).toHaveLength(1);
+    expect(withSingularity.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "BT20-035",
+      "BT20-036",
+    ]);
+    expect(withSingularity.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT20-037", "BT20-099"]);
+
+    const withoutSingularity = await endOpponentTurnWithValdurSources(["BT20-035", "BT20-036"]);
+    expect(withoutSingularity.state.players[1]!.security).toHaveLength(2);
+    expect(withoutSingularity.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT20-037",
+    ]);
   });
 });

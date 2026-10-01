@@ -60,3 +60,61 @@ describe("BT3-102 Code Cracking", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+describe("BT3-102 Code Cracking — KB Q&A rulings", () => {
+  it("asks the opponent, not the user, whether to trash security, and recovers when they decline (Q1135)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT3-032"],
+        hand: [{ card: "BT3-102", as: "option" }],
+        deck: [{ card: "BT3-033", as: "recovered" }, "BT3-034"],
+      },
+      1: { security: [{ card: "BT3-034", as: "opponentSecurity" }] },
+    });
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
+    const trashChoice = s.decisions.find((decision) => decision.req.kind === "optional")!;
+    expect(trashChoice.seat).toBe(1);
+
+    const decline = {
+      type: "respondDecision" as const,
+      decisionId: trashChoice.req.decisionId,
+      response: { kind: "optional" as const, accept: false },
+    };
+    expect(s.engine.applyIntent(0, decline).ok).toBe(false);
+    expect(s.engine.applyIntent(1, decline)).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId));
+
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("opponentSecurity").instanceId,
+    ]);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("can be used against an empty security stack and recovers even if the opponent agrees to trash (Q1136)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT3-032"],
+          hand: [{ card: "BT3-102", as: "option" }],
+          deck: [{ card: "BT3-033", as: "recovered" }, "BT3-034"],
+        },
+        1: { security: [] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId));
+
+    expect(s.decisions.filter((decision) => decision.seat === 0)).toEqual([]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("recovered").instanceId]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+});

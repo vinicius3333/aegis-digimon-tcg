@@ -248,3 +248,33 @@ describe("EX2-022 Antylamon", () => {
     await loop;
   });
 });
+
+describe("EX2-022 Antylamon — KB Q&A rulings", () => {
+  it("lets an effect digivolve Lopmon into it through the Shu-Chong Wong route (Q3313)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-020", as: "lopmon" }, "EX2-059"],
+          hand: [
+            { card: "EX2-070", as: "plugIn" },
+            { card: "EX2-022", as: "antylamon" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+          security: inertSecurity,
+        },
+        1: { deck: ["BT1-011", "BT1-012"], security: inertSecurity },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plugIn").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("lopmon").topCard.instanceId === s.inst("antylamon").instanceId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("lopmon").stack.map((card) => card.cardId)).toEqual(["EX2-020"]);
+    expect(s.state.memory).toBe(8);
+  });
+});

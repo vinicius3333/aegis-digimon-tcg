@@ -304,3 +304,51 @@ describe("BT21-057 Greymon", () => {
     },
   );
 });
+
+describe("BT21-057 Greymon — KB Q&A rulings", () => {
+  it("gives the attack effect to a Digimon that can become unaffected, but it does not trigger while unaffected (Q4561)", async () => {
+    for (const [opponentMainPhaseMemory, expectAttack] of [
+      [3, true],
+      [0, false],
+    ] as const) {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT1-085", as: "tai" }],
+            hand: [{ card: "BT21-057", as: "greymon" }],
+            security: [{ card: "BT1-009", as: "security" }],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: {
+            battleArea: [{ card: "BT17-016", as: "gallantmon" }],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm("gallantmon").topCard.instanceId);
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => observe(s.engine).customEffectGrants(s.perm("gallantmon")).length === 1);
+
+      await advance(s.engine).runTurn(0);
+      s.state.turnSeat = 1;
+      s.state.memory = opponentMainPhaseMemory;
+      const opponentTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+      expect(observe(s.engine).hasRestriction(s.perm("gallantmon"), "beAffected")).toBe(!expectAttack);
+      if (expectAttack) await settle(() => s.state.players[0]!.security.length === 0);
+
+      expect(observe(s.engine).customEffectGrants(s.perm("gallantmon"))).toHaveLength(1);
+      expect(s.perm("gallantmon").isSuspended).toBe(expectAttack);
+      expect(s.state.players[0]!.security).toHaveLength(expectAttack ? 0 : 1);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await opponentTurn;
+    }
+  });
+});

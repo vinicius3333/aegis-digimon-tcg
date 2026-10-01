@@ -166,3 +166,21 @@ describe("BT1-004 Wanyamon", () => {
     await loop;
   });
 });
+
+describe("BT1-004 Wanyamon — KB Q&A rulings", () => {
+  it("does not count a source-less Digimon in the opponent's breeding area toward the two required (Q869)", async () => {
+    const breeding = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-004"] }] },
+      1: { battleArea: ["BT1-016"], breeding: "BT1-017" },
+    });
+    await breeding.ready();
+    expect(breeding.perm("host").currentDP).toBe(5000);
+
+    const battleArea = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-004"] }] },
+      1: { battleArea: ["BT1-016", "BT1-017"] },
+    });
+    await battleArea.ready();
+    expect(battleArea.perm("host").currentDP).toBe(7000);
+  });
+});

@@ -2,6 +2,7 @@ import type { Client } from "colyseus";
 import {
   EffectDuration,
   PlayerState,
+  isDigimonWorldAvatarId,
   Phase,
   Permanent,
   type CardColor,
@@ -54,6 +55,7 @@ export function seatPlayer(engine: GameEngine, seat: Seat, sessionId: string, op
   player.seat = seat;
   player.sessionId = sessionId;
   player.displayName = options.displayName;
+  player.avatarId = isDigimonWorldAvatarId(options.avatarId) ? options.avatarId : "";
   engine.state.players[seat] = player;
   engine.stagedDecks[seat] = options.deck;
   // Seating replaces the PlayerState object, so the port has to be re-installed on the new
@@ -144,8 +146,21 @@ export function startDevScenario(engine: GameEngine, scenario: DevScenarioId): v
       engine.projection.syncRestrictions();
     }
   }
+  if (scenario === "arena-bt20-ouryuken-reduction-resumes") {
+    const chronomon = engine.state.players[1]?.battleArea.find(({ topCard }) => topCard.cardId === "BT26-016");
+    if (chronomon !== undefined) installAegiochusmonHolyProtection(engine, chronomon);
+  }
   engine.hooks.emit({ kind: "matchStarted", firstSeat: engine.state.turnSeat });
   void startTurnLoop(engine);
+}
+
+/** BT26-029's When Digivolving protection, as if its controller resolved it on their last turn. */
+function installAegiochusmonHolyProtection(engine: GameEngine, { permanentId, controllerSeat }: Permanent): void {
+  const opponentOnly = { byOpponentEffectsOnly: true, originSeat: controllerSeat };
+  engine.continuous.addRestriction(permanentId, "dpImmune", EffectDuration.UntilOpponentTurnEnd, opponentOnly);
+  engine.continuous.addRestriction(permanentId, "stackReturn", EffectDuration.UntilOpponentTurnEnd, opponentOnly);
+  engine.continuous.addStackTrashLock(permanentId, EffectDuration.UntilOpponentTurnEnd);
+  engine.projection.syncRestrictions();
 }
 
 /** Gather both staged decklists; undefined if either seat has not staged one. */

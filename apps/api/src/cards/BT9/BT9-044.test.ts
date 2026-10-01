@@ -1,8 +1,9 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-044.js";
+import "../BT8/BT8-038.js";
 import "./BT9-023.js";
 
 describe("BT9-044 Magnamon (X Antibody)", () => {
@@ -133,5 +134,59 @@ describe("BT9-044 Magnamon (X Antibody)", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT9-044")).toBe(true);
+  });
+});
+
+async function attackPlayerAgainstMagnamon(defenderField: PermanentSpec[], attacker: string) {
+  const s = setupEngine(
+    {
+      0: { battleArea: defenderField, security: ["BT1-013", "BT1-013"] },
+      1: { battleArea: [{ card: attacker, as: "attacker" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.turnSeat = 1;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.battleArea.length === 0 || s.state.players[0]!.security.length < 2);
+  await settle();
+  return s;
+}
+
+describe("BT9-044 Magnamon (X Antibody) — KB Q&A rulings", () => {
+  it("switches the attack target to itself while unsuspended and battles unsuspended (Q1838)", async () => {
+    const s = await attackPlayerAgainstMagnamon(
+      [{ card: "BT9-044", as: "magna", under: ["BT9-109"], suspended: false }],
+      "BT1-009",
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.perm("magna").isSuspended).toBe(false);
+
+    const control = await attackPlayerAgainstMagnamon(
+      [{ card: "BT9-044", as: "magna", under: ["BT1-013"], suspended: false }],
+      "BT1-009",
+    );
+    expect(control.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("switches the target of a can't-be-blocked attack because switching is not blocking (Q1839)", async () => {
+    const s = await attackPlayerAgainstMagnamon(
+      [
+        { card: "BT9-044", as: "magna", under: ["BT9-109"] },
+        { card: "BT8-038", as: "blocker" },
+      ],
+      "BT9-023",
+    );
+    expect(s.events.some((event) => event.kind === "blockWindowOpened" || event.kind === "blocked")).toBe(false);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 });

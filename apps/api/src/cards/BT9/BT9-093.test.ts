@@ -3,6 +3,35 @@ import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-093.js";
 import "./BT9-093.js";
+
+async function playFlareRockSoulWith(ownDigimon: string) {
+  const s = setupEngine(
+    {
+      0: {
+        // The red Tamer meets the Option's color requirement without being a digivolution host.
+        battleArea: [{ card: ownDigimon, as: "own" }, "BT1-085"],
+        hand: [
+          { card: "BT9-093", as: "option" },
+          { card: "BT9-013", as: "omniShoutmon" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT9-032", as: "opponentDigimon" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 6;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+    ok: true,
+  });
+  const player = s.state.players[0]!;
+  await settle(
+    () =>
+      player.trash.some((card) => card.instanceId === s.inst("option").instanceId) &&
+      s.state.pendingDecision === undefined,
+  );
+  return s;
+}
+
 describe("BT9-093 Flare Rock Soul", () => {
   it("matches catalog values and the sequential legal-digivolve and security IR", () => {
     expect(getCardDefinition("BT9-093")).toMatchObject({
@@ -49,5 +78,19 @@ describe("BT9-093 Flare Rock Soul", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT9-093 Flare Rock Soul — KB Q&A rulings", () => {
+  it("cannot digivolve a Digimon that doesn't meet the [Shoutmon] card's digivolution requirements (Q1896)", async () => {
+    const yellowLevel4 = await playFlareRockSoulWith("BT9-035");
+    expect(yellowLevel4.state.players[1]!.battleArea).toHaveLength(0);
+    expect(yellowLevel4.perm("own").topCard.cardId).toBe("BT9-035");
+    expect(yellowLevel4.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT9-013");
+    expect(yellowLevel4.state.memory).toBe(3);
+
+    const redLevel4 = await playFlareRockSoulWith("BT1-015");
+    expect(redLevel4.perm("own").topCard.cardId).toBe("BT9-013");
+    expect(redLevel4.state.memory).toBe(0);
   });
 });

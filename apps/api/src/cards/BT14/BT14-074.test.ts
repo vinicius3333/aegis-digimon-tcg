@@ -129,3 +129,53 @@ describe("BT14-074", () => {
     await secondTurn;
   });
 });
+
+describe("BT14-074 Loogarmon — KB Q&A rulings", () => {
+  const attackWithEijiUnderneath = async (optionalAnswer: "accept" | "decline") => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-074", as: "loogarmon", under: ["BT14-087"] }],
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          deck: [{ card: "BT1-010", as: "topOfDeck" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      {
+        autoSelectCards: true,
+        ...(optionalAnswer === "accept" ? { autoAcceptOptional: true } : { autoDeclineOptional: true }),
+      },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("loogarmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    return s;
+  };
+
+  it("gains no memory from Eiji when the hand-trash cost is not paid (Q2444)", async () => {
+    const declined = await attackWithEijiUnderneath("decline");
+    expect(declined.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      declined.inst("handCard").instanceId,
+    ]);
+    expect(declined.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      declined.inst("topOfDeck").instanceId,
+    ]);
+    expect(declined.state.memory).toBe(3);
+
+    const paid = await attackWithEijiUnderneath("accept");
+    expect(paid.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      paid.inst("handCard").instanceId,
+    );
+    expect(paid.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      paid.inst("topOfDeck").instanceId,
+    ]);
+    expect(paid.state.memory).toBe(4);
+  });
+});

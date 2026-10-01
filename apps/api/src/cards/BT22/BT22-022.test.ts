@@ -196,3 +196,32 @@ describe("BT22-022 Veedramon", () => {
     expect(s.perm("protected").isSuspended).toBe(true);
   });
 });
+
+describe("BT22-022 Veedramon — KB Q&A rulings", () => {
+  it("plays a Tamer whose effect text mentions [Veedramon] instead of a Tamer without it (Q4875)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-022", as: "veedramon" }],
+          hand: [
+            { card: "BT22-083", as: "unrelatedTamer" },
+            { card: "BT11-112", as: "rina" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("unrelatedTamer").instanceId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("veedramon"));
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
+      "BT22-022",
+      "BT11-112",
+    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("unrelatedTamer").instanceId]);
+  });
+});

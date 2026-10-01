@@ -53,3 +53,38 @@ describe("BT12-040 Sagomon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
   });
 });
+
+describe("BT12-040 Sagomon — KB Q&A rulings", () => {
+  it("counts an opposing Digimon affected by <Security Attack -> as a Digimon with <Security Attack> for its cost reduction (Q2172)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-038", as: "host", under: ["BT12-040"] }],
+          hand: [
+            { card: "BT12-040", as: "beforeGrant" },
+            { card: "BT12-040", as: "afterGrant" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beforeGrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(3);
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("afterGrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    expect(s.state.memory).toBe(6);
+  });
+});

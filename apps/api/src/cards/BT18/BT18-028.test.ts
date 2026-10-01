@@ -156,3 +156,75 @@ describe("BT18-028 AncientMegatheriummon", () => {
     ).toEqual({ ok: false, reason: "invalid-material" });
   });
 });
+
+describe("BT18-028 AncientMegatheriummon — KB Q&A rulings", () => {
+  it("lets an opposing Digimon that gains a digivolution card after the effect suspend to attack (Q2952)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-028", as: "ancient" }],
+          deck: ["BT1-009", "BT1-013", "BT1-009", "BT1-013"],
+          security: ["BT1-009", "BT1-013", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "gainsSource" },
+            { card: "BT1-010", as: "staysEmpty" },
+          ],
+          hand: [{ card: "BT1-014", as: "kokatorimon" }],
+          deck: ["BT1-009", "BT1-013", "BT1-009", "BT1-013"],
+          security: ["BT1-009", "BT1-013", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, declineDigiXros: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 11;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 11;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("gainsSource"), "suspend"));
+    expect(observe(s.engine).isRestricted(s.perm("staysEmpty"), "suspend")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("gainsSource").permanentId,
+        instanceId: s.inst("kokatorimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gainsSource").topCard?.cardId === "BT1-014");
+    expect(s.perm("gainsSource").stack).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(s.perm("gainsSource"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("staysEmpty"), "suspend")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("staysEmpty").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("staysEmpty").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("gainsSource").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gainsSource").isSuspended);
+    await advance(s.engine).finishAttack();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});

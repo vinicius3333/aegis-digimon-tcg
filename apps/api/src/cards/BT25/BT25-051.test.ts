@@ -1,7 +1,13 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  setupEngine,
+  settle,
+  type BoardSpec,
+  type EngineSetup,
+  type SetupEngineOptions,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_051 } from "./BT25-051.js";
 import "../index.js";
@@ -40,10 +46,10 @@ describe("BT25-051 Grizzlymon", () => {
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
-              { tokens: ["Beast", "Animal", "Sovereign"], match: "trait" },
+              { tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" },
               { tokens: ["Shaman", "TS"], match: "trait" },
             ],
-            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
+            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }],
           },
         },
       });
@@ -108,6 +114,32 @@ describe("BT25-051 Grizzlymon", () => {
     expect(s.perm("ownBeast").currentDP).toBe(4000);
     expect(s.perm("ownSeaAnimal").currentDP).toBe(2000);
     expect(s.perm("opponentBeast").currentDP).toBe(1000);
+  });
+
+  it("counts [Animal] inside a longer trait such as [Dark Animal], but not [Sea Animal]", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-051", as: "grizzly" }],
+          battleArea: [
+            { card: "BT14-008", as: "seaAnimal" },
+            { card: "BT14-071", as: "darkAnimal" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("seaAnimal").permanentId);
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grizzly").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("darkAnimal").currentDP === 4000);
+
+    expect(s.perm("darkAnimal").currentDP).toBe(4000);
+    expect(s.perm("seaAnimal").currentDP).toBe(2000);
   });
 
   it("applies the same target filter after a public When Digivolving", async () => {
@@ -178,58 +210,6 @@ describe("BT25-051 Grizzlymon", () => {
     await settle(() => s.perm("source").topCard?.cardId === "BT25-051");
     expect(s.state.memory).toBe(2);
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual([source]);
-  });
-
-  it("naturally draws when the Digimon carrying Grizzlymon wins a battle", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: "BT25-055",
-              as: "attacker",
-              under: [{ card: "BT25-051", as: "inherited" }],
-            },
-          ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
-        },
-        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
-
-    expect(s.state.players[0]!.hand).toContainEqual(s.inst("drawn"));
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-  });
-
-  it("draws when the inherited Grizzlymon wins a Security battle", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT25-055", as: "attacker", under: [{ card: "BT25-051", as: "inherited" }], dp: 12000 }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
-      },
-      1: { security: [{ card: "BT1-009", as: "security" }] },
-    });
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
   it("does not draw when the inherited Grizzlymon loses", async () => {
@@ -325,63 +305,109 @@ describe("BT25-051 Grizzlymon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;
   });
+});
 
-  it("orders the turn-player battle-win draw before loser On Deletion", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT25-055", as: "winner", under: ["BT25-051"], dp: 12000 }], deck: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT1-035", as: "loser", under: ["BT1-030"], suspended: true, dp: 5000 }] },
-    });
+describe("BT25-051 Grizzlymon — KB Q&A rulings", () => {
+  /** Attack with a Deramon carrying Grizzlymon's inherited draw, against `target` or the player. */
+  async function attackWithInheritedGrizzlymon(
+    board: BoardSpec,
+    target: "player" | string,
+    options: SetupEngineOptions = { autoSelectCards: true },
+  ) {
+    const s = setupEngine(board, options);
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("winner").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("loser").permanentId },
+        target:
+          target === "player" ? { kind: "player" } : { kind: "permanent", permanentId: s.perm(target).permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
-    const battleWin = s.events.findIndex(
-      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-051",
+    return s;
+  }
+
+  const battleWinTrigger = (s: EngineSetup) =>
+    s.events.findIndex((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-051");
+
+  it("triggers after the losing Digimon is deleted by the battle (Q6323)", async () => {
+    const s = await attackWithInheritedGrizzlymon(
+      {
+        0: {
+          battleArea: [{ card: "BT25-055", as: "winner", under: ["BT25-051"] }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "loser", suspended: true }] },
+      },
+      "loser",
     );
-    const loserOnDeletion = s.events.findIndex(
-      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT1-030",
-    );
-    expect(battleWin).toBeGreaterThanOrEqual(0);
-    expect(loserOnDeletion).toBeGreaterThan(battleWin);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-035")).toBe(false);
+
+    const battleDeletion = s.events.findIndex((event) => event.kind === "cardsMoved" && event.battleDeletion === true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(battleDeletion).toBeGreaterThanOrEqual(0);
+    expect(battleWinTrigger(s)).toBeGreaterThan(battleDeletion);
   });
 
-  it("draws after a battle win even when Armor Purge prevents the loser deletion", async () => {
-    const s = setupEngine(
+  it("also triggers when it wins a battle against a Security Digimon (Q6324)", async () => {
+    const s = await attackWithInheritedGrizzlymon(
       {
         0: {
           battleArea: [{ card: "BT25-055", as: "winner", under: ["BT25-051"], dp: 12000 }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
-        1: { battleArea: [{ card: "BT10-074", as: "purge", under: ["BT10-073"], suspended: true }] },
+        1: { security: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      "player",
     );
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("winner").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("purge").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("winner").permanentId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("purge").permanentId)).toBe(true);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT10-074");
+    expect(battleWinTrigger(s)).toBeGreaterThanOrEqual(0);
+  });
+
+  it("lets the turn player activate the battle-win draw before the loser's On Deletion (Q6325)", async () => {
+    const s = await attackWithInheritedGrizzlymon(
+      {
+        0: { battleArea: [{ card: "BT25-055", as: "winner", under: ["BT25-051"], dp: 12000 }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-035", as: "loser", under: ["BT1-030"], suspended: true, dp: 5000 }] },
+      },
+      "loser",
+    );
+
+    const loserOnDeletion = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT1-030",
+    );
+    expect(battleWinTrigger(s)).toBeGreaterThanOrEqual(0);
+    expect(loserOnDeletion).toBeGreaterThan(battleWinTrigger(s));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-035")).toBe(false);
+  });
+
+  const armorPurgeBoard: BoardSpec = {
+    0: {
+      battleArea: [{ card: "BT25-055", as: "winner", under: ["BT25-051"], dp: 12000 }],
+      deck: [{ card: "BT1-001", as: "drawn" }],
+    },
+    1: { battleArea: [{ card: "BT10-074", as: "purge", under: ["BT10-073"], suspended: true }] },
+  };
+  const acceptEverything: SetupEngineOptions = { autoAcceptOptional: true, autoSelectCards: true };
+
+  it("resolves the loser's would-be-deleted effect before the battle-win draw (Q6326)", async () => {
+    const s = await attackWithInheritedGrizzlymon(armorPurgeBoard, "purge", acceptEverything);
+
     const armorPurgeCost = s.events.findIndex(
       (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("purge").instanceId),
     );
-    const battleWin = s.events.findIndex(
-      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-051",
-    );
     expect(armorPurgeCost).toBeGreaterThanOrEqual(0);
-    expect(battleWin).toBeGreaterThan(armorPurgeCost);
+    expect(battleWinTrigger(s)).toBeGreaterThan(armorPurgeCost);
+  });
+
+  it("still draws on a battle win when an effect prevents the loser's deletion (Q6327)", async () => {
+    const s = await attackWithInheritedGrizzlymon(armorPurgeBoard, "purge", acceptEverything);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("purge").permanentId)).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT10-074");
   });
 });

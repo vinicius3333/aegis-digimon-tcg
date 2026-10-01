@@ -318,3 +318,62 @@ describe("EX6-074 Mirei Mikagura", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.trash);
   });
 });
+
+describe("EX6-074 Mirei Mikagura — KB Q&A rulings", () => {
+  it.each([
+    { base: "BT1-009", requirementMet: false },
+    { base: "BT1-014", requirementMet: false },
+    { base: "BT1-051", requirementMet: true },
+  ])(
+    "digivolves into [Angewomon] from the trash only when its digivolution requirements are met (base=$base) (Q3811)",
+    async ({ base, requirementMet }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX6-074", as: "mirei" },
+              { card: base, as: "base" },
+            ],
+            hand: [{ card: "BT1-046", as: "holy" }],
+            trash: [{ card: "BT2-037", as: "angewomon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 5;
+      await advance(s.engine).verb.playInstances([s.inst("holy").instanceId]);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("mirei").isSuspended).toBe(true);
+      expect(s.perm("base").topCard?.instanceId === s.inst("angewomon").instanceId).toBe(requirementMet);
+      expect(s.perm("holy").topCard?.cardId).toBe("BT1-046");
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("angewomon").instanceId)).toBe(
+        !requirementMet,
+      );
+      expect(s.state.memory).toBe(requirementMet ? 4 : 6);
+    },
+  );
+
+  it("stacks [ST10-04 Gatomon]'s own reduction of 2 on top of Mirei's reduction of 1 (Q3812)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-074", as: "mirei" }],
+          hand: [{ card: "ST10-04", as: "gatomon" }],
+          trash: [{ card: "BT2-037", as: "angewomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    await advance(s.engine).verb.playInstances([s.inst("gatomon").instanceId]);
+    await settle(() => s.perm("gatomon").topCard?.instanceId === s.inst("angewomon").instanceId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("gatomon").topCard?.instanceId).toBe(s.inst("angewomon").instanceId);
+    expect(s.perm("gatomon").stack.map((card) => card.instanceId)).toEqual([s.inst("gatomon").instanceId]);
+    expect(s.state.memory).toBe(1);
+  });
+});

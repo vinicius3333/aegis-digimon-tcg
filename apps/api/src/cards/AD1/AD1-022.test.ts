@@ -143,3 +143,44 @@ describe("AD1-022 Izzy Izumi & Tai Kamiya", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolve").instanceId)).toBe(true);
   });
 });
+
+describe("AD1-022 Izzy Izumi & Tai Kamiya — KB Q&A rulings", () => {
+  it("cannot combine two copies' [Your Turn] effects into one digivolution reduced by 2 (Q6112)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-022", as: "first-tamer" },
+            { card: "AD1-022", as: "second-tamer" },
+            { card: "ST20-10", as: "first-base" },
+            { card: "ST20-10", as: "second-base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "trigger" },
+            { card: "AD1-001", as: "first-evolve" },
+            { card: "AD1-001", as: "second-evolve" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 12;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.perm("first-base").topCard.cardId === "AD1-001" && s.perm("second-base").topCard.cardId === "AD1-001",
+    );
+    await settle();
+
+    const playCost = 5;
+    const digivolutionCostReducedOnlyByItsOwnCopy = 2 - 1;
+    expect(s.perm("first-tamer").isSuspended).toBe(true);
+    expect(s.perm("second-tamer").isSuspended).toBe(true);
+    expect(s.perm("first-base").stack).toHaveLength(1);
+    expect(s.perm("second-base").stack).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(12 - playCost - 2 * digivolutionCostReducedOnlyByItsOwnCopy);
+  });
+});

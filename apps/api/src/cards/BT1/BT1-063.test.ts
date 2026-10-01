@@ -1,5 +1,6 @@
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT1-063.js";
@@ -146,5 +147,33 @@ describe("BT1-063 Seraphimon", () => {
         instanceId: s.inst("seraphimon").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("BT1-063 Seraphimon — KB Q&A rulings", () => {
+  it("checks only 1 additional security card even with 6 security cards (Q921)", async () => {
+    const opponentSecurityAfterAttack = async (ownSecurityCount: number) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT1-063", as: "seraphimon" }],
+          security: Array.from({ length: ownSecurityCount }, () => "BT1-049"),
+        },
+        1: { security: Array.from({ length: 6 }, () => "BT1-049") },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("seraphimon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      expect(s.state.players[0]!.battleArea).toHaveLength(1);
+      return s.state.players[1]!.security.length;
+    };
+
+    expect(await opponentSecurityAfterAttack(6)).toBe(4);
+    expect(await opponentSecurityAfterAttack(2)).toBe(5);
   });
 });

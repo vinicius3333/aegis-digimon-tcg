@@ -202,3 +202,53 @@ describe("BT20-096 Black Sabbath", () => {
     expect(s.perm("tooHigh").topCard.cardId).toBe("BT20-045");
   });
 });
+
+describe("BT20-096 Black Sabbath — KB Q&A rulings", () => {
+  it("activates its [Trash] effect only while the card is in the trash, not from the hand (Q4438)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-096", as: "handCopy" }, "BT1-010"],
+          trash: [{ card: "BT20-096", as: "trashCopy" }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT20-062", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const handCopyId = s.inst("handCopy").instanceId;
+    const trashCopyId = s.inst("trashCopy").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const parseEffects = (json: string) => JSON.parse(json || "[]") as { effectKey: string }[];
+    const trashEffects = parseEffects(s.inst("trashCopy").activatableEffectsJson);
+    expect(trashEffects).toHaveLength(1);
+    expect(parseEffects(s.inst("handCopy").activatableEffectsJson)).toHaveLength(0);
+
+    const fromHand = s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: handCopyId,
+      effectKey: trashEffects[0]!.effectKey,
+    });
+    expect(fromHand.ok).toBe(false);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handCopyId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: trashCopyId,
+        effectKey: trashEffects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === trashCopyId);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+});

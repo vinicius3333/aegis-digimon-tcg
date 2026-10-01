@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-095.js";
 import "../BT10/BT10-098.js";
@@ -393,5 +394,59 @@ describe("BT17-095 Miraculous Mega Knight", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-081")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(true);
+  });
+});
+
+describe("BT17-095 Miraculous Mega Knight — KB Q&A rulings", () => {
+  it("keeps the DNA digivolved Omnimon in play instead of letting it leave in place of its material (Q4432)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-015", as: "leavingWarGreymon" },
+            { card: "BT17-081", as: "colorTamer" },
+          ],
+          hand: [
+            { card: "BT17-095", as: "option" },
+            { card: "BT17-027", as: "looseMetalGarurumon" },
+            { card: "EX4-060", as: "omnimon" },
+          ],
+        },
+        1: {
+          battleArea: ["BT17-019"],
+          hand: [{ card: "BT10-098", as: "returner" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    s.state.turnCount += 1;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("returner").instanceId })).toEqual({
+      ok: true,
+    });
+    const omnimonId = s.inst("omnimon").instanceId;
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === omnimonId) &&
+        s.state.pendingDecision === undefined,
+    );
+    await advance(s.engine).recompute();
+
+    const omnimon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === omnimonId);
+    expect(omnimon).toBeDefined();
+    expect(omnimon!.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("leavingWarGreymon").instanceId, s.inst("looseMetalGarurumon").instanceId]),
+    );
+    const handIds = s.state.players[0]!.hand.map((card) => card.instanceId);
+    expect(handIds).not.toContain(omnimonId);
+    expect(handIds).not.toContain(s.inst("leavingWarGreymon").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

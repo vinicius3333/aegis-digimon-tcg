@@ -297,3 +297,41 @@ describe("BT21-055 Sunarizamon", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("BT21-055 Sunarizamon — KB Q&A rulings", () => {
+  it("stacks its -1 reduction with EX10-032's ignore-requirements digivolve for a cost of 2 (Q5091)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-055", as: "sunarizamon" },
+            { card: "EX10-063", as: "close" },
+          ],
+          hand: [{ card: "EX10-032", as: "proganomon" }],
+          trash: [{ card: "EX10-028", as: "landramon" }],
+          deck: ["BT1-013", "BT1-014", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const [entry] = JSON.parse(s.inst("proganomon").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(entry).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("proganomon").instanceId,
+        effectKey: entry!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunarizamon").topCard.cardId === "EX10-032" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("sunarizamon").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("landramon").instanceId,
+      s.inst("sunarizamon").instanceId,
+    ]);
+    expect(s.state.memory).toBe(1);
+  });
+});

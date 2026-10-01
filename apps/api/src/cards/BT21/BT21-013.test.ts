@@ -5,7 +5,8 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./BT21-013.js";
 import "../index.js";
 
@@ -440,5 +441,233 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(8000);
+  });
+});
+
+const TAKUYA = "BT21-082";
+const BURNING_GREYMON = "BT12-013";
+const CALUMON = "EX2-045";
+const KING_DRASIL = "BT13-007";
+const FILLER = ["BT1-010", "BT1-010", "BT1-010"];
+
+function digivolveAgunimonOnto(s: EngineSetup, baseAlias: string, agunimonAlias = "agunimon") {
+  return s.engine.applyIntent(0, {
+    type: "digivolve",
+    permanentId: s.perm(baseAlias).permanentId,
+    instanceId: s.inst(agunimonAlias).instanceId,
+    useAlternateCost: true,
+  });
+}
+
+function attackPlayer(s: EngineSetup, attackerAlias: string) {
+  return s.engine.applyIntent(0, {
+    type: "attack",
+    attackerPermanentId: s.perm(attackerAlias).permanentId,
+    target: { kind: "player" },
+  });
+}
+
+async function digivolvedFromTakuya(options: { enteredThisTurn?: boolean; opponentSecurity?: string[] } = {}) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: TAKUYA, as: "tamer", enteredThisTurn: options.enteredThisTurn ?? false }],
+        hand: [{ card: CARD_ID, as: "agunimon" }],
+        deck: [{ card: "BT1-010", as: "drawn" }, "BT1-010"],
+      },
+      1: { security: options.opponentSecurity ?? ["BT1-010", "BT1-010"], deck: [...FILLER] },
+    },
+    { autoSelectCards: true, autoDeclineOptional: true },
+  );
+  s.state.memory = 3;
+  await s.ready();
+  expect(digivolveAgunimonOnto(s, "tamer")).toEqual({ ok: true });
+  await settle(() => s.perm("tamer").topCard.cardId === CARD_ID);
+  expect(s.perm("tamer").topCard.cardId).toBe(CARD_ID);
+  expect(s.state.memory).toBe(1);
+  return s;
+}
+
+describe("BT21-013 Agunimon — KB Q&A rulings", () => {
+  it("places the card on the bottom of the cards already under the red Tamer (Q4522)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: BURNING_GREYMON, as: "burning" },
+            { card: TAKUYA, as: "tamer", under: [{ card: "BT21-016", as: "alreadyUnder" }] },
+          ],
+          hand: [
+            { card: CARD_ID, as: "agunimon" },
+            { card: "BT21-016", as: "placed" },
+          ],
+          deck: [...FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("tamer").topCard.instanceId);
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(digivolveAgunimonOnto(s, "burning")).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.length === 2);
+
+    expect(s.perm("tamer").topCard.cardId).toBe(TAKUYA);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("placed").instanceId,
+      s.inst("alreadyUnder").instanceId,
+    ]);
+  });
+
+  it("digivolves from a Tamer as-is: no 'when a Digimon digivolves' trigger and a can't-digivolve lock does not stop it (Q6671)", async () => {
+    const watcherBoard = async (base: "tamer" | "burning") => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              base === "tamer" ? { card: TAKUYA, as: "base" } : { card: BURNING_GREYMON, as: "base" },
+              { card: CALUMON, as: "calumon" },
+            ],
+            hand: [{ card: CARD_ID, as: "agunimon" }],
+            deck: [...FILLER],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(digivolveAgunimonOnto(s, "base")).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+      await drainMicrotasks();
+      return s;
+    };
+
+    const fromTamer = await watcherBoard("tamer");
+    expect(fromTamer.perm("calumon").isSuspended).toBe(false);
+    // Near-miss: digivolving from a Digimon fires Calumon's "when one of your Digimon digivolves".
+    const fromDigimon = await watcherBoard("burning");
+    expect(fromDigimon.perm("calumon").isSuspended).toBe(true);
+
+    const locked = setupEngine(
+      {
+        0: {
+          breeding: { card: KING_DRASIL, as: "drasil" },
+          battleArea: [
+            { card: TAKUYA, as: "tamer" },
+            { card: BURNING_GREYMON, as: "burning" },
+          ],
+          hand: [
+            { card: CARD_ID, as: "agunimon" },
+            { card: CARD_ID, as: "secondAgunimon" },
+          ],
+          deck: [...FILLER],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    locked.state.memory = 3;
+    await locked.ready();
+
+    expect(digivolveAgunimonOnto(locked, "burning", "secondAgunimon")).toMatchObject({ ok: false });
+    expect(locked.perm("burning").topCard.cardId).toBe(BURNING_GREYMON);
+    expect(digivolveAgunimonOnto(locked, "tamer")).toEqual({ ok: true });
+    await settle(() => locked.perm("tamer").topCard.cardId === CARD_ID);
+    expect(locked.perm("tamer").topCard.cardId).toBe(CARD_ID);
+  });
+
+  it("performs the digivolution bonus draw when digivolving from a Tamer (Q6672)", async () => {
+    const s = await digivolvedFromTakuya();
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("cannot attack the turn it digivolves from a Tamer played that turn (Q6673)", async () => {
+    const freshTamer = await digivolvedFromTakuya({ enteredThisTurn: true });
+    expect(attackPlayer(freshTamer, "tamer")).toMatchObject({ ok: false });
+    expect(freshTamer.perm("tamer").isSuspended).toBe(false);
+    expect(freshTamer.state.players[1]!.security).toHaveLength(2);
+
+    const establishedTamer = await digivolvedFromTakuya({ enteredThisTurn: false });
+    expect(attackPlayer(establishedTamer, "tamer")).toEqual({ ok: true });
+  });
+
+  it("keeps the Tamer as a digivolution card that is trashed when the Digimon leaves the field (Q6674)", async () => {
+    const s = await digivolvedFromTakuya();
+    const tamerCard = s.perm("tamer").stack[0]!;
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual([TAKUYA]);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("tamer").permanentId])).toBe(1);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [tamerCard.instanceId, s.inst("agunimon").instanceId].sort(),
+    );
+  });
+
+  it("does not gain the [Security] effect of a Tamer in its digivolution cards (Q6675)", async () => {
+    const s = await digivolvedFromTakuya({ opponentSecurity: [TAKUYA, "BT1-010"] });
+    const buriedTamerId = s.perm("tamer").stack[0]!.instanceId;
+
+    // Opening a [Security] window on the whole stack also collects the buried Tamer's effects,
+    // so only the ruling keeps its "play this card" effect from firing.
+    await advance(s.engine).fireForPermanent(EffectTiming.SecuritySkill, s.perm("tamer"));
+    await drainMicrotasks();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([buriedTamerId]);
+
+    // Near-miss: the same Tamer checked from security does play itself.
+    expect(attackPlayer(s, "tamer")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === TAKUYA));
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([TAKUYA]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([buriedTamerId]);
+  });
+  it("gains the inherited effect of the Tamer in its digivolution cards (Q6676)", async () => {
+    const attackWithAgunimon = async (base: typeof TAKUYA | typeof BURNING_GREYMON) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: base, as: "base" }],
+            hand: [
+              { card: CARD_ID, as: "agunimon" },
+              { card: "BT1-085", as: "redTamer" },
+            ],
+            deck: [...FILLER],
+          },
+          1: { security: ["BT1-010", "BT1-010"], deck: [...FILLER] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(digivolveAgunimonOnto(s, "base")).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
+
+      expect(attackPlayer(s, "base")).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+      await drainMicrotasks();
+      return s;
+    };
+
+    const fromTakuya = await attackWithAgunimon(TAKUYA);
+    expect(
+      fromTakuya.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === fromTakuya.inst("redTamer").instanceId,
+      ),
+    ).toBe(true);
+    expect(fromTakuya.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(
+      fromTakuya.inst("redTamer").instanceId,
+    );
+
+    // Near-miss: without Takuya among its digivolution cards, the same security removal plays nothing.
+    const fromBurningGreymon = await attackWithAgunimon(BURNING_GREYMON);
+    expect(fromBurningGreymon.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      fromBurningGreymon.inst("redTamer").instanceId,
+    );
+    expect(fromBurningGreymon.state.players[0]!.battleArea).toHaveLength(1);
   });
 });

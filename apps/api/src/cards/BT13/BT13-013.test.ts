@@ -160,3 +160,47 @@ describe("BT13-013 BaoHuckmon", () => {
     await nextOwnTurn;
   });
 });
+
+describe("BT13-013 BaoHuckmon — KB Q&A rulings", () => {
+  async function playSistermonResolvingFirst(firstCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-013", as: "bao" }],
+          hand: [
+            { card: "BT6-082", as: "sistermon" },
+            { card: "BT13-016", as: "handSavior" },
+          ],
+          deck: [{ card: "BT13-016", as: "drawnSavior" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [firstCardId] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("bao").topCard.cardId === "BT13-016");
+    await settle();
+
+    const orderRequest = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(orderRequest?.seat).toBe(0);
+    expect(orderRequest?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT6-082", "BT13-013"]));
+    const destinationChoice = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT13-013",
+    );
+    return { s, destinationCandidates: destinationChoice?.req.options?.candidateInstanceIds ?? [] };
+  }
+
+  it("lets the player order the Sistermon [On Play] and this card's [Your Turn] effect (Q2273)", async () => {
+    const drawFirst = await playSistermonResolvingFirst("BT6-082");
+    expect(drawFirst.destinationCandidates).toContain(drawFirst.s.inst("drawnSavior").instanceId);
+    expect(drawFirst.destinationCandidates).toContain(drawFirst.s.inst("handSavior").instanceId);
+
+    const digivolveFirst = await playSistermonResolvingFirst("BT13-013");
+    expect(digivolveFirst.destinationCandidates).not.toContain(digivolveFirst.s.inst("drawnSavior").instanceId);
+    expect(digivolveFirst.s.perm("bao").topCard.instanceId).toBe(digivolveFirst.s.inst("handSavior").instanceId);
+  });
+});

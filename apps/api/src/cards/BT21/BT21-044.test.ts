@@ -1,7 +1,13 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  setupEngine,
+  settle,
+  type BoardSpec,
+  type EngineSetup,
+  type SetupEngineOptions,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-044.js";
 import "../index.js";
@@ -387,3 +393,483 @@ describe("BT21-044 compiled implementation", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(true);
   });
 });
+
+describe("BT21-044 RizeGreymon — KB Q&A rulings", () => {
+  it("lets a [Marcus Damon] treated as a Digimon attack and use the inherited effects under it (Q4545)", async () => {
+    const s = setupDecliningAlliance(
+      {
+        0: {
+          battleArea: [
+            { card: RIZEGREYMON, as: "rize" },
+            { card: MARCUS_WITHOUT_SUSPEND_TRIGGER, as: "marcus", under: [PANJYAMON_INHERITS_MEMORY] },
+          ],
+        },
+        1: { security: [...OPPONENT_SECURITY] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(attackPlayer(s, "marcus").ok).toBe(false);
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("marcus"), PANJYAMON_INHERITS_MEMORY)).toBe(false);
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rize"));
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("marcus"), PANJYAMON_INHERITS_MEMORY)).toBe(true);
+
+    expect(attackPlayer(s, "marcus")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+
+    expect(s.perm("marcus").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("keeps a [Marcus Damon] treated as a Digimon a Tamer, so its deletion triggers the red/yellow Tamer watcher (Q4546)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: RIZEGREYMON, as: "rize", suspended: true },
+            { card: MARCUS_DAMON, as: "marcus", suspended: true },
+            { card: YELLOW_AGUMON, as: "yellowDigimon" },
+          ],
+          trash: [{ card: MARCUS_WITHOUT_SUSPEND_TRIGGER, as: "trashedMarcus" }],
+          security: [FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rize"));
+    expect(s.perm("marcus").currentDP).toBe(3000);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("yellowDigimon").permanentId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[0]!.security).toHaveLength(1);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("marcus").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.security.length === 2);
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(MARCUS_CARD_IDS).toContain(s.state.players[0]!.security[0]!.cardId);
+  });
+
+  it("treats an effect activated by a [Marcus Damon] treated as a Digimon as both a Tamer and a Digimon effect (Q4547)", async () => {
+    async function memoryGainedUnderZenimon(attacker: "rize" | "marcus"): Promise<number> {
+      const s = setupDecliningAlliance(
+        {
+          0: {
+            battleArea: [
+              { card: RIZEGREYMON, as: "rize", under: [PANJYAMON_INHERITS_MEMORY] },
+              { card: MARCUS_WITHOUT_SUSPEND_TRIGGER, as: "marcus", under: [PANJYAMON_INHERITS_MEMORY] },
+            ],
+          },
+          1: { battleArea: [{ card: ZENIMON_TAMER_ONLY_MEMORY, as: "zenimon" }], security: [...OPPONENT_SECURITY] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rize"));
+      expect(attackPlayer(s, attacker)).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+      return s.state.memory - 3;
+    }
+
+    async function kabuterimonDPAfterMarcusAttacks(kabuterimonSuspended: boolean): Promise<number> {
+      const s = setupDecliningAlliance(
+        {
+          0: {
+            battleArea: [
+              { card: RIZEGREYMON, as: "rize" },
+              { card: MARCUS_DAMON, as: "marcus" },
+            ],
+          },
+          1: {
+            battleArea: [
+              { card: KABUTERIMON_IMMUNE_WHILE_SUSPENDED, as: "kabuterimon", suspended: kabuterimonSuspended },
+            ],
+            security: [...OPPONENT_SECURITY],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rize"));
+      expect(attackPlayer(s, "marcus")).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+      return s.perm("kabuterimon").currentDP;
+    }
+
+    expect(await memoryGainedUnderZenimon("rize")).toBe(0);
+    expect(await memoryGainedUnderZenimon("marcus")).toBe(1);
+    expect(await kabuterimonDPAfterMarcusAttacks(false)).toBe(2000);
+    expect(await kabuterimonDPAfterMarcusAttacks(true)).toBe(5000);
+  });
+
+  it("deletes a [Marcus Damon] treated as a Digimon at the rule check once its DP becomes 0 (Q4548)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupDecliningAlliance(
+      {
+        0: {
+          hand: [{ card: RIZEGREYMON, as: "rize" }],
+          battleArea: [
+            { card: MARCUS_DAMON, as: "marcus" },
+            { card: YELLOW_TAMER, as: "otherTamer" },
+          ],
+        },
+        1: { security: [BIFROST_MINUS_3000, ...OPPONENT_SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const marcusInstanceId = s.perm("marcus").topCard.instanceId;
+    preferInstanceIds.push(marcusInstanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === BIFROST_MINUS_3000));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("rize").currentDP).toBe(7000);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === marcusInstanceId)).toBe(
+      false,
+    );
+    // The deleted Marcus is a red/yellow Tamer, so RizeGreymon's watcher may move it from trash to the top of security.
+    const marcusDestinations = [...s.state.players[0]!.trash, ...s.state.players[0]!.security].map(
+      (card) => card.instanceId,
+    );
+    expect(marcusDestinations).toContain(marcusInstanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("otherTamer").permanentId,
+    );
+  });
+
+  it('lets the selected [Marcus Damon] be the Digimon that attacks with the effect after "Then" (Q4549)', async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupDecliningAlliance(
+      {
+        0: {
+          hand: [{ card: RIZEGREYMON, as: "rize" }],
+          battleArea: [{ card: MARCUS_DAMON, as: "marcus" }],
+        },
+        1: { security: [...OPPONENT_SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("marcus").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(attackPlayer(s, "marcus").ok).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+
+    const attackers = s.events.flatMap((event) => (event.kind === "attackDeclared" ? [event.attackerPermanentId] : []));
+    expect(attackers).toEqual([s.perm("marcus").permanentId]);
+    expect(s.perm("marcus").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it('lets the player decline the attack after "Then" while Marcus stays a 3000 DP Digimon with <Rush> (Q4550)', async () => {
+    const s = setupDecliningAlliance(
+      {
+        0: {
+          hand: [{ card: RIZEGREYMON, as: "rize" }],
+          battleArea: [{ card: MARCUS_DAMON, as: "marcus" }],
+        },
+        1: { security: [...OPPONENT_SECURITY] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    await settle();
+
+    const optionalPrompts = s.decisions
+      .filter(({ req }) => req.kind === "optional")
+      .map(({ req }) => req.options?.effectTextPart);
+    expect(optionalPrompts).toContain("Then, 1 of your Digimon may attack.");
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.perm("marcus").isSuspended).toBe(false);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
+  it("triggers the [All Turns] security effect when a [Marcus Damon] treated as a Digimon is deleted in battle (Q4551)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupDecliningAlliance(
+      {
+        0: {
+          battleArea: [
+            { card: RIZEGREYMON, as: "rize" },
+            { card: MARCUS_WITHOUT_SUSPEND_TRIGGER, as: "marcus" },
+          ],
+          trash: [{ card: MARCUS_DAMON, as: "trashedMarcus" }],
+        },
+        1: { security: [{ card: STRONG_SECURITY_DIGIMON, as: "strongSecurity" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const marcusInstanceId = s.perm("marcus").topCard.instanceId;
+    const marcusPermanentId = s.perm("marcus").permanentId;
+    preferInstanceIds.push(marcusInstanceId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rize"));
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === marcusInstanceId),
+    );
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    const attackers = s.events.flatMap((event) => (event.kind === "attackDeclared" ? [event.attackerPermanentId] : []));
+    expect(attackers).toEqual([marcusPermanentId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).not.toContain(
+      marcusInstanceId,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(MARCUS_CARD_IDS).toContain(s.state.players[0]!.security[0]!.cardId);
+  });
+
+  it("lets a newer treated-as-Digimon effect overwrite the DP while earlier <Alliance> and <Rush> stay (Q6019)", async () => {
+    const snapshotsAtEndPhase: Array<{ dp: number; rush: boolean; alliance: boolean; digivolveLocked: boolean }> = [];
+    let setup: EngineSetup | undefined;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: MARCUS_AGUMON, as: "marcus" }],
+          hand: [{ card: RIZEGREYMON, as: "rize" }, FILLER],
+          deck: fillerDeck(),
+        },
+        1: { security: [...OPPONENT_SECURITY], hand: [FILLER], deck: fillerDeck() },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: [OPTIONAL_ATTACK_PROMPT],
+        onEvent: (event) => {
+          if (setup === undefined || event.kind !== "phaseChanged" || event.phase !== Phase.End) return;
+          const marcus = setup.perm("marcus");
+          snapshotsAtEndPhase.push({
+            dp: marcus.currentDP,
+            rush: observe(setup.engine).hasKeyword(marcus, "Rush"),
+            alliance: observe(setup.engine).hasKeyword(marcus, "Alliance"),
+            digivolveLocked: observe(setup.engine).isRestricted(marcus, "digivolve"),
+          });
+        },
+      },
+    );
+    setup = s;
+    await s.ready();
+
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("marcus").currentDP === 3000);
+    await settle();
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    expect(snapshotsAtEndPhase).toEqual([{ dp: 6000, rush: true, alliance: true, digivolveLocked: true }]);
+
+    const reversed = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: RIZEGREYMON, as: "rize" },
+            { card: MARCUS_AGUMON, as: "marcus" },
+          ],
+        },
+        1: { security: [...OPPONENT_SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: [OPTIONAL_ATTACK_PROMPT] },
+    );
+    await reversed.ready();
+    await advance(reversed.engine).fire(EffectTiming.OnEndTurn, reversed.perm("marcus"));
+    expect(reversed.perm("marcus").currentDP).toBe(6000);
+    expect(observe(reversed.engine).hasKeyword(reversed.perm("marcus"), "Alliance")).toBe(false);
+
+    await advance(reversed.engine).fire(EffectTiming.OnPlay, reversed.perm("rize"));
+    expect(reversed.perm("marcus").currentDP).toBe(3000);
+    expect(observe(reversed.engine).hasKeyword(reversed.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(reversed.engine).hasKeyword(reversed.perm("marcus"), "Alliance")).toBe(true);
+    expect(reversed.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+  });
+
+  it("gains memory from an effect on a [Marcus Damon] treated as a Digimon despite a Tamer-effects-only memory lock (Q6020)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupDecliningAlliance(
+      {
+        0: {
+          battleArea: [
+            { card: RIZEGREYMON, as: "rize" },
+            { card: MARCUS_WITHOUT_SUSPEND_TRIGGER, as: "marcus", under: [METALGARURUMON_INHERITS_MEMORY] },
+            { card: PLAIN_DIGIMON, as: "plainDigimon", under: [METALGARURUMON_INHERITS_MEMORY] },
+          ],
+        },
+        1: { battleArea: [{ card: ZENIMON_TAMER_ONLY_MEMORY, as: "zenimon" }], security: [...OPPONENT_SECURITY] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("marcus").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rize"));
+    expect(s.perm("marcus").currentDP).toBe(3000);
+
+    expect(attackPlayer(s, "plainDigimon")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(3);
+
+    expect(attackPlayer(s, "marcus")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("does not affect an opponent's Digimon immune to Digimon effects with the effect of a [Marcus Damon] treated as a Digimon (Q6021)", async () => {
+    async function kabuterimonDPAfterMarcusSuspends(kabuterimonSuspended: boolean): Promise<number> {
+      const s = setupDecliningAlliance(
+        {
+          0: {
+            battleArea: [
+              { card: RIZEGREYMON, as: "rize" },
+              { card: MARCUS_DAMON, as: "marcus" },
+            ],
+          },
+          1: {
+            battleArea: [
+              { card: KABUTERIMON_IMMUNE_WHILE_SUSPENDED, as: "kabuterimon", suspended: kabuterimonSuspended },
+            ],
+            security: [...OPPONENT_SECURITY],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rize"));
+      expect(s.perm("marcus").currentDP).toBe(3000);
+      expect(attackPlayer(s, "marcus")).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 2 && !observe(s.engine).isAttacking());
+      return s.perm("kabuterimon").currentDP;
+    }
+
+    async function suspendedKabuterimonDPAfterPlainTamerMarcusSuspends(): Promise<number> {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: MARCUS_DAMON, as: "marcus" }] },
+          1: { battleArea: [{ card: KABUTERIMON_IMMUNE_WHILE_SUSPENDED, as: "kabuterimon", suspended: true }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("marcus"));
+      await settle(() => s.perm("marcus").isSuspended);
+      await settle();
+      return s.perm("kabuterimon").currentDP;
+    }
+
+    expect(await suspendedKabuterimonDPAfterPlainTamerMarcusSuspends()).toBe(2000);
+    expect(await kabuterimonDPAfterMarcusSuspends(false)).toBe(2000);
+    expect(await kabuterimonDPAfterMarcusSuspends(true)).toBe(5000);
+  });
+
+  it("lets [Marcus Damon & Agumon]'s [End of Your Turn] attack after RizeGreymon's attack resolved in a turn that passed memory (Q6109)", async () => {
+    const preferInstanceIds: string[] = [];
+    const memoryAtEachAttack: number[] = [];
+    let setup: EngineSetup | undefined;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: MARCUS_AGUMON, as: "marcusAgumon" },
+            { card: MARCUS_DAMON, as: "marcus" },
+          ],
+          hand: [{ card: RIZEGREYMON, as: "rize" }, FILLER],
+          deck: fillerDeck(),
+        },
+        1: { security: [...OPPONENT_SECURITY, ...OPPONENT_SECURITY], hand: [FILLER], deck: fillerDeck() },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds,
+        onEvent: (event) => {
+          if (setup === undefined) return;
+          if (event.kind === "attackDeclared") {
+            memoryAtEachAttack.push(setup.state.memory);
+            preferInstanceIds.splice(0, preferInstanceIds.length, setup.perm("marcusAgumon").topCard.instanceId);
+          }
+          if (event.kind === "alliancePrompt") {
+            queueMicrotask(() => setup?.engine.applyIntent(0, { type: "respondAlliance" }));
+          }
+        },
+      },
+    );
+    setup = s;
+    preferInstanceIds.push(s.perm("marcus").topCard.instanceId);
+    await s.ready();
+
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await ownTurn;
+
+    const attackers = s.events.flatMap((event) => (event.kind === "attackDeclared" ? [event.attackerPermanentId] : []));
+    expect(attackers).toEqual([s.perm("marcus").permanentId, s.perm("marcusAgumon").permanentId]);
+    expect(memoryAtEachAttack.every((memory) => memory < 0)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+  });
+});
+
+const RIZEGREYMON = "BT21-044";
+const MARCUS_DAMON = "BT13-095";
+const MARCUS_WITHOUT_SUSPEND_TRIGGER = "BT12-092";
+const MARCUS_CARD_IDS = [MARCUS_DAMON, MARCUS_WITHOUT_SUSPEND_TRIGGER];
+const YELLOW_TAMER = "BT1-087";
+const YELLOW_AGUMON = "BT12-034";
+const PANJYAMON_INHERITS_MEMORY = "BT6-025";
+const ZENIMON_TAMER_ONLY_MEMORY = "BT18-059";
+const KABUTERIMON_IMMUNE_WHILE_SUSPENDED = "BT15-047";
+const BIFROST_MINUS_3000 = "BT3-101";
+const FILLER = "BT1-009";
+const WEAK_SECURITY_DIGIMON = "BT1-010";
+const OPPONENT_SECURITY = [WEAK_SECURITY_DIGIMON, WEAK_SECURITY_DIGIMON, WEAK_SECURITY_DIGIMON];
+const STRONG_SECURITY_DIGIMON = "BT1-013";
+const PLAIN_DIGIMON = "BT1-013";
+const MARCUS_AGUMON = "AD1-021";
+const METALGARURUMON_INHERITS_MEMORY = "BT5-031";
+const OPTIONAL_ATTACK_PROMPT = "Attack with a Digimon";
+const fillerDeck = () => Array.from({ length: 8 }, () => FILLER);
+
+function setupDecliningAlliance(board: BoardSpec, options: SetupEngineOptions): EngineSetup {
+  let setup: EngineSetup | undefined;
+  const s = setupEngine(board, {
+    ...options,
+    onEvent: (event) => {
+      if (event.kind === "alliancePrompt") {
+        queueMicrotask(() => setup?.engine.applyIntent(0, { type: "respondAlliance" }));
+      }
+    },
+  });
+  setup = s;
+  return s;
+}
+
+function attackPlayer(s: EngineSetup, alias: string) {
+  return s.engine.applyIntent(0, {
+    type: "attack",
+    attackerPermanentId: s.perm(alias).permanentId,
+    target: { kind: "player" },
+  });
+}

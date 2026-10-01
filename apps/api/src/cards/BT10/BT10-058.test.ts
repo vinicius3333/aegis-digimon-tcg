@@ -112,3 +112,83 @@ describe("BT10-058 Monitamon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT10-058 Monitamon — KB Q&A rulings", () => {
+  it("places the revealed cards that were not added at the bottom of the deck in the chosen order (Q1983)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-058", as: "source" }],
+          deck: [
+            { card: "BT10-061", as: "added" },
+            { card: "BT10-062", as: "restFirst" },
+            { card: "BT5-042", as: "restSecond" },
+            { card: "BT10-064", as: "restThird" },
+            { card: "BT1-009", as: "untouchedTop" },
+            { card: "BT1-013", as: "untouchedNext" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+
+    const pending = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+    const rest = [s.inst("restFirst").instanceId, s.inst("restSecond").instanceId, s.inst("restThird").instanceId];
+    expect(new Set(request.options?.candidateInstanceIds)).toEqual(new Set(rest));
+    const chosenOrder = [...rest].reverse();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "orderCards", order: chosenOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 5);
+
+    const deck = s.state.players[0]!.deck.map(({ instanceId }) => instanceId);
+    expect(deck.slice(0, 2)).toEqual([s.inst("untouchedTop").instanceId, s.inst("untouchedNext").instanceId]);
+    expect(deck.slice(2)).toEqual(chosenOrder);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("added").instanceId]);
+    assertNoLoudGap(s);
+  });
+
+  it("still adds the single eligible card when only one of the four revealed cards qualifies (Q1984)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-058", as: "source" }],
+          deck: [
+            { card: "BT5-042", as: "yellowKnightmon" },
+            { card: "BT10-062", as: "blackNoTwilight" },
+            { card: "BT10-066", as: "onlyEligible" },
+            { card: "BT10-064", as: "blackRock" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 3);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("onlyEligible").instanceId]);
+    expect(new Set(s.state.players[0]!.deck.map(({ instanceId }) => instanceId))).toEqual(
+      new Set([
+        s.inst("yellowKnightmon").instanceId,
+        s.inst("blackNoTwilight").instanceId,
+        s.inst("blackRock").instanceId,
+      ]),
+    );
+    assertNoLoudGap(s);
+  });
+});

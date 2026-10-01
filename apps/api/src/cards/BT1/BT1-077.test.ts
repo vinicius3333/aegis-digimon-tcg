@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-072.js";
 import { compiled } from "./BT1-077.js";
@@ -190,5 +191,42 @@ describe("BT1-077 Okuwamon", () => {
         instanceId: s.inst("okuwamon").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("BT1-077 Okuwamon — KB Q&A rulings", () => {
+  it("does not gain memory when its Digimon deletes a Security Digimon (Q928)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-071", as: "attacker", dp: 10000, under: ["BT1-077"] }] },
+      1: { security: [{ card: "BT1-049", as: "securityDigimon" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityDigimon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+
+    const control = setupEngine({
+      0: { battleArea: [{ card: "BT1-071", as: "attacker", dp: 10000, under: ["BT1-077"] }] },
+      1: { battleArea: [{ card: "BT1-049", as: "defender", suspended: true }] },
+    });
+    await control.ready();
+    expect(
+      control.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: control.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: control.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await advance(control.engine).finishAttack();
+    expect(control.state.players[1]!.battleArea).toHaveLength(0);
+    expect(control.state.memory).toBe(1);
   });
 });

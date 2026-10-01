@@ -12,7 +12,12 @@ import {
   type Permanent,
 } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
-import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../../BoardDecisionRail";
+import {
+  BoardOptionalPrompt,
+  BoardSelectionRail,
+  BoardSourceHostPrompt,
+  OpponentSelectingPill,
+} from "../../BoardDecisionRail";
 import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
 import {
   AssemblyMaterialOverlay,
@@ -22,6 +27,17 @@ import {
   playerFacingPromptText,
 } from "../../overlay";
 import type { DigiXrosCandidate, TriggerDetail } from "../../overlay";
+
+/**
+ * A one-card pick from the digivolution cards of several of the viewer's Digimon: the board
+ * picks the Digimon first (`picking`), then the dialog shows only the cards under it.
+ */
+export interface SourceHostStep {
+  picking: boolean;
+  /** The offered cards under the chosen Digimon; undefined while `picking`. */
+  cardIds: ReadonlySet<string> | undefined;
+  onChangeHost: () => void;
+}
 
 export function DecisionPrompts({
   decision,
@@ -38,6 +54,7 @@ export function DecisionPrompts({
   onTogglePick,
   onRespond,
   onOpenDialog,
+  sourceHost,
 }: {
   /** The viewer's own decision, once the presentation has caught up with it. */
   decision: DecisionRequest | undefined;
@@ -57,6 +74,8 @@ export function DecisionPrompts({
   onTogglePick: (instanceId: string) => void;
   onRespond: (response: DecisionResponse) => void;
   onOpenDialog: () => void;
+  /** A one-card source pick that first asks which Digimon to look under. */
+  sourceHost?: SourceHostStep;
 }) {
   const { t } = useTranslation();
   const clause = sourceCardId
@@ -71,15 +90,25 @@ export function DecisionPrompts({
   const boardSelectionKind =
     decision?.kind === "selectCards" || decision?.kind === "chooseTargets" ? decision.kind : undefined;
   const assemblyCardId = decision?.kind === "selectCards" ? decision.options?.assemblyCardId : undefined;
-  const assemblyRequirement = assemblyCardId ? assemblyRequirementFor(assemblyCardId)?.[0] : undefined;
-  const isAssemblyDecision = assemblyCardId !== undefined && assemblyRequirement !== undefined;
+  const assemblyRequirements = assemblyCardId ? assemblyRequirementFor(assemblyCardId) : undefined;
+  const isAssemblyDecision = assemblyCardId !== undefined && (assemblyRequirements?.length ?? 0) > 0;
   const digiXrosCardId = decision?.kind === "selectCards" ? decision.options?.digiXrosCardId : undefined;
   const digiXrosRequirements = digiXrosCardId ? digiXrosRequirementFor(digiXrosCardId) : undefined;
   const isDigiXrosDecision = digiXrosCardId !== undefined && digiXrosRequirements !== undefined;
   const isMaterialDecision = isAssemblyDecision || isDigiXrosDecision;
   return (
     <>
-      {decision && decision.kind !== "mulligan" && !answerOnBoard && !isMaterialDecision
+      {decision && !answerOnBoard && sourceHost?.picking ? (
+        <BoardSourceHostPrompt
+          sourceCardId={sourceCardId}
+          clause={clause}
+          onNoSelection={
+            min === 0 && boardSelectionKind ? () => onRespond({ kind: boardSelectionKind, instanceIds: [] }) : undefined
+          }
+        />
+      ) : null}
+
+      {decision && decision.kind !== "mulligan" && !answerOnBoard && !isMaterialDecision && !sourceHost?.picking
         ? (() => {
             const sourceCounts = decisionSourceCounts(permanents);
             const permanentDetails = decisionPermanentDetails(permanents);
@@ -88,23 +117,26 @@ export function DecisionPrompts({
                 key={decision.decisionId}
                 request={decision}
                 sourceCardId={sourceCardId}
-                candidates={candidates.map((card) => {
-                  const details = permanentDetails.get(card.instanceId);
-                  return {
-                    instanceId: card.instanceId,
-                    cardId: card.cardId,
-                    artId: card.artId,
-                    selectable: allowsPick(card.instanceId),
-                    sourceCount: sourceCounts.get(card.instanceId),
-                    currentDP: details?.currentDP,
-                    isSuspended: details?.isSuspended,
-                    zone: card.zone,
-                  };
-                })}
+                candidates={candidates
+                  .filter((card) => sourceHost?.cardIds === undefined || sourceHost.cardIds.has(card.instanceId))
+                  .map((card) => {
+                    const details = permanentDetails.get(card.instanceId);
+                    return {
+                      instanceId: card.instanceId,
+                      cardId: card.cardId,
+                      artId: card.artId,
+                      selectable: allowsPick(card.instanceId),
+                      sourceCount: sourceCounts.get(card.instanceId),
+                      currentDP: details?.currentDP,
+                      isSuspended: details?.isSuspended,
+                      zone: card.zone,
+                    };
+                  })}
                 picks={picks}
                 triggerDetails={triggerDetails}
                 onTogglePick={onTogglePick}
                 onRespond={onRespond}
+                {...(sourceHost?.cardIds ? { onChangeSourceHost: sourceHost.onChangeHost } : {})}
               />
             );
           })()
@@ -135,10 +167,10 @@ export function DecisionPrompts({
         />
       ) : null}
 
-      {decision?.kind === "selectCards" && assemblyCardId && assemblyRequirement ? (
+      {decision?.kind === "selectCards" && assemblyCardId && assemblyRequirements && isAssemblyDecision ? (
         <AssemblyMaterialOverlay
           playingCardId={assemblyCardId}
-          requirement={assemblyRequirement}
+          requirements={assemblyRequirements}
           candidates={candidates.flatMap((candidate) =>
             candidate.cardId
               ? [{ instanceId: candidate.instanceId, cardId: candidate.cardId, artId: candidate.artId }]

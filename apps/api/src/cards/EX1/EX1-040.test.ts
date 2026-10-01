@@ -198,3 +198,68 @@ describe("EX1-040 MegaKabuterimon", () => {
     expect(s.state.memory).toBe(5);
   });
 });
+
+describe("EX1-040 MegaKabuterimon — KB Q&A rulings", () => {
+  it("lets the player decline to digivolve even with a matching card in hand (Q3228)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "EX1-043", as: "hercules" }] },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mega").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX1-040")).toBe(true);
+    expect(s.perm("mega").topCard.cardId).toBe("EX1-040");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("hercules").instanceId]);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it("does not ignore digivolution requirements of an Insectoid card in hand (Q3229)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-040", as: "mega" }],
+          hand: [
+            { card: "EX1-038", as: "lowerLevel" },
+            { card: "EX1-040", as: "sameLevel" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mega").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "EX1-040")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(s.inst("lowerLevel").instanceId);
+    expect(offered).not.toContain(s.inst("sameLevel").instanceId);
+    expect(s.perm("mega").topCard.instanceId).not.toBe(s.inst("sameLevel").instanceId);
+    expect(s.perm("mega").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.memory).toBe(10);
+  });
+});

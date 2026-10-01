@@ -29,12 +29,18 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     permanentId: string,
     restriction: Parameters<Primitives["restrict"]>[1],
     duration: EffectDuration,
-    opts?: { fromSourceKind?: string[]; byOpponentEffectsOnly?: boolean; continuous?: boolean },
+    opts?: {
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+      continuous?: boolean;
+    },
   ): void => {
     continuous.addRestriction(permanentId, restriction, durationForTarget(permanentId, duration), {
       ...(opts?.continuous === true ? { continuous: true } : continuousOpt()),
       fromSourceKind: opts?.fromSourceKind,
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
+      byEffectsOnly: opts?.byEffectsOnly,
       originSeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
       sourceKinds: effectSourceKindsStack.at(-1) ?? [],
     });
@@ -46,9 +52,18 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     if (restriction === "beAffected") ledger.recomputeDP(state, permanentId);
   };
 
-  const restrictPlayer: NonNullable<Primitives["restrictPlayer"]> = (seat, restriction, duration, matches): void => {
+  const restrictPlayer: NonNullable<Primitives["restrictPlayer"]> = (
+    seat,
+    restriction,
+    duration,
+    matches,
+    opts,
+  ): void => {
     const ownerSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
-    continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, continuousOpt());
+    continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, {
+      ...continuousOpt(),
+      ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+    });
   };
 
   const restrictAttackTarget = (
@@ -109,6 +124,11 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     continuous.hasRestriction(permanentId, "beAffected") ||
     (continuous.hasKeyword(permanentId, "Progress") && engine.combat?.currentAttackerId === permanentId);
 
+  const isUnaffectedByOwnEffects = (permanentId: string, sourceKinds: readonly string[]): boolean =>
+    [undefined, ...sourceKinds].some((sourceKind) =>
+      continuous.hasRestriction(permanentId, "beAffected", sourceKind, { byOpponentEffect: false }),
+    );
+
   const restrictDigivolveInto = (
     permanentId: string,
     matchesInto: (def: CardDefinition) => boolean,
@@ -166,6 +186,19 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
           : timing === "endOfOpponentTurn"
             ? access.opponentOf(ownerSeat)
             : ownerSeat;
+    // "Delete this Digimon" does nothing once the permanent is no longer a Digimon, e.g. a
+    // De-Digivolve left a Tamer on top (KB Q2729/Q2760).
+    const isStillDigimon = (): boolean =>
+      access.isBattleAreaDigimon(access.permanentById(playedPermanentId), continuous);
+    // Scheduled while that very turn end is resolving (an effect attack at the end of the
+    // opponent's turn, say): that timing has passed, so the deletion waits for the opponent's
+    // NEXT turn end, two turns later, instead of expiring unfired (KB P-165 Q4275).
+    const deferredToTurnCount =
+      timing === "endOfOpponentTurn" &&
+      expiresOnTurnEndOf !== undefined &&
+      engine.turnEndWindowSeat?.() === expiresOnTurnEndOf
+        ? state.turnCount + 2
+        : undefined;
     subTriggers.subscribe({
       event: "endOfTurn",
       sourcePermanentId: playedPermanentId,
@@ -174,13 +207,16 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       // other end-of-turn effects even when the deleted Digimon is the opponent's
       // (KB Q5564/Q5566/Q5568).
       orderedByTurnPlayer: true,
-      ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
+      ...(expiresOnTurnEndOf !== undefined && deferredToTurnCount === undefined ? { expiresOnTurnEndOf } : {}),
       matches: (subCtx) =>
+        (deferredToTurnCount === undefined || state.turnCount === deferredToTurnCount) &&
         (timing === "endOfCurrentTurn"
           ? state.turnSeat === currentTurnSeat
           : timing === "endOfOpponentTurn"
             ? !subCtx.source.isOwnersTurn()
-            : subCtx.source.isOwnersTurn()) && subCtx.source.isOnBattleArea(),
+            : subCtx.source.isOwnersTurn()) &&
+        subCtx.source.isOnBattleArea() &&
+        isStillDigimon(),
       description:
         timing === "endOfCurrentTurn"
           ? "[End of Current Turn] Delete this Digimon (delayed-delete-played)."
@@ -188,6 +224,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
             ? "[End of Your Opponent's Turn] Delete this Digimon."
             : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
       run: async () => {
+        if (!isStillDigimon()) return;
         const deletedCardId = access.permanentById(playedPermanentId)?.topCard.cardId;
         await deletePermanent(
           [playedPermanentId],
@@ -227,7 +264,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     kind: "name" | "trait",
     tokens: string[],
     duration: EffectDuration,
-    opts?: { digiXrosOnly?: boolean; ruleDerived?: boolean },
+    opts?: { digiXrosOnly?: boolean; fromRule?: boolean; nameContainsOnly?: boolean },
   ): void => {
     continuous.addNameTraitGrant(permanentId, kind, tokens, durationForTarget(permanentId, duration), {
       ...continuousOpt(),
@@ -245,6 +282,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     hasSuspendRestrictionSource,
     isBeAffectedBySourceKind,
     isUnaffectableByOpponentEffects,
+    isUnaffectedByOwnEffects,
     restrictDigivolveInto,
     minDpFloor,
     stackTrashLock,

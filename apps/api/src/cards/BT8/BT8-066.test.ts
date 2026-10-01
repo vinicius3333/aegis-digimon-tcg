@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT8-066.js";
 import "./BT8-092.js";
@@ -72,5 +72,50 @@ describe("BT8-066 Hisyaryumon", () => {
     expect(s.perm("hisyaryumon").stack.some((card) => card.instanceId === s.inst("placed").instanceId)).toBe(true);
     expect(s.perm("hisyaryumon").topCard.instanceId).toBe(s.inst("ouryumon").instanceId);
     expect(s.state.memory).toBe(2);
+  });
+});
+
+describe("BT8-066 Hisyaryumon — KB Q&A rulings", () => {
+  it("cannot ignore digivolution requirements when digivolving into an X-Antibody card (Q1748)", async () => {
+    async function attackWithYujiHolding(targetCardId: string) {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT8-092", as: "yuji" },
+              { card: "BT8-066", as: "hisyaryumon" },
+            ],
+            hand: [
+              { card: "BT8-060", as: "placed" },
+              { card: targetCardId, as: "digivolveTarget" },
+            ],
+          },
+          1: { security: ["BT8-034"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.inst("placed").instanceId);
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("hisyaryumon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("hisyaryumon").stack.some((card) => card.instanceId === s.inst("placed").instanceId));
+      await drainMicrotasks();
+      return s;
+    }
+
+    const levelFiveDoruGreymon = await attackWithYujiHolding("BT7-064");
+    expect(levelFiveDoruGreymon.perm("hisyaryumon").topCard.cardId).toBe("BT8-066");
+    expect(levelFiveDoruGreymon.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT7-064"]);
+
+    const levelSixOuryumon = await attackWithYujiHolding("BT8-069");
+    expect(levelSixOuryumon.perm("hisyaryumon").topCard.cardId).toBe("BT8-069");
   });
 });

@@ -8,7 +8,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenTrashedFromHand",
+          event: "whenHandTrashed",
           fireCondition: {
             kind: "triggerByYourEffect",
             raw: "when one of your effects trashes a card in your hand",
@@ -28,7 +28,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenTrashedFromHand",
+          event: "whenHandTrashed",
           fireCondition: {
             kind: "triggerByYourEffect",
             raw: "when one of your effects trashes a card in your hand",

@@ -291,3 +291,51 @@ describe("EX5-001 Sunmon", () => {
     await loop;
   });
 });
+
+describe("EX5-001 Sunmon — KB Q&A rulings", () => {
+  it("reacts to an effect placing the top card into the stack but not to digivolution adding a card (Q3526)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-007", as: "host", under: ["EX5-001", "EX5-007"] }],
+          hand: [
+            { card: "EX5-008", as: "ordinaryEvolution" },
+            { card: "BT1-014", as: "sunmonEvolution" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("ordinaryEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "EX5-008");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("sunmonEvolution").instanceId);
+    const memoryAfterDigivolve = s.state.memory;
+
+    const placement = observe(s.engine)
+      .activatableEffects(s.perm("host"))
+      .find((entry) => /Gain 2 memory/i.test(entry.description ?? ""));
+    expect(placement).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: placement!.instanceId!,
+        effectKey: placement!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-014");
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("sunmonEvolution").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("EX5-008");
+    expect(s.state.memory).toBeLessThan(memoryAfterDigivolve + 2);
+  });
+});

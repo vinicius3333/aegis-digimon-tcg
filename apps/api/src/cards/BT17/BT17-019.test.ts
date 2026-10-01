@@ -191,3 +191,49 @@ describe("BT17-019", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("noDna").instanceId)).toBe(true);
   });
 });
+
+describe("BT17-019 Gabumon — KB Q&A rulings", () => {
+  it("DNA digivolves this Digimon and another into a hand [DNA Digivolution] Digimon at end of turn, before the opponent's turn starts (Q2748)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-022", as: "host", under: ["BT17-019"] },
+            { card: "BT1-069", as: "partner" },
+          ],
+          hand: [{ card: "BT12-028", as: "paildramon" }],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const gabumonId = s.perm("host").stack.find((card) => card.cardId === "BT17-019")!.instanceId;
+    const partnerId = s.perm("partner").topCard!.instanceId;
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+
+    expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({
+      timing: "EndOfYourTurn",
+      isInherited: true,
+    });
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.events.some((event) => event.kind === "turnEnded")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+
+    const { decisionId } = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, { type: "respondDecision", decisionId, response: { kind: "optional", accept: true } }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    const [merged] = s.state.players[0]!.battleArea;
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(merged!.topCard?.instanceId).toBe(s.inst("paildramon").instanceId);
+    expect(merged!.stack.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining([gabumonId, partnerId]));
+    expect(s.events.some((event) => event.kind === "turnEnded")).toBe(true);
+  });
+});

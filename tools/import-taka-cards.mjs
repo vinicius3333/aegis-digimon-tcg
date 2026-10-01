@@ -66,15 +66,21 @@ function parseLevel(cardLv) {
  * would put `level: NaN` into cards.json. The Assembly requirement itself is
  * preserved as text by `buildEffectText`.
  */
+// The community DB writes a rainbow digivolve cost as one "All" row; the engine
+// matches EvoCost colors against real card colors, so it becomes one row per color.
+const ALL_EVO_COLORS = ["Red", "Blue", "Yellow", "Green", "Black", "Purple", "White"];
+
 function parseEvoCosts(conds) {
   if (!Array.isArray(conds)) return [];
   return conds
     .filter((c) => Number.isFinite(Number(c.level)))
-    .map((c) => ({
-      color: c.color,
-      level: Number(c.level),
-      memoryCost: Number(c.cost),
-    }));
+    .flatMap((c) =>
+      (c.color === "All" ? ALL_EVO_COLORS : [c.color]).map((color) => ({
+        color,
+        level: Number(c.level),
+        memoryCost: Number(c.cost),
+      })),
+    );
 }
 
 // Special-digivolution headers printed above the effect box, in card order.

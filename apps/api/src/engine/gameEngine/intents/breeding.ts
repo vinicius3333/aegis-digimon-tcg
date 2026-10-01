@@ -9,6 +9,7 @@ import {
 import { mapBreedingReason } from "../rejectionReasons.js";
 import { breedingDeps } from "../actionDeps.js";
 import type { GameEngine } from "../../GameEngine.js";
+import { prepareSubjectFrozenSubTrigger } from "../subTriggers.js";
 
 /**
  * Route the hatchEgg verb (subsystem: breeding). Applies the action synchronously
@@ -53,22 +54,21 @@ export function handleMoveFromBreeding(engine: GameEngine, seat: Seat, intent: M
   // The chain is handed to the breeding window, which closes only once it settles: closing it
   // synchronously let the turn machine open Main and fire [Start of Your Main Phase] while
   // BT16-082's move watcher was still resolving.
+  // The move is the trigger event: arm its watchers before the OnMove windows, whose rule
+  // processing can delete the moved Digimon before they activate (Q2670). The recompute
+  // first installs the moved Digimon's own battle-area watchers (Q2668).
   const fired = engine
-    .fireTiming(EffectTiming.OnMove, { movedPermanentId })
-    .then(() =>
-      engine.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-        subjectPermanentId: movedPermanentId,
-        entryCause: "move",
-      }),
-    )
-    .then(() =>
-      engine.fireSubTrigger("onEnterFieldAnyone", {
-        subjectPermanentId: movedPermanentId,
-        entryCause: "move",
-      }),
-    )
-    .then(() => engine.fireSubTrigger("whenMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
-    .then(() => engine.fireSubTrigger("whenOpponentMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
+    .recomputeContinuousEffects()
+    .then(async () => {
+      const subject = { subjectPermanentId: movedPermanentId };
+      const movedWatchers = prepareSubjectFrozenSubTrigger(engine, "whenMovedFromBreeding", subject);
+      const opponentMovedWatchers = prepareSubjectFrozenSubTrigger(engine, "whenOpponentMovedFromBreeding", subject);
+      await engine.fireTiming(EffectTiming.OnMove, { movedPermanentId });
+      await engine.fireTiming(EffectTiming.OnEnterFieldAnyone, { ...subject, entryCause: "move" });
+      await engine.fireSubTrigger("onEnterFieldAnyone", { ...subject, entryCause: "move" });
+      await movedWatchers();
+      await opponentMovedWatchers();
+    })
     .catch((err) => {
       logError("[engine] moveFromBreeding fire failed:", err);
     });

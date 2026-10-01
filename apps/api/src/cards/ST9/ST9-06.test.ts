@@ -159,3 +159,78 @@ describe("ST9-06 Imperialdramon: Dragon Mode", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("ST9-06 Imperialdramon: Dragon Mode — KB Q&A rulings", () => {
+  it("may decline the play, but once used must play both a blue and a green source, not only one (Q710)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST9-05", as: "base", under: ["ST9-02", "ST9-04", { card: "ST9-09", as: "green" }] }],
+          hand: [{ card: "ST9-06", as: "dragon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dragon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    expect(s.decisions.map(({ req }) => req.kind)).toContain("optional");
+    const blueChoice = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+
+    expect(blueChoice.options?.min).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: blueChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(blueChoice.decisionId);
+
+    const exVeemonId = s.perm("base").stack.find((card) => card.cardId === "ST9-04")!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: blueChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [exVeemonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+
+    const playedTopCards = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    expect(playedTopCards).toEqual(expect.arrayContaining([exVeemonId, s.inst("green").instanceId]));
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("ST9-02");
+
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST9-05", as: "base", under: ["ST9-02", "ST9-04", "ST9-09"] }],
+          hand: [{ card: "ST9-06", as: "dragon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+    declined.state.memory = 10;
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: declined.perm("base").permanentId,
+        instanceId: declined.inst("dragon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("base").topCard.cardId === "ST9-06");
+    await settle();
+    expect(declined.decisions.map(({ req }) => req.kind)).toContain("optional");
+    expect(declined.decisions.map(({ req }) => req.kind)).not.toContain("selectCards");
+    expect(declined.state.players[0]!.battleArea).toHaveLength(1);
+    expect(declined.perm("base").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["ST9-02", "ST9-04", "ST9-09"]),
+    );
+  });
+});

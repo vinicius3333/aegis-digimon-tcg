@@ -6,6 +6,13 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./P-104.js";
+import {
+  delayDigivolvesThroughAlternateCondition,
+  expectDelayCannotUseHandMainRoute,
+  expectDelayDoesNotBurst,
+  expectDelayIgnoresTamers,
+  expectTamerBecomesDigivolutionCard,
+} from "./qaRulings2.testSupport.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -485,5 +492,52 @@ describe("P-104 (Mental Training)", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").topCard.cardId).toBe("BT1-033");
+  });
+});
+
+describe("P-104 Mental Training — KB Q&A rulings", () => {
+  it("puts a Tamer that Lobomon digivolves onto into its digivolution cards, trashed with it (Q2758)", async () => {
+    await expectTamerBecomesDigivolutionCard("BT1-087", "BT17-022");
+  });
+
+  it("puts a Tamer that KendoGarurumon digivolves onto into its digivolution cards, trashed with it (Q2767)", async () => {
+    await expectTamerBecomesDigivolutionCard("BT1-087", "BT17-023");
+  });
+
+  it("digivolves Gabumon into LM-022 through its 2-or-fewer-security condition (Q4023)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-104",
+      { battleArea: [{ card: "BT1-029", as: "host" }], hand: [{ card: "LM-022", as: "target" }], security: 2 },
+      {},
+      1,
+      "LM-022",
+    );
+  });
+
+  it("does not burst digivolve into a card in hand (Q4193)", async () => {
+    await expectDelayDoesNotBurst("P-104", { host: "BT13-031", tamer: "BT13-097", target: "BT13-033" }, 5);
+  });
+
+  it("does not digivolve a Tamer into a 'Tamer digivolves as a Digimon' card (Q4194)", async () => {
+    await expectDelayIgnoresTamers("P-104", "BT1-086", "BT4-025");
+  });
+
+  it("cannot run BT22-024 MarineBullmon's {Hand} [Main] route at the same time (Q4877)", async () => {
+    await expectDelayCannotUseHandMainRoute("P-104", {
+      host: "BT22-018",
+      tamer: "BT22-086",
+      material: "BT22-021",
+      target: "BT22-024",
+    });
+  });
+
+  it("lets ST8-04 Veemon use its UlforceVeedramon route while the opponent has a level 6 (Q697)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-104",
+      { battleArea: [{ card: "ST8-04", as: "host" }], hand: [{ card: "BT11-032", as: "target" }] },
+      { battleArea: ["BT1-025"] },
+      2,
+      "BT11-032",
+    );
   });
 });

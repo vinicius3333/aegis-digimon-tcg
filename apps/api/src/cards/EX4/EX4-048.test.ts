@@ -7,6 +7,8 @@ import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-048.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "./EX4-038.js";
+import "../BT11/BT11-064.js";
 
 type Setup = ReturnType<typeof setupEngine>;
 
@@ -167,7 +169,8 @@ describe("EX4-048 Gaiomon", () => {
         },
         1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // BT9-068's [When Digivolving] <Blitz> may attack at End of Turn (Q2854).
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Activate Blitz?"] },
     );
     await s.ready();
     const loop = s.engine.startTurnLoop();
@@ -231,4 +234,52 @@ describe("EX4-048 Gaiomon", () => {
     }
   });
   ex4CardBehaviorTests("EX4-048");
+});
+
+describe("EX4-048 Gaiomon — KB Q&A rulings", () => {
+  it("is added by text naming cards with [Greymon] in their names (Q3492)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-038", as: "agumon" }],
+          deck: [{ card: "EX4-048", as: "gaiomon" }, "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gaiomon").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX4-048"]);
+  });
+
+  it("does not meet a digivolution requirement naming [Greymon] exactly (Q3492)", () => {
+    function digivolveFromGreymonRoute(baseCardId: string) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "BT11-064", as: "greymonX" }],
+        },
+      });
+      s.state.memory = 10;
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("greymonX").instanceId,
+        useAlternateCost: true,
+      });
+      return { ok: result.ok, s };
+    }
+
+    expect(digivolveFromGreymonRoute("BT14-012").ok).toBe(true);
+    const { ok, s } = digivolveFromGreymonRoute("EX4-048");
+    expect(ok).toBe(false);
+    expect(s.perm("base").topCard.cardId).toBe("EX4-048");
+    expect(s.state.memory).toBe(10);
+  });
 });

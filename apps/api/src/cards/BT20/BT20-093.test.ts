@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
 import { compiled } from "./BT20-093.js";
 import "./index.js";
 import "../ST2/ST2-16.js";
@@ -380,3 +381,153 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("BT20-093 Unleash the Dragon Gene — KB Q&A rulings", () => {
+  async function offeredMainCandidates(handCards: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "BT20-093", as: "option" }, ...handCards.map((card) => ({ card, as: card }))],
+          deck: DECK_FILLER,
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT20-093"));
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT20-093");
+    if (selection === undefined) throw new Error("the [Main] play selection was not raised");
+    const offered = selection.req.options?.candidateInstanceIds ?? [];
+    return { s, selection: selection.req, isOffered: (card: string) => offered.includes(s.inst(card).instanceId) };
+  }
+
+  it("plays a Digimon with [Dracomon] or [Examon] in its text, and nothing else (Q4433)", async () => {
+    const { s, selection, isOffered } = await offeredMainCandidates(["BT20-023", "EX3-074", "BT20-010"]);
+
+    expect(isOffered("BT20-023")).toBe(true);
+    expect(isOffered("EX3-074")).toBe(true);
+    expect(isOffered("BT20-010")).toBe(false);
+
+    const coredramonId = s.inst("BT20-023").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [coredramonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-093"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === coredramonId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(10 - 2 - (5 - 3));
+  });
+
+  it("triggers <Delay> only when one of your Digimon with [Dracomon]/[Examon] in its text would leave (Q4434)", async () => {
+    const qualifying = await runDelayDeparture("BT20-027");
+    expect(qualifying.examon?.stack.map((card) => card.cardId)).toContain("BT20-027");
+    expect(qualifying.optionTrashed).toBe(true);
+
+    const nonQualifying = await runDelayDeparture("BT1-043");
+    expect(nonQualifying.examon).toBeUndefined();
+    expect(nonQualifying.optionTrashed).toBe(false);
+    expect(nonQualifying.departedCardInHand).toBe(true);
+    expect(nonQualifying.examonInHand).toBe(true);
+  });
+
+  it("counts the name, inherited effect, and digivolution requirement as the card's text (Q4435)", async () => {
+    const coredramon = getCardDefinition("EX3-018");
+    const ryudamon = getCardDefinition("BT20-010");
+    if (coredramon === undefined || ryudamon === undefined) throw new Error("catalog cards are missing");
+    expect(getCardDefinition("BT21-046")?.nameEn).toBe("Dracomon (X Antibody)");
+    expect(coredramon.effectText).toContain("if name contains [Dracomon]");
+    expect(coredramon.effectText).not.toContain("Examon");
+    expect(coredramon.inheritedEffectText).toContain("[Examon]");
+    expect(coredramon.inheritedEffectText).not.toContain("Dracomon");
+    expect(matchNameOrTrait(coredramon, { tokens: ["Dracomon"], match: "text" })).toBe(true);
+    expect(matchNameOrTrait(coredramon, { tokens: ["Examon"], match: "text" })).toBe(true);
+    expect(matchNameOrTrait(ryudamon, { tokens: ["Dracomon", "Examon"], match: "text" })).toBe(false);
+
+    const { isOffered } = await offeredMainCandidates(["BT21-046", "EX3-018", "BT20-010"]);
+    expect(isOffered("BT21-046")).toBe(true);
+    expect(isOffered("EX3-018")).toBe(true);
+    expect(isOffered("BT20-010")).toBe(false);
+  });
+
+  it("keeps the DNA digivolved Digimon on the battle area when one of its materials was leaving (Q4436)", async () => {
+    const result = await runDelayDeparture("BT20-027");
+    if (result.examon === undefined) throw new Error("the <Delay> DNA digivolution did not happen");
+    expect(result.examon.permanentId).not.toBe(result.departingPermanentId);
+    expect(result.examon.stack.map((card) => card.instanceId)).toContain(result.departingCardId);
+    expect(result.departedCardInHand).toBe(false);
+    expect(result.examonInHand).toBe(false);
+  });
+});
+
+async function runDelayDeparture(departingCard: string) {
+  const preferred: string[] = [];
+  const options = {
+    autoAcceptOptional: false,
+    autoDeclineOptional: true,
+    autoSelectCards: true,
+    preferInstanceIds: preferred,
+  };
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: departingCard, suspended: true, as: "departing" },
+          { card: "BT20-044", as: "breaker" },
+        ],
+        hand: [
+          { card: "BT20-093", as: "option" },
+          { card: "EX3-074", as: "examon" },
+        ],
+        deck: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-027", dp: 16000, as: "opponent" }],
+        hand: [{ card: "ST2-16", as: "return" }],
+        deck: ["BT1-010", "BT1-010"],
+      },
+    },
+    options,
+  );
+  const optionId = s.inst("option").instanceId;
+  const examonCardId = s.inst("examon").instanceId;
+  const departingPermanentId = s.perm("departing").permanentId;
+  const departingCardId = s.perm("departing").topCard.instanceId;
+  preferred.push(departingPermanentId, departingCardId);
+  s.state.memory = 10;
+  await s.ready();
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  s.state.memory = 7;
+  options.autoDeclineOptional = false;
+  options.autoAcceptOptional = true;
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("return").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST2-16"));
+  const me = s.state.players[0]!;
+  const result = {
+    examon: me.battleArea.find((permanent) => permanent.topCard.instanceId === examonCardId),
+    examonInHand: me.hand.some((card) => card.instanceId === examonCardId),
+    departedCardInHand: me.hand.some((card) => card.instanceId === departingCardId),
+    optionTrashed: me.trash.some((card) => card.instanceId === optionId),
+    departingPermanentId,
+    departingCardId,
+  };
+  expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+  return result;
+}

@@ -263,3 +263,30 @@ describe("BT17-037 RizeGreymon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(true);
   });
 });
+
+describe("BT17-037 RizeGreymon — KB Q&A rulings", () => {
+  it("places the just-deleted yellow or red [Marcus Damon] from the trash on top of security (Q2787)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-034", as: "host", under: ["BT17-037"] },
+            { card: "BT12-092", as: "marcus" },
+          ],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const marcusId = s.perm("marcus").topCard.instanceId;
+    await s.ready();
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("marcus").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === marcusId);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)[0]).toBe(marcusId);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(false);
+  });
+});

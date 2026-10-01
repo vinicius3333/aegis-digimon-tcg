@@ -29,6 +29,11 @@ export interface RestrictionEntry {
    * controls the effect ("effects can't delete or trash it", EX9-005).
    */
   byOpponentEffectsOnly?: boolean;
+  /**
+   * When set, this entry blocks effects only; rule processing and battle ignore it
+   * ("prevent effects from deleting it", BT7-064).
+   */
+  byEffectsOnly?: boolean;
 }
 
 export interface PlayerRestrictionEntry {
@@ -37,6 +42,12 @@ export interface PlayerRestrictionEntry {
   restriction: Restriction;
   duration: EffectDuration;
   matches: (permanentId: string) => boolean;
+  /**
+   * For a "Digimon can't digivolve" rule: whether it also locks a Tamer that digivolves as if
+   * it is the Digimon `asDigimon` (KB Q1157). The Tamer is not a Digimon on the board, so
+   * `matches` never selects it.
+   */
+  matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean;
   continuous?: boolean;
 }
 
@@ -53,8 +64,10 @@ export interface NameTraitGrant {
   tokens: string[];
   duration: EffectDuration;
   continuous?: boolean;
-  /** True when the alias is original card information supplied by a printed [Rule]. */
-  ruleDerived?: boolean;
+  /** True when the alias is original card information supplied by a printed (Rule). */
+  fromRule?: boolean;
+  /** "Name also contains [X]": satisfies inclusion filters but is not an exact name (Q7377). */
+  nameContainsOnly?: boolean;
   /** When true, this name alias is ONLY valid for DigiXros material matching. */
   digiXrosOnly?: boolean;
   dynamicTokens?: () => string[];

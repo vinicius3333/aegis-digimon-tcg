@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_040 } from "./BT24-040.js";
 import "../index.js";
@@ -695,5 +695,124 @@ describe("BT24-040 Venusmon", () => {
     expect(s.state.memory).toBe(5);
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("base").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("venusmon").instanceId);
+  });
+});
+
+describe("BT24-040 Venusmon — KB Q&A rulings", () => {
+  /** Play Venusmon from hand so its [On Play] locks every opposing permanent named in `locked`. */
+  async function playVenusmonLocking(board: BoardSpec, locked: string[]) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        ...board,
+        0: {
+          ...board[0],
+          hand: [{ card: "BT24-040", as: "venusmon" }, ...(board[0]?.hand ?? [])],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(...locked.map((alias) => s.perm(alias).topCard.instanceId));
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      locked.every((alias) => observe(s.engine).isRestricted(s.perm(alias), "cannotActivateWhenDigivolving")),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("still activates a locked Digimon's [When Digivolving] [When Attacking] effect on the attack timing (Q5623)", async () => {
+    const s = await playVenusmonLocking(
+      {
+        0: { hand: [{ card: "BT1-009", as: "placed" }] },
+        1: { battleArea: [{ card: "BT24-016", as: "lamiamon" }] },
+      },
+      ["lamiamon"],
+    );
+    const lamiamon = s.perm("lamiamon");
+    const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, lamiamon);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("placed").instanceId]);
+
+    // Venusmon's lock also forbids suspending, so no attack intent can reach this timing.
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, lamiamon);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      ...securityBefore.slice(1),
+      s.inst("placed").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(securityBefore[0]);
+  });
+
+  it.each([
+    [false, "activates"],
+    [true, "does not activate"],
+  ])("lock %s: another effect %s the locked card's [When Digivolving] effect (Q5624)", async (lock, _outcome) => {
+    const board: BoardSpec = {
+      0: { battleArea: [{ card: "BT1-009", as: "ownNeutral" }] },
+      1: {
+        battleArea: [
+          { card: "BT24-079", as: "hadesmon" },
+          { card: "BT1-009", as: "victim" },
+        ],
+        trash: [{ card: "BT24-071", as: "system" }],
+      },
+    };
+    const s = lock
+      ? await playVenusmonLocking(board, ["hadesmon", "victim"])
+      : setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const systemOnField = s.state.players[1]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === s.inst("system").instanceId,
+    );
+    expect(systemOnField).toBe(!lock);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("system").instanceId)).toBe(lock);
+  });
+
+  it("does not let a locked card pay just the 'by' cost of its [When Digivolving] effect (Q5625)", async () => {
+    const s = await playVenusmonLocking(
+      {
+        1: {
+          battleArea: [{ card: "BT24-045", as: "base" }],
+          hand: [
+            { card: "BT24-072", as: "skullGreymon" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      ["base"],
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skullGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("skullGreymon").instanceId);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("spare").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("spare").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 });

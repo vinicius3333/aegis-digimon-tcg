@@ -229,3 +229,50 @@ describe("AD1-001 Greymon", () => {
     expect(compiled?.effects).toEqual(expect.any(Array));
   });
 });
+
+describe("AD1-001 Greymon — KB Q&A rulings", () => {
+  it("treats [Omnimon] in a card's effects or inherited effects as [Omnimon] in its text for the digivolve route (Q6051)", async () => {
+    const omnimonInEffectOnly = "EX4-038";
+    const omnimonInInheritedEffectOnly = "BT11-062";
+    for (const baseCardId of [omnimonInEffectOnly, omnimonInInheritedEffectOnly]) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "AD1-001", as: "greymon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      });
+      s.state.memory = 2;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("greymon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "AD1-001");
+
+      expect(s.perm("base").topCard?.cardId).toBe("AD1-001");
+      expect(s.state.memory).toBe(0);
+    }
+
+    const blackLevelThreeWithoutOmnimonInText = "BT2-055";
+    const control = setupEngine({
+      0: {
+        battleArea: [{ card: blackLevelThreeWithoutOmnimonInText, as: "base" }],
+        hand: [{ card: "AD1-001", as: "greymon" }],
+      },
+    });
+    control.state.memory = 2;
+
+    expect(
+      control.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: control.perm("base").permanentId,
+        instanceId: control.inst("greymon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(control.perm("base").topCard?.cardId).toBe(blackLevelThreeWithoutOmnimonInText);
+  });
+});

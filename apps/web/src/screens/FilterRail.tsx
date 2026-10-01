@@ -1,6 +1,6 @@
 /* The filter rail beside a card pool: color, kind, level, cost, rarity and text search. */
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button, ColorDot } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { COLORS, COLOR_KEYS } from "../design/theme";
@@ -77,17 +77,6 @@ export function FilterRail({
         aria-modal={mobileFiltersOpen || undefined}
         aria-labelledby={mobileFiltersOpen ? `${sheetId}-title` : undefined}
         tabIndex={mobileFiltersOpen ? -1 : undefined}
-        style={{
-          width: 236,
-          flexShrink: 0,
-          borderRight: "1px solid var(--ds-border)",
-          background: "var(--ds-surface)",
-          padding: 20,
-          overflowY: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 22,
-        }}
       >
         <div className="card-filter-sheet-header">
           <h2 id={`${sheetId}-title`}>{t("mobile.filters")}</h2>
@@ -95,56 +84,32 @@ export function FilterRail({
             ×
           </button>
         </div>
-        <div style={{ position: "relative" }}>
-          <Icons.Search
-            size={15}
-            style={{ position: "absolute", left: 11, top: 10, color: "var(--ds-foreground-muted)" }}
-          />
+        <div className="card-filter-search">
+          <Icons.Search size={15} aria-hidden="true" />
           <input
+            className="card-filter-input"
             aria-label={t("library.searchPlaceholder")}
             name="cardSearch"
             autoComplete="off"
             value={filter.query}
             onChange={(e) => filter.setQuery(e.target.value)}
             placeholder={t("library.searchPlaceholder")}
-            style={{
-              width: "100%",
-              padding: "8px 10px 8px 32px",
-              borderRadius: 10,
-              border: "1px solid var(--ds-border-strong)",
-              background: "var(--ds-background)",
-              color: "var(--ds-foreground)",
-              fontSize: 13.5,
-              fontFamily: "var(--ds-font-sans)",
-              outline: "none",
-            }}
           />
         </div>
 
-        <div>
-          <div style={railLabel}>{t("library.color")}</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+        <div className="card-filter-group">
+          <div className="card-filter-label">{t("library.color")}</div>
+          <div className="card-filter-chips">
             {COLOR_KEYS.map((col) => {
               const on = filter.colors.includes(col);
               const c = COLORS[col];
               return (
                 <button
                   key={col}
+                  className="card-filter-chip card-filter-chip--color"
+                  aria-pressed={on}
                   onClick={() => filter.toggleColor(col)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "5px 10px",
-                    borderRadius: 9,
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    fontFamily: "var(--ds-font-sans)",
-                    background: on ? c.soft : "var(--ds-surface-muted)",
-                    border: `1px solid ${on ? c.base : "var(--ds-border)"}`,
-                    color: on ? "var(--ds-foreground)" : "var(--ds-foreground-muted)",
-                  }}
+                  style={{ "--chip-color": c.base, "--chip-soft": c.soft } as CSSProperties}
                 >
                   <ColorDot color={col} size={10} />
                   {col}
@@ -154,144 +119,82 @@ export function FilterRail({
           </div>
         </div>
 
-        <div>
-          <div style={railLabel}>{t("library.cardType")}</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-            {KIND_FILTERS.map((k) => {
-              const on = filter.kinds.includes(k);
-              return (
-                <button
-                  key={k}
-                  onClick={() => filter.toggleKind(k)}
-                  style={{
-                    padding: "5px 11px",
-                    borderRadius: 9,
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    fontFamily: "var(--ds-font-sans)",
-                    background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
-                    border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
-                    color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
-                  }}
-                >
-                  {t(`library.kind.${k}` as const)}
-                </button>
-              );
-            })}
+        <div className="card-filter-group">
+          <div className="card-filter-label">{t("library.cardType")}</div>
+          <div className="card-filter-chips">
+            {KIND_FILTERS.map((k) => (
+              <button
+                key={k}
+                className="card-filter-chip"
+                aria-pressed={filter.kinds.includes(k)}
+                onClick={() => filter.toggleKind(k)}
+              >
+                {t(`library.kind.${k}` as const)}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div>
-          <div style={railLabel}>{t("library.level")}</div>
-          <div role="group" aria-label={t("library.level")} style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-            {LEVEL_FILTERS.map((level) => {
-              const on = filter.levels.includes(level);
-              return (
-                <button
-                  key={level}
-                  onClick={() => filter.toggleLevel(level)}
-                  aria-pressed={on}
-                  style={{
-                    padding: "5px 11px",
-                    borderRadius: 9,
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    fontFamily: "var(--ds-font-sans)",
-                    background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
-                    border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
-                    color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
-                  }}
-                >
-                  Lv. {level}
-                </button>
-              );
-            })}
+        <div className="card-filter-group">
+          <div className="card-filter-label">{t("library.level")}</div>
+          <div className="card-filter-chips" role="group" aria-label={t("library.level")}>
+            {LEVEL_FILTERS.map((level) => (
+              <button
+                key={level}
+                className="card-filter-chip"
+                onClick={() => filter.toggleLevel(level)}
+                aria-pressed={filter.levels.includes(level)}
+              >
+                Lv. {level}
+              </button>
+            ))}
           </div>
         </div>
 
         {showCostFilter ? (
-          <div>
-            <div style={railLabel}>{t("library.playCost")}</div>
-            <div role="group" aria-label={t("library.playCost")} style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-              {COST_FILTERS.map((cost) => {
-                const on = filter.costs.includes(cost);
-                return (
-                  <button
-                    key={cost}
-                    onClick={() => filter.toggleCost(cost)}
-                    aria-pressed={on}
-                    style={{
-                      padding: "5px 11px",
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      fontFamily: "var(--ds-font-sans)",
-                      background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
-                      border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
-                      color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
-                    }}
-                  >
-                    {cost === 7 ? "7+" : cost}
-                  </button>
-                );
-              })}
+          <div className="card-filter-group">
+            <div className="card-filter-label">{t("library.playCost")}</div>
+            <div className="card-filter-chips" role="group" aria-label={t("library.playCost")}>
+              {COST_FILTERS.map((cost) => (
+                <button
+                  key={cost}
+                  className="card-filter-chip"
+                  onClick={() => filter.toggleCost(cost)}
+                  aria-pressed={filter.costs.includes(cost)}
+                >
+                  {cost === 7 ? "7+" : cost}
+                </button>
+              ))}
             </div>
           </div>
         ) : null}
 
         {showRarityFilter ? (
-          <div>
-            <div style={railLabel}>{t("library.rarity")}</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-              {RARITY_FILTERS.map((rarity) => {
-                const on = filter.rarities.includes(rarity);
-                return (
-                  <button
-                    key={rarity}
-                    onClick={() => filter.toggleRarity(rarity)}
-                    aria-pressed={on}
-                    style={{
-                      padding: "5px 11px",
-                      borderRadius: 9,
-                      cursor: "pointer",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      fontFamily: "var(--ds-font-sans)",
-                      background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
-                      border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
-                      color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
-                    }}
-                  >
-                    {rarity}
-                  </button>
-                );
-              })}
+          <div className="card-filter-group">
+            <div className="card-filter-label">{t("library.rarity")}</div>
+            <div className="card-filter-chips">
+              {RARITY_FILTERS.map((rarity) => (
+                <button
+                  key={rarity}
+                  className="card-filter-chip"
+                  onClick={() => filter.toggleRarity(rarity)}
+                  aria-pressed={filter.rarities.includes(rarity)}
+                >
+                  {rarity}
+                </button>
+              ))}
             </div>
           </div>
         ) : null}
 
         {showSort ? (
-          <div>
-            <div style={railLabel}>{t("library.sort")}</div>
+          <div className="card-filter-group">
+            <div className="card-filter-label">{t("library.sort")}</div>
             <select
+              className="card-filter-input card-filter-select"
               value={filter.sort}
               onChange={(e) => filter.setSort(e.target.value as CardSort)}
               aria-label={t("library.sort")}
-              style={{
-                width: "100%",
-                padding: "8px 10px",
-                borderRadius: 10,
-                border: "1px solid var(--ds-border-strong)",
-                background: "var(--ds-background)",
-                color: "var(--ds-foreground)",
-                fontSize: 13,
-                fontFamily: "var(--ds-font-sans)",
-                outline: "none",
-                cursor: "pointer",
-              }}
             >
               {CARD_SORTS.map((sort) => (
                 <option key={sort} value={sort}>
@@ -302,48 +205,27 @@ export function FilterRail({
           </div>
         ) : null}
 
-        <div>
-          <div style={railLabel}>{t("library.traitAttribute")}</div>
+        <div className="card-filter-group">
+          <div className="card-filter-label">{t("library.traitAttribute")}</div>
           <input
+            className="card-filter-input"
             name="traitSearch"
             autoComplete="off"
             value={filter.traitQuery}
             onChange={(e) => filter.setTraitQuery(e.target.value)}
             aria-label={t("library.traitAttribute")}
             placeholder={t("library.traitAttributePlaceholder")}
-            style={{
-              width: "100%",
-              padding: "8px 10px",
-              borderRadius: 10,
-              border: "1px solid var(--ds-border-strong)",
-              background: "var(--ds-background)",
-              color: "var(--ds-foreground)",
-              fontSize: 13.5,
-              fontFamily: "var(--ds-font-sans)",
-              outline: "none",
-            }}
           />
         </div>
 
-        <div>
-          <div style={railLabel}>{t("library.set")}</div>
+        <div className="card-filter-group">
+          <div className="card-filter-label">{t("library.set")}</div>
           <select
+            className="card-filter-input card-filter-select"
             aria-label={t("library.set")}
             name="cardSet"
             value={filter.set}
             onChange={(e) => filter.setSet(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px 10px",
-              borderRadius: 10,
-              border: "1px solid var(--ds-border-strong)",
-              background: "var(--ds-background)",
-              color: "var(--ds-foreground)",
-              fontSize: 13,
-              fontFamily: "var(--ds-font-sans)",
-              outline: "none",
-              cursor: "pointer",
-            }}
           >
             <option value="">{t("library.allSets")}</option>
             {filter.availableSets.map((s) => (
@@ -356,24 +238,7 @@ export function FilterRail({
 
         {extra}
 
-        <button
-          onClick={filter.clear}
-          style={{
-            marginTop: "auto",
-            padding: 8,
-            borderRadius: 9,
-            border: "1px solid var(--ds-border)",
-            background: "transparent",
-            color: "var(--ds-foreground-muted)",
-            cursor: "pointer",
-            fontSize: 12.5,
-            fontWeight: 600,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-          }}
-        >
+        <button className="card-filter-clear" onClick={filter.clear}>
           <Icons.Filter size={14} />
           {t("library.clearFilters")}
         </button>
@@ -388,12 +253,3 @@ export function FilterRail({
     </>
   );
 }
-
-const railLabel = {
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: "0.12em",
-  textTransform: "uppercase" as const,
-  color: "var(--ds-foreground-muted)",
-  marginBottom: 11,
-};

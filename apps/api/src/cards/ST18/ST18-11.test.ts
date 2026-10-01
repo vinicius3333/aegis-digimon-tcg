@@ -66,3 +66,54 @@ describe("ST18-11 Parrotmon", () => {
     expect(observe(lock.engine).isRestricted(lock.perm("victim"), "unsuspend")).toBe(false);
   });
 });
+
+describe("ST18-11 Parrotmon — KB Q&A rulings", () => {
+  it("lets the can't-unsuspend target differ from the Digimon it suspended (Q847)", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "ST18-11", as: "parrotmon" }] },
+      1: {
+        battleArea: [
+          { card: "ST18-03", as: "suspendTarget" },
+          { card: "ST18-03", as: "lockTarget" },
+        ],
+      },
+    });
+    s.state.memory = 7;
+    const suspendTargetId = s.perm("suspendTarget").permanentId;
+    const lockTargetId = s.perm("lockTarget").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("parrotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendDecision = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [suspendTargetId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("suspendTarget").isSuspended &&
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
+    );
+    const lockDecision = s.decisions.at(-1)!.req;
+    expect(lockDecision.options?.candidateInstanceIds).toEqual(expect.arrayContaining([suspendTargetId, lockTargetId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: lockDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [lockTargetId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("lockTarget"), "unsuspend"));
+
+    expect(s.perm("suspendTarget").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspendTarget"), "unsuspend")).toBe(false);
+    expect(s.perm("lockTarget").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("lockTarget"), "unsuspend")).toBe(true);
+  });
+});

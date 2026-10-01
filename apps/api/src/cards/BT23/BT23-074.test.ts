@@ -1,5 +1,6 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -475,5 +476,56 @@ describe("BT23-074 Eater Legion", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("legion"), "Alliance")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("legion"), "Reboot")).toBe(true);
+  });
+});
+
+describe("BT23-074 Eater Legion — KB Q&A rulings", () => {
+  async function digivolveFromErika(s: ReturnType<typeof erikaRoute>): Promise<void> {
+    await s.ready();
+    s.state.memory = 5;
+    const legionId = s.inst("legion").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("erika").permanentId,
+        instanceId: legionId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("erika").topCard.instanceId === legionId && s.state.pendingDecision === undefined);
+  }
+
+  it("draws the digivolution bonus card when it digivolves from the Erika Mishima Tamer (Q6704)", async () => {
+    const s = erikaRoute({ motherEater: false });
+    const handBefore = s.state.players[0]!.hand.length;
+    const topOfDeck = s.state.players[0]!.deck[0]!.instanceId;
+
+    await digivolveFromErika(s);
+
+    expect(s.perm("erika").stack.map(({ cardId }) => cardId)).toEqual(["BT23-084"]);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === topOfDeck)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(DECK.length - 1);
+  });
+
+  it("does not gain the [Security] effect of the Tamer in its digivolution cards (Q6706)", async () => {
+    const s = erikaRoute({ motherEater: false });
+    await digivolveFromErika(s);
+    const erikaInStack = s.perm("erika").stack[0]!;
+    const battleAreaBefore = s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId);
+
+    await advance(s.engine).fire(EffectTiming.SecuritySkill, s.perm("erika"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(battleAreaBefore);
+    expect(s.perm("erika").stack.map(({ instanceId }) => instanceId)).toEqual([erikaInStack.instanceId]);
+    expect(observe(s.engine).hasKeyword(s.perm("erika"), "Alliance")).toBe(true);
+
+    const securityErika = s.give(0, Zone.Security, { card: "BT23-084", as: "securityErika" });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, securityErika);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === securityErika.instanceId),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(battleAreaBefore.length + 1);
   });
 });

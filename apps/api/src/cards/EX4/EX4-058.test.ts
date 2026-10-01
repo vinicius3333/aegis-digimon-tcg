@@ -43,7 +43,7 @@ describe("EX4-058 Ravemon", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions;
     expect(actions?.[0]).toMatchObject({
       kind: "Trash",
-      target: { chooser: "opponent" },
+      chooser: "opponent",
       condition: { kind: "zoneCount", op: "gte", value: 8 },
     });
     expect(actions?.[1]).toMatchObject({
@@ -245,4 +245,29 @@ describe("EX4-058 Ravemon", () => {
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX4-058")).toBe(false);
   });
   ex4CardBehaviorTests("EX4-058");
+});
+
+describe("EX4-058 Ravemon — KB Q&A rulings", () => {
+  it("lets the opponent choose which hand card is trashed (Q3499)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-058", as: "source" }] },
+        1: {
+          hand: [...Array(7).fill("BT1-009"), { card: "BT1-011", as: "chosen" }],
+          security: [{ card: "BT1-013", as: "security" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("chosen").instanceId);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.trash.length === 1);
+
+    const trashChoice = s.decisions.find(({ req }) => req.kind === "selectCards");
+    expect(trashChoice?.seat).toBe(1);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("chosen").instanceId]);
+  });
 });

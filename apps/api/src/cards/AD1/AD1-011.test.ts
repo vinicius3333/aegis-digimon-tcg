@@ -18,6 +18,38 @@ describe("AD1-011 Paildramon", () => {
     expect(compiled?.effects).toEqual(expect.any(Array));
   });
 
+  it("digivolves from a Lv.4 [Free] or [Hero] trait Digimon for cost 3", async () => {
+    for (const baseCardId of ["BT13-011", "BT21-013"]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "AD1-011", as: "source" }] },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("source").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "AD1-011");
+      expect(s.state.memory).toBe(0);
+    }
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "base" }], hand: [{ card: "AD1-011", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("protects the digivolved Paildramon from battle deletion until the opponent's turn ends", async () => {
     const s = setupEngine(
       {

@@ -161,3 +161,39 @@ describe("BT10-056 Lotosmon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT10-056 Lotosmon — KB Q&A rulings", () => {
+  it("still activates the granted [On Deletion] when Lotosmon is deleted at the same time on the opponent's turn (Q1979)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-056", as: "lotosmon" },
+            { card: "BT10-043", as: "vegetation" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          trash: [
+            { card: "BT1-045", as: "returned" },
+            { card: "BT1-064", as: "spare" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.engine.recomputeContinuousEffects();
+
+    const deleted = await advance(s.engine).verb.deletePermanent(
+      [s.perm("lotosmon").permanentId, s.perm("vegetation").permanentId, s.perm("unrelated").permanentId],
+      "byEffect",
+    );
+
+    expect(deleted).toBe(3);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(-2);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT10-043")).toBe(true);
+    assertNoLoudGap(s);
+  });
+});

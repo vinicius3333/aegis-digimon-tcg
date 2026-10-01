@@ -149,3 +149,66 @@ describe("P-122 Patamon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("base").permanentId)).toBe(true);
   });
 });
+
+describe("P-122 Patamon — KB Q&A rulings", () => {
+  async function playOverSecurity(
+    security: { card: string; as?: string; faceUp?: boolean }[],
+    answer: "accept" | "decline",
+  ) {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "P-122", as: "patamon" }], security, deck: [{ card: "BT1-009", as: "recovery" }] } },
+      answer === "accept"
+        ? { autoAcceptOptional: true, autoSelectCards: true }
+        : { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("patamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("adds either a yellow/black or a black/yellow card from security (Q4235)", async () => {
+    for (const multicolor of ["BT11-036", "BT13-064"]) {
+      const s = await playOverSecurity(
+        [
+          { card: multicolor, as: "candidate" },
+          { card: "BT10-031", as: "monoYellow" },
+        ],
+        "accept",
+      );
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([multicolor]);
+      expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId).sort()).toEqual(
+        [s.inst("monoYellow").instanceId, s.inst("recovery").instanceId].sort(),
+      );
+      assertNoLoudGap(s);
+    }
+  });
+
+  it("still shuffles the security stack when no card was added (Q4848)", async () => {
+    const noMatch = await playOverSecurity(
+      [
+        { card: "BT1-009", as: "faceUp", faceUp: true },
+        { card: "BT1-010", as: "faceDown" },
+      ],
+      "accept",
+    );
+    const declined = await playOverSecurity(
+      [
+        { card: "BT11-036", as: "faceUp", faceUp: true },
+        { card: "BT1-010", as: "faceDown" },
+      ],
+      "decline",
+    );
+    for (const s of [noMatch, declined]) {
+      expect(s.state.players[0]!.hand).toHaveLength(0);
+      expect(s.state.players[0]!.security).toHaveLength(2);
+      expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("recovery").instanceId]);
+      expect(s.state.players[0]!.security.every(({ faceUp }) => faceUp !== true)).toBe(true);
+      assertNoLoudGap(s);
+    }
+  });
+});

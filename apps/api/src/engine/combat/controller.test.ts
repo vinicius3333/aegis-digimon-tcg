@@ -113,7 +113,7 @@ function harness(opts?: {
         ? undefined
         : async (_trigger, _alliance, options) => {
             attackPayloads.push(options?.subTriggerPayload ?? {});
-            return { allianceResolvedInWindow: false, subTriggersResolvedInWindow: false };
+            return { allianceResolvedInWindow: false, raidResolvedInWindow: false, subTriggersResolvedInWindow: false };
           },
     consultLeavePrevention: async (permanentIds) => {
       timeline.push("replacement:consultLeavePrevention");

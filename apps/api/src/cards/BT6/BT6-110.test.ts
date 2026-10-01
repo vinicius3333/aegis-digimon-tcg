@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-110.js";
+import "../ST1/ST1-12.js";
 
 describe("BT6-110 Cutting Edge", () => {
   it("activates its Main effect from security", async () => {
@@ -83,5 +84,44 @@ describe("BT6-110 Cutting Edge", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-085")).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});
+
+describe("BT6-110 Cutting Edge — KB Q&A rulings", () => {
+  it("uses the played Eosmon's DP after [ST1-12 Tai Kamiya]'s boost to delete a 7000 DP Digimon (Q1494)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT6-082", "ST1-12"],
+          hand: [
+            { card: "BT6-110", as: "option" },
+            { card: "BT6-085", as: "eosmon" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT6-044", as: "aboveBoostedDp", dp: 8000 },
+            { card: "BT1-014", as: "atBoostedDp", dp: 7000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const atBoostedDpId = s.perm("atBoostedDp").permanentId;
+    const aboveBoostedDpId = s.perm("aboveBoostedDp").permanentId;
+    const eosmonInstanceId = s.inst("eosmon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === atBoostedDpId));
+
+    const eosmon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === eosmonInstanceId,
+    );
+    expect(eosmon?.currentDP).toBe(7000);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([aboveBoostedDpId]);
   });
 });

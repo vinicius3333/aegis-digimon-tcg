@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-033.js";
 import "../index.js";
 import "../BT11/BT11-107.js";
@@ -141,5 +141,41 @@ describe("BT16-033 Harpymon", () => {
 
     expect(s.perm("hawkmon").stack.map((card) => card.cardId)).toEqual(["BT16-007"]);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT16-033 Harpymon — KB Q&A rulings", () => {
+  async function attackIntoSecurity(securityCard: string) {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: HARPYMON, as: "harpymon" }],
+        security: [NEUTRAL, NEUTRAL, NEUTRAL],
+      },
+      1: { security: [securityCard] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("harpymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("does not gain memory when the checked card's [Security] effect removes Harpymon first (Q2629)", async () => {
+    const removed = await attackIntoSecurity("BT11-107");
+
+    expect(removed.state.players[0]!.battleArea).toHaveLength(0);
+    expect(removed.state.players[0]!.trash.some((card) => card.cardId === HARPYMON)).toBe(true);
+    expect(removed.state.memory).toBe(0);
+
+    const survived = await attackIntoSecurity(NEUTRAL);
+
+    expect(survived.state.players[0]!.battleArea).toHaveLength(1);
+    expect(survived.state.memory).toBe(1);
   });
 });

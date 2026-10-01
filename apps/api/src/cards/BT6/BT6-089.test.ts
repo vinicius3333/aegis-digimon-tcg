@@ -41,3 +41,20 @@ describe("BT6-089 T.K. Takaishi", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("BT6-089 T.K. Takaishi & Kari Kamiya — KB Q&A rulings", () => {
+  it("does not gain memory at the start of your turn when both players have equal security (Q1479)", async () => {
+    async function memoryAfterTurnStart(ownSecurity: number, opponentSecurity: number): Promise<number> {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT6-089", as: "tk" }], security: ownSecurity },
+        1: { security: opponentSecurity },
+      });
+      s.state.memory = 0;
+      await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tk"));
+      return s.state.memory;
+    }
+
+    expect(await memoryAfterTurnStart(3, 3)).toBe(0);
+    expect(await memoryAfterTurnStart(2, 3)).toBe(2);
+  });
+});

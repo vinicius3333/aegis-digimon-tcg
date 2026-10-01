@@ -197,3 +197,53 @@ describe("BT11-009 Shoutmon + StarSword", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 });
+
+describe("BT11-009 Shoutmon + StarSword — KB Q&A rulings", () => {
+  function playX4With(materials: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT10-009", as: "x4" },
+            ...materials.map((card, index) => ({ card, as: `material-${index}` })),
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("x4").instanceId,
+      digiXros: { materialInstanceIds: materials.map((_, index) => s.inst(`material-${index}`).instanceId) },
+    });
+    return { s, result };
+  }
+
+  it("is always also named Shoutmon and Starmons, in hand and in play (Q2054)", async () => {
+    const asStarmons = playX4With(["BT10-008", "BT11-009"]);
+    expect(asStarmons.result).toEqual({ ok: true });
+    await settle(() => asStarmons.s.state.players[0]!.battleArea.length === 1);
+    expect(asStarmons.s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT10-008", "BT11-009"]),
+    );
+
+    const plainShoutmonTwice = playX4With(["BT10-008", "BT10-008"]);
+    expect(plainShoutmonTwice.result.ok).toBe(false);
+    expect(plainShoutmonTwice.s.state.players[0]!.battleArea).toHaveLength(0);
+
+    const inPlay = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT11-009", as: "starsword" },
+          { card: "BT10-008", as: "shoutmon" },
+        ],
+      },
+    });
+    await advance(inPlay.engine).recompute();
+    expect(observe(inPlay.engine).effectiveNames(inPlay.perm("starsword"))).toEqual(
+      expect.arrayContaining(["shoutmon + starsword", "shoutmon", "starmons"]),
+    );
+    expect(observe(inPlay.engine).effectiveNames(inPlay.perm("shoutmon"))).not.toContain("starmons");
+  });
+});

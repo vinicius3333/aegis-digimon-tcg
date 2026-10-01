@@ -1,9 +1,14 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-102.js";
+import "../BT10/BT10-031.js";
+import "../BT10/BT10-100.js";
+import "../BT2/BT2-099.js";
 import "../EX2/EX2-066.js";
+import "../ST3/ST3-13.js";
 import { compiled } from "./BT17-038.js";
 import "./index.js";
 
@@ -327,5 +332,208 @@ describe("BT17-038 Sakuyamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([unrelatedId, illegalId]),
     );
+  });
+});
+
+const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
+const YELLOW_TAMER = "BT1-087";
+
+function isReturnProtected(s: EngineSetup): boolean {
+  return observe(s.engine).isRestricted(s.perm("sakuyamon"), "beReturned");
+}
+
+async function useGloriousBurstBesideSakuyamon(yellowTamerCount: number): Promise<EngineSetup> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          ...Array.from({ length: yellowTamerCount }, () => YELLOW_TAMER),
+          { card: "BT17-038", as: "sakuyamon", under: ["BT17-035"] },
+        ],
+        hand: [{ card: "BT2-099", as: "burst" }],
+        deck: [...DECK],
+      },
+      1: { battleArea: [{ card: "BT2-050", as: "target", dp: 20000 }], deck: [...DECK] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  const burstId = s.inst("burst").instanceId;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: burstId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === burstId));
+  await settle();
+  return s;
+}
+
+async function useOptionThroughTaomonBesideSakuyamon(optionCardId: string): Promise<EngineSetup> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT17-038", as: "sakuyamon", under: ["BT17-035"] },
+          { card: "BT17-035", as: "taomon" },
+        ],
+        hand: [{ card: optionCardId, as: "option" }],
+        deck: [...DECK],
+      },
+      1: { battleArea: [{ card: "BT2-050", as: "target" }], deck: [...DECK] },
+    },
+    { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+  );
+  s.state.memory = 0;
+  await s.ready();
+  const optionId = s.inst("option").instanceId;
+  await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("taomon"));
+  await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
+  await settle();
+  return s;
+}
+
+async function digivolveIntoSakuyamonHolding(optionCardId: string, answer: "accept" | "decline") {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT17-035", as: "sakuyamon" }],
+        hand: [
+          { card: "BT17-038", as: "sakuyamonCard" },
+          { card: optionCardId, as: "option" },
+        ],
+        deck: [...DECK],
+      },
+      1: { battleArea: [{ card: "BT2-050", as: "target" }], deck: [...DECK] },
+    },
+    answer === "accept"
+      ? { autoAcceptOptional: true, autoSelectCards: true }
+      : { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 3;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("sakuyamon").permanentId,
+      instanceId: s.inst("sakuyamonCard").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("target").currentDP === 5000);
+  await settle();
+  return s;
+}
+
+describe("BT17-038 Sakuyamon — KB Q&A rulings", () => {
+  it("activates its Option-use effect only after the used Option's [Main] effect finishes (Q2788)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-038", as: "sakuyamon", under: ["BT17-035"] }],
+          hand: [
+            { card: "BT10-100", as: "option" },
+            { card: "BT10-031", as: "pulsemon" },
+          ],
+          deck: [...DECK],
+        },
+      },
+      { autoAcceptOptional: false, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const mainEffectPrompt = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req).toMatchObject({ kind: "optional", sourceCardId: "BT10-100" });
+    expect(isReturnProtected(s)).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: mainEffectPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => isReturnProtected(s));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
+    expect(isReturnProtected(s)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not trigger when an Option's effect activates without using the card, such as <Delay> (Q2789)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-038", as: "sakuyamon", under: ["BT17-035"] },
+            { card: "BT10-100", as: "delayOption" },
+          ],
+          hand: [{ card: "BT1-102", as: "usedOption" }],
+          deck: [...DECK],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const delayOptionId = s.perm("delayOption").topCard.instanceId;
+    const effects = observe(s.engine).activatableEffects(s.perm("delayOption")) as Array<{ effectKey: string }>;
+    expect(effects).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delayOptionId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.memory === 4 && s.state.players[0]!.trash.some((card) => card.instanceId === delayOptionId),
+    );
+    await settle();
+
+    expect(isReturnProtected(s)).toBe(false);
+
+    const usedOptionId = s.inst("usedOption").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: usedOptionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === usedOptionId));
+
+    expect(isReturnProtected(s)).toBe(true);
+  });
+
+  it("does not trigger when a card-level reduction makes the used Option's use cost 1 (Q2790)", async () => {
+    const useCostOne = await useGloriousBurstBesideSakuyamon(8);
+    expect(useCostOne.state.memory).toBe(9);
+    expect(useCostOne.perm("target").currentDP).toBe(8000);
+    expect(isReturnProtected(useCostOne)).toBe(false);
+
+    const useCostTwo = await useGloriousBurstBesideSakuyamon(7);
+    expect(useCostTwo.state.memory).toBe(8);
+    expect(isReturnProtected(useCostTwo)).toBe(true);
+  });
+
+  it("triggers when only the cost to pay for an Option with original cost 2 is reduced to 0 (Q5457)", async () => {
+    const reducedPayment = await useOptionThroughTaomonBesideSakuyamon("BT1-102");
+    expect(reducedPayment.state.memory).toBe(0);
+    expect(isReturnProtected(reducedPayment)).toBe(true);
+
+    const originalCostOne = await useOptionThroughTaomonBesideSakuyamon("ST3-13");
+    expect(originalCostOne.state.memory).toBe(0);
+    expect(isReturnProtected(originalCostOne)).toBe(false);
+  });
+
+  it("triggers when an effect uses an Option with original cost 2 without paying the cost (Q5458)", async () => {
+    const usedForFree = await digivolveIntoSakuyamonHolding("BT1-102", "accept");
+    expect(usedForFree.state.memory).toBe(0);
+    expect(usedForFree.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      usedForFree.inst("option").instanceId,
+    );
+    expect(isReturnProtected(usedForFree)).toBe(true);
+
+    const declined = await digivolveIntoSakuyamonHolding("BT1-102", "decline");
+    expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      declined.inst("option").instanceId,
+    );
+    expect(isReturnProtected(declined)).toBe(false);
   });
 });

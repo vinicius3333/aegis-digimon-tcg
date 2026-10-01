@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-021.js";
+import { describeBondRulings } from "./bondRulings.testSupport.js";
 import "../BT1/BT1-015.js";
 
 describe("LM-021 Agumon - Bond of Bravery", () => {
@@ -214,5 +215,62 @@ describe("LM-021 Agumon - Bond of Bravery", () => {
     expect(compiled?.effects.find((effect) => effect.trigger === "Counter")).toMatchObject({
       keywords: [{ keyword: "BlastDigivolve" }],
     });
+  });
+});
+
+describeBondRulings({
+  cardId: "LM-021",
+  name: "Agumon - Bond of Bravery",
+  rookie: "BT1-010",
+  scramble: "LM-027",
+  training: "P-103",
+  qno: { requirement: "Q4012", blast: "Q4013", blastAfterSecurityLoss: "Q4015", delay: "Q4016" },
+});
+
+describe("LM-021 Agumon - Bond of Bravery — KB Q&A rulings (deletion budget)", () => {
+  it("may choose targets whose total DP is below its DP, but must choose at least 1 (Q4018)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "LM-021", as: "bond" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "chosen", dp: 7000 },
+            { card: "BT1-010", as: "spared", dp: 7000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bond").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets", 2000);
+    const decision = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
+    expect(request.options?.maxTotalDP).toBe(14000);
+    const candidates = request.options?.candidateInstanceIds ?? [];
+    const chosen = s.perm("chosen");
+    const chosenId = candidates.find((id) => id === chosen.permanentId || id === chosen.topCard.instanceId)!;
+    expect(chosenId).toBeDefined();
+
+    const empty = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: decision.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [] },
+    });
+    expect(empty).not.toEqual({ ok: true });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [chosenId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined, 2000);
+
+    const remaining = s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId);
+    expect(remaining).toEqual([s.perm("spared").permanentId]);
   });
 });

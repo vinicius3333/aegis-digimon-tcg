@@ -1,7 +1,7 @@
 import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-031.js";
 
@@ -68,5 +68,33 @@ describe("BT12-031 Imperialdramon: Fighter Mode", () => {
     expect(three.perm("fighter").currentDP).toBe(16000);
     expect(observe(three.engine).hasKeyword(three.perm("fighter"), "Blocker")).toBe(true);
     expect(observe(three.engine).keywordAmount(three.perm("fighter"), "SecurityAttack")).toBe(1);
+  });
+});
+
+describe("BT12-031 Imperialdramon: Fighter Mode — KB Q&A rulings", () => {
+  it("keeps Security Attack +1 when its digivolution cards have three colors (Q2168)", async () => {
+    const twoColors = setupEngine({
+      0: { battleArea: [{ card: "BT12-031", as: "fighter", under: ["BT12-021", "BT1-064"] }] },
+    });
+    await twoColors.ready();
+    expect(observe(twoColors.engine).keywordAmount(twoColors.perm("fighter"), "SecurityAttack")).toBe(1);
+
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-031", as: "fighter", under: ["BT12-021", "BT1-064", "BT1-009"] }] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+    });
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("fighter"), "SecurityAttack")).toBe(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fighter").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length <= 3, 5000);
+    await advance(s.engine).finishAttack();
+    expect(s.state.players[1]!.security).toHaveLength(3);
   });
 });

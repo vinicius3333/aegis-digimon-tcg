@@ -19,6 +19,7 @@ import type { Primitives } from "../EffectContext.js";
 import { effectiveNames } from "../continuous.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { isOptionPermanent } from "../../cards/cardData.js";
 import { canPaySuspendCost } from "../../combat/legality.js";
 
 /**
@@ -97,7 +98,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // A rule deletion has no controlling effect, so an opponent-scoped entry cannot apply to it.
     permanentIds = permanentIds.filter((permanentId) =>
       cause === "byRule" || cause === "byBattle"
-        ? !continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false })
+        ? !continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false, byEffect: false })
         : !isRestricted(permanentId, "beDeleted"),
     );
     if (permanentIds.length === 0) return 0;
@@ -111,15 +112,16 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // Q2212 (EX3-013 under BT12-072): a leave-prevention replacement does NOT pre-empt the
     // deletion triggers OF THE PERMANENT IT SAVES. The ruling resolves that permanent's own
     // "if this Digimon is deleted, trash the top card of your opponent's security stack"
-    // FIRST and then uses the prevention, so fire its self-anchored deletion watchers over
-    // the whole endangered set, before any prevention can remove a permanent from it.
+    // FIRST and then uses the prevention, so fire its "when this Digimon is deleted" clauses
+    // over the whole endangered set, before any prevention can remove a permanent from it.
     //
-    // Only self-anchored watchers move: a THIRD party's "when a Digimon is deleted" watcher
-    // (EX5-063 Leviamon's "gain 1 memory for each of your opponent's Digimon deleted") must
-    // still see the permanents that actually left, and a prevented permanent was never
-    // deleted (Q6030 pays the prevention for both of Leviamon's sequential deletions and
-    // yields no memory). Those fire below, over `toDelete`, as they always did. So do
-    // `whenLeavesPlay` / `whenTrashedByEffect`: a prevented permanent never leaves play.
+    // Only "when this Digimon is deleted" clauses move: a THIRD party's "when a Digimon is
+    // deleted" watcher (EX5-063 Leviamon's "gain 1 memory for each of your opponent's Digimon
+    // deleted") must still see the permanents that actually left, and a prevented permanent
+    // was never deleted (Q6030 pays the prevention for both of Leviamon's sequential deletions
+    // and yields no memory). The same holds for a class watcher on the endangered permanent
+    // itself (BT13-073's "one of your [Chessmon]", Q2311). Those fire below, over `toDelete`.
+    // So do `whenLeavesPlay` / `whenTrashedByEffect`: a prevented permanent never leaves play.
     const deletionWatchersFired = new Set<string>();
     if (engine.fireSubTrigger && engine.consultLeavePrevention) {
       const endangeredSnapshots = snapshotDeletedPermanents(permanentIds);
@@ -193,7 +195,9 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       // leave-cause gates such as "other than by your effects" must see the effect
       // resolution owner that was pushed by the interpreter.
       const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
-      const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat);
+      const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat, {
+        includeEvade: true,
+      });
       if (prevented.size > 0) toDelete = permanentIds.filter((id) => !prevented.has(id));
     }
     // ＜Evade＞ keyword: when this Digimon would be deleted by an effect, you MAY suspend
@@ -202,8 +206,9 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // Only usable when unsuspended (the suspension IS the cost). Each eligible permanent is
     // prompted one at a time (§15-8-5-4), through the same evadePrompt/respondEvade window
     // the combat (battle-loss) path uses, so the controller's decline is honored instead of
-    // the deletion being silently prevented.
-    {
+    // the deletion being silently prevented. The leave consult above already offered it,
+    // ordered with the other reactions to this deletion, whenever that consult exists.
+    if (!engine.consultLeavePrevention) {
       const evaded = new Set<string>();
       for (const permanentId of toDelete) {
         if (!continuous.hasKeyword(permanentId, "Evade")) continue;
@@ -454,8 +459,8 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);
         if (deleted?.topCard === undefined) continue;
-        // The pre-prevention pass above already ran this permanent's self-anchored watchers;
-        // only the third-party ones are still owed a fire.
+        // The pre-prevention pass above already ran this permanent's own "when this Digimon is
+        // deleted" clauses; every other watcher is still owed a fire.
         await engine.fireSubTrigger(
           "onDeletionOf",
           {
@@ -517,6 +522,10 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       (permanentId) => access.permanentById(permanentId)?.topCard?.instanceId,
     );
     const topCardIdsByPermanent = toDelete.map((permanentId) => access.permanentById(permanentId)?.topCard?.cardId);
+    const wasOptionPermanent = toDelete.map((permanentId) => {
+      const permanent = access.permanentById(permanentId);
+      return permanent !== undefined && isOptionPermanent(permanent);
+    });
     const effectiveColorsByPermanent = toDelete.map((permanentId) => {
       const permanent = access.permanentById(permanentId);
       if (permanent?.topCard === undefined) return [] as CardColor[];
@@ -630,6 +639,15 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       }
     }
     opts?.afterMovement?.(movedPermanentIds);
+    // An Option in the battle area is never deleted, only trashed (CR 4-28, 17-1-3-2-2), so an
+    // Option permanent that leaves here, such as a ＜Delay＞ source paying its own cost
+    // (CR 16-17-1), is an Option trashed from the battle area (BT23-059, P-203 Q5198).
+    for (let i = 0; i < toDelete.length; i++) {
+      const optionInstanceId = topInstanceIdsByPermanent[i];
+      if (optionInstanceId === undefined || !wasOptionPermanent[i]) continue;
+      if (!movedPermanentIds.includes(toDelete[i]!)) continue;
+      await engine.fireSubTrigger?.("whenOptionInBattleAreaTrashed", { trashedOptionInstanceId: optionInstanceId });
+    }
     // `deletePermanentsBatched` narrates the movement itself — it is the single layer every
     // deletion path shares, so this one must not narrate it a second time.
     // WhenPermanentWouldBeDeleted fired BEFORE movement (would-be-deleted); now that the
@@ -741,10 +759,13 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         { sourceCardId: partitionSourceCardId, sourceInstanceId: partitionSourceInstanceId },
       );
       if (chosen.length === 0) continue;
+      // Q2860: Partition plays from digivolution cards even after the holder's deletion trashed them.
       if (engine.playForKeywordEffect) {
-        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds);
+        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds, {
+          playedFromZone: "digivolutionCards",
+        });
       } else {
-        await playInstances(matchedInstanceIds, { payCost: false });
+        await playInstances(matchedInstanceIds, { payCost: false, playedFromZone: "digivolutionCards" });
       }
     }
     return deletedCount;

@@ -24,6 +24,11 @@ const compiled: CompiledCard = {
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
                 raw: "by suspending this Tamer",
               },
+              condition: {
+                kind: "not",
+                condition: { kind: "attackTargetsPlayer" },
+                raw: "one of your Digimon attacks your opponent's Digimon",
+              },
               optional: true,
               abortOnDecline: true,
             },

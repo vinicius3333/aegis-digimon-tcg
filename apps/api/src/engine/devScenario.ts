@@ -58,8 +58,22 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-p240-arcturusmon-vb-routes",
+  "arena-ex12-proximamon-dual-siriusmon",
+  "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
+  "arena-bt22-rie-kishibe-delete-without-digivolve",
+  "arena-bt14-chuumon-security-reveal",
+  "arena-bt20-omnimon-each-player-survivor",
+  "arena-bt20-ouryuken-reduction-resumes",
   "arena-ex13-gotsumon-blocker-search",
+  "arena-ex13-craniamon-assembly",
+  "arena-p220-millenniummon-assembly",
+  "arena-ex9-kimeramon-skullgreymon-assembly",
+  "arena-bt24-masterblimpmon-assembly",
+  "arena-bt22-boltmon-assembly",
+  "arena-ex13-gotsumon-promo-knightmon",
+  "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
   "arena-sukamon-transform-digivolve",
   "arena-mightyaxe-mode-digixros",
@@ -70,6 +84,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-de-digivolve-visibility",
   "arena-st24-dna-charge-start-of-main",
   "arena-ex13-giromon-block-triggers",
+  "arena-ex13-kentaurosmon-each-player-security",
+  "arena-ex13-kentaurosmon-two-counters",
   "arena-ex13-deletion-trigger-ordering",
   "arena-gate-deadly-sins-effect-order",
   "arena-rika-optional-effect-presets",
@@ -86,6 +102,9 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex5-biting-crush-delay",
   "arena-p108-training-delay-no-target",
   "arena-p108-training-delay-with-target",
+  "arena-bt13-royal-purge-delay-rush",
+  "arena-p206-digital-gate-breeding-color",
+  "arena-ex13-merciful-mode-attack-order",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-issue-4888-app-fusion",
@@ -99,6 +118,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-mirage-hidden-hand",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
+  "arena-bt13-king-drasil-source-count",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
   "arena-rizegreymon-derived-priority",
@@ -351,6 +371,212 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/**
+ * BT22-090 Rie Kishibe at 5 security: neither LordKnightmon in hand meets its digivolution
+ * requirement (Q4959), but §15-7-5 still lets the end-of-turn "By deleting" cost be paid.
+ */
+function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT22-090"], "-rie-bt22"));
+    placePermanent(human, establishedDigimon(0, ["EX13-074"], "-rie-ex13"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rie-lordknightmon-x", "BT19-073", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rie-lordknightmon-cs", "EX13-064", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-rie-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * The bot plays BT14-032 Chuumon, so the viewer sees, from the opponent's side, the [Sukamon]
+ * card it reveals before placing it on top of security.
+ */
+function layBt14ChuumonSecurityRevealScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // The bot's evaluation ranks a Sukamon in hand above Chuumon, so Sukamon starts on top of
+    // security instead: Chuumon adds it to the hand, then places it back. The draw is a second
+    // Chuumon so no random deck card can outrank the play either.
+    insertCard(bot, Zone.Hand, faceDownCard("dev-chuumon-play", "BT14-032", 1));
+    insertCard(bot, Zone.Deck, faceDownCard("dev-chuumon-draw", "BT14-032", 1), "top");
+    insertCard(bot, Zone.Security, faceDownCard("dev-chuumon-sukamon", "BT14-034", 1), "top");
+    takeBottom(bot, Zone.Security);
+  }
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * Discord 1555074299344191549, match 052add84: on the opponent's turn a security removal plays
+ * Omekamon from under King Drasil_7D6, and its [On Play] digivolves it into Omnimon (X Antibody)
+ * as its controller's only Digimon. The bot attacks with WarGreymon; Paildramon has summoning
+ * sickness so it stays home.
+ */
+function layBt20OmnimonEachPlayerSurvivorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    for (const index of [0, 1]) {
+      insertCard(human, Zone.Security, faceDownCard(`dev-omnimon-security-${index}`, "BT1-010", 0));
+    }
+    const kingDrasil = establishedDigimon(0, ["BT20-083", "BT13-007"], "-king-drasil");
+    kingDrasil.inBreeding = true;
+    setBreeding(human, kingDrasil);
+    insertCard(human, Zone.Hand, faceDownCard("dev-omnimon-x-antibody", "BT20-102", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    setSecurityStack(bot);
+    placePermanent(bot, establishedDigimon(1, ["AD1-004"], "-omnimon-attacker"));
+    const resting = establishedDigimon(1, ["AD1-011"], "-omnimon-resting");
+    resting.enterFieldTurnCount = 1;
+    placePermanent(bot, resting);
+  }
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * Discord 1555069212727185488: BT20-060's -15000 DP hits a Chronomon: Holy Mode that BT26-029
+ * protected until the end of this turn. The startup installs that protection
+ * (`startDevScenario`); the reduction must apply on the bot's turn.
+ *
+ * Two routes put Alphamon: Ouryuken in play. From the hand, King Drasil_7D6 (4 + 5 sources)
+ * drops its play cost from 9 to 0 and its [On Play] resolves. From King Drasil's digivolution
+ * cards, BT13-110's ＜Delay＞ plays it, and the printed rule keeps its [On Play] from activating.
+ */
+function layBt20OuryukenReductionResumesScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human !== undefined) {
+    const drasil = establishedDigimon(0, ["BT20-060", ...Array<string>(5).fill("BT13-007")], "-ouryuken-king-drasil");
+    drasil.inBreeding = true;
+    setBreeding(human, drasil);
+    const purge = establishedDigimon(0, ["BT13-110"], "-ouryuken-royal-purge");
+    purge.placedByEffect = true;
+    placePermanent(human, purge);
+    insertCard(human, Zone.Hand, faceDownCard("dev-ouryuken", "BT20-060", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT26-029", "BT26-016"], "-ouryuken-chronomon"));
+  }
+}
+
+/** P-240 Arcturusmon plays by Assembly -6 and digivolves from a Red/Yellow Lv.5 [VB] Digimon. */
+function layP240ArcturusmonVbRoutesScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-007", "EX12-013", "EX12-014"], "-arcturusmon-vb-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-arcturusmon-digivolve", "P-240", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-arcturusmon-assembly", "P-240", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-material-5", "EX12-014", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-material-4", "BT10-050", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-material-3", "EX12-021", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-020"], "-arcturusmon-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 11;
+}
+
+/** EX12-077 Proximamon uses the DUAL EX12-018 Siriusmon it digivolved from as an Option. */
+function layEx12ProximamonDualSiriusmonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(0, ["EX12-007", "EX12-013", "EX12-014", "EX12-018"], "-proximamon-siriusmon"),
+    );
+    placePermanent(human, establishedDigimon(0, ["EX12-007", "EX12-013", "EX12-014"], "-proximamon-canoweissmon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-proximamon", "EX12-077", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-proximamon-highest"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-proximamon-lower"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
+/**
+ * EX12-001's end-of-turn DNA digivolves into WereGarurumon, which then attacks. Face-up
+ * EX12-069 must join that attack's pending [When Digivolving] and [When Attacking] effects.
+ */
+function layEx12VirusBustersEffectAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-001", "EX12-013"], "-virus-busters-nyaromon"));
+    placePermanent(human, establishedDigimon(0, ["EX12-024"], "-virus-busters-partner"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-virus-busters-weregarurumon", "EX12-032", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-virus-busters-same-level", "EX12-016", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-virus-busters-after-digivolve", "EX12-017", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-virus-busters-metalgarurumon", "EX12-035", 0));
+    insertCard(human, Zone.Security, faceUpCard("dev-virus-busters-security", "EX12-069", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Bishop Device forbids EX3 Wingdramon from paying Evade's suspend cost. */
@@ -901,6 +1127,199 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord 1555252641649393796: EX13-047 reveals promo Knightmon P-111, whose ＜Blocker＞ qualifies. */
+function layEx13GotsumonPromoKnightmonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-gotsumon-knightmon", "EX13-047", 0));
+    // Insert in reverse because deck[0] is the top card. The neutral card absorbs the turn draw.
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-black-scramble", "LM-031", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-promo-knightmon", "P-111", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-tai-kamiya", "ST15-14", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-knightmon-turn-draw", "BT1-009", 0), "top");
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * Discord regression (match d64ba0e9): EX13-062 Craniamon's [Assembly -5] needs black Lv.5/Lv.4/Lv.3
+ * cards with printed ＜Blocker＞. Memory 0 makes the full-cost play illegal, so only Assembly works.
+ * EX13-050 (inherited-only Blocker) and BT1-031 (blue) are decoys the picker must not offer.
+ */
+function layEx13CraniamonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-craniamon", "EX13-062", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv5", "BT20-054", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv4", "EX1-047", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv3", "BT13-061", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-inherited-blocker", "EX13-050", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-blue-blocker", "BT1-031", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * Discord regression: P-220 Millenniummon prints [Assembly -6] with three [Composite]/[Ver.3]/[Ver.5]
+ * Digimon of different levels. Memory 0 makes the full-cost play (14) illegal. EX9-034 repeats
+ * Patamon's level and BT1-020 lacks the traits, so neither may complete the set.
+ */
+function layP220MillenniummonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-millenniummon", "P-220", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-lv3", "EX9-023", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-lv4", "BT18-013", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-lv5", "BT18-015", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-same-level", "EX9-034", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-no-trait", "BT1-020", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * EX9-062 SkullGreymon is also treated as Lv.4 for EX9-074 Kimeramon's [Assembly -7]. The trash
+ * holds six differently named Lv.4 [DM] Digimon, so the seventh material must be SkullGreymon.
+ */
+function layEx9KimeramonSkullGreymonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-kimeramon", "EX9-074", 0));
+    for (const cardId of ["EX9-009", "EX9-010", "EX9-017", "EX9-025", "EX9-026", "EX9-028"]) {
+      insertCard(human, Zone.Trash, faceUpCard(`dev-kimeramon-${cardId}`, cardId, 0));
+    }
+    insertCard(human, Zone.Trash, faceUpCard("dev-kimeramon-skullgreymon", "EX9-062", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * BT24-062 MasterBlimpmon prints two alternative recipes: "[Blimpmon]/Tamer card w/[TS] trait".
+ * Only the [TS] Tamer is in the trash; the [TS] Digimon decoy must not qualify.
+ */
+function layBt24MasterBlimpmonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-masterblimpmon", "BT24-062", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-masterblimpmon-ts-tamer", "BT24-083", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-masterblimpmon-ts-digimon", "BT24-009", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * BT22-078 Boltmon needs five [Flame] Digimon with different card numbers. The trash holds a
+ * second BT15-069, which may not join a set that already has one. Memory 0 rules out the
+ * full-cost play (12).
+ */
+function layBt22BoltmonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-boltmon", "BT22-078", 0));
+    for (const cardId of ["BT11-084", "BT15-009", "BT15-015", "BT15-069", "BT18-030"]) {
+      insertCard(human, Zone.Trash, faceUpCard(`dev-boltmon-${cardId}`, cardId, 0));
+    }
+    insertCard(human, Zone.Trash, faceUpCard("dev-boltmon-repeated-number", "BT15-069", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** EX13-077 and EX12-076 print a rainbow Lv.6 digivolve cost: any-color Lv.6 bases qualify. */
+function layRainbowEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["AD1-004"], "-rainbow-wargreymon"));
+    placePermanent(human, establishedDigimon(0, ["BT3-089"], "-rainbow-boltmon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rainbow-merciful-mode", "EX13-077", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rainbow-susanoomon", "EX12-076", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 12;
 }
 
 /**
@@ -1500,6 +1919,41 @@ function laySuspendLockBlockScenario(state: GameState, decks: readonly [Decklist
  * trash while Gotsumon is a legal Blocker to play. A Guardromon in hand makes the inherited
  * Giromon effect actionable after the initial trigger-order window.
  */
+/**
+ * Discord 1554296143054118933: the bot attacks while EX13-036 Kentaurosmon is the viewer's only
+ * Digimon. Its [Counter] must place itself and the attacker, each on top of its owner's security.
+ */
+function layEx13KentaurosmonEachPlayerSecurityScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  kentaurosmonCount: 1 | 2 = 1,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT3-038", "EX13-036"], "-ex13-kentaurosmon"));
+    if (kentaurosmonCount === 2)
+      placePermanent(human, establishedDigimon(0, ["BT3-038", "EX13-036"], "-ex13-kentaurosmon-second"));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["ST1-10"], "-ex13-kentaurosmon-attacker"));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 function layEx13GiromonBlockTriggersScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -2214,6 +2668,25 @@ function layBt6BeelStarmonDuplicateCostScenario(state: GameState, decks: readonl
   insertCard(human, Zone.Deck, faceDownCard("dev-beelstarmon-neutral-draw", "BT1-085", 0), "top");
 }
 
+/**
+ * Reproduce Discord bug 1554297556551340062: Omekamon's play registers King Drasil's reducer,
+ * then its On Play adds a source. Jesmon must count all four sources (cost 4), not the three
+ * seen by the earlier payment window (cost 5).
+ */
+function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  if (human === undefined) return;
+  const drasil = establishedDigimon(0, ["BT13-007", "BT13-007", "BT13-007"], "-king-drasil");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-king-drasil-egg", "BT13-007", 0), "top");
+  insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-omekamon", "EX11-053", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-kentaurosmon", "EX13-036", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-jesmon", "EX13-014", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-king-drasil-neutral-draw", "BT1-085", 0), "top");
+}
+
 function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 4);
   const human = state.players[0];
@@ -2517,6 +2990,195 @@ function layP108TrainingDelayScenario(
   state.memory = 3;
 }
 
+/**
+ * BT13-110 Royal Knights of the Purge ＜Delay＞ (Discord bug 1554301049614110770, match
+ * dd487753). The Option has waited in the battle area since an earlier turn, and King
+ * Drasil_7D6 holds BT20-102 Omnimon (X Antibody) among its breeding digivolution cards. Two
+ * BT20-091 Tamers react to the play, and King Drasil offers its play-cost replacement, so the
+ * Delay resolves through the same interruptions as the logged turn. The played Omnimon must be
+ * offered an attack: the Delay grants ＜Rush＞ as its final instruction.
+ */
+function layBt13RoyalPurgeDelayRushScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 1);
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human === undefined || bot === undefined) return;
+  const purge = establishedDigimon(0, ["BT13-110"], "-bt13-royal-purge");
+  purge.placedByEffect = true;
+  placePermanent(human, purge);
+  placePermanent(human, establishedDigimon(0, ["BT20-091"], "-bt13-royal-purge-tamer-first"));
+  placePermanent(human, establishedDigimon(0, ["BT20-091"], "-bt13-royal-purge-tamer-second"));
+  const drasil = establishedDigimon(0, ["BT20-102", "BT13-007", "BT13-007"], "-bt13-royal-purge-drasil");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-bt13-royal-purge-target"));
+}
+
+/**
+ * P-206 Digital Gate Open ＜Delay＞ (Discord bug 1554891698088185917, match 8ae52904). The only
+ * Digimon on the human's field is a red Monodramon in the breeding area, which is part of the
+ * field. The Delay must offer the red Tai Kamiya and never the blue Matt Ishida.
+ */
+function layP206DigitalGateBreedingColorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  const gate = establishedDigimon(0, ["P-206"], "-p206-gate");
+  gate.placedByEffect = true;
+  placePermanent(human, gate);
+  const monodramon = establishedDigimon(0, ["BT1-009"], "-p206-breeding");
+  monodramon.inBreeding = true;
+  setBreeding(human, monodramon);
+  insertCard(human, Zone.Hand, faceDownCard("dev-p206-tai", "BT1-085", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-p206-matt", "BT1-086", 0));
+}
+
+/**
+ * EX13-077 Omnimon: Merciful Mode (Discord bug 1554922883652784198, match f9505ba7, turn 6). The
+ * board as it stood at 18:21:37 UTC, right before Kargalargus played Merciful Mode with Assembly,
+ * rebuilt from the production log. Hands come from the decision payloads. The log does not
+ * narrate security Digimon deleted in battle, so AD1-004 and ST21-07 are added to the human's
+ * trash. Three of the bot's five security cards were never revealed; they come from its remaining
+ * deck. The human's AD1-019 draw-phase card sits on top of their deck so the scenario's own draw
+ * restores the logged hand of seven.
+ */
+function layEx13MercifulModeAttackOrderScenario(state: GameState): void {
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human === undefined || bot === undefined) return;
+  const remainingDecks: Record<Seat, Decklist> = {
+    0: {
+      mainDeck: [
+        "ST21-07",
+        "BT21-102",
+        "ST20-09",
+        "BT21-075",
+        "ST21-08",
+        "ST21-10",
+        "EX13-073",
+        "ST21-07",
+        "BT21-061",
+        "EX13-077",
+        "AD1-022",
+        "EX13-073",
+        "ST20-06",
+        "ST20-03",
+        "ST20-03",
+        "AD1-014",
+        "ST20-02",
+        "ST20-02",
+        "AD1-014",
+        "AD1-004",
+        "ST21-05",
+        "ST21-05",
+        "ST20-03",
+        "BT21-061",
+      ],
+      eggDeck: ["ST21-01", "ST21-01"],
+    },
+    1: {
+      mainDeck: [
+        "BT24-100",
+        "BT24-043",
+        "BT25-050",
+        "BT25-009",
+        "BT24-085",
+        "BT25-095",
+        "BT24-043",
+        "BT25-054",
+        "BT24-034",
+        "BT24-100",
+        "BT25-020",
+        "BT25-013",
+        "BT24-034",
+        "BT25-058",
+        "BT25-047",
+        "BT25-016",
+        "BT25-016",
+        "BT25-047",
+        "BT24-085",
+        "BT25-008",
+        "BT26-081",
+        "BT26-081",
+        "BT24-100",
+        "BT25-047",
+        "BT24-094",
+        "BT24-102",
+        "BT26-092",
+        "BT24-034",
+        "BT25-009",
+        "BT24-034",
+      ],
+      eggDeck: ["BT24-004", "BT24-004"],
+    },
+  };
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, remainingDecks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  // The three Tamers' Start of Main effects gain 3; in the match SkullGreymon arrived later in
+  // the turn, so only AD1-019 gained and Merciful Mode was played at 0 memory instead of 3.
+  state.memory = 0;
+
+  insertCard(human, Zone.Deck, faceDownCard("dev-merciful-draw", "AD1-019", 0), "top");
+  ["EX13-077", "ST20-02", "AD1-019", "AD1-022", "BT21-067", "ST21-10"].forEach((id, index) =>
+    insertCard(human, Zone.Hand, faceDownCard(`dev-merciful-hand-${index}`, id, 0)),
+  );
+  [
+    "ST20-06",
+    "EX13-077",
+    "ST21-01",
+    "BT21-067",
+    "EX9-019",
+    "ST20-09",
+    "ST20-02",
+    "ST21-05",
+    "EX9-019",
+    "AD1-014",
+    "AD1-004",
+    "ST21-07",
+    "AD1-004",
+    "AD1-022",
+  ].forEach((id, index) => insertCard(human, Zone.Trash, faceUpCard(`dev-merciful-trash-0-${index}`, id, 0)));
+  placePermanent(human, establishedDigimon(0, ["AD1-019"], "-merciful-matt-tk"));
+  const firstTaiMatt = establishedDigimon(0, ["EX13-073"], "-merciful-tai-matt-1");
+  firstTaiMatt.isSuspended = true;
+  placePermanent(human, firstTaiMatt);
+  const secondTaiMatt = establishedDigimon(0, ["EX13-073"], "-merciful-tai-matt-2");
+  secondTaiMatt.isSuspended = true;
+  placePermanent(human, secondTaiMatt);
+  placePermanent(human, establishedDigimon(0, ["ST21-08", "BT21-075"], "-merciful-skullgreymon"));
+  const gabumon = establishedDigimon(0, ["ST21-01", "ST21-10"], "-merciful-breeding");
+  gabumon.inBreeding = true;
+  setBreeding(human, gabumon);
+
+  ["BT25-058", "BT25-086", "BT1-089", "BT25-008", "BT25-095", "BT26-081", "BT25-058"].forEach((id, index) =>
+    insertCard(bot, Zone.Hand, faceDownCard(`dev-merciful-bot-hand-${index}`, id, 1)),
+  );
+  insertCard(bot, Zone.Trash, faceUpCard("dev-merciful-trash-1-0", "BT24-041", 1));
+  for (let index = 0; index < 3; index += 1) {
+    const card = takeTop(bot, Zone.Deck);
+    if (card !== undefined) insertCard(bot, Zone.Security, card);
+  }
+  insertCard(bot, Zone.Security, faceDownCard("dev-merciful-security-bt26-090", "BT26-090", 1), "top");
+  insertCard(bot, Zone.Security, faceDownCard("dev-merciful-security-bt25-039", "BT25-039", 1), "top");
+  placePermanent(bot, establishedDigimon(1, ["BT24-004", "BT25-008", "BT26-022"], "-merciful-sorcermon"));
+  const homeros = establishedDigimon(1, ["BT24-102"], "-merciful-homeros");
+  homeros.isSuspended = true;
+  placePermanent(bot, homeros);
+  placePermanent(bot, establishedDigimon(1, ["BT24-041", "BT26-081"], "-merciful-mervamon"));
+  placePermanent(bot, establishedDigimon(1, ["BT25-054", "BT25-020"], "-merciful-marsmon"));
+  placePermanent(bot, establishedDigimon(1, ["BT25-008"], "-merciful-coronamon"));
+  placePermanent(bot, establishedDigimon(1, ["BT24-043"], "-merciful-tapirmon"));
+  placePermanent(bot, establishedDigimon(1, ["BT25-016"], "-merciful-grapleomon"));
+  setBreeding(bot, establishedDigimon(1, ["BT24-004"], "-merciful-bot-breeding"));
+  bot.breeding!.inBreeding = true;
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -2692,9 +3354,23 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
+  "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,
+  "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
+  "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
+  "arena-bt14-chuumon-security-reveal": layBt14ChuumonSecurityRevealScenario,
+  "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
+  "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
+  "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,
+  "arena-ex9-kimeramon-skullgreymon-assembly": layEx9KimeramonSkullGreymonAssemblyScenario,
+  "arena-bt24-masterblimpmon-assembly": layBt24MasterBlimpmonAssemblyScenario,
+  "arena-bt22-boltmon-assembly": layBt22BoltmonAssemblyScenario,
+  "arena-ex13-gotsumon-promo-knightmon": layEx13GotsumonPromoKnightmonScenario,
+  "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,
   "arena-mightyaxe-mode-digixros": layMightyAxeModeDigiXrosScenario,
@@ -2706,6 +3382,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-st24-dna-charge-start-of-main": laySt24DnaChargeStartOfMainScenario,
   "arena-bt21-dracomon-start-main": layDracomonStartMainScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
+  "arena-ex13-kentaurosmon-each-player-security": layEx13KentaurosmonEachPlayerSecurityScenario,
+  "arena-ex13-kentaurosmon-two-counters": (state, decks) =>
+    layEx13KentaurosmonEachPlayerSecurityScenario(state, decks, 2),
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-gate-deadly-sins-effect-order": layGateDeadlySinsEffectOrderScenario,
   "arena-rika-optional-effect-presets": layRikaOptionalEffectPresetsScenario,
@@ -2722,6 +3401,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
+  "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
+  "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
+  "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
@@ -2735,6 +3417,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
+  "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,

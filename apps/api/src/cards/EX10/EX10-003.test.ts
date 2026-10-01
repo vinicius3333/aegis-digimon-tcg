@@ -465,3 +465,34 @@ describe("EX10-003 Tumblemon", () => {
     await loop;
   });
 });
+
+describe("EX10-003 Tumblemon — KB Q&A rulings", () => {
+  it("cannot end the attack by trashing only 2 of the 3 required digivolution cards (Q5007)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-033", as: "host", under: ["EX10-003", "BT13-061"] }],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    const stackBefore = s.perm("host").stack.map(({ instanceId }) => instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && !observe(s.engine).isAttacking());
+
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual(stackBefore);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+  });
+});

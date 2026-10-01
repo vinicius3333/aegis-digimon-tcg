@@ -19,7 +19,7 @@ import type {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled as BT25_026 } from "./BT25-026.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 
 let seq = 0;
@@ -605,4 +605,37 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
+});
+
+describe("BT25-026 Crescemon — KB Q&A rulings", () => {
+  it.each([
+    { color: "blue", played: "BT25-021", digivolves: false },
+    { color: "red", played: "BT1-010", digivolves: true },
+  ])(
+    "triggers on any of your Digimon being played but only activates for a red one ($color) (Q6290)",
+    async ({ played, digivolves }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT25-026", as: "crescemon" }],
+            hand: [{ card: played, as: "played" }],
+            trash: [{ card: "BT25-028", as: "dianamon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(observe(s.engine).subscriptions("whenPlayed", s.perm("crescemon").permanentId)).toHaveLength(1);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.perm("crescemon").topCard.cardId).toBe(digivolves ? "BT25-028" : "BT25-026");
+      expect(s.state.memory).toBe(digivolves ? 0 : 2);
+    },
+  );
 });

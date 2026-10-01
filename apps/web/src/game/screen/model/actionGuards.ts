@@ -7,7 +7,7 @@
    rather than the phase alone. */
 
 import { Phase, type GameState, type PlayerState, type Seat } from "@aegis/shared";
-import { canMoveFromBreeding } from "../../boardModel";
+import { canAttackWith, canMoveFromBreeding } from "../../boardModel";
 import { isBreedingWindow } from "../../turnControl";
 
 export function actionGuards({
@@ -37,10 +37,14 @@ export function actionGuards({
     phasePresentationPending ||
     !isMyTurn;
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
+  // An activated ＜Blitz＞ attacks inside the effect that processed it, which can resolve
+  // outside Main (an [End of Your Turn] digivolution). The server projects an attack
+  // outside Main only for that pending declaration.
+  const blitzAttackPending = viewer.battleArea.some(canAttackWith);
   return {
     isMyTurn,
     turnActionBlocked,
-    mainActionBlocked: turnActionBlocked || state.phase !== Phase.Main,
+    mainActionBlocked: turnActionBlocked || (state.phase !== Phase.Main && !blitzAttackPending),
     endPhaseBlocked: turnActionBlocked || (state.phase !== Phase.Main && state.phase !== Phase.Breeding),
     breedingWindow,
     // The breeding step is answered on the board rather than in a dialog: the egg

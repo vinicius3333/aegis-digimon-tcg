@@ -253,3 +253,24 @@ describe("EX5-033 Mitamamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("opponentYellow"), "Barrier")).toBe(false);
   });
 });
+
+describe("EX5-033 Mitamamon — KB Q&A rulings", () => {
+  it("sets the level threshold to both players' security cards added together (Q3598)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX5-033", as: "mitamamon" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+      1: {
+        battleArea: [
+          { card: "BT1-020", as: "levelFive" },
+          { card: "BT1-016", as: "levelFour" },
+        ],
+        security: ["BT1-012", "BT1-013"],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await settle(() => observe(s.engine).keywordAmount(s.perm("levelFive"), "SecurityAttack") === -2, 2000);
+    expect(observe(s.engine).keywordAmount(s.perm("levelFive"), "SecurityAttack")).toBe(-2);
+    expect(observe(s.engine).keywordAmount(s.perm("levelFour"), "SecurityAttack")).toBe(0);
+  });
+});

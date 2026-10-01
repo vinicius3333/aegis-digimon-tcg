@@ -1,8 +1,10 @@
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-031.js";
+import "../BT1/BT1-085.js";
 import "./BT12-068.js";
 
 describe("BT12-068 MetalGreymon", () => {
@@ -150,5 +152,119 @@ describe("BT12-068 MetalGreymon", () => {
       () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085").length === 1,
     );
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085")).toHaveLength(1);
+  });
+});
+
+describe("BT12-068 MetalGreymon — KB Q&A rulings", () => {
+  const SECURITY = ["BT1-009", "BT1-010", "BT1-011"];
+  const FILLER = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"];
+
+  const taiPlayed = (s: EngineSetup): boolean =>
+    s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("tai").instanceId);
+
+  function yourTurnAttackFixture(attacker: "metal" | "partner"): EngineSetup {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-068", as: "metal" },
+            { card: "BT1-009", as: "partner" },
+          ],
+          hand: [{ card: "BT1-085", as: "tai" }],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+        1: {
+          battleArea: [{ card: "BT1-031", as: "blocker" }],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Raid"] },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(attacker).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  async function answerBlockWindow(s: EngineSetup, block: boolean): Promise<void> {
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    const intent = block
+      ? ({ type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId } as const)
+      : ({ type: "declineBlock" } as const);
+    expect(s.engine.applyIntent(1, intent)).toEqual({ ok: true });
+  }
+
+  it("plays a Tamer when the opponent blocks this Digimon's attack (Q2207)", async () => {
+    const blocked = yourTurnAttackFixture("metal");
+    await answerBlockWindow(blocked, true);
+    await settle(() => taiPlayed(blocked));
+    expect(blocked.state.players[0]!.hand).toHaveLength(0);
+    expect(blocked.state.players[1]!.security).toHaveLength(SECURITY.length);
+
+    const unblocked = yourTurnAttackFixture("metal");
+    await answerBlockWindow(unblocked, false);
+    await settle(() => unblocked.state.players[1]!.security.length === SECURITY.length - 1);
+    await settle();
+    expect(taiPlayed(unblocked)).toBe(false);
+    expect(unblocked.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-085"]);
+  });
+
+  it("also activates when another of my Digimon or an opponent's Digimon has its attack target switched (Q2208)", async () => {
+    const partnerBlocked = yourTurnAttackFixture("partner");
+    await answerBlockWindow(partnerBlocked, true);
+    await settle(() => taiPlayed(partnerBlocked));
+    expect(partnerBlocked.state.players[0]!.hand).toHaveLength(0);
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-068", as: "metal" },
+            { card: "BT1-031", as: "myBlocker" },
+          ],
+          hand: [{ card: "BT1-085", as: "tai" }],
+          deck: [...FILLER, ...FILLER],
+          security: [...SECURITY],
+        },
+        1: {
+          battleArea: [{ card: "BT1-015", as: "opponentAttacker" }],
+          deck: [...FILLER, ...FILLER],
+          security: [...SECURITY],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(taiPlayed(s)).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("myBlocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => taiPlayed(s));
+    expect(s.state.players[0]!.security).toHaveLength(SECURITY.length);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

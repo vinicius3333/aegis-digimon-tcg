@@ -1,9 +1,23 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { type BoardSpec, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-088.js";
 import "./BT9-088.js";
+
+const FILLER = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+async function memoryGainedAtStartOfTurn(board: BoardSpec): Promise<number> {
+  const s = setupEngine(board);
+  s.state.memory = 0;
+  await s.ready();
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const gained = s.state.memory;
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await turn;
+  return gained;
+}
 
 describe("BT9-088 Mimi Tachikawa & Joe Kido", () => {
   it("matches catalog values and the independent memory, battle-draw, and security IR", () => {
@@ -73,5 +87,21 @@ describe("BT9-088 Mimi Tachikawa & Joe Kido", () => {
     });
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+});
+
+describe("BT9-088 Mimi Tachikawa & Joe Kido — KB Q&A rulings", () => {
+  it("gains 2 memory at the start of the turn when both players have a suspended Digimon (Q1891)", async () => {
+    const tamer = { card: "BT9-088" };
+    const both = await memoryGainedAtStartOfTurn({
+      0: { battleArea: [tamer, { card: "BT1-028", suspended: true }], deck: FILLER, security: 3 },
+      1: { battleArea: [{ card: "BT1-028", suspended: true }], deck: FILLER, security: 3 },
+    });
+    const opponentUnsuspended = await memoryGainedAtStartOfTurn({
+      0: { battleArea: [tamer, { card: "BT1-028", suspended: true }], deck: FILLER, security: 3 },
+      1: { battleArea: [{ card: "BT1-028" }], deck: FILLER, security: 3 },
+    });
+    expect(both).toBe(2);
+    expect(opponentUnsuspended).toBe(1);
   });
 });

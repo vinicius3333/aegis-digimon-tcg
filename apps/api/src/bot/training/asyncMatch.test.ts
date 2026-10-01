@@ -7,6 +7,10 @@ import { trainingDeck, TRAINING_DECK_VERSIONS } from "./decks.js";
 import { createAsyncTrainingPolicy, createTrainingPolicy, type TrainingWindow } from "./policy.js";
 import { mainActionReady } from "./actions.js";
 
+// Each test plays whole engine matches; under full-suite CPU contention they run ~10x slower
+// than alone, so the default 15s limit fails them spuriously.
+const fullMatchTimeoutMs = 60_000;
+
 function delayed<Args extends unknown[]>(choose: (...args: Args) => Intent): (...args: Args) => Promise<Intent> {
   return async (...args) => {
     await new Promise<void>((resolve) => setTimeout(resolve, 2));
@@ -88,81 +92,90 @@ describe("asynchronous policies in BT26 engine matches", () => {
       expect(asyncChoices).toEqual(syncChoices);
       expect(outcomes(asynchronous)).toEqual(outcomes(synchronous));
     },
+    fullMatchTimeoutMs,
   );
 
-  it.each([0, 1] as const)("preserves seeded outcomes with deck ordering %i", async (firstDeck) => {
-    const seed = 720000 + firstDeck;
-    const decks = [
-      trainingDeck(TRAINING_DECK_VERSIONS[firstDeck]).deck,
-      trainingDeck(TRAINING_DECK_VERSIONS[1 - firstDeck]!).deck,
-    ] as const;
-    const synchronous = await runBotMatch({
-      seed,
-      seats: [
-        { deck: decks[0], policy: createEvaluationPolicy({ seed }) },
-        { deck: decks[1], policy: createEvaluationPolicy({ seed: seed + 7919 }) },
-      ],
-    });
-    const asynchronous = await runBotMatch({
-      seed,
-      seats: [
-        { deck: decks[0], policy: asynchronousPolicy(seed) },
-        { deck: decks[1], policy: asynchronousPolicy(seed + 7919) },
-      ],
-    });
-    for (const result of [synchronous, asynchronous]) {
+  it.each([0, 1] as const)(
+    "preserves seeded outcomes with deck ordering %i",
+    async (firstDeck) => {
+      const seed = 720000 + firstDeck;
+      const decks = [
+        trainingDeck(TRAINING_DECK_VERSIONS[firstDeck]).deck,
+        trainingDeck(TRAINING_DECK_VERSIONS[1 - firstDeck]!).deck,
+      ] as const;
+      const synchronous = await runBotMatch({
+        seed,
+        seats: [
+          { deck: decks[0], policy: createEvaluationPolicy({ seed }) },
+          { deck: decks[1], policy: createEvaluationPolicy({ seed: seed + 7919 }) },
+        ],
+      });
+      const asynchronous = await runBotMatch({
+        seed,
+        seats: [
+          { deck: decks[0], policy: asynchronousPolicy(seed) },
+          { deck: decks[1], policy: asynchronousPolicy(seed + 7919) },
+        ],
+      });
+      for (const result of [synchronous, asynchronous]) {
+        expect(result.errors).toEqual([]);
+        expect(result.rejections).toEqual([]);
+        expect(result.timedOut).toBe(false);
+        expect(result.winnerSeat).toBeDefined();
+        expect(result.seats.map((seat) => seat.inferenceFallbacks)).toEqual([
+          { timeout: 0, error: 0 },
+          { timeout: 0, error: 0 },
+        ]);
+      }
+      expect(outcomes(asynchronous)).toEqual(outcomes(synchronous));
+      const latencies = asynchronous.seats.flatMap((seat) => seat.decisionLatenciesMs);
+      expect(latencies.length).toBeGreaterThan(0);
+      expect(latencies.every((latency) => latency >= 1)).toBe(true);
+    },
+    fullMatchTimeoutMs,
+  );
+
+  it(
+    "waits for the inference deadline instead of declaring a stalled game",
+    async () => {
+      const policy = createEvaluationPolicy({ seed: 730000 });
+      let first = true;
+      let finishLate!: (intent: Intent) => void;
+      const lateAnswer = new Promise<Intent>((resolve) => {
+        finishLate = resolve;
+      });
+      const result = await runBotMatch({
+        seed: 730000,
+        seats: [
+          {
+            deck: trainingDeck(TRAINING_DECK_VERSIONS[0]).deck,
+            policyTimeoutMs: 100,
+            policy: {
+              ...policy,
+              chooseMainAction(view) {
+                if (first) {
+                  first = false;
+                  return lateAnswer;
+                }
+                return policy.chooseMainAction(view);
+              },
+            },
+          },
+          { deck: trainingDeck(TRAINING_DECK_VERSIONS[1]).deck },
+        ],
+      });
       expect(result.errors).toEqual([]);
       expect(result.rejections).toEqual([]);
       expect(result.timedOut).toBe(false);
       expect(result.winnerSeat).toBeDefined();
-      expect(result.seats.map((seat) => seat.inferenceFallbacks)).toEqual([
-        { timeout: 0, error: 0 },
-        { timeout: 0, error: 0 },
-      ]);
-    }
-    expect(outcomes(asynchronous)).toEqual(outcomes(synchronous));
-    const latencies = asynchronous.seats.flatMap((seat) => seat.decisionLatenciesMs);
-    expect(latencies.length).toBeGreaterThan(0);
-    expect(latencies.every((latency) => latency >= 1)).toBe(true);
-  });
-
-  it("waits for the inference deadline instead of declaring a stalled game", async () => {
-    const policy = createEvaluationPolicy({ seed: 730000 });
-    let first = true;
-    let finishLate!: (intent: Intent) => void;
-    const lateAnswer = new Promise<Intent>((resolve) => {
-      finishLate = resolve;
-    });
-    const result = await runBotMatch({
-      seed: 730000,
-      seats: [
-        {
-          deck: trainingDeck(TRAINING_DECK_VERSIONS[0]).deck,
-          policyTimeoutMs: 100,
-          policy: {
-            ...policy,
-            chooseMainAction(view) {
-              if (first) {
-                first = false;
-                return lateAnswer;
-              }
-              return policy.chooseMainAction(view);
-            },
-          },
-        },
-        { deck: trainingDeck(TRAINING_DECK_VERSIONS[1]).deck },
-      ],
-    });
-    expect(result.errors).toEqual([]);
-    expect(result.rejections).toEqual([]);
-    expect(result.timedOut).toBe(false);
-    expect(result.winnerSeat).toBeDefined();
-    expect(result.seats[0].inferenceFallbacks).toEqual({ timeout: 1, error: 0 });
-    const recorded = structuredClone(result);
-    finishLate({ type: "endPhase" });
-    await new Promise<void>((resolve) => setImmediate(resolve));
-    expect(result).toEqual(recorded);
-  });
+      expect(result.seats[0].inferenceFallbacks).toEqual({ timeout: 1, error: 0 });
+      const recorded = structuredClone(result);
+      finishLate({ type: "endPhase" });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(result).toEqual(recorded);
+    },
+    fullMatchTimeoutMs,
+  );
 
   it.each(["cancelled", "turnLimit"] as const)(
     "closes %s matches before pending inference can act or mutate their report",

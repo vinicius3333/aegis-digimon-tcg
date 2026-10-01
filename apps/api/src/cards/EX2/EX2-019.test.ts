@@ -10,6 +10,13 @@ import "../BT4/BT4-104.js";
 import "../BT1/BT1-102.js";
 import "../BT10/BT10-100.js";
 import "../index.js";
+import {
+  type OptionWatcher,
+  useOptionWhoseMainDeletes,
+  useOptionWithoutPaying,
+  useOptionWithPaymentReducedToZero,
+  useOptionWithUseCostReducedToOne,
+} from "./optionUseWatcher.testSupport.js";
 
 const inertSecurity = ["BT1-009", "BT1-010"];
 
@@ -283,5 +290,37 @@ describe("EX2-019 Renamon", () => {
         instanceId: s.inst("renamon").instanceId,
       }),
     ).toMatchObject({ ok: false });
+  });
+});
+
+describe("EX2-019 Renamon — KB Q&A rulings", () => {
+  const watcher: OptionWatcher = {
+    host: { card: "BT1-009", as: "host", under: ["EX2-019"] },
+    reward: { kind: "memory" },
+  };
+
+  it("gains memory only after the used Option's [Main] effect resolves (Q3305)", async () => {
+    const { s, doomedOnFieldAtReward, doomedTrashed } = await useOptionWhoseMainDeletes(watcher);
+    expect(doomedTrashed).toBe(true);
+    expect(doomedOnFieldAtReward).toBe(false);
+    expect(s.state.memory).toBe(10 - 4 + 1);
+  });
+
+  it("does not trigger when the Option's own use cost is reduced to 1 (Q3307)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithUseCostReducedToOne(watcher);
+    expect(memoryPaid).toBe(1);
+    expect(rewarded).toBe(false);
+  });
+
+  it("triggers when only the cost to pay is reduced below 2 (Q3308)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithPaymentReducedToZero(watcher);
+    expect(rewarded).toBe(true);
+    expect(memoryPaid).toBe(3 - 1);
+  });
+
+  it("triggers when an effect uses a cost-6 Option without paying (Q3309)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithoutPaying(watcher);
+    expect(rewarded).toBe(true);
+    expect(memoryPaid).toBe(3 - 1);
   });
 });

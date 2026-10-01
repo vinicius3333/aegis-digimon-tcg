@@ -241,14 +241,22 @@ describe("EX2-056 Takato Matsuki", () => {
           instanceId: s.inst("growlmon").instanceId,
         }),
       ).toEqual({ ok: true });
-      await settle(
-        () =>
-          s.perm("guilmon").topCard.cardId === "EX2-008" && observe(s.engine).hasKeyword(s.perm("guilmon"), "Blitz"),
-      );
-      expect(s.state.memory).toBe(-8);
+      // The failed evolution has no [When Digivolving] to process <Blitz>, so the crossed memory
+      // ends the turn and the for-the-turn grant lapses. Read the memory as the grant lands.
+      let digivolvingSeatMemoryAtGrant: number | undefined;
+      await settle(() => {
+        if (
+          digivolvingSeatMemoryAtGrant === undefined &&
+          s.perm("guilmon").topCard.cardId === "EX2-008" &&
+          observe(s.engine).hasKeyword(s.perm("guilmon"), "Blitz")
+        ) {
+          digivolvingSeatMemoryAtGrant = s.state.turnSeat === 1 ? s.state.memory : -s.state.memory;
+        }
+        return digivolvingSeatMemoryAtGrant !== undefined;
+      });
+      expect(digivolvingSeatMemoryAtGrant).toBe(-8);
       expect(s.perm("guilmon").topCard.cardId).toBe("EX2-008");
       expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("growlmon").instanceId);
-      expect(observe(s.engine).hasKeyword(s.perm("guilmon"), "Blitz")).toBe(true);
     } finally {
       if (!s.state.gameOver) s.engine.applyIntent(1, { type: "surrender" });
       await loop;

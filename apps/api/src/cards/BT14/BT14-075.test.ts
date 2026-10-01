@@ -96,3 +96,46 @@ describe("BT14-075", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("victim").instanceId);
   });
 });
+
+describe("BT14-075 Devimon — KB Q&A rulings", () => {
+  const deleteDevimonWithTwoOpponentHandCards = async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-075", as: "devimon" }] },
+        1: {
+          hand: [
+            { card: "BT1-010", as: "victim" },
+            { card: "BT1-009", as: "survivor" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("victim").instanceId);
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("devimon").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.trash.length === 1);
+    return s;
+  };
+
+  it("puts the opponent's hand card trashed on deletion face up in the trash as public information (Q2445)", async () => {
+    const s = await deleteDevimonWithTwoOpponentHandCards();
+
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("survivor").instanceId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("victim").instanceId]);
+    // A trash card's identity reaches the non-owner only while it is face up (exposeCardInZone).
+    expect(s.inst("victim").faceUp).toBe(true);
+  });
+
+  it("chooses the opponent's hand card without seeing the cards in that hand", async () => {
+    const s = await deleteDevimonWithTwoOpponentHandCards();
+    expect(s.state.players[1]!.hand).toHaveLength(1);
+
+    const identitiesShownToDevimonOwner = s.decisions
+      .filter(({ seat }) => seat === 0)
+      .flatMap(({ req }) => req.options?.visibleCards ?? [])
+      .map(({ instanceId }) => instanceId);
+    expect(identitiesShownToDevimonOwner).toEqual([]);
+  });
+});

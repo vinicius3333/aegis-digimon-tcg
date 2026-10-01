@@ -387,3 +387,45 @@ describe("EX12-046 Shishimamon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("EX12-046 Shishimamon — KB Q&A rulings", () => {
+  it("resolves the [Security] effect first, then the turn player's removal trigger, then the opponent's (Q6813)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "attacker", under: [{ card: "EX12-009", as: "source" }] }],
+          hand: [{ card: "EX12-036", as: "evolution" }],
+        },
+        1: {
+          battleArea: [{ card: "BT16-035", as: "slashAngemon", suspended: true }],
+          security: ["BT1-101"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "EX12-036" && !s.perm("slashAngemon").isSuspended, 1_000);
+
+    const securityIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-101",
+    );
+    const digivolveIndex = s.events.findIndex((event) => event.kind === "digivolved" && event.cardId === "EX12-036");
+    const opponentIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT16-035",
+    );
+    expect(securityIndex).toBeGreaterThanOrEqual(0);
+    expect(digivolveIndex).toBeGreaterThan(securityIndex);
+    expect(opponentIndex).toBeGreaterThan(digivolveIndex);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("source").instanceId);
+    expect(s.perm("attacker").stack.map(({ cardId: id }) => id)).toEqual([cardId]);
+  });
+});

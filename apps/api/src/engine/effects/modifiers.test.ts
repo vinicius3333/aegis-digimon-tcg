@@ -11,9 +11,7 @@ describe("ModifierLedger DP modifiers", () => {
     });
     const ledger = new ModifierLedger();
     const permanent = s.perm("target");
-    ledger.addBaseDpOverride(s.state, permanent.permanentId, 3000, EffectDuration.UntilOpponentTurnEnd, {
-      requiresDigimonTop: true,
-    });
+    ledger.addBaseDpOverride(s.state, permanent.permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
     expect(permanent.currentDP).toBe(3000);
 
     permanent.topCard = s.inst("tamer");
@@ -546,6 +544,7 @@ describe("ModifierLedger base-DP overrides (SetBaseDP)", () => {
 
     ledger.addBaseDpOverride(s.state, permanent.permanentId, 12000, EffectDuration.Permanent, {
       continuous: true,
+      treatsAsDigimon: true,
     });
     ledger.addBaseDpOverride(s.state, permanent.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
     expect(permanent.currentDP).toBe(12000);

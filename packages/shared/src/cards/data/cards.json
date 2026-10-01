@@ -236,7 +236,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Cyborg", "ADVENTURE"],
-    "effectText": "[Digivolve] Lv.5 w/[Greymon] in name or w/[ADVENTURE] trait: Cost 3 \n\n＜Alliance＞ \n＜Piercing＞ \n＜Blocker＞ \n[On Play] [When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon. Then, until your opponent's turn ends, their Digimon's effects don't affect this Digimon and 1 of your Digimon with [Garurumon] in its name.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [Omnimon Alter-S] in the hand. Then, 1 of your Digimon may attack.",
+    "effectText": "[Digivolve] Lv.5 w/[Greymon] in name or w/[ADVENTURE] trait: Cost 3 \n[Assembly -4] [MetalGreymon: Alterous Mode]×[Greymon]\n\n＜Alliance＞ \n＜Piercing＞ \n＜Blocker＞ \n[On Play] [When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon. Then, until your opponent's turn ends, their Digimon's effects don't affect this Digimon and 1 of your Digimon with [Garurumon] in its name.\n[End of Your Turn] 2 of your Digimon may DNA digivolve into [Omnimon Alter-S] in the hand. Then, 1 of your Digimon may attack.",
     "inheritedEffectText": "＜Security A. +1＞",
     "rarity": "SR",
     "maxCountInDeck": 4,
@@ -291,7 +291,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Free"],
     "types": ["Dragonkin", "Hero"],
-    "effectText": "＜Partition (Blue Lv.4 & Green Lv.4)＞ \n[When Digivolving] Until your opponent's turn ends, this Digimon can't be deleted in battle. Then, if DNA digivolving, this Digimon's attack target can't change for the turn.\n[When Attacking] This Digimon may digivolve into a Digimon card with [Imperialdramon] in its name in the hand with the digivolution cost reduced by 2.",
+    "effectText": "[Digivolve] Lv.4 w/[Free]/[Hero] trait: Cost 3\n[DNA Digivolve] Blue Lv.4 + Green Lv.4: Cost 0\n\n＜Partition (Blue Lv.4 & Green Lv.4)＞ \n[When Digivolving] Until your opponent's turn ends, this Digimon can't be deleted in battle. Then, if DNA digivolving, this Digimon's attack target can't change for the turn.\n[When Attacking] This Digimon may digivolve into a Digimon card with [Imperialdramon] in its name in the hand with the digivolution cost reduced by 2.",
     "inheritedEffectText": "＜Partition (Blue Lv.4 & Green Lv.4)＞",
     "rarity": "R",
     "maxCountInDeck": 4,
@@ -321,7 +321,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Beast Knight", "ADVENTURE"],
-    "effectText": "[Digivolve] Lv.5 w/[Garurumon] in name or w/[ADVENTURE] trait: Cost 3 \n\n＜Alliance＞ \n＜Evade＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's lowest level Digimon to the hand. Then, this Digimon and 1 of your Digimon with [Greymon] in its name may unsuspend.\n[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, 2 of your Digimon may DNA digivolve into [Omnimon Alter-S] in the hand. Then, you may change the attack target to 1 of your Digimon.",
+    "effectText": "[Digivolve] Lv.5 w/[Garurumon] in name or w/[ADVENTURE] trait: Cost 3 \n[Assembly -4] [WereGarurumon: Sagittarius Mode]×[Garurumon]\n\n＜Alliance＞ \n＜Evade＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's lowest level Digimon to the hand. Then, this Digimon and 1 of your Digimon with [Greymon] in its name may unsuspend.\n[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, 2 of your Digimon may DNA digivolve into [Omnimon Alter-S] in the hand. Then, you may change the attack target to 1 of your Digimon.",
     "inheritedEffectText": "[Your Turn] This Digimon's attack target can't change.",
     "rarity": "SR",
     "maxCountInDeck": 4,
@@ -640,7 +640,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Holy Warrior", "Royal Knight", "ADVENTURE", "Hero"],
-    "effectText": "＜Raid＞ \n＜Blocker＞ \n＜Partition ([WarGreymon] & [MetalGarurumon])＞ \n[On Play] [When Digivolving] Return all of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck. Then, delete 1 of your opponent's Digimon.\n[All Turns] [Once Per Turn] When any of your opponent's Digimon leave the battle area, trash 1 of their Option cards in the battle area and trash their top security card.",
+    "effectText": "[DNA Digivolve] Lv.6 w/[Greymon] in name + Lv.6 w/[Garurumon] in name: Cost 0\n[Assembly -6] [WarGreymon]×[MetalGarurumon]\n\n＜Raid＞ \n＜Blocker＞ \n＜Partition ([WarGreymon] & [MetalGarurumon])＞ \n[On Play] [When Digivolving] Return all of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck. Then, delete 1 of your opponent's Digimon.\n[All Turns] [Once Per Turn] When any of your opponent's Digimon leave the battle area, trash 1 of their Option cards in the battle area and trash their top security card.",
     "rarity": "UR",
     "maxCountInDeck": 4,
     "imageId": "AD1-025"
@@ -17920,7 +17920,7 @@
     "forms": ["Champion"],
     "attributes": ["Data"],
     "types": ["Puppet", "X Antibody"],
-    "effectText": "While this card is revealed from the deck, its name is also treated as [Omnimon]. ＜Blocker＞ (At blocker timing, by suspending this Digimon, it becomes the attack target).[On Play] If it's your turn, 1 of your other Digimon may digivolve into a black Digimon card with [Greymon]/[Garurumon]&#160;in its name in your hand with the digivolution cost reduced by 2.",
+    "effectText": "[DigiXros -1] [Agumon]/[Greymon] x [Gabumon]/[Garurumon]\n\nWhile this card is revealed from the deck, its name is also treated as [Omnimon]. ＜Blocker＞ (At blocker timing, by suspending this Digimon, it becomes the attack target).[On Play] If it's your turn, 1 of your other Digimon may digivolve into a black Digimon card with [Greymon]/[Garurumon]&#160;in its name in your hand with the digivolution cost reduced by 2.",
     "inheritedEffectText": "[When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon (Trash the top card. You can't trash past level 3 cards).",
     "rarity": "U",
     "maxCountInDeck": 4,
@@ -25139,7 +25139,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Cyborg", "NSp"],
-    "effectText": "[DNA Digivolution] Blue/Yellow Lv.5 + Green/Black Lv.5: Cost 0\n[On Play] [When Digivolving] [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -2＞until the end of their turn. Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
+    "effectText": "[Digivolve] Lv.5 w/[NSp] trait: Cost 3\n[DNA Digivolve] Blue/Yellow Lv.5 + Green/Black Lv.5 : Cost 0\n[On Play] [When Digivolving] [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -2＞until the end of their turn. Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
     "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "BT18-041"
@@ -35353,7 +35353,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Mythical Beast", "WG", "Avian"],
-    "effectText": "＜Alliance＞ \n[When Digivolving] You may play 1 level 4 or lower Digimon card with the [WG] trait from your hand without paying the cost.\n[When Attacking] [Once Per Turn] 1 of your other Digimon may digivolve into a Digimon card with the [WG] trait in the hand without paying the cost.\n[Rule] Trait: Has [Avian] Type.",
+    "effectText": "[Digivolve] Lv.5 w/[WG] trait: Cost 3\n[DNA Digivolve] Blue/Yellow Lv.5 + Green/Red Lv.5 : Cost 0\n\n＜Alliance＞ \n[When Digivolving] You may play 1 level 4 or lower Digimon card with the [WG] trait from your hand without paying the cost.\n[When Attacking] [Once Per Turn] 1 of your other Digimon may digivolve into a Digimon card with the [WG] trait in the hand without paying the cost.\n[Rule] Trait: Has [Avian] Type.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "BT21-039"
@@ -38968,7 +38968,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Cyborg", "CS"],
-    "effectText": "[Digivolve] Lv.5 w/[Flame]/[CS] trait: Cost 3 \n\n＜Rush＞ \n[Your Turn] This Digimon gains all [Main] effects of its digivolution cards with the [Flame] trait.\n[When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with the lowest level.",
+    "effectText": "[Digivolve] Lv.5 w/[Flame]/[CS] trait: Cost 3 \n[Assembly -6] 5 [Flame] trait Digimon cards w/different card numbers\n\n＜Rush＞ \n[Your Turn] This Digimon gains all [Main] effects of its digivolution cards with the [Flame] trait.\n[When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with the lowest level.",
     "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "BT22-078"
@@ -42817,7 +42817,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Free"],
     "types": ["Beastkin", "Iliad", "TS"],
-    "effectText": "[On Play] [When Digivolving] 1 of your opponent's Digimon gets -5000 DP for the turn. Then, 1 of your Digimon may attack. If DNA digivolving, 1 of your Digimon gains ＜Security A. +1＞ and +5000 DP for the turn.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, you may play 1 level 4 or lower yellow, red or [TS] trait Digimon card from its digivolution cards without paying the cost.",
+    "effectText": "[Digivolve] Lv.4 w/[TS] trait: Cost 3\n[DNA Digivolve] Yellow Lv.4 + Red/Green Lv.4: Cost 0\n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -5000 DP for the turn. Then, 1 of your Digimon may attack. If DNA digivolving, 1 of your Digimon gains ＜Security A. +1＞ and +5000 DP for the turn.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, you may play 1 level 4 or lower yellow, red or [TS] trait Digimon card from its digivolution cards without paying the cost.",
     "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, you may play 1 level 4 or lower yellow, red or [TS] trait Digimon card from its digivolution cards without paying the cost.",
     "rarity": "R",
     "maxCountInDeck": 4,
@@ -43512,7 +43512,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Data"],
     "types": ["Machine", "Iliad", "TS"],
-    "effectText": "[Digivolve] Lv.4 w/[Machine]/[Cyborg]/[TS]: Cost 3 \n\n＜Blocker＞ \n＜Armor Purge＞ \n[End of Attack] [End of Opponent's Turn] [Once Per Turn] You may play 1 play cost 5 or lower card with the [Machine], [Cyborg] or [TS] trait from this Digimon's digivolution cards without paying the cost.",
+    "effectText": "[Digivolve] Lv.4 w/[Machine]/[Cyborg]/[TS]: Cost 3 \n[Assembly -2] [Blimpmon]/Tamer card w/[TS] trait\n\n＜Blocker＞ \n＜Armor Purge＞ \n[End of Attack] [End of Opponent's Turn] [Once Per Turn] You may play 1 play cost 5 or lower card with the [Machine], [Cyborg] or [TS] trait from this Digimon's digivolution cards without paying the cost.",
     "inheritedEffectText": "[Your Turn] This Digimon's attack target can't change.",
     "rarity": "R",
     "maxCountInDeck": 4,
@@ -44013,7 +44013,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Shaman", "Titan", "TS", "Demon"],
-    "effectText": "＜Rush＞ \n＜Piercing＞ \n＜Execute＞ \n[On Play] [When Digivolving] [When Attacking] By trashing 1 card in your hand, delete all of your opponent's Digimon with the lowest level.\n[On Deletion] You may play 1 [Titamon] or 1 level 5 or lower Digimon card with the [Titan] trait from your trash without paying the cost.\n[Rule] Trait: Has [Demon] Type.",
+    "effectText": "[Assembly -6] [Titamon] x [SkullBaluchimon]\n\n＜Rush＞ \n＜Piercing＞ \n＜Execute＞ \n[On Play] [When Digivolving] [When Attacking] By trashing 1 card in your hand, delete all of your opponent's Digimon with the lowest level.\n[On Deletion] You may play 1 [Titamon] or 1 level 5 or lower Digimon card with the [Titan] trait from your trash without paying the cost.\n[Rule] Trait: Has [Demon] Type.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "BT24-081"
@@ -47155,7 +47155,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Galaxy", "Iliad", "TS", "Olympos XII"],
-    "effectText": "＜Security A. +1＞ \n＜Iceclad＞ \n＜Partition ([Apollomon] & [Dianamon])＞ \n[When Digivolving] [When Attacking] Return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[When Attacking] [Counter] [Once Per Turn] For each of this Digimon's digivolution cards, you may trash any 1 digivolution card from your opponent's Digimon. Then, you may end this attack.\n(Rule) Trait: Has [Olympos XII].",
+    "effectText": "[Digivolve] Lv.6 w/[TS] trait: Cost 5\n[DNA Digivolve] Red Lv.6 + Blue Lv.6: Cost 0\n\n＜Security A. +1＞ \n＜Iceclad＞ \n＜Partition ([Apollomon] & [Dianamon])＞ \n[When Digivolving] [When Attacking] Return 1 of your opponent's Digimon with as many or fewer digivolution cards as this Digimon to the bottom of the deck.\n[When Attacking] [Counter] [Once Per Turn] For each of this Digimon's digivolution cards, you may trash any 1 digivolution card from your opponent's Digimon. Then, you may end this attack.\n(Rule) Trait: Has [Olympos XII].",
     "rarity": "SEC",
     "maxCountInDeck": 4,
     "imageId": "BT25-103",
@@ -70972,7 +70972,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Virus"],
     "types": ["Dark Knight", "Bagra Army", "Twilight"],
-    "effectText": "[Digivolve] Lv.4 w/[Knightmon] in text: Cost 4 \n\n[On Play] [When Digivolving] Until your opponent's turn ends, their ＜De-Digivolve＞ effects don't affect 1 of your Digimon, and it gets +3000 DP.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, you may play 1 play cost 4 or lower card from its digivolution cards without paying the cost.\n\n[DigiXros -1] [SkullKnightmon] x [DeadlyAxemon]",
+    "effectText": "[Digivolve] Lv.4 w/[Knightmon] in text: Cost 3 \n\n[On Play] [When Digivolving] Until your opponent's turn ends, their ＜De-Digivolve＞ effects don't affect 1 of your Digimon, and it gets +3000 DP.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, you may play 1 play cost 4 or lower card from its digivolution cards without paying the cost.\n\n[DigiXros -1] [SkullKnightmon] x [DeadlyAxemon]",
     "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
     "rarity": "U",
     "maxCountInDeck": 4,
@@ -75860,7 +75860,37 @@
     "dp": 16000,
     "evoCosts": [
       {
-        "color": "All",
+        "color": "Red",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Blue",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Yellow",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Green",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Black",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Purple",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "White",
         "level": 6,
         "memoryCost": 6
       }
@@ -77864,7 +77894,37 @@
     "dp": 16000,
     "evoCosts": [
       {
-        "color": "All",
+        "color": "Red",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Blue",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Yellow",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Green",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Black",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Purple",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "White",
         "level": 6,
         "memoryCost": 6
       }
@@ -89447,7 +89507,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Vaccine"],
     "types": ["Sea Animal", "DS"],
-    "effectText": "[On Play] [When Digivolving] You may place 1 Digimon card with the [DS] trait from your trash as this Digimon's bottom digivolution card.\n[End of Attack] [Once Per Turn] You may play 1 [DS] trait Digimon card with a play cost of 5 or less from this Digimon's digivolution cards without paying the cost.",
+    "effectText": "[Digivolve] Lv.4 w/[DS] trait: Cost 3\n[DNA Digivolve] Blue Lv.4 + Black/Purple Lv.4: Cost 0\n[On Play] [When Digivolving] You may place 1 Digimon card with the [DS] trait from your trash as this Digimon's bottom digivolution card.\n[End of Attack] [Once Per Turn] You may play 1 [DS] trait Digimon card with a play cost of 5 or less from this Digimon's digivolution cards without paying the cost.",
     "inheritedEffectText": "[Your Turn] This Digimon's attack target can't be switched.",
     "rarity": "U",
     "maxCountInDeck": 4,
@@ -89669,7 +89729,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Data"],
     "types": ["Puppet", "NSo"],
-    "effectText": "[On Play] [When Digivolving] Return 1 card with the [NSo] trait from your trash to the hand.\n[On Deletion] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+    "effectText": "[Digivolve] Lv.4 w/[NSo] trait: Cost 3\n[DNA Digivolve] Yellow Lv.4 + Purple/Red Lv.4: Cost 0\n[On Play] [When Digivolving] Return 1 card with the [NSo] trait from your trash to the hand.\n[On Deletion] 1 of your opponent's Digimon gets -4000 DP for the turn.",
     "inheritedEffectText": "[On Deletion] ＜Recovery +1 (Deck)＞.",
     "rarity": "R",
     "maxCountInDeck": 4,
@@ -89992,7 +90052,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Dark Animal", "NSo"],
-    "effectText": "[When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, return 1 of their suspended Tamers to the bottom of the deck.\n[Your Turn] For each color in this Digimon's digivolution cards, it gets +1000 DP. While your opponent has no Digimon with equal or higher DP, this Digimon gets ＜Piercing＞and ＜Security Attack +1＞.",
+    "effectText": "[Digivolve] Lv.5 w/[NSo] trait: Cost 3\n[DNA Digivolve] Green/Purple Lv.5 + Red/Yellow Lv.5: Cost 0\n[When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, return 1 of their suspended Tamers to the bottom of the deck.\n[Your Turn] For each color in this Digimon's digivolution cards, it gets +1000 DP. While your opponent has no Digimon with equal or higher DP, this Digimon gets ＜Piercing＞and ＜Security Attack +1＞.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "EX8-045"
@@ -91207,7 +91267,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Holy Warrior", "DM", "Ver.1", "Ver.2"],
-    "effectText": "[When Digivolving] If DNA digivolving, your opponent's effects don't affect this Digimon for the turn. Then, delete all of their Digimon with the highest level.\n[End of Attack] You may play 1 card with [Greymon] in its name or the [Ver.1] trait and 1 card with [Garurumon] in its name or the [Ver.2] trait from this Digimon's digivolution cards without paying the costs. If this effect played, place this Digimon as your top security card.",
+    "effectText": "[Digivolve] Lv.6 w/[DM] trait: Cost 5\n[DNA Digivolve] Blue Lv.6 + Red Lv.6 : Cost 0\n[When Digivolving] If DNA digivolving, your opponent's effects don't affect this Digimon for the turn. Then, delete all of their Digimon with the highest level.\n[End of Attack] You may play 1 card with [Greymon] in its name or the [Ver.1] trait and 1 card with [Garurumon] in its name or the [Ver.2] trait from this Digimon's digivolution cards without paying the costs. If this effect played, place this Digimon as your top security card.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "EX9-021"
@@ -91903,7 +91963,7 @@
     "forms": ["Champion"],
     "attributes": ["Virus"],
     "types": ["Dark Dragon"],
-    "effectText": "[Digivolve] [Eyesmon: Scatter Mode]: Cost 1 \n\n＜Rush＞.\n＜Collision＞ \n[On Deletion] You may return 1 Digimon card with [Negamon] in its text from your trash to the hand.",
+    "effectText": "[Digivolve] [Eyesmon: Scatter Mode]: Cost 1 \n[Assembly -3] 4 [Eyesmon: Scatter Mode]\n\n＜Rush＞.\n＜Collision＞ \n[On Deletion] You may return 1 Digimon card with [Negamon] in its text from your trash to the hand.",
     "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
     "rarity": "C",
     "maxCountInDeck": 4,
@@ -92103,7 +92163,7 @@
     "forms": ["Mega"],
     "attributes": ["Unknown"],
     "types": ["Unidentified"],
-    "effectText": "[On Play] [When Digivolving] If there are 4 or more total [Negamon] in your trash and your Digimon's digivolution cards, you may play 1 [Abbadomon Core] from your hand or trash to your empty breeding area without paying the cost.\n[End of All Turns] [Once Per Turn] By placing 1 level 6 or lower Digimon card with [Negamon] in its text from your trash as this Digimon's top digivolution card, delete 1 of your opponent's Digimon with the same level as the placed card.",
+    "effectText": "[Assembly -6] 4 [Negamon]\n\n[On Play] [When Digivolving] If there are 4 or more total [Negamon] in your trash and your Digimon's digivolution cards, you may play 1 [Abbadomon Core] from your hand or trash to your empty breeding area without paying the cost.\n[End of All Turns] [Once Per Turn] By placing 1 level 6 or lower Digimon card with [Negamon] in its text from your trash as this Digimon's top digivolution card, delete 1 of your opponent's Digimon with the same level as the placed card.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "EX9-055"
@@ -92519,7 +92579,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Machine", "DM", "Ver.5"],
-    "effectText": "[Digivolve] Lv.5 w/[DM] trait: Cost 3 \n\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By placing 1 level 5 [Cyborg] or [Ver.5] trait card from your hand or trash as this Digimon's top digivolution card, activate 1 [On Play] effect on the placed card as an effect of this Digimon.\n[All Turns] When this Digimon would leave the battle area, by trashing its bottom 2 face-down or [Cyborg] trait digivolution cards, it doesn't leave.",
+    "effectText": "[Digivolve] Lv.5 w/[DM] trait: Cost 3 \n[Assembly -6] 4 level 5 [Cyborg] trait Digimon cards w/different names\n\n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By placing 1 level 5 [Cyborg] or [Ver.5] trait card from your hand or trash as this Digimon's top digivolution card, activate 1 [On Play] effect on the placed card as an effect of this Digimon.\n[All Turns] When this Digimon would leave the battle area, by trashing its bottom 2 face-down or [Cyborg] trait digivolution cards, it doesn't leave.",
     "rarity": "UR",
     "maxCountInDeck": 4,
     "imageId": "EX9-073"
@@ -96358,7 +96418,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Unknown"],
     "types": ["Unknown"],
-    "effectText": "[On Play] [When Digivolving] Delete your opponent's Digimon and Tamers with a total play cost of 3. For every [Vemmon] in this Digimon's digivolution cards, increase the maximum play cost you can choose by this effect by 1.",
+    "effectText": "[DigiXros -1] [Snatchmon] x 4 [Vemmon]\n\n[On Play] [When Digivolving] Delete your opponent's Digimon and Tamers with a total play cost of 3. For every [Vemmon] in this Digimon's digivolution cards, increase the maximum play cost you can choose by this effect by 1.",
     "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When an opponent's Digimon attacks, by placing 2 [Vemmon] from 1 of your [Galacticmon]'s digivolution cards at the bottom of their owners' decks, switch the target of attack to this Digimon.",
     "rarity": "P",
     "maxCountInDeck": 4,
@@ -98208,7 +98268,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Mutant", "DS"],
-    "effectText": "When this card would be played, if [Deep Savers] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[On Play] [When Digivolving] Trash the top 2 digivolution cards of all of your opponent's Digimon. Then, delete 1 of their Digimon with no digivolution cards.",
+    "effectText": "[Digivolve] Lv.5 w/[DS] trait: Cost 3\n[DNA Digivolve] Blue/Black Lv.5 + Purple Lv.5: Cost 0\nWhen this card would be played, if [Deep Savers] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[On Play] [When Digivolving] Trash the top 2 digivolution cards of all of your opponent's Digimon. Then, delete 1 of their Digimon with no digivolution cards.",
     "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-171"
@@ -98237,7 +98297,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Holy Dragon", "Four Great Dragons", "NSp"],
-    "effectText": "When this card would be played, if [Nature Spirits] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[On Play] [On Deletion] 1 of your opponent's Digimon gets -5000 DP for the turn. Then, delete 1 of their Digimon with 5000 DP or less.",
+    "effectText": "[Digivolve] Lv.5 w/[NSp] trait: Cost 3\n[DNA Digivolve] Yellow/Red Lv.5 + Green/Black Lv.5 : Cost 0\nWhen this card would be played, if [Nature Spirits] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[On Play] [On Deletion] 1 of your opponent's Digimon gets -5000 DP for the turn. Then, delete 1 of their Digimon with 5000 DP or less.",
     "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-172"
@@ -98295,7 +98355,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Cyborg", "NSo"],
-    "effectText": "When this card would be played, if [Nightmare Soldiers] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[When Digivolving] [On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, delete 1 of their level 4 or lower Digimon.",
+    "effectText": "[Digivolve] Lv.5 w/[NSo] trait: Cost 3\n[DNA Digivolve] Black/Yellow Lv.5 + Purple/Red Lv.5 : Cost 0\nWhen this card would be played, if [Nightmare Soldiers] is face-up in your security stack, reduce the play cost by 4.\n＜Blocker＞ \n[When Digivolving] [On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, delete 1 of their level 4 or lower Digimon.",
     "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-174"
@@ -99374,7 +99434,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Composite", "DM", "Ver.3", "Ver.5"],
-    "effectText": "＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, you may delete 1 Digimon.\n[On Deletion] By returning 3 [Composite], [Wicked God] or [DM] cards from your trash to the bottom of the deck, you may play 2 level 6 or lower [Composite], [Ver.3] or [Ver.5] Digimon cards from your trash without paying the costs. This effect can't play cards of the same level.",
+    "effectText": "[Digivolve] [Kimeramon]: Cost 6\n[DNA Digivolve] [Kimeramon] + [Machinedramon]: Cost 0\n[Assembly -6] 3 [Composite]/[Ver.3]/[Ver.5] trait Digimon cards w/different levels\n\n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, you may delete 1 Digimon.\n[On Deletion] By returning 3 [Composite], [Wicked God] or [DM] cards from your trash to the bottom of the deck, you may play 2 level 6 or lower [Composite], [Ver.3] or [Ver.5] Digimon cards from your trash without paying the costs. This effect can't play cards of the same level.",
     "rarity": "P",
     "maxCountInDeck": 4,
     "imageId": "P-220"
@@ -99771,7 +99831,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Dragonkin", "VB"],
-    "effectText": "＜Collision＞ \n＜Piercing＞ \n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon. Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.\n[On Deletion] You may play 1 [Proximamon] from your hand or trash without paying the cost.",
+    "effectText": "[Digivolve] Lv.5 w/[Gammamon] in text or w/[VB] trait: Cost 4\n[Assembly -6] Lv.5 x Lv.4 x Lv.3, all w/[Gammamon] in text or w/[VB] trait\n\n＜Collision＞ \n＜Piercing＞ \n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon. Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.\n[On Deletion] You may play 1 [Proximamon] from your hand or trash without paying the cost.",
     "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
     "nameJp": "アルクトゥルスモン"
   },

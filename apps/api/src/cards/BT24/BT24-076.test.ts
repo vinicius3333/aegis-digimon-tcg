@@ -419,3 +419,55 @@ describe("BT24-076 WarGrowlmon", () => {
     await turn;
   });
 });
+
+describe("BT24-076 WarGrowlmon — KB Q&A rulings", () => {
+  it("activates its {Trash} [Main] effect only from the trash, never from hand or the battle area (Q5653)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-076", as: "handCopy" }, "BT1-009", "BT1-011"],
+          battleArea: [{ card: "BT24-076", as: "battleCopy" }],
+          trash: [{ card: "BT24-076", as: "trashCopy" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.engine.recomputeContinuousEffects();
+    const [trashEffect] = JSON.parse(s.inst("trashCopy").activatableEffectsJson || "[]") as { effectKey: string }[];
+    expect(trashEffect).toBeDefined();
+    const memoryBefore = s.state.memory;
+
+    for (const alias of ["handCopy", "battleCopy"]) {
+      expect(JSON.parse(s.inst(alias).activatableEffectsJson || "[]")).toHaveLength(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst(alias).instanceId,
+          effectKey: trashEffect!.effectKey,
+        }).ok,
+      ).toBe(false);
+    }
+    expect(s.state.memory).toBe(memoryBefore);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("trashCopy").instanceId,
+        effectKey: trashEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("trashCopy").instanceId,
+      ),
+    );
+    expect(s.state.memory).toBe(memoryBefore - 5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handCopy").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+});

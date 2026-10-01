@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT13-111.js";
+import "../EX13/EX13-007.js";
 
 describe("BT13-111 Gallantmon", () => {
   it("plays for the combined-trash reduction only while its controller has no Digimon", async () => {
@@ -178,5 +179,70 @@ describe("BT13-111 Gallantmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(false);
+  });
+});
+
+describe("BT13-111 Gallantmon — KB Q&A rulings", () => {
+  it("counts the cards of both trashes combined, reducing the play cost by 8 for 12 + 8 trash cards (Q2364)", async () => {
+    async function playFromHand(opponentTrashCount: number) {
+      const s = setupEngine({
+        0: {
+          hand: [{ card: "BT13-111", as: "gallantmon" }],
+          trash: Array.from({ length: 12 }, () => "BT1-009"),
+        },
+        1: { trash: Array.from({ length: opponentTrashCount }, () => "BT1-009") },
+      });
+      s.state.memory = 0;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-111"));
+      await settle();
+      return s.state.memory;
+    }
+
+    expect(await playFromHand(8)).toBe(-5);
+    expect(await playFromHand(7)).toBe(-7);
+  });
+
+  it("raises only the 6000 DP maximum with a deletion-maximum bonus, leaving the 13000 DP-or-more fallback unchanged (Q2365)", async () => {
+    async function attackWithBonus(opponentDigimon: PermanentSpec[], preferredAlias?: string, under = ["EX13-007"]) {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT13-111", as: "attacker", under }] },
+          1: { battleArea: opponentDigimon, security: ["BT1-009"] },
+        },
+        { autoSelectCards: true, preferInstanceIds },
+      );
+      if (preferredAlias !== undefined) preferInstanceIds.push(s.perm(preferredAlias).topCard.instanceId);
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 0);
+      await settle();
+      return s;
+    }
+
+    const boosted = await attackWithBonus([{ card: "BT1-009", as: "eightThousand", dp: 8000 }]);
+    expect(boosted.state.players[1]!.battleArea).toHaveLength(0);
+    const unboosted = await attackWithBonus([{ card: "BT1-009", as: "eightThousand", dp: 8000 }], undefined, []);
+    expect(unboosted.state.players[1]!.battleArea.map((permanent) => permanent.currentDP)).toEqual([8000]);
+
+    const fallback = await attackWithBonus(
+      [
+        { card: "BT1-009", as: "twelveThousand", dp: 12000 },
+        { card: "BT1-009", as: "thirteenThousand", dp: 13000 },
+      ],
+      "twelveThousand",
+    );
+    const remaining = fallback.state.players[1]!.battleArea.map((permanent) => permanent.currentDP);
+    expect(remaining).toEqual([12000]);
   });
 });

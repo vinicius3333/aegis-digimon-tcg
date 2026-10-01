@@ -285,3 +285,131 @@ describe("BT21-095 Wind Guardians", () => {
     expect(observe(s.engine).hasKeyword(s.perm("wg"), "Vortex")).toBe(false);
   });
 });
+
+describe("BT21-095 Wind Guardians — KB Q&A rulings", () => {
+  it("keeps a face-up security card revealed and counts it as a security card like any other (Q4611)", async () => {
+    async function useCostOfRagingSerpentineAgainst(faceDownSecurityCount: number) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-009" }], hand: [{ card: "BT21-093", as: "counter" }] },
+          1: {
+            security: [
+              ...Array.from({ length: faceDownSecurityCount }, () => "BT1-001"),
+              { card: "BT21-095", as: "faceUpSecurity", faceUp: true },
+            ],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 8;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("counter").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-093"));
+      expect(s.state.players[1]!.security.find((card) => card.cardId === "BT21-095")?.faceUp).toBe(true);
+      return 8 - s.state.memory;
+    }
+
+    expect(await useCostOfRagingSerpentineAgainst(3)).toBe(8);
+    expect(await useCostOfRagingSerpentineAgainst(2)).toBe(4);
+  });
+
+  it("checks a face-up security Digimon while revealed and battles it like any security Digimon (Q4612)", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT1-019", as: "faceUpDigimon", faceUp: true }, "BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    const faceUpId = s.inst("faceUpDigimon").instanceId;
+    const attackerId = s.inst("attacker").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === attackerId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === attackerId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === faceUpId)).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+  });
+
+  it("triggers its [Security] effect when checked after being placed face-up by its [Main] effect (Q4613)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-095", as: "option" },
+            { card: "BT21-038", as: "wg" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionId));
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([s.inst("wg").instanceId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+  });
+
+  it("turns every face-up security card face down when the security stack is shuffled (Q4614)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-095", as: "option" },
+            { card: "BT1-087", as: "shuffler" },
+          ],
+          security: [{ card: "BT1-010", as: "taken" }, "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("taken").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionId));
+    expect(s.state.players[0]!.security.find((card) => card.instanceId === optionId)?.faceUp).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shuffler").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("taken").instanceId));
+    await settle(() => false, 30);
+
+    expect(s.state.players[0]!.security.map((card) => card.cardId).sort()).toEqual(["BT1-011", "BT21-095"]);
+    expect(s.state.players[0]!.security.every((card) => !card.faceUp)).toBe(true);
+  });
+});

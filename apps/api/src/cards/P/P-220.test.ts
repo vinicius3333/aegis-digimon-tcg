@@ -38,8 +38,22 @@ describe("P-220 Millenniummon", () => {
       P5B: { kinds: ["Digimon"], level: 5, types: ["Ver.3"] },
       P6: { kinds: ["Digimon"], level: 6, types: ["Ver.5"] },
     };
-    const owner = { trash: cards.slice(), battleArea: [], hand: [], deck: [], security: [], eggDeck: [] };
-    const opponent = { trash: [], battleArea: [], hand: [], deck: [], security: [], eggDeck: [] };
+    const owner = {
+      trash: cards.slice(),
+      battleArea: [],
+      hand: [],
+      deck: [],
+      security: [],
+      eggDeck: [],
+    };
+    const opponent = {
+      trash: [],
+      battleArea: [],
+      hand: [],
+      deck: [],
+      security: [],
+      eggDeck: [],
+    };
     const selections: string[][] = [];
     const played: string[][] = [];
     const effect = getEffectModule("P-220")!.effectsForTiming(EffectTiming.OnDestroyedAnyone, {
@@ -78,10 +92,15 @@ describe("P-220 Millenniummon", () => {
 
 describe("P-220 continuous behavior", () => {
   it("exposes Reboot and Blocker on a resident Millenniummon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "P-220", as: "millenniummon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-220", as: "millenniummon" }] },
+    });
     await s.ready();
-    const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
-      .continuous;
+    const ledger = (
+      s.engine as unknown as {
+        continuous: { hasKeyword(id: string, keyword: string): boolean };
+      }
+    ).continuous;
     expect(ledger.hasKeyword(s.perm("millenniummon").permanentId, "Reboot")).toBe(true);
     expect(ledger.hasKeyword(s.perm("millenniummon").permanentId, "Blocker")).toBe(true);
   });
@@ -92,7 +111,15 @@ describe("P-220 engine behavior", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "P-220", as: "millenniummon" }] },
-        1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "BT1-070", "BT1-020"] }] },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-080",
+              as: "target",
+              under: ["BT1-009", "BT1-070", "BT1-020"],
+            },
+          ],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -132,7 +159,10 @@ describe("P-220 engine behavior", () => {
 describe("P-220 DNA requirement", () => {
   it("DNA digivolves only from exact [Kimeramon] + [Machinedramon] for 0", () => {
     expect(dnaRequirementsFor("P-220")).toEqual([
-      { cost: 0, materials: [{ namesExact: ["Kimeramon"] }, { namesExact: ["Machinedramon"] }] },
+      {
+        cost: 0,
+        materials: [{ namesExact: ["Kimeramon"] }, { namesExact: ["Machinedramon"] }],
+      },
     ]);
     expect(compiledDna.dnaDigivolveRequirement).toEqual(dnaRequirementsFor("P-220"));
     const evolving = cardDefinition("P-220")!;
@@ -142,5 +172,94 @@ describe("P-220 DNA requirement", () => {
     expect(
       dnaDigivolveCostFor(evolving, [{ ...kimeramon, nameEn: "Kimeramon (X Antibody)" }, machinedramon]),
     ).toBeUndefined();
+  });
+});
+
+describe("P-220 Millenniummon — KB Q&A rulings", () => {
+  it.each([
+    ["my own", 0, "ownDigimon"],
+    ["the opponent's", 1, "opponentDigimon"],
+  ] as const)("may delete %s Digimon with the optional follow-up deletion (Q5764)", async (_label, seat, alias) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-220", as: "millenniummon" },
+            { card: "BT1-010", as: "ownDigimon" },
+          ],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-080",
+              as: "dedigivolved",
+              under: ["BT1-009", "BT1-070", "BT1-020"],
+            },
+            { card: "BT1-011", as: "opponentDigimon" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    await s.ready();
+    const deletedId = s.perm(alias).permanentId;
+    const bothIds = [s.perm("ownDigimon").permanentId, s.perm("opponentDigimon").permanentId];
+    preferred.push(deletedId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("millenniummon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const deletionChoice = s.decisions.filter(({ req }) => req.kind === "chooseTargets").at(-1)!.req;
+    expect(deletionChoice.options?.candidateInstanceIds).toEqual(expect.arrayContaining(bothIds));
+    expect(s.state.players[seat]!.battleArea.some((permanent) => permanent.permanentId === deletedId)).toBe(false);
+    expect(s.state.players[seat]!.trash.map((card) => card.cardId)).toContain(
+      alias === "ownDigimon" ? "BT1-010" : "BT1-011",
+    );
+  });
+});
+
+describe("P-220 Assembly requirement (Discord: Millenniummon Assembly unavailable)", () => {
+  const VALID_MATERIALS = ["EX9-023", "BT18-013", "BT18-015"];
+
+  async function playByAssembly(materials: string[]) {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "P-220", as: "source" }],
+        trash: materials.map((card, index) => ({ card, as: `m${index}` })),
+      },
+    });
+    s.state.memory = 8;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("source").instanceId,
+      assembly: { materialInstanceIds: materials.map((_, index) => s.inst(`m${index}`).instanceId) },
+    });
+    return { s, result };
+  }
+
+  it("prints [Assembly -6] in the catalog", () => {
+    expect(cardDefinition("P-220")!.effectText).toContain(
+      "[Assembly -6] 3 [Composite]/[Ver.3]/[Ver.5] trait Digimon cards w/different levels",
+    );
+  });
+
+  it("plays by Assembly -6 with three [Composite]/[Ver.3]/[Ver.5] Digimon of different levels", async () => {
+    const { s, result } = await playByAssembly(VALID_MATERIALS);
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-220"));
+    expect(s.state.memory).toBe(0);
+  });
+
+  it.each([
+    ["two materials share a level", ["EX9-023", "EX9-034", "BT18-015"]],
+    ["a material lacks the trait", ["EX9-023", "BT18-013", "BT1-020"]],
+  ])("rejects Assembly when %s", async (_label, materials) => {
+    const { result } = await playByAssembly(materials);
+    expect(result).toEqual({ ok: false, reason: "invalid-material" });
   });
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT14-068.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -38,7 +39,7 @@ describe("BT14-068", () => {
           ],
         },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
     await s.ready();
@@ -164,5 +165,43 @@ describe("BT14-068", () => {
     expect(played("secondHeavy")).toBe(true);
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("secondRest").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(5);
+  });
+});
+
+describe("BT14-068 Brigadramon — KB Q&A rulings", () => {
+  it("plays a revealed DigiPolice Tamer with its end-of-turn effect while a Tamer without the trait is trashed (Q2441)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-068", as: "brigadramon" }],
+          deck: [
+            { card: "BT14-086", as: "digiPoliceTamer" },
+            { card: "BT14-082", as: "otherTamer" },
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+          ],
+        },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).runTurn(0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("digiPoliceTamer").instanceId,
+      ),
+    );
+
+    const playedTamer = s.perm("digiPoliceTamer");
+    expect(playedTamer.topCard.cardId).toBe("BT14-086");
+    expect(getCardDefinition(playedTamer.topCard.cardId)!.kinds).toEqual(["Tamer"]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("otherTamer").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("otherTamer").instanceId,
+      ),
+    ).toBe(false);
   });
 });

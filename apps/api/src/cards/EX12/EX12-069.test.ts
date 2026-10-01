@@ -4,6 +4,14 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-069.js";
+import {
+  expectFaceUpSecurityCheckedLikeStandard,
+  expectFaceUpSecurityEffectTriggers,
+  expectFaceUpSecurityStaysRevealed,
+  expectShuffleTurnsFaceUpSecurityDown,
+  expectUseWithEmptySecurity,
+  type FaceUpSecurityOption,
+} from "./faceUpSecurityOption.testSupport.js";
 import "../index.js";
 
 const CARD_ID = "EX12-069";
@@ -177,6 +185,96 @@ describe("EX12-069 Virus Busters", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("orders its watcher with the attacker's [When Attacking] effects on a declared attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-032", as: "attacker", under: ["EX12-024", "EX12-024"] }],
+          hand: [{ card: "EX12-016", as: "sameLevel" }],
+          trash: [{ card: "EX12-035", as: "garurumon" }],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+        1: { security: ["BT1-101"] },
+      },
+      { autoOrderTriggers: false },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+
+    expect(s.state.pendingDecision!.kind).toBe("orderTriggers");
+    const options = s.decisions.at(-1)!.req.options as { triggerCardIds: string[] };
+    expect(options.triggerCardIds).toContain(CARD_ID);
+    expect(options.triggerCardIds).toContain("EX12-032");
+  });
+
+  it("orders its watcher with the pending When Digivolving and When Attacking effects of an effect-driven attack (Discord bug 1554515045856182272)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-013", as: "source", under: ["EX12-001"] },
+            { card: "EX12-024", as: "partner" },
+          ],
+          hand: [
+            { card: "EX12-032", as: "wereGarurumon", faceUp: false },
+            { card: "EX12-016", as: "sameLevel", faceUp: false },
+          ],
+          trash: [{ card: "EX12-035", as: "garurumon" }],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+          deck: Array(20).fill("EX12-005"),
+        },
+        1: { security: ["BT1-101"], deck: Array(20).fill("EX12-005") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const options = s.decisions.at(-1)!.req.options as { triggerCardIds: string[]; triggerKeys: string[] };
+    expect(options.triggerCardIds.slice().sort()).toEqual(["EX12-024", "EX12-032", "EX12-032", CARD_ID]);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID)).toBe(false);
+
+    const virusBustersResolved = () =>
+      s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID);
+    while (!virusBustersResolved()) {
+      const pending = s.state.pendingDecision!;
+      expect(pending.kind).toBe("orderTriggers");
+      const offered = s.decisions.at(-1)!.req.options as { triggerCardIds: string[]; triggerKeys: string[] };
+      const nextIndex = offered.triggerCardIds.findIndex((cardId) => cardId !== CARD_ID);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "orderTriggers", order: [offered.triggerKeys[Math.max(nextIndex, 0)]!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => virusBustersResolved() || s.state.pendingDecision?.kind === "orderTriggers");
+    }
+
+    const resolvedOrder = s.events.flatMap((event) =>
+      event.kind === "effectResolved" && (event.sourceCardId === CARD_ID || event.sourceCardId === "EX12-032")
+        ? [event.sourceCardId]
+        : [],
+    );
+    expect(resolvedOrder.at(-1)).toBe(CARD_ID);
+    expect(resolvedOrder.filter((cardId) => cardId === "EX12-032")).toHaveLength(2);
+
+    expect(s.engine.applyIntent(s.state.turnSeat, { type: "surrender" })).toEqual({ ok: true });
+    await turn;
+  });
+
   it("reads the attacker's runtime traits, not only its printed ones", async () => {
     const s = setupEngine(
       {
@@ -297,6 +395,95 @@ describe("EX12-069 Virus Busters", () => {
       types: ["VB"],
       securityEffectText:
         "[Security] You may play 1 level 5 or lower [VB] trait Digimon card from your hand without paying the cost.",
+    });
+  });
+});
+
+describe("EX12-069 Virus Busters — KB Q&A rulings", () => {
+  const option: FaceUpSecurityOption = {
+    cardId: CARD_ID,
+    useRequirementCard: "EX12-013",
+    securityPlayCard: "EX12-016",
+  };
+
+  it("can be used with 0 security cards and only places itself face up (Q6876)", async () => {
+    await expectUseWithEmptySecurity(option);
+  });
+
+  it("stays revealed as a face-up security card that otherwise counts as a normal one (Q6877)", async () => {
+    await expectFaceUpSecurityStaysRevealed(option);
+  });
+
+  it("is checked while left revealed and otherwise resolves like a standard check (Q6878)", async () => {
+    await expectFaceUpSecurityCheckedLikeStandard(option);
+  });
+
+  it("triggers its [Security] effect when checked face up (Q6879)", async () => {
+    await expectFaceUpSecurityEffectTriggers(option);
+  });
+
+  it("turns face down when its security stack is shuffled and stays face down (Q6880)", async () => {
+    await expectShuffleTurnsFaceUpSecurityDown(option);
+  });
+  async function attackWithAngewomonDigivolvingFirst(digivolveInto: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-044", as: "attacker", under: ["BT1-051", "BT1-052"] }],
+          hand: [
+            { card: digivolveInto, as: "digivolveTarget" },
+            { card: "EX12-035", as: "levelSix" },
+            { card: "EX12-016", as: "levelFive" },
+          ],
+          deck: ["BT1-009"],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+        1: { deck: ["BT1-012"], security: ["BT1-101"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["EX12-044"],
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("digivolveTarget").instanceId, s.inst("levelSix").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2, 200);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("digivolveTarget").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("levelSix").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("levelFive").instanceId);
+    expect(s.state.memory).toBe(0);
+    return s;
+  }
+
+  it("still activates after the attacker loses the [VB] trait and reads its current level (Q6881)", async () => {
+    const s = await attackWithAngewomonDigivolvingFirst("BT1-063");
+
+    expect(getCardDefinition(s.perm("attacker").topCard.cardId)?.types).not.toContain("VB");
+    expect(getCardDefinition(s.perm("attacker").topCard.cardId)?.level).toBe(6);
+  });
+
+  it("plays a level 6 card after the level 5 attacker digivolves to level 6 before it resolves (Q6882)", async () => {
+    const s = await attackWithAngewomonDigivolvingFirst("EX12-017");
+
+    expect(getCardDefinition(s.perm("attacker").topCard.cardId)).toMatchObject({
+      level: 6,
+      types: expect.arrayContaining(["VB"]),
     });
   });
 });

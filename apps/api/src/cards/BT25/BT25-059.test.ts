@@ -1,8 +1,8 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup, type SeatSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_059 } from "./BT25-059.js";
 import "../index.js";
@@ -453,5 +453,248 @@ describe("BT25-059 Ceresmon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.perm("target").currentDP).toBe(12000);
+  });
+});
+
+describe("BT25-059 Ceresmon — KB Q&A rulings", () => {
+  const filler = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+  /**
+   * Play Ceresmon while `ownTs` (a [TS] Grizzlymon) and the non-[TS] control `ownOther` are
+   * suspended, declining its optional suspend. `ownTs` is then not affected by the opponent's
+   * Digimon effects until the opponent's turn ends. `before` runs ahead of the play.
+   */
+  async function shieldWithCeresmon(
+    opponent: SeatSpec = {},
+    before?: (s: EngineSetup, preferred: string[]) => Promise<void>,
+  ) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+          battleArea: [
+            { card: "BT25-051", as: "ownTs", suspended: true },
+            { card: "BT1-013", as: "ownOther", suspended: true },
+          ],
+          deck: filler,
+        },
+        1: { deck: filler, ...opponent },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Suspend"], preferInstanceIds: preferred },
+    );
+    await s.ready();
+    await before?.(s, preferred);
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ceresmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).hasRestriction(s.perm("ownOther"), "beAffected", "Digimon")).toBe(false);
+    return { s, preferred };
+  }
+
+  /** Resolve an opposing Digimon's [On Play] as its controller's effect, aimed at `targets` first. */
+  async function opponentOnPlay(s: EngineSetup, preferred: string[], source: string, targets: string[]) {
+    preferred.splice(0, preferred.length, ...targets.map((alias) => s.perm(alias).permanentId));
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm(source));
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+  }
+
+  const unsuspendOwn = (s: EngineSetup) =>
+    advance(s.engine).verb.unsuspend([s.perm("ownTs").permanentId, s.perm("ownOther").permanentId]);
+
+  it("plays its 12-cost self for 0 when Sirenmon's security effect adds its own 7 reduction (Q6306)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-039", as: "sirenmon", faceUp: true }],
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+          battleArea: [
+            { card: "BT1-009", suspended: true },
+            { card: "BT1-009", suspended: true },
+          ],
+          deck: filler,
+        },
+        1: { deck: filler },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Suspend"] },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("sirenmon"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-059"));
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("can suspend Digimon of either player with its [On Play] effect (Q6350)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-059", as: "ceresmon" }], battleArea: [{ card: "BT1-009", as: "own" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "theirs", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("own").permanentId, s.perm("theirs").permanentId);
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ceresmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("own").isSuspended && s.perm("theirs").isSuspended);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "BT25-059")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toEqual(expect.arrayContaining([s.perm("own").permanentId, s.perm("theirs").permanentId]));
+  });
+
+  it.each([
+    ["ownTs", false],
+    ["ownOther", true],
+  ] as const)(
+    "keeps an opponent's suspend effect from suspending it (%s affected=%s) (Q6351)",
+    async (alias, affected) => {
+      const { s, preferred } = await shieldWithCeresmon({ battleArea: [{ card: "BT25-011", as: "aquilamon" }] });
+      await unsuspendOwn(s);
+
+      await opponentOnPlay(s, preferred, "aquilamon", [alias]);
+
+      expect(s.perm(alias).isSuspended).toBe(affected);
+    },
+  );
+
+  it.each([
+    ["ownTs", 4000],
+    ["ownOther", 2000],
+  ] as const)("keeps an opponent's -3000 DP effect from reducing it (%s DP=%i) (Q6351)", async (alias, dp) => {
+    const { s, preferred } = await shieldWithCeresmon({ battleArea: [{ card: "ST22-04", as: "taomon" }] });
+
+    await opponentOnPlay(s, preferred, "taomon", [alias]);
+
+    expect(s.perm(alias).currentDP).toBe(dp);
+  });
+
+  it("can still be chosen by an opponent's effect, which then does nothing to it (Q6352)", async () => {
+    const { s, preferred } = await shieldWithCeresmon({ battleArea: [{ card: "BT25-011", as: "aquilamon" }] });
+    await unsuspendOwn(s);
+
+    await opponentOnPlay(s, preferred, "aquilamon", ["ownTs"]);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "BT25-011" && req.kind === "chooseTargets")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toContain(s.perm("ownTs").permanentId);
+    expect(s.perm("ownTs").isSuspended).toBe(false);
+    expect(s.perm("ownOther").isSuspended).toBe(false);
+  });
+
+  it("can be given an opponent's granted effect (Q6353)", async () => {
+    const { s, preferred } = await shieldWithCeresmon({
+      battleArea: [{ card: "BT20-065", as: "wormmon" }],
+      hand: ["BT1-009"],
+    });
+
+    await opponentOnPlay(s, preferred, "wormmon", ["ownTs"]);
+
+    expect(observe(s.engine).customEffectGrants(s.perm("ownTs"))).toHaveLength(1);
+  });
+
+  it("isn't considered to have <Security A. -1> given by an opponent's Digimon (Q6353)", async () => {
+    const { s, preferred } = await shieldWithCeresmon({
+      battleArea: [{ card: "EX10-014", as: "weatherdramon" }],
+      security: ["BT1-009", "BT1-009", "BT1-009"],
+    });
+    await opponentOnPlay(s, preferred, "weatherdramon", ["ownTs", "ownOther"]);
+    await unsuspendOwn(s);
+    const attack = async (alias: string) => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(alias).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    };
+
+    await attack("ownOther");
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    await attack("ownTs");
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("stops being affected by an opponent's -3000 DP effect as soon as it gains the protection (Q6354)", async () => {
+    const { s } = await shieldWithCeresmon(
+      { battleArea: [{ card: "ST22-04", as: "taomon" }] },
+      async (board, preferred) => {
+        await opponentOnPlay(board, preferred, "taomon", ["ownTs"]);
+        expect(board.perm("ownTs").currentDP).toBe(1000);
+      },
+    );
+
+    expect(s.perm("ownTs").currentDP).toBe(4000);
+  });
+
+  /**
+   * On the opponent's turn after Ceresmon, Wormmon gives the protected `ownTs`
+   * "[On Deletion] Lose 1 memory." until the end of Ceresmon's controller's next turn.
+   */
+  async function grantOnDeletionDuringOpponentTurn() {
+    const { s, preferred } = await shieldWithCeresmon({
+      // Spare hand cards keep a legal Main action open, so the turn doesn't auto-pass after Wormmon.
+      hand: [{ card: "BT20-065", as: "wormmon" }, "BT1-009", "BT1-009", "BT1-009"],
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    preferred.splice(0, preferred.length, s.perm("ownTs").permanentId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).customEffectGrants(s.perm("ownTs")).length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon")).toBe(true);
+    return { s, opponentTurn };
+  }
+
+  it("is affected by the effect it was given once its protection ends (Q6355)", async () => {
+    const { s, opponentTurn } = await grantOnDeletionDuringOpponentTurn();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon")).toBe(false);
+    const memoryBefore = s.state.memory;
+    await advance(s.engine).verb.deletePermanent([s.perm("ownTs").permanentId]);
+    await settle(() => s.state.memory === memoryBefore - 1);
+
+    expect(s.state.memory).toBe(memoryBefore - 1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
+  it("doesn't trigger a given [On Deletion] effect while it is not affected by effects (Q6356)", async () => {
+    const { s, opponentTurn } = await grantOnDeletionDuringOpponentTurn();
+    const memoryBefore = s.state.memory;
+    const ownTsId = s.perm("ownTs").permanentId;
+
+    await advance(s.engine).verb.deletePermanent([ownTsId]);
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === ownTsId)).toBe(false);
+    expect(s.state.memory).toBe(memoryBefore);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 });

@@ -106,9 +106,27 @@ export function ArenaPermanentInspector({
         </button>
         <div className="arena-permanent-inspector__reading">
           <header className="arena-permanent-inspector__header">
-            <div className="arena-permanent-inspector__title">
-              <h2 id={titleId}>{detail.name}</h2>
-              {top?.level ? <span>Lv.{top.level}</span> : null}
+            <div className="arena-permanent-inspector__heading">
+              <p className="arena-permanent-inspector__meta">
+                <span>{detail.cardId}</span>
+                {top?.kinds.length ? <span>{top.kinds.join(" / ")}</span> : null}
+                {top?.rarity ? <span>{top.rarity}</span> : null}
+              </p>
+              <div className="arena-permanent-inspector__title">
+                <h2 id={titleId}>{detail.name}</h2>
+                {top?.level ? <span>Lv.{top.level}</span> : null}
+              </div>
+              {top?.colors.length || traits.length ? (
+                <p className="arena-permanent-inspector__identity">
+                  {top?.colors.map((color) => (
+                    <span key={color} className="arena-permanent-inspector__color">
+                      <i aria-hidden="true" style={{ background: COLORS[colorKey(color)].base }} />
+                      <span>{t(`game.color.${color}`)}</span>
+                    </span>
+                  ))}
+                  {traits.length ? <span>{traits.join(" · ")}</span> : null}
+                </p>
+              ) : null}
             </div>
             {detail.currentDP > 0 ? (
               <strong className="arena-permanent-inspector__dp">
@@ -134,7 +152,6 @@ export function ArenaPermanentInspector({
             </button>
           </header>
           <div className="arena-permanent-inspector__stats">
-            <span>{detail.cardId}</span>
             {top && top.playCost >= 0 ? <span>{t("game.costsMemory", { count: top.playCost })}</span> : null}
             {groupedInspectorEvolutionCosts(top?.evoCosts ?? []).map((cost) => {
               const colorsByLabel = new Map(cost.colors.map((color) => [t(`game.color.${color}`), color]));
@@ -171,7 +188,6 @@ export function ArenaPermanentInspector({
                 </span>
               );
             })}
-            {traits.length ? <span className="arena-permanent-inspector__traits">{traits.join(" / ")}</span> : null}
           </div>
           <div
             className="arena-permanent-inspector__state"
@@ -219,7 +235,7 @@ export function ArenaPermanentInspector({
               <div className="arena-permanent-inspector__effect" data-role="top">
                 <span className="arena-permanent-inspector__effect-label">{t("overlay.printedEffect")}</span>
                 <p>
-                  <EffectText text={top?.effectText || t("overlay.noPrintedEffect")} />
+                  <EffectText asciiBrackets text={top?.effectText || t("overlay.noPrintedEffect")} />
                 </p>
               </div>
             ) : null}
@@ -230,7 +246,7 @@ export function ArenaPermanentInspector({
                   {top.dualEffect ? ` · ${top.dualEffect}` : ""}
                 </span>
                 <p>
-                  <EffectText text={top.optionEffect} />
+                  <EffectText asciiBrackets text={top.optionEffect} />
                 </p>
               </div>
             ) : null}
@@ -257,7 +273,7 @@ export function ArenaPermanentInspector({
                     <div key={effect.role} className="arena-permanent-inspector__effect" data-role={effect.role}>
                       <span className="arena-permanent-inspector__effect-label">{effect.label}</span>
                       <p>
-                        <EffectText text={effect.text!} />
+                        <EffectText asciiBrackets text={effect.text!} />
                       </p>
                     </div>
                   ))
@@ -299,7 +315,7 @@ export function ArenaPermanentInspector({
                       {t(card.role === "linked" ? "overlay.role.linked" : "overlay.role.inherited")}
                     </span>
                     <p>
-                      <EffectText text={effect || t("overlay.noPrintedEffect")} />
+                      <EffectText asciiBrackets text={effect || t("overlay.noPrintedEffect")} />
                     </p>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-084.js";
 import "./index.js";
+import "../BT2/BT2-074.js";
 
 const TAMER = "BT17-084";
 const FREE_DIGIMON = "BT8-038";
@@ -305,6 +306,182 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
     const suspendedFree = [s.perm("free1"), s.perm("free2")].filter((permanent) => permanent.isSuspended).length;
     expect(suspendedFree).toBe(1);
     expect(s.state.players[1]!.battleArea.length).toBe(1);
+    assertNoLoudGap(s);
+  });
+});
+
+function attackOpponentDigimon(s: ReturnType<typeof setupEngine>, attackerAlias: string, targetAlias: string): void {
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(attackerAlias).permanentId,
+      target: { kind: "permanent", permanentId: s.perm(targetAlias).permanentId },
+    }),
+  ).toEqual({ ok: true });
+}
+
+function attackDeclarations(s: ReturnType<typeof setupEngine>) {
+  return s.events.filter((event) => event.kind === "attackDeclared");
+}
+
+async function runTurnWithSuspendedFreeDigimon(freeIsSuspended: boolean) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: TAMER, as: "tamer" },
+          { card: FREE_DIGIMON, as: "free" },
+        ],
+      },
+      1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "opponent", suspended: true }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+  );
+  await s.ready();
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  if (freeIsSuspended) await advance(s.engine).verb.suspend([s.perm("free").permanentId]);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await turn;
+  return s;
+}
+
+describe("BT17-084 Davis Motomiya & Ken Ichijoji — KB Q&A rulings", () => {
+  it("can suspend this Tamer for a battle-deleted level 5+ Free Digimon with no level 4 or lower stack card (Q2863)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TAMER, as: "tamer" },
+            { card: "BT1-083", as: "attacker", dp: 1000, under: [{ card: "BT10-081", as: "levelFiveSource" }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT5-086", as: "opponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const levelFiveSourceId = s.inst("levelFiveSource").instanceId;
+
+    attackOpponentDigimon(s, "attacker", "opponent");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-083"));
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([TAMER]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === levelFiveSourceId)).toBe(true);
+    assertNoLoudGap(s);
+
+    const levelFourControl = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TAMER, as: "tamer" },
+            { card: "BT3-050", as: "attacker", dp: 1000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT5-086", as: "opponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await levelFourControl.ready();
+    attackOpponentDigimon(levelFourControl, "attacker", "opponent");
+    await settle(() => levelFourControl.state.players[0]!.trash.some((card) => card.cardId === "BT3-050"));
+
+    expect(levelFourControl.perm("tamer").isSuspended).toBe(false);
+  });
+
+  it("plays a Retaliation card from the stack before Retaliation can activate, so the opponent survives (Q2864)", async () => {
+    const boardWith = (withTamer: boolean) =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [
+              ...(withTamer ? [{ card: TAMER, as: "tamer" }] : []),
+              { card: "BT1-083", as: "attacker", dp: 1000, under: [{ card: "BT2-074", as: "devimon" }] },
+            ],
+          },
+          1: { battleArea: [{ card: "BT5-086", as: "opponent", suspended: true }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+
+    const s = boardWith(true);
+    await s.ready();
+    const devimonId = s.inst("devimon").instanceId;
+    const opponentId = s.inst("opponent").instanceId;
+    attackOpponentDigimon(s, "attacker", "opponent");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === devimonId));
+    await settle();
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === devimonId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-083"]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([opponentId]);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+
+    const withoutTamer = boardWith(false);
+    await withoutTamer.ready();
+    attackOpponentDigimon(withoutTamer, "attacker", "opponent");
+    await settle(() => withoutTamer.state.players[1]!.trash.some((card) => card.cardId === "BT5-086"));
+
+    expect(withoutTamer.state.players[1]!.battleArea).toHaveLength(0);
+    expect(withoutTamer.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-083", "BT2-074"]);
+  });
+
+  it("cannot make a suspended Free Digimon attack with the [End of Your Turn] effect (Q2865)", async () => {
+    const s = await runTurnWithSuspendedFreeDigimon(true);
+
+    expect(attackDeclarations(s)).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([OPPONENT_DIGIMON]);
+    assertNoLoudGap(s);
+
+    const unsuspendedControl = await runTurnWithSuspendedFreeDigimon(false);
+    expect(attackDeclarations(unsuspendedControl)).toEqual([
+      expect.objectContaining({ attackerPermanentId: unsuspendedControl.perm("free").permanentId }),
+    ]);
+  });
+
+  it("triggers on both copies but performs only the first Free Digimon's attack (Q2866)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TAMER, as: "tamer1" },
+            { card: TAMER, as: "tamer2" },
+            { card: FREE_DIGIMON, as: "free1" },
+            { card: "BT10-081", as: "free2" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: OPPONENT_DIGIMON, as: "opp1", suspended: true },
+            { card: OPPONENT_DIGIMON, as: "opp2", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+    await settle();
+
+    const endOfTurnTriggers = s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === TAMER && event.printedTiming === "EndOfYourTurn",
+    );
+    const triggeringTamers = endOfTurnTriggers.map(
+      (event) => event.kind === "effectTriggered" && event.sourceInstanceId,
+    );
+    expect(new Set(triggeringTamers)).toEqual(new Set([s.inst("tamer1").instanceId, s.inst("tamer2").instanceId]));
+    const secondTriggerIndex = s.events.indexOf(endOfTurnTriggers[1]!);
+    const attackIndex = s.events.findIndex((event) => event.kind === "attackDeclared");
+    expect(attackIndex).toBeGreaterThanOrEqual(0);
+    expect(attackIndex).toBeLessThan(secondTriggerIndex);
+    expect(attackDeclarations(s)).toHaveLength(1);
+    expect([s.perm("free1"), s.perm("free2")].filter((permanent) => permanent.isSuspended)).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
     assertNoLoudGap(s);
   });
 });

@@ -4,6 +4,14 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-074.js";
+import {
+  expectFaceUpSecurityCheckedLikeStandard,
+  expectFaceUpSecurityEffectTriggers,
+  expectFaceUpSecurityStaysRevealed,
+  expectShuffleTurnsFaceUpSecurityDown,
+  expectUseWithEmptySecurity,
+  type FaceUpSecurityOption,
+} from "./faceUpSecurityOption.testSupport.js";
 import "../index.js";
 
 const CARD_ID = "EX12-074";
@@ -455,5 +463,82 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
       evoCosts: [],
       types: ["Shambala", "SW", "TB"],
     });
+  });
+});
+
+describe("EX12-074 Genshi Continent & Ashino Island — KB Q&A rulings", () => {
+  const option: FaceUpSecurityOption = {
+    cardId: CARD_ID,
+    useRequirementCard: "EX12-009",
+    securityPlayCard: "EX12-009",
+  };
+
+  it("can be used with 0 security cards and only places itself face up (Q6892)", async () => {
+    await expectUseWithEmptySecurity(option);
+  });
+
+  it("stays revealed as a face-up security card that otherwise counts as a normal one (Q6893)", async () => {
+    await expectFaceUpSecurityStaysRevealed(option);
+  });
+
+  it("is checked while left revealed and otherwise resolves like a standard check (Q6894)", async () => {
+    await expectFaceUpSecurityCheckedLikeStandard(option);
+  });
+
+  it("triggers its [Security] effect when checked face up (Q6895)", async () => {
+    await expectFaceUpSecurityEffectTriggers(option);
+  });
+
+  it("turns face down when its security stack is shuffled and stays face down (Q6896)", async () => {
+    await expectShuffleTurnsFaceUpSecurityDown(option);
+  });
+
+  it("lets Kunlun's pending [End of Your Turn] effect activate after <Execute> and this card's {Security} effect digivolve the attacker (Q7190)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "BT26-014", as: "attacker", under: [{ card: "EX12-004", as: "execute" }] },
+          ],
+          hand: [
+            { card: "EX12-065", as: "tenteiHachibushu" },
+            { card: "EX12-070", as: "option" },
+            { card: "EX12-063", as: "payment" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+        1: { battleArea: [{ card: "EX12-033", as: "counter" }], security: ["BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+
+    expect(s.perm("attacker").topCard.cardId).toBe("EX12-065");
+    expect(s.perm("kunlun").isSuspended).toBe(true);
+    const digivolvedIndex = s.events.findIndex((event) => event.kind === "digivolved" && event.cardId === "EX12-065");
+    const genshiIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID,
+    );
+    const kunlunIndex = s.events.findLastIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT26-104",
+    );
+    const counterIndex = s.events.findIndex((event) => event.kind === "counterWindowOpened");
+    expect(genshiIndex).toBeGreaterThanOrEqual(0);
+    expect(digivolvedIndex).toBeGreaterThanOrEqual(0);
+    expect(kunlunIndex).toBeGreaterThan(digivolvedIndex);
+    expect(kunlunIndex).toBeLessThan(counterIndex);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "respondCounter" })).toEqual({ ok: true });
+    await turn;
   });
 });

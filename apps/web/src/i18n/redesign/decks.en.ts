@@ -1,0 +1,15 @@
+export const decksEn = {
+  "redesign.decks.list.statDecks": "Decks",
+  "redesign.decks.list.statActive": "Active deck",
+  "redesign.decks.list.statReady": "Ready to play",
+  "redesign.decks.list.saved": "Saved decks",
+  "redesign.decks.list.columnDeck": "Deck",
+  "redesign.decks.list.columnColors": "Colors",
+  "redesign.decks.list.columnActions": "Actions",
+  "redesign.decks.list.colors": "Colors: {colors}",
+  "redesign.decks.list.legal": "Legal",
+  "redesign.decks.list.draft": "Draft",
+  "redesign.decks.editor.pool": "Card pool",
+  "redesign.decks.editor.name": "Deck name",
+  "redesign.decks.editor.stats": "Deck shape",
+} as const;

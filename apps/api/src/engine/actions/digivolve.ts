@@ -22,9 +22,12 @@ import {
   definitionOf,
   dpOf,
   isDigimon,
+  isTamer,
+  lookupDefinition,
   matchingAlternateDigivolutionRequirement,
   matchingEvoCost,
   matchingEvoCostIgnoringColor,
+  tamerBaseTreatment,
 } from "../cards/cardData.js";
 import {
   findOwnedPermanent,
@@ -150,6 +153,8 @@ export type DigivolveCheck =
       cost: number;
       /** Printed/unmodified memory cost for the chosen path. */
       printedCost: number;
+      /** The Digimon a Tamer base digivolves as, when it digivolves as if it is one (KB Q1157). */
+      baseAsDigimon: CardDefinition | undefined;
     };
 
 /**
@@ -190,6 +195,7 @@ export interface DigivolveDeps {
     seat: Seat,
     target: Permanent,
     into: CardDefinition,
+    baseAsDigimon?: CardDefinition,
   ): number;
   /** Prompt for and pay optional costs immediately before paying this digivolve's memory cost. */
   activateInteractiveDigivolveReduction?(
@@ -198,6 +204,7 @@ export interface DigivolveDeps {
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId: string,
+    baseAsDigimon?: CardDefinition,
   ): Promise<number>;
   /**
    * Whether the evolving instance's color requirement is currently waived
@@ -225,6 +232,11 @@ export interface DigivolveDeps {
    */
   digivolveIntoAllowed?(state: GameState, permanent: Permanent, evolving: CardInstance): boolean;
   digivolveBaseRestricted?(state: GameState, permanent: Permanent, evolving: CardInstance): boolean;
+  /**
+   * Whether a "Digimon can't digivolve" rule stops the Tamer `permanent` digivolving as if it is
+   * the Digimon `asDigimon` (KB Q1157).
+   */
+  digivolveLockedAsDigimon?(state: GameState, permanent: Permanent, asDigimon: CardDefinition): boolean;
   /**
    * Whether an alternate requirement's non-memory `placementCost` can currently be paid
    * (>= count matching cards across its `from` zones for `seat`). Consulted in validation
@@ -347,13 +359,90 @@ export interface DigivolveOutcome {
   carriedSuspended: boolean;
 }
 
-/** Evaluate live gates attached to alternate digivolution requirements. */
+/**
+ * The loose cards (hand/trash, per the requirement's `from` zones) that satisfy an alternate
+ * requirement's `placementCost` predicate: a card whose kind is in `kinds` OR that carries a
+ * trait in `traits` (BT7-112: Tamer cards OR [Hybrid]-trait cards). Hand is enumerated before
+ * trash so the deterministic server pick is stable.
+ */
+export function alternatePlacementCards(
+  state: GameState,
+  seat: Seat,
+  requirement: DigivolutionRequirement,
+): CardInstance[] {
+  const spec = requirement.placementCost;
+  const player = playerAt(state, seat);
+  if (spec === undefined || player === undefined) return [];
+  const wantedKinds = (spec.kinds ?? []).map((kind) => CardKind[kind]);
+  const matches = (cardId: string): boolean => {
+    const definition = lookupDefinition(cardId);
+    if (definition === undefined) return false;
+    return (
+      wantedKinds.some((kind) => definition.kinds.includes(kind)) ||
+      (spec.traits ?? []).some((trait) => cardHasTrait(definition, trait))
+    );
+  };
+  const cards: CardInstance[] = [];
+  for (const zone of spec.from) {
+    for (const card of zone === "hand" ? player.hand : player.trash) if (matches(card.cardId)) cards.push(card);
+  }
+  return cards;
+}
+
+function controlsRequiredPermanents(
+  state: GameState,
+  seat: Seat,
+  gate: NonNullable<DigivolutionRequirement["controllerControls"]>,
+): boolean {
+  const matching = (playerAt(state, seat)?.battleArea ?? []).filter((permanent) => {
+    const definition = definitionOf(permanent.topCard);
+    if (gate.kind && gate.kind.length > 0 && !gate.kind.some((kind) => definition.kinds.includes(kind as CardKind))) {
+      return false;
+    }
+    if (gate.namesExact && gate.namesExact.length > 0 && !gate.namesExact.includes(definition.nameEn)) {
+      return false;
+    }
+    if (gate.names && gate.names.length > 0 && !gate.names.some((name) => nameIncludesToken(definition.nameEn, name))) {
+      return false;
+    }
+    if (gate.traits && gate.traits.length > 0 && !gate.traits.some((trait) => cardHasTrait(definition, trait))) {
+      return false;
+    }
+    return true;
+  }).length;
+  return matching >= (gate.min ?? 1);
+}
+
+/**
+ * Evaluate the live gates attached to an alternate digivolution requirement. Every
+ * digivolution through the path must pass them, whether a player declares it or an effect
+ * performs it (KB BT2-111 Q1043, BT7-112 Q1686, BT14-101 Q2484).
+ */
 export function alternateRequirementAvailable(
   state: GameState,
   seat: Seat,
   permanent: Permanent,
   requirement: DigivolutionRequirement,
 ): boolean {
+  if (requirement.battleAreaOnly === true && permanent.inBreeding) return false;
+  if (
+    requirement.controllerTrashCountMin !== undefined &&
+    (playerAt(state, seat)?.trash.length ?? 0) < requirement.controllerTrashCountMin
+  ) {
+    return false;
+  }
+  if (
+    requirement.placementCost !== undefined &&
+    alternatePlacementCards(state, seat, requirement).length < requirement.placementCost.count
+  ) {
+    return false;
+  }
+  if (
+    requirement.controllerControls !== undefined &&
+    !controlsRequiredPermanents(state, seat, requirement.controllerControls)
+  ) {
+    return false;
+  }
   const opponentDigimonDpMin = requirement.opponentDigimonDpMin;
   if (opponentDigimonDpMin !== undefined) {
     const opponentSeat = seat === 0 ? 1 : 0;
@@ -368,15 +457,27 @@ export function alternateRequirementAvailable(
       return false;
     }
   }
-  if (requirement.minNameStackCount !== undefined) {
-    const requiredNames = requirement.minNameStackNames ?? [];
+  if (requirement.minNameStackNames !== undefined) {
+    const requiredNames = requirement.minNameStackNames;
     const matching = permanent.stack.filter((card) => {
       const name = definitionOf(card.cardId).nameEn;
       return requiredNames.some((required) =>
         requirement.minNameStackMatch === "contains" ? nameIncludesToken(name, required) : name === required,
       );
     }).length;
-    if (matching < requirement.minNameStackCount) return false;
+    if (matching < (requirement.minNameStackCount ?? 1)) return false;
+  }
+  if (requirement.minTraitStackCount !== undefined) {
+    const wantedTraits = requirement.minTraitStackTraits ?? [];
+    const matching = permanent.stack.filter((card) =>
+      wantedTraits.some((trait) => cardHasTrait(definitionOf(card.cardId), trait)),
+    ).length;
+    if (matching < requirement.minTraitStackCount) return false;
+  }
+  if (requirement.requiredDigivolutionCardCount !== undefined) {
+    const { trait, min } = requirement.requiredDigivolutionCardCount;
+    const matching = permanent.stack.filter((card) => cardHasTrait(definitionOf(card.cardId), trait)).length;
+    if (matching < min) return false;
   }
   const condition = requirement.whileCondition;
   if (condition === undefined) return true;
@@ -419,6 +520,8 @@ export function validateDigivolve(
     | "derivedBaseColors"
     | "digivolveIntoAllowed"
     | "digivolveBaseRestricted"
+    | "digivolveLockedAsDigimon"
+    | "effectiveBaseKinds"
     | "alternatePlacementPayable"
     | "burstDigivolveTamerPayable"
     | "digisorptionReduction"
@@ -561,8 +664,25 @@ export function validateDigivolve(
   // requirement applies) — those normal paths take precedence when present.
   const usedBaseGranted =
     !appFusionRequested && evoCost === undefined && altRequirement === undefined && baseGranted !== undefined;
-  if (usedAlternate && altRequirement!.battleAreaOnly === true && permanent.inBreeding) {
-    return { ok: false, reason: "invalid-evolution" };
+  // KB Q1157/Q2724: a Tamer digivolving "as if it is a level N Digimon" is a Digimon that
+  // digivolves, so a Digimon can't-digivolve rule blocks that route. A named Tamer requirement
+  // on such a card stays legal under the rule, but then the Tamer digivolves as a Tamer.
+  let baseAsDigimon: CardDefinition | undefined;
+  const baseIsTamer =
+    isTamer(baseDef) && !(deps.effectiveBaseKinds?.(state, permanent) ?? baseDef.kinds).includes(CardKind.Digimon);
+  if (usedAlternate && baseIsTamer) {
+    const treatment = tamerBaseTreatment(definition.cardId, altRequirement!);
+    if (treatment.kind !== "asTamer") {
+      const asDigimon = {
+        ...baseDef,
+        kinds: [CardKind.Digimon],
+        level: treatment.level,
+        colors: [...(derivedBaseColors ?? baseDef.colors)],
+      };
+      const locked = deps.digivolveLockedAsDigimon?.(state, permanent, asDigimon) === true;
+      if (locked && treatment.kind === "asDigimon") return { ok: false, reason: "invalid-evolution" };
+      if (!locked) baseAsDigimon = asDigimon;
+    }
   }
   // One of evoCost / altRequirement / baseGranted is guaranteed defined (we rejected the
   // all-undefined case above). `useAlt` only activates when altRequirement is non-null.
@@ -589,84 +709,6 @@ export function validateDigivolve(
       return { ok: false, reason: "invalid-evolution" };
     }
   }
-  // 4d. Digivolution-stack count gate on the BASE (BT18-018 "[Takuya Kanbara] w/5 [Hybrid] trait
-  //     cards under it"): the base permanent must already have at least `minTraitStackCount` cards
-  //     in its digivolution stack carrying one of `minTraitStackTraits` (KB Q2925, ">= 5 is legal").
-  //     A pre-validation gate, not a payment — the cards are not consumed.
-  if (usedAlternate && altRequirement!.minTraitStackCount !== undefined) {
-    const wantedTraits = altRequirement!.minTraitStackTraits ?? [];
-    const matching = permanent.stack.filter((card) => {
-      const stackDef = definitionOf(card.cardId);
-      return wantedTraits.some((t) => cardHasTrait(stackDef, t));
-    }).length;
-    if (matching < altRequirement!.minTraitStackCount) {
-      return { ok: false, reason: "invalid-evolution" };
-    }
-  }
-  // 4d-2. Digivolution-stack NAME gate on the BASE (BT9-111 "[Alphamon] w/[Ouryumon]
-  //       digivolution card"): the base permanent must already have at least `minNameStackCount`
-  //       (default 1) cards in its digivolution stack whose name exactly equals one of
-  //       `minNameStackNames`. Bracketed card names name a specific card, not later forms.
-  if (usedAlternate && altRequirement!.minNameStackNames !== undefined) {
-    const wantedNames = altRequirement!.minNameStackNames;
-    const requiredCount = altRequirement!.minNameStackCount ?? 1;
-    const matching = permanent.stack.filter((card) => {
-      const stackDef = definitionOf(card.cardId);
-      return wantedNames.some((n) =>
-        altRequirement!.minNameStackMatch === "contains"
-          ? nameIncludesToken(stackDef.nameEn, n)
-          : stackDef.nameEn === n,
-      );
-    }).length;
-    if (matching < requiredCount) {
-      return { ok: false, reason: "invalid-evolution" };
-    }
-  }
-  // 4e. `requiredDigivolutionCardCount` stack gate (BT18-102 Susanoomon): the base permanent
-  //     must already have at least `min` cards in its digivolution stack whose traits include
-  //     `trait` (KB Q3055 "10+ [Hybrid] cards in digivolution cards"). Same semantics as 4d
-  //     but uses the structured `requiredDigivolutionCardCount` field.
-  if (usedAlternate && altRequirement!.requiredDigivolutionCardCount !== undefined) {
-    const { trait, min } = altRequirement!.requiredDigivolutionCardCount;
-    const matching = permanent.stack.filter((card) => cardHasTrait(definitionOf(card.cardId), trait)).length;
-    if (matching < min) {
-      return { ok: false, reason: "invalid-evolution" };
-    }
-  }
-  // 4f. Controller-side `controllerControls` gate (BT22-042 "while you control a [Arisa Kinosaki]
-  //     Tamer"; BT23-101 "while you control 4+ [Hudie] Tamers"): the digivolving seat must control
-  //     at least `min` battle-area permanents whose TOP card matches the kind/name/trait predicates.
-  //     A pre-validation gate on OTHER permanents you control — the base itself counts when it matches.
-  if (usedAlternate && altRequirement!.controllerControls !== undefined) {
-    const gate = altRequirement!.controllerControls;
-    const min = gate.min ?? 1;
-    const matching = (playerAt(state, seat)?.battleArea ?? []).filter((perm) => {
-      const def = definitionOf(perm.topCard);
-      if (gate.kind && gate.kind.length > 0 && !gate.kind.some((k) => def.kinds.includes(k as CardKind))) {
-        return false;
-      }
-      if (gate.namesExact && gate.namesExact.length > 0 && !gate.namesExact.includes(def.nameEn)) {
-        return false;
-      }
-      if (gate.traits && gate.traits.length > 0 && !gate.traits.some((t) => cardHasTrait(def, t))) {
-        return false;
-      }
-      return true;
-    }).length;
-    if (matching < min) {
-      return { ok: false, reason: "invalid-evolution" };
-    }
-  }
-  // 4g. Controller trash-count gate (BT2-111): this alternate path exists only while the
-  //     digivolving player has the printed minimum number of cards in trash. It is not a cost,
-  //     so the cards remain in trash after a successful digivolution.
-  if (
-    usedAlternate &&
-    altRequirement!.controllerTrashCountMin !== undefined &&
-    player.trash.length < altRequirement!.controllerTrashCountMin
-  ) {
-    return { ok: false, reason: "invalid-evolution" };
-  }
   // ＜Blast Digivolve＞/＜Blast DNA Digivolve＞ (§16-26-1/§16-31-1): "digivolve ... without paying
   // the cost" — the printed digivolution requirement checked above still gates legality, but the
   // memory cost is waived entirely (not merely reduced), skipping every other cost modifier.
@@ -691,7 +733,7 @@ export function validateDigivolve(
       : (deps.digisorptionReduction?.(state, seat, definition.cardId) ?? 0);
   const potentialInteractive = permanent.inBreeding
     ? 0
-    : (deps.potentialInteractiveDigivolveReduction?.(state, seat, permanent, definition) ?? 0);
+    : (deps.potentialInteractiveDigivolveReduction?.(state, seat, permanent, definition, baseAsDigimon) ?? 0);
   const minCost = Math.max(0, cost - potentialDigisorption - potentialInteractive);
   const hasPreCostInterrupt =
     options.deferAffordability === true &&
@@ -714,6 +756,7 @@ export function validateDigivolve(
     blastWaived,
     cost,
     printedCost: printed,
+    baseAsDigimon,
   };
 }
 
@@ -762,6 +805,7 @@ export async function applyDigivolve(
           permanent,
           definition,
           check.evolving.instanceId,
+          check.baseAsDigimon,
         )) ?? 0);
   const cost = Math.max(0, baseCost - interactiveReduction);
   const player = playerAt(state, seat)!;
@@ -821,9 +865,9 @@ export async function applyDigivolve(
   const carriedSuspended = permanent.isSuspended;
   const previousDefinition = definitionOf(permanent.topCard);
   const previousLevel = previousDefinition?.level;
-  const baseWasDigimon = (deps.effectiveBaseKinds?.(state, permanent) ?? previousDefinition?.kinds ?? []).includes(
-    CardKind.Digimon,
-  );
+  const baseWasDigimon =
+    check.baseAsDigimon !== undefined ||
+    (deps.effectiveBaseKinds?.(state, permanent) ?? previousDefinition?.kinds ?? []).includes(CardKind.Digimon);
 
   // (2) Take the evolving card out of hand and stack it on. The prior top becomes
   //     the immediate digivolution source beneath the new top. Re-find by instanceId in case

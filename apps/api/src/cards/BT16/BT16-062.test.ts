@@ -74,3 +74,39 @@ describe("BT16-062", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("BT16-062 Zanmetsumon — KB Q&A rulings", () => {
+  it("activates the gained [When Digivolving] effect of a [Gammamon] card when digivolving into it (Q2650)", async () => {
+    const digivolveOntoBetelGammamon = async (digivolutionCardId: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-019", as: "betel" }],
+            hand: [
+              { card: digivolutionCardId, as: "evolution" },
+              { card: "BT21-080", as: "hiro" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("betel").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+          ...(digivolutionCardId === "BT16-062" ? { alternateRequirementIndex: 0 } : {}),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("betel").topCard?.cardId === digivolutionCardId);
+      await settle(() => false, 50);
+      expect(s.perm("betel").topCard?.cardId).toBe(digivolutionCardId);
+      return s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT21-080");
+    };
+
+    expect(await digivolveOntoBetelGammamon("BT16-062")).toBe(true);
+    expect(await digivolveOntoBetelGammamon("BT1-020")).toBe(false);
+  });
+});

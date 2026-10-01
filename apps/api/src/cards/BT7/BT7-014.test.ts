@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../AD1/AD1-017.js";
+import "../BT1/BT1-085.js";
+import "./BT7-092.js";
 import "./BT7-014.js";
 
 describe("BT7-014 Aldamon", () => {
@@ -77,5 +80,45 @@ describe("BT7-014 Aldamon", () => {
     });
     await other.engine.recomputeContinuousEffects();
     expect(observe(other.engine).suppressesSecurityEffect(other.perm("host"), "BT3-101")).toBe(false);
+  });
+});
+
+describe("BT7-014 Aldamon — KB Q&A rulings", () => {
+  it("still activates [Security] effects on checked Digimon and Tamer cards (Q1516)", async () => {
+    const checkSecurityCard = async (securityCardId: string) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT7-030", as: "host", under: ["BT7-014"] }] },
+          1: { security: [{ card: securityCardId, as: "checked" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+      await settle();
+
+      const checked = s.inst("checked").instanceId;
+      return {
+        checkedInOpponentBattleArea: s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === checked,
+        ),
+        hostSurvived: s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT7-030"),
+      };
+    };
+    const taiKamiya = "BT1-085";
+    const dynasmon = "AD1-017";
+    const flameMemoryBoost = "BT7-092";
+
+    expect((await checkSecurityCard(taiKamiya)).checkedInOpponentBattleArea).toBe(true);
+    expect((await checkSecurityCard(dynasmon)).hostSurvived).toBe(false);
+    expect((await checkSecurityCard(flameMemoryBoost)).checkedInOpponentBattleArea).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type CardSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-097.js";
 import "../index.js";
@@ -213,5 +213,59 @@ describe("BT21-097 App Link", () => {
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("option").instanceId);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT21-097 App Link — KB Q&A rulings", () => {
+  async function resolveDelayLinkWithHand(hand: CardSpec[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-097", as: "option" },
+            { card: "BT22-016", as: "recipient" },
+          ],
+          hand,
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return s;
+  }
+
+  it("cannot use its <Delay> effect to link a card that doesn't have <Link> (Q4621)", async () => {
+    const withoutLinkOnly = await resolveDelayLinkWithHand([{ card: "BT1-009", as: "withoutLink" }]);
+    const withoutLinkId = withoutLinkOnly.inst("withoutLink").instanceId;
+    expect(
+      withoutLinkOnly.decisions.some(({ req }) => req.options?.candidateInstanceIds?.includes(withoutLinkId)),
+    ).toBe(false);
+    expect(
+      withoutLinkOnly.state.players[0]!.trash.some(
+        (card) => card.instanceId === withoutLinkOnly.inst("option").instanceId,
+      ),
+    ).toBe(true);
+    expect(withoutLinkOnly.perm("recipient").linked).toHaveLength(0);
+    expect(withoutLinkOnly.state.players[0]!.hand.some((card) => card.instanceId === withoutLinkId)).toBe(true);
+
+    const withLinkAvailable = await resolveDelayLinkWithHand([
+      { card: "BT1-009", as: "withoutLink" },
+      { card: "ST22-08", as: "withLink" },
+    ]);
+    expect(withLinkAvailable.perm("recipient").linked.map((card) => card.instanceId)).toEqual([
+      withLinkAvailable.inst("withLink").instanceId,
+    ]);
+    expect(
+      withLinkAvailable.state.players[0]!.hand.some(
+        (card) => card.instanceId === withLinkAvailable.inst("withoutLink").instanceId,
+      ),
+    ).toBe(true);
   });
 });

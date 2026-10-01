@@ -1,10 +1,12 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-030.js";
 import "../index.js";
+import "../BT19/BT19-095.js";
+import "../BT4/BT4-094.js";
 
 describe("BT21-030 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -351,7 +353,7 @@ describe("BT21-030 compiled implementation", () => {
   it.each([
     { card: "BT21-001", alias: "eggBottom" },
     { card: "BT9-109", alias: "xAntibodyBottom" },
-  ])("Q4541/Q4542 publicly peels down to $alias and rule-trashes the invalid remnant", async ({ card, alias }) => {
+  ])("publicly peels down to $alias and rule-trashes the invalid remnant", async ({ card, alias }) => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-011", as: "shoutmon" }], hand: [{ card: "BT21-030", as: "superior" }] },
@@ -555,5 +557,87 @@ describe("BT21-030 compiled implementation", () => {
     expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === sourceLessId)).toBe(true);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-001");
+  });
+});
+
+describe("BT21-030 Shoutmon X7: Superior Mode — KB Q&A rulings", () => {
+  const playSuperiorAgainst = async (
+    targetSources: NonNullable<PermanentSpec["under"]>,
+    extras: { bystander?: PermanentSpec; ownTamer?: PermanentSpec } = {},
+  ) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-011", as: "shoutmon" }, ...(extras.ownTamer ? [extras.ownTamer] : [])],
+          hand: [{ card: "BT21-030", as: "superior" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT21-021", as: "target", under: targetSources },
+            ...(extras.bystander ? [extras.bystander] : []),
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superior").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-030") &&
+        s.state.pendingDecision === undefined,
+    );
+    return { s, targetId };
+  };
+
+  it("trashes stacked cards of a 3-card Digimon only until 1 card is left (Q4540)", async () => {
+    const { s, targetId } = await playSuperiorAgainst([
+      { card: "BT21-011", as: "bottom" },
+      { card: "BT21-016", as: "middle" },
+    ]);
+
+    const target = s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === targetId);
+    expect(target?.topCard.instanceId).toBe(s.inst("bottom").instanceId);
+    expect(target?.stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT21-016", "BT21-021"]);
+  });
+
+  it("rule-trashes a Digimon left with a no-DP Digi-Egg as its only card, not as a deletion (Q4541)", async () => {
+    const { s, targetId } = await playSuperiorAgainst([{ card: "BT21-001", as: "eggBottom" }, "BT21-011"], {
+      ownTamer: { card: "BT4-094", as: "tai" },
+      bystander: { card: "BT1-009", as: "bystander" },
+    });
+    const eggId = s.inst("eggBottom").instanceId;
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.breeding).toBeUndefined();
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(eggId);
+    const eggMove = s.events.filter((event) => event.kind === "cardsMoved" && event.instanceIds.includes(eggId)).at(-1);
+    expect(eggMove).toMatchObject({ kind: "cardsMoved", instanceIds: [eggId], from: Zone.BattleArea, to: Zone.Trash });
+    expect(eggMove).not.toHaveProperty("deletedPermanents");
+    expect(eggMove).not.toHaveProperty("strippedStackTops");
+    expect(s.perm("tai").isSuspended).toBe(false);
+
+    // Control: Tai's "deleted by dropping to 0 DP" watcher does fire for a real 0 DP rule deletion on this board.
+    const bystander = s.perm("bystander");
+    bystander.baseDP = 0;
+    bystander.currentDP = 0;
+    await advance(s.engine).verb.deletePermanent([bystander.permanentId], "byRule");
+    expect(s.perm("tai").isSuspended).toBe(true);
+  });
+
+  it("rule-trashes a Digimon left with an Option card without triggering its trashed-from-battle-area effect (Q4542)", async () => {
+    const { s, targetId } = await playSuperiorAgainst([{ card: "BT19-095", as: "knightDevice" }, "BT21-011"], {
+      bystander: { card: "BT1-009", as: "bystander" },
+    });
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("knightDevice").instanceId);
+    expect(s.perm("bystander").currentDP).toBe(3000);
+    expect(observe(s.engine).hasPierce(s.perm("bystander"))).toBe(false);
   });
 });

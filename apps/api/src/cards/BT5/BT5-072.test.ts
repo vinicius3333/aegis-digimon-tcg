@@ -59,3 +59,32 @@ describe("BT5-072 Fake Agumon Expert", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === targetId)).toBe(false);
   });
 });
+
+describe("BT5-072 Fake Agumon Expert — KB Q&A rulings", () => {
+  it("cannot return a level 3 Digimon card whose only [On Deletion] effect is inherited (Q1349)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-072", as: "expert" }],
+          trash: [
+            { card: "BT1-030", as: "inheritedOnly" },
+            { card: "BT5-071", as: "mainEffect" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    const inheritedOnlyId = s.inst("inheritedOnly").instanceId;
+    const mainEffectId = s.inst("mainEffect").instanceId;
+    preferred.push(inheritedOnlyId);
+    await advance(s.engine).verb.deletePermanent([s.perm("expert").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === mainEffectId));
+    await settle();
+    const player = s.state.players[0]!;
+    expect(player.hand.map((card) => card.instanceId)).toEqual([mainEffectId]);
+    expect(player.trash.some((card) => card.instanceId === inheritedOnlyId)).toBe(true);
+    const offered = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(inheritedOnlyId);
+  });
+});

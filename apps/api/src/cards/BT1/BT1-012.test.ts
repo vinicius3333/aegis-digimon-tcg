@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type AttackTarget } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -158,5 +158,111 @@ describe("BT1-012 Biyomon", () => {
 
     expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
     expect(s.perm("base").currentDP).toBe(6000);
+  });
+});
+
+describe("BT1-012 Biyomon — KB Q&A rulings", () => {
+  async function blockAttack(s: ReturnType<typeof setupEngine>, target: AttackTarget): Promise<void> {
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+  }
+
+  it("keeps the blocked +2000 DP until the end of the turn it activated (Q875)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-016", as: "attacker", dp: 5000, under: ["BT1-012"] }],
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-013", "BT1-014"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-072", as: "blocker", dp: 1000 }],
+        security: ["BT1-010"],
+        deck: ["BT1-009", "BT1-013", "BT1-014"],
+      },
+    });
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    // A playable hand card keeps Main open after the attack instead of auto-passing the turn.
+    s.state.memory = 3;
+
+    await blockAttack(s, { kind: "player" });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("attacker").currentDP).toBe(7000);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.perm("attacker").currentDP).toBe(5000);
+  });
+
+  it("ends the +2000 DP when Biyomon is trashed from the digivolution cards (Q876)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-016", as: "attacker", dp: 5000, under: [{ card: "BT1-012", as: "biyomon" }, "BT1-013"] },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-072", as: "blocker", dp: 1000 }], security: ["BT1-010"] },
+    });
+    await s.ready();
+
+    await blockAttack(s, { kind: "player" });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("attacker").currentDP).toBe(7000);
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("attacker").permanentId,
+      [s.inst("biyomon").instanceId],
+      1,
+    );
+
+    expect(s.perm("attacker").stack.map((card) => card.cardId)).toEqual(["BT1-013"]);
+    expect(s.perm("attacker").currentDP).toBe(5000);
+  });
+
+  it("does not activate when attacking an opponent's Digimon unless the attack is blocked (Q877)", async () => {
+    function attackOpponentDigimon() {
+      return setupEngine({
+        0: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 5000, under: ["BT1-012"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-013", as: "target", dp: 6000, suspended: true },
+            { card: "BT1-072", as: "blocker", dp: 6000 },
+          ],
+          security: ["BT1-010"],
+        },
+      });
+    }
+
+    const unblocked = attackOpponentDigimon();
+    await unblocked.ready();
+    const unblockedAttackerId = unblocked.perm("attacker").permanentId;
+    expect(
+      unblocked.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: unblockedAttackerId,
+        target: { kind: "permanent", permanentId: unblocked.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => unblocked.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(unblocked.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => unblocked.state.players[0]!.battleArea.length === 0);
+
+    expect(unblocked.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual(
+      ["BT1-013", "BT1-072"].sort(),
+    );
+
+    const blocked = attackOpponentDigimon();
+    await blocked.ready();
+    await blockAttack(blocked, { kind: "permanent", permanentId: blocked.perm("target").permanentId });
+    await settle(() => blocked.state.players[1]!.battleArea.length === 1);
+
+    expect(blocked.perm("attacker").currentDP).toBe(7000);
+    expect(blocked.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-013"]);
   });
 });

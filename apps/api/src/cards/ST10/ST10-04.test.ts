@@ -1,10 +1,11 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type EngineSetup, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT8/BT8-082.js";
 import "../BT9/BT9-040.js";
 import "../BT9/BT9-082.js";
+import "../EX6/EX6-074.js";
 import "./ST10-04.js";
 import "./ST10-06.js";
 
@@ -545,5 +546,231 @@ describe("ST10-04 Gatomon", () => {
       expect.arrayContaining([s.perm("yellow").permanentId, s.perm("purple").permanentId]),
     );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("mastemon").instanceId)).toBe(true);
+  });
+});
+
+function gatomonUnder(s: EngineSetup, alias: string) {
+  return s.perm(alias).stack.find((card) => card.cardId === "ST10-04")!;
+}
+
+async function fireInheritedDna(hostCard: string, partnerCard: string, handCard: string) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: hostCard, as: "host", under: ["ST10-04"] },
+          { card: partnerCard, as: "partner" },
+        ],
+        hand: [{ card: handCard, as: "candidate" }],
+      },
+    },
+    { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, gatomonUnder(s, "host"));
+  const candidateInHand = s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId);
+  return { s, candidateInHand };
+}
+
+describe("ST10-04 Gatomon — KB Q&A rulings", () => {
+  it("reveals as many cards as the deck holds when fewer than 3 remain (Q727)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST10-04", as: "gatomon" }],
+          deck: [
+            { card: "ST10-02", as: "yellow" },
+            { card: "ST10-14", as: "option" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: false },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const reveal = s.decisions.at(-1)!.req;
+    expect(reveal.sourceCardId).toBe("ST10-04");
+    expect(reveal.options?.visibleInstanceIds).toHaveLength(2);
+    expect(reveal.options?.visibleInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("yellow").instanceId, s.inst("option").instanceId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: reveal.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("yellow").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("yellow").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+  });
+
+  it("must add both a revealed yellow and a revealed purple Digimon to hand (Q728)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST10-04", as: "gatomon" }],
+          deck: [
+            { card: "ST10-02", as: "yellow" },
+            { card: "ST10-07", as: "purple" },
+            { card: "ST10-14", as: "option" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: false },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (const alias of ["yellow", "purple"]) {
+      await settle(
+        () =>
+          s.state.pendingDecision?.kind === "selectCards" &&
+          s.decisions.at(-1)!.req.options?.candidateInstanceIds?.includes(s.inst(alias).instanceId) === true,
+      );
+      const pick = s.decisions.at(-1)!.req;
+      expect(pick.sourceCardId).toBe("ST10-04");
+      expect(pick.options).toMatchObject({ min: 1, max: 1 });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pick.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: false, reason: "decision-pending" });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pick.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.decisions.some((decision) => decision.req.kind === "optional")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("yellow").instanceId, s.inst("purple").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+  });
+
+  it("DNA digivolves its host with another Digimon at end of turn, before the opponent's turn begins (Q729)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST10-05", as: "host", under: ["ST10-04"] },
+            { card: "ST10-12", as: "partner" },
+          ],
+          hand: [{ card: "ST10-06", as: "mastemon" }],
+          deck: ["ST10-01"],
+        },
+        1: { deck: ["ST10-01"] },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("host").permanentId, s.perm("partner").permanentId, s.inst("mastemon").instanceId);
+    s.state.memory = 3;
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const turnCount = s.state.turnCount;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+
+    const offer = s.decisions.at(-1)!.req;
+    expect(offer.sourceCardId).toBe("ST10-04");
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.turnCount).toBe(turnCount);
+    expect(s.events.some((event) => event.kind === "turnEnded")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: offer.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("mastemon").instanceId,
+      ),
+    );
+    await turn;
+
+    const mastemon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("mastemon").instanceId,
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(mastemon!.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["ST10-04", "ST10-05", "ST10-12"]),
+    );
+  });
+
+  it("cannot DNA digivolve into a hand Digimon that has no [DNA Digivolution] (Q730)", async () => {
+    const withoutDna = await fireInheritedDna("ST10-05", "ST10-12", "BT2-040");
+    expect(withoutDna.candidateInHand).toBe(true);
+    expect(withoutDna.s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(withoutDna.s.perm("host").topCard.cardId).toBe("ST10-05");
+    expect(withoutDna.s.perm("partner").topCard.cardId).toBe("ST10-12");
+
+    const withDna = await fireInheritedDna("ST10-05", "ST10-12", "ST10-06");
+    expect(withDna.candidateInHand).toBe(false);
+    expect(withDna.s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("cannot DNA digivolve with a partner that the [DNA Digivolution] does not specify (Q731)", async () => {
+    const twoYellow = await fireInheritedDna("ST10-05", "ST10-05", "ST10-06");
+    expect(twoYellow.candidateInHand).toBe(true);
+    expect(twoYellow.s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(twoYellow.s.perm("host").topCard.cardId).toBe("ST10-05");
+    expect(twoYellow.s.perm("partner").topCard.cardId).toBe("ST10-05");
+
+    const yellowAndPurple = await fireInheritedDna("ST10-05", "ST10-12", "ST10-06");
+    expect(yellowAndPurple.candidateInHand).toBe(false);
+    expect(yellowAndPurple.s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("stacks its own -2 reduction on Mirei Mikagura's -1 when digivolving into Angewomon from trash (Q3812)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-074", as: "mirei" }],
+          hand: [{ card: "ST10-04", as: "gatomon" }],
+          trash: [{ card: "ST10-05", as: "angewomon" }],
+          deck: ["ST10-14", "ST10-14", "ST10-14", "ST10-14", "ST10-14"],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("angewomon").instanceId,
+      ),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const angewomon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("angewomon").instanceId,
+    );
+    expect(angewomon!.stack.map((card) => card.cardId)).toEqual(["ST10-04"]);
+    expect(s.perm("mirei").isSuspended).toBe(true);
+    // 10 - 5 (play Gatomon) + 1 (Mirei) - max(0, 3 - 1 - 2) (digivolve) = 6; Mirei's -1 alone would leave 4.
+    expect(s.state.memory).toBe(6);
   });
 });

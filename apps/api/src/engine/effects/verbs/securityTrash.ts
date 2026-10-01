@@ -3,6 +3,7 @@ import { insertCard, takeBottom, takeTop } from "../../state/access.js";
 import { spliceById } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { fireSecurityTrashedEvents } from "./securityTrashedEvents.js";
 
 /**
  * Trashing out of a security stack.
@@ -45,34 +46,7 @@ export function createSecurityTrashVerbs(pc: PrimitivesContext) {
         artIds: moved.map((c) => c.artId || c.cardId),
         seat,
       });
-      // SubTrigger bus: a resolving EFFECT removed cards from `seat`'s security stack
-      // attack-driven security check, which routes through its own seam. The payload names
-      // the affected seat so a "when an effect removes from YOUR security" watcher (BT15-084)
-      // gates on its own stack.
-      const removedByEffect = opts?.cause !== "barrierCost";
-      if (removedByEffect) {
-        await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: seat });
-      }
-      // Generic removal watchers (BT4-088) care that a card left security regardless of
-      // whether it was checked or removed by an effect. Security checks already fire this
-      // event at their own movement seam; effect-driven trash must reach the same bus too.
-      await engine.fireSubTrigger?.("whenSecurityRemoved", {
-        removedFromSecuritySeat: seat,
-        ...(removedByEffect ? { securityRemovedByEffect: true } : {}),
-      });
-      await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
-        removedFromSecuritySeat: seat,
-        trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
-      });
-      // Effect-only counterpart for cards whose wording says "trashed from your security
-      // stack by an effect" (BT17-036). Unlike whenCardTrashedFromSecurity, this event does
-      // not fire for an ordinary security check, which also sends its checked card to trash.
-      if (removedByEffect) {
-        await engine.fireSubTrigger?.("whenEffectTrashesFromSecurity", {
-          removedFromSecuritySeat: seat,
-          trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
-        });
-      }
+      await fireSecurityTrashedEvents(engine, seat, moved, opts?.cause !== "barrierCost");
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
       await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }

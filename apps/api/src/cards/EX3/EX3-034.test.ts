@@ -536,3 +536,49 @@ describe("EX3-034 Angewomon", () => {
     });
   });
 });
+
+describe("EX3-034 Angewomon — KB Q&A rulings", () => {
+  it("places Trial from hand without activating Trial's [Main] draw-then-place effect (Q3411)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-031", as: "base" }],
+          hand: [
+            { card: "EX3-034", as: "angewomon" },
+            { card: "EX3-069", as: "trial" },
+          ],
+          deck: [
+            { card: "BT1-010", as: "digivolutionDraw" },
+            { card: "BT1-011", as: "wouldBeMainDraw" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("angewomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("trial").instanceId),
+    );
+
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("wouldBeMainDraw").instanceId,
+    ]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("digivolutionDraw").instanceId,
+    ]);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-069")).toBe(false);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX3-069")).toBe(false);
+  });
+});

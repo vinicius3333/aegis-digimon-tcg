@@ -72,3 +72,37 @@ describe("BT8-101 Plasma Shot", () => {
     expect(s.perm("other").currentDP).toBe(8_000);
   });
 });
+
+describe("BT8-101 Plasma Shot — KB Q&A rulings", () => {
+  it("gives the chosen Digimon -4000 DP and then an additional -1000 DP for 1 [Armor Form] card in trash (Q1781)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-012", as: "armor" }],
+          hand: [{ card: "BT8-101", as: "option" }],
+          trash: ["BT8-023", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT8-053", as: "chosen", dp: 10_000 },
+            { card: "BT8-012", as: "other", dp: 10_000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-101"));
+    await settle(() => s.perm("chosen").currentDP === 5_000 && s.perm("other").currentDP === 9_000);
+
+    expect(s.perm("chosen").currentDP).toBe(5_000);
+    expect(s.perm("other").currentDP).toBe(9_000);
+  });
+});

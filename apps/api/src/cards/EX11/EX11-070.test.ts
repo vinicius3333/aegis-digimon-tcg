@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -10,6 +10,7 @@ import "../BT10/BT10-016.js";
 import "../ST3/ST3-12.js";
 import "../BT4/BT4-106.js";
 import "../EX7/EX7-023.js";
+import "../index.js";
 
 describe("EX11-070 Unchained", () => {
   it("preserves the printed Tamer, inherited text, and complete compiled coverage", () => {
@@ -369,5 +370,92 @@ describe("EX11-070 Unchained", () => {
     );
     expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("EX11-070 Unchained — KB Q&A rulings", () => {
+  const DECK = ["BT1-009", "BT1-010", "BT1-011", "BT1-012"];
+
+  it("<Mind Link>s at the end of turn without DNA digivolving (Q5940)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-070", as: "unchained" },
+            { card: "EX11-029", as: "host" },
+          ],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("host").topCard.cardId).toBe("EX11-029");
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("unchained").instanceId]);
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.mechanic === "dna")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it.each([
+    { source: "EX11-041", effect: "<De-Digivolve 1>", timing: EffectTiming.OnPlay },
+    { source: "EX7-023", effect: "trashing digivolution cards", timing: EffectTiming.WhenDigivolving },
+  ])("keeps the opponent's $effect from trashing its host's stacked cards (Q5943)", async ({ source, timing }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-029", as: "host", under: ["BT1-009", "BT1-010", { card: "EX11-070", as: "unchained" }] },
+          ],
+          security: ["BT1-011"],
+        },
+        1: { battleArea: [{ card: source, as: "source" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const cardsBefore = [s.perm("host").topCard, ...s.perm("host").stack].map(({ instanceId }) => instanceId);
+
+    await advance(s.engine).fire(timing, s.perm("source"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect([s.perm("host").topCard, ...s.perm("host").stack].map(({ instanceId }) => instanceId)).toEqual(cardsBefore);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("triggers P-237's [All Turns] when its inherited effect plays Unchained from the digivolution cards (Q6523)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-237", as: "emblem" },
+            { card: "EX11-029", as: "host", under: [{ card: "EX11-070", as: "unchained" }] },
+          ],
+          hand: [{ card: "EX11-033", as: "maneuvermon" }],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("unchained").instanceId,
+    );
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "P-237")).toBe(true);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("maneuvermon").instanceId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

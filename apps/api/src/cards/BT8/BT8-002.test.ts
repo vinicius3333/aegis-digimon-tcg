@@ -27,3 +27,19 @@ describe("BT8-002 Hiyarimon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 });
+
+describe("BT8-002 Hiyarimon — KB Q&A rulings", () => {
+  it("counts an opponent with no Digimon at all as having no Digimon with digivolution cards (Q1693)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-028", as: "host", under: ["BT8-002"] }] },
+      1: { battleArea: [] },
+    });
+    await s.ready();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
+
+    s.putOnBoard(1, { card: "BT8-034", under: ["BT8-003"] });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
+});

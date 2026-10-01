@@ -108,3 +108,44 @@ describe("ST19-14 Arisa Kinosaki", () => {
     expect(s.perm("arisa").isSuspended).toBe(false);
   });
 });
+
+describe("ST19-14 Arisa Kinosaki — KB Q&A rulings", () => {
+  it("gives <Rush> to only 1 of the Tokens played at the same time (Q862)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST19-14", as: "arisa" },
+            { card: "ST19-10", as: "host" },
+          ],
+          hand: [{ card: "ST19-12", as: "cendrill" }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    const familiarTokens = () =>
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("cendrill").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        familiarTokens().length === 2 &&
+        familiarTokens().some((permanent) => observe(s.engine).hasKeyword(permanent, "Rush")) &&
+        s.state.pendingDecision === undefined,
+    );
+    await s.ready();
+
+    expect(familiarTokens()).toHaveLength(2);
+    expect(familiarTokens().filter((permanent) => observe(s.engine).hasKeyword(permanent, "Rush"))).toHaveLength(1);
+    expect(s.perm("arisa").isSuspended).toBe(true);
+  });
+});

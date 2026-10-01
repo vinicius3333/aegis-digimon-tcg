@@ -133,3 +133,48 @@ describe("BT1-033 Dolphmon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT1-033 Dolphmon — KB Q&A rulings", () => {
+  it("loses +1000 DP as soon as the opponent's last Digimon with no digivolution cards is deleted (Q889)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-033"] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-016", as: "firstBare" },
+          { card: "BT1-016", as: "secondBare" },
+          { card: "BT1-016", as: "evolved", under: ["BT1-009"] },
+        ],
+      },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(6000);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("firstBare").permanentId]);
+    expect(s.perm("host").currentDP).toBe(6000);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("secondBare").permanentId]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("evolved").permanentId,
+    ]);
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
+
+  it("does not count an opponent's breeding-area Digimon with no digivolution cards (Q890)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-033"] }] },
+      1: { battleArea: [{ card: "BT1-016", under: ["BT1-009"] }], breeding: "BT1-017" },
+    });
+    await s.ready();
+    const breeding = s.state.players[1]!.breeding!;
+    expect(breeding.topCard.cardId).toBe("BT1-017");
+    expect(breeding.stack).toHaveLength(0);
+    expect(s.perm("host").currentDP).toBe(5000);
+
+    const control = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-033"] }] },
+      1: { battleArea: ["BT1-017"] },
+    });
+    await control.ready();
+    expect(control.perm("host").currentDP).toBe(6000);
+  });
+});

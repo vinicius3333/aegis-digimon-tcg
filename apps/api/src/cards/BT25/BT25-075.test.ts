@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT25-075.js";
@@ -198,5 +199,104 @@ describe("BT25-075 Vulcanusmon", () => {
       expect.arrayContaining([s.inst("firstLink").instanceId, s.inst("secondLink").instanceId]),
     );
     expect(s.perm("opponent").stack).toHaveLength(1);
+  });
+});
+
+describe("BT25-075 Vulcanusmon — KB Q&A rulings", () => {
+  it("makes its owner choose which excess link card to trash once <Link +1> is lost (Q6370)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "vulcanusmon" },
+            {
+              card: "BT25-071",
+              as: "orochimon",
+              linked: [
+                { card: "BT25-100", as: "kept" },
+                { card: "BT25-100", as: "trashed" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("trashed").instanceId);
+    expect(s.perm("orochimon").linked).toHaveLength(2);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("vulcanusmon").permanentId]);
+    await settle(() => s.perm("orochimon").linked.length === 1);
+
+    const linkTrashChoice = s.decisions.find(
+      ({ seat, req }) =>
+        seat === 0 &&
+        (req.options?.candidateInstanceIds ?? []).includes(s.inst("kept").instanceId) &&
+        (req.options?.candidateInstanceIds ?? []).includes(s.inst("trashed").instanceId),
+    );
+    expect(linkTrashChoice).toBeDefined();
+    expect(s.perm("orochimon").linked.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashed").instanceId);
+  });
+
+  it("can't link a card that has no <Link> with its [On Play] effect (Q6371)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "vulcanusmon" },
+            { card: "BT1-009", as: "noLink" },
+            { card: "BT25-100", as: "valid" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT25-020", as: "opponent", under: ["BT24-009", "BT24-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcanusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").stack.length === 1 && s.state.pendingDecision === undefined);
+
+    const offeredByVulcanusmon = s.decisions
+      .filter(({ req }) => req.sourceCardId === CARD_ID)
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredByVulcanusmon).not.toContain(s.inst("noLink").instanceId);
+    expect(s.perm("vulcanusmon").linked.map((card) => card.instanceId)).toEqual([s.inst("valid").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("noLink").instanceId]);
+  });
+
+  it("lets this Vulcanusmon attack when it gets linked itself (Q6372)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "vulcanusmon" }],
+          hand: [{ card: "BT25-100", as: "link" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("vulcanusmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+
+    expect(s.perm("vulcanusmon").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(s.events.find((event) => event.kind === "attackDeclared")).toMatchObject({
+      attackerPermanentId: s.perm("vulcanusmon").permanentId,
+    });
   });
 });

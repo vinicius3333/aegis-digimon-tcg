@@ -1,8 +1,14 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-041.js";
+import "./ST13-04.js";
+import "./ST13-05.js";
 import "./ST13-06.js";
+import "./ST13-13.js";
+import "./ST13-14.js";
 
 describe("ST13-06 RagnaLoardmon", () => {
   it("DNA digivolves with 8 sources to gain Blitz, delete 2, and trash 2 security", async () => {
@@ -115,6 +121,68 @@ describe("ST13-06 RagnaLoardmon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-06")).toBe(true);
   });
 
+  it("resolves the DNA-only removal after the Blitz declaration and before [When Attacking] (Q777)", async () => {
+    type Snapshot = { opponentDigimon: number; security: number };
+    const snapshots = new Map<string, Snapshot>();
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-05", as: "durandamon", under: ["ST13-04", "BT1-041"] },
+            { card: "ST13-14", as: "bryweludramon", under: ["ST13-13"] },
+          ],
+          hand: [{ card: "ST13-06", as: "ragnaLoardmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        onEvent: (event) => {
+          const moment =
+            event.kind === "attackDeclared"
+              ? "declared"
+              : event.kind === "effectResolved" && event.sourceCardId === "BT1-041"
+                ? "whenAttacking"
+                : undefined;
+          if (moment === undefined || snapshots.has(moment)) return;
+          snapshots.set(moment, {
+            opponentDigimon: s.state.players[1]!.battleArea.length,
+            security: s.state.players[1]!.security.length,
+          });
+        },
+      },
+    );
+    await s.ready();
+    s.state.memory = -2;
+
+    // The end-of-turn DNA digivolution's [When Digivolving] effect stays open until the attack.
+    void advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("durandamon"));
+    const ragnaLoardmonId = () =>
+      s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "ST13-06")?.permanentId ?? "";
+    await settle(() => s.engine.hasAcceptedBlitzAttack(ragnaLoardmonId()));
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ragnaLoardmonId(),
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => snapshots.has("whenAttacking"));
+
+    expect(snapshots.get("declared")).toEqual({ opponentDigimon: 2, security: 3 });
+    expect(snapshots.get("whenAttacking")).toEqual({ opponentDigimon: 1, security: 2 });
+  });
+
   it("unsuspends once per turn when either player loses security", async () => {
     const s = setupEngine({
       0: {
@@ -135,5 +203,94 @@ describe("ST13-06 RagnaLoardmon", () => {
     await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
     await settle();
     expect(s.perm("ragna").isSuspended).toBe(true);
+  });
+});
+
+describe("ST13-06 RagnaLoardmon — KB Q&A rulings", () => {
+  it("can attack with the [When Digivolving] Blitz after DNA digivolving while the opponent has memory (Q775)", async () => {
+    async function dnaDigivolveAtEndOfTurn(memory: number) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "ST13-05", as: "durandamon", under: ["ST13-04"] },
+              { card: "ST13-14", as: "bryweludramon", under: ["ST13-13"] },
+            ],
+            hand: [{ card: "ST13-06", as: "ragnaLoardmon" }],
+          },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "target" }],
+            security: ["BT1-001", "BT1-002", "BT1-003"],
+          },
+        },
+        { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = memory;
+      void advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("durandamon"));
+      const ragnaLoardmonId = () =>
+        s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "ST13-06")?.permanentId ?? "";
+      return { s, ragnaLoardmonId };
+    }
+
+    const withMemory = await dnaDigivolveAtEndOfTurn(-2);
+    await settle(() => withMemory.s.engine.hasAcceptedBlitzAttack(withMemory.ragnaLoardmonId()));
+    expect(
+      withMemory.s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: withMemory.ragnaLoardmonId(),
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      withMemory.s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === withMemory.ragnaLoardmonId(),
+      ),
+    );
+    expect(withMemory.s.perm("ragnaLoardmon").isSuspended).toBe(true);
+
+    const withoutMemory = await dnaDigivolveAtEndOfTurn(0);
+    await settle(() => withoutMemory.s.state.players[1]!.security.length === 2);
+    expect(withoutMemory.ragnaLoardmonId()).not.toBe("");
+    expect(withoutMemory.s.engine.hasAcceptedBlitzAttack(withoutMemory.ragnaLoardmonId())).toBe(false);
+    expect(withoutMemory.s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+  });
+
+  it("deletes 2 opponent's Digimon and trashes 2 security cards when DNA digivolving with 8 digivolution cards (Q776)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-05", as: "red", under: ["ST13-02", "ST13-03", "ST13-04"] },
+            { card: "ST13-14", as: "black", under: ["ST13-11", "ST13-12", "ST13-13"] },
+          ],
+          hand: [{ card: "ST13-06", as: "ragnaLoardmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+            { card: "BT9-112", as: "third" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("red").permanentId, s.perm("black").permanentId],
+        instanceId: s.inst("ragnaLoardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length <= 2 && s.state.players[1]!.battleArea.length <= 1);
+
+    expect(s.perm("ragnaLoardmon").stack).toHaveLength(8);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.trash).toHaveLength(4);
   });
 });

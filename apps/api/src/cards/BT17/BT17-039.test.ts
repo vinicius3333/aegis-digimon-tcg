@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-039.js";
 import "../BT1/BT1-064.js";
 import "../BT3/BT3-104.js";
+import "../BT11/BT11-088.js";
+import "../ST10/ST10-14.js";
 import "./index.js";
 
 describe("BT17-039 ShineGreymon", () => {
@@ -202,5 +204,116 @@ describe("BT17-039 ShineGreymon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shineId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-087")).toBe(false);
+  });
+});
+
+describe("BT17-039 ShineGreymon — KB Q&A rulings", () => {
+  it("treats trash, hand, deck, security and under-a-card moves by an opponent's effect as leaving the battle area (Q2791)", async () => {
+    type Board = ReturnType<typeof setupEngine>;
+    const inOpponentEffect = async (s: Board, move: () => Promise<unknown>) => {
+      advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+      await move();
+      advance(s.engine).verb.leaveEffectResolution();
+    };
+    const routes: Record<string, { opponentHand?: string; move: (s: Board) => Promise<unknown> }> = {
+      trash: {
+        move: (s) =>
+          inOpponentEffect(s, () => advance(s.engine).verb.deletePermanent([s.perm("shine").permanentId], "byEffect")),
+      },
+      hand: {
+        move: (s) => inOpponentEffect(s, () => advance(s.engine).verb.returnToHand([s.inst("shine").instanceId])),
+      },
+      deck: {
+        move: (s) => inOpponentEffect(s, () => advance(s.engine).verb.returnToDeck([s.inst("shine").instanceId])),
+      },
+      security: {
+        opponentHand: "ST10-14",
+        move: async (s) => {
+          expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentCard").instanceId })).toEqual({
+            ok: true,
+          });
+          await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length > 0);
+        },
+      },
+      underAnotherCard: {
+        opponentHand: "BT11-088",
+        move: async (s) => {
+          expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentCard").instanceId })).toEqual({
+            ok: true,
+          });
+          await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length > 0);
+        },
+      },
+    };
+
+    const outcomes: Record<string, { stayed: boolean; tamerReturned: boolean }> = {};
+    for (const [route, { opponentHand, move }] of Object.entries(routes)) {
+      const preferred: string[] = [];
+      const opponentBattleArea: PermanentSpec[] = [{ card: "BT1-087" }, { card: "BT2-067" }];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT17-039", as: "shine" },
+              { card: "BT1-087", as: "tamer" },
+              { card: "BT1-010", as: "otherDigimon" },
+            ],
+            security: ["BT1-009"],
+          },
+          1: {
+            battleArea: opponentBattleArea,
+            hand: opponentHand === undefined ? [] : [{ card: opponentHand, as: "opponentCard" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 15;
+      await s.ready();
+      preferred.push(s.inst("shine").instanceId);
+      const shineId = s.perm("shine").permanentId;
+      const tamerId = s.inst("tamer").instanceId;
+
+      await move(s);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      outcomes[route] = {
+        stayed: s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shineId),
+        tamerReturned: s.state.players[0]!.hand.some((card) => card.instanceId === tamerId),
+      };
+    }
+
+    const prevented = { stayed: true, tamerReturned: true };
+    expect(outcomes).toEqual({
+      trash: prevented,
+      hand: prevented,
+      deck: prevented,
+      security: prevented,
+      underAnotherCard: prevented,
+    });
+
+    const ownEffect = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-039", as: "shine" },
+            { card: "BT1-087", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await ownEffect.ready();
+    advance(ownEffect.engine).verb.enterEffectResolution(0, ["Option"]);
+    await advance(ownEffect.engine).verb.returnToDeck([ownEffect.inst("shine").instanceId]);
+    advance(ownEffect.engine).verb.leaveEffectResolution();
+    await settle(() => ownEffect.state.pendingDecision === undefined);
+
+    expect(
+      ownEffect.state.players[0]!.deck.some((card) => card.instanceId === ownEffect.inst("shine").instanceId),
+    ).toBe(true);
+    expect(
+      ownEffect.state.players[0]!.hand.some((card) => card.instanceId === ownEffect.inst("tamer").instanceId),
+    ).toBe(false);
   });
 });

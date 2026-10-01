@@ -75,3 +75,89 @@ describe("ST22-11 Defense Plug-In F", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("ST22-11 Defense Plug-In F — KB Q&A rulings", () => {
+  it.each([true, false])(
+    "gives its host Digimon <Blocker> as that Digimon's own effect (linked=%s) (Q5439)",
+    async (linked) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "ST22-03", as: "host", linked: linked ? [{ card: "ST22-11", as: "linkCard" }] : [] }],
+            security: ["BT1-090", "BT1-090"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      const hostId = s.perm("host").permanentId;
+      expect(observe(s.engine).hasKeyword(hostId, "Blocker")).toBe(linked);
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((event) => event.kind === "blockWindowOpened") ||
+          s.events.some((event) => event.kind === "securityChecked"),
+        3000,
+      );
+      const blockWindow = s.events.find((event) => event.kind === "blockWindowOpened");
+      expect(blockWindow?.kind === "blockWindowOpened" ? blockWindow.eligibleBlockerIds : []).toEqual(
+        linked ? [hostId] : [],
+      );
+      const blockResult = linked
+        ? s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: hostId })
+        : { ok: true };
+      expect(blockResult).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking(), 3000);
+      expect(s.state.players[0]!.security).toHaveLength(linked ? 2 : 1);
+    },
+  );
+
+  it("links by paying its link cost while Option use is prohibited (Q5440)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST22-07", as: "tamer" },
+          { card: "ST22-03", as: "host" },
+        ],
+        hand: [{ card: "ST22-11", as: "option" }],
+      },
+      1: {
+        battleArea: [{ card: "BT11-095", as: "whiteSource" }],
+        hand: [{ card: "EX1-072", as: "shutdown" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("shutdown").instanceId));
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("option").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+    expect(s.state.memory).toBe(3);
+  });
+});

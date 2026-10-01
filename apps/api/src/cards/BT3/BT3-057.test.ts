@@ -1,6 +1,7 @@
 import type { Seat } from "@aegis/shared";
 import { sweepDurations } from "../../engine/gameEngine/turnFlow.js";
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT3-057.js";
@@ -34,5 +35,52 @@ describe("BT3-057 MegaGargomon", () => {
     s.state.turnSeat = 1;
     await sweepDurations(s.engine, "ownerActivePhaseEnd");
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+  });
+});
+
+describe("BT3-057 MegaGargomon — KB Q&A rulings", () => {
+  it("keeps an already suspended opponent's Digimon from unsuspending in their next unsuspend phase (Q1086)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-011", as: "base" }],
+          hand: [{ card: "BT3-057", as: "evolving" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT2-020", as: "untouched", suspended: true },
+            { card: "BT2-020", as: "target", suspended: true },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("target").topCard!.instanceId);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    expect(observe(s.engine).isRestricted(s.perm("untouched"), "unsuspend")).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("untouched").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

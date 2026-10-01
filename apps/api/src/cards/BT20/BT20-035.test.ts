@@ -403,3 +403,80 @@ describe("BT20-035 Kazuchimon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("recovery").instanceId);
   });
 });
+
+describe("BT20-035 Kazuchimon — KB Q&A rulings", () => {
+  it("digivolves from a level-5 card whose effect text, not its name, contains [Pulsemon] (Q4342)", async () => {
+    const withTextOnly = setupEngine({
+      0: { battleArea: [{ card: "BT16-034", as: "tempomon" }], hand: [{ card: "BT20-035", as: "kazuchimon" }] },
+    });
+    const tempomon = getCardDefinition("BT16-034")!;
+    expect(tempomon.nameEn).not.toContain("Pulsemon");
+    expect(tempomon.types).not.toContain("SEEKERS");
+    // Only yellow: Kazuchimon's printed Purple/Green Lv.5 requirement can't match, so the text path is the only route.
+    expect(tempomon.colors).toEqual(["Yellow"]);
+    expect(tempomon.effectText).toContain("[Pulsemon]");
+    withTextOnly.state.memory = 5;
+    await withTextOnly.ready();
+    expect(
+      withTextOnly.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: withTextOnly.perm("tempomon").permanentId,
+        instanceId: withTextOnly.inst("kazuchimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => withTextOnly.perm("tempomon").topCard.cardId === "BT20-035");
+    expect(withTextOnly.state.memory).toBe(2);
+
+    const withoutText = setupEngine({
+      0: { battleArea: [{ card: "BT20-033", as: "loader" }], hand: [{ card: "BT20-035", as: "kazuchimon" }] },
+    });
+    withoutText.state.memory = 5;
+    await withoutText.ready();
+    expect(
+      withoutText.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: withoutText.perm("loader").permanentId,
+        instanceId: withoutText.inst("kazuchimon").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    expect(withoutText.perm("loader").topCard.cardId).toBe("BT20-033");
+  });
+
+  it("suspends one opposing Digimon and gives a different one can't unsuspend when digivolving (Q4343)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-071", as: "base" }], hand: [{ card: "BT20-035", as: "kazuchimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "suspendTarget" },
+            { card: "BT20-030", as: "restrictTarget" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const suspendId = s.perm("suspendTarget").permanentId;
+    const restrictId = s.perm("restrictTarget").permanentId;
+    // Prefer the first Digimon for the suspend step, then the second one for the restriction step.
+    preferred.includes = (id: string) => (id === suspendId ? !s.perm("suspendTarget").isSuspended : id === restrictId);
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kazuchimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("suspendTarget").isSuspended && observe(s.engine).isRestricted(s.perm("restrictTarget"), "unsuspend"),
+    );
+    expect(s.perm("restrictTarget").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("suspendTarget"), "unsuspend")).toBe(false);
+  });
+});

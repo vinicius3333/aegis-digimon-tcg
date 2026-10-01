@@ -47,3 +47,32 @@ describe("ST3-16 Seven Heavens", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("ST3-16 Seven Heavens — KB Q&A rulings", () => {
+  it("reduces a 10000 DP opposing Digimon to 0 DP and deletes it, while an 11000 DP one survives (Q646)", async () => {
+    async function playOnTargetWithDp(dp: number) {
+      const s = setupEngine(
+        {
+          0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-16", as: "option" }] },
+          1: { battleArea: [{ card: "ST3-10", as: "target", dp }] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 8;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId));
+      await settle();
+      return s;
+    }
+
+    const deleted = await playOnTargetWithDp(10000);
+    expect(deleted.state.players[1]!.battleArea).toHaveLength(0);
+    expect(deleted.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("ST3-10");
+
+    const survivor = await playOnTargetWithDp(11000);
+    expect(survivor.state.players[1]!.battleArea).toHaveLength(1);
+    expect(survivor.perm("target").currentDP).toBe(1000);
+  });
+});

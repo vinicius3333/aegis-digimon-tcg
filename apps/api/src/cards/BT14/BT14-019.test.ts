@@ -140,19 +140,23 @@ describe("BT14-019", () => {
   });
 
   it("does as much as possible when the attacker has only 1 digivolution card", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          {
-            card: "BT14-024",
-            as: "gekomon",
-            under: ["BT14-002", { card: "BT14-019", as: "otamamon" }],
-          },
-        ],
-        security: ["BT1-009", "BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT14-024",
+              as: "gekomon",
+              under: ["BT14-002", { card: "BT14-019", as: "otamamon" }],
+            },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT14-016", as: "attacker", under: ["BT14-012"] }] },
       },
-      1: { battleArea: [{ card: "BT14-016", as: "attacker", under: ["BT14-012"] }] },
-    });
+      // Triceramon's <Raid> is the turn player's trigger, so it resolves before the watcher.
+      { declinePrompts: ["＜Raid＞"] },
+    );
     s.state.turnSeat = 1;
     s.state.memory = 10;
     await advance(s.engine).recompute();

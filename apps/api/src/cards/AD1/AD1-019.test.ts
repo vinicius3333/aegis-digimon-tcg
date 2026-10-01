@@ -4,6 +4,7 @@ import { registeredCompiledCards } from "../../engine/effects/interpreter/compil
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../../cards/index.js";
+import "../ST21/ST21-13.js";
 
 describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
   it("matches committed metadata and publishes fully covered compiled IR", () => {
@@ -48,6 +49,42 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
     );
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.memory).toBe(4);
+  });
+
+  it("never offers an [ADVENTURE] Option from hand, because the text only plays cards", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-019", as: "tamer" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "evolving" },
+            { card: "ST20-14", as: "option" },
+            { card: "AD1-001", as: "adventure" },
+          ],
+          deck: ["BT1-009", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("option").instanceId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "AD1-001" && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("adventure").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
   });
 
   it("reduces the effect's paid play cost by 2 with four distinct Tamer colors", async () => {
@@ -169,5 +206,87 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
     await settle(() => s.perm("base").topCard.cardId === "AD1-001");
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("adventure").instanceId)).toBe(true);
+  });
+});
+
+describe("AD1-019 Matt Ishida & T.K. Takaishi — KB Q&A rulings", () => {
+  it("cannot combine two copies' [Your Turn] effects into one play reduced by 2 (Q6097)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-019", as: "first-tamer" },
+            { card: "AD1-019", as: "second-tamer" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "evolving" },
+            { card: "AD1-001", as: "first-adventure" },
+            { card: "AD1-001", as: "second-adventure" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 12;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-001").length === 3,
+    );
+    await settle();
+
+    const digivolutionCost = 2;
+    const playCostReducedOnlyByItsOwnCopy = 5 - 1;
+    expect(s.perm("first-tamer").isSuspended).toBe(true);
+    expect(s.perm("second-tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(12 - digivolutionCost - 2 * playCostReducedOnlyByItsOwnCopy);
+  });
+
+  it("stacks ST21-13's play cost reduction on this effect's play for a total of 2 (Q6098)", async () => {
+    const playAdventureAfterDigivolving = async (tamers: string[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [...tamers.map((card) => ({ card })), { card: "ST20-10", as: "base" }],
+            hand: [
+              { card: "AD1-001", as: "evolving" },
+              { card: "AD1-001", as: "adventure" },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 10;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolving").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-001").length === 2,
+      );
+      await settle();
+      return s;
+    };
+
+    const withMattAndTk = await playAdventureAfterDigivolving(["AD1-019", "ST21-13"]);
+    const suspendedTamers = withMattAndTk.state.players[0]!.battleArea.filter(
+      (permanent) => permanent.topCard.cardId !== "AD1-001" && permanent.isSuspended,
+    );
+    expect(suspendedTamers.map((permanent) => permanent.topCard.cardId).sort()).toEqual(["AD1-019", "ST21-13"]);
+    expect(withMattAndTk.state.memory).toBe(10 - 2 - (5 - 2));
+
+    const withoutSt21 = await playAdventureAfterDigivolving(["AD1-019"]);
+    expect(withoutSt21.state.memory).toBe(10 - 2 - (5 - 1));
   });
 });

@@ -44,3 +44,31 @@ describe("ST9-04 ExVeemon", () => {
     expect(s.perm("host").currentDP).toBe(9000);
   });
 });
+
+describe("ST9-04 ExVeemon — KB Q&A rulings", () => {
+  async function attackWithHost(hostCardId: string): Promise<number> {
+    const s = setupEngine({
+      0: { battleArea: [{ card: hostCardId, as: "host", under: ["ST9-04"] }] },
+      1: { security: ["BT1-010"] },
+    });
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
+        s.state.players[1]!.security.length === 0,
+    );
+    return s.perm("host").currentDP - s.perm("host").baseDP;
+  }
+
+  it("gives +1000 DP when attacking if the host itself is the only green Digimon in play (Q708)", async () => {
+    expect(await attackWithHost("ST9-09")).toBe(1000);
+    expect(await attackWithHost("BT1-009")).toBe(0);
+  });
+});

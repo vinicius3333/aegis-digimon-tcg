@@ -659,3 +659,57 @@ describe("BT25-029 MirageGaogamon", () => {
     await settle(() => !refused.perm("mirage").isSuspended && refused.state.pendingDecision === undefined);
   });
 });
+
+describe("BT25-029 MirageGaogamon — KB Q&A rulings", () => {
+  it("still activates the shared effect on a same-turn attack after declining it when digivolving (Q6296)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-027", as: "base" }],
+          hand: [{ card: "BT25-029", as: "mirage" }],
+        },
+        1: { security: ["BT1-001"], battleArea: [{ card: "BT1-020", as: "levelFive" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const answerOptional = async (accept: boolean) => {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    };
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await answerOptional(false);
+    await settle(() => s.state.pendingDecision === undefined && s.perm("base").topCard.cardId === "BT25-029");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("levelFive").permanentId,
+    ]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await answerOptional(true);
+    await answerOptional(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("levelFive").instanceId);
+  });
+});

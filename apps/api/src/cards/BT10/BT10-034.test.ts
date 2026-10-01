@@ -116,3 +116,41 @@ describe("BT10-034 Dorulumon", () => {
     expect(observe(other.engine).securityDp(1)).toBe(0);
   });
 });
+
+async function checkSecurityWithAnotherDigimon(hostCardId: string) {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: hostCardId, as: "host", under: ["BT10-034"] },
+        { card: "BT1-019", as: "attacker" },
+      ],
+    },
+    1: { security: [{ card: "BT1-084", as: "securityDigimon" }, "BT1-012"] },
+  });
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+  return s.events.find((event) => event.kind === "securityChecked");
+}
+
+describe("BT10-034 Dorulumon — KB Q&A rulings", () => {
+  it("gives Security Digimon -2000 DP even when a different Digimon checks them (Q1958)", async () => {
+    expect(await checkSecurityWithAnotherDigimon("BT10-009")).toMatchObject({
+      revealedCardId: "BT1-084",
+      resolution: "battle",
+      battle: { securityCardDP: 13000 },
+    });
+
+    expect(await checkSecurityWithAnotherDigimon("BT1-009")).toMatchObject({
+      revealedCardId: "BT1-084",
+      resolution: "battle",
+      battle: { securityCardDP: 15000 },
+    });
+  });
+});

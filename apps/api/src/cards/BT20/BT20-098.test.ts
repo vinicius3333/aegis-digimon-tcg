@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import type { EngineSetup, PermanentSpec, SetupEngineOptions } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-098.js";
@@ -265,5 +266,126 @@ describe("BT20-098 Apparition Legion", () => {
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT20-063"));
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toContain("BT20-063");
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT20-079");
+  });
+});
+
+describe("BT20-098 Apparition Legion — KB Q&A rulings", () => {
+  const purpleSource: PermanentSpec = { card: "BT20-062", as: "source" };
+
+  function battleAreaIds(s: EngineSetup): string[] {
+    return s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort();
+  }
+
+  function trashIds(s: EngineSetup, seat: 0 | 1): string[] {
+    return s.state.players[seat]!.trash.map((card) => card.cardId).sort();
+  }
+
+  async function returnChosenOpponentCards(returnedAliases: string[]): Promise<EngineSetup> {
+    const options: SetupEngineOptions = { autoAcceptOptional: true, autoSelectCards: false };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [purpleSource],
+          hand: [{ card: "BT20-098", as: "option" }],
+          trash: ["BT20-062", "BT20-072", "BT20-078"],
+        },
+        1: {
+          trash: [
+            { card: "BT20-062", as: "level3" },
+            { card: "BT20-072", as: "level5" },
+            { card: "BT20-078", as: "level6" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      options,
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const returnSelection = s.decisions.at(-1)!.req;
+    expect(returnSelection.options?.candidateInstanceIds).toEqual(
+      ["level3", "level5", "level6"].map((alias) => s.inst(alias).instanceId),
+    );
+    options.autoSelectCards = true;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnSelection.decisionId,
+        response: { kind: "selectCards", instanceIds: returnedAliases.map((alias) => s.inst(alias).instanceId) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
+    );
+    return s;
+  }
+
+  it("cannot pay the Main effect by returning only 8 levels' total worth of Digimon cards (Q4439)", async () => {
+    const eightLevels = await returnChosenOpponentCards(["level3", "level5"]);
+    expect(trashIds(eightLevels, 1)).toEqual(["BT20-062", "BT20-072", "BT20-078"]);
+    expect(eightLevels.state.players[1]!.deck).toHaveLength(1);
+    expect(battleAreaIds(eightLevels)).toEqual(["BT20-062"]);
+    expect(trashIds(eightLevels, 0)).toEqual(["BT20-062", "BT20-072", "BT20-078", "BT20-098"]);
+
+    const nineLevels = await returnChosenOpponentCards(["level3", "level6"]);
+    expect(trashIds(nineLevels, 1)).toEqual(["BT20-072"]);
+    expect(nineLevels.state.players[1]!.deck).toHaveLength(3);
+    expect(battleAreaIds(nineLevels)).toEqual(["BT20-062", "BT20-062", "BT20-078"]);
+  });
+
+  it("plays one level 3 and one level 6 Ghost after returning a level 3 and a level 6 card (Q4440)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [purpleSource],
+          hand: [{ card: "BT20-098", as: "option" }],
+          trash: ["BT20-062", "BT20-062", "BT20-068", "BT20-078"],
+        },
+        1: { trash: ["BT20-062", "BT20-078"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
+    );
+
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(battleAreaIds(s)).toEqual(["BT20-062", "BT20-062", "BT20-078"]);
+    expect(trashIds(s, 0)).toEqual(["BT20-062", "BT20-068", "BT20-098"]);
+  });
+
+  it("plays three level 3 Ghosts after returning three level 3 cards (Q4441)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [purpleSource],
+          hand: [{ card: "BT20-098", as: "option" }],
+          trash: ["BT20-062", "BT20-062", "BT20-062", "BT20-062", "BT20-078"],
+        },
+        1: { trash: ["BT20-062", "BT20-062", "BT20-062"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
+    );
+
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(battleAreaIds(s)).toEqual(["BT20-062", "BT20-062", "BT20-062", "BT20-062"]);
+    expect(trashIds(s, 0)).toEqual(["BT20-062", "BT20-078", "BT20-098"]);
   });
 });

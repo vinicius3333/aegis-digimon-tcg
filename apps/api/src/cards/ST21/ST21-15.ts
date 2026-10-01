@@ -19,6 +19,8 @@ const compiled: CompiledCard = {
             kind: "youHaveNone",
             filter: {
               controllerDefault: "mine",
+              zone: "security",
+              faceUp: true,
               nameOrTrait: [
                 {
                   tokens: ["Gennai's House"],

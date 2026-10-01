@@ -35,3 +35,25 @@ describe("BT7-001 Kapurimon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 });
+
+describe("BT7-001 Kapurimon — KB Q&A rulings", () => {
+  it("gives +1000 DP with a Tamer of any color in play (Q1502)", async () => {
+    const hostDPWith = async (tamers: string[]): Promise<number> => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-010", under: ["BT7-001"], as: "host" }, ...tamers] },
+      });
+      await s.ready();
+      return s.perm("host").currentDP - s.perm("host").baseDP;
+    };
+    const redTai = "BT1-085";
+    const blueMatt = "BT1-086";
+    const yellowTK = "BT1-087";
+    const greenIzzy = "BT1-088";
+
+    expect(await hostDPWith([redTai])).toBe(1000);
+    expect(await hostDPWith([blueMatt])).toBe(1000);
+    expect(await hostDPWith([yellowTK])).toBe(1000);
+    expect(await hostDPWith([greenIzzy])).toBe(1000);
+    expect(await hostDPWith([])).toBe(0);
+  });
+});

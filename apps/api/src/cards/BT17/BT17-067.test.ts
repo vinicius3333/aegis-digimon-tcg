@@ -357,3 +357,82 @@ describe("BT17-067 DexDoruGreymon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-077")).toBe(true);
   });
 });
+
+describe("BT17-067 DexDoruGreymon — KB Q&A rulings", () => {
+  async function deleteByEffect(board: { battleArea: string; dexZone: "trash" | "hand" }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: board.battleArea, as: "victim" }],
+          hand: board.dexZone === "hand" ? ["BT17-067"] : [],
+          trash: board.dexZone === "trash" ? ["BT17-067"] : [],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const deleted = await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await settle();
+    return { s, deleted };
+  }
+
+  it("triggers only from the trash, when one of your [DoruGreymon] would be deleted (Q2821)", async () => {
+    const fromTrash = await deleteByEffect({ battleArea: "BT16-061", dexZone: "trash" });
+    expect(fromTrash.deleted).toBe(0);
+    expect(fromTrash.s.perm("victim").topCard.cardId).toBe("BT17-067");
+    expect(fromTrash.s.state.players[0]!.trash.some((card) => card.cardId === "BT17-067")).toBe(false);
+
+    const fromHand = await deleteByEffect({ battleArea: "BT16-061", dexZone: "hand" });
+    expect(fromHand.deleted).toBe(1);
+    expect(fromHand.s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(fromHand.s.state.players[0]!.hand.some((card) => card.cardId === "BT17-067")).toBe(true);
+
+    const notDoruGreymon = await deleteByEffect({ battleArea: "BT3-081", dexZone: "trash" });
+    expect(notDoruGreymon.deleted).toBe(1);
+    expect(notDoruGreymon.s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(notDoruGreymon.s.state.players[0]!.trash.some((card) => card.cardId === "BT17-067")).toBe(true);
+  });
+
+  it("still trashes a hand card and deletes instead of only the <Draw 1> (Q2824)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-061", as: "doruGreymon" }],
+          hand: [
+            { card: "BT17-067", as: "dexDoruGreymon" },
+            { card: "BT1-009", as: "discarded" },
+          ],
+          deck: [
+            { card: "BT1-010", as: "digivolutionBonus" },
+            { card: "BT1-011", as: "notDrawn" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "costSix" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("discarded").instanceId);
+    s.state.memory = 1;
+    const discardedId = s.inst("discarded").instanceId;
+    const costSixId = s.perm("costSix").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("doruGreymon").permanentId,
+        instanceId: s.inst("dexDoruGreymon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === costSixId));
+    await settle();
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([discardedId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("digivolutionBonus").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawn").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

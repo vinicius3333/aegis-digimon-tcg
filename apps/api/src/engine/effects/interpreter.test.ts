@@ -92,6 +92,31 @@ describe("duringAttack condition", () => {
   });
 });
 
+describe("memory gauge conditions", () => {
+  function contextOnOpponentsTurn(turnPlayerMemory: number): EffectContext {
+    const ctx = makeContext({ source: makeSource({ ownerSeat: 0 }), recorder: { calls: [] } });
+    Object.assign(ctx.game.state, { turnSeat: 1, memory: turnPlayerMemory });
+    return ctx;
+  }
+
+  it("reads the effect owner's side when no controller is given, even on the opponent's turn (Q3956)", () => {
+    const ownerAtTwo = contextOnOpponentsTurn(-2);
+
+    expect(evaluateCondition(ownerAtTwo, { kind: "memoryAtLeast", value: 2 })).toBe(true);
+    expect(evaluateCondition(ownerAtTwo, { kind: "memoryAtMost", value: 1 })).toBe(false);
+    expect(evaluateCondition(ownerAtTwo, { kind: "memoryAtLeast", value: 2, controller: "mine" })).toBe(true);
+    expect(evaluateCondition(ownerAtTwo, { kind: "memoryAtMost", value: 2, controller: "self" })).toBe(true);
+  });
+
+  it("reads the other side only for an explicit opponent controller", () => {
+    const opponentAtTwo = contextOnOpponentsTurn(2);
+
+    expect(evaluateCondition(opponentAtTwo, { kind: "memoryAtLeast", value: 2, controller: "opponent" })).toBe(true);
+    expect(evaluateCondition(opponentAtTwo, { kind: "memoryAtLeast", value: 1 })).toBe(false);
+    expect(evaluateCondition(opponentAtTwo, { kind: "memoryAtMost", value: -2 })).toBe(true);
+  });
+});
+
 describe("lastDeletedMatchesFilter", () => {
   function card(instanceId: string, cardId: string, ownerSeat: Seat): CardInstance {
     const value = new CardInstance();
@@ -1034,7 +1059,6 @@ function makeContext(opts: {
       rec.calls.push({ verb: "placeUnderFromDeck", args: a });
       return undefined;
     },
-    restoreDpReductions: record("restoreDpReductions"),
     placeUnderFromEggDeck: async (...a) => {
       rec.calls.push({ verb: "placeUnderFromEggDeck", args: a });
       return undefined;

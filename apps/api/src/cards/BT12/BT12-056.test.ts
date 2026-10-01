@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup, type SeatSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-056.js";
 
@@ -93,5 +93,57 @@ describe("BT12-056 GranKuwagamon", () => {
     await offTurn.ready();
     await advance(offTurn.engine).verb.suspend([offTurn.perm("target").permanentId]);
     expect(offTurn.state.memory).toBe(0);
+  });
+});
+
+describe("BT12-056 GranKuwagamon — KB Q&A rulings", () => {
+  const attackTargetRequests = (decisions: EngineSetup["decisions"]) =>
+    decisions.filter(({ req }) => req.kind === "selectCards" && (req.promptText ?? "").includes("attack target"));
+
+  const digivolveFromDinobeemon = async (opponent: SeatSpec) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-055", as: "gran" }],
+          hand: [{ card: "BT12-056", as: "card" }],
+          deck: ["BT1-010"],
+        },
+        1: opponent,
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gran").permanentId,
+        instanceId: s.inst("card").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gran").topCard.cardId === "BT12-056");
+    await drainMicrotasks();
+    return s;
+  };
+
+  it("ends without an attack when the opponent has no Digimon that can be attacked (Q2182)", async () => {
+    const s = await digivolveFromDinobeemon({
+      battleArea: [{ card: "BT12-094", as: "tamer" }],
+      security: ["BT1-011"],
+    });
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("gran"))).toBe(false);
+    expect(attackTargetRequests(s.decisions)).toEqual([]);
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("gran").topCard.cardId).toBe("BT12-056");
+
+    const control = await digivolveFromDinobeemon({
+      battleArea: [{ card: "BT1-009", as: "target" }],
+      security: ["BT1-011"],
+    });
+    expect(observe(control.engine).hasAttackedThisTurn(control.perm("gran"))).toBe(true);
+    expect(attackTargetRequests(control.decisions)).toHaveLength(1);
+    expect(control.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

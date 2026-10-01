@@ -1054,13 +1054,36 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   "BT7-073": [{ cost: 2, isAlternate: true, baseIsTamer: true, baseColors: ["Purple"] }],
   // BT7-112 (Susanoomon): digivolve from hand onto one of your Tamers (treated as a level 6
   // Digimon, cost 7) by placing 10 Tamer and/or [Hybrid]-trait cards from hand+trash at the
-  // bottom of the deck. Replaces the gateless generated `{cost:7, isAlternate:true}`.
+  // bottom of the deck. Replaces the gateless generated `{cost:7, isAlternate:true}`. Paying the
+  // placement still allows the ordinary level 6 Digimon base (KB Q1685).
   "BT7-112": [
+    {
+      cost: 7,
+      isAlternate: true,
+      level: 6,
+      sourceZones: ["hand"],
+      placementCost: { count: 10, from: ["hand", "trash"], kinds: ["Tamer"], traits: ["Hybrid"] },
+    },
     {
       cost: 7,
       isAlternate: true,
       baseIsTamer: true,
       placementCost: { count: 10, from: ["hand", "trash"], kinds: ["Tamer"], traits: ["Hybrid"] },
+    },
+  ],
+  // BT14-101 (WarGreymon): besides its Lv.5 [Greymon] path, [Agumon] may digivolve into it from
+  // the hand for 4 while you have a [Tai Kamiya] Tamer and the opponent has a 10000+ DP Digimon.
+  // Other digivolve effects may use that route too (KB Q2484).
+  "BT14-101": [
+    { level: 5, names: ["Greymon"], cost: 4, isAlternate: true },
+    {
+      cost: 4,
+      isAlternate: true,
+      namesExact: ["Agumon"],
+      sourceZones: ["hand"],
+      battleAreaOnly: true,
+      opponentDigimonDpMin: 10000,
+      controllerControls: { kind: ["Tamer"], names: ["Tai Kamiya"], min: 1 },
     },
   ],
   // BT18-102 (Susanoomon): "[Digivolve] Takuya Kanbara / Koji Minamoto: Cost 6 (if this Digimon
@@ -1669,6 +1692,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["Siriusmon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: {
         kind: "anyOf",
         conditions: [
@@ -1686,6 +1710,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["Gallantmon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: { kind: "opponentHasDigimonLevelAtLeast", level: 6 },
     },
   ],
@@ -1695,6 +1720,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["UlforceVeedramon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: { kind: "opponentHasDigimonLevelAtLeast", level: 6 },
     },
   ],
@@ -1706,6 +1732,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["ShineGreymon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: {
         kind: "anyOf",
         conditions: [
@@ -1722,16 +1749,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { traits: ["Three Musketeers"] },
       cost: 6,
       ignoreRequirements: true,
-    },
-  ],
-  // BT25-082 BlackGatomon (Q6387-Q6389).
-  "BT25-082": [
-    {
-      target: { traits: ["Three Musketeers"] },
-      cost: 4,
-      ignoreRequirements: true,
-      allTurns: true,
-      condition: { kind: "tamerHasText", text: "Three Musketeers" },
+      sourceZones: ["hand"],
     },
   ],
 };

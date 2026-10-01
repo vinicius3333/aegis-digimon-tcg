@@ -26,8 +26,7 @@ export function checkTurnEndAfterVerb(engine: GameEngine): void {
   // the continuation's own final check will run after every effect and decision.
   if (engine.mainVerbContinuationsInFlight > 0) return;
   // Nested plays/digivolutions can invoke engine hook while the outer card effect is
-  // still resolving. Blitz belongs after that whole effect window, never between its
-  // clauses or ahead of their target selections.
+  // still resolving; the turn-end check belongs after that whole effect window.
   if (engine.activeWindowToken !== undefined) return;
 
   // Effects resolved inside an attack (for example ST12-10 playing Sistermon Ciel)
@@ -39,45 +38,6 @@ export function checkTurnEndAfterVerb(engine: GameEngine): void {
   // whether the restored-memory turn remains open.
   if (engine.combat.isAttacking) return;
 
-  // ＜Blitz＞ (§16-22): when memory has crossed to the opponent but the turn
-  // player has an unsuspended Blitz Digimon that hasn't attacked engine turn, keep
-  // the Main phase open for one more attack. Skip the turn-end check so the
-  // player can declare the Blitz attack; after it resolves engine method is called
-  // again and the turn ends normally.
-  if (engine.memory.hasCrossedToOpponent()) {
-    const accepted = engine.combat
-      .blitzEligiblePermanentIds(engine.state.turnSeat)
-      .find((permanentId) => engine.acceptedBlitzAttackers.has(permanentId));
-    if (accepted !== undefined || engine.blitzDecisionInFlight) return;
-
-    const candidate = engine.combat
-      .blitzEligiblePermanentIds(engine.state.turnSeat)
-      .find((permanentId) => !engine.resolvedBlitzOpportunities.has(permanentId));
-    if (candidate !== undefined && engine.state.pendingDecision === undefined) {
-      const permanent = engine.access.permanentById(candidate);
-      engine.blitzDecisionInFlight = true;
-      void engine.decisions
-        .request({
-          seat: engine.state.turnSeat,
-          kind: "optional",
-          promptText: "Activate Blitz?",
-          ...(permanent?.topCard?.cardId !== undefined ? { sourceCardId: permanent.topCard.cardId } : {}),
-          options: { promptKey: "activateBlitz" },
-        })
-        .then((response) => {
-          engine.resolvedBlitzOpportunities.add(candidate);
-          if (response.kind === "optional" && response.accept) {
-            engine.acceptedBlitzAttackers.add(candidate);
-            engine.projection.syncAttackTargets();
-          }
-        })
-        .finally(() => {
-          engine.blitzDecisionInFlight = false;
-          checkTurnEndAfterVerb(engine);
-        });
-      return;
-    }
-  }
   engine.mainPhase.checkTurnEnd();
   if (engine.mainPhase.isOpen && !hasAnyMainPhaseAction(engine, engine.state.turnSeat)) {
     engine.mainPhase.endPhaseRequested(engine.state.turnSeat);

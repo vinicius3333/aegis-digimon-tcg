@@ -249,3 +249,75 @@ describe("BT21-010 Gammamon", () => {
     expect(inherited.perm("host").currentDP).toBe(6000);
   });
 });
+
+describe("BT21-010 Gammamon — KB Q&A rulings", () => {
+  it("cannot Arts Digivolve into a used Siriusmon DUAL card by ignoring requirements, since it is no longer in the hand (Q6944)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-010", as: "gammamon" },
+            { card: "BT1-020", as: "groundramon" },
+          ],
+          hand: [{ card: "EX12-018", as: "dual" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-011", as: "highest", dp: 7000 }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dual").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.promptText.includes("Arts Digivolve"));
+
+    // Lv.5 Groundramon meets Siriusmon's printed requirement, so the Arts Digivolve prompt is raised;
+    // Lv.3 Gammamon must not be offered even though its ignore-requirements gate is met.
+    const artsPrompts = s.decisions.filter(({ req }) => req.promptText.includes("Arts Digivolve"));
+    expect(artsPrompts).toHaveLength(1);
+    expect(artsPrompts[0]!.req.options?.candidateInstanceIds).toEqual([s.inst("groundramon").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: artsPrompts[0]!.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("dual").instanceId),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("gammamon").topCard.cardId).toBe("BT21-010");
+    expect(s.perm("groundramon").topCard.cardId).toBe("BT1-020");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("dual").instanceId);
+    expect(s.state.memory).toBe(5);
+
+    const inHand = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-010", as: "gammamon" }],
+          hand: [{ card: "EX12-018", as: "dual" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    inHand.state.memory = 10;
+    await inHand.ready();
+    expect(
+      inHand.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: inHand.perm("gammamon").topCard.instanceId,
+        effectKey: `BT21-010/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => inHand.perm("gammamon").topCard.cardId === "EX12-018");
+    expect(inHand.perm("gammamon").topCard.instanceId).toBe(inHand.inst("dual").instanceId);
+    expect(inHand.state.memory).toBe(6);
+  });
+});

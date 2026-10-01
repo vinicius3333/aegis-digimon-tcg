@@ -1,13 +1,16 @@
 import { getCardDefinition, getCompiledCard, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import "./EX3-012.js";
 import "./EX3-018.js";
 import "./EX3-065.js";
 import "../BT1/BT1-035.js";
 import "../BT23/BT23-084.js";
 import "../BT23/BT23-101.js";
+import "../EX5/EX5-060.js";
+import "./EX3-049.js";
+import "./EX3-051.js";
 
 describe("EX3-012 Volcanicdramon", () => {
   it("has its official identity and both printed evolution colors", () => {
@@ -494,5 +497,152 @@ describe("EX3-012 Volcanicdramon", () => {
 
     expect(s.state.players[1]!.breeding).toBeUndefined();
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("lopmon").instanceId);
+  });
+});
+
+describe("EX3-012 Volcanicdramon — KB Q&A rulings", () => {
+  async function armPlayProhibition(board: BoardSpec, options?: SetupEngineOptions) {
+    const s = setupEngine(
+      { ...board, 0: { ...board[0], hand: [{ card: "EX3-012", as: "volcanicdramon" }, ...(board[0]?.hand ?? [])] } },
+      options,
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("volcanicdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-012"),
+    );
+    return s;
+  }
+
+  it("stops only the opponent from playing Digimon with 5000 DP or less (Q4669)", async () => {
+    const s = await armPlayProhibition({
+      0: { hand: [{ card: "BT1-013", as: "ownSmall" }] },
+      1: {
+        hand: [
+          { card: "BT1-013", as: "atLimit" },
+          { card: "BT1-071", as: "aboveLimit" },
+        ],
+      },
+    });
+
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ownSmall").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-013"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("atLimit").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("aboveLimit").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-071"));
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("atLimit").instanceId]);
+  });
+
+  it("lets the opponent's effect reveal a 5000 DP or less Digimon but not play it (Q4670)", async () => {
+    const s = await armPlayProhibition(
+      {
+        1: {
+          hand: [
+            { card: "BT3-067", as: "base" },
+            { card: "EX3-051", as: "tankdramon" },
+          ],
+          deck: [
+            { card: "BT1-010", as: "digivolutionDraw" },
+            { card: "EX3-049", as: "revealedSmall" },
+            { card: "BT1-011", as: "revealedFiller" },
+            { card: "BT1-012", as: "otherRevealedFiller" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT3-067"));
+    const base = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "BT3-067")!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: s.inst("tankdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("revealedSmall").instanceId),
+    );
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX3-051"]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("revealedSmall").instanceId,
+        s.inst("revealedFiller").instanceId,
+        s.inst("otherRevealedFiller").instanceId,
+      ]),
+    );
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+  });
+
+  it("still lets my own effect play the opponent's 5000 DP or less Digimon (Q4671)", async () => {
+    const s = await armPlayProhibition(
+      {
+        0: { hand: [{ card: "EX5-060", as: "dragomon" }] },
+        1: { trash: [{ card: "BT1-013", as: "opponentSmall" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("opponentSmall").instanceId),
+    );
+
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("opponentSmall").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("stops the opponent's effect from playing my 5000 DP or less Digimon (Q4672)", async () => {
+    const s = await armPlayProhibition(
+      {
+        0: { trash: [{ card: "BT1-013", as: "mySmall" }] },
+        1: { hand: [{ card: "EX5-060", as: "dragomon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX5-060") &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX5-060"),
+    );
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("mySmall").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("mySmall").instanceId),
+    ).toBe(false);
   });
 });

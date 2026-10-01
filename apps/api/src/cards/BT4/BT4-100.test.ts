@@ -71,3 +71,34 @@ describe("BT4-100 Trident Revolver", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("BT4-100 Trident Revolver — KB Q&A rulings", () => {
+  it("still plays a Tamer with play cost 4 or less for free when the opponent has no Digimon with 6000 DP or less (Q1256)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT4-007"],
+          hand: [
+            { card: "BT4-100", as: "option" },
+            { card: "BT4-092", as: "cheapTamer" },
+            { card: "AD1-020", as: "expensiveTamer" },
+          ],
+        },
+        1: { battleArea: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    const tamerInPlay = (alias: string) =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst(alias).instanceId);
+    await settle(() => tamerInPlay("cheapTamer"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+    expect(tamerInPlay("expensiveTamer")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("expensiveTamer").instanceId]);
+  });
+});

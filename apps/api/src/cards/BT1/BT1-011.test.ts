@@ -134,3 +134,40 @@ describe("BT1-011 Agumon Expert", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("agumon").instanceId);
   });
 });
+
+describe("BT1-011 Agumon Expert — KB Q&A rulings", () => {
+  it("counts Digimon whose names contain Agumon without matching it exactly (Q874)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT1-011", as: "expert" }],
+        trash: [
+          { card: "BT1-013", as: "muchomon" },
+          { card: "BT2-055", as: "toyAgumon" },
+          { card: "BT8-022", as: "snowAgumon" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("expert").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const decision = s.decisions.at(-1)!.req;
+    expect([...decision.options!.candidateInstanceIds!].sort()).toEqual(
+      [s.inst("toyAgumon").instanceId, s.inst("snowAgumon").instanceId].sort(),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("snowAgumon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("snowAgumon").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("snowAgumon").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("muchomon").instanceId);
+  });
+});

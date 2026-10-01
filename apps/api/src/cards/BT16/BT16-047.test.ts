@@ -123,3 +123,39 @@ describe("BT16-047", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
+
+describe("BT16-047 Achillesmon — KB Q&A rulings", () => {
+  it("both trashes the opponent's top security card and gains 2 memory at exactly 3 security cards (Q2639)", async () => {
+    async function deleteInBattleWithSecurity(securityCount: number) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT16-047", as: "achilles" }],
+          security: Array.from({ length: securityCount }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }],
+          security: ["BT1-009", "BT1-010"],
+        },
+      });
+      s.state.memory = 5;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("achilles").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+      return s;
+    }
+
+    const exactlyThree = await deleteInBattleWithSecurity(3);
+    expect(exactlyThree.state.players[1]!.security).toHaveLength(1);
+    expect(exactlyThree.state.memory).toBe(7);
+
+    const onlyTwo = await deleteInBattleWithSecurity(2);
+    expect(onlyTwo.state.players[1]!.security).toHaveLength(2);
+    expect(onlyTwo.state.memory).toBe(7);
+  });
+});

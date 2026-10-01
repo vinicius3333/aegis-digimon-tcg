@@ -86,3 +86,42 @@ describe("BT8-005 Kyokyomon", () => {
     expect(s.perm("host").currentDP).toBe(before);
   });
 });
+
+describe("BT8-005 Kyokyomon — KB Q&A rulings", () => {
+  it("activates its inherited effect when an effect places Kyokyomon itself under a Digimon (Q1695)", async () => {
+    async function attackWithYujiPlacing(cardInHand: string) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT8-092", as: "yuji" },
+              { card: "BT8-060", as: "host" },
+            ],
+            hand: [{ card: cardInHand, as: "placed" }],
+          },
+          1: { security: ["BT1-093"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      const before = s.perm("host").currentDP;
+      expect(s.perm("host").stack.some((card) => card.cardId === "BT8-005")).toBe(false);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("placed").instanceId));
+      await settle();
+
+      expect(s.perm("yuji").isSuspended).toBe(true);
+      return s.perm("host").currentDP - before;
+    }
+
+    expect(await attackWithYujiPlacing("BT8-005")).toBe(1000);
+    expect(await attackWithYujiPlacing("BT8-060")).toBe(0);
+  });
+});

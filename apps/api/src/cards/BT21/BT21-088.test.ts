@@ -376,3 +376,68 @@ describe("BT21-088 Tagiru Akashi", () => {
     },
   );
 });
+
+describe("BT21-088 Tagiru Akashi — KB Q&A rulings", () => {
+  it("counts a Digimon whose ＜Save＞ appears only in its digivolution requirements as having ＜Save＞ in its text (Q4602)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-088", as: "tagiru" }],
+          hand: [
+            { card: "BT1-009", as: "noMention" },
+            { card: "BT12-076", as: "requirementMention" },
+          ],
+          deck: [{ card: "BT1-010", as: "effectDraw" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tagiru"));
+    await settle(() => s.state.memory === 4);
+
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("tagiru").stack.map((card) => card.instanceId)).toEqual([s.inst("requirementMention").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("noMention").instanceId,
+      s.inst("effectDraw").instanceId,
+    ]);
+    const placementChoices = s.decisions.filter(({ req }) => req.kind === "selectCards");
+    for (const { req } of placementChoices) {
+      expect(req.options?.candidateInstanceIds).not.toContain(s.inst("noMention").instanceId);
+    }
+  });
+
+  it("places the Start of Main Phase card at the bottom of the cards already under this Tamer (Q4603)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-088",
+              as: "tagiru",
+              under: [
+                { card: "BT1-009", as: "existingBottom" },
+                { card: "BT1-010", as: "existingTop" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT21-063", as: "saveDigimon" }],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tagiru"));
+    await settle(() => s.state.memory === 4);
+
+    expect(s.perm("tagiru").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("saveDigimon").instanceId,
+      s.inst("existingBottom").instanceId,
+      s.inst("existingTop").instanceId,
+    ]);
+  });
+});

@@ -29,7 +29,12 @@ import { printedKeywordsOf } from "./keywords.js";
  * rules.
  */
 export interface ContinuousLegalityReader {
-  hasRestriction(permanentId: string, restriction: Restriction): boolean;
+  hasRestriction(
+    permanentId: string,
+    restriction: Restriction,
+    sourceKind?: string,
+    opts?: { byOpponentEffect?: boolean; byEffect?: boolean },
+  ): boolean;
   hasKeyword(permanentId: string, keyword: string): boolean;
   /** Target-scoped "this attacker can't attack this Digimon" prohibitions. */
   cannotAttackTarget?(attackerPermanentId: string, targetPermanentId: string): boolean;

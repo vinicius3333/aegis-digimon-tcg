@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-054.js";
 import "../index.js";
 
@@ -154,5 +156,80 @@ describe("BT26-054 Andromon", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("host").permanentId);
+  });
+});
+
+describe("BT26-054 Andromon — KB Q&A rulings", () => {
+  it("redirects an attacker that isn't affected by the defender's effects (Q7056)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-025", as: "attacker", dp: 3000 }],
+          deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+        },
+        1: {
+          battleArea: [{ card: "BT26-058", as: "host", under: ["BT26-054"] }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(attackerId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("host").permanentId);
+    // Lamiamon trashes the top security only when its attack target changes.
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+  });
+
+  it("triggers once it becomes the top card after an effect places the card above it in the digivolution cards (Q7057)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT26-058",
+              as: "host",
+              under: [
+                { card: "BT22-043", as: "terriermon" },
+                { card: "BT26-054", as: "andromon" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT26-058", as: "evolution" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const sourceInstanceId = s.inst("terriermon").instanceId;
+    const effectKey = observe(s.engine)
+      .activatableEffects(s.perm("host"))
+      .find((effect) => effect.instanceId === sourceInstanceId && effect.effectKey.startsWith("BT22-043/"))?.effectKey;
+    expect(effectKey).toBeDefined();
+    s.state.memory = 0;
+
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: effectKey! })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolution").instanceId);
+
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT26-058", "BT22-043", "BT26-054"]);
+    expect(s.state.memory).toBe(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

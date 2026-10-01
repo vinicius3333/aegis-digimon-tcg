@@ -85,3 +85,41 @@ describe("P-027 MetalGarurumon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });
+
+describe("P-027 MetalGarurumon — KB Q&A rulings", () => {
+  it("lets [BT3-096 Mimi Tachikawa] activate when Digi-Burst uses an Option card (Q4136)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-027", as: "metalGarurumon", under: ["P-019", "P-034"] },
+            { card: "BT2-069" },
+            { card: "BT3-096", as: "mimi" },
+          ],
+          hand: [{ card: "BT2-107", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    const optionId = s.inst("option").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
+        effectKey: "P-027/digi-burst-use-option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId) &&
+        s.perm("mimi").isSuspended &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT3-096")).toBe(true);
+    expect(s.perm("mimi").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+});

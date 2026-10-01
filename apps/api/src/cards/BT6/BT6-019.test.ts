@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-019.js";
+import "./BT6-020.js";
 
 describe("BT6-019 Gabumon", () => {
   it("lets each Gabumon copy gain memory once when the same Matt Ishida is played", async () => {
@@ -83,5 +84,56 @@ describe("BT6-019 Gabumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+  });
+});
+
+describe("BT6-019 Gabumon — KB Q&A rulings", () => {
+  async function playTamerWithTwoGabumon(tamer: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-019", as: "firstGabumon" },
+            { card: "BT6-019", as: "secondGabumon" },
+          ],
+          hand: [{ card: tamer, as: "tamer" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    await drainMicrotasks(50);
+    return s;
+  }
+
+  it("gains 2 memory in total when two copies both see the same Matt Ishida being played (Q1412)", async () => {
+    const matt = await playTamerWithTwoGabumon("BT1-086");
+    await settle(() => matt.state.memory === 10 - 4 + 2);
+    expect(matt.state.memory).toBe(8);
+
+    const tai = await playTamerWithTwoGabumon("BT1-085");
+    expect(tai.state.memory).toBe(10 - 4);
+  });
+
+  it("meets a while-your-opponent-has-no-Digimon-with-XX condition when the opponent has no Digimon at all (Q1413)", async () => {
+    // Gabumon itself has no such condition; Gizamon's inherited effect under a Gabumon is the closest executable case.
+    const emptyBoard = setupEngine({
+      0: { battleArea: [{ card: "BT6-019", under: ["BT6-020"], as: "gabumon" }] },
+    });
+    await emptyBoard.ready();
+    expect(emptyBoard.state.players[1]!.battleArea).toHaveLength(0);
+    expect(emptyBoard.perm("gabumon").currentDP).toBe(emptyBoard.perm("gabumon").baseDP + 2000);
+
+    const opponentWithSources = setupEngine({
+      0: { battleArea: [{ card: "BT6-019", under: ["BT6-020"], as: "gabumon" }] },
+      1: { battleArea: [{ card: "BT1-010", under: ["BT1-001"] }] },
+    });
+    await opponentWithSources.ready();
+    expect(opponentWithSources.perm("gabumon").currentDP).toBe(opponentWithSources.perm("gabumon").baseDP);
   });
 });

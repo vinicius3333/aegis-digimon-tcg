@@ -11,7 +11,7 @@ describe("BT14-073", () => {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenTrashedFromHand",
+          event: "whenHandTrashed",
           fireCondition: { kind: "triggerByYourEffect" },
           actions: [{ kind: "GainMemory", amount: 1 }],
         },
@@ -19,7 +19,7 @@ describe("BT14-073", () => {
     });
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenTrashedFromHand", fireCondition: { kind: "triggerByYourEffect" } }],
+      actions: [{ kind: "SubTrigger", event: "whenHandTrashed", fireCondition: { kind: "triggerByYourEffect" } }],
     });
   });
   it("gains memory when an effect trashes a hand card", async () => {
@@ -128,5 +128,54 @@ describe("BT14-073", () => {
     expect(s.state.memory).toBe(-3);
     advance(s.engine).endMainPhaseIfOpen(0);
     await secondTurn;
+  });
+});
+
+async function digivolveIntoAnubismonTrashingOgremon(fieldOgremon: boolean) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "EX5-060", as: "base" },
+          ...(fieldOgremon ? [{ card: "BT14-073", as: "fieldOgremon" }] : []),
+        ],
+        hand: [
+          { card: "EX5-062", as: "anubismon" },
+          { card: "BT14-073", as: "handOgremon" },
+        ],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 8;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("anubismon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("handOgremon").instanceId,
+      ) && s.state.pendingDecision === undefined,
+  );
+  return s;
+}
+
+describe("BT14-073 Ogremon — KB Q&A rulings", () => {
+  it("does not gain memory when Anubismon trashes it from hand and then plays it from the trash (Q2443)", async () => {
+    const s = await digivolveIntoAnubismonTrashingOgremon(false);
+
+    expect(s.perm("base").topCard.cardId).toBe("EX5-062");
+    expect(s.perm("handOgremon").topCard.cardId).toBe("BT14-073");
+    expect(s.state.memory).toBe(3);
+
+    const withFieldOgremon = await digivolveIntoAnubismonTrashingOgremon(true);
+
+    expect(withFieldOgremon.perm("handOgremon").topCard.cardId).toBe("BT14-073");
+    expect(withFieldOgremon.state.memory).toBe(4);
   });
 });

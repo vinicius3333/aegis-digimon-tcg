@@ -200,3 +200,32 @@ describe("BT1-054 Liamon", () => {
     expect(s.perm("target").currentDP).toBe(3000);
   });
 });
+
+describe("BT1-054 Liamon — KB Q&A rulings", () => {
+  it("keeps the -2000 DP for the turn after memory later drops to 2 or less (Q914)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-054", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-016", as: "target", dp: 5000 }], security: ["ST2-13"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.memory === 1);
+    await advance(s.engine).finishAttack();
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("target").currentDP).toBe(3000);
+  });
+});

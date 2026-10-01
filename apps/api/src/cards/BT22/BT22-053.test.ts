@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-053.js";
 import "./index.js";
+import "../BT2/BT2-062.js";
+import "../BT2/BT2-082.js";
+import "../BT24/BT24-065.js";
 
 describe("BT22-053 Keramon", () => {
   it("reveals three cards and adds Arata plus an Unidentified or CS card", () => {
@@ -97,5 +101,47 @@ describe("BT22-053 Keramon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT5-084")).toBe(true);
+  });
+});
+
+describe("BT22-053 Keramon — KB Q&A rulings", () => {
+  async function deleteHostWithKeramonUnder(hostCard: string, extra: { battleArea?: string[]; hand?: string[] }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: hostCard, as: "host", under: ["BT22-053"] }, ...(extra.battleArea ?? [])],
+          hand: extra.hand ?? [],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT24-065"] },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    await settle();
+    const player = s.state.players[0]!;
+    return {
+      hostStayed: player.battleArea.some((permanent) => permanent.permanentId === hostId),
+      trash: player.trash.map((card) => card.cardId),
+    };
+  }
+
+  it("treats a Digimon whose effect text names [Diaboromon] as having [Diaboromon] in its text (Q4906)", async () => {
+    const textOnly = await deleteHostWithKeramonUnder("BT2-062", { battleArea: ["BT5-084"] });
+    expect(textOnly.hostStayed).toBe(true);
+    expect(textOnly.trash).toEqual(["BT5-084"]);
+
+    const noDiaboromonText = await deleteHostWithKeramonUnder("BT1-009", { battleArea: ["BT5-084"] });
+    expect(noDiaboromonText.hostStayed).toBe(false);
+    expect(noDiaboromonText.trash).not.toContain("BT5-084");
+  });
+
+  it("can delete the [Diaboromon] that Diaboromon (X Antibody)'s would-leave effect just played to keep the host (Q5644)", async () => {
+    const withDiaboromonInHand = await deleteHostWithKeramonUnder("BT24-065", { hand: ["BT2-082"] });
+    expect(withDiaboromonInHand.hostStayed).toBe(true);
+    expect(withDiaboromonInHand.trash).toEqual(["BT2-082"]);
+
+    const nothingToPlay = await deleteHostWithKeramonUnder("BT24-065", {});
+    expect(nothingToPlay.hostStayed).toBe(false);
   });
 });

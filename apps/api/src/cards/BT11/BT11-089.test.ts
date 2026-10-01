@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
 import { makeInstance as instance, setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT11-089.js";
@@ -160,5 +161,49 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
 
     expect(s.perm("akiho").isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("sea-animal"), "Rush")).toBe(false);
+  });
+});
+
+describe("BT11-089 Akiho Rindou — KB Q&A rulings", () => {
+  it("matches any trait containing Avian, Bird, Beast, Animal or Sovereign regardless of other words, except Sea Animal (Q2115)", async () => {
+    async function rushAfterEffectPlay(cardId: string) {
+      const s = setup(
+        { 0: { battleArea: [{ card: "BT11-089", as: "akiho" }], hand: [{ card: cardId, as: "played" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+      );
+      await s.ready();
+      await advance(s.engine).verb.playInstances([s.inst("played").instanceId], "BT11-089");
+      return {
+        akihoSuspended: s.perm("akiho").isSuspended,
+        rush: observe(s.engine).hasKeyword(s.perm("played"), "Rush"),
+      };
+    }
+    const traitsOf = (cardId: string) => getCardDefinition(cardId)?.types;
+
+    const compoundTraitCards: [string, string[]][] = [
+      ["BT1-014", ["Giant Bird"]],
+      ["BT1-022", ["Birdkin"]],
+      ["BT16-033", ["Mythical Beast"]],
+      ["BT15-071", ["Dark Animal", "X Antibody", "SoC"]],
+      ["BT8-019", ["Holy Bird", "Four Sovereigns"]],
+    ];
+    for (const [cardId, traits] of compoundTraitCards) {
+      expect(traitsOf(cardId)).toEqual(traits);
+      await expect(rushAfterEffectPlay(cardId)).resolves.toEqual({ akihoSuspended: true, rush: true });
+    }
+
+    expect(traitsOf("BT14-008")).toEqual(["Sea Animal"]);
+    await expect(rushAfterEffectPlay("BT14-008")).resolves.toEqual({ akihoSuspended: false, rush: false });
+
+    // No red Digimon prints a Sovereign trait without a Bird trait, so check the plural
+    // "Sovereigns" in isolation against the card's own trait filter.
+    const rushWatcher = compiled.effects[1]!.actions[0]!;
+    if (rushWatcher.kind !== "SubTrigger") throw new Error("expected the Rush watcher SubTrigger");
+    const [includedTraits] = rushWatcher.sourceFilter?.nameOrTrait ?? [];
+    const [excludedTraits] = rushWatcher.sourceFilter?.excludeNameOrTrait ?? [];
+    const withTraits = (types: string[]) => ({ nameEn: "Trait fixture", types });
+    expect(matchNameOrTrait(withTraits(["Four Sovereigns"]), includedTraits!)).toBe(true);
+    expect(matchNameOrTrait(withTraits(["Four Great Dragons"]), includedTraits!)).toBe(false);
+    expect(matchNameOrTrait(withTraits(["Sea Animal"]), excludedTraits!)).toBe(true);
   });
 });

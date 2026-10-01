@@ -74,7 +74,10 @@ it.each([0, 1] as const)("maps both HUDs to the presented players for viewer sea
       String(counts[seat]!.trash),
     ]);
   }
-  expect(screen.queryByText(`Named player ${viewerSeat}`)).toBeNull();
+  // The viewer's name shows once, as the thin line over their hand tray, not as a plate beside the counters.
+  expect(screen.getByText(`Named player ${viewerSeat}`).closest(".game-player-line")?.getAttribute("data-side")).toBe(
+    "player",
+  );
   expect(screen.queryByText(`· hand ${counts[viewerSeat]!.hand}`)).toBeNull();
 });
 

@@ -2,8 +2,9 @@
 
 import type { EffectContext } from "../../EffectContext.js";
 import { relocateByEffect } from "../costs.js";
+import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
 import { unsupported } from "../errors.js";
-import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
+import { definitionMatches, hasExactName, matchNameOrTrait } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
@@ -627,9 +628,10 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
   const requiredNamesExactUpTo = action.target.requiredNamesExactUpTo ?? [];
   const eligibleLooseCandidates =
     requiredNamesExactUpTo.length > 0
-      ? looseCandidates.filter((candidate) =>
-          requiredNamesExactUpTo.includes(ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? ""),
-        )
+      ? looseCandidates.filter((candidate) => {
+          const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+          return requiredNamesExactUpTo.some((name) => hasExactName(definition, name));
+        })
       : looseCandidates;
   // A named "up to one of each" selection may legitimately contain only the names
   // currently available. It still needs one candidate to make the optional action
@@ -806,9 +808,7 @@ export async function runTrashDigivolution(
   // reaction may collapse this whole operation onto ONE reacting Digimon's stack instead. The
   // loop below then re-applies the SAME fromTop/choose/amount logic to whichever ids come back,
   // which is what preserves the original action's count and selection kind after a redirect.
-  const permanentIds = ctx.fx.redirectDigivolutionTrashHosts
-    ? await ctx.fx.redirectDigivolutionTrashHosts(resolvedIds)
-    : resolvedIds;
+  const { hostPermanentIds: permanentIds, chooser } = await redirectDigivolutionTrash(ctx, resolvedIds);
   // Check the supply only after replacement chooses the actual host. Q2007 explicitly
   // permits SnowAgumon to choose a source-free Digimon and have Tactimon supply the
   // digivolution card instead; checking the original host would suppress that window.
@@ -852,7 +852,7 @@ export async function runTrashDigivolution(
       // controller decline each additional card. Asking one card at a time preserves
       // the printed bottom/top prefix; a free multi-card selection could skip a card.
       for (let i = 1; i < take; i++) {
-        if (!(await ctx.ask.optional(ctx, `Trash another digivolution card (${i + 1} of ${take})?`))) {
+        if (!(await chooser.optional(ctx, `Trash another digivolution card (${i + 1} of ${take})?`))) {
           take = i;
           break;
         }
@@ -866,7 +866,7 @@ export async function runTrashDigivolution(
       ids =
         candidateIds.length <= take && action.upTo !== true
           ? candidateIds
-          : await ctx.ask.selectCards(ctx, {
+          : await chooser.selectCards(ctx, {
               candidates: candidateIds,
               min: action.upTo === true ? Math.min(action.minAmount ?? 1, candidateIds.length) : take,
               max: take,

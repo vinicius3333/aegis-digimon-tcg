@@ -528,3 +528,44 @@ describe("BT19-040 Sakuyamon", () => {
     await loop;
   });
 });
+
+describe("BT19-040 Sakuyamon — KB Q&A rulings", () => {
+  it("plays the token when an effect uses an Option with an original cost of 2 or more without paying (Q5473)", async () => {
+    for (const [optionCard, expectedTokens] of [
+      ["BT1-102", 1],
+      ["ST3-13", 0],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT10-041", as: "maid" }],
+            hand: [
+              { card: "BT19-040", as: "saku" },
+              { card: optionCard, as: "option" },
+            ],
+            deck: ["BT19-030", "BT19-031", ...FILLER],
+            security: [...SECURITY],
+          },
+          1: { security: [...SECURITY], deck: [...FILLER] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("maid").permanentId,
+          instanceId: s.inst("saku").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.memory).toBe(2);
+      expect(tokens(s)).toHaveLength(expectedTokens);
+    }
+  });
+});

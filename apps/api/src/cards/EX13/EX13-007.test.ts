@@ -422,3 +422,43 @@ describe("EX13-007 Guilmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX13-007 Guilmon — KB Q&A rulings", () => {
+  it("lets a 'delete 4000 DP or less' effect delete a 6000 DP Digimon but not a 7000 DP one (Q7224)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "base" }],
+          hand: [{ card: "EX13-010", as: "growlmon" }],
+          deck: ["BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "aboveRaised", dp: 7000 },
+            { card: "BT1-014", as: "atRaised", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("aboveRaised").permanentId, s.inst("aboveRaised").instanceId);
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1, 20);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("atRaised").instanceId]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toEqual([
+      s.inst("aboveRaised").instanceId,
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

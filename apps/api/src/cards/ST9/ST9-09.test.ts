@@ -46,3 +46,31 @@ describe("ST9-09 Stingmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 });
+
+describe("ST9-09 Stingmon — KB Q&A rulings", () => {
+  async function attackWithStingmonUnder(hostCardId: string) {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: hostCardId, as: "host", under: ["ST9-09"] }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+      1: { security: ["BT1-010"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 3000);
+    return s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId);
+  }
+
+  it("draws when the Digimon holding it is itself the only blue Digimon (Q715)", async () => {
+    expect(await attackWithStingmonUnder("ST9-04")).toBe(true);
+    expect(await attackWithStingmonUnder("ST9-12")).toBe(false);
+  });
+});

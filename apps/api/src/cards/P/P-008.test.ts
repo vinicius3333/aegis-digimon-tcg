@@ -99,3 +99,40 @@ describe("P-008 WereGarurumon", () => {
     await loop;
   });
 });
+
+describe("P-008 WereGarurumon — KB Q&A rulings", () => {
+  it("does not unsuspend with only [Garurumon (X Antibody)] under it, but does with exact [Garurumon] (Q4114)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-008", as: "antibody", under: ["BT9-024"] },
+          { card: "P-008", as: "exact", under: ["BT1-036"] },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "firstTarget", suspended: true },
+          { card: "BT1-009", as: "secondTarget", suspended: true },
+        ],
+      },
+    });
+    await s.ready();
+
+    for (const [attacker, target] of [
+      ["antibody", "firstTarget"],
+      ["exact", "secondTarget"],
+    ] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "permanent", permanentId: s.perm(target).permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    }
+
+    expect(s.perm("antibody").isSuspended).toBe(true);
+    expect(s.perm("exact").isSuspended).toBe(false);
+  });
+});

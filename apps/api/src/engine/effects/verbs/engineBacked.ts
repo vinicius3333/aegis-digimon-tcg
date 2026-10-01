@@ -34,8 +34,9 @@ export function createEngineBackedVerbs(
             grant.instanceId === access.permanentById(permanentId)?.topCard?.instanceId && grant.isActive?.() !== false,
         ),
     prepareDigiXrosPlay: async (instanceId) => engine.prepareDigiXrosPlay?.(instanceId) ?? [],
-    prepareDigiXrosPlays: async (instanceIds) => {
-      if (engine.prepareDigiXrosPlays !== undefined) return engine.prepareDigiXrosPlays(instanceIds);
+    prepareDigiXrosPlays: async (instanceIds, simultaneousPlayCount) => {
+      if (engine.prepareDigiXrosPlays !== undefined)
+        return engine.prepareDigiXrosPlays(instanceIds, simultaneousPlayCount);
       const prepared: Record<string, string[]> = {};
       for (const instanceId of instanceIds)
         prepared[instanceId] = (await engine.prepareDigiXrosPlay?.(instanceId)) ?? [];

@@ -1,8 +1,20 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  type CardSpec,
+  type EngineSetup,
+  type PermanentSpec,
+  assertNoLoudGap,
+  drainMicrotasks,
+  setupEngine,
+  settle,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./BT18-015.js";
 import "./BT18-019.js";
+import "../BT2/BT2-077.js";
+import "../BT2/BT2-083.js";
+import "../BT11/BT11-072.js";
 import { compiled } from "./BT18-073.js";
 
 describe("BT18-073 Machinedramon", () => {
@@ -212,5 +224,142 @@ describe("BT18-073 Machinedramon", () => {
       expect.objectContaining({ kind: "attackDeclared", target: { kind: "permanent", permanentId: redirectId } }),
     );
     assertNoLoudGap(s);
+  });
+});
+
+async function deleteMachinedramonInBattle(mine: {
+  battleArea?: PermanentSpec[];
+  hand?: CardSpec[];
+  trash?: CardSpec[];
+}) {
+  const s = setupEngine(
+    {
+      0: {
+        ...mine,
+        battleArea: [{ card: "BT18-073", as: "machinedramon", dp: 5000, suspended: true }, ...(mine.battleArea ?? [])],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 7000 }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.turnSeat = 1;
+  expect(
+    s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("machinedramon").permanentId },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT18-073"));
+  await drainMicrotasks();
+  return s;
+}
+
+function millenniummonOf(s: EngineSetup) {
+  return s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT18-019");
+}
+
+describe("BT18-073 Machinedramon — KB Q&A rulings", () => {
+  it("triggers [On Play] together with Kimeramon's [On Deletion]; resolving Kimeramon first DNA digivolves this card away before its [On Play] (Q3014)", async () => {
+    async function playByDeletingKimeramon(firstTrigger: string) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT18-015", as: "kimeramon" }],
+            hand: [
+              { card: "BT18-073", as: "machinedramon" },
+              { card: "BT18-019", as: "millenniummon" },
+            ],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-060", as: "opponentFirst", under: ["BT1-030"] },
+              { card: "BT1-060", as: "opponentSecond", under: ["BT1-032"] },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [firstTrigger] },
+      );
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machinedramon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => millenniummonOf(s) !== undefined);
+      await drainMicrotasks();
+      const orderedTogether = s.decisions.some(
+        ({ req }) =>
+          req.kind === "orderTriggers" &&
+          (req.options?.triggerCardIds ?? []).includes("BT18-015") &&
+          (req.options?.triggerCardIds ?? []).includes("BT18-073"),
+      );
+      const materialIds = millenniummonOf(s)!.stack.map(({ instanceId }) => instanceId);
+      const opponentStackSizes = s.state.players[1]!.battleArea.map(({ stack }) => stack.length);
+      return { s, orderedTogether, materialIds, opponentStackSizes };
+    }
+
+    const kimeramonFirst = await playByDeletingKimeramon("BT18-015");
+    expect(kimeramonFirst.orderedTogether).toBe(true);
+    expect(kimeramonFirst.materialIds).toContain(kimeramonFirst.s.inst("machinedramon").instanceId);
+    expect(kimeramonFirst.opponentStackSizes).toEqual([1]);
+
+    const machinedramonFirst = await playByDeletingKimeramon("BT18-073");
+    expect(machinedramonFirst.orderedTogether).toBe(true);
+    expect(machinedramonFirst.opponentStackSizes).toEqual([0]);
+  });
+
+  it("cannot DNA digivolve into a [Millenniummon] that has no DNA digivolution requirement (Q3015)", async () => {
+    const withoutDna = await deleteMachinedramonInBattle({
+      battleArea: [{ card: "BT2-077", as: "kimeramon" }],
+      hand: [{ card: "BT2-083", as: "millenniummon" }],
+    });
+    expect(withoutDna.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      withoutDna.inst("millenniummon").instanceId,
+    );
+    expect(withoutDna.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT2-077"]);
+    expect(withoutDna.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT18-073");
+
+    const withDna = await deleteMachinedramonInBattle({
+      battleArea: [{ card: "BT2-077", as: "kimeramon" }],
+      hand: [{ card: "BT18-019", as: "millenniummon" }],
+    });
+    expect(millenniummonOf(withDna)).toBeDefined();
+  });
+
+  it("uses the deleted Machinedramon itself from the trash as a DNA material (Q3016)", async () => {
+    const s = await deleteMachinedramonInBattle({
+      battleArea: [{ card: "BT2-077", as: "kimeramon" }],
+      hand: [{ card: "BT18-019", as: "millenniummon" }],
+    });
+    const millenniummon = millenniummonOf(s);
+    expect(millenniummon).toBeDefined();
+    const materialIds = millenniummon!.stack.map(({ instanceId }) => instanceId);
+    expect(materialIds).toContain(s.inst("machinedramon").instanceId);
+    expect(materialIds).toContain(s.inst("kimeramon").instanceId);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT18-073")).toBe(false);
+  });
+
+  it("DNA digivolves only a [Kimeramon] in the battle area with a [Machinedramon] in the trash (Q3017)", async () => {
+    const kimeramonInTrash = await deleteMachinedramonInBattle({
+      battleArea: [{ card: "BT11-072", as: "otherMachinedramon" }],
+      hand: [{ card: "BT18-019", as: "millenniummon" }],
+      trash: [{ card: "BT2-077", as: "kimeramon" }],
+    });
+    expect(millenniummonOf(kimeramonInTrash)).toBeUndefined();
+    expect(kimeramonInTrash.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT18-019");
+
+    const kimeramonInPlay = await deleteMachinedramonInBattle({
+      battleArea: [
+        { card: "BT2-077", as: "kimeramon" },
+        { card: "BT11-072", as: "otherMachinedramon" },
+      ],
+      hand: [{ card: "BT18-019", as: "millenniummon" }],
+    });
+    const millenniummon = millenniummonOf(kimeramonInPlay);
+    expect(millenniummon).toBeDefined();
+    const materialIds = millenniummon!.stack.map(({ instanceId }) => instanceId);
+    expect(materialIds).toContain(kimeramonInPlay.inst("kimeramon").instanceId);
+    expect(materialIds).toContain(kimeramonInPlay.inst("machinedramon").instanceId);
+    expect(materialIds).not.toContain(kimeramonInPlay.inst("otherMachinedramon").instanceId);
+    expect(kimeramonInPlay.perm("otherMachinedramon").topCard.cardId).toBe("BT11-072");
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-082.js";
 import "./BT9-082.js";
 
@@ -158,5 +158,68 @@ describe("BT9-082 Ordinemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.filter((card) => oldSourceIds.has(card.instanceId))).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+  });
+});
+
+describe("BT9-082 Ordinemon — KB Q&A rulings", () => {
+  const setupOrdinemonWithSources = () =>
+    setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT9-082",
+              as: "ordinemon",
+              under: [
+                { card: "BT9-080", as: "oldRaguel" },
+                { card: "BT9-074", as: "oldMeicoomon" },
+              ],
+            },
+          ],
+          security: [{ card: "BT1-001", as: "cost", faceUp: false }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+  const deleteAndAwaitReplay = async (s: EngineSetup) => {
+    const ordinemonInstanceId = s.perm("ordinemon").topCard.instanceId;
+    const originalPermanentId = s.perm("ordinemon").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([originalPermanentId])).toBe(1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ordinemonInstanceId),
+    );
+    const replayed = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === ordinemonInstanceId,
+    );
+    expect(replayed).toBeDefined();
+    return { replayed: replayed!, originalPermanentId };
+  };
+
+  it("returns to play without its previous digivolution cards, which go to the trash (Q1877)", async () => {
+    const s = setupOrdinemonWithSources();
+    const oldSourceIds = [s.inst("oldRaguel").instanceId, s.inst("oldMeicoomon").instanceId];
+    expect(s.perm("ordinemon").stack.map(({ instanceId }) => instanceId)).toEqual(oldSourceIds);
+
+    const { replayed } = await deleteAndAwaitReplay(s);
+
+    expect(replayed.stack).toHaveLength(0);
+    expect(
+      s.state.players[0]!.trash.map(({ instanceId }) => instanceId).filter((id) => oldSourceIds.includes(id)),
+    ).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("re-enters play as a new Digimon without effects it had before deletion (Q1878)", async () => {
+    const s = setupOrdinemonWithSources();
+    await advance(s.engine).verb.modifyDP(s.perm("ordinemon").permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
+    expect(s.perm("ordinemon").currentDP).toBe(18000);
+
+    const { replayed, originalPermanentId } = await deleteAndAwaitReplay(s);
+    await advance(s.engine).recompute();
+    const recomputed = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === replayed.permanentId);
+
+    expect(replayed.permanentId).not.toBe(originalPermanentId);
+    expect(recomputed?.currentDP).toBe(15000);
   });
 });

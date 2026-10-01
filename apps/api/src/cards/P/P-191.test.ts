@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
+import type { ServerEvent } from "@aegis/shared";
 import "../BT10/BT10-042.js";
 import "../BT25/BT25-103.js";
 import "../BT8/BT8-030.js";
 import "../EX5/EX5-012.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-191.js";
+import "../BT22/BT22-077.js";
 
 describe("P-191 Apollomon", () => {
   it("encodes Light Fang/Night Claw evolution and Blast Digivolve", () => {
@@ -317,5 +319,180 @@ describe("P-191 Apollomon", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-191 Apollomon — KB Q&A rulings", () => {
+  const filler = (count: number) => Array.from({ length: count }, () => "BT3-059");
+
+  async function playApollomon(opponents: { as: string; dp: number }[], declinePrompts: string[] = []) {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-191", as: "source" }], deck: filler(20), security: filler(5) },
+        1: {
+          battleArea: opponents.map(({ as, dp }) => ({ card: "BT1-009", as, dp })),
+          deck: filler(20),
+          security: filler(5),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const firstDecision = s.decisions.length;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "P-191"),
+    );
+    return { s, decisions: s.decisions.slice(firstDecision) };
+  }
+
+  it("leaves a 0 DP Digimon on the field until the effect finishes, then the rule check deletes it (Q4980)", async () => {
+    const { s, decisions } = await playApollomon([{ as: "zeroed", dp: 4000 }], ["Delete "]);
+    const budgetPrompt = decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "P-191");
+    expect(budgetPrompt?.req.promptText).toContain("DP 0");
+    const effectEnd = s.events.findIndex((event) => event.kind === "effectResolved" && event.sourceCardId === "P-191");
+    const deletion = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.deletedPermanents !== undefined,
+    );
+    expect(deletion).toBeGreaterThan(effectEnd);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("reduces the DP of only 1 of the opponent's Digimon (Q4981)", async () => {
+    const { s } = await playApollomon([
+      { as: "first", dp: 20000 },
+      { as: "second", dp: 20000 },
+    ]);
+    expect([s.perm("first").currentDP, s.perm("second").currentDP].sort()).toEqual([16000, 20000]);
+  });
+
+  async function endTurnWithApollomon(acceptDna: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-191", as: "apollomon" },
+            { card: "BT8-030", as: "bluePartner" },
+          ],
+          hand: [{ card: "BT25-103", as: "grace" }],
+          deck: filler(20),
+          security: filler(5),
+        },
+        1: { deck: filler(20), security: filler(5) },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    const endOfTurnDone = () => s.state.turnSeat === 1;
+    while (!endOfTurnDone()) {
+      await settle(() => endOfTurnDone() || s.state.pendingDecision?.kind === "optional");
+      if (endOfTurnDone()) break;
+      const decision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+      const isDnaPrompt =
+        decision.sourceCardId === "P-191" &&
+        !s.events.some((event) => event.kind === "attackDeclared") &&
+        s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "P-191").length === 1;
+      const accept = decision.sourceCardId === "BT25-103" ? false : isDnaPrompt ? acceptDna : true;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    }
+    const attacks = s.events.filter(
+      (event): event is Extract<ServerEvent, { kind: "attackDeclared" }> => event.kind === "attackDeclared" && event.seat === 0,
+    );
+    const finish = async () => {
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, attacks, finish };
+  }
+
+  it("lets the DNA digivolved GraceNovamon attack with the same effect (Q4982)", async () => {
+    const { s, attacks, finish } = await endTurnWithApollomon(true);
+    const grace = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("grace").instanceId)!;
+    expect(grace).toBeDefined();
+    expect(attacks.map((event) => event.attackerPermanentId)).toEqual([grace.permanentId]);
+    await finish();
+  });
+
+  it("still lets 1 Digimon attack when the DNA digivolution is declined (Q4983)", async () => {
+    const { s, attacks, finish } = await endTurnWithApollomon(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("grace").instanceId);
+    expect(attacks).toHaveLength(1);
+    await finish();
+  });
+
+  it("does not activate its inherited effect after DNA digivolving into GraceNovamon at end of turn (Q4984)", async () => {
+    const { s, attacks, finish } = await endTurnWithApollomon(true);
+    const grace = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("grace").instanceId)!;
+    expect(grace.stack.map((card) => card.instanceId)).toContain(s.inst("apollomon").instanceId);
+    expect(attacks).toHaveLength(1);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" &&
+          event.sourceCardId === "P-191" &&
+          event.sourcePermanentId === grace.permanentId,
+      ),
+    ).toBe(false);
+    await finish();
+  });
+
+  async function endTurnWithDianamon(
+    suspended: boolean,
+    first: string,
+  ): Promise<{ s: EngineSetup; finish: () => Promise<void> }> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-077", as: "dianamon", suspended, under: ["P-191"] }],
+          deck: filler(20),
+          security: filler(5),
+        },
+        1: { deck: filler(20), security: filler(5) },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [first] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    const finish = async () => {
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, finish };
+  }
+
+  it("attacks with the inherited effect, then unsuspends with Dianamon's end-of-turn effect (Q4985)", async () => {
+    const { s, finish } = await endTurnWithDianamon(false, "P-191");
+    expect(s.events.filter((event) => event.kind === "attackDeclared" && event.seat === 0)).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.perm("dianamon").isSuspended).toBe(false);
+    await finish();
+  });
+
+  it("unsuspends a suspended Dianamon first, then attacks with the inherited effect (Q4986)", async () => {
+    const { s, finish } = await endTurnWithDianamon(true, "BT22-077");
+    expect(s.events.filter((event) => event.kind === "attackDeclared" && event.seat === 0)).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.perm("dianamon").isSuspended).toBe(true);
+    await finish();
   });
 });

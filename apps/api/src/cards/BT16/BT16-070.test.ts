@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-070.js";
@@ -98,5 +100,55 @@ describe("BT16-070", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === allyId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT16-070 Sethmon — KB Q&A rulings", () => {
+  it("can choose a Quantumon unaffected by Digimon effects and delete only the opponent's Digimon (Q2657)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-020", as: "quantumon" },
+            { card: "BT11-023", as: "veemon" },
+          ],
+          hand: [{ card: "BT16-070", as: "seth" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "withinDp", dp: 13000 },
+            { card: "BT1-009", as: "aboveDp", dp: 14000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    // The ledger entry Quantumon's [Start of Opponent's Turn] installs after a matching "Digimon" declaration.
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("quantumon").permanentId,
+      "beAffected",
+      EffectDuration.UntilEachTurnEnd,
+      { fromSourceKind: ["Digimon"] },
+    );
+    preferred.push(s.perm("quantumon").topCard!.instanceId, s.perm("aboveDp").topCard!.instanceId);
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("seth").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.perm("veemon").topCard?.cardId).toBe("BT16-070");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("aboveDp").permanentId,
+    ]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain("LM-020");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("LM-020");
   });
 });

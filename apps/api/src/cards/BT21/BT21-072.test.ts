@@ -220,3 +220,36 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
     expect(s.perm("base").currentDP).toBe(13000);
   });
 });
+
+describe("BT21-072 Arresterdramon: Superior Mode — KB Q&A rulings", () => {
+  it("accepts a level 4 whose <Save> appears only in its digivolution requirement as having <Save> in its text (Q4579)", async () => {
+    const digivolveFrom = async (baseCardId: string) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "BT21-072", as: "superior" }],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("superior").instanceId,
+        alternateRequirementIndex: 0,
+      });
+      if (result.ok) await settle(() => s.perm("base").topCard.cardId === "BT21-072");
+      return { result, topCardId: s.perm("base").topCard.cardId, memory: s.state.memory };
+    };
+
+    const dobermon = await digivolveFrom("BT12-076");
+    expect(dobermon.result).toEqual({ ok: true });
+    expect(dobermon.topCardId).toBe("BT21-072");
+    expect(dobermon.memory).toBe(1);
+
+    const tyrannomon = await digivolveFrom("BT1-016");
+    expect(tyrannomon.result).toMatchObject({ ok: false });
+    expect(tyrannomon.topCardId).toBe("BT1-016");
+    expect(tyrannomon.memory).toBe(4);
+  });
+});

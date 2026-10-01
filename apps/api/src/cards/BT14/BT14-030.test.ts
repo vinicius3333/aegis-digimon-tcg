@@ -392,3 +392,43 @@ describe("BT14-030", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT14-030 MarineAngemon — KB Q&A rulings", () => {
+  async function playMarineReturning(ownCost: "EX2-007" | "BT14-020") {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ownCost, as: "returnedOwn" }],
+          hand: [{ card: "BT14-030", as: "marine" }],
+          eggDeck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT14-020", as: "opponentLevel3" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("returnedOwn").topCard.instanceId);
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    await settle();
+    return s;
+  }
+
+  it("returns no opponent Digimon after Mother D-Reaper, which has no level, pays the return cost (Q2403)", async () => {
+    const mother = await playMarineReturning("EX2-007");
+    expect(mother.state.players[0]!.eggDeck.map((card) => card.cardId)).toContain("EX2-007");
+    expect(mother.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT14-020"]);
+    expect(mother.state.players[1]!.hand).toHaveLength(0);
+    assertNoLoudGap(mother);
+
+    const levelThree = await playMarineReturning("BT14-020");
+    expect(levelThree.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT14-020"]);
+    expect(levelThree.state.players[1]!.battleArea).toHaveLength(0);
+    expect(levelThree.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT14-020"]);
+    assertNoLoudGap(levelThree);
+  });
+});

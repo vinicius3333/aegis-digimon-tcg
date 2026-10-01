@@ -138,3 +138,38 @@ describe("BT1-034 Ikkakumon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT1-034 Ikkakumon — KB Q&A rulings", () => {
+  it("stops opposing Digimon with no digivolution cards from blocking the Digimon that has this inherited effect (Q891)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-038", as: "attacker", dp: 1000, under: ["BT1-034"] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-072", as: "bareBlocker" },
+          { card: "BT1-072", as: "evolvedBlocker", under: ["BT1-066"] },
+        ],
+        security: ["BT1-010"],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
+
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("bareBlocker").permanentId }).ok,
+    ).toBe(false);
+    expect(s.perm("bareBlocker").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("evolvedBlocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("evolvedBlocker").isSuspended);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});

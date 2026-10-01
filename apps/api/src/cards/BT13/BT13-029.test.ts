@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-029.js";
 import "../ST2/ST2-16.js";
 import "./BT13-030.js";
+import "../BT11/BT11-074.js";
 
 describe("BT13-029 MachGaogamon", () => {
   it("locks the attack target for the turn and unsuspends on opponent-hand additions", () => {
@@ -184,5 +185,43 @@ describe("BT13-029 MachGaogamon", () => {
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
       expect.arrayContaining([firstOptionId, secondOptionId, thirdOptionId]),
     );
+  });
+});
+
+describe("BT13-029 MachGaogamon — KB Q&A rulings", () => {
+  async function attackIntoTargetSwitcher(opponentHandSize: number) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-029", as: "mach" }] },
+        1: {
+          hand: Array.from({ length: opponentHandSize }, () => "BT13-021"),
+          battleArea: [{ card: "BT11-074", as: "switcher" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mach").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 3000);
+    return s;
+  }
+
+  it("also stops an effect that switches the attack target to the opponent's Digimon, not only Blocker (Q2280)", async () => {
+    const locked = await attackIntoTargetSwitcher(8);
+    expect(locked.events.some((event) => event.kind === "attackDeclared" && event.redirected === true)).toBe(false);
+    expect(locked.state.players[1]!.security).toHaveLength(0);
+    expect(locked.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT13-029"]);
+
+    const unlocked = await attackIntoTargetSwitcher(7);
+    expect(unlocked.events.some((event) => event.kind === "attackDeclared" && event.redirected === true)).toBe(true);
+    expect(unlocked.state.players[1]!.security).toHaveLength(1);
+    expect(unlocked.state.players[0]!.battleArea).toHaveLength(0);
   });
 });

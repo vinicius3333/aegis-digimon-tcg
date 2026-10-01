@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
+import { AegisEmblem } from "./design/AegisLogo";
+import { CircuitBackdrop } from "./design/CircuitBackdrop";
 import { colorKey, type ColorName } from "./design/theme";
 import {
   activeCollectionCards,
@@ -14,17 +16,9 @@ import {
 import type { AegisJoinOptions } from "./net/types";
 import type { PrivateRoom, StartMode } from "./screens/Lobby";
 import { Settings } from "./screens/Settings";
-import {
-  loadIdentity,
-  saveIdentity,
-  loadDecks,
-  saveDecks,
-  loadActiveDeckId,
-  saveActiveDeckId,
-  loadDarkMode,
-  saveDarkMode,
-} from "./identity";
+import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
 import { accentForAvatar } from "./guest";
+import { applyDarkMode, setDarkMode, useDarkMode } from "./design/darkMode";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
 import { usePreferencesSync } from "./account/usePreferencesSync";
@@ -34,6 +28,7 @@ import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
+import { isUiPreviewPath } from "./prototype/routes";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
@@ -49,6 +44,7 @@ const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
 const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
+const UiPreview = lazy(() => import("./prototype/UiPreview").then((m) => ({ default: m.UiPreview })));
 const MobileComponentsLab = lazy(() =>
   import("./dev/MobileComponentsLab").then((m) => ({ default: m.MobileComponentsLab })),
 );
@@ -75,7 +71,10 @@ function ScreenFallback() {
   const { t } = useTranslation();
   return (
     <div className="aegis-screen-fallback" role="status" aria-live="polite">
-      <span className="aegis-loading-mark" aria-hidden="true" />
+      <span className="aegis-screen-fallback__mark" aria-hidden="true">
+        <span className="aegis-loading-mark" />
+        <AegisEmblem size={36} />
+      </span>
       {t("common.loading")}
     </div>
   );
@@ -126,6 +125,8 @@ export function App() {
           <BattleLab />
         ) : isMobileComponentsLabPath(pathname) ? (
           <MobileComponentsLab />
+        ) : isUiPreviewPath(pathname) ? (
+          <UiPreview />
         ) : (
           <AppShell />
         )}
@@ -138,7 +139,8 @@ function AppShell() {
   const [player, setPlayer] = useState<PlayerIdentity>(loadIdentity);
   const [decks, setDecks] = useState<DeckListing[]>(loadDecks);
   const [activeDeckId, setActiveDeckId] = useState<string>(() => loadActiveDeckId(selectableDecks(loadDecks())));
-  const [dark, setDark] = useState(loadDarkMode);
+  const dark = useDarkMode();
+  const setDark = setDarkMode;
   const [account, setAccount] = useState<RemoteAccount | null>();
 
   useEffect(() => {
@@ -158,9 +160,7 @@ function AppShell() {
       const remote = await accountApi.decks();
       const remoteIds = new Set(remote.map((deck) => deck.id));
       const localDecks = loadDecks();
-      const localOnly = localDecks
-        .filter((deck) => !remoteIds.has(deck.id))
-        .slice(0, Math.max(0, 100 - remote.length));
+      const localOnly = localDecks.filter((deck) => !remoteIds.has(deck.id)).slice(0, Math.max(0, 100 - remote.length));
       for (const deck of localOnly) await accountApi.saveDeck(deck);
       // Decks saved before the api stored covers come back without one; keep the local choice and backfill it.
       const localCovers = new Map(localDecks.map((deck) => [deck.id, deck.coverCardId]));
@@ -176,10 +176,7 @@ function AppShell() {
     saveActiveDeckId(activeDeckId);
   }, [activeDeckId]);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    saveDarkMode(dark);
-  }, [dark]);
+  useEffect(applyDarkMode, []);
 
   usePreferencesSync({ accountId: account?.id, dark, setDark });
 
@@ -336,6 +333,7 @@ export function AegisClient({
   const joinOptions = useMemo<AegisJoinOptions>(
     () => ({
       displayName: effectivePlayer.name,
+      avatarId: effectivePlayer.avatarId ?? undefined,
       deckId: matchDeck?.id,
       deckName: matchDeck?.name,
       deck: {
@@ -345,7 +343,7 @@ export function AegisClient({
         eggDeckArts: matchDeck?.eggDeckArts,
       },
     }),
-    [effectivePlayer.name, matchDeck],
+    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck],
   );
 
   const showNav = NAV_SCREENS.includes(screen);
@@ -361,6 +359,7 @@ export function AegisClient({
 
   return (
     <Stage>
+      {screen === "game" ? null : <CircuitBackdrop />}
       {showNav ? (
         <TopNav
           screen={screen}
@@ -368,6 +367,9 @@ export function AegisClient({
           player={effectivePlayer}
           signedIn={!!account}
           onOpenPlayerMenu={() => setPlayerMenuOpen(true)}
+          dark={dark}
+          onToggleDark={setDark}
+          onSendFeedback={() => setBugReportOpen(true)}
         />
       ) : null}
 

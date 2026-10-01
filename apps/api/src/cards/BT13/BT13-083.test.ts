@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-083.js";
+import "../BT11/BT11-088.js";
 
 describe("BT13-083 Gizmon: AT", () => {
   it("reduces play cost by deleting a level 3 Digimon", () => {
@@ -197,5 +198,93 @@ describe("BT13-083 Gizmon: AT", () => {
     expect(s.state.players[0]!.deck.slice(-2).map((card) => card.cardId)).toEqual(["BT13-080", "BT13-083"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT13-086");
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-086")).toBe(false);
+  });
+});
+
+describe("BT13-083 Gizmon: AT — KB Q&A rulings", () => {
+  it("cannot digivolve but can be placed under another Digimon by a card effect (Q2328)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-088", as: "bagramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT13-083", as: "gizmon" },
+            { card: "BT1-038", as: "host" },
+            { card: "BT13-082", as: "peckmon" },
+          ],
+          hand: [{ card: "BT13-085", as: "crowmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true, preferInstanceIds },
+    );
+    const gizmonCardId = s.perm("gizmon").topCard!.instanceId;
+    const gizmonPermanentId = s.perm("gizmon").permanentId;
+    preferInstanceIds.push(gizmonCardId);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: gizmonPermanentId,
+        instanceId: s.inst("crowmon").instanceId,
+      }),
+    ).not.toEqual({ ok: true });
+    expect(s.perm("gizmon").topCard?.cardId).toBe("BT13-083");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("peckmon").permanentId,
+        instanceId: s.inst("crowmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("peckmon").topCard?.cardId === "BT13-085");
+
+    s.state.turnSeat = 0;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("bagramon"));
+    const gizmonIsDigivolutionCard = () =>
+      s.state.players[1]!.battleArea.some(
+        (permanent) =>
+          permanent.permanentId !== gizmonPermanentId &&
+          permanent.stack.some((card) => card.instanceId === gizmonCardId),
+      );
+    await settle(gizmonIsDigivolutionCard);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === gizmonPermanentId)).toBe(false);
+    expect(gizmonIsDigivolutionCard()).toBe(true);
+  });
+
+  it("can return this card itself from the trash as part of its [On Deletion] cost (Q2329)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "gizmon" }],
+          trash: [
+            { card: "BT13-080", as: "returnable" },
+            { card: "BT13-086", as: "xt" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const selfId = s.perm("gizmon").topCard!.instanceId;
+    const returnableId = s.inst("returnable").instanceId;
+    const xtId = s.inst("xt").instanceId;
+    preferInstanceIds.push(selfId, returnableId);
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === xtId));
+
+    const returnCost = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && JSON.stringify(req).includes(returnableId),
+    );
+    expect(JSON.stringify(returnCost?.req)).toContain(selfId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([selfId, returnableId]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(selfId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([xtId]);
   });
 });

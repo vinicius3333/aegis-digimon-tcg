@@ -109,6 +109,60 @@ describe("BT12-078 Wizardmon (X Antibody)", () => {
   });
 });
 
+describe("BT12-078 Wizardmon (X Antibody) — KB Q&A rulings", () => {
+  it("cannot trash the top 2 deck cards when digivolving with Wizardmon in its stack; it gains Blocker instead (Q2215)", async () => {
+    const fromWizardmon = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-071", as: "base" }],
+          hand: [{ card: "BT12-078", as: "wizardX" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    fromWizardmon.state.memory = 3;
+    await fromWizardmon.ready();
+    expect(
+      fromWizardmon.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: fromWizardmon.perm("base").permanentId,
+        instanceId: fromWizardmon.inst("wizardX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(fromWizardmon.engine).hasKeyword(fromWizardmon.perm("base"), "Blocker"));
+    await settle();
+    expect(fromWizardmon.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(fromWizardmon.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011"]);
+    expect(fromWizardmon.state.players[0]!.trash).toHaveLength(0);
+
+    const fromOtherDigimon = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-075", as: "base" }],
+          hand: [{ card: "BT12-078", as: "wizardX" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    fromOtherDigimon.state.memory = 3;
+    await fromOtherDigimon.ready();
+    expect(
+      fromOtherDigimon.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: fromOtherDigimon.perm("base").permanentId,
+        instanceId: fromOtherDigimon.inst("wizardX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => fromOtherDigimon.state.players[0]!.trash.length === 2);
+    expect(fromOtherDigimon.state.players[0]!.deck).toHaveLength(0);
+    expect(fromOtherDigimon.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011"]);
+    expect(observe(fromOtherDigimon.engine).hasKeyword(fromOtherDigimon.perm("base"), "Blocker")).toBe(false);
+  });
+});
+
 describe("BT12-078 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT12-078")).toEqual(X_ANTIBODY_NAME_PROBES);

@@ -8,7 +8,7 @@ import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { ownAlliancePromptCardId } from "./combatWindowModel";
-import { counterTargetIds } from "./overlay/combat/CounterOverlay";
+import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
@@ -20,6 +20,7 @@ import { boardActions } from "./screen/boardActions";
 import { matchIntents } from "./screen/matchIntents";
 import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
 import { pendingMatchNotice } from "./screen/model/pendingMatchNotice";
+import { sourceHostChoiceFor } from "./screen/model/sourceHostChoice";
 import { BoardStage, type BoardAnchors } from "./screen/layout/BoardStage";
 import { BreedingDock } from "./screen/layout/BreedingDock";
 import { MatchOverlays } from "./screen/layout/MatchOverlays";
@@ -78,7 +79,7 @@ import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
-import { useBattlefieldStyle } from "../design/battlefield";
+import { useArenaBoardLook } from "./arenaLook";
 import "./game.css";
 import "./arena.css";
 import "./arenaMobile.css";
@@ -93,7 +94,7 @@ import {
   breedingSlotClickAction,
 } from "./boardModel";
 import { openCombatWindow, mirroredCombatWindow } from "./combatWindowModel";
-import { buildInstanceIndex } from "./decisionModel";
+import { buildInstanceIndex, instancePermanentId } from "./decisionModel";
 import { digivolveBasePermanentIds } from "./digivolveModel";
 import { buildMatchLog, type LogLine } from "./matchLog";
 import { useMatchCues } from "./useMatchCues";
@@ -265,7 +266,6 @@ export function GameScreen({
 
   const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
 
-  const battlefield = useBattlefieldStyle();
   const boardRef = useRef<HTMLDivElement | null>(null);
   const fieldRef = useRef<HTMLDivElement | null>(null);
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -312,6 +312,9 @@ export function GameScreen({
   // intent and the reason, not the card, so the card is the one this client last
   // sent a play for — the only thing that could have been refused.
   const [shakeHandInstanceId, setShakeHandInstanceId] = useState<string | undefined>(undefined);
+  // The Digimon whose digivolution cards a one-card source pick is narrowed to. Keyed by the
+  // decision, so the next decision starts back at choosing a Digimon.
+  const [chosenSourceHost, setChosenSourceHost] = useState<{ decisionId: string; permanentId: string }>();
   const lastPlayAttemptRef = useRef<string | undefined>(undefined);
   // Measured boxes of the permanents a target prompt is offering, for the mask.
 
@@ -496,6 +499,7 @@ export function GameScreen({
 
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
+  const arenaLook = useArenaBoardLook({ viewer: you, opponent: opp });
 
   useEffect(() => {
     if (!optimisticPlayedInstanceId) return;
@@ -689,6 +693,13 @@ export function GameScreen({
   const counterSourceChoices =
     combatWindows.counterWindow?.eligibleCounters.filter((choice) => choice.instanceId === counterSourceInstanceId) ??
     [];
+  const { fieldSourceByPermanent: counterFieldSources, mustPickSource: counterMustPickSource } = counterSources({
+    eligibleCounters: combatWindows.counterWindow?.eligibleCounters ?? [],
+    handInstanceIds: counterHandInstanceIds,
+    fieldPermanentOf: (instanceId) => instancePermanentId(state, instanceId),
+  });
+  const counterPickableFieldSourceOf = (permanentId: string) =>
+    counterMustPickSource ? counterFieldSources.get(permanentId) : undefined;
   const counterHostIds = new Set(
     counterSourceChoices.flatMap((choice) => {
       const target = counterTargetIds(choice.effectKey);
@@ -813,6 +824,7 @@ export function GameScreen({
     state,
     instanceIndex,
     permanents: allPermanents,
+    breedingPermanents: [you.breeding, opp.breeding].filter((permanent) => permanent !== undefined),
     handInstanceIds,
   });
   const fieldDecision =
@@ -827,6 +839,7 @@ export function GameScreen({
   const {
     viewerDecision,
     decisionHighlightPermanentId,
+    decisionBreedingSourcePermanentId,
     decisionSelectable,
     decisionVisibleCardIds,
     decisionInstanceColors,
@@ -857,6 +870,27 @@ export function GameScreen({
   const toggleDecisionPick = (instanceId: string) => {
     if (!decisionAllowsPick(instanceId)) return;
     setPicks((current) => nextDecisionPicks({ picks: current, instanceId, max: decisionMax }));
+  };
+  const sourceHostChoice = sourceHostChoiceFor({
+    decision: viewerDecision,
+    answerOnBoard: decisionView.answerOnBoard,
+    candidates: decisionView.decisionVisible,
+    yourBattleArea: you.battleArea,
+    max: decisionMax,
+  });
+  const chosenSourceHostId =
+    sourceHostChoice !== undefined &&
+    chosenSourceHost !== undefined &&
+    chosenSourceHost.decisionId === viewerDecision?.decisionId &&
+    sourceHostChoice.cardIdsByHost.has(chosenSourceHost.permanentId)
+      ? chosenSourceHost.permanentId
+      : undefined;
+  const pickingSourceHost = sourceHostChoice !== undefined && chosenSourceHostId === undefined;
+  const chooseSourceHost = (permanentId: string | undefined) => {
+    setPicks([]);
+    setChosenSourceHost(
+      viewerDecision && permanentId ? { decisionId: viewerDecision.decisionId, permanentId } : undefined,
+    );
   };
   const securityDecisionTargetId =
     fieldDecision && decisionView.viewerDecision?.options?.selectionContext === "attackTarget"
@@ -944,6 +978,9 @@ export function GameScreen({
       pileWidth={arenaPileWidth}
       compactPiles={compactPiles}
       burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
+      effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
+      effectLinked={!!breedingYou.breeding && effectLinkedPermanentIds.has(breedingYou.breeding.permanentId)}
+      highlight={!!breedingYou.breeding && decisionBreedingSourcePermanentId === breedingYou.breeding.permanentId}
       eggDeckRiffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
       actionsOpen={breedingActionsOpen}
       canHatchEgg={canHatchEgg}
@@ -989,6 +1026,16 @@ export function GameScreen({
       allowsPick={decisionAllowsPick}
       onTogglePick={toggleDecisionPick}
       combatWindows={combatWindows}
+      combatPromptsHeld={cues.decisionAnimationsPending}
+      sourceHost={
+        sourceHostChoice
+          ? {
+              picking: pickingSourceHost,
+              cardIds: chosenSourceHostId ? sourceHostChoice.cardIdsByHost.get(chosenSourceHostId) : undefined,
+              onChangeHost: () => chooseSourceHost(undefined),
+            }
+          : undefined
+      }
       counterSelection={{
         instanceId: counterSourceInstanceId,
         targetPermanentId: counterHandChoice?.targetPermanentId,
@@ -1037,7 +1084,10 @@ export function GameScreen({
       handDockRef={yourHandDockRef}
       onExit={onExit}
       returnsToRoom={isPrivateMatch}
-      onRematch={onRematch ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined) : () => onExit("lobby")}
+      arenaDeckColors={arenaLook.deckColors}
+      onRematch={
+        onRematch ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined) : () => onExit("lobby")
+      }
     />
   );
 
@@ -1070,7 +1120,7 @@ export function GameScreen({
       opponent={opp}
       viewerSeat={viewerSeat}
       room={room}
-      battlefield={battlefield}
+      look={arenaLook}
       layout={layout}
       anchors={anchors}
       cues={cues}
@@ -1102,19 +1152,23 @@ export function GameScreen({
           : undefined,
         isBasePermanent: (perm) =>
           combatWindows.counterWindow
-            ? counterHostIds.has(perm.permanentId)
+            ? counterHostIds.has(perm.permanentId) || counterPickableFieldSourceOf(perm.permanentId) !== undefined
             : combatWindows.blockWindow
               ? combatWindows.blockWindow.eligibleBlockerIds.includes(perm.permanentId)
               : combatWindows.allianceWindow
                 ? combatWindows.allianceWindow.eligibleAllyIds.includes(perm.permanentId)
-                : fieldDecision
-                  ? decisionCandidateIdFor(perm) !== undefined
-                  : (handIsDigi && eligibleBase(perm)) ||
-                    dragBasePermanentIds.has(perm.permanentId) ||
-                    (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
+                : pickingSourceHost
+                  ? sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true
+                  : fieldDecision
+                    ? decisionCandidateIdFor(perm) !== undefined
+                    : (handIsDigi && eligibleBase(perm)) ||
+                      dragBasePermanentIds.has(perm.permanentId) ||
+                      (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
         isDecisionCandidate: (perm) =>
+          (combatWindows.counterWindow !== undefined && counterPickableFieldSourceOf(perm.permanentId) !== undefined) ||
           combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId) === true ||
           combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) === true ||
+          (pickingSourceHost && sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true) ||
           (fieldDecision && decisionCandidateIdFor(perm) !== undefined),
       }}
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
@@ -1164,11 +1218,13 @@ export function GameScreen({
                 const choices = counterSourceChoices.filter(
                   (choice) => counterTargetIds(choice.effectKey)?.permanentId === perm.permanentId,
                 );
+                const fieldSource = counterPickableFieldSourceOf(perm.permanentId);
                 if (choices.length === 1) combatWindowAnswers.onCounter(choices[0]!.instanceId, choices[0]!.effectKey);
                 else if (choices.length > 1)
                   setCounterHandChoice((current) =>
                     current ? { ...current, targetPermanentId: perm.permanentId } : current,
                   );
+                else if (fieldSource) selectCounterSource(fieldSource);
                 else setZoomCardId(perm.topCard.cardId);
               },
             }
@@ -1191,23 +1247,31 @@ export function GameScreen({
                     } else setZoomCardId(perm.topCard.cardId);
                   },
                 }
-              : fieldDecision
+              : pickingSourceHost
                 ? {
                     ...actions,
                     onYourPerm: (perm) => () => {
-                      const candidateId = decisionCandidateIdFor(perm);
-                      if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
-                        toggleDecisionPick(candidateId);
-                      else actions.onYourPerm(perm)?.();
-                    },
-                    onOppPerm: (perm) => () => {
-                      const candidateId = decisionCandidateIdFor(perm);
-                      if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
-                        toggleDecisionPick(candidateId);
-                      else actions.onOppPerm(perm)?.();
+                      if (sourceHostChoice?.cardIdsByHost.has(perm.permanentId)) chooseSourceHost(perm.permanentId);
+                      else setZoomCardId(perm.topCard.cardId);
                     },
                   }
-                : actions
+                : fieldDecision
+                  ? {
+                      ...actions,
+                      onYourPerm: (perm) => () => {
+                        const candidateId = decisionCandidateIdFor(perm);
+                        if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                          toggleDecisionPick(candidateId);
+                        else actions.onYourPerm(perm)?.();
+                      },
+                      onOppPerm: (perm) => () => {
+                        const candidateId = decisionCandidateIdFor(perm);
+                        if (candidateId && (picks.includes(candidateId) || decisionAllowsPick(candidateId)))
+                          toggleDecisionPick(candidateId);
+                        else actions.onOppPerm(perm)?.();
+                      },
+                    }
+                  : actions
       }
       senders={matchSenders}
       drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}

@@ -32,7 +32,33 @@ describe("ST23-12 Chiropmon", () => {
     expect(s.perm("tamer").stack.some((card) => card.instanceId === underId)).toBe(false);
   });
 
-  it("can return the Glowing Dawn Digimon that was just trashed to pay the effect cost", async () => {
+  it("uses inherited Retaliation when its host loses a real battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST6-07", as: "host", under: ["ST23-12"] }] },
+      1: { battleArea: [{ card: "ST6-09", as: "target", suspended: true }] },
+    });
+    const hostId = s.perm("host").permanentId;
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.find((event) => event.kind === "combatResolved")).toMatchObject({
+      kind: "combatResolved",
+      deletedPermanentIds: [hostId],
+    });
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+  });
+});
+
+describe("ST23-12 Chiropmon — KB Q&A rulings", () => {
+  it("can return the Glowing Dawn Digimon it just trashed from under a Tamer to pay the cost (Q6185)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -59,28 +85,13 @@ describe("ST23-12 Chiropmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(costId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(false);
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).not.toContain(costId);
-  });
-  it("uses inherited Retaliation when its host loses a real battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST6-07", as: "host", under: ["ST23-12"] }] },
-      1: { battleArea: [{ card: "ST6-09", as: "target", suspended: true }] },
-    });
-    const hostId = s.perm("host").permanentId;
-    const targetId = s.perm("target").permanentId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: hostId,
-        target: { kind: "permanent", permanentId: targetId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
-    expect(s.events.find((event) => event.kind === "combatResolved")).toMatchObject({
-      kind: "combatResolved",
-      deletedPermanentIds: [hostId],
-    });
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+    const trashedIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(costId),
+    );
+    const returnedIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(costId),
+    );
+    expect(trashedIndex).toBeGreaterThanOrEqual(0);
+    expect(returnedIndex).toBeGreaterThan(trashedIndex);
   });
 });

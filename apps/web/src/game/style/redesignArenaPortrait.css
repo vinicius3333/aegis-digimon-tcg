@@ -1,0 +1,363 @@
+/* The arena redesign on a portrait screen: each side's zones in one framed row,
+   the memory panel between the fields, and the hand in a tray. Continues
+   redesignArena.css; the layout stays arenaPortrait*.css's, this only restyles. */
+
+/* The field arrows are portalled to the stage, outside the board's tokens. */
+.game-battle-scroll-arrow {
+  color: var(--ds-brand-on-ink);
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-brand-ink) 90%, transparent);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 35%);
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+  /* Header, utility rows and hand tray take their share of the height; the memory
+     panel sits halfway between the header and the tray. */
+  .aegis-arena .game-board {
+    --arena-horizon: calc(
+      (100% + var(--arena-header-height) - var(--arena-hand-height) - env(safe-area-inset-bottom, 0px)) / 2
+    );
+  }
+
+  /* The top bar is ink in both looks, as the app's header is. */
+  .aegis-arena .game-board .game-opponent-bar {
+    color: var(--ds-brand-on-ink);
+    background: var(--arena-plate) !important;
+    box-shadow:
+      inset 0 -1px 0 color-mix(in srgb, var(--arena-opponent) 45%, transparent),
+      0 3px 10px color-mix(in srgb, var(--ds-brand-ink) 25%, transparent);
+  }
+
+  /* One row: the opponent's portrait and name, their counters, their card backs
+     and the match menu. */
+  .aegis-arena .game-board .game-opponent-bar {
+    grid-template-columns: auto auto minmax(0, 1fr) 36px;
+    column-gap: 10px;
+  }
+
+  .aegis-arena .game-board .game-opponent-bar > .game-player-line {
+    display: flex;
+    grid-column: 1;
+    grid-row: 1;
+    max-width: 30vw;
+    color: var(--ds-brand-on-ink);
+    font-size: 10px;
+    line-height: 12px;
+  }
+
+  .aegis-arena .game-board .game-opponent-bar > .game-arena-counters {
+    grid-column: 2;
+    grid-row: 1;
+    height: 24px;
+  }
+
+  /* The global 44px touch floor stretched these chips past the bar and over the
+     opponent's zones. As with the viewer's counters, the chip keeps its size and
+     the touch target moves to a centered pseudo-element. */
+  .aegis-arena .game-board .game-opponent-bar .game-arena-counter {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    min-height: 0;
+  }
+
+  .aegis-arena .game-board .game-opponent-bar .game-arena-counter::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    content: "";
+  }
+
+  .aegis-arena .game-board .game-opponent-bar .game-arena-counter strong {
+    right: -4px;
+    bottom: -5px;
+    min-width: 14px;
+    padding: 1px 3px;
+    border-radius: 3px;
+    font-size: 9px;
+  }
+
+  /* The card backs sit together as one hand, overlapping by a fixed step,
+     instead of spreading over the whole bar. */
+  .aegis-arena .game-board .game-opponent-bar > .game-opponent-hand {
+    --arena-opponent-card-step: 12px;
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: center;
+    width: min(
+      100%,
+      calc(var(--arena-opponent-card-width) + (var(--arena-opponent-hand-count) - 1) * var(--arena-opponent-card-step))
+    );
+  }
+
+  .aegis-arena .game-board .game-opponent-bar > .game-mobile-menu {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  /* The viewer's name line and counters share one line at the top of the hand
+     tray, inset like the top bar's. */
+  .aegis-arena .game-board .game-player-dock > .game-player-line {
+    position: absolute;
+    z-index: 4;
+    top: 6px;
+    left: 16px;
+    right: 150px;
+    display: flex;
+    height: 24px;
+    color: var(--ds-brand-on-ink);
+    font-size: 11px;
+  }
+
+  .aegis-arena .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
+    top: 6px;
+    right: 16px;
+  }
+
+  .aegis-arena .game-board .game-opponent-bar .game-arena-counter {
+    color: var(--ds-brand-on-ink);
+    border-color: color-mix(in srgb, var(--arena-opponent) 55%, transparent);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+  }
+
+  .aegis-arena .game-opponent-hand > div > div {
+    border-width: 1px !important;
+  }
+
+  /* The button draws at 36px; a centered pseudo-element keeps the 44px touch target. */
+  .aegis-arena .game-mobile-menu > summary {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: var(--ds-brand-on-ink);
+    border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 35%, transparent);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+    box-shadow: none;
+  }
+
+  .aegis-arena .game-mobile-menu > summary::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    content: "";
+  }
+
+  .aegis-arena .game-mobile-menu__actions {
+    border-color: color-mix(in srgb, var(--ds-brand-accent-soft) 40%, transparent);
+    background: var(--ds-brand-ink);
+  }
+
+  .aegis-arena .game-mobile-menu__actions > button {
+    color: var(--ds-brand-on-ink);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+  }
+
+  .aegis-arena .game-mobile-menu__actions > button:last-child {
+    color: color-mix(in srgb, var(--ds-danger) 45%, white);
+  }
+
+  /* Each side's eggs, raising area, security, deck and trash share one framed row. */
+  .aegis-arena .game-board .game-field::before,
+  .aegis-arena .game-board .game-field::after {
+    border: 1px dashed color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent);
+    background: var(--arena-zone-fill);
+    box-shadow: none;
+    backdrop-filter: blur(3px);
+  }
+
+  .aegis-arena .game-board .game-field::before {
+    --arena-side: var(--arena-opponent);
+  }
+
+  .aegis-arena .game-board .game-field::after {
+    --arena-side: var(--arena-player);
+  }
+
+  .aegis-arena .game-board .game-pile__top {
+    box-shadow:
+      2px 2px 0 var(--ds-brand-ink-soft),
+      0 4px 8px rgb(0 0 0 / 35%) !important;
+  }
+
+  /* The fields scroll sideways; the › arrow, not a scrollbar, says there is more. */
+  .aegis-arena .game-board .game-battle-zones > .game-battle-row {
+    scrollbar-width: none;
+  }
+
+  /* ---- The memory panel ---- */
+  .aegis-arena .game-board .game-battle-zones > .game-memory-band {
+    border: 0;
+    background: var(--arena-track);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--ds-brand-accent-soft) 25%, transparent),
+      0 0 24px color-mix(in srgb, var(--ds-brand-ink) 45%, transparent);
+    backdrop-filter: blur(4px);
+  }
+
+  .aegis-arena .game-board .game-memory-gauge__track {
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .aegis-arena .game-board .game-memory-coin {
+    border-radius: var(--ds-radius-pill);
+    box-shadow: none;
+  }
+
+  .aegis-arena .game-board .game-memory-coin[data-memory-side="you"] {
+    background: color-mix(in srgb, var(--arena-player) 55%, var(--arena-track-cell)) !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin[data-memory-side="opp"] {
+    background: color-mix(in srgb, var(--arena-opponent) 55%, var(--arena-track-cell)) !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin[data-memory-side="zero"] {
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 55%, var(--arena-track-cell)) !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin--five .game-memory-coin__n {
+    color: var(--ds-brand-on-ink-muted);
+  }
+
+  /* The current value, in a large circle of the side it sits on. */
+  .aegis-arena .game-board .game-memory-coin--marker::before {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: var(--arena-player);
+    box-shadow:
+      0 0 0 2px var(--ds-brand-ink),
+      0 0 14px color-mix(in srgb, var(--arena-player) 65%, transparent);
+  }
+
+  .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="opp"]::before {
+    background: var(--arena-opponent);
+    box-shadow:
+      0 0 0 2px var(--ds-brand-ink),
+      0 0 14px color-mix(in srgb, var(--arena-opponent) 65%, transparent);
+  }
+
+  .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="zero"]::before {
+    background: var(--ds-brand-on-ink);
+  }
+
+  .aegis-arena .game-board .game-memory-coin--marker .game-memory-coin__n,
+  .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="opp"] .game-memory-coin__n {
+    color: var(--ds-on-accent);
+    font-size: 14px;
+  }
+
+  .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="zero"] .game-memory-coin__n {
+    color: var(--ds-brand-ink);
+  }
+
+  .aegis-arena .game-board .game-memory-gauge__phase {
+    top: 0;
+    padding: 1px 7px;
+    color: var(--ds-on-accent);
+    border-radius: var(--ds-radius-pill);
+    background: var(--arena-player);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--arena-player) 55%, transparent);
+    font: 700 8px / 12px var(--ds-font-display);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* The round end control sits at the panel's right end. */
+  .aegis-arena .game-board .game-end-turn-orb {
+    border: 0;
+    box-shadow:
+      0 0 0 2px var(--ds-brand-ink),
+      0 0 16px color-mix(in srgb, var(--arena-player) 55%, transparent);
+    font-family: var(--ds-font-display);
+    text-transform: uppercase;
+  }
+
+  .aegis-arena .game-board .game-end-turn-orb--breeding {
+    box-shadow:
+      0 0 0 2px var(--ds-brand-ink),
+      0 0 16px color-mix(in srgb, var(--ds-warning) 55%, transparent);
+  }
+
+  .aegis-arena .game-board :is(.game-end-turn-orb--waiting, .game-end-turn-orb:disabled) {
+    color: var(--ds-brand-on-ink-muted);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, var(--ds-brand-ink));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-brand-accent-soft) 30%, transparent);
+  }
+
+  /* ---- The hand tray ---- */
+  .aegis-arena .game-board .game-player-dock {
+    border: 0 !important;
+    background: var(--arena-plate) !important;
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--arena-player) 45%, transparent),
+      0 -4px 16px color-mix(in srgb, var(--ds-brand-ink) 25%, transparent);
+  }
+
+  .aegis-arena .game-board .game-player-dock .game-arena-counter {
+    color: var(--ds-brand-on-ink);
+    border-color: color-mix(in srgb, var(--arena-player) 55%, transparent);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+  }
+
+  .aegis-arena .game-board .game-player-dock [data-testid="hand"] {
+    scrollbar-color: var(--arena-player) transparent;
+  }
+
+  .aegis-arena .game-board .game-player-dock [data-testid="hand"]::-webkit-scrollbar-thumb {
+    background: var(--arena-player);
+  }
+
+  .aegis-arena .game-board .game-player-dock [data-testid="hand"]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .aegis-arena .game-board :is(.game-hand-card__inspect, .game-permanent__inspect) {
+    border-color: rgb(255 255 255 / 45%);
+    background: color-mix(in srgb, var(--ds-brand-ink) 75%, transparent);
+  }
+
+  .aegis-arena .game-field > .game-breeding-dock > .game-breeding-hint {
+    color: var(--ds-brand-on-ink);
+    border-color: color-mix(in srgb, var(--arena-player) 60%, transparent);
+    background: var(--arena-plate);
+  }
+}
+
+/* Phones: small zone labels, as the prototype's one-row zones have. */
+@media (max-width: 599px) and (orientation: portrait) {
+  .aegis-arena .game-board .game-pile + span,
+  .aegis-arena .game-board .game-breeding-slot > span {
+    font-size: 8px !important;
+    line-height: 10px !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  .aegis-arena .game-board .game-security-shield__label {
+    font: 700 8px / 10px var(--ds-font-display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+/* Short phones give the top bar 44px, so the opponent's card backs shrink to fit it. */
+@media (max-width: 599px) and (orientation: portrait) and (max-height: 759px) {
+  .aegis-arena .game-board .game-opponent-hand {
+    --arena-opponent-card-width: 18px;
+    height: 26px;
+  }
+
+  .aegis-arena .game-board .game-opponent-hand > div > div {
+    height: 26px !important;
+  }
+}

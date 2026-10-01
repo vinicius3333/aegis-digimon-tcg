@@ -109,3 +109,30 @@ describe("EX6-007 Zubamon", () => {
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
 });
+
+describe("EX6-007 Zubamon — KB Q&A rulings", () => {
+  it("cannot pay the [Main] cost without a Digimon to place this card under (Q3701)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-014", as: "ineligible" }], hand: [{ card: "EX6-007", as: "card" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(JSON.parse(s.inst("card").activatableEffectsJson || "[]")).toHaveLength(0);
+    expect(s.state.memory).toBe(5);
+
+    s.putOnBoard(0, { card: "BT1-009", as: "host" });
+    await s.ready();
+    const [effect] = JSON.parse(s.inst("card").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("card").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("card").instanceId));
+    expect(s.state.memory).toBe(4);
+  });
+});

@@ -1,3 +1,4 @@
+import { EffectDuration } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -15,6 +16,7 @@ describe("BT14-047", () => {
             kind: "Restrict",
             restriction: "unsuspend",
             duration: "untilOpponentTurnEnd",
+            whileMatchesTargetFilter: true,
             target: { count: "all", filter: { dp: { op: "lte", value: 5000 } } },
           },
         ],
@@ -53,5 +55,41 @@ describe("BT14-047", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.perm("target").isSuspended).toBe(true);
+  });
+});
+
+describe("BT14-047 Dokugumon — KB Q&A rulings", () => {
+  it("checks 5000 DP or less at the opponent's unsuspend phase, not when the effect activates (Q2416)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT14-047", as: "dokugumon" }] },
+        1: {
+          battleArea: [
+            { card: "BT14-042", as: "reducedLater", dp: 6000, suspended: true },
+            { card: "BT14-042", as: "raisedLater", dp: 4000, suspended: true },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dokugumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT14-047"));
+    await advance(s.engine).verb.modifyDP(
+      s.perm("reducedLater").permanentId,
+      -2000,
+      EffectDuration.UntilOpponentTurnEnd,
+    );
+    await advance(s.engine).verb.modifyDP(s.perm("raisedLater").permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
+    expect(s.perm("reducedLater").currentDP).toBe(4000);
+    expect(s.perm("raisedLater").currentDP).toBe(7000);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("reducedLater").isSuspended).toBe(true);
+    expect(s.perm("raisedLater").isSuspended).toBe(false);
   });
 });

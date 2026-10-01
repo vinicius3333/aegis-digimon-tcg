@@ -3,6 +3,8 @@ import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-089.js";
+import "../index.js";
+import { battleAreaCardIds, runTurnThroughMainStart } from "./returningTamer.testSupport.js";
 
 describe("BT22-089 Mirei Mikagura", () => {
   it("returns itself to the deck bottom before playing a qualifying card", () => {
@@ -110,5 +112,23 @@ describe("BT22-089 Mirei Mikagura", () => {
 
     expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-089")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091")).toBe(true);
+  });
+});
+
+describe("BT22-089 Mirei Mikagura — KB Q&A rulings", () => {
+  it("does not activate the [Start of Your Main Phase] effect of the Tamer it played (Q5560)", async () => {
+    const opponent = { battleArea: ["BT1-009"] };
+    await runTurnThroughMainStart(
+      { 0: { battleArea: [{ card: "BT22-089", as: "mirei" }], hand: ["BT22-102"], deck: ["BT1-010"] }, 1: opponent },
+      true,
+      (played) => {
+        expect(battleAreaCardIds(played)).toEqual(["BT22-102"]);
+        expect(played.state.memory).toBe(3);
+      },
+    );
+
+    await runTurnThroughMainStart({ 0: { battleArea: ["BT22-102"], deck: ["BT1-010"] }, 1: opponent }, true, (s) => {
+      expect(s.state.memory).toBe(4);
+    });
   });
 });

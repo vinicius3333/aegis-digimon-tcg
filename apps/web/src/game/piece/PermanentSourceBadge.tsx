@@ -1,33 +1,25 @@
-import { COLORS } from "../../design/theme";
 import type { SourceCountBadge } from "../fieldBadges";
 import { useTranslation } from "../../i18n";
+import { BadgeHint } from "./BadgeHint";
 
-/** The `×N` digivolution-source count, tinted by the permanent's top card. */
+/** The `×N` digivolution-source count on the card's top-left corner, in its side's color. */
 export function PermanentSourceBadge({ sources }: { sources: SourceCountBadge }) {
   const { t } = useTranslation();
   return (
-    <span
+    <BadgeHint
+      className="game-source-badge"
       aria-label={t("game.digivolutionSources", { count: sources.count })}
-      style={{
-        position: "absolute",
-        top: -7,
-        left: -7,
-        zIndex: 2,
-        background: COLORS[sources.color].base,
-        color: COLORS[sources.color].on,
-        minWidth: 18,
-        height: 18,
-        padding: "0 4px",
-        borderRadius: 9,
-        display: "grid",
-        placeItems: "center",
-        fontFamily: "var(--ds-font-mono)",
-        fontSize: 10,
-        fontWeight: 700,
-        boxShadow: "var(--ds-shadow-sm)",
+      hint={{
+        title: t("redesign.arena.badge.stackTitle"),
+        description: t("redesign.arena.badge.stack", { count: sources.count }),
       }}
     >
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="m12 2 10 5-10 5L2 7z" />
+        <path d="m2 12 10 5 10-5" />
+        <path d="m2 17 10 5 10-5" />
+      </svg>
       ×{sources.count}
-    </span>
+    </BadgeHint>
   );
 }

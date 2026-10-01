@@ -87,6 +87,33 @@ describe("BT23-030 Etemon", () => {
     expect(recipients).toHaveLength(1);
   });
 
+  it("publishes the granted Reboot and Blocker once the activated Main resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-030", as: "etemon" }],
+          hand: [{ card: "BT23-049", as: "eligible" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("etemon").instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectActivated"));
+
+    const recipient = s.state.players[0]!.battleArea.find((permanent) =>
+      observe(s.engine).hasKeyword(permanent, "Reboot"),
+    )!;
+    expect([...recipient.keywords]).toEqual(expect.arrayContaining(["Reboot", "Blocker"]));
+  });
+
   it("declares Alliance", () => {
     expect(getCardDefinition("BT23-030")).toMatchObject({
       cardId: "BT23-030",
@@ -722,4 +749,47 @@ describe("BT23-030 Etemon", () => {
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
+});
+
+describe("BT23-030 Etemon — KB Q&A rulings", () => {
+  it.each([
+    ["a cost-3 card with [Chuumon] in its name", "BT11-036", true],
+    ["a cost-3 card with [Sukamon] in its name", "BT13-065", true],
+    ["a cost-3 [CS] trait Tamer card", "BT23-078", true],
+    ["a cost-4 card with [Chuumon] in its name", "BT10-073", false],
+    ["a cost-5 [CS] trait card", "BT23-041", false],
+    ["a cost-3 card with neither name nor the [CS] trait", "BT1-010", false],
+  ])(
+    "[Main] plays %s only when it meets the play cost 3 or lower name-or-CS gate (Q5275)",
+    async (_label, card, played) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT23-030", as: "etemon" }],
+            hand: [{ card, as: "candidate" }],
+            deck: ["BT1-010", "BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 5;
+      const candidateId = s.inst("candidate").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("etemon").instanceId,
+          effectKey: mainEffectKey(s),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.memory === 4 && s.state.pendingDecision === undefined);
+
+      expect(s.state.memory).toBe(4);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === candidateId)).toBe(
+        played,
+      );
+      expect(s.state.players[0]!.hand.some((hand) => hand.instanceId === candidateId)).toBe(!played);
+    },
+  );
 });

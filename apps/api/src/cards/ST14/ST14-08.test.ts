@@ -64,3 +64,37 @@ describe("ST14-08 Beelzemon", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("ST14-08 Beelzemon — KB Q&A rulings", () => {
+  const digivolveWithTrashCount = async (trashCount: number) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST14-07", as: "baalmon" }],
+        hand: [{ card: "ST14-08", as: "beelzemon" }],
+        trash: Array.from({ length: trashCount }, () => "BT1-009"),
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+      },
+    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("baalmon").permanentId,
+        instanceId: s.inst("beelzemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === trashCount + 4);
+    await settle();
+    return s;
+  };
+
+  it("gains 1 memory when its own When Digivolving mill brings the trash from 9 to 10 or more (Q801)", async () => {
+    const fromNine = await digivolveWithTrashCount(9);
+    expect(fromNine.state.players[0]!.trash).toHaveLength(13);
+    expect(fromNine.state.memory).toBe(7);
+
+    const fromFive = await digivolveWithTrashCount(5);
+    expect(fromFive.state.players[0]!.trash).toHaveLength(9);
+    expect(fromFive.state.memory).toBe(6);
+  });
+});

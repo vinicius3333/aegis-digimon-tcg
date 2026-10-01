@@ -16,6 +16,8 @@ export interface LeavePreventionHost {
   subTriggers: SubTriggerRegistry;
   /** Live keyword reactions use the same ordering and reentry guards as authored effects. */
   keywordReplacements?(permanentIds: string[]): ReplacementSubscription[];
+  /** ＜Evade＞ preventions, offered after the authored reactions when a caller asks for them. */
+  evadeReplacements?(permanentIds: string[]): ReplacementSubscription[];
   /** The live permanent for an id (undefined when it already left). */
   permanentById(permanentId: string): Permanent | undefined;
   /** Build the reaction's EffectContext for a source permanent (with the leaving id in trigger). */
@@ -27,6 +29,8 @@ export interface LeavePreventionHost {
   oncePerTurnFired?(key: string): boolean;
   /** Record that a once-per-turn prevention key fired this turn. */
   markOncePerTurnFired?(key: string): void;
+  /** Resolve an "instead" body as its own effect resolution (see `resolveLeaveReplacementBody`). */
+  resolveInsteadBody?<T>(body: () => Promise<T>): Promise<T>;
   /** Let the affected player order simultaneous non-preventing and preventing leave reactions. */
   orderReplacements?(replacements: ReplacementSubscription[], seat: Seat): Promise<ReplacementSubscription[]>;
   /**
@@ -82,6 +86,8 @@ export async function consultLeavePrevention(
      * the same event's sibling replacement, which is still offered (KB Q6250).
      */
     insteadOnly?: boolean;
+    /** Offer ＜Evade＞ with the other reactions (the effect/rule deletion path). */
+    includeEvade?: boolean;
     reentryGuard: { activeReplacementKeys: Set<string> };
   },
 ): Promise<Set<string>> {
@@ -94,6 +100,7 @@ export async function consultLeavePrevention(
     ...(host.keywordReplacements?.(permanentIds) ?? []),
     ...(opts.isBounce === true ? [] : host.subTriggers.replacementsFor("wouldBeDeleted")),
     ...host.subTriggers.replacementsFor("wouldLeavePlay"),
+    ...(opts.includeEvade === true && opts.isBounce !== true ? (host.evadeReplacements?.(permanentIds) ?? []) : []),
   ];
   if (replacements.length === 0) return prevented;
   const seat =
@@ -239,12 +246,14 @@ export async function consultLeavePrevention(
         // clauses of the SAME source keep their existing behaviour — they are one card's
         // reaction to its own event, which the activation-identity guard already governs.
         const replSource = repl.sourcePermanentId ?? repl.sourceInstanceId;
-        if (insteadAppliedBySource !== undefined && replSource !== insteadAppliedBySource) continue;
+        const sharesLeaveEvent = repl.sharesLeaveEvent === true;
+        if (!sharesLeaveEvent && insteadAppliedBySource !== undefined && replSource !== insteadAppliedBySource)
+          continue;
         if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
         opts.reentryGuard.activeReplacementKeys.add(activationKey);
         let applied: void | boolean;
         try {
-          applied = await repl.apply(ctx);
+          applied = await (host.resolveInsteadBody?.(() => repl.apply(ctx)) ?? repl.apply(ctx));
         } finally {
           opts.reentryGuard.activeReplacementKeys.delete(activationKey);
         }
@@ -259,13 +268,15 @@ export async function consultLeavePrevention(
         // that reported it did NOT apply — declined, or its cost could not be paid — leaves the
         // event open for another card's replacement. Prevention is never suppressed here: a
         // prevention and a same-event "instead" are siblings on one event (KB Q6250).
-        if (applied !== false) insteadAppliedBySource = repl.sourcePermanentId ?? repl.sourceInstanceId ?? "";
+        if (applied !== false && !sharesLeaveEvent)
+          insteadAppliedBySource = repl.sourcePermanentId ?? repl.sourceInstanceId ?? "";
         continue;
       }
       // Q4261/Q4262: each eligible prevention may pay for the same leave event. The
       // activation key/reentry guard still prevents only the replacement already resolving
       // from recursively re-entering itself.
       if (repl.mode !== "prevent") continue;
+      if (repl.yieldsToEarlierPrevention === true && prevented.has(leavingId)) continue;
       if (repl.affectsAll && firedAll.has(repl.id)) {
         prevented.add(leavingId);
         continue;

@@ -1,5 +1,198 @@
 [
   {
+    "version": "1.7.8-beta",
+    "releasedAt": "2026-10-01",
+    "summaryKey": "releases.1.7.8-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.8-beta.fix.assemblyRecipes"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.reconnect"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.optionalPrompt"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.botWait"
+      }
+    ]
+  },
+  {
+    "version": "1.7.7-beta",
+    "releasedAt": "2026-10-01",
+    "summaryKey": "releases.1.7.7-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.7-beta.feature.leaveWhileAway"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.7-beta.fix.privateReveal"
+      },
+      {
+        "textKey": "releases.1.7.7-beta.fix.pendingEffectsPhone"
+      },
+      {
+        "textKey": "releases.1.7.7-beta.fix.promoArt"
+      }
+    ]
+  },
+  {
+    "version": "1.7.6-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.6-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.6-beta.feature.loginLayout"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.6-beta.fix.mercifulModeOrder"
+      },
+      {
+        "textKey": "releases.1.7.6-beta.fix.assemblyColors"
+      }
+    ]
+  },
+  {
+    "version": "1.7.5-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.5-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.5-beta.feature.emailSignIn"
+      }
+    ],
+    "fixes": []
+  },
+  {
+    "version": "1.7.4-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.4-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.4-beta.fix.digitalGateOpen"
+      },
+      {
+        "textKey": "releases.1.7.4-beta.fix.rulings"
+      },
+      {
+        "textKey": "releases.1.7.4-beta.fix.engine"
+      }
+    ]
+  },
+  {
+    "version": "1.7.3-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.3-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.3-beta.fix.rieKishibe"
+      },
+      {
+        "textKey": "releases.1.7.3-beta.fix.byCosts"
+      }
+    ]
+  },
+  {
+    "version": "1.7.2-beta",
+    "releasedAt": "2026-09-29",
+    "summaryKey": "releases.1.7.2-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.2-beta.fix.rainbowDigivolve"
+      },
+      {
+        "textKey": "releases.1.7.2-beta.fix.rulings"
+      },
+      {
+        "textKey": "releases.1.7.2-beta.fix.engine"
+      }
+    ]
+  },
+  {
+    "version": "1.7.1-beta",
+    "releasedAt": "2026-09-29",
+    "summaryKey": "releases.1.7.1-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.1-beta.feature.dialogs"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.feature.portrait"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.1-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.fix.attackOrder"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.fix.prompts"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.fix.board"
+      }
+    ]
+  },
+  {
+    "version": "1.7.0-beta",
+    "releasedAt": "2026-09-29",
+    "summaryKey": "releases.1.7.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.0-beta.feature.redesign"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.arena"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.battlefields"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.feedback"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.surrender"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.0-beta.fix.board"
+      }
+    ]
+  },
+  {
+    "version": "1.6.1-beta",
+    "releasedAt": "2026-09-29",
+    "summaryKey": "releases.1.6.1-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.6.1-beta.feature.counterPrompt"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.6.1-beta.fix.kingDrasil"
+      },
+      {
+        "textKey": "releases.1.6.1-beta.fix.royalPurge"
+      },
+      {
+        "textKey": "releases.1.6.1-beta.fix.kentaurosmon"
+      }
+    ]
+  },
+  {
     "version": "1.6.0-beta",
     "releasedAt": "2026-09-27",
     "summaryKey": "releases.1.6.0-beta.summary",

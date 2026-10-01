@@ -11,6 +11,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-055.js";
 import "../index.js";
+import { expectOnlyOneCounterPerAttack } from "./counterOnce.testSupport.js";
 
 describe("EX12-055 Andromon", () => {
   it("maps every printed clause, evolution route, DNA route, and Counter legality", () => {
@@ -388,5 +389,11 @@ describe("EX12-055 Andromon", () => {
         { color: "Yellow", level: 4, memoryCost: 4 },
       ],
     });
+  });
+});
+
+describe("EX12-055 Andromon — KB Q&A rulings", () => {
+  it("lets only one [Counter] effect activate during one attack (Q6850)", async () => {
+    await expectOnlyOneCounterPerAttack({ card: "EX12-055" }, { card: "EX12-052" });
   });
 });

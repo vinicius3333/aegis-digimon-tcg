@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-054.js";
@@ -161,5 +162,126 @@ describe("EX6-054 Lucemon: Chaos Mode", () => {
         instanceId: s.inst("chaos").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("EX6-054 Lucemon: Chaos Mode — KB Q&A rulings", () => {
+  async function playChaosMode(opponentBattleArea: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX6-054", as: "chaos" }],
+          deck: [{ card: "BT1-010", as: "recovery" }],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: opponentBattleArea,
+          security: [{ card: "BT1-009", as: "opponentSecurity" }],
+          deck: ["BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    return s;
+  }
+
+  it("gives <Recovery +1 (Deck)> to the player who activated the effect (Q3787)", async () => {
+    const s = await playChaosMode([]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("recovery").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+  });
+
+  it("resolves the no-delete branch when the opponent picks a Digimon unaffected by the effect (Q3788)", async () => {
+    const s = await playChaosMode([{ card: "BT1-009", as: "immune" }]);
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("immune").permanentId,
+      "beAffected",
+      EffectDuration.Permanent,
+      { byOpponentEffectsOnly: true },
+    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard?.instanceId)).toEqual([
+      s.inst("immune").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentSecurity").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("recovery").instanceId);
+  });
+
+  it.each([
+    [
+      "trash",
+      (s: ReturnType<typeof setupEngine>) =>
+        advance(s.engine).verb.deletePermanent([s.perm("chaos").permanentId], "byEffect"),
+    ],
+    ["hand", (s: ReturnType<typeof setupEngine>) => advance(s.engine).verb.returnToHand([s.inst("chaos").instanceId])],
+    ["deck", (s: ReturnType<typeof setupEngine>) => advance(s.engine).verb.returnToDeck([s.inst("chaos").instanceId])],
+  ] as const)("triggers its would-leave effect when it moves to the %s (Q3789)", async (_route, move) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-054", as: "chaos", under: [{ card: "EX10-013", as: "lucemon" }] }],
+          trash: [{ card: "EX10-060", as: "satan" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await move(s);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.instanceId)).toEqual([
+      s.inst("satan").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("lucemon").instanceId);
+  });
+
+  it("lets the player pay the Lucemon return and still choose not to play from trash (Q3790)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-054", as: "chaos", under: [{ card: "EX10-013", as: "lucemon" }] }],
+          trash: [{ card: "EX10-060", as: "satan" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Play without paying the cost"] },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("chaos").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.map(({ req }) => req.promptText)).toEqual(["Use this effect?", "Play without paying the cost"]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("lucemon").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("satan").instanceId, s.inst("chaos").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("asks the opponent, not the controller, whether and what to delete", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-054", as: "chaos" }] },
+        1: { battleArea: ["BT1-009", "BT1-010"], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+
+    const deleteDecisions = s.decisions.filter(({ req }) => req.kind === "optional" || req.kind === "chooseTargets");
+    expect(deleteDecisions.map(({ req }) => req.kind)).toEqual(["optional", "chooseTargets"]);
+    expect(deleteDecisions.map(({ seat }) => seat)).toEqual([1, 1]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

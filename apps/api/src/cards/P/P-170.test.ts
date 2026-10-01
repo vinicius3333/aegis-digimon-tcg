@@ -129,3 +129,36 @@ describe("P-170 AvengeKidmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("avenge"), "Retaliation")).toBe(true);
   });
 });
+
+describe("P-170 AvengeKidmon — KB Q&A rulings", () => {
+  it("treats a trait, an effect, or an egg's text as [Three Musketeers] in its text (Q4420)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-170", as: "avenge" }],
+          trash: [
+            { card: "BT1-009", as: "unrelated" },
+            { card: "BT6-017", as: "traitOnly" },
+            { card: "BT6-068", as: "effectOnly" },
+            { card: "BT25-005", as: "eggText" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("avenge").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("avenge").instanceId),
+    );
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("traitOnly").instanceId, s.inst("effectOnly").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.eggDeck.map((card) => card.instanceId)).toEqual([s.inst("eggText").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
+  });
+});

@@ -529,3 +529,51 @@ describe("BT19-083 Rika Nonaka — [Security] play without paying the cost", () 
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT19-083 Rika Nonaka — KB Q&A rulings", () => {
+  it("activates the 'when you use an Option card' effect only after the used Option's [Main] effect resolved (Q5474)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-083", as: "rika" }],
+          hand: [
+            { card: "BT1-102", as: "option" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          deck: [{ card: "BT1-013", as: "firstDraw" }, { card: "BT1-009", as: "secondDraw" }, ...FILLER],
+          security: ["BT1-009", "BT1-013", "BT1-009", "BT1-013"],
+        },
+        1: { deck: [...FILLER], security: [...SECURITY] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+
+    const handAtRikaPrompt = s.state.players[0]!.hand.map((card) => card.instanceId).sort();
+    expect(handAtRikaPrompt).toEqual(
+      [s.inst("spare").instanceId, s.inst("firstDraw").instanceId, s.inst("secondDraw").instanceId].sort(),
+    );
+    expect(s.perm("rika").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(3);
+
+    const { decisionId } = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, { type: "respondDecision", decisionId, response: { kind: "optional", accept: true } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rika").isSuspended);
+
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});

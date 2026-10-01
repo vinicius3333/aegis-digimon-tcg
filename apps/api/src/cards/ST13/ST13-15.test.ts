@@ -94,3 +94,44 @@ describe("ST13-15 Direct Smasher", () => {
     ).toBe(true);
   });
 });
+
+describe("ST13-15 Direct Smasher — KB Q&A rulings", () => {
+  it("deletes only the 1 tied highest-DP Digimon its player chooses (Q793)", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["ST13-09"], hand: [{ card: "ST13-15", as: "smasher" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "first", dp: 9000 },
+          { card: "BT1-010", as: "second", dp: 9000 },
+          { card: "BT1-009", as: "low", dp: 3000 },
+        ],
+      },
+    });
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    const lowId = s.perm("low").permanentId;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("smasher").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const request = s.decisions.at(-1)!.req;
+    expect(request.kind).toBe("chooseTargets");
+    expect([...(request.options?.candidateInstanceIds ?? [])].sort()).toEqual([firstId, secondId].sort());
+    expect(request.options?.max).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [secondId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId));
+    await settle();
+
+    const remaining = s.state.players[1]!.battleArea.map((p) => p.permanentId).sort();
+    expect(remaining).toEqual([firstId, lowId].sort());
+  });
+});

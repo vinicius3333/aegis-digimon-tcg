@@ -198,3 +198,57 @@ describe("ST17-11 Double Typhoon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("ST17-11 Double Typhoon — KB Q&A rulings", () => {
+  it("must add both a revealed green Digimon and a revealed green Tamer instead of only one of them (Q837)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST17-03" }],
+          hand: [{ card: "ST17-11", as: "option" }],
+          deck: [
+            { card: "ST17-02", as: "greenDigimon" },
+            { card: "ST17-10", as: "greenTamer" },
+            { card: "BT1-009", as: "nonGreen" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    const refuse = () =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      });
+    const select = (instanceId: string) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [instanceId] },
+      });
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(s.decisions.at(-1)?.req.options?.candidateInstanceIds).toEqual([s.inst("greenDigimon").instanceId]);
+    expect(s.decisions.at(-1)?.req.options?.min).toBe(1);
+    expect(refuse().ok).toBe(false);
+    expect(select(s.inst("greenDigimon").instanceId)).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(s.decisions.at(-1)?.req.options?.candidateInstanceIds).toEqual([s.inst("greenTamer").instanceId]);
+    expect(s.decisions.at(-1)?.req.options?.min).toBe(1);
+    expect(refuse().ok).toBe(false);
+    expect(select(s.inst("greenTamer").instanceId)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greenDigimon").instanceId, s.inst("greenTamer").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonGreen").instanceId]);
+  });
+});

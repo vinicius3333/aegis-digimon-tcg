@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type CardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT10-046.js";
 
 describe("BT10-046 Palmon", () => {
@@ -97,6 +97,83 @@ describe("BT10-046 Palmon", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(3);
+    assertNoLoudGap(s);
+  });
+});
+
+describe("BT10-046 Palmon — KB Q&A rulings", () => {
+  function playPalmon(deck: CardSpec[]) {
+    const s = setupEngine({ 0: { hand: [{ card: "BT10-046", as: "source" }], deck } }, { autoSelectCards: false });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    return s;
+  }
+
+  function handIds(s: EngineSetup): string[] {
+    return s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
+  }
+
+  it("still adds the one Fairy card when it is the only qualifying card among the four revealed (Q1972)", async () => {
+    const s = playPalmon(["BT10-044", { card: "BT10-056", as: "fairy" }, "BT10-045", "BT1-064"]);
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.sourceCardId).toBe("BT10-046");
+    expect(decision.options?.candidateInstanceIds).toEqual([s.inst("fairy").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("fairy").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => handIds(s).includes(s.inst("fairy").instanceId));
+
+    expect(handIds(s)).toEqual([s.inst("fairy").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-064", "BT10-044", "BT10-045"]);
+    assertNoLoudGap(s);
+  });
+
+  it("must add both the Vegetation and the Fairy card when both are revealed (Q1973)", async () => {
+    const s = playPalmon([
+      { card: "BT10-043", as: "vegetation" },
+      { card: "BT10-056", as: "fairy" },
+      "BT10-044",
+      "BT10-045",
+    ]);
+
+    for (const alias of ["vegetation", "fairy"]) {
+      await settle(
+        () =>
+          s.state.pendingDecision?.kind === "selectCards" &&
+          s.decisions.at(-1)!.req.options?.candidateInstanceIds?.includes(s.inst(alias).instanceId),
+      );
+      const decision = s.decisions.at(-1)!.req;
+      expect(decision.sourceCardId).toBe("BT10-046");
+      expect(decision.options?.min).toBe(1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }).ok,
+      ).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(decision.decisionId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.players[0]!.deck.length === 2);
+
+    expect(new Set(handIds(s))).toEqual(new Set([s.inst("vegetation").instanceId, s.inst("fairy").instanceId]));
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT10-044", "BT10-045"]);
     assertNoLoudGap(s);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, digivolutionRequirementsFor, type PlayerState } from "@aegis/shared";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./BT25-084.js";
 
 const TITAMON = "BT25-084";
@@ -494,4 +495,36 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
 
     expect(alive(p0, titamonId)).toBe(false);
   });
+});
+
+describe("BT25-084 Titamon — KB Q&A rulings", () => {
+  it.each([
+    { handSize: 1, survives: false },
+    { handSize: 2, survives: true },
+  ])(
+    "prevents leaving only by trashing the full 2 hand cards, never just part (hand=$handSize) (Q6398)",
+    async ({ handSize, survives }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: TITAMON, as: "titamon" }],
+            hand: Array.from({ length: handSize }, () => "BT1-013"),
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "opponentLowest" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const titamonId = s.perm("titamon").permanentId;
+      const opponentId = s.perm("opponentLowest").permanentId;
+
+      await advance(s.engine).verb.deletePermanent([titamonId]);
+      await settle(() => s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(alive(s.state.players[0]!, titamonId)).toBe(survives);
+      expect(s.state.players[0]!.hand).toHaveLength(survives ? 0 : 1);
+      expect(alive(s.state.players[1]!, opponentId)).toBe(!survives);
+    },
+  );
 });

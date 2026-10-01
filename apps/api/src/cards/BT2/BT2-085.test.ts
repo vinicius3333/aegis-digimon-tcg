@@ -1,7 +1,8 @@
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard, type PlayerState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST2/ST2-16.js";
 import { default as compiled } from "./BT2-085.js";
 
 describe("BT2-085 Joe Kido", () => {
@@ -104,5 +105,51 @@ describe("BT2-085 Joe Kido", () => {
     const instanceId = s.inst("securityTamer").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTamer"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
+  });
+});
+
+describe("BT2-085 Joe Kido — KB Q&A rulings", () => {
+  it("does not activate when an opponent's Digimon is returned to hand and its digivolution cards are trashed as part of the return (Q1037)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT2-085", as: "joe" }], hand: [{ card: "ST2-16", as: "cocytusBreath" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-019", as: "returned", under: ["BT1-010"] },
+            { card: "BT1-019", as: "stripped", under: ["BT1-010"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 7;
+    const opponent = s.state.players[1] as PlayerState;
+    const returnedId = s.perm("returned").topCard.instanceId;
+    const returnedSourceId = s.perm("returned").stack[0]!.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cocytusBreath").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("returned").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponent.hand.some((card) => card.instanceId === returnedId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(opponent.trash.some((card) => card.instanceId === returnedSourceId)).toBe(true);
+    expect(s.perm("joe").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+
+    const strippedSourceId = s.perm("stripped").stack[0]!.instanceId;
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("stripped").permanentId, [strippedSourceId], 0);
+
+    expect(s.perm("joe").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 });

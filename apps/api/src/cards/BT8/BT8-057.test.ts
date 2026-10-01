@@ -2,7 +2,13 @@ import { getCardDefinition, getCompiledCard, Phase, type Seat } from "@aegis/sha
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-075.js";
+import "../BT1/BT1-080.js";
 import "../BT1/BT1-095.js";
+import "../BT1/BT1-108.js";
+import "../BT1/BT1-109.js";
+import "../BT10/BT10-100.js";
 import "./BT8-057.js";
 
 async function unsuspendForActivePhase(s: EngineSetup, seat: Seat): Promise<string[]> {
@@ -109,6 +115,94 @@ describe("BT8-057 Shivamon", () => {
     expect(s.perm("shivamon").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toContainEqual(s.inst("security"));
     expect(s.state.players[1]!.trash).not.toContainEqual(s.inst("security"));
+    assertNoLoudGap(s);
+  });
+});
+
+describe("BT8-057 Shivamon — KB Q&A rulings", () => {
+  it("does not negate a digivolution cost reduction from an Option used before its Digimon were all suspended (Q1736)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-075", as: "base" }],
+        hand: [
+          { card: "BT1-109", as: "smashedPotatoes" },
+          { card: "BT1-108", as: "blockedOption" },
+          { card: "BT1-080", as: "evolving" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT8-057", as: "shivamon" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("smashedPotatoes").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-109"));
+    expect(s.state.memory).toBe(4);
+
+    await advance(s.engine).verb.suspend([s.perm("shivamon").permanentId], 0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blockedOption").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-080");
+
+    expect(s.state.memory).toBe(4);
+    assertNoLoudGap(s);
+  });
+
+  it("still lets the opponent activate <Delay> on an Option already in its battle area (Q1737)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-051", as: "yellowSource" }],
+        hand: [
+          { card: "BT10-100", as: "delayOption" },
+          { card: "BT10-100", as: "blockedOption" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT8-057", as: "shivamon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const delayOptionId = s.inst("delayOption").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: delayOptionId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === delayOptionId),
+    );
+    expect(s.state.memory).toBe(2);
+
+    s.state.turnCount += 1;
+    await advance(s.engine).verb.suspend([s.perm("shivamon").permanentId], 0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blockedOption").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+
+    const delayPermanent = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === delayOptionId,
+    )!;
+    const delayEffects = observe(s.engine).activatableEffects(delayPermanent) as Array<{ effectKey: string }>;
+    expect(delayEffects).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delayOptionId,
+        effectKey: delayEffects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === delayOptionId));
+
+    expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
 });

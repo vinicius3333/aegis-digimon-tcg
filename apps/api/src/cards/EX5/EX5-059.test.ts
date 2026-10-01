@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-059.js";
@@ -273,5 +274,32 @@ describe("EX5-059 Dobermon (X Antibody)", () => {
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX5-059"]);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("EX5-059 Dobermon (X Antibody) — KB Q&A rulings", () => {
+  it("gains memory when an opponent's effect plays one of my Digimon during my turn (Q3655)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-071", as: "host", under: ["EX5-059"] }],
+          trash: [{ card: "BT1-014", as: "mine" }],
+        },
+        1: { battleArea: [{ card: "EX5-060", as: "dragomon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dragomon"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("mine").instanceId,
+        ) && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(1);
   });
 });

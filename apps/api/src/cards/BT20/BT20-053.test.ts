@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-053.js";
+import "../P/P-204.js";
 import "./index.js";
 
 describe("BT20-053 Grademon", () => {
@@ -315,5 +316,76 @@ describe("BT20-053 Grademon", () => {
     expect(s.perm("host").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await secondTurn;
+  });
+});
+
+describe("BT20-053 Grademon — KB Q&A rulings", () => {
+  it("counts as during an attack when another effect digivolves it while an opponent's Digimon attacks (Q4721)", async () => {
+    const outsideAttack = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-051", as: "host" }],
+          hand: [{ card: "BT20-053", as: "grademon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    outsideAttack.state.memory = 10;
+    await outsideAttack.ready();
+    expect(
+      outsideAttack.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: outsideAttack.perm("host").permanentId,
+        instanceId: outsideAttack.inst("grademon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        outsideAttack.perm("host").topCard.cardId === "BT20-053" && outsideAttack.state.pendingDecision === undefined,
+    );
+    outsideAttack.state.turnSeat = 1;
+    await advance(outsideAttack.engine).recompute();
+    const dpWithoutAttack = outsideAttack.perm("host").currentDP;
+    expect(dpWithoutAttack).toBe(9000);
+    expect(
+      observe(outsideAttack.engine).isRestrictedByEffect(outsideAttack.perm("host"), "beAffected", "Digimon"),
+    ).toBe(false);
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-204", as: "releaseOfTheSealedKnight" },
+            { card: "BT20-051", as: "host" },
+          ],
+          hand: [{ card: "BT20-053", as: "grademon" }],
+          security: ["BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").topCard.cardId === "BT20-053" &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      s.inst("releaseOfTheSealedKnight").instanceId,
+    );
+    expect(s.perm("host").currentDP).toBe(dpWithoutAttack + 5000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("host"), "beAffected", "Digimon")).toBe(true);
   });
 });

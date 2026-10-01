@@ -86,3 +86,31 @@ describe("ST19-12 Familiar Token", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Familiar-Token")).toBe(false);
   });
 });
+
+describe("ST19-12 Cendrillmon — KB Q&A rulings", () => {
+  it("activates a [Familiar] Token's [On Deletion] effect although the token never reaches the trash (Q860)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "TOKEN-Familiar-Token", as: "familiar" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 5000, suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const familiarInstanceId = s.perm("familiar").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("familiar").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("defender").currentDP === 2000);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === familiarInstanceId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === familiarInstanceId)).toBe(false);
+    expect(s.perm("defender").currentDP).toBe(2000);
+  });
+});

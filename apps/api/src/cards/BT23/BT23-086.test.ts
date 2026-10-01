@@ -111,6 +111,8 @@ describe("BT23-086 Yuugo", () => {
     expect(player.security[0]!.faceUp).not.toBe(true);
     expect(player.security[1]!.faceUp).toBe(true);
     expect(player.hand.map((card) => card.instanceId).sort()).toEqual([paidId, plainId].sort());
+    // Face-up placement is already public, so no separate reveal is announced.
+    expect(s.events.some((event) => event.kind === "cardRevealed")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
@@ -142,6 +144,7 @@ describe("BT23-086 Yuugo", () => {
     expect(player.security).toHaveLength(1);
     expect(player.security[0]).toMatchObject({ instanceId: zaxonId, faceUp: true });
     expect(player.trash.map((card) => card.instanceId)).toEqual([plainId]);
+    expect(s.events.some((event) => event.kind === "cardRevealed")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
@@ -648,4 +651,47 @@ describe("BT23-086 Yuugo", () => {
     expect(attackChoice?.req.options?.candidateInstanceIds).toEqual(["player"]);
     expect(attackChoice?.req.options?.candidateInstanceIds).not.toContain(baitPermanentId);
   });
+});
+
+describe("BT23-086 Yuugo — KB Q&A rulings", () => {
+  it.each([true, false])(
+    "triggers its [Security] effect when checked, face up or face down (faceUp=%s) (Q5360)",
+    async (faceUp) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT1-009", as: "attacker" }],
+            hand: [{ card: "ST1-02", as: "spare" }],
+            deck: ["BT1-012", "BT1-013"],
+          },
+          1: {
+            security: [{ card: "BT23-086", as: "securityYuugo", faceUp }],
+            hand: [{ card: "ST1-02", as: "opponentSpare" }],
+            deck: ["BT1-012", "BT1-013"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      const yuugoId = s.inst("securityYuugo").instanceId;
+      expect(s.state.players[1]!.security[0]!.faceUp === true).toBe(faceUp);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === yuugoId));
+
+      expect(s.events).toContainEqual(
+        expect.objectContaining({ kind: "effectTriggered", sourceCardId: "BT23-086", sourceInstanceId: yuugoId }),
+      );
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === yuugoId)).toBe(true);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      assertNoLoudGap(s);
+    },
+  );
 });

@@ -249,3 +249,90 @@ describe("BT17-070 Gulfmon", () => {
     expect(s.state.players[1]!.deck).toHaveLength(6);
   });
 });
+
+describe("BT17-070 Gulfmon — KB Q&A rulings", () => {
+  it("places a level 5 [Dark Masters] card even when the opponent has no level 5 or lower Digimon (Q2835)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: DARK_MASTERS_TEXT, as: "base" }],
+          hand: [
+            { card: GULFMON, as: "gulfmon" },
+            { card: DARK_MASTERS_TEXT, as: "material" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT17-069", as: "levelSix" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const materialId = s.inst("material").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gulfmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack[0]?.instanceId === materialId);
+
+    expect(s.perm("base").topCard.cardId).toBe(GULFMON);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([DARK_MASTERS_TEXT, DARK_MASTERS_TEXT]);
+    expect(s.perm("base").stack[0]!.instanceId).toBe(materialId);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("levelSix").topCard.cardId).toBe("BT17-069");
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it("returns a Digi-Egg from the opponent's trash to the bottom of their Digi-Egg deck (Q2836)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: GULFMON, as: "gulfmon" }] },
+        1: {
+          trash: [
+            { card: "BT1-001", as: "trashedEgg" },
+            "BT1-009",
+            "BT1-012",
+            "BT1-013",
+            "BT1-027",
+            "BT1-028",
+            "BT1-030",
+          ],
+          eggDeck: ["BT1-002"],
+          deck: ["BT1-011"],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const eggId = s.inst("trashedEgg").instanceId;
+    const returnedIds = s.state.players[1]!.trash.map((card) => card.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gulfmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("gulfmon").isSuspended);
+
+    const opponent = s.state.players[1]!;
+    expect(s.perm("gulfmon").isSuspended).toBe(false);
+    expect(opponent.trash.some((card) => returnedIds.includes(card.instanceId))).toBe(false);
+    expect(opponent.eggDeck.map((card) => card.cardId)).toEqual(["BT1-002", "BT1-001"]);
+    expect(opponent.eggDeck[opponent.eggDeck.length - 1]!.instanceId).toBe(eggId);
+    expect(opponent.deck[0]!.cardId).toBe("BT1-011");
+    expect(
+      opponent.deck
+        .slice(1)
+        .map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["BT1-009", "BT1-012", "BT1-013", "BT1-027", "BT1-028", "BT1-030"]);
+    expect(opponent.deck.some((card) => card.instanceId === eggId)).toBe(false);
+  });
+});

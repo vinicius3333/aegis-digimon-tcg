@@ -169,8 +169,8 @@ export interface Condition {
   value?: number;
   phase?: "Active" | "Draw" | "Breeding" | "Main" | "End" | "None";
   /**
-   * For memoryAtLeast/memoryAtMost: which side of the gauge is compared. Omitted keeps the
-   * legacy turn-relative comparison.
+   * For memoryAtLeast/memoryAtMost: which side of the gauge is compared. Omitted reads the
+   * effect owner's side, the same as "mine"/"self".
    */
   controller?: "mine" | "self" | "opponent";
   // For `zoneCount`: which player's zone, which zone, and the comparison.

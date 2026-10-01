@@ -1,7 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone, type ServerEvent } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT7-031.js";
 import "./BT7-034.js";
 
@@ -41,5 +42,55 @@ describe("BT7-031 Herissmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("herissmon").instanceId)).toBe(false);
     expect(s.perm("host").stack).toHaveLength(0);
+  });
+});
+
+describe("BT7-031 Herissmon — KB Q&A rulings", () => {
+  it("returns to hand only after the Digi-Burst effect has resolved (Q1551)", async () => {
+    const preferred: string[] = [];
+    const targetSecurityAttackWhenReturned: number[] = [];
+    let s: EngineSetup | undefined;
+    const recordReturn = (event: ServerEvent) => {
+      if (s === undefined || event.kind !== "cardsMoved" || event.to !== Zone.Hand) return;
+      if (!event.instanceIds.includes(s.inst("herissmon").instanceId)) return;
+      targetSecurityAttackWhenReturned.push(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack"));
+    };
+    s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT7-034",
+              under: ["BT1-005", { card: "BT7-031", as: "herissmon" }],
+              as: "host",
+            },
+          ],
+          deck: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred, onEvent: recordReturn },
+    );
+    const setup = s;
+    preferred.push(setup.inst("herissmon").instanceId);
+    const source = observe(setup.engine).cardSource(setup.perm("host").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT7-034/"),
+    )!.effectKey;
+    await setup.ready();
+
+    expect(
+      setup.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: setup.perm("host").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      setup.state.players[0]!.hand.some((card) => card.instanceId === setup.inst("herissmon").instanceId),
+    );
+
+    expect(observe(setup.engine).keywordAmount(setup.perm("target"), "SecurityAttack")).toBe(-2);
+    expect(targetSecurityAttackWhenReturned).toEqual([-2]);
   });
 });

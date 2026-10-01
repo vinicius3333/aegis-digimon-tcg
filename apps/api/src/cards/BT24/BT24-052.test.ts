@@ -377,3 +377,41 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     );
   });
 });
+
+describe("BT24-052 Keramon (X Antibody) — KB Q&A rulings", () => {
+  it.each([
+    ["a name containing [Diaboromon]", "BT24-065", true],
+    ["[Diaboromon] only in its effect text", "BT24-052", true],
+    ["no [Diaboromon] anywhere in its text", "BT1-009", false],
+  ])(
+    "reads 'with [Diaboromon] in its text' as matching a host with %s (Q5642)",
+    async (_label, hostCard, protectedHost) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: hostCard, as: "host", dp: 1000, under: ["BT24-052"] },
+              { card: "BT17-059", as: "exactCost", dp: 13000 },
+            ],
+          },
+          1: { battleArea: [{ card: "BT24-085", as: "redSource" }], hand: [{ card: "BT6-095", as: "option" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const hostId = s.perm("host").permanentId;
+      const optionId = s.inst("option").instanceId;
+      s.state.turnSeat = 1;
+      s.state.memory = 7;
+      await s.ready();
+
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(protectedHost);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("exactCost").instanceId)).toBe(
+        protectedHost,
+      );
+    },
+  );
+});

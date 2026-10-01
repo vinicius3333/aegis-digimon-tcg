@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-031.js";
+import { answerMandatoryPair } from "./revealAddPair.testSupport.js";
 import "../index.js";
 
 function candidates(payloadJson: string): string[] {
@@ -540,5 +541,42 @@ describe("EX3-031 Veedramon", () => {
 
     expect(observe(s.engine).hasKeyword(dragon, "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(unrelated, "Rush")).toBe(false);
+  });
+});
+
+describe("EX3-031 Veedramon — KB Q&A rulings", () => {
+  it("must add both the yellow Dramon and the Four Great Dragons card when both are revealed (Q3409)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-027", as: "base" }],
+          hand: [{ card: "EX3-031", as: "veedramon" }],
+          deck: [
+            { card: "BT1-028", as: "digivolutionBonusDraw" },
+            { card: "EX3-031", as: "yellowDramon" },
+            { card: "EX3-064", as: "fourGreatDragon" },
+            "BT1-029",
+            "BT1-030",
+          ],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("veedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await answerMandatoryPair(s, ["yellowDramon", "fourGreatDragon"]);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("yellowDramon").instanceId, s.inst("fourGreatDragon").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-029", "BT1-030"]);
   });
 });

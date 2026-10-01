@@ -193,3 +193,35 @@ describe("BT25-010 Hawkmon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT25-010 Hawkmon — KB Q&A rulings", () => {
+  it.each([
+    { zone: "battle area", inBreeding: false, memoryAfter: 4 },
+    { zone: "breeding area", inBreeding: true, memoryAfter: 3 },
+  ])(
+    "reduces an eligible Beast digivolution only from the battle area, not the breeding area ($zone) (Q6254)",
+    async ({ inBreeding, memoryAfter }) => {
+      const hawkmon = { card: "BT25-010", as: "hawkmon" };
+      const s = setupEngine({
+        0: {
+          ...(inBreeding ? { breeding: hawkmon } : { battleArea: [hawkmon] }),
+          hand: [{ card: "BT11-010", as: "beast" }],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("hawkmon").permanentId,
+          instanceId: s.inst("beast").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("hawkmon").topCard.cardId === "BT11-010");
+
+      expect(s.perm("hawkmon").inBreeding).toBe(inBreeding);
+      expect(s.state.memory).toBe(memoryAfter);
+    },
+  );
+});

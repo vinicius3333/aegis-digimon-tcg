@@ -210,3 +210,29 @@ it("EX5-034 preserves its optional activation after declining an earlier suspens
   await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === thirdId));
   expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
 });
+
+describe("EX5-034 BanchoLeomon — KB Q&A rulings", () => {
+  it.each([
+    { own: 1, opponent: 5, memoryAfterPlay: 0 },
+    { own: 5, opponent: 2, memoryAfterPlay: -5 },
+  ])(
+    "adds both players' security stacks for the play cost reduction ($own + $opponent) (Q3600)",
+    async ({ own, opponent, memoryAfterPlay }) => {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "EX5-034", as: "bancho" }], security: Array.from({ length: own }, () => "BT1-009") },
+          1: { security: Array.from({ length: opponent }, () => "BT1-009") },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 7;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bancho").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-034"));
+
+      expect(s.state.memory).toBe(memoryAfterPlay);
+    },
+  );
+});

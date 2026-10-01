@@ -5,6 +5,8 @@ import { irNode } from "../../engine/testkit/irNode.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-073.js";
 import "./index.js";
+import "../BT6/BT6-101.js";
+import "../ST3/ST3-16.js";
 
 describe("BT17-073 DexDorugoramon", () => {
   it("matches the catalog printed text, evolution costs and the exact-name route", () => {
@@ -322,5 +324,45 @@ describe("BT17-073 DexDorugoramon", () => {
     expect(s.perm("dorugoramon").topCard.cardId).toBe("BT17-073");
     expect(s.perm("dorugoramon").stack.some((card) => card.cardId === "BT16-064")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-073")).toBe(false);
+  });
+});
+
+describe("BT17-073 DexDorugoramon — KB Q&A rulings", () => {
+  it("prevents a 0 DP deletion by digivolving from trash, but the carried-over DP reduction deletes it again if still 0 (Q2839)", async () => {
+    async function reduceDorugoramonToZero(option: "ST3-16" | "BT6-101", dorugoramonDp: number) {
+      const s = setupEngine(
+        {
+          0: { battleArea: ["ST3-07"], hand: [{ card: option, as: "option" }] },
+          1: {
+            battleArea: [{ card: "BT16-064", dp: dorugoramonDp, as: "dorugoramon" }],
+            trash: [{ card: "BT17-073", as: "dexDorugoramon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 8;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+      await settle();
+      return s;
+    }
+
+    const survived = await reduceDorugoramonToZero("ST3-16", 10000);
+    const dexOnBoard = survived.state.players[1]!.battleArea.find((p) => p.topCard.cardId === "BT17-073");
+    expect(dexOnBoard?.stack.map((card) => card.cardId)).toContain("BT16-064");
+    expect(dexOnBoard?.currentDP).toBe(3000);
+    expect(survived.state.players[1]!.trash.map((card) => card.cardId)).not.toContain("BT16-064");
+
+    const deletedAgain = await reduceDorugoramonToZero("BT6-101", 12000);
+    expect(deletedAgain.events).toContainEqual(
+      expect.objectContaining({ kind: "digivolved", seat: 1, cardId: "BT17-073" }),
+    );
+    expect(deletedAgain.state.players[1]!.battleArea).toHaveLength(0);
+    expect(deletedAgain.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT16-064", "BT17-073"]),
+    );
   });
 });

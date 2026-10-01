@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-029.js";
 import "../index.js";
 
@@ -70,6 +70,14 @@ describe("BT16-029", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("does not add a 3-color card as its 2-color card", async () => {
+    const threeColor = "BT16-102";
+    const s = await playAgumonRevealing([threeColor, "BT1-009", "BT1-010"]);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toContain(threeColor);
+  });
+
   it("digivolves from a legal off-color Light Fang level-2 base", async () => {
     const s = setupEngine(
       {
@@ -104,5 +112,43 @@ describe("BT16-029", () => {
 
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
     expect(s.perm("host").currentDP).toBe(1000);
+  });
+});
+
+async function playAgumonRevealing(topThree: string[]): Promise<EngineSetup> {
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: "BT16-029", as: "agumon" }],
+        deck: [...topThree, "BT1-010"],
+      },
+    },
+    { autoSelectCards: true },
+  );
+  s.state.memory = 3;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT16-029"));
+  return s;
+}
+
+describe("BT16-029 Agumon — KB Q&A rulings", () => {
+  it("adds only one of a revealed [Night Claw] card and 2-color card when no [Light Fang] card is revealed (Q2625)", async () => {
+    const nightClaw = "BT16-020";
+    const twoColor = "BT16-017";
+    const s = await playAgumonRevealing([nightClaw, twoColor, "BT1-009"]);
+
+    const hand = s.state.players[0]!.hand.map((card) => card.cardId);
+    expect(hand).toHaveLength(1);
+    expect([nightClaw, twoColor]).toContain(hand[0]);
+    const leftBehind = hand[0] === nightClaw ? twoColor : nightClaw;
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toContain(leftBehind);
+
+    const withLightFang = await playAgumonRevealing(["BT16-029", nightClaw, twoColor]);
+    const handWithLightFang = withLightFang.state.players[0]!.hand.map((card) => card.cardId);
+    expect(handWithLightFang).toHaveLength(2);
+    expect(handWithLightFang).toContain("BT16-029");
   });
 });

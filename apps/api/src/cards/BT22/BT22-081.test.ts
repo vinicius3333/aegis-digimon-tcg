@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT22-081.js";
+import { itFollowsTamerDigivolutionRulings } from "./tamerDigivolution.testSupport.js";
 
 describe("BT22-081 Eater Eve", () => {
   it("prevents one opponent Digimon from suspending and conditionally places Yuuko", () => {
@@ -101,5 +104,51 @@ describe("BT22-081 Eater Eve", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eveYuukoId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === decoyYuukoId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-081")).toBe(true);
+  });
+});
+
+describe("BT22-081 Eater Eve — KB Q&A rulings", () => {
+  itFollowsTamerDigivolutionRulings(
+    { digimon: "BT22-081", tamer: "BT22-083", securityTamer: "BT22-083" },
+    {
+      noAttackTheTurnTheTamerEntered: "Q4948",
+      digivolvesAsTamer: "Q6693",
+      bonusDraw: "Q6694",
+      tamerIsDigivolutionCard: "Q6695",
+      noSecurityEffect: "Q6696",
+    },
+  );
+
+  it("gains the inherited effect of the Yuuko Kamishiro in its digivolution cards (Q6697)", async () => {
+    const eveDpAfterRedirectedAttack = async (under: string[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-081", as: "eve", under },
+              { card: "BT22-091", as: "arata" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("arata").isSuspended);
+      await advance(s.engine).finishAttack();
+      return s.perm("eve").currentDP;
+    };
+
+    expect(await eveDpAfterRedirectedAttack(["BT22-083"])).toBe(10000);
+    expect(await eveDpAfterRedirectedAttack([])).toBe(7000);
   });
 });

@@ -139,3 +139,53 @@ describe("BT1-022 Garudamon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT1-022 Garudamon — KB Q&A rulings", () => {
+  it("draws only when the attack on an opponent's Digimon is blocked, not from attacking a Digimon (Q884)", async () => {
+    async function attackDigimon(block: boolean) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT1-023", under: ["BT1-022"], as: "attacker", dp: 7000 }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-016", as: "defender", dp: 5000, suspended: true },
+            { card: "BT1-072", as: "blocker", dp: 6000 },
+          ],
+        },
+      });
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+      expect(
+        s.engine.applyIntent(
+          1,
+          block
+            ? { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }
+            : { type: "declineBlock" },
+        ),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+      return s;
+    }
+
+    const unblocked = await attackDigimon(false);
+    expect(unblocked.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-072"]);
+    expect(unblocked.state.players[0]!.hand).toHaveLength(0);
+    expect(unblocked.state.players[0]!.deck).toHaveLength(1);
+
+    const blocked = await attackDigimon(true);
+    expect(blocked.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-016"]);
+    expect(blocked.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      blocked.inst("drawn").instanceId,
+    ]);
+  });
+});

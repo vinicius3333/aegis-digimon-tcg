@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-03.js";
+import "./ST5-08.js";
 import "./ST5-14.js";
 
 describe("ST5-14 Tai Kamiya", () => {
@@ -47,5 +48,44 @@ describe("ST5-14 Tai Kamiya", () => {
     const s = setupEngine({ 0: { security: [{ card: "ST5-14", as: "tai", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tai"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tai").instanceId)).toBe(true);
+  });
+});
+
+describe("ST5-14 Tai Kamiya — KB Q&A rulings", () => {
+  it("can unsuspend a Digimon that did not block, leaving the blocker suspended (Q669)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST5-14", as: "tai" },
+            { card: "ST5-08", as: "blocker" },
+            { card: "ST5-05", as: "nonBlocker", suspended: true },
+          ],
+          security: 1,
+        },
+        1: { battleArea: [{ card: "ST5-03", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("nonBlocker").permanentId, s.perm("nonBlocker").topCard.instanceId);
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tai").isSuspended && !s.perm("nonBlocker").isSuspended);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("tai").isSuspended).toBe(true);
+    expect(s.perm("nonBlocker").isSuspended).toBe(false);
+    expect(s.perm("blocker").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });

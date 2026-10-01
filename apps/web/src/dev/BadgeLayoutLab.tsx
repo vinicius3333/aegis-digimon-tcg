@@ -24,6 +24,8 @@ const cannotAttack: RestrictionBadge = {
   icon: "attackOff",
 };
 
+const SHOWN_DP = 2000;
+
 const cases = [
   { title: "Suspended · protection", suspended: true, restrictions: [protection], dpDelta: undefined },
   { title: "Suspended · protection + DP", suspended: true, restrictions: [protection], dpDelta: -3000 },
@@ -53,8 +55,19 @@ export function BadgeLayoutLab() {
                 5
               </div>
               <div className="badge-lab__permanent" data-suspended={item.suspended || undefined}>
-                <CardMini cardId="BT15-047" width={116} suspended={item.suspended} info zoomOnHover={false} dp={2000} />
-                <PermanentRestrictionBadges restrictions={item.restrictions} dpDelta={item.dpDelta} />
+                <CardMini
+                  cardId="BT15-047"
+                  width={116}
+                  suspended={item.suspended}
+                  info
+                  zoomOnHover={false}
+                  dp={SHOWN_DP}
+                />
+                <PermanentRestrictionBadges
+                  restrictions={item.restrictions}
+                  dpDelta={item.dpDelta}
+                  baseDp={SHOWN_DP - (item.dpDelta ?? 0)}
+                />
               </div>
               <div className="badge-lab__memory" aria-label="Memory clearance reference">
                 {[1, 0, 1, 2, 3].map((value, index) => (

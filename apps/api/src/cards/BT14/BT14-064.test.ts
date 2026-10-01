@@ -202,3 +202,32 @@ describe("BT14-064", () => {
     await secondOpponentTurn;
   });
 });
+
+describe("BT14-064 Cargodramon — KB Q&A rulings", () => {
+  it("can play a revealed DigiPolice Tamer with a play cost of 4 or less (Q2436)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT14-064", as: "cargodramon" }],
+          deck: [{ card: "BT14-086", as: "digiPoliceTamer" }, { card: "BT1-085", as: "untraitedTamer" }, "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cargodramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 0 && s.state.pendingDecision === undefined);
+
+    const revealDecision = s.decisions.find(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT14-064");
+    expect(revealDecision?.req.options?.candidateInstanceIds).toEqual([s.inst("digiPoliceTamer").instanceId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "BT14-064",
+      "BT14-086",
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-085"]);
+  });
+});

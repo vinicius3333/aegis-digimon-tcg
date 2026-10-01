@@ -41,3 +41,32 @@ describe("ST3-14 Heaven's Charm", () => {
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });
+
+describe("ST3-14 Heaven's Charm — KB Q&A rulings", () => {
+  it("reduces a 2000 DP opposing Digimon to 0 DP and deletes it, while a 3000 DP one survives (Q643)", async () => {
+    async function playOnTargetWithDp(dp: number) {
+      const s = setupEngine(
+        {
+          0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-14", as: "option" }] },
+          1: { battleArea: [{ card: "ST3-07", as: "target", dp }] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId));
+      await settle();
+      return s;
+    }
+
+    const deleted = await playOnTargetWithDp(2000);
+    expect(deleted.state.players[1]!.battleArea).toHaveLength(0);
+    expect(deleted.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("ST3-07");
+
+    const survivor = await playOnTargetWithDp(3000);
+    expect(survivor.state.players[1]!.battleArea).toHaveLength(1);
+    expect(survivor.perm("target").currentDP).toBe(1000);
+  });
+});

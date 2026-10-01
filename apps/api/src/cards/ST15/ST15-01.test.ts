@@ -71,3 +71,49 @@ describe("ST15-01 Koromon", () => {
     expect(s.perm("host").currentDP).toBe(baseDP);
   });
 });
+
+describe("ST15-01 Koromon — KB Q&A rulings", () => {
+  async function attackAndBlock(options: { attackerIsHost: boolean }) {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST15-12", as: "host", under: ["ST15-01"] },
+          { card: "BT1-009", as: "otherAttacker" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "ST15-12", dp: 1000, as: "blocker" }],
+        security: ["BT1-001", "BT1-001"],
+      },
+    });
+    const baseDP = s.perm("host").baseDP;
+    const attacker = options.attackerIsHost ? s.perm("host") : s.perm("otherAttacker");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    const dpBeforeBlock = s.perm("host").currentDP;
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    const dpAfterBlock = s.perm("host").currentDP;
+    return { baseDP, dpBeforeBlock, dpAfterBlock };
+  }
+
+  it("gains +1000 DP when the opponent blocks the Digimon that has this card as a source (Q805)", async () => {
+    const { baseDP, dpBeforeBlock, dpAfterBlock } = await attackAndBlock({ attackerIsHost: true });
+    expect(dpBeforeBlock).toBe(baseDP);
+    expect(dpAfterBlock).toBe(baseDP + 1000);
+  });
+
+  it("gains +1000 DP when another Digimon's attack target is switched by a block (Q806)", async () => {
+    const { baseDP, dpBeforeBlock, dpAfterBlock } = await attackAndBlock({ attackerIsHost: false });
+    expect(dpBeforeBlock).toBe(baseDP);
+    expect(dpAfterBlock).toBe(baseDP + 1000);
+  });
+});

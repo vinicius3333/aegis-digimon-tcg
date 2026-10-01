@@ -5,20 +5,19 @@ import {
   EffectTiming,
   requireCardDefinition,
   type CardColor,
-  nameIncludesToken,
+  type CardDefinition,
+  type DigivolutionRequirement,
 } from "@aegis/shared";
 import { pushOnStack, setTopCard } from "../../state/access.js";
 import { alternateRequirementAvailable } from "../../actions/digivolve.js";
-import {
-  matchingEvoCostIgnoringLevel,
-  cardHasTrait,
-  matchingAlternateDigivolutionRequirement,
-} from "../../cards/cardData.js";
+import { matchingEvoCostIgnoringLevel, matchingAlternateDigivolutionRequirement } from "../../cards/cardData.js";
 import { effectiveKinds } from "../continuous.js";
 import { matchingDigivolveCost } from "../verbs/digivolveCost.js";
 import { looseZoneOfInstance, peekLooseInstance, removeLooseInstance } from "../verbs/looseInstances.js";
 
 import type { InternalVerbs, PrimitivesContext } from "./context.js";
+
+type VirtualBase = { level: number; colors: CardColor[] };
 
 /**
  * Digivolving onto a permanent from a loose card instance.
@@ -26,11 +25,62 @@ import type { InternalVerbs, PrimitivesContext } from "./context.js";
 
 export function createDigivolveVerbs(pc: PrimitivesContext) {
   const { engine, access, continuous, ledger, state } = pc;
+
+  // A Tamer digivolving "as if it is a level N Digimon" (virtualBase) is a Digimon that
+  // digivolves (KB Q1157).
+  const baseTreatment = (permanentId: string, baseCardId: string, virtualBase: VirtualBase | undefined) => {
+    const printedBase = requireCardDefinition(baseCardId);
+    const baseIsDigimon = effectiveKinds(continuous, permanentId, printedBase.kinds).includes(CardKind.Digimon);
+    const asDigimon =
+      !baseIsDigimon && printedBase.kinds.includes(CardKind.Tamer) && virtualBase !== undefined
+        ? { ...printedBase, kinds: [CardKind.Digimon], level: virtualBase.level, colors: virtualBase.colors }
+        : undefined;
+    return { baseIsDigimon, asDigimon };
+  };
+
+  // A "can't digivolve" rule stops effect-driven digivolution as well as digivolution from hand.
+  const digivolveBlocked = (
+    permanent: Permanent,
+    evolving: CardDefinition,
+    virtualBase: VirtualBase | undefined,
+  ): boolean => {
+    if (permanent.topCard === undefined) return true;
+    const { baseIsDigimon, asDigimon } = baseTreatment(permanent.permanentId, permanent.topCard.cardId, virtualBase);
+    const unsuspendedDigivolveProhibited =
+      !permanent.isSuspended && continuous.isUnsuspendedDigivolveProhibited(permanent.controllerSeat);
+    if (
+      continuous.hasRestriction(permanent.permanentId, "digivolve") ||
+      (evolving.level === 7 && continuous.hasRestriction(permanent.permanentId, "digivolveToLevel7")) ||
+      (baseIsDigimon && unsuspendedDigivolveProhibited)
+    ) {
+      return true;
+    }
+    if (asDigimon === undefined) return false;
+    return unsuspendedDigivolveProhibited || continuous.isDigivolveLockedAsDigimon(permanent.permanentId, asDigimon);
+  };
+
+  const isEffectDigivolveBlocked = (
+    targetPermanentId: string,
+    evolvingCardId: string,
+    virtualBase?: VirtualBase,
+  ): boolean => {
+    const permanent = access.permanentById(targetPermanentId);
+    return permanent === undefined || digivolveBlocked(permanent, requireCardDefinition(evolvingCardId), virtualBase);
+  };
+
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const adjustedEvoCost: PrimitivesContext["helpers"]["adjustedEvoCost"] = (...args) =>
     pc.helpers.adjustedEvoCost(...args);
   const draw: InternalVerbs["draw"] = (...args) => pc.fx.draw(...args);
+
+  const payPlacement = async (
+    seat: Permanent["controllerSeat"],
+    requirement: DigivolutionRequirement | undefined,
+    evolving: NonNullable<ReturnType<typeof peekLooseInstance>>,
+  ): Promise<boolean> =>
+    requirement?.placementCost === undefined ||
+    (await engine.payAlternatePlacement?.(seat, requirement, evolving)) !== false;
 
   const digivolveFromInstance = async (
     targetPermanentId: string,
@@ -39,10 +89,11 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       payCost?: boolean;
       draw?: boolean;
       costDelta?: number;
+      deferredCostReduction?: () => number;
       costOverride?: number;
       useAlternateCost?: boolean;
       ignoreLevel?: boolean;
-      virtualBase?: { level: number; colors: CardColor[] };
+      virtualBase?: VirtualBase;
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
       processRulesBeforeWhenDigivolving?: boolean;
@@ -63,6 +114,13 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     if (opts?.ignoreRequirements && continuous.cannotIgnoreDigivolution(seat)) {
       return undefined;
     }
+    if (digivolveBlocked(permanent, definition, opts?.virtualBase)) return undefined;
+    const { baseIsDigimon, asDigimon } = baseTreatment(
+      permanent.permanentId,
+      permanent.topCard.cardId,
+      opts?.virtualBase,
+    );
+    let placementRequirement: DigivolutionRequirement | undefined;
     if (opts?.payCost) {
       // ignoreDigivolutionRequirementFixedCost) replaces the printed digivolution cost.
       // `ignoreRequirements` ("ignoring its digivolution requirements") waives the printed
@@ -93,6 +151,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
         const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
         if (matched === undefined) return undefined;
+        if (useAlternate) placementRequirement = alternate;
         baseCost = opts.costOverride ?? matched;
       } else {
         // The base qualifies via a printed EvoCost OR via an alternate digivolution requirement
@@ -128,26 +187,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         if (opts.useAlternateCost === true && matchedAlternate !== undefined && alternate === undefined)
           return undefined;
         const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
-        if (useAlternate && alternate.minNameStackNames !== undefined) {
-          const required = alternate.minNameStackCount ?? 1;
-          const matches = permanent.stack.filter((card) => {
-            const stackDef = requireCardDefinition(card.cardId);
-            return alternate.minNameStackNames!.some((name) =>
-              alternate.minNameStackMatch === "contains"
-                ? nameIncludesToken(stackDef.nameEn, name)
-                : stackDef.nameEn === name,
-            );
-          }).length;
-          if (matches < required) return undefined;
-        }
-        if (useAlternate && alternate.minTraitStackCount !== undefined) {
-          const wanted = alternate.minTraitStackTraits ?? [];
-          const matches = permanent.stack.filter((card) => {
-            const stackDef = requireCardDefinition(card.cardId);
-            return wanted.some((trait) => cardHasTrait(stackDef, trait));
-          }).length;
-          if (matches < alternate.minTraitStackCount) return undefined;
-        }
+        if (useAlternate) placementRequirement = alternate;
         const matched = useAlternate ? alternate!.cost : (printed ?? alternate?.cost ?? baseGranted?.cost);
         if (matched === undefined) return undefined;
         baseCost = opts.costOverride ?? matched;
@@ -157,26 +197,27 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       // then applied so continuous cost-reductions reach this effect-driven path too (KB BT1-109
       // Q980). Floored at 0 — a digivolution cost can't go below 0.
       const declaredDelta = opts.costDelta ?? 0;
-      const allowedDelta = continuous.blocksCostReduction(seat, "digivolve")
-        ? Math.max(0, declaredDelta)
-        : declaredDelta;
+      const reductionBlocked = continuous.blocksCostReduction(seat, "digivolve");
+      const allowedDelta = reductionBlocked ? Math.max(0, declaredDelta) : declaredDelta;
       const declaredCost = baseCost + allowedDelta;
-      const cost = Math.max(
-        0,
+      const finalizedCost =
         engine.finalizeEffectDigivolveCost !== undefined
-          ? await engine.finalizeEffectDigivolveCost(permanent, sourceInstanceId, definition, declaredCost)
-          : adjustedEvoCost(seat, permanent, declaredCost, definition),
-      );
+          ? await engine.finalizeEffectDigivolveCost(permanent, sourceInstanceId, definition, declaredCost, asDigimon)
+          : adjustedEvoCost(seat, permanent, declaredCost, definition);
+      const deferredReduction = reductionBlocked ? 0 : (opts.deferredCostReduction?.() ?? 0);
+      const cost = Math.max(0, finalizedCost - deferredReduction);
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
+      if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
       if (cost > 0) engine.memory.pay(seat, cost, "digivolve");
     } else if (!opts?.ignoreRequirements) {
       // Cost-free effect-digivolve ("digivolve into X without paying the cost"): the memory cost is
       // waived but the digivolution REQUIREMENT is not. Only an explicit "ignoring its digivolution
       // requirements" (ignoreRequirements) waives the requirement; paying 0 memory does not. The base
       // must still satisfy the into-card's printed EvoCost or an alternate trait/name digivolution
-      // requirement. Mirrors the interpreter's candidate filter (runDigivolve enforceRequirements):
-      // only gate a base that carries a level — a level-less base (Q4242) satisfies no level-gated
-      // requirement, so the check is meaningless and is skipped rather than rejecting the digivolve.
+      // requirement, including the alternate path's live gates and placement cost (KB BT7-112
+      // Q1686). Mirrors the interpreter's candidate filter (runDigivolve enforceRequirements):
+      // a level-less base (Q4242) that matches no alternate path is not gated here, because
+      // callers that digivolve such bases supply their own route.
       const baseDef = requireCardDefinition(permanent.topCard.cardId);
       const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
       const printed = matchingDigivolveCost(definition, baseDef);
@@ -187,28 +228,17 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         matchedAlternate !== undefined && alternateRequirementAvailable(state, seat, permanent, matchedAlternate)
           ? matchedAlternate
           : undefined;
-      if (printed === undefined && alternate !== undefined && !opts?.ignoreRequirements) {
-        if (alternate.minNameStackNames !== undefined) {
-          const required = alternate.minNameStackCount ?? 1;
-          const matches = permanent.stack.filter((card) => {
-            const stackDef = requireCardDefinition(card.cardId);
-            return alternate.minNameStackNames!.some((name) =>
-              alternate.minNameStackMatch === "contains"
-                ? nameIncludesToken(stackDef.nameEn, name)
-                : stackDef.nameEn === name,
-            );
-          }).length;
-          if (matches < required) return undefined;
-        }
-      }
-      if (
-        baseDef.level !== undefined &&
-        printed === undefined &&
-        alternate === undefined &&
-        baseGranted === undefined
-      ) {
+      if (opts?.useAlternateCost === true && matchedAlternate !== undefined && alternate === undefined) {
         return undefined;
       }
+      const otherRoute = printed !== undefined || baseGranted !== undefined;
+      if (!otherRoute && alternate === undefined && (baseDef.level !== undefined || matchedAlternate !== undefined)) {
+        return undefined;
+      }
+      if (alternate !== undefined && (opts?.useAlternateCost === true || !otherRoute)) {
+        placementRequirement = alternate;
+      }
+      if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
     }
     // ＜Arts Digivolve＞ (CR §4-19): the source may be the DUAL card still resolving as an
     // Option, which this digivolution routes instead of the trash step. Same marker the
@@ -219,11 +249,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
-    const baseWasDigimon = effectiveKinds(
-      continuous,
-      permanent.permanentId,
-      requireCardDefinition(priorTop.cardId).kinds,
-    ).includes(CardKind.Digimon);
+    const baseWasDigimon = baseIsDigimon || asDigimon !== undefined;
     pushOnStack(permanent, priorTop);
     setTopCard(permanent, instance);
     // A prior stack rotation may have marked the promoted no-DP top for rule trash.
@@ -292,5 +318,5 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
    * permanent's stack). Placed on the first material's controller's side.
    */
 
-  return { digivolveFromInstance };
+  return { digivolveFromInstance, isEffectDigivolveBlocked };
 }

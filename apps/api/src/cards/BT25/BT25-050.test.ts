@@ -388,3 +388,38 @@ describe("BT25-050 Kiwimon", () => {
     expect(s.perm("standalone").currentDP).toBe(3000);
   });
 });
+
+describe("BT25-050 Kiwimon — KB Q&A rulings", () => {
+  it.each(["ownDigimon", "opponentDigimon"])(
+    "can suspend either player's Digimon with its [On Play] effect (%s) (Q6322)",
+    async (chosen) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT25-050", as: "kiwimon" }],
+            battleArea: [{ card: "BT1-028", as: "ownDigimon" }],
+          },
+          1: { battleArea: [{ card: "BT1-028", as: "opponentDigimon" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: false },
+      );
+      const unchosen = chosen === "ownDigimon" ? "opponentDigimon" : "ownDigimon";
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kiwimon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(chosen).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm(chosen).isSuspended);
+
+      expect(s.perm(chosen).isSuspended).toBe(true);
+      expect(s.perm(unchosen).isSuspended).toBe(false);
+    },
+  );
+});

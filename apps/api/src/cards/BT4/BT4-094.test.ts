@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT4-094.js";
 
 describe("BT4-094 Tai Kamiya", () => {
@@ -76,5 +76,30 @@ describe("BT4-094 Tai Kamiya", () => {
     const id = s.inst("securityTamer").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTamer"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);
+  });
+});
+
+describe("BT4-094 Tai Kamiya — KB Q&A rulings", () => {
+  it("gives +1000 DP to your Digimon of every color, not only yellow ones (Q1246)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT4-094", as: "tai" },
+          { card: "BT1-045", as: "yellow" },
+          { card: "BT1-009", as: "red" },
+          { card: "BT4-051", as: "green" },
+          { card: "BT4-076", as: "purple" },
+          { card: "BT13-063", as: "black" },
+        ],
+        security: ["BT1-010", "BT1-011", "BT1-012"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponentRed" }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    for (const alias of ["yellow", "red", "green", "purple", "black"]) {
+      expect(s.perm(alias).currentDP).toBe(s.perm(alias).baseDP + 1000);
+    }
+    expect(s.perm("opponentRed").currentDP).toBe(s.perm("opponentRed").baseDP);
   });
 });

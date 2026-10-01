@@ -235,3 +235,34 @@ describe("BT7-081 Bokomon", () => {
     expect(s.state.memory).toBe(3);
   });
 });
+
+describe("BT7-081 Bokomon — KB Q&A rulings", () => {
+  const revealFromTopFive = async (topFive: string[]) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT7-081", as: "bokomon" }],
+          deck: topFive.map((card, index) => ({ card, as: `revealed-${index}` })),
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.hand.length === 1 && s.state.pendingDecision === undefined);
+    return { s, player };
+  };
+
+  it("adds the only matching card when the top five reveal just a Hybrid/Ten Warriors card or just a Tamer (Q1645)", async () => {
+    const hybridOnly = await revealFromTopFive(["BT7-011", "BT1-014", "BT7-009", "BT7-010", "BT7-012"]);
+    expect(hybridOnly.player.hand.map((card) => card.instanceId)).toEqual([hybridOnly.s.inst("revealed-0").instanceId]);
+    expect(hybridOnly.player.deck).toHaveLength(4);
+
+    const tamerOnly = await revealFromTopFive(["BT1-014", "BT7-085", "BT7-009", "BT7-010", "BT7-012"]);
+    expect(tamerOnly.player.hand.map((card) => card.instanceId)).toEqual([tamerOnly.s.inst("revealed-1").instanceId]);
+    expect(tamerOnly.player.deck).toHaveLength(4);
+  });
+});

@@ -189,7 +189,9 @@ describe("BT23-088 K", () => {
         },
         1: { hand: [NEUTRAL], deck: [...DECK], security: [...SECURITY] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Keeps K on the board: its end-of-turn By-deletion is payable without a digivolution
+      // target (CR 15-7-5), and this test is about the Start of Main clause.
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Digivolve"] },
     );
     const firstId = s.inst("first").instanceId;
     const secondId = s.inst("second").instanceId;
@@ -297,43 +299,47 @@ describe("BT23-088 K", () => {
     ["a level 6 trash card exceeds the level 5 ceiling", "BT23-068"],
     ["a level 5 trash card whose EvoCost the Lv.3 base cannot meet", "BT23-066"],
     ["a requirement-legal trash card without the [Undead]/[Dark Animal] trait", "BT10-074"],
-  ])("does not delete K when the only candidate is %s", async (_why, trashCardId) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT23-088", as: "k" },
-            { card: "BT2-067", as: "base" },
-          ],
-          hand: [NEUTRAL],
-          trash: [{ card: trashCardId, as: "candidate" }],
-          deck: [...DECK],
-          security: [...SECURITY],
+  ])(
+    "deletes K for the By condition but digivolves nothing when the only candidate is %s (CR 15-7-5)",
+    async (_why, trashCardId) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT23-088", as: "k" },
+              { card: "BT2-067", as: "base" },
+            ],
+            hand: [NEUTRAL],
+            trash: [{ card: trashCardId, as: "candidate" }],
+            deck: [...DECK],
+            security: [...SECURITY],
+          },
+          1: { hand: [NEUTRAL], deck: [...DECK], security: [...SECURITY] },
         },
-        1: { hand: [NEUTRAL], deck: [...DECK], security: [...SECURITY] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const kId = s.inst("k").instanceId;
-    const candidateId = s.inst("candidate").instanceId;
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const kId = s.inst("k").instanceId;
+      const candidateId = s.inst("candidate").instanceId;
 
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
-    const deckBefore = s.state.players[0]!.deck.length;
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await advance(s.engine).waitForMainPhase(1);
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      const deckBefore = s.state.players[0]!.deck.length;
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(true);
-    expect(s.perm("base").topCard?.cardId).toBe("BT2-067");
-    expect(s.perm("base").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(candidateId);
-    expect(s.state.players[0]!.deck).toHaveLength(deckBefore);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(false);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(kId);
+      expect(s.perm("base").topCard?.cardId).toBe("BT2-067");
+      expect(s.perm("base").stack).toHaveLength(0);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(candidateId);
+      expect(s.state.players[0]!.deck).toHaveLength(deckBefore);
 
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-  });
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 
-  it("does not reach a breeding-area Digimon, so K survives with no battle-area Digimon", async () => {
+  it("does not reach a breeding-area Digimon, but K may still be deleted for the By condition (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -358,7 +364,8 @@ describe("BT23-088 K", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(kId);
     expect(s.perm("hatchling").topCard?.cardId).toBe("BT2-067");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sangloupmonId);
 

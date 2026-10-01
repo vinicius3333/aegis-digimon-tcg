@@ -62,3 +62,37 @@ describe("ST3-04 Patamon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("ST3-04 Patamon — KB Q&A rulings", () => {
+  it("activates for every Digimon that has it as a digivolution card when an opponent's Digimon drops to 0 DP (Q631)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST3-11", under: ["ST3-04"], as: "attacker" },
+            { card: "ST3-09", under: ["ST3-04"], as: "secondHost" },
+            { card: "ST3-02", under: ["ST3-04"], as: "thirdHost" },
+            { card: "ST3-09", as: "withoutPatamon" },
+          ],
+        },
+        1: { battleArea: [{ card: "ST3-02", as: "victim" }], security: ["ST3-02"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 3);
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(3);
+    expect(s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "ST3-04")).toHaveLength(
+      3,
+    );
+  });
+});

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT3-091.js";
 import "./BT3-109.js";
+import "../BT6/BT6-100.js";
 
 describe("BT3-091 Lilithmon", () => {
   it("returns up to two purple Options with ten cards in trash", async () => {
@@ -97,5 +99,85 @@ describe("BT3-091 Lilithmon", () => {
     expect(s.state.memory).toBe(beforeThird);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT3-091 Lilithmon — KB Q&A rulings", () => {
+  it("gains memory only after the used Option's [Main] effect has resolved (Q1117)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-091", as: "lilithmon" },
+          { card: "BT1-010", as: "ally" },
+        ],
+        hand: [{ card: "BT3-109", as: "option" }],
+      },
+    });
+    const player = s.state.players[0] as PlayerState;
+    const optionId = s.inst("option").instanceId;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const mainTargetDecision = s.decisions.at(-1)!.req;
+    expect(mainTargetDecision.sourceCardId).toBe("BT3-109");
+    expect(mainTargetDecision.options?.candidateInstanceIds).toContain(s.perm("ally").permanentId);
+    expect(s.state.memory).toBe(3);
+    expect(player.trash.some((card) => card.instanceId === optionId)).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: mainTargetDecision.decisionId,
+        response: { kind: mainTargetDecision.kind as "chooseTargets", instanceIds: [s.perm("ally").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 5 && s.state.pendingDecision === undefined);
+
+    expect(player.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("does not gain memory when an Option's effect activates without using the card (Q5449)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-091", as: "lilithmon" },
+            { card: "BT6-100", as: "delayOption" },
+          ],
+          hand: [{ card: "BT3-109", as: "usedOption" }],
+          security: [{ card: "BT6-100", as: "securityOption", faceUp: true }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    await settle(() =>
+      player.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("securityOption").instanceId),
+    );
+    await drainMicrotasks();
+    expect(s.state.memory).toBe(3);
+
+    const delayOptionId = s.inst("delayOption").instanceId;
+    const delay = (
+      observe(s.engine).activatableEffects(s.perm("delayOption")) as Array<{ effectKey: string; description: string }>
+    ).find((effect) => effect.description.includes("Delay"));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: delayOptionId, effectKey: delay!.effectKey }),
+    ).toEqual({ ok: true });
+    await settle(() => player.trash.some((card) => card.instanceId === delayOptionId) && s.state.memory >= 6);
+    await drainMicrotasks();
+    expect(s.state.memory).toBe(6);
+
+    const usedOptionId = s.inst("usedOption").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: usedOptionId })).toEqual({ ok: true });
+    await settle(() => player.trash.some((card) => card.instanceId === usedOptionId) && s.state.memory === 6);
+    expect(s.state.memory).toBe(6);
   });
 });

@@ -19,7 +19,7 @@ describe("BT24-020 Gomamon", () => {
               filter: {
                 nameOrTrait: [
                   { tokens: ["Sea Beast", "Shaman"], match: "trait" },
-                  { tokens: ["Aqua", "Sea Animal"], match: "trait" },
+                  { tokens: ["Aqua", "Sea Animal"], match: "traitContains" },
                 ],
               },
             },
@@ -64,6 +64,29 @@ describe("BT24-020 Gomamon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("seaBeast").instanceId, s.inst("tsTamer").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
+  });
+
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquatic])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-020", as: "gomamon" }],
+          deck: [
+            { card: "BT12-025", as: "aquatic" },
+            { card: "BT24-083", as: "tsTamer" },
+            { card: "BT1-009", as: "miss" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gomamon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("aquatic").instanceId, s.inst("tsTamer").instanceId]),
     );
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });

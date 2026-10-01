@@ -123,3 +123,30 @@ describe("BT22-039 Ouranosmon", () => {
     expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(true);
   });
 });
+
+describe("BT22-039 Ouranosmon — KB Q&A rulings", () => {
+  it("triggers its [All Turns] link effect when Ouranosmon itself is played (Q4893)", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT22-039", as: "ouranosmon" }] } }, { autoDeclineOptional: true });
+    s.state.memory = 12;
+    await s.ready();
+    const ouranosmonId = s.inst("ouranosmon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: ouranosmonId })).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === ouranosmonId);
+    expect(played).toBeDefined();
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "effectTriggered",
+        sourceCardId: "BT22-039",
+        sourcePermanentId: played!.permanentId,
+        description: expect.stringContaining("When any of your Digimon are played"),
+      }),
+    );
+    expect(s.decisions.find(({ req }) => req.kind === "optional")).toMatchObject({
+      seat: 0,
+      req: { promptText: "Link", options: { timing: "AllTurns" } },
+    });
+  });
+});

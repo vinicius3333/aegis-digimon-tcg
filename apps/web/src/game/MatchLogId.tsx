@@ -1,37 +1,47 @@
-import { Button } from "../design/primitives";
-import { useState } from "react";
+import { IconButton } from "../design/primitives";
+import { Icons } from "../design/icons";
+import { useId, useState } from "react";
 import { useTranslation } from "../i18n";
 
 export function MatchLogId({ id }: { id: string }) {
   const { t } = useTranslation();
+  const inputId = useId();
   const [message, setMessage] = useState("");
+  const [copied, setCopied] = useState(false);
   if (!id) return null;
   return (
     <div className="aegis-field bug-report__match-id">
-      <label className="aegis-field__label">
-        {t("game.debugId")}{" "}
+      <label className="aegis-field__label" htmlFor={inputId}>
+        {t("game.debugId")}
+      </label>
+      <div className="bug-report__match-id-row">
         <input
+          id={inputId}
           className="aegis-field__control"
-          aria-label={t("game.debugId")}
           value={id}
           readOnly
           onFocus={(event) => event.currentTarget.select()}
         />
-      </label>
-      <Button
-        variant="secondary"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(id);
-            setMessage(t("common.copied"));
-          } catch {
-            setMessage(t("game.debugCopyFailed"));
-          }
-        }}
-      >
-        {t("common.copy")}
-      </Button>
-      <span className="aegis-field__message" role="status">
+        <IconButton
+          variant="secondary"
+          label={t("common.copy")}
+          title={t("common.copy")}
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(id);
+              setCopied(true);
+              setMessage(t("common.copied"));
+            } catch {
+              setCopied(false);
+              setMessage(t("game.debugCopyFailed"));
+            }
+          }}
+        >
+          {copied ? <Icons.Check size={16} /> : <Icons.Copy size={16} />}
+        </IconButton>
+      </div>
+      {/* The check icon already shows a successful copy, so only a failure takes up a line. */}
+      <span className={copied || !message ? "aegis-sr-only" : "aegis-field__message"} role="status">
         {message}
       </span>
     </div>

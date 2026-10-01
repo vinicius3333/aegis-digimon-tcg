@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import {
+  assertNoLoudGap,
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type EngineSetup,
+} from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT18-037.js";
 
@@ -192,5 +200,195 @@ describe("BT18-037 Lobomon", () => {
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(draws);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT18-037 Lobomon — KB Q&A rulings", () => {
+  const digivolve = (s: EngineSetup, baseAlias: string, cardAlias: string) =>
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm(baseAlias).permanentId,
+      instanceId: s.inst(cardAlias).instanceId,
+    });
+
+  it("digivolves from Koji as a Tamer: Digimon digivolve watchers stay silent and a 'Digimon can't digivolve' lock does not block it (Q2957)", async () => {
+    const setupWatchers = (lockDigimon: boolean) =>
+      setupEngine(
+        {
+          0: {
+            ...(lockDigimon ? { breeding: { card: "BT13-007", as: "kingDrasil" } } : {}),
+            battleArea: [
+              { card: "BT7-087", as: "koji" },
+              { card: "BT1-029", as: "gabumon" },
+              { card: "BT5-091", as: "takumi" },
+              { card: "BT16-049", as: "armadillomon" },
+            ],
+            hand: [
+              { card: "BT18-037", as: "lobomon" },
+              { card: "BT18-037", as: "secondLobomon" },
+            ],
+            security: ["BT1-009"],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+
+    const locked = setupWatchers(true);
+    locked.state.memory = 5;
+    await locked.ready();
+    expect(digivolve(locked, "gabumon", "secondLobomon")).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(digivolve(locked, "koji", "lobomon")).toEqual({ ok: true });
+    await settle(
+      () =>
+        locked.perm("koji").topCard?.instanceId === locked.inst("lobomon").instanceId &&
+        locked.state.pendingDecision === undefined,
+    );
+    await drainMicrotasks();
+    expect(locked.perm("koji").stack.map(({ instanceId }) => instanceId)).toEqual([locked.inst("koji").instanceId]);
+    expect(locked.perm("takumi").isSuspended).toBe(false);
+    expect(locked.state.memory).toBe(3);
+
+    const digimonBase = setupWatchers(false);
+    digimonBase.state.memory = 5;
+    await digimonBase.ready();
+    expect(digivolve(digimonBase, "gabumon", "lobomon")).toEqual({ ok: true });
+    await settle(
+      () =>
+        digimonBase.perm("gabumon").topCard?.instanceId === digimonBase.inst("lobomon").instanceId &&
+        digimonBase.state.pendingDecision === undefined,
+    );
+    await drainMicrotasks();
+    expect(digimonBase.perm("takumi").isSuspended).toBe(true);
+    expect(digimonBase.state.memory).toBe(3);
+  });
+
+  it("performs the digivolution bonus draw when it digivolves from the Koji Tamer (Q2958)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [{ card: "BT18-037", as: "lobomon" }],
+          security: ["BT1-009"],
+          deck: [
+            { card: "BT1-010", as: "bonusDraw" },
+            { card: "BT1-011", as: "nextCard" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(digivolve(s, "koji", "lobomon")).toEqual({ ok: true });
+    await settle(() => s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId);
+    await drainMicrotasks();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonusDraw").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("nextCard").instanceId]);
+  });
+
+  it("keeps Koji as a digivolution card that is trashed with Lobomon when it leaves the field (Q6605)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [{ card: "BT18-037", as: "lobomon" }],
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-030", dp: 30000, suspended: true, as: "wall" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(digivolve(s, "koji", "lobomon")).toEqual({ ok: true });
+    await settle(() => s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId);
+    await drainMicrotasks();
+    expect(s.perm("koji").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("koji").instanceId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("koji").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    await advance(s.engine).finishAttack();
+
+    const trashIds = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+    expect(trashIds).toEqual(expect.arrayContaining([s.inst("koji").instanceId, s.inst("lobomon").instanceId]));
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("koji").instanceId)).toBe(false);
+  });
+
+  it("does not gain the Security effect of the Koji Tamer in its digivolution cards (Q6606)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-037", as: "lobomon", under: [{ card: "BT7-087", as: "buriedKoji" }] }],
+        },
+        1: { security: [{ card: "BT7-087", as: "checkedKoji" }, "BT1-030"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lobomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    await advance(s.engine).finishAttack();
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.inst("checkedKoji").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("lobomon").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("buriedKoji").instanceId]);
+  });
+
+  it("gains the inherited effect of the Koji Tamer in its digivolution cards (Q6607)", async () => {
+    const digivolveAndSearch = async (baseCard: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: baseCard, as: "base" }],
+            hand: [{ card: "BT18-037", as: "lobomon" }],
+            security: [{ card: "BT12-009", as: "hybrid" }, "BT1-009"],
+            deck: ["BT1-010", "BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(digivolve(s, "base", "lobomon")).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.perm("base").topCard?.instanceId === s.inst("lobomon").instanceId &&
+          s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("hybrid").instanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+      await drainMicrotasks();
+      return s;
+    };
+
+    const fromKoji = await digivolveAndSearch("BT7-087");
+    expect(fromKoji.state.memory).toBe(4);
+    expect(observe(fromKoji.engine).isRestricted(fromKoji.perm("base"), "cantBeBlocked")).toBe(true);
+
+    const fromKendoGarurumon = await digivolveAndSearch("BT4-027");
+    expect(fromKendoGarurumon.state.memory).toBe(5);
+    expect(observe(fromKendoGarurumon.engine).isRestricted(fromKendoGarurumon.perm("base"), "cantBeBlocked")).toBe(
+      false,
+    );
   });
 });

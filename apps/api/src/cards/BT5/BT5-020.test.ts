@@ -89,3 +89,34 @@ describe("BT5-020 Gabumon", () => {
     expect(player.deck.map((card) => card.cardId)).toEqual(["BT5-021", "BT5-022", "BT5-023"]);
   });
 });
+
+describe("BT5-020 Gabumon — KB Q&A rulings", () => {
+  it("adds the one revealed [Garurumon] card even when no [Omnimon] card is revealed (Q1301)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT5-020", as: "source" }],
+          deck: [
+            { card: "BT5-021", as: "nonMatch" },
+            { card: "BT5-024", as: "garurumon" },
+            { card: "BT1-101", as: "option" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.hand.some((card) => card.instanceId === s.inst("garurumon").instanceId));
+    await settle();
+
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("garurumon").instanceId]);
+    expect(player.deck.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("nonMatch").instanceId, s.inst("option").instanceId].sort(),
+    );
+  });
+});

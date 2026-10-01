@@ -165,3 +165,38 @@ describe("BT15-034", () => {
     await opponentTurn;
   });
 });
+
+describe("BT15-034 Salamon — KB Q&A rulings", () => {
+  async function runMainPhaseStartWithSecurity(securityCount: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-034", as: "salamon" }],
+          hand: [{ card: "BT15-033", as: "yellowVaccine" }],
+          security: Array.from({ length: securityCount }, () => "BT1-009"),
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    return s;
+  }
+
+  it("still offers the yellow Vaccine placement after the first clause drops security from 3 to 2 (Q2515)", async () => {
+    const fromThree = await runMainPhaseStartWithSecurity(3);
+    expect(fromThree.state.players[0]!.security).toHaveLength(3);
+    expect(fromThree.state.players[0]!.security.at(-1)!.instanceId).toBe(fromThree.inst("yellowVaccine").instanceId);
+    expect(fromThree.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(
+      fromThree.inst("yellowVaccine").instanceId,
+    );
+
+    const fromFour = await runMainPhaseStartWithSecurity(4);
+    expect(fromFour.state.players[0]!.security).toHaveLength(3);
+    expect(fromFour.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      fromFour.inst("yellowVaccine").instanceId,
+    );
+  });
+});

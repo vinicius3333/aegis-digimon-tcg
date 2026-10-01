@@ -317,3 +317,51 @@ describe("EX9-037", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-037 Kabuterimon — KB Q&A rulings", () => {
+  async function playAndPassTurns(targetSuspended: boolean) {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-037", as: "source" }, "BT1-090"], deck: ["BT1-090", "BT1-090"] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", suspended: targetSuspended }],
+          deck: ["BT1-090", "BT1-090"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    s.state.turnCount = 2;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("source").stack.map(({ faceUp }) => faceUp)).toEqual([false]);
+    await advance(s.engine).verb.suspend([s.perm("source").permanentId]);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    return s;
+  }
+
+  it("keeps the suspended opponent Digimon, not this Digimon, from unsuspending (Q4789)", async () => {
+    const s = await playAndPassTurns(false);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("source"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("source").isSuspended).toBe(false);
+  });
+
+  it("still gives 'can't unsuspend' to a Digimon it could not suspend (Q4790)", async () => {
+    const s = await playAndPassTurns(true);
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+});

@@ -314,3 +314,49 @@ describe("BT26-011 Buraimon", () => {
     ).toBe(true);
   });
 });
+
+describe("BT26-011 Buraimon — KB Q&A rulings", () => {
+  async function playBuraimonWithCostCandidate(candidateCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "buraimon" },
+            { card: candidateCardId, as: "candidate" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("buraimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it.each([
+    { candidate: "BT26-009", where: "an effect" },
+    { candidate: "BT26-078", where: "an effect of a non-[Shaman] level 6" },
+    { candidate: "BT26-085", where: "its Assembly requirement and effects" },
+  ])(
+    "pays with a card whose [Chronomon] appears only in $where as a card with [Chronomon] in its text (Q6965)",
+    async ({ candidate }) => {
+      const s = await playBuraimonWithCostCandidate(candidate);
+
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
+    },
+  );
+
+  it("does not accept a [TS] card with no [Chronomon] in its text as the cost (Q6965)", async () => {
+    const s = await playBuraimonWithCostCandidate("BT24-011");
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("candidate").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+});

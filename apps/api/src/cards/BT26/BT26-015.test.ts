@@ -1,6 +1,8 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT26-015.js";
 import "./BT26-015.js";
 import "./BT26-009.js";
@@ -473,4 +475,34 @@ it("BT26-015 keeps its inherited deck-add reaction armed when the host is not su
     s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("secondTarget").instanceId),
   );
   expect(s.perm("host").isSuspended).toBe(false);
+});
+
+describe("BT26-015 Butenmon — KB Q&A rulings", () => {
+  it.each([
+    { host: "BT26-016", where: "part of its name", unsuspends: true },
+    { host: "BT26-078", where: "its effects", unsuspends: true },
+    { host: "BT26-073", where: "its Assembly requirement", unsuspends: true },
+    { host: "BT26-013", where: "nowhere", unsuspends: false },
+  ])(
+    "treats a Digimon with [Chronomon] in $where as having [Chronomon] in its text for the inherited unsuspend (Q6970)",
+    async ({ host, unsuspends }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: host, as: "host", suspended: true, under: [{ card: "BT26-015" }] }],
+            trash: [{ card: "BT1-011", as: "returned" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      await advance(s.engine).verb.returnToDeck([s.inst("returned").instanceId]);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("returned").instanceId);
+      expect(s.perm("host").isSuspended).toBe(!unsuspends);
+    },
+  );
 });

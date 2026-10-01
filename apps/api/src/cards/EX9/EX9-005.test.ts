@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-005.js";
@@ -274,5 +275,125 @@ describe("EX9-005", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.memory).toBe(5);
+  });
+});
+
+describe("EX9-005 Negamon — KB Q&A rulings", () => {
+  it("reduces the play cost by 2 more for one Negamon in trash and one in a Digimon's stack (Q4744)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX9-005", as: "negamon" },
+          battleArea: [{ card: "BT1-009", under: ["EX9-005"] }],
+          hand: [{ card: "EX9-047", as: "played" }],
+          trash: ["EX9-005"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await activateBreedingMain(s);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047"));
+
+    expect(s.perm("played").topCard.cardId).toBe("EX9-047");
+    expect(s.state.memory).toBe(-(7 - 2 - 2));
+  });
+
+  it("keeps the bred Negamon from digivolving or being deleted or trashed by effects in either turn (Q4745)", async () => {
+    for (const turnSeat of [0, 1] as const) {
+      const s = setupEngine({
+        0: {
+          breeding: { card: "EX9-005", as: "negamon" },
+          hand: [{ card: "EX9-046", as: "rookie" }],
+        },
+      });
+      s.state.turnSeat = turnSeat;
+      await s.ready();
+      const negamon = s.perm("negamon");
+      for (const restriction of ["digivolve", "beDeleted", "beTrashed"] as const) {
+        expect(observe(s.engine).isRestricted(negamon, restriction)).toBe(true);
+      }
+
+      advance(s.engine).verb.enterEffectResolution(1);
+      const removed = await advance(s.engine).verb.deletePermanent([negamon.permanentId]);
+      advance(s.engine).verb.leaveEffectResolution();
+      expect(removed).toBe(0);
+      expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX9-005");
+    }
+
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX9-005", as: "negamon" },
+        hand: [{ card: "EX9-046", as: "rookie" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("negamon").permanentId,
+        instanceId: s.inst("rookie").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX9-005");
+
+    const control = setupEngine({
+      0: {
+        breeding: { card: "BT10-005", as: "egg" },
+        hand: [{ card: "EX9-046", as: "rookie" }],
+      },
+    });
+    control.state.memory = 3;
+    await control.ready();
+    expect(
+      control.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: control.perm("egg").permanentId,
+        instanceId: control.inst("rookie").instanceId,
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("plays a Digimon whose effect text names Negamon, but never one without it (Q4746)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX9-005", as: "negamon" },
+          hand: [
+            { card: "EX9-046", as: "textOnly" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    await activateBreedingMain(s);
+    await settle(() => s.state.players[0]!.battleArea.length > 0);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX9-046"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
+    expect(s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])).not.toContain(
+      s.inst("unrelated").instanceId,
+    );
+  });
+
+  it("neither activates nor restricts once Negamon leaves the breeding area (Q4747)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX9-046", as: "host", under: ["EX9-005"] }],
+        hand: ["EX9-047"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const host = s.perm("host");
+
+    expect(observe(s.engine).activatableEffects(host)).toHaveLength(0);
+    for (const restriction of ["digivolve", "beDeleted", "beTrashed"] as const) {
+      expect(observe(s.engine).isRestricted(host, restriction)).toBe(false);
+    }
+    expect(await advance(s.engine).verb.deletePermanent([host.permanentId])).toBe(1);
   });
 });

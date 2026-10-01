@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT13-014.js";
 import "../ST1/ST1-16.js";
 import "../ST1/ST1-10.js";
+import "./BT13-065.js";
+import "../BT16/BT16-011.js";
+import "../BT16/BT16-015.js";
 
 describe("BT13-014 Garudamon", () => {
   it("on play may play a red Tamer costing 3 or less, but not a cost-4 red Tamer", async () => {
@@ -106,5 +110,60 @@ describe("BT13-014 Garudamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 1);
     expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-021"]);
+  });
+});
+
+describe("BT13-014 Garudamon — KB Q&A rulings", () => {
+  async function attackWithPhoenixmonXAntibody(opposingDigimonCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT16-015",
+              as: "phoenixmonX",
+              under: ["ST1-10", { card: "BT16-011", as: "garudamonX" }, { card: "BT13-014", as: "garudamon" }],
+            },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: opposingDigimonCardId, as: "prey" }],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT13-014"] },
+    );
+    await s.ready();
+
+    const preyId = s.perm("prey").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenixmonX").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preyId)).toBe(false);
+    return s;
+  }
+
+  it("cannot activate the other [End of Attack] inherited effect once <De-Digivolve> removed the granting effect (Q2615)", async () => {
+    const deDigivolved = await attackWithPhoenixmonXAntibody("BT13-065");
+    const endOfAttackOrder = deDigivolved.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(endOfAttackOrder?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT13-014", "BT16-011"]));
+    expect(deDigivolved.perm("phoenixmonX").topCard.instanceId).toBe(deDigivolved.inst("garudamon").instanceId);
+    expect(deDigivolved.perm("phoenixmonX").stack.map((card) => card.instanceId)).toContain(
+      deDigivolved.inst("garudamonX").instanceId,
+    );
+    expect(deDigivolved.state.players[1]!.security).toHaveLength(2);
+
+    const stillPhoenixmon = await attackWithPhoenixmonXAntibody("BT1-009");
+    expect(stillPhoenixmon.perm("phoenixmonX").topCard.cardId).toBe("BT16-015");
+    expect(stillPhoenixmon.state.players[1]!.security).toHaveLength(1);
   });
 });

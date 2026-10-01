@@ -88,3 +88,49 @@ describe("ST14-11 Ai & Mako", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("ST14-11 Ai & Mako — KB Q&A rulings", () => {
+  // The digivolve rule draws 1 card before the trigger resolves, so an empty deck is what keeps the hand at 0.
+  const digivolveIntoPurple = async (deck: string[], accept: boolean) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST14-11", as: "tamer" },
+            { card: "ST14-03", as: "purple" },
+          ],
+          hand: [{ card: "ST14-05", as: "evolver" }],
+          deck,
+        },
+      },
+      accept ? { autoAcceptOptional: true, autoSelectCards: true } : { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purple").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    return s;
+  };
+
+  it("gains 1 memory with 0 cards in hand because returning a card is not a by-cost (Q803)", async () => {
+    const emptyHand = await digivolveIntoPurple([], true);
+    expect(emptyHand.state.players[0]!.hand).toHaveLength(0);
+    expect(emptyHand.state.players[0]!.deck).toHaveLength(0);
+    expect(emptyHand.perm("tamer").isSuspended).toBe(true);
+    expect(emptyHand.state.memory).toBe(9);
+
+    const declined = await digivolveIntoPurple([], false);
+    expect(declined.perm("tamer").isSuspended).toBe(false);
+    expect(declined.state.memory).toBe(8);
+
+    const withDrawnCard = await digivolveIntoPurple(["BT1-009"], true);
+    expect(withDrawnCard.state.players[0]!.hand).toHaveLength(0);
+    expect(withDrawnCard.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(withDrawnCard.state.memory).toBe(9);
+  });
+});

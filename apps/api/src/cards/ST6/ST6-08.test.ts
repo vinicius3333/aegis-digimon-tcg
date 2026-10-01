@@ -1,4 +1,6 @@
+import { Phase, type GameState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST6-08.js";
@@ -50,5 +52,53 @@ describe("ST6-08 Devimon", () => {
     expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("ST6-08 Devimon — KB Q&A rulings", () => {
+  it("can attack with less than 2 memory and the turn ends only after the attack finishes (Q672)", async () => {
+    const observed: { kind: string; memory: number; phase: string; turnSeat: number }[] = [];
+    let state: GameState | undefined;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST6-08", as: "devimon" }],
+          hand: ["ST6-02"],
+          deck: ["ST6-02", "ST6-02"],
+          security: ["ST6-02"],
+        },
+        1: { deck: ["ST6-02"], security: ["ST6-02", "ST6-02"] },
+      },
+      {
+        onEvent: (event) => {
+          if (state) {
+            observed.push({ kind: event.kind, memory: state.memory, phase: state.phase, turnSeat: state.turnSeat });
+          }
+        },
+      },
+    );
+    state = s.state;
+    s.state.isFirstPlayersFirstTurn = false;
+    s.state.memory = 1;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("devimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    const securityCheck = observed.findIndex(({ kind }) => kind === "securityChecked");
+    const turnEnd = observed.findIndex(({ kind }) => kind === "turnEnded");
+    expect(securityCheck).toBeGreaterThanOrEqual(0);
+    expect(observed[securityCheck]).toEqual({ kind: "securityChecked", memory: -1, phase: Phase.Main, turnSeat: 0 });
+    expect(turnEnd).toBeGreaterThan(securityCheck);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.memory).toBe(-1);
   });
 });

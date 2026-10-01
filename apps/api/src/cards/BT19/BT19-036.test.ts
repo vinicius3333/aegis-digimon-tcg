@@ -10,6 +10,55 @@ import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/
 const SPARE = "BT1-013";
 const DECK = ["BT1-009", "BT1-010", "BT1-012", "BT1-013", "BT1-014", "BT1-009"];
 
+async function opponentDeletes(
+  hostCard: string,
+  peerCard: string | undefined,
+  targetAlias: string,
+  copies: number,
+): Promise<ReturnType<typeof setupEngine>> {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: hostCard, as: "host", under: ["BT19-036"] },
+          ...(peerCard === undefined ? [] : [{ card: peerCard, as: "peer" }]),
+        ],
+        hand: [SPARE],
+        deck: DECK,
+        security: [
+          { card: "BT1-009", as: "sec1" },
+          { card: "BT1-010", as: "sec2" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT3-076", as: "purpleSource" }],
+        hand: Array.from({ length: copies }, (_, index) => ({ card: "BT14-100", as: `whack${index}` })),
+        deck: DECK,
+        security: ["BT1-009", "BT1-012"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.perm(targetAlias).permanentId, s.perm(targetAlias).topCard!.instanceId);
+  await s.ready();
+  const loop = s.engine.startTurnLoop();
+
+  await advance(s.engine).waitForMainPhase(0);
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await advance(s.engine).waitForMainPhase(1);
+  for (let index = 0; index < copies; index += 1) {
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst(`whack${index}`).instanceId })).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks(120);
+  }
+  expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+  return s;
+}
+
 describe("BT19-036 Wizardmon (X Antibody)", () => {
   it("matches the catalog printed identity and text", () => {
     expect(getCardDefinition("BT19-036")).toMatchObject({
@@ -357,48 +406,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
   });
 
-  it.each([
-    ["BT1-102", "a yellow Option with cost 2"],
-    ["BT10-107", "a purple Option with cost 2"],
-  ])("only %s is eligible among near-miss hand cards (%s) (Q3091)", async (optionCard) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT18-036", as: "base" }],
-          hand: [
-            { card: "BT19-036", as: "wizardX" },
-            { card: optionCard, as: "option" },
-            { card: "BT1-107", as: "tooExpensive" },
-            { card: "BT1-108", as: "wrongColor" },
-            { card: "BT1-045", as: "notAnOption" },
-          ],
-          deck: [{ card: "BT1-014", as: "evoDraw" }, ...DECK],
-          security: [{ card: "BT1-009", as: "top" }],
-        },
-        1: { security: ["BT1-009"], deck: DECK },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 5;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("wizardX").instanceId,
-        useAlternateCost: true,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 1);
-    await drainMicrotasks(40);
-
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
-    for (const alias of ["tooExpensive", "wrongColor", "notAnOption"]) {
-      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst(alias).instanceId);
-    }
-  });
-
   it("leaves the Option in hand when the optional placement is declined", async () => {
     const s = setupEngine(
       {
@@ -432,55 +439,6 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("second").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
-
-  async function opponentDeletes(
-    hostCard: string,
-    peerCard: string | undefined,
-    targetAlias: string,
-    copies: number,
-  ): Promise<ReturnType<typeof setupEngine>> {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: hostCard, as: "host", under: ["BT19-036"] },
-            ...(peerCard === undefined ? [] : [{ card: peerCard, as: "peer" }]),
-          ],
-          hand: [SPARE],
-          deck: DECK,
-          security: [
-            { card: "BT1-009", as: "sec1" },
-            { card: "BT1-010", as: "sec2" },
-          ],
-        },
-        1: {
-          battleArea: [{ card: "BT3-076", as: "purpleSource" }],
-          hand: Array.from({ length: copies }, (_, index) => ({ card: "BT14-100", as: `whack${index}` })),
-          deck: DECK,
-          security: ["BT1-009", "BT1-012"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    preferred.push(s.perm(targetAlias).permanentId, s.perm(targetAlias).topCard!.instanceId);
-    await s.ready();
-    const loop = s.engine.startTurnLoop();
-
-    await advance(s.engine).waitForMainPhase(0);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await advance(s.engine).waitForMainPhase(1);
-    for (let index = 0; index < copies; index += 1) {
-      s.state.memory = 6;
-      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst(`whack${index}`).instanceId })).toEqual({
-        ok: true,
-      });
-      await drainMicrotasks(120);
-    }
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-    return s;
-  }
 
   it("keeps a yellow [Data] host on the board by trashing the top security card", async () => {
     const s = await opponentDeletes("BT10-033", undefined, "host", 1);
@@ -566,5 +524,79 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
 describe("BT19-036 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT19-036")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
+});
+
+describe("BT19-036 Wizardmon (X Antibody) — KB Q&A rulings", () => {
+  it("places only a yellow or purple Option with cost 5 or less as the bottom security card (Q3091)", async () => {
+    for (const optionCard of ["BT1-106", "BT18-100"]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT18-036", as: "base" }],
+            hand: [
+              { card: "BT19-036", as: "wizardX" },
+              { card: "BT1-107", as: "tooExpensive" },
+              { card: "BT1-108", as: "wrongColor" },
+              { card: "BT1-045", as: "notAnOption" },
+              { card: optionCard, as: "option" },
+            ],
+            deck: [{ card: "BT1-014", as: "evoDraw" }, ...DECK],
+            security: [
+              { card: "BT1-009", as: "top" },
+              { card: "BT1-010", as: "second" },
+            ],
+          },
+          1: { security: ["BT1-009"], deck: DECK },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("wizardX").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
+      await drainMicrotasks(40);
+
+      expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+        s.inst("second").instanceId,
+        s.inst("option").instanceId,
+      ]);
+      const offeredFromHand = s.decisions
+        .filter(({ seat, req }) => seat === 0 && req.kind === "selectCards")
+        .map(({ req }) => req.options?.candidateInstanceIds ?? []);
+      expect(offeredFromHand).toEqual([[s.inst("option").instanceId]]);
+      const handIds = s.state.players[0]!.hand.map((card) => card.instanceId);
+      for (const alias of ["tooExpensive", "wrongColor", "notAnOption"]) {
+        expect(handIds).toContain(s.inst(alias).instanceId);
+      }
+    }
+  });
+
+  it("protects a yellow [Data] or [Witchelny] host with this card under it, but not a non-yellow [Data] host (Q3092)", async () => {
+    const witchelnyHost = await opponentDeletes("BT26-022", undefined, "host", 1);
+    expect(witchelnyHost.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
+      "BT26-022",
+    ]);
+    expect(witchelnyHost.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      witchelnyHost.inst("sec2").instanceId,
+    ]);
+
+    const dataHost = await opponentDeletes("BT10-033", undefined, "host", 1);
+    expect(dataHost.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT10-033"]);
+    expect(dataHost.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      dataHost.inst("sec2").instanceId,
+    ]);
+
+    const nonYellowDataHost = await opponentDeletes("BT1-014", undefined, "host", 1);
+    expect(nonYellowDataHost.state.players[0]!.battleArea).toHaveLength(0);
+    expect(nonYellowDataHost.state.players[0]!.security).toHaveLength(2);
   });
 });

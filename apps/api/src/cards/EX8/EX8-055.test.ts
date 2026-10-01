@@ -257,3 +257,47 @@ describe("EX8-055", () => {
     expect(invalid.state.memory).toBe(4);
   });
 });
+
+describe("EX8-055 Pyramidimon — KB Q&A rulings", () => {
+  it("pays its 3-card cost with Mineral/Rock digivolution cards drawn from several of your Digimon (Q3937)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-055", as: "pyramid", under: [{ card: "EX8-049", as: "ownSource" }], suspended: true },
+            {
+              card: "BT1-071",
+              as: "ally",
+              under: [
+                { card: "EX8-046", as: "allyRock" },
+                { card: "EX8-048", as: "allyMineral" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const paidIds = ["ownSource", "allyRock", "allyMineral"].map((alias) => s.inst(alias).instanceId);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("pyramid"));
+    await settle(() => !s.perm("pyramid").isSuspended);
+
+    expect(s.perm("pyramid").stack).toHaveLength(0);
+    expect(s.perm("ally").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(paidIds));
+    expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(1);
+  });
+
+  it("places a Rock-trait Digi-Egg card from the trash under itself at end of turn (Q3939)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX8-055", as: "pyramid" }], trash: [{ card: "BT9-005", as: "egg" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("pyramid").stack.map((card) => card.instanceId)).toEqual([s.inst("egg").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+});

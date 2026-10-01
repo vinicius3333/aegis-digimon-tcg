@@ -202,3 +202,40 @@ describe("BT16-061 DoruGreymon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-051")).toBe(false);
   });
 });
+
+describe("BT16-061 DoruGreymon — KB Q&A rulings", () => {
+  it("only digivolves into a trait-matching card that meets its digivolution requirements after a target switch (Q2649)", async () => {
+    const preferredPicks: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-061", as: "doru", under: [{ card: "BT14-087" }] }],
+          hand: [
+            { card: "BT6-043", as: "yellowUndead" },
+            { card: "BT16-064", as: "dorugora" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "blocker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredPicks },
+    );
+    // Bias the free-digivolve pick toward the yellow [Undead] card, whose yellow Lv.5 requirement DoruGreymon misses.
+    preferredPicks.push(s.inst("yellowUndead").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("doru").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("doru").topCard?.cardId !== "BT16-061");
+
+    expect(s.perm("doru").topCard?.cardId).toBe("BT16-064");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT6-043"]);
+  });
+});

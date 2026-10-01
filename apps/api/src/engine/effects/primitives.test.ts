@@ -1687,8 +1687,8 @@ describe("primitives: placeUnder / link", () => {
       expect(h.s.perm("dest").stack.map((card) => card.instanceId)).toEqual(
         belowTop === false ? [placedId, oldId] : [oldId, placedId],
       );
-      expect(h.subTriggerFires).toHaveLength(1);
-      expect(h.subTriggerFires[0]!.payload).toMatchObject({
+      expect(h.subTriggerFires.map(({ event }) => event)).toEqual(["whenLeavesPlay", "onAddDigivolutionCards"]);
+      expect(h.subTriggerFires[1]!.payload).toMatchObject({
         addedDigivolutionCardsPosition: belowTop === false ? "bottom" : "top",
       });
     },
@@ -1882,8 +1882,9 @@ describe("primitives: placeUnder / link", () => {
         ? await h.fx.relocatePermanentsByEffect?.(destId, [sourceId], opts)
         : await h.fx.relocatePermanentByEffect?.(destId, sourceId, opts);
       expect(result).toEqual(batch ? [sourceId] : true);
-      expect(h.subTriggerFires).toHaveLength(1);
-      expect(h.subTriggerFires[0]!.payload).toMatchObject({
+      expect(h.subTriggerFires.map(({ event }) => event)).toEqual(["whenLeavesPlay", "onAddDigivolutionCards"]);
+      expect(h.subTriggerFires[0]!.payload).toMatchObject({ deletedPermanentId: sourceId });
+      expect(h.subTriggerFires[1]!.payload).toMatchObject({
         subjectPermanentId: destId,
         addedDigivolutionCardInstanceIds: shed ? [topId] : [topId, ...attachmentIds],
       });
@@ -3130,6 +3131,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     flipTopSecurity: true,
     flipSecurityFaceDown: true,
     forceAttack: true,
+    blitzAttack: true,
     forceBattle: true,
     gainMemory: true,
     gainMemoryForSeat: true,
@@ -3151,12 +3153,15 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     grantVortexCanAttackPlayers: true,
     hasSuspendRestrictionSource: true,
     hatch: true,
+    inHandCost: true,
     isAttackResolving: true,
     isBeAffectedBySourceKind: true,
     isDigivolutionRequirementIgnoreBlocked: true,
+    isEffectDigivolveBlocked: true,
     isPlayProhibited: true,
     isTimingEffectDisabled: true,
     isUnaffectableByOpponentEffects: true,
+    isUnaffectedByOwnEffects: true,
     leaveEffectResolution: true,
     announceEffect: true,
     announceEffectOption: true,
@@ -3191,7 +3196,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     relocatePermanentsByEffect: true,
     placeMixedMaterialsUnder: true,
     resolveCardEffect: true,
-    restoreDpReductions: true,
+    resolvingEffectSourceKinds: true,
     restrict: true,
     restrictAttackTarget: true,
     restrictCostReduction: true,

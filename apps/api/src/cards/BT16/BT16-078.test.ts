@@ -69,3 +69,43 @@ describe("BT16-078", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-073")).toBe(true);
   });
 });
+
+describe("BT16-078 Pharaohmon — KB Q&A rulings", () => {
+  it("must delete your own level 4 or lower Digimon when it is the only candidate (Q2665)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT16-078", as: "pharaohmon" }],
+          battleArea: [
+            { card: "BT1-014", as: "ownLevel4" },
+            { card: "BT1-020", as: "ownLevel5" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "opponentLevel5" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const ownLevel4Id = s.perm("ownLevel4").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pharaohmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-078"));
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === ownLevel4Id));
+
+    const pharaohmonId = s.inst("pharaohmon").instanceId;
+    const pharaohmonDecisions = s.decisions.filter(({ req }) => req.sourceInstanceId === pharaohmonId);
+    expect(pharaohmonDecisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    const skippableTargetSelections = pharaohmonDecisions.filter(
+      ({ req }) => (req.kind === "selectCards" || req.kind === "chooseTargets") && (req.options?.min ?? 1) === 0,
+    );
+    expect(skippableTargetSelections).toEqual([]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-014");
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["BT16-078", "BT1-020"]),
+    );
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-024"]);
+  });
+});

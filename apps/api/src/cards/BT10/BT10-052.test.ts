@@ -160,3 +160,52 @@ describe("BT10-052 Cherrymon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
+
+describe("BT10-052 Cherrymon — KB Q&A rulings", () => {
+  it("may switch the attack target to itself while it is suspended (Q1975)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-052", as: "cherrymon", suspended: true },
+            { card: "BT10-043", as: "otherSuspended", suspended: true },
+            { card: "BT10-046", as: "unsuspended" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.sourceCardId).toBe("BT10-052");
+    expect(decision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("cherrymon").permanentId, s.perm("otherSuspended").permanentId]),
+    );
+    expect(decision.options?.candidateInstanceIds).not.toContain(s.perm("unsuspended").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("cherrymon").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("cherrymon").topCard.cardId).toBe("BT10-052");
+    expect(s.perm("otherSuspended").topCard.cardId).toBe("BT10-043");
+    expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-010")).toBe(true);
+  });
+});

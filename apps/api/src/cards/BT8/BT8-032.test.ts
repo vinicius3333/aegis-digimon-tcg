@@ -185,3 +185,55 @@ describe("BT8-032 Imperialdramon: Fighter Mode", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+async function attackWithFighterMode(sources: string[]) {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT8-032", as: "attacker", under: sources },
+          { card: "BT1-029", as: "ally", suspended: true },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "opponent" }],
+        security: ["BT1-011"],
+      },
+    },
+    { autoOrderTriggers: true, autoSelectCards: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.perm("ally").permanentId, s.perm("opponent").permanentId);
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+  return s;
+}
+
+describe("BT8-032 Imperialdramon: Fighter Mode — KB Q&A rulings", () => {
+  it("activates both [When Attacking] parts when separate blue and green cards are in its sources (Q1721)", async () => {
+    const both = await attackWithFighterMode(["BT1-029", "ST9-09"]);
+    expect(both.perm("ally").isSuspended).toBe(false);
+    expect(both.perm("opponent").isSuspended).toBe(true);
+
+    const blueOnly = await attackWithFighterMode(["BT1-029"]);
+    expect(blueOnly.perm("ally").isSuspended).toBe(false);
+    expect(blueOnly.perm("opponent").isSuspended).toBe(false);
+  });
+
+  it("activates both [When Attacking] parts from a single blue and green source (Q1722)", async () => {
+    const multicolor = await attackWithFighterMode(["ST9-05"]);
+    expect(multicolor.perm("ally").isSuspended).toBe(false);
+    expect(multicolor.perm("opponent").isSuspended).toBe(true);
+
+    const yellowOnly = await attackWithFighterMode(["BT8-034"]);
+    expect(yellowOnly.perm("ally").isSuspended).toBe(true);
+    expect(yellowOnly.perm("opponent").isSuspended).toBe(false);
+  });
+});

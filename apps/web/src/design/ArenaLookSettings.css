@@ -1,0 +1,256 @@
+.aegis-arena-look {
+  container-type: inline-size;
+}
+
+.aegis-arena-look__layout {
+  display: grid;
+  gap: var(--ds-space-5);
+}
+
+.aegis-arena-look__preview-column,
+.aegis-arena-look__controls {
+  display: grid;
+  align-content: start;
+  gap: var(--ds-space-2);
+  min-width: 0;
+}
+
+.aegis-arena-look__controls {
+  gap: var(--ds-space-5);
+}
+
+.aegis-arena-look__preview {
+  height: 176px;
+}
+
+.aegis-arena-look__art,
+.aegis-arena-look__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.aegis-arena-look__art {
+  z-index: -2;
+  object-fit: cover;
+}
+
+.aegis-arena-look__backdrop {
+  z-index: -1;
+}
+
+.aegis-arena-look__half {
+  position: relative;
+  display: flex;
+  height: 50%;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+}
+
+.aegis-arena-look__side-label {
+  position: absolute;
+  top: 6px;
+  left: var(--ds-space-2);
+  font-size: 9px;
+}
+
+.aegis-arena-look__slot {
+  width: 32px;
+  aspect-ratio: 63 / 88;
+  border-radius: 6% / 4.3%;
+  background: rgb(255 255 255 / 15%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--arena-side) 55%, transparent),
+    0 4px 10px rgb(0 0 0 / 30%);
+  backdrop-filter: blur(4px);
+}
+
+.aegis-arena-look__clash {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+}
+
+.aegis-arena-look__note {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading-body);
+}
+
+.aegis-arena-look__group {
+  display: grid;
+  gap: var(--ds-space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.aegis-arena-look__legend {
+  margin-bottom: var(--ds-space-2);
+  padding: 0;
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.aegis-arena-look__palettes {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.aegis-arena-look__battlefields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: var(--ds-space-2);
+}
+
+/* Anchors the visually hidden radio inside its option. Without it, the radio is
+   placed relative to a distant ancestor, and focusing it scrolls the arena stage. */
+.aegis-arena-look__option {
+  position: relative;
+  color: var(--ds-fg);
+  text-align: left;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+
+.aegis-arena-look__option:hover {
+  border-color: color-mix(in srgb, var(--ds-accent) 50%, var(--ds-border));
+}
+
+.aegis-arena-look__option:has(:checked) {
+  border-color: var(--ds-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ds-accent) 25%, transparent);
+}
+
+.aegis-arena-look__option:has(:focus-visible),
+.aegis-arena-look__option:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.aegis-arena-look__palette {
+  display: flex;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  font-size: var(--ds-text-sm);
+}
+
+.aegis-arena-look__swatch {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: var(--ds-radius-pill);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 10%);
+}
+
+.aegis-arena-look__palette .aegis-arena-look__option-label {
+  flex: 1;
+}
+
+.aegis-arena-look__theme-icon {
+  display: grid;
+  width: 22px;
+  place-items: center;
+}
+
+.aegis-arena-look__check {
+  display: grid;
+  color: var(--ds-accent);
+}
+
+.aegis-arena-look__battlefield {
+  display: grid;
+  align-content: start;
+  gap: var(--ds-space-1);
+  padding: 6px;
+  font: inherit;
+}
+
+.aegis-arena-look__battlefield .aegis-arena-look__option-label {
+  overflow: hidden;
+  padding-inline: 2px;
+  font-size: var(--ds-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 16:9 whatever the source: portrait uploads are center-cropped, not squashed. */
+.aegis-arena-look__thumb {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--ds-radius-md);
+}
+
+.aegis-arena-look__thumb > img,
+.aegis-arena-look__thumb > .aegis-arena-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aegis-arena-look__upload {
+  display: grid;
+  place-items: center;
+  color: var(--ds-fg-muted);
+  background: var(--ds-surface-muted);
+}
+
+.aegis-arena-look__remove {
+  display: inline-flex;
+  width: fit-content;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: 0;
+  color: var(--ds-fg-secondary);
+  font: 600 var(--ds-text-sm) / 1 var(--ds-font-body);
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.aegis-arena-look__remove:hover {
+  color: var(--ds-danger);
+}
+
+.aegis-arena-look__error {
+  margin: 0;
+  color: var(--ds-danger);
+  font-size: var(--ds-text-sm);
+}
+
+@container (width >= 480px) {
+  .aegis-arena-look__palettes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (width >= 760px) {
+  .aegis-arena-look__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-arena-look__option {
+    transition-duration: 1ms;
+  }
+}

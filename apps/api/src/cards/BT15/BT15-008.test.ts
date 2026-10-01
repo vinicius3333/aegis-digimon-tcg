@@ -118,3 +118,41 @@ describe("BT15-008", () => {
     }
   });
 });
+
+describe("BT15-008 Muchomon — KB Q&A rulings", () => {
+  it("still draws when the red Digimon's attack on the player is later blocked (Q2492)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT15-008", as: "muchomon", under: ["BT15-001"] },
+          { card: "BT1-009", as: "redAttacker", dp: 3000 },
+        ],
+        deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010"],
+      },
+      1: {
+        battleArea: [{ card: "BT13-061", as: "blocker", dp: 6000 }],
+        security: ["BT1-010", "BT1-010"],
+      },
+    });
+    await s.ready();
+    const blockerId = s.perm("blocker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("redAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.events.some((event) => event.kind === "blocked")).toBe(true);
+    expect(s.perm("blocker").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+  });
+});

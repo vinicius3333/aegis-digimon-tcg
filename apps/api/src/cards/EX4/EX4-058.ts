@@ -72,8 +72,8 @@ export const compiled: CompiledCard = {
               zone: "hand",
             },
             count: 1,
-            chooser: "opponent",
           },
+          chooser: "opponent",
           controller: "opponent",
           condition: {
             kind: "zoneCount",

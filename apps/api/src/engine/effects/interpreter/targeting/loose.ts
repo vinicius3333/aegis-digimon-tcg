@@ -2,12 +2,8 @@
 
 import type { EffectContext, SeatScopedDecisionApi } from "../../EffectContext.js";
 import { peekCheckedCard } from "../../../security/checkedCard.js";
-import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
-import {
-  controllersBattleAreaDigimonColors,
-  permanentMatchesFilter,
-  seatsForController,
-} from "../matching/permanent.js";
+import { definitionMatches, hasExactName, matchNameOrTrait } from "../matching/definition.js";
+import { controllersFieldDigimonColors, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
@@ -433,9 +429,10 @@ function candidateLooseInstancesIncludingReserved(
           if (!def.colors.some((color) => referenceColors.includes(color))) continue;
         }
         // "with the same color as any of your Digimon" (P-206): a hand/trash candidate is only
-        // playable while the controller has a battle-area Digimon sharing one of its colors.
-        if (matchedFilter?.sharesColorWithControllersBattleAreaDigimon === true) {
-          const boardColors = controllersBattleAreaDigimonColors(ctx);
+        // playable while the controller has a Digimon on the field (battle or breeding area)
+        // sharing one of its colors.
+        if (matchedFilter?.sharesColorWithControllersFieldDigimon === true) {
+          const boardColors = controllersFieldDigimonColors(ctx);
           if (!def.colors.some((color) => boardColors.has(color))) continue;
         }
         if (
@@ -557,7 +554,7 @@ export async function pickLoose(
         if (used.has(candidate.instanceId)) return false;
         const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
         return (
-          def.nameEn === requiredName &&
+          hasExactName(def, requiredName) &&
           (maxTotalPlayCost === undefined || spent + playCostOf(candidate) <= maxTotalPlayCost)
         );
       });
@@ -594,7 +591,7 @@ export async function pickLoose(
       const matching = candidates.filter((candidate) => {
         if (used.has(candidate.instanceId)) return false;
         return (
-          ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn === requiredName &&
+          hasExactName(ctx.game.definitionOf({ cardId: candidate.cardId } as never), requiredName) &&
           (maxTotalPlayCost === undefined || spent + playCostOf(candidate) <= maxTotalPlayCost)
         );
       });

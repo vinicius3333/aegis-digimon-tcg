@@ -48,6 +48,16 @@ function securityCountForCondition(ctx: EffectContext, seat: Seat): number {
   return securityCardsForCondition(ctx, seat).length;
 }
 
+/**
+ * "You have N memory" reads the effect owner's side of the gauge on either player's turn
+ * (EX8-068 Q3956); only an explicit `controller: "opponent"` reads the other side.
+ */
+function memoryForCondition(ctx: EffectContext, cond: Condition): number {
+  const owner = ctx.source.ownerSeat;
+  const seat = cond.controller === "opponent" ? ctx.game.opponentOf(owner) : owner;
+  return seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
+}
+
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
  *  unmet so the interpreter never guesses a gate it could not parse. */
 export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
@@ -79,8 +89,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // Both are captured before Blocker redirection, so either shape describes the
       // originally attacked permanent rather than a later effective blocker.
       const targetId = ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId;
-      const target = targetId !== undefined ? ctx.game.permanentById(targetId) : undefined;
-      if (target === undefined || cond.filter === undefined) return false;
+      if (targetId === undefined || cond.filter === undefined) return false;
       // The declared defender's stack size and DP are read from the declaration snapshot, not
       // from the live board: an effect resolving in the SAME [When Attacking] window (BT16-016's
       // inherited digivolution-card trash) must not retroactively satisfy "attacks a Digimon with
@@ -88,6 +97,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // which is where controller scope, superlatives and stack-content reads live.
       const snapshot =
         ctx.trigger.defenderAtDeclaration?.permanentId === targetId ? ctx.trigger.defenderAtDeclaration : undefined;
+      if (ctx.game.permanentById(targetId) === undefined) {
+        return snapshot !== undefined && departedDefenderMatches(ctx, snapshot, cond.filter);
+      }
       if (snapshot !== undefined && !declarationTimeDefenderFactsMatch(snapshot, cond.filter)) return false;
       const liveFilter = snapshot === undefined ? cond.filter : withoutDeclarationTimeFacts(cond.filter);
       const candidates = candidatePermanents(ctx, { filter: liveFilter, count: "all" });
@@ -290,24 +302,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.lastOpponentDeclined === true;
     case "opponentHasNone":
       return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) === 0 : false;
-    case "memoryAtLeast": {
-      const value = cond.value ?? 0;
-      if (cond.controller === "mine" || cond.controller === "self" || cond.controller === "opponent") {
-        const seat = cond.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-        const memory = seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
-        return memory >= value;
-      }
-      return ctx.game.state.memory >= value;
-    }
-    case "memoryAtMost": {
-      const value = cond.value ?? 0;
-      if (cond.controller === "mine" || cond.controller === "self" || cond.controller === "opponent") {
-        const seat = cond.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-        const memory = seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
-        return memory <= value;
-      }
-      return ctx.game.state.memory <= value;
-    }
+    case "memoryAtLeast":
+      return memoryForCondition(ctx, cond) >= (cond.value ?? 0);
+    case "memoryAtMost":
+      return memoryForCondition(ctx, cond) <= (cond.value ?? 0);
     case "securityAtLeast":
       return securityCountForCondition(ctx, mine) >= (cond.value ?? 0);
     case "securityAtMost":
@@ -800,7 +798,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "not":
       // Logical negation for "otherwise/instead" branches. Require a child condition; a
       // malformed missing child must not become an unconditional true branch.
-      return cond.condition !== undefined && !evaluateCondition(ctx, cond.condition);
+      if (cond.condition === undefined) return false;
+      // "Deleted other than in battle" still presupposes a deletion: an [On Deletion] effect
+      // activated without one (e.g. attached [End of Attack]) has no removal cause (Q2614).
+      if (cond.condition.kind === "triggerRemovalCause" && ctx.trigger.removalCause === undefined) return false;
+      return !evaluateCondition(ctx, cond.condition);
     case "orConditions":
       // Explicit OR combinator — identical semantics to "anyOf". Used when the runtime record
       // encodes a logical OR between heterogeneous sub-conditions (e.g. BT21-010's
@@ -1115,7 +1117,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
           }
         }
         if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
-          return ctx.trigger.removalCause !== "byBattle";
+          return ctx.trigger.removalCause !== undefined && ctx.trigger.removalCause !== "byBattle";
         }
         if (/attacked a Digimon with higher DP than this Digimon/i.test(cond.raw ?? "")) {
           const self = ctx.source.permanent();
@@ -1257,6 +1259,24 @@ function declarationTimeDefenderFactsMatch(
   if (filter.digivolutionCardsAtMost !== undefined && stack > filter.digivolutionCardsAtMost) return false;
   if (filter.digivolutionCardsAtLeast !== undefined && stack < filter.digivolutionCardsAtLeast) return false;
   return true;
+}
+
+/**
+ * "If you attack an opponent's Digimon" stays true for the whole [When Attacking] window after
+ * another effect removes the declared defender (KB Q648, Q650). Only controller, kind and the
+ * declaration-time stack facts are answered from the snapshot; any other predicate needs the
+ * live permanent, so the gate fails closed.
+ */
+function departedDefenderMatches(
+  ctx: EffectContext,
+  snapshot: NonNullable<TriggerInfo["defenderAtDeclaration"]>,
+  filter: Filter,
+): boolean {
+  const { controller: _controller, controllerDefault: _default, kind, ...rest } = withoutDeclarationTimeFacts(filter);
+  if (Object.values(rest).some((value) => value !== undefined)) return false;
+  if (!declarationTimeDefenderFactsMatch(snapshot, filter)) return false;
+  if (!seatsForController(ctx, filter).includes(snapshot.controllerSeat)) return false;
+  return kind === undefined || kind.some((wanted) => snapshot.kinds.includes(KIND_MAP[wanted]));
 }
 
 /** `filter` with the predicates {@link declarationTimeDefenderFactsMatch} has already answered. */

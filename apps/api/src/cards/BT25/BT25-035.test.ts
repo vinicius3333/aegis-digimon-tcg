@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ServerEvent } from "@aegis/shared";
 import { compiled as BT25_035 } from "./BT25-035.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -519,4 +520,87 @@ describe("BT25-035 Cougarmon", () => {
       }
     },
   );
+});
+
+describe("BT25-035 Cougarmon — KB Q&A rulings", () => {
+  function playCougarmonWithTamers(tamerStacks: number[], opponentDp: number, onEvent?: (event: ServerEvent) => void) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-035", as: "cougarmon" },
+            { card: "BT25-041", as: "glowingDawn" },
+          ],
+          battleArea: tamerStacks.map((count, index) => ({
+            card: "BT25-090",
+            as: `tamer${index}`,
+            under: Array.from({ length: count }, (_, n) => ({
+              card: "BT1-001",
+              as: `faceDown${index}-${n}`,
+              faceUp: false,
+            })),
+          })),
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: opponentDp }] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, onEvent },
+    );
+    s.state.memory = 10;
+    return s;
+  }
+
+  it("keeps a 0 DP Digimon on the field until the whole effect finishes, then the rule check deletes it (Q6299)", async () => {
+    let opponentAtDigivolve: { onField: boolean; dp: number } | undefined;
+    const s = playCougarmonWithTamers([2], 3000, (event) => {
+      if (event.kind !== "digivolved" || opponentAtDigivolve !== undefined) return;
+      const opponent = s.state.players[1]!.battleArea[0];
+      opponentAtDigivolve = { onField: opponent !== undefined, dp: opponent?.currentDP ?? -1 };
+    });
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(opponentAtDigivolve).toEqual({ onField: true, dp: 0 });
+    expect(s.perm("cougarmon").topCard.cardId).toBe("BT25-041");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+  });
+
+  it("cannot pay the cost with only 1 face-down card under a Tamer, so nothing is trashed and it does not digivolve (Q6300)", async () => {
+    const s = playCougarmonWithTamers([1], 7000);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").currentDP === 4000 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("cougarmon").topCard.cardId).toBe("BT25-035");
+    expect(s.perm("tamer0").stack.map((card) => card.instanceId)).toEqual([s.inst("faceDown0-0").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("glowingDawn").instanceId]);
+  });
+
+  it("pays the cost with 1 face-down card from under each of 2 Tamers and digivolves (Q6301)", async () => {
+    const s = playCougarmonWithTamers([1, 1], 7000);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-041") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("cougarmon").topCard.cardId).toBe("BT25-041");
+    expect(s.perm("tamer0").stack).toHaveLength(0);
+    expect(s.perm("tamer1").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("faceDown0-0").instanceId, s.inst("faceDown1-0").instanceId]),
+    );
+    expect(s.state.memory).toBe(5);
+  });
 });

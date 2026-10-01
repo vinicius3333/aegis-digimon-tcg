@@ -338,3 +338,61 @@ describe("EX7-049 Metallicdramon", () => {
     expect(xros.stack.map((card) => card.instanceId)).not.toContain(s.inst("rock").instanceId);
   });
 });
+
+describe("EX7-049 Metallicdramon — KB Q&A rulings", () => {
+  it("does not stop an opposing level 4 that isn't affected by its effects from digivolving (Q3853)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-011", as: "base" }],
+          hand: [{ card: "EX7-049", as: "metallicdramon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-047", as: "immune", suspended: true },
+            { card: "BT1-015", as: "affected" },
+          ],
+          hand: [
+            { card: "BT15-049", as: "immuneEvolution" },
+            { card: "BT1-020", as: "affectedEvolution" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("metallicdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX7-049" && s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestricted(s.perm("affected"), "digivolve")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("immune"), "digivolve")).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("affected").permanentId,
+        instanceId: s.inst("affectedEvolution").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("affected").topCard.cardId).toBe("BT1-015");
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("immune").permanentId,
+        instanceId: s.inst("immuneEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("immune").topCard.cardId === "BT15-049");
+    expect(s.perm("immune").stack.map(({ cardId }) => cardId)).toEqual(["BT15-047"]);
+  });
+});

@@ -45,25 +45,9 @@ const compiled: CompiledCard = {
             colors: ["Green"],
           },
           from: ["hand"],
+          reduceCost: 2,
           payCost: true,
           optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the cost by 2",
-            },
-          ],
         },
       ],
       keywords: [

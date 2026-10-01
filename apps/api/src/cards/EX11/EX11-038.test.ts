@@ -223,3 +223,27 @@ describe("EX11-038 Sunarizamon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("EX11-038 Sunarizamon — KB Q&A rulings", () => {
+  it("pays its draw cost with a Mineral digivolution card from another of its controller's Digimon (Q5865)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-080", as: "other", under: ["BT1-009", { card: "EX11-044", as: "mineralCost" }] }],
+          hand: [{ card: cardId, as: "source" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId));
+
+    expect(s.perm("other").stack.map(({ cardId: id }) => id)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("mineralCost").instanceId]);
+  });
+});

@@ -352,3 +352,90 @@ describe("BT20-028 GigaSeadramon", () => {
     );
   });
 });
+
+describe("BT20-028 GigaSeadramon — KB Q&A rulings", () => {
+  async function digivolveThenAttack(stackUnderMegaSeadramon: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-026", as: "mega", under: stackUnderMegaSeadramon }],
+          hand: [{ card: "BT20-028", as: "giga" }],
+          deck: Array(4).fill("BT1-010"),
+        },
+        1: { security: Array(3).fill("BT1-010"), deck: Array(4).fill("BT1-010") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("mega").permanentId,
+        instanceId: s.inst("giga").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mega").topCard.cardId === "BT20-028");
+    await settle();
+    const afterDigivolving = s.state.players[0]!.battleArea.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mega").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    return { s, afterDigivolving };
+  }
+
+  it("cannot play a level 5 or lower source without [MetalSeadramon] or [X Antibody] in its digivolution cards (Q4320)", async () => {
+    const withoutRequiredSource = await digivolveThenAttack(["BT20-024"]);
+    expect(withoutRequiredSource.afterDigivolving).toBe(1);
+    expect(withoutRequiredSource.s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(withoutRequiredSource.s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT20-024", "BT20-026"]);
+
+    const withXAntibody = await digivolveThenAttack(["BT9-109", "BT20-024"]);
+    expect(withXAntibody.afterDigivolving).toBe(2);
+    expect(withXAntibody.s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT9-109", "BT20-026"]);
+  });
+
+  it("triggers its [All Turns] De-Digivolve when GigaSeadramon itself is played from digivolution cards (Q4321)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-045", as: "host", under: ["BT20-028"] }],
+          hand: [{ card: "BT11-098", as: "maelstrom" }],
+        },
+        1: { battleArea: [{ card: "BT20-017", as: "opponent", under: ["BT20-025", "BT20-014"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maelstrom").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT11-098"));
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-028");
+    expect(s.perm("opponent").topCard.cardId).toBe("BT20-025");
+    expect(s.perm("opponent").stack).toHaveLength(0);
+
+    const fromHand = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-028", as: "giga" }] },
+        1: { battleArea: [{ card: "BT20-017", as: "opponent", under: ["BT20-025", "BT20-014"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await fromHand.ready();
+    fromHand.state.memory = 13;
+    expect(fromHand.engine.applyIntent(0, { type: "playCard", instanceId: fromHand.inst("giga").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => fromHand.state.players[0]!.battleArea.length === 1);
+    await settle();
+    expect(fromHand.perm("opponent").topCard.cardId).toBe("BT20-017");
+    expect(fromHand.perm("opponent").stack.map((card) => card.cardId)).toEqual(["BT20-025", "BT20-014"]);
+  });
+});

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT7/BT7-063.js";
 import "./BT8-062.js";
 
 describe("BT8-062 SkullKnightmon Cavalier Mode", () => {
@@ -43,5 +44,38 @@ describe("BT8-062 SkullKnightmon Cavalier Mode", () => {
     expect(observe(s.engine).effectiveNames(s.perm("cavalier"))).toEqual(
       expect.arrayContaining(["skullknightmon cavalier mode", "skullknightmon", "deadlyaxemon"]),
     );
+  });
+});
+
+describe("BT8-062 SkullKnightmon Cavalier Mode — KB Q&A rulings", () => {
+  it("is always treated as both [SkullKnightmon] and [DeadlyAxemon], filling both of DarkKnightmon's named slots (Q1745)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT7-063", as: "darkKnightmon" }],
+          trash: [
+            { card: "BT8-062", as: "cavalierOne" },
+            { card: "BT8-062", as: "cavalierTwo" },
+            { card: "BT8-060", as: "unrelated" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkKnightmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks();
+
+    const darkKnightmon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("darkKnightmon").instanceId,
+    )!;
+    expect(darkKnightmon.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("cavalierOne").instanceId, s.inst("cavalierTwo").instanceId]),
+    );
+    expect(darkKnightmon.stack).toHaveLength(2);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
   });
 });

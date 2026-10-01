@@ -129,3 +129,54 @@ describe("BT11-057 Titamon", () => {
     expect(s.state.memory).toBe(7);
   });
 });
+
+describe("BT11-057 Titamon — KB Q&A rulings", () => {
+  it("may trash 3 hand cards even when the opponent has only 1 Digimon (Q2091)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-075", as: "base" }],
+        hand: [
+          { card: "BT11-057", as: "titamon" },
+          { card: "BT1-009", as: "discardA" },
+          { card: "BT1-010", as: "discardB" },
+          { card: "BT1-011", as: "discardC" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "onlyTarget" }] },
+    });
+    s.state.memory = 10;
+    const discardIds = [s.inst("discardA").instanceId, s.inst("discardB").instanceId, s.inst("discardC").instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("titamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const handPick = s.decisions.at(-1)!.req;
+    expect(handPick.options).toMatchObject({ min: 0, max: 3 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: handPick.decisionId,
+        response: { kind: "selectCards", instanceIds: discardIds },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onlyTarget").isSuspended && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(discardIds));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("onlyTarget").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(7);
+  });
+});

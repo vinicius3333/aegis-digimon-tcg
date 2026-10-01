@@ -2,7 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type CardSpec } from "../../engine/testkit/harness.js";
 import "./BT10-019.js";
 import "./BT10-021.js";
 import "./BT10-024.js";
@@ -257,5 +257,169 @@ describe("BT10-097 Blazing Memory Boost!", () => {
       expect.arrayContaining([s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId]),
     );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("metalGreymon").instanceId)).toBe(true);
+  });
+});
+
+describe("BT10-097 Blazing Memory Boost! — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+
+  const nonBlueFlareFiller = ["BT1-009", "BT1-010", "BT1-011", "BT1-012"];
+
+  function boardWithDeck(deck: CardSpec[]) {
+    return { 0: { battleArea: [{ card: "BT10-017" }], hand: [{ card: "BT10-097", as: "boost" }], deck } };
+  }
+
+  async function playBoost(s: Setup): Promise<() => boolean> {
+    const boostId = s.inst("boost").instanceId;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: boostId })).toEqual({ ok: true });
+    return () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === boostId);
+  }
+
+  function inBattleArea(s: Setup, alias: string): boolean {
+    return s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === s.inst(alias).instanceId,
+    );
+  }
+
+  function inHand(s: Setup, alias: string): boolean {
+    return s.state.players[0]!.hand.some((card) => card.instanceId === s.inst(alias).instanceId);
+  }
+
+  function isRevealCandidate(s: Setup, alias: string) {
+    return (entry: Setup["decisions"][number]) =>
+      entry.req.kind === "selectCards" &&
+      (entry.req.options?.candidateInstanceIds ?? []).includes(s.inst(alias).instanceId);
+  }
+
+  async function awaitSelection(s: Setup, alias: string, answered: Set<string>) {
+    await settle(() =>
+      s.decisions.some((entry) => isRevealCandidate(s, alias)(entry) && !answered.has(entry.req.decisionId)),
+    );
+    const decision = s.decisions.find(
+      (entry) => isRevealCandidate(s, alias)(entry) && !answered.has(entry.req.decisionId),
+    )!;
+    answered.add(decision.req.decisionId);
+    return decision.req;
+  }
+
+  function respond(s: Setup, decisionId: string, aliases: string[]) {
+    return s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId,
+      response: { kind: "selectCards", instanceIds: aliases.map((alias) => s.inst(alias).instanceId) },
+    });
+  }
+
+  it("plays a revealed [Kiriha Aonuma] without paying its memory cost (Q2030)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      boardWithDeck([
+        { card: "BT10-019", as: "greymon" },
+        { card: "BT10-021", as: "mailBirdramon" },
+        { card: "BT10-088", as: "kiriha" },
+        ...nonBlueFlareFiller.slice(0, 3),
+      ]),
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("greymon").instanceId, s.inst("mailBirdramon").instanceId, s.inst("kiriha").instanceId);
+
+    const boostInBattleArea = await playBoost(s);
+    await settle(boostInBattleArea);
+
+    expect(inBattleArea(s, "kiriha")).toBe(true);
+    expect(inHand(s, "kiriha")).toBe(false);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("adds only 1 card when only 1 [Blue Flare] card is revealed (Q2031)", async () => {
+    const s = setupEngine(boardWithDeck([{ card: "BT10-019", as: "greymon" }, "BT10-017", ...nonBlueFlareFiller]), {
+      autoAcceptOptional: true,
+      autoOrderCards: true,
+    });
+    const answered = new Set<string>();
+
+    const boostInBattleArea = await playBoost(s);
+    const addToHand = await awaitSelection(s, "greymon", answered);
+
+    expect(addToHand.options?.candidateInstanceIds).toEqual([s.inst("greymon").instanceId]);
+    expect(respond(s, addToHand.decisionId, ["greymon"])).toEqual({ ok: true });
+    await settle(boostInBattleArea);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("greymon").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+  });
+
+  it("cannot play [Kiriha Aonuma] when it must be one of the 2 [Blue Flare] cards added to hand (Q2032)", async () => {
+    const s = setupEngine(
+      boardWithDeck([{ card: "BT10-019", as: "greymon" }, { card: "BT10-088", as: "kiriha" }, ...nonBlueFlareFiller]),
+      { autoAcceptOptional: true, autoOrderCards: true },
+    );
+    const answered = new Set<string>();
+
+    const boostInBattleArea = await playBoost(s);
+    const addToHand = await awaitSelection(s, "kiriha", answered);
+
+    expect(respond(s, addToHand.decisionId, ["greymon"]).ok).toBe(false);
+    expect(respond(s, addToHand.decisionId, ["greymon", "kiriha"])).toEqual({ ok: true });
+    await settle(boostInBattleArea);
+
+    expect(inHand(s, "kiriha")).toBe(true);
+    expect(inHand(s, "greymon")).toBe(true);
+    expect(inBattleArea(s, "kiriha")).toBe(false);
+    expect(s.state.memory).toBe(5);
+  });
+
+  function kirihaWithTwoOtherBlueFlareCards() {
+    return setupEngine(
+      boardWithDeck([
+        { card: "BT10-019", as: "greymon" },
+        { card: "BT10-021", as: "mailBirdramon" },
+        { card: "BT10-088", as: "kiriha" },
+        ...nonBlueFlareFiller.slice(0, 3),
+      ]),
+      { autoAcceptOptional: true, autoOrderCards: true },
+    );
+  }
+
+  it("rejects an empty add or an empty [Kiriha Aonuma] play once the effect is used", async () => {
+    const s = kirihaWithTwoOtherBlueFlareCards();
+    const answered = new Set<string>();
+
+    const boostInBattleArea = await playBoost(s);
+    const addToHand = await awaitSelection(s, "greymon", answered);
+
+    expect(respond(s, addToHand.decisionId, []).ok).toBe(false);
+    expect(respond(s, addToHand.decisionId, ["greymon", "mailBirdramon"])).toEqual({ ok: true });
+    const playKiriha = await awaitSelection(s, "kiriha", answered);
+
+    expect(respond(s, playKiriha.decisionId, []).ok).toBe(false);
+    expect(respond(s, playKiriha.decisionId, ["kiriha"])).toEqual({ ok: true });
+    await settle(boostInBattleArea);
+
+    expect(inHand(s, "greymon")).toBe(true);
+    expect(inHand(s, "mailBirdramon")).toBe(true);
+    expect(inBattleArea(s, "kiriha")).toBe(true);
+  });
+
+  it("must perform both the add and the [Kiriha Aonuma] play once the effect is used (Q2033)", async () => {
+    const s = kirihaWithTwoOtherBlueFlareCards();
+    const answered = new Set<string>();
+
+    const boostInBattleArea = await playBoost(s);
+    const addToHand = await awaitSelection(s, "greymon", answered);
+
+    expect(respond(s, addToHand.decisionId, []).ok).toBe(false);
+    expect(respond(s, addToHand.decisionId, ["greymon", "kiriha"]).ok).toBe(false);
+    expect(respond(s, addToHand.decisionId, ["greymon", "mailBirdramon"])).toEqual({ ok: true });
+    const playKiriha = await awaitSelection(s, "kiriha", answered);
+
+    expect(respond(s, playKiriha.decisionId, []).ok).toBe(false);
+    expect(respond(s, playKiriha.decisionId, ["kiriha"])).toEqual({ ok: true });
+    await settle(boostInBattleArea);
+
+    expect(inHand(s, "greymon")).toBe(true);
+    expect(inHand(s, "mailBirdramon")).toBe(true);
+    expect(inBattleArea(s, "kiriha")).toBe(true);
   });
 });

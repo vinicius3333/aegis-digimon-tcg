@@ -5,6 +5,78 @@ import type { ActionScope } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import type { Action } from "@aegis/shared";
+import type { ForceAttackOptions } from "../../context/primitives/index.js";
+
+/**
+ * Run an effect-directed attack with the resolving effect's attack plumbing: the attack
+ * pauses this effect, the rest of the effect resolves right after the declaration, and
+ * its When Attacking pool drains before Counter Timing.
+ */
+async function withEffectAttackOptions(
+  ctx: EffectContext,
+  overrides: ForceAttackOptions,
+  attack: (opts: ForceAttackOptions) => Promise<void>,
+): Promise<void> {
+  await attack({
+    afterAttackDeclaration: ctx.continueEffectAfterAttackDeclaration,
+    artsDigivolveOptionInstanceId: ctx.source.definition.isDualCard ? ctx.source.instanceId : undefined,
+    // Combat pauses this effect. Its When Attacking and other pending effects
+    // must finish before Counter / security, including attacks without an IR flag.
+    drainTimingWindow: ctx.drainCurrentTimingWindow,
+    decisionProvenance: {
+      sourceCardId: ctx.source.cardId,
+      sourceInstanceId: ctx.source.instanceId,
+      sourcePermanentId: ctx.source.permanent()?.permanentId ?? ctx.sourcePermanentIdAtCreation,
+      timing: ctx.activeTiming,
+      effectText: ctx.activeEffectText,
+      effectTextPart: ctx.activeEffectTextPart,
+      isInherited: ctx.activeEffectIsInherited,
+    },
+    ...overrides,
+  });
+}
+
+/** ＜Blitz＞ (CR §16-16-2) executes processing: the Digimon may attack as part of this effect. */
+function processBlitz(ctx: EffectContext, attackerPermanentId: string): Promise<void> {
+  return withEffectAttackOptions(
+    ctx,
+    {},
+    (opts) => ctx.fx.blitzAttack?.(attackerPermanentId, opts) ?? Promise.resolve(),
+  );
+}
+
+const CONTINUOUS_TIMINGS = new Set(["Static", "Rule", "YourTurn", "OpponentsTurn", "AllTurns", "None"]);
+
+export function isBlitzGrant(action: Action): boolean {
+  if (action.kind !== "GainKeyword") return false;
+  const keyword = action.keyword ?? action.keywords?.[0];
+  return typeof keyword === "object" && keyword.keyword === "Blitz";
+}
+
+/**
+ * The ＜Blitz＞ keyword record doubles as the "has ＜Blitz＞" fact other cards read; the
+ * resolving effect that grants it is also the one that processes it. A grant made while a
+ * Digimon would digivolve (EX2-056) is a gained "[When Digivolving] ＜Blitz＞", so it waits
+ * for that Digimon's When Digivolving window instead.
+ */
+export async function processBlitzGrant(ctx: EffectContext, permanentIds: readonly string[]): Promise<void> {
+  if (ctx.trigger.digivolvingIntoCardId !== undefined) {
+    for (const permanentId of permanentIds) {
+      ctx.fx.subscribeSubTrigger({
+        event: "whenOneOfYoursDigivolves",
+        sourcePermanentId: permanentId,
+        once: false,
+        expiresOnTurnEndOf: ctx.source.ownerSeat,
+        description: "[When Digivolving] ＜Blitz＞",
+        matches: (subCtx) => subCtx.trigger.subjectPermanentId === permanentId,
+        run: (subCtx) => processBlitz(subCtx, permanentId),
+      });
+    }
+    return;
+  }
+  if (ctx.activeTiming === undefined || CONTINUOUS_TIMINGS.has(ctx.activeTiming)) return;
+  for (const permanentId of permanentIds) await processBlitz(ctx, permanentId);
+}
 
 export async function runCombatAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { deferredCostSuspensions } = scope;
@@ -29,10 +101,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         await fireDeferredSuspensionTriggers();
         return false;
       }
-      const deferredAfterAttack: Array<() => Promise<void>> = [];
-      const outerDeferral = ctx.deferUntilAfterAttackEnd;
-      ctx.deferUntilAfterAttackEnd = (resume) => deferredAfterAttack.push(resume);
-      const opts = {
+      const overrides: ForceAttackOptions = {
         withoutSuspending: action.withoutSuspending ?? false,
         vortex: action.vortex,
         attackPlayer:
@@ -44,47 +113,27 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
             : undefined),
         attackPlayerOnly: action.attackPlayerOnly,
         attackMechanic: action.attackMechanic,
-        afterAttackDeclaration: ctx.continueEffectAfterAttackDeclaration,
-        afterAttackEnd: async () => {
-          for (const resume of deferredAfterAttack) await resume();
-        },
         afterAttackTriggers: fireDeferredSuspensionTriggers,
-        artsDigivolveOptionInstanceId: ctx.source.definition.isDualCard ? ctx.source.instanceId : undefined,
-        // Combat pauses this effect. Its When Attacking and other pending effects
-        // must finish before Counter / security, including attacks without an IR flag.
-        drainTimingWindow: ctx.drainCurrentTimingWindow,
-        decisionProvenance: {
-          sourceCardId: ctx.source.cardId,
-          sourceInstanceId: ctx.source.instanceId,
-          sourcePermanentId: ctx.source.permanent()?.permanentId ?? ctx.sourcePermanentIdAtCreation,
-          timing: ctx.activeTiming,
-          effectText: ctx.activeEffectText,
-          effectTextPart: ctx.activeEffectTextPart,
-          isInherited: ctx.activeEffectIsInherited,
-        },
       };
-      try {
+      await withEffectAttackOptions(ctx, overrides, async (opts) => {
         if (attackSubject.isSelf || attackSubject.filter?.isSelfRef) {
           const self = ctx.source.permanent();
           if (self !== undefined) await ctx.fx.forceAttack(self.permanentId, opts);
           await fireDeferredSuspensionTriggers();
-          return false;
+          return;
         }
-        // A forced attack at the player affects the player who attacks with the
-        // chosen opponent Digimon, rather than the chosen Digimon itself. An
-        // opponent Digimon that is unaffected by this source's effects must therefore
-        // remain a legal choice and still declare the attack (Q2320). Keep the normal
-        // affectability filtering for own/unspecified attack subjects.
+        // A forced attack by an opponent's Digimon affects the player who attacks with
+        // it, rather than the chosen Digimon itself. An opponent Digimon that is
+        // unaffected by this source's effects must therefore remain a legal choice and
+        // still declare the attack (Q2320, Q4919). Keep the normal affectability
+        // filtering for own/unspecified attack subjects.
         const preserveUnaffectableSelection =
-          action.attackPlayer === true &&
-          (attackSubject.filter?.controller === "opponent" || attackSubject.filter?.controllerDefault === "opponent");
+          attackSubject.filter?.controller === "opponent" || attackSubject.filter?.controllerDefault === "opponent";
         const ids = await resolvePermanentTargets(ctx, attackSubject, { preserveUnaffectableSelection });
         for (const id of ids) await ctx.fx.forceAttack(id, opts);
         await fireDeferredSuspensionTriggers();
-        return false;
-      } finally {
-        ctx.deferUntilAfterAttackEnd = outerDeferral;
-      }
+      });
+      return false;
     }
     case "Battle": {
       // Direct battle ("1 of your Digimon may battle 1 of your opponent's Digimon"): resolve
@@ -135,7 +184,9 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         await ctx.fx.redirectAttack(ids, { chooserSeat: candidateSeat, optional: action.optional ?? false });
         return false;
       }
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      // Switching the attack target affects the attack, not the new target, so a Digimon
+      // unaffected by this effect is still a legal new target (Q3129, Q3133).
+      const ids = await resolvePermanentTargets(ctx, action.target, { preserveUnaffectableSelection: true });
       if (action.includePlayer) ids.push("player");
       // NOT `action.optional`: on this branch the "you may" is the ACTIVATION gate, which
       // `runAction` already asked (and whose cost it already charged) before dispatching here.

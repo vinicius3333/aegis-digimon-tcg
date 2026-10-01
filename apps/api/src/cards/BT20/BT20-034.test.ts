@@ -3,13 +3,16 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-034.js";
 import "./index.js";
 import "./BT20-003.js";
 import "../BT14/BT14-087.js";
 import "../BT1/BT1-036.js";
 import "./BT20-043.js";
+import "../BT14/BT14-053.js";
+import "../P/P-150.js";
+import "../BT21/BT21-045.js";
 
 describe("BT20-034 Boutmon", () => {
   it("has Fortitude, restricts one opponent Digimon after a Tamer enters the stack, and trashes security on inherited battle deletion", () => {
@@ -472,5 +475,317 @@ describe("BT20-034 Boutmon", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+  });
+});
+
+async function restrictOpponentThroughBoutmon(s: EngineSetup, targetAlias: string): Promise<void> {
+  await s.ready();
+  await advance(s.engine).verb.placeUnder(s.perm("boutmon").permanentId, [s.inst("boutmonTamer").instanceId]);
+  await settle(() => observe(s.engine).isRestricted(s.perm(targetAlias), "cannotActivateWhenDigivolving"));
+}
+
+function digivolveOpponent(s: EngineSetup, permanentAlias: string, cardAlias: string): void {
+  s.state.turnSeat = 1;
+  s.state.memory = 4;
+  expect(
+    s.engine.applyIntent(1, {
+      type: "digivolve",
+      permanentId: s.perm(permanentAlias).permanentId,
+      instanceId: s.inst(cardAlias).instanceId,
+    }),
+  ).toEqual({ ok: true });
+}
+
+function kazuchimonBoard(): EngineSetup {
+  return setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT20-034", as: "boutmon" }],
+        hand: [{ card: "BT20-085", as: "boutmonTamer" }],
+      },
+      1: {
+        battleArea: [{ card: "BT20-071", as: "target" }],
+        hand: [
+          { card: "BT20-035", as: "kazuchimon" },
+          { card: "BT20-085", as: "kazuchimonTamer" },
+        ],
+        deck: ["BT1-010", "BT1-010"],
+      },
+    },
+    { autoDeclineOptional: true, autoSelectCards: true },
+  );
+}
+
+function shineGreymonBoard(): EngineSetup {
+  return setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT20-034", dp: 12000, as: "boutmon" },
+          { card: "BT20-010", as: "firstVictim" },
+          { card: "BT20-010", as: "secondVictim" },
+        ],
+        hand: [{ card: "BT20-085", as: "boutmonTamer" }],
+        security: ["BT1-010"],
+      },
+      1: {
+        battleArea: [{ card: "BT20-071", as: "target" }],
+        hand: [{ card: "BT21-045", as: "shineGreymon" }],
+        deck: ["BT1-010", "BT1-010"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+}
+
+function victimsInPlay(s: EngineSetup): number {
+  const victimIds = [s.inst("firstVictim").instanceId, s.inst("secondVictim").instanceId];
+  return s.state.players[0]!.battleArea.filter((permanent) => victimIds.includes(permanent.topCard.instanceId)).length;
+}
+
+describe("BT20-034 Boutmon — KB Q&A rulings", () => {
+  it("digivolves from a level 4 Digimon whose digivolution requirement names [Pulsemon], because that counts as [Pulsemon] in its text (Q4333)", async () => {
+    // P-150 Exermon names [Pulsemon] only in its "[Digivolve] [Pulsemon]: Cost 2" requirement;
+    // its name, traits, and effects never mention it, and it lacks the [SEEKERS] trait.
+    const exermon = getCardDefinition("P-150");
+    if (exermon === undefined) throw new Error("P-150 catalog definition is required for this ruling");
+    expect(exermon.effectText).toMatch(/^\[Digivolve\]\s*\[Pulsemon\]: Cost 2/);
+    const [requirementHeader, ...printedEffects] = (exermon.effectText ?? "").split("\n\n");
+    expect(requirementHeader).toMatch(/Pulsemon/);
+    expect(
+      [exermon.nameEn, ...(exermon.types ?? []), ...printedEffects, exermon.inheritedEffectText].join(" "),
+    ).not.toMatch(/Pulsemon/);
+    expect(matchingAlternateDigivolutionRequirement("BT20-034", exermon)).toMatchObject({
+      level: 4,
+      texts: ["Pulsemon"],
+      cost: 3,
+    });
+    const exermonWithoutRequirement = { ...exermon, effectText: printedEffects.join("\n\n") };
+    expect(matchingAlternateDigivolutionRequirement("BT20-034", exermonWithoutRequirement)).toBeUndefined();
+
+    const pulsemonTextRoute = 0;
+    const digivolveThroughPulsemonTextRoute = (sourceCardId: string) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: sourceCardId, as: "source" }],
+          hand: [{ card: "BT20-034", as: "boutmon" }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      });
+      s.state.memory = 3;
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("boutmon").instanceId,
+        alternateRequirementIndex: pulsemonTextRoute,
+      });
+      return { s, result };
+    };
+
+    const accepted = digivolveThroughPulsemonTextRoute("P-150");
+    expect(accepted.result).toEqual({ ok: true });
+    await settle(
+      () => accepted.s.perm("source").topCard.cardId === "BT20-034" && accepted.s.state.pendingDecision === undefined,
+    );
+    expect(accepted.s.perm("source").stack.map((card) => card.cardId)).toEqual(["P-150"]);
+    expect(accepted.s.state.memory).toBe(0);
+
+    const vanillaGreenLevel4 = digivolveThroughPulsemonTextRoute("BT4-053");
+    expect(vanillaGreenLevel4.result).toMatchObject({ ok: false });
+    expect(vanillaGreenLevel4.s.perm("source").topCard.cardId).toBe("BT4-053");
+    expect(vanillaGreenLevel4.s.state.memory).toBe(3);
+  });
+
+  it("stops a restricted Digimon's [When Digivolving] effect both from triggering and from being activated by another effect (Q4334)", async () => {
+    const restricted = kazuchimonBoard();
+    await restrictOpponentThroughBoutmon(restricted, "target");
+    digivolveOpponent(restricted, "target", "kazuchimon");
+    await settle(() => restricted.perm("target").topCard.cardId === "BT20-035");
+    await drainMicrotasks();
+    expect(restricted.perm("boutmon").isSuspended).toBe(false);
+
+    await advance(restricted.engine).verb.placeUnder(restricted.perm("target").permanentId, [
+      restricted.inst("kazuchimonTamer").instanceId,
+    ]);
+    await settle(() =>
+      restricted.perm("target").stack.some((card) => card.instanceId === restricted.inst("kazuchimonTamer").instanceId),
+    );
+    await drainMicrotasks();
+    expect(observe(restricted.engine).isRestricted(restricted.perm("target"), "cannotActivateWhenDigivolving")).toBe(
+      true,
+    );
+    expect(restricted.perm("boutmon").isSuspended).toBe(false);
+
+    const unrestricted = kazuchimonBoard();
+    await unrestricted.ready();
+    digivolveOpponent(unrestricted, "target", "kazuchimon");
+    await settle(() => unrestricted.perm("boutmon").isSuspended);
+    unrestricted.perm("boutmon").isSuspended = false;
+    await advance(unrestricted.engine).verb.placeUnder(unrestricted.perm("target").permanentId, [
+      unrestricted.inst("kazuchimonTamer").instanceId,
+    ]);
+    await settle(() => unrestricted.perm("boutmon").isSuspended);
+  });
+
+  it("still activates a restricted Digimon's shared [When Digivolving] [When Attacking] effect when it attacks (Q4335)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-034", as: "boutmon" }],
+          hand: [{ card: "BT20-085", as: "boutmonTamer" }],
+          security: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT14-053", as: "rosemon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await restrictOpponentThroughBoutmon(s, "rosemon");
+    expect(s.perm("boutmon").isSuspended).toBe(false);
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("rosemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("boutmon").isSuspended);
+    expect(observe(s.engine).isRestricted(s.perm("rosemon"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("does not let another effect activate a restricted Digimon's [When Digivolving] effect (Q4336)", async () => {
+    const boardWithKazuchimonInPlay = () =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-034", as: "boutmon" }],
+            hand: [{ card: "BT20-085", as: "boutmonTamer" }],
+          },
+          1: {
+            battleArea: [{ card: "BT20-035", as: "kazuchimon" }],
+            hand: [{ card: "BT20-085", as: "kazuchimonTamer" }],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+    const placeTamerUnderKazuchimon = async (s: EngineSetup) => {
+      await advance(s.engine).verb.placeUnder(s.perm("kazuchimon").permanentId, [s.inst("kazuchimonTamer").instanceId]);
+      await settle(() =>
+        s.perm("kazuchimon").stack.some((card) => card.instanceId === s.inst("kazuchimonTamer").instanceId),
+      );
+    };
+
+    const restricted = boardWithKazuchimonInPlay();
+    await restrictOpponentThroughBoutmon(restricted, "kazuchimon");
+    await placeTamerUnderKazuchimon(restricted);
+    await drainMicrotasks();
+    expect(restricted.perm("boutmon").isSuspended).toBe(false);
+
+    const unrestricted = boardWithKazuchimonInPlay();
+    await unrestricted.ready();
+    await placeTamerUnderKazuchimon(unrestricted);
+    await settle(() => unrestricted.perm("boutmon").isSuspended);
+  });
+
+  it('does not let a restricted Digimon pay the "by" cost of its [When Digivolving] effect (Q4337)', async () => {
+    const soloogarmonBoard = () =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-034", as: "boutmon" }],
+            hand: [{ card: "BT20-085", as: "boutmonTamer" }],
+          },
+          1: {
+            battleArea: [{ card: "BT20-032", as: "target" }],
+            hand: [
+              { card: "BT20-071", as: "soloogarmon" },
+              { card: "BT1-010", as: "handCost" },
+            ],
+            deck: ["BT1-010", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+    const handCostStillInHand = (s: EngineSetup) =>
+      s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("handCost").instanceId);
+
+    const restricted = soloogarmonBoard();
+    await restrictOpponentThroughBoutmon(restricted, "target");
+    digivolveOpponent(restricted, "target", "soloogarmon");
+    await settle(() => restricted.perm("target").topCard.cardId === "BT20-071");
+    await drainMicrotasks();
+    expect(restricted.state.pendingDecision).toBeUndefined();
+    expect(handCostStillInHand(restricted)).toBe(true);
+    expect(observe(restricted.engine).hasKeyword(restricted.perm("target"), "Raid")).toBe(false);
+
+    const unrestricted = soloogarmonBoard();
+    await unrestricted.ready();
+    digivolveOpponent(unrestricted, "target", "soloogarmon");
+    await settle(() => !handCostStillInHand(unrestricted));
+    expect(observe(unrestricted.engine).hasKeyword(unrestricted.perm("target"), "Raid")).toBe(true);
+  });
+
+  it("does not count a blocked [When Digivolving] timing toward a shared [Once Per Turn], so [When Attacking] still activates (Q4338)", async () => {
+    const restricted = shineGreymonBoard();
+    await restrictOpponentThroughBoutmon(restricted, "target");
+    digivolveOpponent(restricted, "target", "shineGreymon");
+    await settle(() => restricted.perm("target").topCard.cardId === "BT21-045");
+    await drainMicrotasks();
+    expect(victimsInPlay(restricted)).toBe(2);
+    expect(
+      restricted.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: restricted.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => victimsInPlay(restricted) === 1);
+
+    const unrestricted = shineGreymonBoard();
+    await unrestricted.ready();
+    digivolveOpponent(unrestricted, "target", "shineGreymon");
+    await settle(() => victimsInPlay(unrestricted) === 1);
+    expect(
+      unrestricted.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: unrestricted.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(unrestricted.engine).isAttacking() && unrestricted.state.pendingDecision === undefined);
+    expect(victimsInPlay(unrestricted)).toBe(1);
+  });
+
+  it("does not trash security when the Boutmon-stacked host and the opposing Digimon are deleted at the same time (Q4341)", async () => {
+    const battleWithHostDp = async (hostDp: number) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT20-043", dp: hostDp, as: "host", under: ["BT20-034"] }] },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 12000, suspended: true, as: "opponent" }],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      });
+      const hostId = s.perm("host").permanentId;
+      const opponentId = s.perm("opponent").permanentId;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: hostId,
+          target: { kind: "permanent", permanentId: opponentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+      return {
+        hostInPlay: s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId),
+        opponentInPlay: s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId),
+        opponentSecurity: s.state.players[1]!.security.length,
+      };
+    };
+
+    expect(await battleWithHostDp(12000)).toEqual({ hostInPlay: false, opponentInPlay: false, opponentSecurity: 2 });
+    expect(await battleWithHostDp(13000)).toEqual({ hostInPlay: true, opponentInPlay: false, opponentSecurity: 1 });
   });
 });

@@ -49,3 +49,44 @@ describe("ST21-12", () => {
     ).toBe(true);
   });
 });
+
+describe("ST21-12 Joe Kido & Mimi Tachikawa — KB Q&A rulings", () => {
+  async function playLillymonWithTamers(tamers: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: tamers.map((card, index) => ({ card, as: `tamer${index}` })),
+          hand: [{ card: "ST21-09", as: "lillymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const lillymonId = s.inst("lillymon").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: lillymonId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === lillymonId),
+    );
+    return {
+      memory: s.state.memory,
+      suspended: tamers.map((_, index) => s.perm(`tamer${index}`).isSuspended),
+      reductionPrompts: s.decisions.filter(({ req }) => req.promptText === "reduce the play cost by 1").length,
+    };
+  }
+
+  it("reduces an ADVENTURE Digimon's play cost by 2 when both Tamers' effects activate (Q4483, Q4484)", async () => {
+    expect(await playLillymonWithTamers(["ST21-12", "ST21-13"])).toEqual({
+      memory: 5,
+      suspended: [true, true],
+      reductionPrompts: 2,
+    });
+    expect(await playLillymonWithTamers(["ST21-12"])).toEqual({
+      memory: 4,
+      suspended: [true],
+      reductionPrompts: 1,
+    });
+  });
+});

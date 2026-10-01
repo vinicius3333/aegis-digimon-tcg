@@ -456,3 +456,99 @@ describe("BT20-101 Zephagamon", () => {
     expect(s.perm("zephagamon").isSuspended).toBe(false);
   });
 });
+
+describe("BT20-101 Zephagamon — KB Q&A rulings", () => {
+  it("unsuspends when either its owner's Digimon or the opponent's Digimon suspends (Q4415)", async () => {
+    const ownerAttacks = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-101", as: "zephagamon", suspended: true },
+            { card: "BT1-010", as: "ownAttacker", dp: 9000 },
+          ],
+        },
+        1: { security: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await ownerAttacks.ready();
+    expect(
+      ownerAttacks.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ownerAttacks.perm("ownAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(ownerAttacks.engine).isAttacking());
+    expect(ownerAttacks.perm("ownAttacker").isSuspended).toBe(true);
+    expect(ownerAttacks.perm("zephagamon").isSuspended).toBe(false);
+
+    const opponentAttacks = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-101", as: "zephagamon", suspended: true }],
+          security: ["BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponentAttacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    opponentAttacks.state.turnSeat = 1;
+    await opponentAttacks.ready();
+    expect(
+      opponentAttacks.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: opponentAttacks.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponentAttacks.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(opponentAttacks.perm("opponentAttacker").isSuspended).toBe(true);
+    expect(opponentAttacks.perm("zephagamon").isSuspended).toBe(false);
+    expect(opponentAttacks.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(opponentAttacks.engine).isAttacking());
+  });
+
+  it("may suspend either its owner's Digimon or the opponent's Digimon on play (Q4416)", async () => {
+    const suspendOnPlay = async (targetAlias: "ownDigimon" | "opponentDigimon") => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT20-101", as: "zephagamon" }],
+            battleArea: [{ card: "BT1-010", as: "ownDigimon" }],
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "opponentDigimon" }], deck: ["BT1-010"] },
+        },
+        { autoAcceptOptional: true },
+      );
+      s.state.memory = 8;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zephagamon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const suspendChoice = s.decisions.at(-1)!.req;
+      expect(suspendChoice.sourceCardId).toBe("BT20-101");
+      expect(suspendChoice.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.perm("ownDigimon").permanentId, s.perm("opponentDigimon").permanentId]),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: suspendChoice.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(targetAlias).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && s.perm(targetAlias).isSuspended);
+      return s;
+    };
+
+    const ownSuspended = await suspendOnPlay("ownDigimon");
+    expect(ownSuspended.perm("ownDigimon").isSuspended).toBe(true);
+    expect(ownSuspended.perm("opponentDigimon").isSuspended).toBe(false);
+
+    const opponentSuspended = await suspendOnPlay("opponentDigimon");
+    expect(opponentSuspended.perm("opponentDigimon").isSuspended).toBe(true);
+    expect(opponentSuspended.perm("ownDigimon").isSuspended).toBe(false);
+  });
+});

@@ -106,3 +106,30 @@ describe("BT16-087", () => {
     expect(s.perm("dorumon").stack.some((card) => card.cardId === "BT16-087")).toBe(false);
   });
 });
+
+describe("BT16-087 Kosuke Kisakata — KB Q&A rulings", () => {
+  it("plays this same Kosuke Kisakata card from the digivolution cards that grant the inherited effect at the end of the opponent's turn (Q2680)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-051", as: "host", under: [{ card: "BT16-087", as: "kosuke" }] }],
+          hand: [{ card: "BT16-087", as: "kosukeInHand" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-087"));
+
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT16-087");
+    expect(played?.topCard.instanceId).toBe(s.inst("kosuke").instanceId);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT16-087")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("kosukeInHand").instanceId);
+  });
+});

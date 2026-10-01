@@ -1,9 +1,17 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type ServerEvent } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { drainMicrotasks, setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
+import {
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  settleAcrossTimers,
+  type BoardSpec,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import "../EX8/EX8-074.js";
+import "../BT15/BT15-075.js";
 import { compiled } from "./BT19-037.js";
 
 const DECK = ["BT1-009", "BT1-010", "BT1-012", "BT1-013", "BT1-014", "BT1-009"];
@@ -172,7 +180,7 @@ describe("BT19-037 Taomon", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  it("blast digivolves in the opponent's counter window and locks one of their Digimon (Q5536-Q5539)", async () => {
+  it("blast digivolves in the opponent's counter window and locks one of their Digimon (Q5536, Q5539)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -457,6 +465,135 @@ describe("BT19-037 Taomon", () => {
 
     expect(s.perm("peer").currentDP).toBe(9000);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("BT19-037 Taomon — KB Q&A rulings", () => {
+  function gallantmonWhenDigivolvingSources(events: ServerEvent[]) {
+    return events.flatMap((event) =>
+      event.kind === "effectTriggered" && event.sourceCardId === "EX8-074" && event.timing === "WhenDigivolving"
+        ? [event.sourcePermanentId]
+        : [],
+    );
+  }
+
+  async function blastDigivolveAndLock(board: BoardSpec) {
+    const preferred: string[] = [];
+    const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("locked").permanentId, s.perm("locked").topCard!.instanceId);
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opener").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isAttacking());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: s.inst("taomon").instanceId,
+        effectKey: `blast-digivolve:${s.perm("base").permanentId}`,
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT19-037");
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("locked"), "whenDigivolving")).toBe(true);
+    return { s, loop };
+  }
+
+  it("still activates a locked Digimon's [When Digivolving] [When Attacking] effect on the attack timing (Q5537)", async () => {
+    const { s, loop } = await blastDigivolveAndLock({
+      0: {
+        battleArea: [{ card: "BT1-051", as: "base" }],
+        hand: [{ card: "BT19-037", as: "taomon" }],
+        deck: DECK,
+        security: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-013", as: "opener" },
+          { card: "BT3-076", as: "locked" },
+        ],
+        hand: [
+          { card: "BT15-075", as: "loogarmon" },
+          { card: "BT1-009", as: "fodder" },
+        ],
+        deck: DECK,
+        security: ["BT1-009", "BT1-012"],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("locked").permanentId,
+        instanceId: s.inst("loogarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("locked").topCard?.cardId === "BT15-075");
+    await drainMicrotasks(80);
+    expect(s.perm("locked").currentDP).toBe(5000);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("fodder").instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("locked").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("fodder").instanceId);
+    expect(s.perm("locked").currentDP).toBe(7000);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("stops other effects from activating a locked Digimon's [When Digivolving] effect (Q5538)", async () => {
+    const { s, loop } = await blastDigivolveAndLock({
+      0: {
+        battleArea: [
+          { card: "BT1-051", as: "base" },
+          { card: "BT1-045", as: "bait" },
+        ],
+        hand: [{ card: "BT19-037", as: "taomon" }],
+        deck: DECK,
+        security: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-013", as: "opener" },
+          { card: "EX8-074", as: "locked" },
+          { card: "EX8-074", as: "free" },
+        ],
+        hand: [{ card: "BT1-009", as: "played" }],
+        deck: DECK,
+        security: ["BT1-009", "BT1-012"],
+      },
+    });
+    expect(observe(s.engine).timingEffectDisabled(s.perm("free"), "whenDigivolving")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settleAcrossTimers(() => s.state.players[0]!.battleArea.length < 2 && s.state.pendingDecision === undefined);
+    await drainMicrotasks(120);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(gallantmonWhenDigivolvingSources(s.events)).toEqual([s.perm("free").permanentId]);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 });

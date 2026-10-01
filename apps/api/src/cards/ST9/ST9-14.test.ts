@@ -68,3 +68,52 @@ describe("ST9-14 Megadeath", () => {
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === returnedInstanceId)).toBe(true);
   });
 });
+
+describe("ST9-14 Megadeath — KB Q&A rulings", () => {
+  it("can return a different suspended Digimon than the one it just suspended (Q721)", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["ST9-02", "ST9-07"], hand: [{ card: "ST9-14", as: "option" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "justSuspended" },
+          { card: "BT1-010", as: "alreadySuspended", suspended: true },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    const justSuspendedId = s.perm("justSuspended").permanentId;
+    const alreadySuspendedId = s.perm("alreadySuspended").permanentId;
+    const alreadySuspendedInstanceId = s.perm("alreadySuspended").topCard.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendDecision = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [justSuspendedId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets" && s.decisions.length >= 2);
+
+    const returnDecision = s.decisions.at(-1)!.req;
+    expect(returnDecision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([justSuspendedId, alreadySuspendedId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [alreadySuspendedId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === alreadySuspendedInstanceId));
+
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === alreadySuspendedInstanceId)).toBe(true);
+    const suspendedByMegadeath = s.state.players[1]!.battleArea.find((p) => p.permanentId === justSuspendedId);
+    expect(suspendedByMegadeath?.isSuspended).toBe(true);
+  });
+});

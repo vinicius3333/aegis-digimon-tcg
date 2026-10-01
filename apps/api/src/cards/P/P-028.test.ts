@@ -49,3 +49,25 @@ describe("P-028 Pulsemon", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("P-028 Pulsemon — KB Q&A rulings", () => {
+  it("both draws and gains 1 memory when played with exactly 3 security cards (Q4137)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "P-028", as: "pulsemon" }],
+        deck: [{ card: "BT1-009", as: "drawn" }, { card: "BT1-009", as: "kept" }],
+        security: ["BT1-028", "BT1-028", "BT1-028"],
+      },
+    });
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.memory).toBe(5 - 3 + 1);
+  });
+});

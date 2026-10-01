@@ -2,6 +2,7 @@
 
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { EffectContext } from "../../EffectContext.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { evaluateCondition } from "../conditions.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { selfTargetPermanent } from "../matching/selfTarget.js";
@@ -104,7 +105,7 @@ export function candidatePermanents(
   // affected by the effects of your opponent's Digimon"). Both are stored identically on the
   // continuous ledger and consulted the same way — qualify by whichever kind(s) the source card
   // actually declares.
-  const sourceKinds = ctx.effectSourceKinds ?? (source.definition.kinds as readonly string[]);
+  const sourceKinds = ctx.effectSourceKinds ?? effectProvenanceKinds(ctx);
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   const result: Permanent[] = [];
@@ -526,14 +527,23 @@ export async function resolvePermanentTargets(
  * `resolvePermanentTargets`.
  */
 function filterAffectable(ctx: EffectContext, permanentIds: readonly string[]): string[] {
+  return permanentIds.filter(affectabilityBySource(ctx));
+}
+
+/**
+ * Whether the resolving source can affect a permanent, frozen to this source's identity so
+ * a caller may re-ask later (a granted effect checks its recipient when it would trigger,
+ * Q4561). A permanent no longer on the field counts as affectable.
+ */
+export function affectabilityBySource(ctx: EffectContext): (permanentId: string) => boolean {
   const source = ctx.source;
-  const sourceKinds = ctx.effectSourceKinds ?? (source.definition.kinds as readonly string[]);
+  const sourceKinds = ctx.effectSourceKinds ?? effectProvenanceKinds(ctx);
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
-  return permanentIds.filter((id) => {
-    const p = ctx.game.permanentById(id);
-    return p === undefined || !isPermanentUnaffectable(ctx, source, p, relevantSourceKinds);
-  });
+  return (permanentId) => {
+    const permanent = ctx.game.permanentById(permanentId);
+    return permanent === undefined || !isPermanentUnaffectable(ctx, source, permanent, relevantSourceKinds);
+  };
 }
 
 export function effectiveTargetCount(ctx: EffectContext, target: Target): number {

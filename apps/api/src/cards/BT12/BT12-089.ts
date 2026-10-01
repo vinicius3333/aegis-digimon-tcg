@@ -13,7 +13,6 @@ const compiled: CompiledCard = {
       condition: {
         kind: "allOf",
         conditions: [
-          { kind: "memoryAtLeast", value: 4, controller: "mine" },
           {
             kind: "youHave",
             filter: {
@@ -79,7 +78,6 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
-          costOverride: 4,
           ignoreLevelRequirement: true,
           optional: true,
           abortOnDecline: true,

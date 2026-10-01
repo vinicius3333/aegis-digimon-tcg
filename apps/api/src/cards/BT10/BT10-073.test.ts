@@ -150,3 +150,38 @@ describe("BT10-073 ChuuChuumon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT10-073 ChuuChuumon — KB Q&A rulings", () => {
+  it("must add both the revealed Bagra Army Digimon and Yuu Amano instead of only one of them (Q1997)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT10-073", as: "source" }],
+        deck: [{ card: "BT10-075", as: "digimon" }, { card: "BT10-093", as: "yuu" }, "BT10-071", "BT10-072"],
+      },
+    });
+    s.state.memory = 4;
+    const answer = (instanceIds: string[]) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds },
+      });
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(answer([]).ok).toBe(false);
+    expect(answer([s.inst("digimon").instanceId])).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(answer([]).ok).toBe(false);
+    expect(answer([s.inst("yuu").instanceId])).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("digimon").instanceId, s.inst("yuu").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+});

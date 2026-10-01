@@ -2,7 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-090.js";
 import "../index.js";
 
@@ -114,5 +114,144 @@ describe("BT16-090 Lui Ohwada", () => {
     expect(s.state.players[0]?.trash.map((card) => card.instanceId)).toEqual(trashBefore);
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("BT16-090 Lui Ohwada — KB Q&A rulings", () => {
+  type BreedingSpec = { card: string; as: string; under?: string[] };
+
+  function luiFixture(options: {
+    breeding?: BreedingSpec;
+    withUkkomon?: boolean;
+    decline?: boolean;
+    memory?: number;
+  }): EngineSetup {
+    const battleArea = [
+      { card: "BT16-090", as: "lui" },
+      options.withUkkomon === false ? { card: "AD1-001", as: "other" } : { card: "BT16-082", as: "ukkomon" },
+    ];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea,
+          ...(options.breeding === undefined ? {} : { breeding: options.breeding }),
+          hand: [{ card: "BT16-083", as: "big" }],
+        },
+      },
+      options.decline === true
+        ? { autoDeclineOptional: true, autoSelectCards: true }
+        : { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = options.memory ?? 5;
+    return s;
+  }
+
+  function activateMain(s: EngineSetup): ReturnType<EngineSetup["engine"]["applyIntent"]> {
+    return s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("lui").topCard.instanceId,
+      effectKey: MAIN_KEY,
+    });
+  }
+
+  const trashIds = (s: EngineSetup): string[] => s.state.players[0]!.trash.map((card) => card.instanceId);
+  const handIds = (s: EngineSetup): string[] => s.state.players[0]!.hand.map((card) => card.instanceId);
+
+  it("can trash a Digi-Egg in the breeding area to pay the breeding cost (Q2684)", async () => {
+    const s = luiFixture({ breeding: { card: "BT1-001", as: "egg" } });
+    await s.ready();
+    const eggId = s.inst("egg").instanceId;
+    const bigId = s.inst("big").instanceId;
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === bigId && !s.state.pendingDecision, 3000);
+
+    expect(trashIds(s)).toContain(eggId);
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT16-083");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("cannot play Big Ukkomon by paying only one of the two costs (Q2685)", async () => {
+    const onlyUkkomon = luiFixture({});
+    await onlyUkkomon.ready();
+    const ukkomonId = onlyUkkomon.inst("ukkomon").instanceId;
+    expect(activateMain(onlyUkkomon)).toEqual({ ok: false, reason: "illegal-target" });
+    expect(onlyUkkomon.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === ukkomonId)).toBe(true);
+    expect(handIds(onlyUkkomon)).toContain(onlyUkkomon.inst("big").instanceId);
+
+    const onlyBreeding = luiFixture({ withUkkomon: false, breeding: { card: "BT1-001", as: "egg" } });
+    await onlyBreeding.ready();
+    expect(activateMain(onlyBreeding)).toEqual({ ok: false, reason: "illegal-target" });
+    expect(onlyBreeding.state.players[0]!.breeding?.topCard?.instanceId).toBe(onlyBreeding.inst("egg").instanceId);
+    expect(handIds(onlyBreeding)).toContain(onlyBreeding.inst("big").instanceId);
+
+    const both = luiFixture({ breeding: { card: "BT1-001", as: "egg" } });
+    await both.ready();
+    expect(activateMain(both)).toEqual({ ok: true });
+    await settle(
+      () => both.state.players[0]!.breeding?.topCard?.cardId === "BT16-083" && !both.state.pendingDecision,
+      3000,
+    );
+    expect(handIds(both)).not.toContain(both.inst("big").instanceId);
+  });
+
+  it("may decline to play Big Ukkomon after paying both costs (Q2686)", async () => {
+    const s = luiFixture({ breeding: { card: "BT1-001", as: "egg" }, decline: true });
+    await s.ready();
+    const ukkomonId = s.inst("ukkomon").instanceId;
+    const eggId = s.inst("egg").instanceId;
+    const bigId = s.inst("big").instanceId;
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(
+      () => trashIds(s).includes(eggId) && trashIds(s).includes(ukkomonId) && !s.state.pendingDecision,
+      3000,
+    );
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT16-090")).toBe(true);
+    expect(handIds(s)).toContain(bigId);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("processes <Overflow> when the trashed breeding Digimon is an ACE (Q2687)", async () => {
+    const nonAce = luiFixture({ breeding: { card: "AD1-001", as: "plain" }, decline: true });
+    await nonAce.ready();
+    const plainId = nonAce.inst("plain").instanceId;
+    expect(activateMain(nonAce)).toEqual({ ok: true });
+    await settle(() => trashIds(nonAce).includes(plainId) && !nonAce.state.pendingDecision, 3000);
+    expect(nonAce.state.memory).toBe(5);
+
+    const s = luiFixture({ breeding: { card: "BT14-014", as: "ace" }, decline: true });
+    await s.ready();
+    const aceId = s.inst("ace").instanceId;
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(() => trashIds(s).includes(aceId) && !s.state.pendingDecision, 3000);
+
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(handIds(s)).toContain(s.inst("big").instanceId);
+    expect(s.state.memory).toBe(5 - 3);
+  });
+
+  it("processes <Overflow> when an ACE is among the trashed breeding Digimon's digivolution cards (Q2688)", async () => {
+    const nonAceUnder = luiFixture({ breeding: { card: "AD1-001", as: "host", under: ["BT1-001"] }, decline: true });
+    await nonAceUnder.ready();
+    const plainHostId = nonAceUnder.inst("host").instanceId;
+    expect(activateMain(nonAceUnder)).toEqual({ ok: true });
+    await settle(() => trashIds(nonAceUnder).includes(plainHostId) && !nonAceUnder.state.pendingDecision, 3000);
+    expect(nonAceUnder.state.memory).toBe(5);
+
+    const s = luiFixture({ breeding: { card: "AD1-001", as: "host", under: ["BT14-014"] }, decline: true });
+    await s.ready();
+    const hostId = s.inst("host").instanceId;
+    const aceUnder = s.perm("host").stack.find((card) => card.cardId === "BT14-014")!;
+
+    expect(activateMain(s)).toEqual({ ok: true });
+    await settle(() => trashIds(s).includes(hostId) && !s.state.pendingDecision, 3000);
+
+    expect(trashIds(s)).toContain(aceUnder.instanceId);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.memory).toBe(5 - 3);
   });
 });

@@ -101,3 +101,30 @@ describe("BT16-086", () => {
     expect(s.perm("pulsemon").stack.some((card) => card.cardId === "BT16-086")).toBe(false);
   });
 });
+
+describe("BT16-086 Hacker Judge — KB Q&A rulings", () => {
+  it("plays this same Hacker Judge card from the digivolution cards that grant the inherited effect at the end of the opponent's turn (Q2679)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-039", as: "host", under: [{ card: "BT16-086", as: "hackerJudge" }] }],
+          hand: [{ card: "BT16-086", as: "hackerJudgeInHand" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-086"));
+
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT16-086");
+    expect(played?.topCard.instanceId).toBe(s.inst("hackerJudge").instanceId);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT16-086")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hackerJudgeInHand").instanceId);
+  });
+});

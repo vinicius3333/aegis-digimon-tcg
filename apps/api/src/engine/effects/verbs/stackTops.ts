@@ -61,6 +61,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
       if (newTop === undefined) break;
       setTopCard(permanent, newTop);
       if (oldTop !== undefined) {
+        continuous.reanchorCustomEffectGrants(oldTop.instanceId, newTop.instanceId);
         oldTop.faceUp = true;
         insertCard(player(oldTop.ownerSeat), Zone.Trash, oldTop);
         moved.push(oldTop);
@@ -91,7 +92,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
         },
       });
     }
-    if (opts?.stackedCards && moved.length > 0) await engine.recomputeContinuousEffects?.();
+    if (moved.length > 0) await engine.recomputeContinuousEffects?.();
     for (const card of moved) {
       if (!requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon)) continue;
       await engine.fireSubTrigger?.("whenDigimonTopTrashed", {
@@ -124,6 +125,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     const oldTop = permanent.topCard;
     const controllerSeat = permanent.controllerSeat;
     setTopCard(permanent, newTop);
+    continuous.reanchorCustomEffectGrants(oldTop.instanceId, newTop.instanceId);
     newTop.faceUp = true;
     oldTop.faceUp = true;
     insertCard(player(oldTop.ownerSeat), Zone.Trash, oldTop);
@@ -188,9 +190,11 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     const newTop = popFromStack(permanent);
     if (newTop === undefined) return false;
     setTopCard(permanent, newTop);
+    continuous.reanchorCustomEffectGrants(oldTop.instanceId, newTop.instanceId);
     unshiftOnStack(permanent, oldTop); // bottom of the digivolution cards
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg) ? def.dp : 0;
+    // KB Q5774: rotating a Digimon that digivolved from a Tamer leaves that Tamer in play on top.
     permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
     ledger.recomputeDP(state, permanent.permanentId);
     engine.emit({

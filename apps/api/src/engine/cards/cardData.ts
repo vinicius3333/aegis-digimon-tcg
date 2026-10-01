@@ -21,6 +21,7 @@ import {
   type ZoneRef,
 } from "@aegis/shared";
 import {
+  tamerAsDigimonLevel,
   tamerOntoDigivolveColors,
   tamerOntoDigivolveCostOverride,
   tamerOntoDigivolveLevel,
@@ -156,6 +157,15 @@ export function isTamer(def: CardDefinition | string): boolean {
 }
 export function isOption(def: CardDefinition | string): boolean {
   return resolve(def).kinds.includes(CardKind.Option);
+}
+/**
+ * An Option card in the battle area. A DUAL card on the field is a Digimon, unless a "place this
+ * card in the battle area" effect put it there as an Option (CR 4-6-3; KB Q6436).
+ */
+export function isOptionPermanent(permanent: Permanent): boolean {
+  if (permanent.topCard === undefined) return false;
+  const kinds = resolve(permanent.topCard.cardId).kinds;
+  return kinds.includes(CardKind.Option) && (!kinds.includes(CardKind.Digimon) || permanent.placedByEffect);
 }
 export function isDigiEgg(def: CardDefinition | string): boolean {
   return resolve(def).kinds.includes(CardKind.DigiEgg);
@@ -581,4 +591,24 @@ export function matchingAlternateDigivolutionRequirement(
 
   if (requirements.length === 0) return undefined;
   return matchGatedRequirement(requirements, baseDef, baseEffectiveNames, options, false);
+}
+
+/**
+ * How the alternate `requirement` that digivolves `evolvingId` onto a Tamer treats that Tamer.
+ * `asDigimon` means the route prints "as if the Tamer is a level N Digimon" (KB Q1157), so the
+ * Tamer digivolves as a Digimon. `asDigimonOrTamer` is a named Tamer requirement ([Takuya
+ * Kanbara]: Cost 2) on a card that also prints the generic "as if" route: the player may treat
+ * the Tamer as a Digimon, and must digivolve it as a Tamer while a Digimon can't digivolve
+ * (KB Q2724, Q2733). Any other route digivolves the Tamer as a Tamer (KB Q2957).
+ */
+export function tamerBaseTreatment(
+  evolvingId: string,
+  requirement: DigivolutionRequirement,
+): { kind: "asTamer" } | { kind: "asDigimon" | "asDigimonOrTamer"; level: number } {
+  const level = tamerAsDigimonLevel(evolvingId);
+  if (level === undefined) return { kind: "asTamer" };
+  const namedRequirement =
+    tamerOntoDigivolveLevel(evolvingId) !== undefined &&
+    (digivolutionRequirementsFor(evolvingId) ?? []).includes(requirement);
+  return { kind: namedRequirement ? "asDigimonOrTamer" : "asDigimon", level };
 }

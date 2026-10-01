@@ -155,7 +155,9 @@ describe("EX9-032", () => {
             ],
           },
         },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+        // "Digivolve" is the When Digivolving By-deletion, payable without a [Puppet] in hand
+        // (CR 15-7-5); declining it keeps the payment for the inherited protection under test.
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, declinePrompts: ["Digivolve"] },
       );
       s.state.memory = 10;
       expect(
@@ -205,6 +207,7 @@ describe("EX9-032", () => {
           autoDeclineOptional: !autoAcceptOptional,
           autoSelectCards: true,
           autoOrderTriggers: true,
+          declinePrompts: ["Digivolve"],
         },
       );
 
@@ -266,7 +269,7 @@ describe("EX9-032", () => {
             hand: [{ card: "EX9-032", as: "source" }, { card: "BT3-089", as: "next" }, "EX9-024"],
           },
         },
-        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, declinePrompts: ["Digivolve"] },
       );
       s.state.memory = 10;
       await s.engine.applyIntent(0, {

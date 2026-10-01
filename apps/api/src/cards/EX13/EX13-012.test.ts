@@ -634,3 +634,40 @@ describe("EX13-012 SaviorHuckmon", () => {
     await loop;
   });
 });
+
+describe("EX13-012 SaviorHuckmon — KB Q&A rulings", () => {
+  it("counts [Huckmon] in a card's name or in its effect text, but not a white card without it (Q7236)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "savior" }],
+          hand: [
+            { card: "BT16-082", as: "whiteNoToken" },
+            { card: "EX13-009", as: "nameMatch" },
+            { card: "ST12-13", as: "textMatch" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    await attackWindow(s, "savior");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const pick = s.decisions.find(
+      ({ req }) =>
+        (req.kind === "selectCards" || req.kind === "chooseTargets") &&
+        req.options?.candidateInstanceIds?.includes(s.inst("textMatch").instanceId),
+    );
+    expect(pick).toBeDefined();
+    expect(pick!.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("nameMatch").instanceId, s.inst("textMatch").instanceId]),
+    );
+    expect(pick!.req.options?.candidateInstanceIds).not.toContain(s.inst("whiteNoToken").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("whiteNoToken").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+});

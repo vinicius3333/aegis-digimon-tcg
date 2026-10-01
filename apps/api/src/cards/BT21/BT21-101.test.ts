@@ -324,3 +324,45 @@ describe("BT21-101 Gaiamon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT21-101 Gaiamon — KB Q&A rulings", () => {
+  it("cannot link an [Appmon] trait card that doesn't have ＜Link＞ with its [When Attacking] effect (Q4591)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-101", as: "gaiamon", under: [{ card: "AD1-005", as: "sourceWithoutLink" }] }],
+          hand: [
+            { card: "BT22-039", as: "handWithoutLink" },
+            { card: "BT21-009", as: "linkCard" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("handWithoutLink").instanceId, s.inst("sourceWithoutLink").instanceId);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaiamon").linked.length > 0 && !observe(s.engine).isAttacking());
+
+    // Both cards without ＜Link＞ are preferred by the auto-selector, so either would be linked if it qualified.
+    const offered = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(s.inst("handWithoutLink").instanceId);
+    expect(offered).not.toContain(s.inst("sourceWithoutLink").instanceId);
+    expect(s.perm("gaiamon").linked.map((card) => card.instanceId)).toEqual([s.inst("linkCard").instanceId]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handWithoutLink").instanceId)).toBe(
+      true,
+    );
+    expect(s.perm("gaiamon").stack.some((card) => card.instanceId === s.inst("sourceWithoutLink").instanceId)).toBe(
+      true,
+    );
+  });
+});

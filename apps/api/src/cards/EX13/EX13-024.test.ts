@@ -705,3 +705,103 @@ describe("EX13-024 Slayerdramon", () => {
     }
   });
 });
+
+describe("EX13-024 Slayerdramon — KB Q&A rulings", () => {
+  const EXAMON_TEXT_ONLY = "BT20-042";
+
+  async function deleteUnderSlayerdramon(victims: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "slayer" },
+            ...victims.map((card, index) => ({ card, as: `victim${index}` })),
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const victimIds = victims.map((_card, index) => s.perm(`victim${index}`).permanentId);
+    await advance(s.engine).verb.deletePermanent(victimIds, "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+    const survivors = s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId);
+    return { s, victimIds, survivors };
+  }
+
+  it("treats [Dracomon] in a card's name or only in its digivolve requirement as 'in its text' (Q7270)", async () => {
+    for (const protectedCard of [NAME_MATCH, TEXT_MATCH]) {
+      const { s, victimIds, survivors } = await deleteUnderSlayerdramon([protectedCard]);
+      expect(survivors, protectedCard).toContain(victimIds[0]);
+      expect(s.state.players[0]!.trash, protectedCard).toHaveLength(0);
+      expect(
+        s.state.players[0]!.battleArea.filter(({ isSuspended }) => isSuspended),
+        protectedCard,
+      ).toHaveLength(1);
+    }
+
+    const { s, victimIds, survivors } = await deleteUnderSlayerdramon([NON_MATCH]);
+    expect(survivors).not.toContain(victimIds[0]);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([NON_MATCH]);
+  });
+
+  it("protects a Digimon with only [Dracomon] and one with only [Examon] in its text (Q7271)", async () => {
+    for (const protectedCard of [NAME_MATCH, EXAMON_TEXT_ONLY]) {
+      const { s, victimIds, survivors } = await deleteUnderSlayerdramon([protectedCard]);
+      expect(survivors, protectedCard).toContain(victimIds[0]);
+      expect(s.state.players[0]!.trash, protectedCard).toHaveLength(0);
+    }
+  });
+
+  it("keeps every matching Digimon leaving at the same time for one suspension, and lets the others go (Q7272)", async () => {
+    const { s, victimIds, survivors } = await deleteUnderSlayerdramon([
+      NAME_MATCH,
+      TEXT_MATCH,
+      EXAMON_TEXT_ONLY,
+      NON_MATCH,
+    ]);
+
+    expect(survivors).toEqual(expect.arrayContaining(victimIds.slice(0, 3)));
+    expect(survivors).not.toContain(victimIds[3]);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual([NON_MATCH]);
+    expect(s.state.players[0]!.battleArea.filter(({ isSuspended }) => isSuspended)).toHaveLength(1);
+  });
+
+  it("requires [Dracomon] or [Examon] in the text of each of the Lv.5, Lv.4 and Lv.3 materials (Q7273)", async () => {
+    const recipes: { label: string; materials: string[]; accepted: boolean }[] = [
+      { label: "every material matches", materials: [EXAMON_TEXT_ONLY, TEXT_MATCH, NAME_MATCH], accepted: true },
+      { label: "unmatched Lv.5", materials: ["BT1-038", TEXT_MATCH, NAME_MATCH], accepted: false },
+      { label: "unmatched Lv.4", materials: [EXAMON_TEXT_ONLY, "BT1-014", NAME_MATCH], accepted: false },
+      { label: "unmatched Lv.3", materials: [EXAMON_TEXT_ONLY, TEXT_MATCH, NEAR_MISS], accepted: false },
+    ];
+    for (const { label, materials, accepted } of recipes) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: cardId, as: "slayer" }],
+            trash: materials.map((card, index) => ({ card, as: `m${index}` })),
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 7;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("slayer").instanceId,
+          assembly: { materialInstanceIds: materials.map((_card, index) => s.inst(`m${index}`).instanceId) },
+        }),
+        label,
+      ).toEqual(accepted ? { ok: true } : { ok: false, reason: "invalid-material" });
+      if (accepted) {
+        await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+        expect(s.state.memory, label).toBe(0);
+      } else {
+        expect(s.state.memory, label).toBe(7);
+        expect(s.state.players[0]!.trash, label).toHaveLength(3);
+      }
+    }
+  });
+});

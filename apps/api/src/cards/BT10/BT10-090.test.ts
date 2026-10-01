@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import "./BT10-090.js";
 
 describe("BT10-090 Zenjiro Tsurugi", () => {
@@ -120,5 +120,46 @@ describe("BT10-090 Zenjiro Tsurugi", () => {
     expect(s.state.memory).toBe(1);
     expect(s.decisions).toHaveLength(0);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT10-090 Zenjiro Tsurugi — KB Q&A rulings", () => {
+  it("cannot play a [Ballistamon] from under a Digimon that digivolved from a Tamer (Q2022)", async () => {
+    const playZenjiroOver = async (host: PermanentSpec) => {
+      const s = setupEngine(
+        { 0: { battleArea: [host], hand: [{ card: "BT10-090", as: "zenjiro" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zenjiro").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("zenjiro").instanceId),
+      );
+      await settle();
+      const ballistamonInPlay = s.state.players[0]!.battleArea.some(
+        ({ topCard }) => topCard?.instanceId === s.inst("ballistamon").instanceId,
+      );
+      return { s, ballistamonInPlay };
+    };
+
+    const fromTamer = await playZenjiroOver({
+      card: "BT10-009",
+      as: "host",
+      under: [{ card: "BT10-088" }, { card: "BT10-049", as: "ballistamon" }],
+    });
+    expect(fromTamer.ballistamonInPlay).toBe(false);
+    expect(fromTamer.s.perm("host").stack.map(({ instanceId }) => instanceId)).toContain(
+      fromTamer.s.inst("ballistamon").instanceId,
+    );
+
+    const underTamer = await playZenjiroOver({
+      card: "BT10-088",
+      as: "host",
+      under: [{ card: "BT10-049", as: "ballistamon" }],
+    });
+    expect(underTamer.ballistamonInPlay).toBe(true);
   });
 });

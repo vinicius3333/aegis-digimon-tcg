@@ -488,3 +488,55 @@ describe("BT19-061 RaptorSparrowmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
+
+describe("BT19-061 RaptorSparrowmon — KB Q&A rulings", () => {
+  it("must add a revealed [Xros Heart] or [Blue Flare] card to the hand when one is revealed (Q3118)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT19-061", as: "raptor" }],
+        deck: [
+          { card: XROS_MATCH, as: "xros" },
+          { card: BLUE_FLARE_MATCH, as: "flare" },
+          MISS_A,
+          { card: MISS_B, as: "bottom" },
+        ],
+        security: [{ card: INERT_SECURITY }],
+      },
+      1: { security: [{ card: INERT_SECURITY }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("raptor").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+
+    const request = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    expect(request.options?.min).toBe(1);
+    expect(request.options?.candidateInstanceIds?.sort()).toEqual(
+      [s.inst("xros").instanceId, s.inst("flare").instanceId].sort(),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("flare").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("flare").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual([MISS_A, XROS_MATCH].sort());
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+  });
+});

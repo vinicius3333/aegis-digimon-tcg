@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT1-015.js";
+import "./BT1-084.js";
 import { compiled } from "./BT1-114.js";
 
 describe("BT1-114 MetalGreymon", () => {
@@ -159,5 +160,45 @@ describe("BT1-114 MetalGreymon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").topCard.cardId).toBe("BT1-032");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolving").instanceId);
+  });
+});
+
+describe("BT1-114 MetalGreymon — KB Q&A rulings", () => {
+  it("is deleted by name when Omnimon chooses a different-numbered [MetalGreymon] (Q942)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-025", as: "base" }], hand: [{ card: "BT1-084", as: "omnimon" }] },
+        1: {
+          battleArea: [
+            { card: "ST1-09", as: "chosen" },
+            { card: "BT1-021", as: "otherPrint" },
+            { card: "BT1-114", as: "thisCard" },
+            { card: "BT1-015", as: "differentName" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    s.state.memory = 6;
+    const thisCardInstanceId = s.perm("thisCard").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("differentName").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(thisCardInstanceId);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["ST1-09", "BT1-021", "BT1-114"]),
+    );
   });
 });

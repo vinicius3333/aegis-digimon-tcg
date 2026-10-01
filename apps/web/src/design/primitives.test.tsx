@@ -115,4 +115,24 @@ describe("design primitives", () => {
     );
     expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
   });
+
+  // Both bars carry it: the desktop header and the phone header, where it is icon-only.
+  it("opens the feedback dialog from the header on every layout", () => {
+    const onSendFeedback = vi.fn<() => void>();
+    render(
+      <I18nProvider>
+        <TopNav
+          screen="home"
+          onNav={vi.fn<(screen: Screen) => void>()}
+          onSendFeedback={onSendFeedback}
+          player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }}
+        />
+      </I18nProvider>,
+    );
+
+    const buttons = screen.getAllByRole("button", { name: "Send feedback" });
+    expect(buttons).toHaveLength(2);
+    buttons.forEach((button) => fireEvent.click(button));
+    expect(onSendFeedback).toHaveBeenCalledTimes(2);
+  });
 });

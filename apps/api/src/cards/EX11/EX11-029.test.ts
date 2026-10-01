@@ -6,6 +6,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "./EX11-070.js";
+import { mindLinkUnchainedAtTurnEnd } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-029";
 
@@ -64,7 +65,7 @@ describe("EX11-029 Turbomon", () => {
       {
         0: {
           breeding: { card: cardId, as: "source" },
-          battleArea: [{ card: "BT1-009", as: "recipient", dp: 2000 }],
+          battleArea: [{ card: "EX11-029", as: "recipient" }],
           hand: [{ card: "EX11-027", as: "maquinamon" }],
         },
         1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
@@ -81,7 +82,7 @@ describe("EX11-029 Turbomon", () => {
     await settle(() => {
       sawRecipientAttachment ||= s.state.players[0]!.battleArea.some(
         (permanent) =>
-          permanent.topCard?.cardId === "BT1-009" &&
+          permanent.permanentId === s.perm("recipient").permanentId &&
           permanent.linked.some(({ cardId: linkedCardId }) => linkedCardId === "EX11-027"),
       );
       return sawRecipientAttachment;
@@ -178,5 +179,17 @@ describe("EX11-029 Turbomon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-029 Turbomon — KB Q&A rulings", () => {
+  it("does not treat <Mind Link> as getting linked, so the Unchained in hand is not played (Q5832)", async () => {
+    const { s, finish } = await mindLinkUnchainedAtTurnEnd(cardId, { hand: [{ card: "EX11-070", as: "spare" }] });
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("spare").instanceId);
+    expect(
+      s.events.some((event) => event.kind === "cardPlayed" && event.seat === 0 && event.cardId === "EX11-070"),
+    ).toBe(false);
+    await finish();
   });
 });

@@ -1,4 +1,5 @@
 import { Permanent } from "@aegis/shared";
+import { digiXrosZoneExpanderFor } from "../../digiXros/zoneExpanders.js";
 import { setTopCard } from "../../state/access.js";
 import { findInstance, findLooseInstance } from "../intents.js";
 import type { GameEngine } from "../../GameEngine.js";
@@ -17,6 +18,7 @@ export async function prepareDigiXrosPlay(engine: GameEngine, instanceId: string
 export async function prepareDigiXrosPlays(
   engine: GameEngine,
   instanceIds: readonly string[],
+  simultaneousPlayCount = instanceIds.length,
 ): Promise<Record<string, string[]>> {
   const targets: Permanent[] = [];
   for (const instanceId of instanceIds) {
@@ -49,6 +51,8 @@ export async function prepareDigiXrosPlays(
           : undefined);
       const sourceCard = findInstance(engine, sourceInstanceId ?? "")?.instance ?? resident?.topCard;
       if (sourceCard === undefined) return undefined;
+      if (simultaneousPlayCount > 1 && digiXrosZoneExpanderFor(sourceCard.cardId)?.requiresSinglePlay === true)
+        return undefined;
       return {
         ...buildEffectContext(engine, cardSourceOf(engine, sourceCard), {
           wouldBePlayedInstanceId: targetInstanceId ?? targets[0]!.topCard!.instanceId,

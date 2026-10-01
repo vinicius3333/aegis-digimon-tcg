@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT6-107.js";
+import "../ST1/ST1-12.js";
 
 describe("BT6-107 Glaive Memory Boost!", () => {
   it("places itself in the battle area from security", async () => {
@@ -81,5 +82,31 @@ describe("BT6-107 Glaive Memory Boost!", () => {
     await settle(() => s.state.memory === 5);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+  });
+});
+
+describe("BT6-107 Glaive Memory Boost! — KB Q&A rulings", () => {
+  it("still places itself in the battle area when the trash has no Digimon card (Q1492)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT6-068"],
+          hand: [{ card: "BT6-107", as: "option" }],
+          trash: [{ card: "ST1-12", as: "tamerInTrash" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    const tamerId = s.inst("tamerInTrash").instanceId;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([tamerId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });

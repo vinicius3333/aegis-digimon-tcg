@@ -21,6 +21,12 @@ export const COMPACT_PILES_QUERY = "(width < 960px), (height < 520px) and (orien
 export const SHORT_BOARD_QUERY = "(height < 820px)";
 
 /**
+ * The portrait arena: phones and tablets held upright stack each side's zones in
+ * one row, and the battlefield switches to its portrait art.
+ */
+export const PORTRAIT_ARENA_QUERY = "(max-width: 1023px) and (orientation: portrait)";
+
+/**
  * A phone on its side. Both battle rows, the memory band, the dock and the
  * header share ~390px, which is under what even a compact Digimon needs, so the
  * battle rows name their own card width.

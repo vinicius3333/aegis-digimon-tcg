@@ -1,6 +1,7 @@
-import { EffectDuration, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, type ServerEvent } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-075.js";
 
@@ -305,5 +306,48 @@ describe("BT26-075 compiled behavior", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT26-075 ScourgeChiropmon — KB Q&A rulings", () => {
+  it("resolves its checked [Security] effect as a Digimon effect, not an Option effect (Q7102)", async () => {
+    const kindsWhileResolving: (readonly string[] | undefined)[] = [];
+    let securityEffectResolving = false;
+    const isScourgeSecurityEffect = (event: ServerEvent) =>
+      "sourceCardId" in event && event.sourceCardId === "BT26-075" && "timing" in event && event.timing === "Security";
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-074", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", faceUp: false }] }],
+          security: [{ card: "BT26-075", as: "securityScourge" }],
+          trash: [{ card: "BT26-052", as: "glowingDawn" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: (event) => {
+          if (event.kind === "effectTriggered" && isScourgeSecurityEffect(event)) securityEffectResolving = true;
+          else if (event.kind === "effectResolved" && isScourgeSecurityEffect(event)) securityEffectResolving = false;
+          else if (securityEffectResolving) kindsWhileResolving.push(observe(s.engine).resolvingEffectSourceKinds());
+        },
+      },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("glowingDawn").instanceId),
+    );
+
+    expect(kindsWhileResolving.length).toBeGreaterThan(0);
+    expect(kindsWhileResolving[0]).toEqual(["Digimon"]);
   });
 });

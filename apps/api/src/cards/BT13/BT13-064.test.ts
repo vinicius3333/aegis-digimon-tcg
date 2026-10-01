@@ -134,3 +134,36 @@ describe("BT13-064 PawnChessmon", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT13-042")).toBe(true);
   });
 });
+
+describe("BT13-064 PawnChessmon — KB Q&A rulings", () => {
+  async function playsLevel5ChessmonOnDeletion(chessmonAlreadyInTrash: number): Promise<boolean> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-064", as: "pawn", suspended: true }],
+          hand: [{ card: "BT13-042", as: "bishop" }],
+          trash: Array.from({ length: chessmonAlreadyInTrash }, () => "BT13-035"),
+        },
+        1: { battleArea: [{ card: "ST1-10", as: "phoenix" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("pawn").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-064"));
+    await settle(() => !observe(s.engine).isAttacking());
+    return s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-042");
+  }
+
+  it("counts the deleted PawnChessmon itself among the 8 Chessmon cards in the trash (Q2306)", async () => {
+    expect(await playsLevel5ChessmonOnDeletion(7)).toBe(true);
+    expect(await playsLevel5ChessmonOnDeletion(6)).toBe(false);
+  });
+});

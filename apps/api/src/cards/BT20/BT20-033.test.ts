@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-033.js";
+import "../BT18/BT18-036.js";
 import "./index.js";
 
 describe("BT20-033 LoaderLeomon", () => {
@@ -425,5 +426,143 @@ describe("BT20-033 LoaderLeomon", () => {
       }).ok,
     ).toBe(false);
     expect(invalid.perm("unrelated").topCard.cardId).toBe("BT20-010");
+  });
+});
+
+describe("BT20-033 LoaderLeomon — KB Q&A rulings", () => {
+  async function restrictFirstOpponentDigimon(s: ReturnType<typeof setupEngine>, restricted: string, spared: string) {
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm(restricted), "cannotActivateWhenDigivolving"));
+    expect(observe(s.engine).isRestricted(s.perm(spared), "cannotActivateWhenDigivolving")).toBe(false);
+  }
+
+  it("stops the restricted Digimon's [When Digivolving] effect from triggering on digivolution (Q4326)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-033", as: "loader" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-030", dp: 6000, as: "restricted" },
+            { card: "BT20-030", dp: 6000, as: "spared" },
+          ],
+          hand: [
+            { card: "BT20-031", as: "restrictedEvolution" },
+            { card: "BT20-031", as: "sparedEvolution" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await restrictFirstOpponentDigimon(s, "restricted", "spared");
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("restricted").permanentId,
+        instanceId: s.inst("restrictedEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("restricted").topCard.cardId === "BT20-031" && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.perm("loader").currentDP).toBe(6000);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("spared").permanentId,
+        instanceId: s.inst("sparedEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("loader").currentDP === 3000);
+  });
+
+  it("stops another effect from activating the restricted Digimon's [When Digivolving] effect (Q4328)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-033", as: "loader" }],
+          battleArea: [{ card: "BT1-050", as: "bystander" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-035", as: "restricted" },
+            { card: "BT20-035", as: "spared" },
+          ],
+          hand: [
+            { card: "BT20-085", as: "restrictedTamer" },
+            { card: "BT20-085", as: "sparedTamer" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await restrictFirstOpponentDigimon(s, "restricted", "spared");
+    const ownSuspended = () =>
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.isSuspended).map(
+        (permanent) => permanent.permanentId,
+      );
+
+    await advance(s.engine).verb.placeUnder(s.perm("restricted").permanentId, [s.inst("restrictedTamer").instanceId]);
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.perm("restricted").stack.map((card) => card.instanceId)).toContain(s.inst("restrictedTamer").instanceId);
+    expect(ownSuspended()).toEqual([]);
+
+    await advance(s.engine).verb.placeUnder(s.perm("spared").permanentId, [s.inst("sparedTamer").instanceId]);
+    await settle(() => ownSuspended().length === 1);
+  });
+
+  it('does not pay the "by" cost of a blocked [When Digivolving] effect (Q4329)', async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-033", as: "loader" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-050", as: "restricted" },
+            { card: "BT1-050", as: "spared" },
+          ],
+          hand: [
+            { card: "BT18-036", as: "restrictedWizardmon" },
+            { card: "BT18-036", as: "sparedWizardmon" },
+          ],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await restrictFirstOpponentDigimon(s, "restricted", "spared");
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("restricted").permanentId,
+        instanceId: s.inst("restrictedWizardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("restricted").topCard.cardId === "BT18-036" && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    const digivolutionBonusDraws = 1;
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.state.players[1]!.hand).toHaveLength(1 + digivolutionBonusDraws);
+    expect(s.state.memory).toBe(8);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("spared").permanentId,
+        instanceId: s.inst("sparedWizardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.hand).toHaveLength(2 * digivolutionBonusDraws + 1);
+    expect(s.state.memory).toBe(7);
   });
 });

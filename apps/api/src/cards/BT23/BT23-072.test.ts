@@ -534,3 +534,121 @@ describe("BT23-072 King Drasil_7D6", () => {
     });
   });
 });
+
+describe("BT23-072 King Drasil_7D6 — KB Q&A rulings", () => {
+  const SIX_SOURCES = [
+    { card: "BT23-072", as: "freePlay" },
+    "BT23-003",
+    "BT23-003",
+    "BT23-003",
+    "BT23-003",
+    "BT23-072",
+  ];
+
+  it.each([
+    { label: "an empty breeding area", seat: { battleArea: [{ card: "BT23-072", as: "fieldDrasil" }] } },
+    { label: "a different Digimon in breeding", seat: { breeding: { card: "BT23-003", as: "motimon" } } },
+  ])("cannot declare its {Hand} [Main] effect with $label (Q5345)", async ({ seat }) => {
+    const s = setupEngine(
+      {
+        0: {
+          ...seat,
+          hand: [{ card: "BT23-072", as: "handDrasil" }],
+          deck: [{ card: "BT1-009", as: "notDrawn" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const drasilId = s.inst("handDrasil").instanceId;
+
+    const result = s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: drasilId,
+      effectKey: mainEffectKey(s),
+    });
+    await settle(() => false, 40);
+
+    expect(result.ok).toBe(false);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drasilId]);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(true);
+    expect(s.decisions).toHaveLength(0);
+  });
+
+  it("offers the 3 cost and the placement only together, so refusing the placement pays nothing (Q5346)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-007", under: ["BT23-003"], as: "mother" },
+          hand: [{ card: "BT23-072", as: "handDrasil" }],
+          deck: [{ card: "BT1-009", as: "notDrawn" }, "BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const drasilId = s.inst("handDrasil").instanceId;
+
+    s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: drasilId, effectKey: mainEffectKey(s) });
+    await settle(() => false, 60);
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("mother").stack.map((card) => card.cardId)).toEqual(["BT23-003"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drasilId]);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("triggers its [All Turns] effect when this card itself is played (Q5347)", async () => {
+    const { s, loop } = await openMain(
+      playableBoard({
+        hand: [
+          { card: "BT23-072", as: "drasil" },
+          { card: "ST1-02", as: "neutral" },
+        ],
+      }),
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("drasil").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT23-072"));
+    await settle(() => s.perm("drasil").isSuspended);
+
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" &&
+          event.sourceCardId === "BT23-072" &&
+          event.sourceInstanceId === s.inst("drasil").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.perm("drasil").isSuspended).toBe(true);
+    expect(keywordsOn(s, "drasil")).toEqual([true, true, true, true]);
+    await closeLoop(s, loop);
+  });
+
+  it.each([
+    { area: "breeding area", inBreeding: true },
+    { area: "battle area", inBreeding: false },
+  ])("activates its {Breeding} inherited effect only in the breeding area ($area) (Q5348)", async ({ inBreeding }) => {
+    const host = { card: inBreeding ? "BT22-007" : "BT22-043", under: SIX_SOURCES, as: "host" };
+    const { s, loop } = await openMain(
+      playableBoard({
+        ...(inBreeding ? { breeding: host } : { battleArea: [host] }),
+        hand: ["ST1-02"],
+      }),
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const freePlayId = s.inst("freePlay").instanceId;
+    await settle(() => false, 60);
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === freePlayId)).toBe(inBreeding);
+    expect(s.perm("host").stack.some((card) => card.instanceId === freePlayId)).toBe(!inBreeding);
+    await closeLoop(s, loop);
+  });
+});

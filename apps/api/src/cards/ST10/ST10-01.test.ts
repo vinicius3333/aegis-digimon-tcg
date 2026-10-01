@@ -78,3 +78,47 @@ describe("ST10-01 Nyaromon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });
+
+describe("ST10-01 Nyaromon — KB Q&A rulings", () => {
+  async function attackWithHost(hostCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: hostCardId, as: "host", under: ["ST10-01"] }],
+          hand: [{ card: "ST10-11", as: "discard" }],
+          deck: [{ card: "ST10-08", as: "drawn" }],
+        },
+        1: { security: ["ST10-14"] },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    return s;
+  }
+
+  it("activates when the Digimon carrying it is itself the only yellow Digimon (Q723)", async () => {
+    const yellowHost = await attackWithHost("ST10-05");
+    expect(yellowHost.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      yellowHost.inst("drawn").instanceId,
+    ]);
+    expect(yellowHost.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      yellowHost.inst("discard").instanceId,
+    ]);
+
+    const purpleHost = await attackWithHost("ST10-11");
+    expect(purpleHost.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      purpleHost.inst("drawn").instanceId,
+    ]);
+    expect(purpleHost.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      purpleHost.inst("discard").instanceId,
+    ]);
+  });
+});

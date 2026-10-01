@@ -19,6 +19,7 @@ import type { Effect } from "../effects/Effect.js";
 import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
+import { SubTriggerRegistry } from "../effects/subtriggers.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import { advance } from "../testkit/advance.js";
 // Boot side-effect: self-registers every compiled-IR card module.
@@ -138,23 +139,21 @@ describe("§18-1 Pending Processing (comprehensive-0267)", () => {
       const option = card("BT1-090", 0, true);
       p0.hand.push(option);
 
-      // Wrap the real fireSubTrigger seam (same technique as turnEndHarness.test.ts) purely to
-      // observe state.memory immediately around the "endOfTurn" watcher window — not to stub it.
-      const original = (
-        GameEngine.prototype as unknown as {
-          fireSubTrigger(this: GameEngine, event: string, payload?: unknown): Promise<void>;
-        }
-      ).fireSubTrigger;
+      // Wrap the real SubTrigger firing seam purely to observe state.memory immediately around
+      // the "endOfTurn" watcher window — not to stub it.
+      const original = SubTriggerRegistry.prototype.fireSnapshot;
       let memoryBeforeEndOfTurn: number | undefined;
       let memoryAfterEndOfTurn: number | undefined;
-      const spy = vi
-        .spyOn(GameEngine.prototype as unknown as { fireSubTrigger: typeof original }, "fireSubTrigger")
-        .mockImplementation(async function (this: GameEngine, event: string, payload?: unknown) {
-          if (event === "endOfTurn") memoryBeforeEndOfTurn = h.state.memory;
-          const result = await original.call(this, event, payload);
-          if (event === "endOfTurn") memoryAfterEndOfTurn = h.state.memory;
-          return result;
-        });
+      const spy = vi.spyOn(SubTriggerRegistry.prototype, "fireSnapshot").mockImplementation(async function (
+        this: SubTriggerRegistry,
+        ...args: Parameters<typeof original>
+      ) {
+        const isEndOfTurn = args[0].some((sub) => sub.event === "endOfTurn");
+        if (isEndOfTurn) memoryBeforeEndOfTurn = h.state.memory;
+        const result = await original.apply(this, args);
+        if (isEndOfTurn) memoryAfterEndOfTurn = h.state.memory;
+        return result;
+      });
 
       let memoryAfterGain: number | undefined;
       await driveTurn(h, 0, async () => {
@@ -216,6 +215,101 @@ describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
     // EXPECTED (per §18-2-2): the "instead" processing was available and usable — the
     // MetalGreymon ends up back in hand instead of the default reveal-top-4 running.
     expect(p0.hand.some((c) => c.instanceId === metalInTrash.instanceId)).toBe(true);
+  });
+});
+
+describe("§18-2-4 uninterruptible overwrite processing (comprehensive-0269)", () => {
+  it("BT10-084's 'trash this Digimon's digivolution cards instead' runs straight from the replaced trash, with nothing resolving in between", async () => {
+    cite(
+      "comprehensive-0269",
+      "§18-2-4: overwrite processing for immediate-type effects can't be interrupted. BT10-084 " +
+        "Tactimon prints the rule's own example ('When an effect would trash one of your other " +
+        "Digimon's digivolution cards, you may trash this Digimon's digivolution cards instead'). " +
+        "Once accepted, the replacement trash follows with no trigger, decision or other effect " +
+        "between it and the replaced event, and the replaced host's cards are never touched.",
+      "eee33fee47f4369c60067a673903abd5ba7377af6e58752eb9e266b54af9d1bf",
+    );
+
+    const s = setup(
+      {
+        0: { hand: [{ card: "BT24-040", as: "venusmon" }], security: 5 },
+        1: {
+          battleArea: [
+            { card: "BT1-037", as: "otherDigimon", under: ["BT1-027", "BT1-028"] },
+            { card: "BT10-084", as: "tactimon", under: ["BT1-045", "BT1-047", "BT1-050"] },
+          ],
+        },
+      },
+      { declineDigiXros: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    const otherId = s.perm("otherDigimon").permanentId;
+    const tactimonId = s.perm("tactimon").permanentId;
+    const otherSourceIds = s.perm("otherDigimon").stack.map((card) => card.instanceId);
+    const tactimonSourceIds = s.perm("tactimon").stack.map((card) => card.instanceId);
+
+    const trashWatcherSaw: {
+      host: string | undefined;
+      otherStack: string[];
+      tactimonStack: number;
+      decisions: number;
+    }[] = [];
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "onDigivolutionCardsDiscardedBatch",
+      sourcePermanentId: otherId,
+      once: false,
+      description: "observes every digivolution-card trash",
+      run: async (ctx) => {
+        trashWatcherSaw.push({
+          host: ctx.trigger.subjectPermanentId,
+          otherStack: s.perm("otherDigimon").stack.map((card) => card.instanceId),
+          tactimonStack: s.perm("tactimon").stack.length,
+          decisions: s.decisions.length,
+        });
+      },
+    });
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [otherId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const replacement = s.state.pendingDecision!;
+    expect(replacement.seat).toBe(1);
+    const eventsAtAccept = s.events.length;
+    const decisionsAtAccept = s.decisions.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: replacement.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tactimon").stack.length === 0);
+
+    const afterAccept = s.events.slice(eventsAtAccept);
+    const replacementTrash = afterAccept.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "trash",
+    );
+    expect(replacementTrash).toBeGreaterThanOrEqual(0);
+    const trashed = afterAccept[replacementTrash] as { instanceIds: string[] };
+    expect([...trashed.instanceIds].sort()).toEqual([...tactimonSourceIds].sort());
+    expect(afterAccept.slice(0, replacementTrash)).toEqual([]);
+
+    expect(trashWatcherSaw).toEqual([
+      { host: tactimonId, otherStack: otherSourceIds, tactimonStack: 0, decisions: decisionsAtAccept },
+    ]);
+    expect(s.perm("otherDigimon").stack.map((card) => card.instanceId)).toEqual(otherSourceIds);
   });
 });
 

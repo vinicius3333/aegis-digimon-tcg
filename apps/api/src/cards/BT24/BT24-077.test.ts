@@ -694,3 +694,82 @@ describe("BT24-077 Revivemon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT24-077 Revivemon — KB Q&A rulings", () => {
+  /** Whether any selection offered `instanceId`; two valid <Link> cards keep the pick from auto-resolving. */
+  function linkCandidateOffers(s: ReturnType<typeof setupEngine>, instanceId: string): boolean {
+    return s.decisions.some(({ req }) => req.options?.candidateInstanceIds?.includes(instanceId) === true);
+  }
+
+  it("never offers a card without <Link> to its [When Digivolving] link (Q5654)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-070", as: "base" },
+            { card: "BT21-009", as: "recipient" },
+          ],
+          hand: [{ card: "BT24-077", as: "revivemon" }],
+          trash: [
+            { card: "BT24-035", as: "noLink" },
+            { card: "BT24-036", as: "withLink" },
+            { card: "BT24-036", as: "otherWithLink" },
+          ],
+          deck: ["BT1-017"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("recipient").topCard.instanceId, s.perm("recipient").permanentId);
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("revivemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT24-077" && s.state.pendingDecision === undefined);
+
+    expect(linkCandidateOffers(s, s.inst("withLink").instanceId)).toBe(true);
+    expect(linkCandidateOffers(s, s.inst("noLink").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) =>
+        permanent.linked.some((card) => card.instanceId === s.inst("noLink").instanceId),
+      ),
+    ).toBe(false);
+  });
+
+  it("never offers a card without <Link> to its [On Deletion] link (Q5654)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-077", as: "revivemon", under: ["BT24-070"] },
+            { card: "BT21-023", as: "recipient" },
+          ],
+          trash: [
+            { card: "BT24-035", as: "noLink" },
+            { card: "BT24-036", as: "withLink" },
+            { card: "BT24-036", as: "otherWithLink" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("revivemon").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(linkCandidateOffers(s, s.inst("withLink").instanceId)).toBe(true);
+    expect(linkCandidateOffers(s, s.inst("noLink").instanceId)).toBe(false);
+    expect(s.perm("recipient").linked).toHaveLength(1);
+    expect(s.perm("recipient").linked[0]!.cardId).toBe("BT24-036");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
+  });
+});

@@ -95,3 +95,93 @@ describe("BT4-060 Lotosmon", () => {
     expect(s.perm("mover").isSuspended).toBe(false);
   });
 });
+
+describe("BT4-060 Lotosmon — KB Q&A rulings", () => {
+  const lotosmon = { card: "BT4-060", as: "lotos", under: ["BT4-004", "BT4-052", "BT4-054", "BT4-059"] };
+
+  it("suspends your own level 4 or lower Digimon when you play it (Q1216)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [lotosmon],
+        hand: [
+          { card: "BT1-009", as: "ownRookie" },
+          { card: "BT1-023", as: "ownUltimate" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ownRookie").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ownRookie").isSuspended);
+    expect(s.perm("ownRookie").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ownUltimate").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-023"), 5000);
+    expect(s.perm("ownUltimate").isSuspended).toBe(false);
+  });
+
+  it("does not suspend a Digimon that digivolves into a level 4, because digivolving is not playing (Q1217)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [lotosmon, { card: "BT4-051", as: "base", under: ["BT4-004"] }],
+        hand: [
+          { card: "BT4-054", as: "evolving" },
+          { card: "BT1-009", as: "played" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT4-054", 5000);
+    expect(s.perm("base").topCard?.cardId).toBe("BT4-054");
+    expect(s.perm("base").isSuspended).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("played").isSuspended);
+    expect(s.perm("played").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(false);
+  });
+
+  it("does not suspend a level 4 Digimon moved from the breeding area, because moving is not playing (Q1218)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [lotosmon],
+        breeding: { card: "BT1-019", as: "mover" },
+        hand: [{ card: "BT1-009", as: "played" }],
+      },
+    });
+    s.state.phase = Phase.Breeding;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding === undefined, 5000);
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toContain(s.perm("mover").permanentId);
+    expect(s.perm("mover").isSuspended).toBe(false);
+
+    s.state.phase = Phase.Main;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("played").isSuspended);
+    expect(s.perm("played").isSuspended).toBe(true);
+    expect(s.perm("mover").isSuspended).toBe(false);
+  });
+});

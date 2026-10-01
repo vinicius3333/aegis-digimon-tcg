@@ -4,7 +4,9 @@ import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { getCardDefinition } from "@aegis/shared";
 import { compiled } from "./EX4-073.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SetupEngineOptions } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { EffectTiming } from "@aegis/shared";
 import { makeInstance } from "../../engine/testkit/harness.js";
 import { pushOnStack } from "../../engine/state/access.js";
 import "../BT14/BT14-062.js";
@@ -292,4 +294,132 @@ describe("EX4-073 Omnimon Alter-B", () => {
     await loop;
   });
   ex4CardBehaviorTests("EX4-073");
+});
+
+describe("EX4-073 Omnimon Alter-B — KB Q&A rulings", () => {
+  async function nextDecision(s: ReturnType<typeof setupEngine>, previousId?: string) {
+    await settle(() => s.state.pendingDecision !== undefined && s.state.pendingDecision.decisionId !== previousId);
+    const pending = s.state.pendingDecision!;
+    return s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+  }
+
+  function respond(s: ReturnType<typeof setupEngine>, req: { decisionId: string; kind: string }, ids: string[]) {
+    return s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: req.decisionId,
+      response: { kind: req.kind as "chooseTargets", instanceIds: ids },
+    });
+  }
+
+  function attackWith(s: ReturnType<typeof setupEngine>) {
+    return s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    });
+  }
+
+  it("must delete at least 1 opponent Digimon with its When Digivolving budget (Q3519)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-073", as: "subject" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "cost2" },
+            { card: "BT1-013", as: "cost3" },
+            { card: "BT1-019", as: "cost6" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    await s.ready();
+    const resolved = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
+
+    const deDigivolve = await nextDecision(s);
+    expect(respond(s, deDigivolve, [s.perm("cost6").permanentId])).toEqual({ ok: true });
+    const deletion = await nextDecision(s, deDigivolve.decisionId);
+    expect(deletion.options).toMatchObject({ min: 1, maxTotalPlayCost: 6 });
+    expect(respond(s, deletion, []).ok).toBe(false);
+    expect(respond(s, deletion, [s.perm("cost3").permanentId])).toEqual({ ok: true });
+    await resolved;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(["BT1-009", "BT1-019"]);
+  });
+
+  it("must trash at least 1 card once its When Attacking effect is activated, and nothing when declined (Q3520)", async () => {
+    function board(opts: SetupEngineOptions) {
+      return setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX4-073", as: "attacker", under: ["BT1-080", "BT8-017"] }],
+            security: ["BT1-009", "BT1-010"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-009", as: "cost2" },
+              { card: "BT1-019", as: "cost6" },
+            ],
+            security: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+        },
+        { autoSelectCards: false, ...opts },
+      );
+    }
+
+    const declined = board({ autoDeclineOptional: true, autoSelectCards: true });
+    await declined.ready();
+    expect(attackWith(declined)).toEqual({ ok: true });
+    await settle(() => !observe(declined.engine).isAttacking());
+    expect(declined.perm("attacker").stack).toHaveLength(2);
+    expect(declined.state.players[1]!.battleArea).toHaveLength(2);
+
+    const s = board({ autoAcceptOptional: true });
+    await s.ready();
+    expect(attackWith(s)).toEqual({ ok: true });
+    const trashChoice = await nextDecision(s);
+    expect(trashChoice.options?.min).toBe(1);
+    expect(respond(s, trashChoice, []).ok).toBe(false);
+    expect(respond(s, trashChoice, [trashChoice.options!.candidateInstanceIds![0]!])).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").stack.length === 1 && s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-019"]);
+  });
+
+  it("deletes the lowest play cost one at a time for each trashed card (Q3521)", async () => {
+    const deletions: string[][] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-073", as: "attacker", under: ["BT1-080", "BT8-017"] }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "cost2" },
+            { card: "BT1-013", as: "cost3" },
+            { card: "BT1-019", as: "cost6" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent(event) {
+          if (event.kind === "cardsMoved" && event.deletedPermanents !== undefined) {
+            deletions.push(event.deletedPermanents.map(({ cardId }) => cardId));
+          }
+        },
+      },
+    );
+    await s.ready();
+
+    expect(attackWith(s)).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").stack.length === 0 && s.state.players[1]!.battleArea.length === 1);
+
+    expect(deletions).toEqual([["BT1-009"], ["BT1-013"]]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-019"]);
+  });
 });

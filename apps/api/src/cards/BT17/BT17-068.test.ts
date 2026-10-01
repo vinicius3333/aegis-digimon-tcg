@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { revealedDefinition } from "../../engine/effects/interpreter/actions/reveal.js";
 import { CardInstance, getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT17-068.js";
+import "../BT1/BT1-106.js";
 import "../BT3/BT3-051.js";
+import "../BT15/BT15-027.js";
 import "../BT15/BT15-079.js";
 import "./BT17-017.js";
 import "./index.js";
@@ -161,9 +163,9 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
 
   it("keeps the revealed-from-deck level override resolved in runtime metadata", async () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter.js");
-    const compiled = runtimeCompiledCard(MEPHISTOMON)!;
-    expect(compiled.coverage).toBe("full");
-    expect(compiled.residual).toEqual([]);
+    const runtimeCard = runtimeCompiledCard(MEPHISTOMON)!;
+    expect(runtimeCard.coverage).toBe("full");
+    expect(runtimeCard.residual).toEqual([]);
   });
 });
 
@@ -251,5 +253,140 @@ describe("BT17-068 Mephistomon — play-cost reduction", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === MEPHISTOMON));
 
     expect(s.state.memory).toBe(0);
+  });
+});
+
+const SCORPIOMON = "BT15-027";
+const DOKUGUMON = "BT3-051";
+const GROUNDRAMON = "BT1-020";
+const SYMPHONY_NO_1 = "BT1-106";
+const ANCIENTGREYMON = "BT17-017";
+const PIEDMON = "BT15-079";
+const VILEMON = "BT15-072";
+const YELLOW_DIGIMON = "BT1-047";
+const LEVEL_3_FILLER = "BT1-009";
+
+async function deleteMephistomonOnOpponentTurn(removerCardId: string): Promise<{ gulfmonPlayed: boolean }> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: MEPHISTOMON, as: "meph" }],
+        hand: [{ card: GULFMON, as: "gulfmon" }],
+      },
+      1: { battleArea: [YELLOW_DIGIMON], hand: [{ card: removerCardId, as: "remover" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.turnSeat = 1;
+  s.state.memory = 20;
+  const mephPermId = s.perm("meph").permanentId;
+  await s.ready();
+
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("remover").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === mephPermId));
+  await drainMicrotasks();
+
+  expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === mephPermId)).toBe(false);
+  return {
+    gulfmonPlayed: s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === GULFMON),
+  };
+}
+
+describe("BT17-068 Mephistomon — KB Q&A rulings", () => {
+  it("can be added by a reveal effect that adds level 6 or higher cards (Q2826)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: SCORPIOMON, as: "scorpiomon" }],
+          deck: [
+            { card: MEPHISTOMON, as: "meph" },
+            { card: GROUNDRAMON, as: "plainLevel5" },
+            LEVEL_3_FILLER,
+            LEVEL_3_FILLER,
+          ],
+        },
+      },
+      { autoSelectCards: true, declineDigiXros: true },
+    );
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scorpiomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === SCORPIOMON) &&
+        s.state.players[0]!.deck.length < 4 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const hand = s.state.players[0]!.hand;
+    expect(hand.map((card) => card.instanceId)).toEqual([s.inst("meph").instanceId]);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("plainLevel5").instanceId)).toBe(true);
+    expect(getCardDefinition(MEPHISTOMON)?.level).toBe(5);
+  });
+
+  it("lets Dokugumon add two revealed copies as its level 5 and level 6 cards (Q2827)", async () => {
+    async function revealWithDokugumon(topCards: string[]): Promise<string[]> {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: DOKUGUMON, as: "dokugumon" }], deck: [...topCards, LEVEL_3_FILLER] },
+        },
+        { autoSelectCards: true, declineDigiXros: true },
+      );
+      s.state.memory = 6;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dokugumon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.deck.length === 0 && s.state.pendingDecision === undefined);
+      return s.state.players[0]!.hand.map((card) => card.cardId);
+    }
+
+    expect(await revealWithDokugumon([MEPHISTOMON, MEPHISTOMON])).toEqual([MEPHISTOMON, MEPHISTOMON]);
+    expect(await revealWithDokugumon([GROUNDRAMON, GROUNDRAMON])).toEqual([GROUNDRAMON]);
+  });
+
+  it("does not activate its [On Deletion] when a DP reduction to 0 deletes it by the rules (Q2828)", async () => {
+    expect(await deleteMephistomonOnOpponentTurn(SYMPHONY_NO_1)).toEqual({ gulfmonPlayed: false });
+    expect(await deleteMephistomonOnOpponentTurn(ANCIENTGREYMON)).toEqual({ gulfmonPlayed: true });
+  });
+
+  it("places only a level 5 or lower card with [Dark Masters] in its text for the inherited +2000 DP (Q2829)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GULFMON, under: [MEPHISTOMON], as: "host" }],
+          trash: [
+            { card: PIEDMON, as: "level6DarkMasters" },
+            { card: GROUNDRAMON, as: "level5WithoutText" },
+            { card: VILEMON, as: "level4DarkMastersText" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const piedmonId = s.inst("level6DarkMasters").instanceId;
+    const groundramonId = s.inst("level5WithoutText").instanceId;
+    preferInstanceIds.push(piedmonId, groundramonId);
+    const vilemonId = s.inst("level4DarkMastersText").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === vilemonId));
+
+    const stack = s.perm("host").stack;
+    expect(stack[0]?.instanceId).toBe(vilemonId);
+    expect(stack.some((card) => card.instanceId === piedmonId || card.instanceId === groundramonId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([piedmonId, groundramonId]);
+    expect(s.perm("host").currentDP).toBe(13000);
   });
 });

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST13/ST13-10.js";
 import "./BT5-045.js";
 
 describe("BT5-045 LordKnightmon", () => {
@@ -130,5 +132,41 @@ describe("BT5-045 LordKnightmon", () => {
     });
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("lord").currentDP).toBe(s.perm("lord").baseDP + 2000);
+  });
+});
+
+describe("BT5-045 LordKnightmon — KB Q&A rulings", () => {
+  it("offers only a yellow level 3 Digimon card or a yellow [Warrior] trait Digimon card (Q1332)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-045", as: "lord" }],
+          hand: [
+            { card: "BT1-045", as: "yellowLevelThree" },
+            { card: "BT5-042", as: "yellowWarrior" },
+            { card: "BT5-041", as: "yellowLevelFive" },
+            { card: "BT1-009", as: "redLevelThree" },
+            { card: "ST13-10", as: "blackWarrior" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, declineDigiXros: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lord").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    const offered = s.decisions
+      .filter(({ req }) => req.kind === "selectCards" && req.options?.digiXrosCardId === undefined)
+      .map(({ req }) => [...(req.options?.candidateInstanceIds ?? [])].sort());
+    expect(offered).toEqual([[s.inst("yellowLevelThree").instanceId, s.inst("yellowWarrior").instanceId].sort()]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
 });

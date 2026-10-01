@@ -329,3 +329,39 @@ describe("EX9-027", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-027 Kokeshimon — KB Q&A rulings", () => {
+  it("ends the attack by skipping block and counter timing straight to end of attack (Q4780)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT8-041", as: "host", under: ["EX9-027"] },
+            { card: "BT1-009", as: "fodder" },
+            { card: "BT13-024", as: "blocker" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "EX9-021", as: "attacker", under: ["AD1-001", "AD1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security[0]?.cardId === "EX9-021");
+
+    const kinds = s.events.map(({ kind }) => kind);
+    expect(kinds).toContain("attackDeclared");
+    expect(kinds).not.toContain("blockWindowOpened");
+    expect(kinds).not.toContain("counterWindowOpened");
+    expect(kinds).not.toContain("securityChecked");
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(["AD1-001", "AD1-010"]);
+  });
+});

@@ -1,5 +1,5 @@
 export type { BoardPrimitives } from "./board.js";
-export type { CombatPrimitives } from "./combat.js";
+export type { AttackDecisionProvenance, CombatPrimitives, ForceAttackOptions } from "./combat.js";
 export type { ContinuousPrimitives } from "./continuous.js";
 export type { DeckPrimitives } from "./deck.js";
 export type { DelayedPrimitives } from "./delayed.js";

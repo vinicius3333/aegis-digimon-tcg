@@ -95,3 +95,41 @@ describe("ST19-01 Kyaromon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("second").instanceId]);
   });
 });
+
+describe("ST19-01 Kyaromon — KB Q&A rulings", () => {
+  async function attackWithOnlyAnother(another: string) {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT15-023", under: ["ST19-01"], as: "attacker" },
+          { card: another, as: "another" },
+        ],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+      1: { security: [{ card: "BT1-010", as: "security" }] },
+    });
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("attacker"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    return s;
+  }
+
+  it("draws when the only other permanent is a Digimon Token (Q852)", async () => {
+    const withToken = await attackWithOnlyAnother("TOKEN-Familiar-Token");
+    expect(withToken.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      withToken.inst("drawn").instanceId,
+    ]);
+
+    const withTamer = await attackWithOnlyAnother("ST19-14");
+    expect(withTamer.state.players[0]!.hand).toHaveLength(0);
+    expect(withTamer.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      withTamer.inst("drawn").instanceId,
+    ]);
+  });
+});

@@ -241,6 +241,14 @@ export function observe(engine: GameEngine) {
       return hasAnyMainPhaseAction(engine, seat);
     },
 
+    /**
+     * The card kinds the innermost resolving effect counts as ("Digimon effect" vs "Option
+     * effect"). Read it from `onEvent` while the effect is resolving; undefined outside one.
+     */
+    resolvingEffectSourceKinds(): readonly string[] | undefined {
+      return internals.primitives.resolvingEffectSourceKinds?.();
+    },
+
     /** Whether a permanent currently carries a named continuous restriction. */
     hasRestriction(permanent: Permanent | string, restriction: Restriction, sourceKind?: string): boolean {
       return internals.continuous.hasRestriction(idOf(permanent), restriction, sourceKind);

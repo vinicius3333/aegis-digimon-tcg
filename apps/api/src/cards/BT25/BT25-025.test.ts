@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_025 } from "./BT25-025.js";
 import "../index.js";
 import "../BT19/BT19-065.js";
@@ -382,5 +383,52 @@ describe("BT25-025 Aegiochusmon: Blue", () => {
     expect(stripped).not.toHaveProperty("deletedPermanents");
     const trashed = s.state.players[0]!.trash.find((card) => card.instanceId === s.inst("kingEtemon").instanceId);
     expect(trashed?.faceUp).toBe(true);
+  });
+});
+
+describe("BT25-025 Aegiochusmon: Blue — KB Q&A rulings", () => {
+  it("activates the checked card's [Security] effect before the inherited security-removal effect (Q6289)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-062", as: "host", under: ["BT25-025"] },
+            { card: "BT25-053", as: "shaman", suspended: true },
+          ],
+          security: [{ card: "AD1-020", as: "securityTamer" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.perm("shaman").isSuspended &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("securityTamer").instanceId,
+        ),
+    );
+
+    const securityEffect = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "AD1-020",
+    );
+    const removalReaction = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-025",
+    );
+    expect(securityEffect).toBeGreaterThanOrEqual(0);
+    expect(removalReaction).toBeGreaterThan(securityEffect);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

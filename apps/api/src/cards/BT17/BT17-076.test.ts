@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-076.js";
 import "./index.js";
+import "../BT6/BT6-083.js";
 
 describe("BT17-076 Eosmon", () => {
   it("plays a level 5 or lower Eosmon from hand when digivolving or attacking", () => {
@@ -290,5 +292,79 @@ describe("BT17-076 Eosmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 3);
 
     expect(s.state.players[1]!.battleArea.length).toBe(1);
+  });
+});
+
+describe("BT17-076 Eosmon — KB Q&A rulings", () => {
+  function boardWithPlayableBt6Eosmon(targetDp: number, options: SetupEngineOptions) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-076", as: "eosmon" }],
+          hand: [
+            { card: "BT6-083", as: "playedEosmon" },
+            { card: "BT16-090", as: "whiteTamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT17-063", dp: targetDp, as: "target" }] },
+      },
+      { autoSelectCards: true, ...options },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    return s;
+  }
+
+  it("deletes by the played BT6-083 Eosmon's DP at resolution, after its simultaneous [On Play] raised it to 5000 (Q2845)", async () => {
+    async function playBt6EosmonResolvingFirst(firstTrigger: string) {
+      const s = boardWithPlayableBt6Eosmon(5000, { autoAcceptOptional: true, preferTriggerKeys: [firstTrigger] });
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedEosmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT16-090"));
+      await settle();
+      return s;
+    }
+
+    const tamerFirst = await playBt6EosmonResolvingFirst("BT6-083");
+    expect(tamerFirst.perm("playedEosmon").currentDP).toBe(5000);
+    expect(tamerFirst.state.players[1]!.trash.map((card) => card.instanceId)).toContain(
+      tamerFirst.inst("target").instanceId,
+    );
+
+    const deletionFirst = await playBt6EosmonResolvingFirst("BT17-076");
+    expect(deletionFirst.perm("playedEosmon").currentDP).toBe(5000);
+    expect(deletionFirst.perm("target").topCard.cardId).toBe("BT17-063");
+  });
+
+  it("deletes nothing when the played Eosmon left the battle area before this effect resolved (Q2846)", async () => {
+    async function playBt6EosmonAndResolve(removeBeforeDeletion: boolean) {
+      const s = boardWithPlayableBt6Eosmon(3000, { preferTriggerKeys: ["BT6-083"] });
+      await s.ready();
+      const playedEosmonId = s.inst("playedEosmon").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedEosmonId })).toEqual({ ok: true });
+      await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT6-083"));
+      const onPlayPrompt = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "BT6-083")!;
+
+      // The other simultaneous effect is resolving: remove the played Eosmon before BT17-076 resolves.
+      if (removeBeforeDeletion) await advance(s.engine).verb.returnToHand([playedEosmonId]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: onPlayPrompt.req.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      return s;
+    }
+
+    const removed = await playBt6EosmonAndResolve(true);
+    expect(removed.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT6-083");
+    expect(removed.perm("target").topCard.cardId).toBe("BT17-063");
+
+    const stayed = await playBt6EosmonAndResolve(false);
+    expect(stayed.state.players[1]!.trash.map((card) => card.instanceId)).toContain(stayed.inst("target").instanceId);
   });
 });

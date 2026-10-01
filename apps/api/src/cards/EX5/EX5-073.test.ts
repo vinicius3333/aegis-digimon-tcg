@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { dnaDigivolutionRequirementsFor, getCardDefinition, requireCardDefinition } from "@aegis/shared";
 import { canPayCost } from "../../engine/effects/interpreter/costs.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-073.js";
 import "../index.js";
 
@@ -287,5 +287,78 @@ describe("EX5-073 GraceNovamon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId), 2000);
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId)).toBe(false);
+  });
+});
+
+describe("EX5-073 GraceNovamon — KB Q&A rulings", () => {
+  async function dnaDigivolveAgainst(opponentBattleArea: PermanentSpec[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-014", as: "apollo" },
+            { card: "EX5-025", as: "diana" },
+          ],
+          hand: [{ card: "EX5-073", as: "grace" }],
+        },
+        1: { battleArea: opponentBattleArea },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("apollo").permanentId, s.perm("diana").permanentId],
+        instanceId: s.inst("grace").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  it("can split the 8 trashed digivolution cards across several opposing Digimon (Q3686)", async () => {
+    const sources = (prefix: string) =>
+      ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"].map((card, index) => ({
+        card,
+        as: `${prefix}${index}`,
+      }));
+    const s = await dnaDigivolveAgainst([
+      { card: "BT1-024", as: "first", under: sources("firstSource") },
+      { card: "BT1-024", as: "second", under: sources("secondSource") },
+    ]);
+    const trashedFrom = (prefix: string) =>
+      [0, 1, 2, 3, 4].filter((index) =>
+        s.state.players[1]!.trash.some((card) => card.instanceId === s.inst(`${prefix}${index}`).instanceId),
+      ).length;
+    await settle(
+      () => trashedFrom("firstSource") + trashedFrom("secondSource") >= 8 && s.state.pendingDecision === undefined,
+    );
+
+    expect(trashedFrom("firstSource")).toBeGreaterThan(0);
+    expect(trashedFrom("secondSource")).toBeGreaterThan(0);
+    expect(s.decisions.some(({ req }) => req.options?.max === 8)).toBe(true);
+  });
+
+  it("trashes as many as possible when the opponent has fewer than 8 digivolution cards (Q3689)", async () => {
+    const s = await dnaDigivolveAgainst([
+      {
+        card: "BT1-024",
+        as: "target",
+        under: [
+          { card: "BT1-010", as: "sourceA" },
+          { card: "BT1-011", as: "sourceB" },
+        ],
+      },
+      { card: "BT1-024", as: "bare", under: [{ card: "BT1-012", as: "sourceC" }] },
+    ]);
+    await settle(
+      () =>
+        ["sourceA", "sourceB", "sourceC"].every((alias) =>
+          s.state.players[1]!.trash.some((card) => card.instanceId === s.inst(alias).instanceId),
+        ) && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.stack.length > 0)).toHaveLength(0);
   });
 });

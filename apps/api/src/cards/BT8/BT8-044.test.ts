@@ -75,3 +75,51 @@ describe("BT8-044 Azulongmon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT8-044 Azulongmon — KB Q&A rulings", () => {
+  it("does not unsuspend itself when a suspended Digimon digivolves into it (Q1732)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-057", as: "azulongmon", suspended: true },
+            { card: "BT1-051", as: "other", suspended: true },
+          ],
+          hand: [
+            { card: "BT8-044", as: "azulongmonCard" },
+            { card: "BT8-042", as: "otherEvolution" },
+          ],
+          deck: ["BT8-034", "BT8-034"],
+          security: ["BT8-035"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("azulongmon").permanentId,
+        instanceId: s.inst("azulongmonCard").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("azulongmon").topCard.cardId === "BT8-044");
+    await settle();
+
+    expect(s.perm("azulongmon").isSuspended).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("other").permanentId,
+        instanceId: s.inst("otherEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("other").isSuspended);
+
+    expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.perm("azulongmon").isSuspended).toBe(true);
+  });
+});

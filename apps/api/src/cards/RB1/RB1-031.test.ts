@@ -171,3 +171,42 @@ describe("RB1-031 Arcturusmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(3);
   });
 });
+
+describe("RB1-031 Arcturusmon — KB Q&A rulings", () => {
+  it("may delete one of its own player's Digimon within the stack-count level cap (Q4107)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-030", as: "base", under: [{ card: "RB1-005" }, { card: "RB1-005" }] },
+            { card: "BT1-014", as: "ownVictim" },
+          ],
+          hand: [{ card: "RB1-031", as: "arcturus" }],
+          trash: [{ card: "RB1-005", as: "gammamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const ownId = s.perm("ownVictim").permanentId;
+    const opponentId = s.perm("opponent").permanentId;
+    preferred.push(ownId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("arcturus").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === ownId));
+    await settle();
+
+    expect(s.perm("base").stack).toHaveLength(4);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-014")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId)).toBe(true);
+  });
+});

@@ -54,7 +54,7 @@ describe("the home screen", () => {
 
   it("reports a bug from the footer", () => {
     const props = renderHome();
-    fireEvent.click(screen.getByRole("button", { name: "Report a bug" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send feedback" }));
     expect(props.onReportBug).toHaveBeenCalled();
   });
 });

@@ -152,3 +152,44 @@ describe("BT4-095 Yoshino Fujieda", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);
   });
 });
+
+describe("BT4-095 Yoshino Fujieda — KB Q&A rulings", () => {
+  async function digivolveBesideYoshino(evolvingCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-095", as: "yoshino" },
+            { card: "BT4-051", as: "base" },
+          ],
+          hand: [{ card: evolvingCardId, as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === evolvingCardId && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("reduces the cost for any Digi-Burst Digimon, not only [When Digivolving] Digi-Burst (Q1247)", async () => {
+    const mainDigiBurst = await digivolveBesideYoshino("BT4-054");
+    expect(mainDigiBurst.perm("yoshino").isSuspended).toBe(true);
+    expect(mainDigiBurst.state.memory).toBe(1);
+
+    const noDigiBurst = await digivolveBesideYoshino("BT1-069");
+    expect(noDigiBurst.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT4-095")).toBe(
+      false,
+    );
+    expect(noDigiBurst.perm("yoshino").isSuspended).toBe(false);
+    expect(noDigiBurst.state.memory).toBe(0);
+  });
+});

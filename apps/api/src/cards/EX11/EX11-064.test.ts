@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-087.js";
 import { compiled } from "./EX11-064.js";
+import "../index.js";
+import { expectFaceUpCardCheckedNormally } from "./qaRulings.testSupport.js";
 
 describe("EX11-064 Altea", () => {
   it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
@@ -254,5 +256,16 @@ describe("EX11-064 Altea", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-064 Altea — KB Q&A rulings", () => {
+  it("checks a face-up Altea with it left revealed and resolves its [Security] play as usual (Q5929)", async () => {
+    const s = await expectFaceUpCardCheckedNormally("EX11-064");
+
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({ resolution: "effect" });
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("checked").instanceId,
+    ]);
   });
 });

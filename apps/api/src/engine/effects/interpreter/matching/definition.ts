@@ -14,6 +14,12 @@ import {
 import type { CardDefinition, Filter } from "@aegis/shared";
 import { staticTraitsOf } from "../../../cards/cardData.js";
 
+/** Whether a card answers an exact-name slot, counting its "also treated as" names (Q1745). */
+export function hasExactName(def: CardDefinition, name: string): boolean {
+  const wanted = name.toLowerCase();
+  return effectiveExactNames(def).some((candidate) => candidate.toLowerCase() === wanted);
+}
+
 export interface DefinitionFacts {
   /** The card id; present on every real `CardDefinition`, used for registry lookups (DigiXros). */
   cardId?: string;
@@ -309,12 +315,38 @@ export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { k
   if (def.cardId !== undefined) {
     const compiled = runtimeCompiledCard(def.cardId);
     if (compiled !== undefined) {
+      const matchesRequested = (entry: { keyword?: string } | undefined): boolean =>
+        (entry?.keyword ?? "").replace(/[^a-z0-9]/gi, "").toLowerCase() === requested;
+      // Keywords printed outside any timing window are declared on the card root; the
+      // registered card expands them into Static effects, but this raw record does not.
+      if ((compiled.keywords ?? []).some(matchesRequested)) return true;
       const declared = compiled.effects.some(
         (effect) =>
           effect.isInherited !== true &&
           (!PERSISTENT_KEYWORDS.has(requested) || effect.trigger === "Static" || effect.trigger === "Rule") &&
-          (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
+          (effect.keywords ?? []).some(matchesRequested),
       );
+      // A printed keyword line also compiles as an unconditional Static self-grant
+      // (`GainKeyword` on this card, permanent duration). That card always has the keyword (Q7368).
+      const selfGranted = compiled.effects.some(
+        (effect) =>
+          effect.isInherited !== true &&
+          effect.isLinked !== true &&
+          effect.isSecurity !== true &&
+          effect.isBreeding !== true &&
+          effect.isFromTrash !== true &&
+          effect.trigger === "Static" &&
+          effect.condition === undefined &&
+          effect.actions.some(
+            (action) =>
+              action.kind === "GainKeyword" &&
+              action.condition === undefined &&
+              action.target.isSelf === true &&
+              action.duration === "permanent" &&
+              [action.keyword, ...(action.keywords ?? [])].some(matchesRequested),
+          ),
+      );
+      if (selfGranted) return true;
       // Existing Save filters also represent the printed phrase "with ＜Save＞ in its text".
       // That asks for the token anywhere in card text, including a digivolution requirement
       // or a condition; its meaning is broader than "has the ＜Save＞ effect".

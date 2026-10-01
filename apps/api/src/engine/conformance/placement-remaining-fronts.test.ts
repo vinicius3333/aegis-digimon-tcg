@@ -29,7 +29,8 @@ describe("acquired placement watchers at relocation seams", () => {
     await settle();
     expect(s.state.memory).toBe(1);
     expect(s.perm("dest").stack.map((card) => card.instanceId)).toEqual([s.inst("source").instanceId]);
-    expect(additions).toEqual([
+    expect(additions.map(({ event }) => event)).toEqual(["whenLeavesPlay", "onAddDigivolutionCards"]);
+    expect(additions.filter(({ event }) => event === "onAddDigivolutionCards")).toEqual([
       expect.objectContaining({
         event: "onAddDigivolutionCards",
         payload: expect.objectContaining({
@@ -59,11 +60,14 @@ describe("acquired placement watchers at relocation seams", () => {
     const memoryBeforeAdditions: number[] = [];
     const additions = await observe(s.engine).captureSubTriggers(
       async () => {
-        await internalsOf(s.engine).primitives.relocatePermanentsByEffect?.(
+        const primitives = internalsOf(s.engine).primitives;
+        primitives.enterEffectResolution?.(0);
+        await primitives.relocatePermanentsByEffect?.(
           s.perm("dest").permanentId,
           [s.perm("sourceA").permanentId, s.perm("sourceB").permanentId],
           { belowTop: false, shedOwnCards: true },
         );
+        primitives.leaveEffectResolution?.();
         await settle();
       },
       (event) => {

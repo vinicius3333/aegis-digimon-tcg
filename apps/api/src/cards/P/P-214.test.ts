@@ -242,3 +242,94 @@ describe("P-214 Decode engine behavior", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-004")).toBe(true);
   });
 });
+
+describe("P-214 Betamon (X Antibody) — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+
+  function idsOf(s: Setup, alias: string): string[] {
+    return [s.perm(alias).permanentId, s.perm(alias).topCard.instanceId];
+  }
+
+  async function answerSelection(s: Setup, alias: string): Promise<string[]> {
+    await settle(() => s.state.pendingDecision?.kind === "selectCards" || s.state.pendingDecision?.kind === "chooseTargets");
+    const req = s.state.pendingDecision!;
+    const candidates: string[] = JSON.parse(req.payloadJson ?? "{}").candidateInstanceIds ?? [];
+    const chosen = candidates.filter((id) => idsOf(s, alias).includes(id));
+    expect(chosen).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: req.kind as "selectCards" | "chooseTargets", instanceIds: chosen },
+      }),
+    ).toEqual({ ok: true });
+    return candidates;
+  }
+
+  it("counts a card whose name or effect text contains [Seadramon] as having [Seadramon] in its text (Q5960)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX3-026", as: "effectText" },
+            { card: "BT11-085", as: "nameSubstring" },
+            { card: "BT1-010", as: "unrelated" },
+          ],
+          hand: [{ card: "P-214", as: "betamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("betamon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    const hosts = await answerSelection(s, "effectText");
+    const offered = (alias: string) => hosts.some((id) => idsOf(s, alias).includes(id));
+    expect(offered("effectText")).toBe(true);
+    expect(offered("nameSubstring")).toBe(true);
+    expect(offered("unrelated")).toBe(false);
+    await settle(() => s.perm("effectText").stack.some((card) => card.instanceId === s.inst("betamon").instanceId));
+  });
+
+  it("tucks under 1 [Seadramon] Digimon and measures the return by another one's level (Q5961)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-024", as: "lowHost" },
+            { card: "BT2-030", as: "highReference" },
+          ],
+          hand: [{ card: "P-214", as: "betamon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-031", as: "levelSix" },
+            { card: "BT1-009", as: "levelThree" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const levelSixTopId = s.perm("levelSix").topCard.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("betamon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    await answerSelection(s, "lowHost");
+    await answerSelection(s, "highReference");
+    const returnable = await answerSelection(s, "levelSix");
+    expect(returnable).toEqual(expect.arrayContaining([idsOf(s, "levelThree")[0]]));
+    await settle(() => s.state.players[1]!.deck.some((card) => card.instanceId === levelSixTopId));
+
+    expect(s.perm("lowHost").stack[0]?.instanceId).toBe(s.inst("betamon").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(levelSixTopId);
+  });
+});

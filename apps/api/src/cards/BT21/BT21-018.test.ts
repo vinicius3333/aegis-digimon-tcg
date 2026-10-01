@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-018.js";
+import "../ST22/ST22-12.js";
 import "../index.js";
 
 describe("BT21-018 DoGatchmon", () => {
@@ -485,5 +486,164 @@ describe("BT21-018 DoGatchmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
+  });
+});
+
+describe("BT21-018 DoGatchmon — KB Q&A rulings", () => {
+  async function linkForAppFusion(hostCard: string, linkCard: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-084", as: "haru" },
+            { card: hostCard, as: "host" },
+          ],
+          hand: [
+            { card: linkCard, as: "link" },
+            { card: "BT21-018", as: "fusion" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-018" || s.perm("host").linked.length === 1);
+    await settle();
+    return s;
+  }
+
+  function countAttackDeclarations(s: ReturnType<typeof setupEngine>) {
+    return s.events.filter((event) => event.kind === "attackDeclared").length;
+  }
+
+  it("App Fusions from any two different named cards as host and link, but not from a same-name pair (Q4527)", async () => {
+    const gatchmon = "BT21-009";
+    const navimon = "BT21-047";
+    const tweetmon = "P-190";
+    const legalPairs = [
+      [gatchmon, navimon],
+      [gatchmon, tweetmon],
+      [navimon, gatchmon],
+      [navimon, tweetmon],
+      [tweetmon, gatchmon],
+      [tweetmon, navimon],
+    ] as const;
+    for (const [hostCard, linkCard] of legalPairs) {
+      const s = await linkForAppFusion(hostCard, linkCard);
+      expect(s.perm("host").topCard.cardId).toBe("BT21-018");
+      expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([hostCard, linkCard]);
+    }
+
+    const sameName = await linkForAppFusion(gatchmon, gatchmon);
+    expect(sameName.perm("haru").isSuspended).toBe(true);
+    expect(sameName.perm("host").linked.map((card) => card.instanceId)).toContain(sameName.inst("link").instanceId);
+    expect(sameName.perm("host").topCard.cardId).toBe(gatchmon);
+    expect(sameName.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      sameName.inst("fusion").instanceId,
+    );
+  });
+
+  type Engine = ReturnType<typeof setupEngine>;
+
+  function firstEventIndex(s: Engine, matches: (event: Engine["events"][number]) => boolean) {
+    return s.events.findIndex(matches);
+  }
+
+  // P-074 Boutmon under the attacker unsuspends it on [When Attacking] while our security is exactly 3.
+  // That keeps the attacker able to declare again, so only the during-an-attack rule can stop a second attack.
+  // As in the ruling, the player orders the host's [Your Turn] watcher before the simultaneous [When Linking].
+  it("attacks only once when linking DoGatchmon to DoGatchmon, because the link card's attack can't be declared during an attack (Q4528)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "host", under: ["P-074"] }],
+          hand: [{ card: "BT21-018", as: "linkedDoGatchmon" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["P-074", "subtrigger/"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkedDoGatchmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length < 3 && !observe(s.engine).isAttacking());
+    await settle();
+
+    const linkedInstanceId = s.inst("linkedDoGatchmon").instanceId;
+    const whenLinkingActivated = firstEventIndex(
+      s,
+      (event) => event.kind === "effectTriggered" && event.sourceInstanceId === linkedInstanceId,
+    );
+    const boutmonUnsuspended = firstEventIndex(
+      s,
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "P-074",
+    );
+    const securityRevealed = firstEventIndex(s, (event) => event.kind === "securityRevealed");
+
+    expect(countAttackDeclarations(s)).toBe(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(boutmonUnsuspended).toBeGreaterThanOrEqual(0);
+    expect(whenLinkingActivated).toBeGreaterThan(boutmonUnsuspended);
+    expect(whenLinkingActivated).toBeLessThan(securityRevealed);
+  });
+
+  // Same Boutmon setup as Q4528: the attacker is unsuspended before ST22-12 links DoGatchmon.
+  it("does not attack again from DoGatchmon's link effect when linked by ST22-12's [When Attacking] effect (Q5443)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST22-12", as: "attacker", under: ["P-074"] }],
+          hand: [{ card: "BT21-018", as: "linkedDoGatchmon" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["P-074"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length < 3 && !observe(s.engine).isAttacking());
+    await settle();
+
+    const linkedInstanceId = s.inst("linkedDoGatchmon").instanceId;
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toContain(linkedInstanceId);
+    const boutmonUnsuspended = firstEventIndex(
+      s,
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "P-074",
+    );
+    const whenLinkingResolved = firstEventIndex(
+      s,
+      (event) => event.kind === "effectResolved" && event.sourceInstanceId === linkedInstanceId,
+    );
+    expect(boutmonUnsuspended).toBeGreaterThanOrEqual(0);
+    expect(whenLinkingResolved).toBeGreaterThan(boutmonUnsuspended);
+    expect(whenLinkingResolved).toBeLessThan(firstEventIndex(s, (event) => event.kind === "securityRevealed"));
+    expect(countAttackDeclarations(s)).toBe(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("attacker").isSuspended).toBe(false);
   });
 });

@@ -1,6 +1,8 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
+import { CARD_ID_VIEW_TAG, type GameState, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { buildStateView } from "../../engine/state/visibility.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT25-090.js";
 import "../index.js";
@@ -345,4 +347,90 @@ it("does not offer a suspended Tomoro in simultaneous trigger choices", async ()
   expect(s.decisions.filter((d) => d.req.kind === "optional").map((d) => d.req.sourceInstanceId)).toEqual([
     s.inst("available").instanceId,
   ]);
+});
+
+describe("BT25-090 Tomoro Tenma — KB Q&A rulings", () => {
+  /** Both seats' synchronized views; a view only tracks state attached to an encoder, as a room's is. */
+  function seatViews(state: GameState) {
+    const encoder = new Encoder(state);
+    return { encoder, ownerView: buildStateView(state, 0), opponentView: buildStateView(state, 1) };
+  }
+
+  /** An effect suspends a Digimon while Tomoro already holds one face-down card. */
+  async function placeTopTwoUnderTomoro() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-090", as: "tomoro", under: [{ card: "BT1-011", as: "existing", faceUp: false }] },
+            { card: "BT1-009", as: "digimon" },
+          ],
+          deck: [
+            { card: "BT1-010", as: "firstTop" },
+            { card: "BT1-012", as: "secondTop" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderCards: false },
+    );
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("digimon").permanentId], 0);
+    await settle(() => s.perm("tomoro").stack.length === 3);
+    return s;
+  }
+
+  it("places the face-down cards in a fixed order its controller can't rearrange (Q6425)", async () => {
+    const s = await placeTopTwoUnderTomoro();
+
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+    expect(s.perm("tomoro").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("secondTop").instanceId,
+      s.inst("firstTop").instanceId,
+      s.inst("existing").instanceId,
+    ]);
+  });
+
+  it("lets only its owner see the identity of the face-down cards under it (Q6426)", async () => {
+    const s = await placeTopTwoUnderTomoro();
+    const { ownerView, opponentView } = seatViews(s.state);
+
+    for (const card of s.perm("tomoro").stack) {
+      expect(card.faceUp).toBe(false);
+      expect(ownerView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(true);
+      expect(opponentView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(false);
+    }
+  });
+
+  it("puts a trashed face-down card face up in the trash (Q6427)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-236", as: "option" }],
+          battleArea: [
+            {
+              card: "BT25-090",
+              as: "tomoro",
+              under: [
+                { card: "BT1-009", as: "bottom", faceUp: false },
+                { card: "BT1-010", as: "upper", faceUp: false },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId, useAs: "option" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.every((card) => card.instanceId !== optionId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("tomoro").stack.map((card) => card.instanceId)).toEqual([s.inst("upper").instanceId]);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("bottom").instanceId, faceUp: true }),
+    );
+  });
 });

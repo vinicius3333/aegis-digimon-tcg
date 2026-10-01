@@ -18,6 +18,9 @@ export function BreedingDock({
   pileWidth,
   compactPiles,
   burst,
+  effectSource,
+  effectLinked,
+  highlight,
   eggDeckRiffling,
   actionsOpen,
   canHatchEgg,
@@ -33,6 +36,9 @@ export function BreedingDock({
   pileWidth: number;
   compactPiles: boolean;
   burst: PermanentBurst | undefined;
+  effectSource: boolean;
+  effectLinked: boolean;
+  highlight: boolean;
   eggDeckRiffling: boolean;
   /** The breeding step is open and nothing is holding the board, so the dock answers. */
   actionsOpen: boolean;
@@ -88,6 +94,9 @@ export function BreedingDock({
             label={t("game.pile.raising")}
             compact={compactPiles}
             burst={burst}
+            effectSource={effectSource}
+            effectLinked={effectLinked}
+            highlight={highlight}
             // On a phone the dock is a row above the hand; a smaller slot gives
             // its height back to the battle rows while staying a 44px+ target.
             width={pileWidth}

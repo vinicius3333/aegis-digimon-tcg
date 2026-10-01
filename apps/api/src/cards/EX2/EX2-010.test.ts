@@ -224,3 +224,77 @@ describe("EX2-010 WarGrowlmon", () => {
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("target").permanentId);
   });
 });
+
+describe("EX2-010 WarGrowlmon — KB Q&A rulings", () => {
+  it("lets a 3000 DP deletion effect delete a 4000 DP Digimon (Q3291)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "carrier", under: ["EX2-010"] }],
+          hand: [{ card: "EX2-067", as: "fireBall" }],
+          deck: FILLER_DECK,
+          security: ["BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target4000", dp: 4000 },
+            { card: "BT1-009", as: "control5000", dp: 5000 },
+          ],
+          deck: FILLER_DECK,
+          security: ["BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fireBall").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("control5000").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target4000").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("raises the ceiling of another Digimon's deletion effect, not only its host's (Q3293)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "carrier", under: ["EX2-010"] },
+            { card: "EX2-010", as: "attacker" },
+          ],
+          deck: FILLER_DECK,
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target5000", dp: 5000 },
+            { card: "BT1-009", as: "control6000", dp: 6000 },
+          ],
+          deck: FILLER_DECK,
+          security: ["BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("control6000").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target5000").instanceId);
+  });
+});

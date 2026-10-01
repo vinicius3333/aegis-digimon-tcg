@@ -1,8 +1,12 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-081.js";
 import "../BT10/BT10-073.js";
+import "../BT12/BT12-016.js";
+import "../BT9/BT9-017.js";
+import "../EX2/EX2-073.js";
 
 describe("BT5-081 ChaosGallantmon", () => {
   it("may delete another own Digimon to delete an opposing level 5 when digivolving", async () => {
@@ -235,5 +239,86 @@ describe("BT5-081 ChaosGallantmon", () => {
       true,
     );
     expect(s.perm("highLevel")).toBeDefined();
+  });
+});
+
+describe("BT5-081 ChaosGallantmon — KB Q&A rulings", () => {
+  it("does not react to a purple Digimon deleted before ChaosGallantmon entered play (Q1380)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-073", as: "purpleDeleted" },
+            { card: "BT5-073", as: "laterDeleted" },
+          ],
+          trash: [
+            { card: "BT5-081", as: "chaos" },
+            { card: "BT10-073", as: "rookie" },
+          ],
+          deck: ["BT10-073", "BT10-073", "BT10-073", "BT10-073"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const rookieId = s.inst("rookie").instanceId;
+    const purpleDeletedId = s.perm("purpleDeleted").topCard.instanceId;
+    const rookieOnField = (): boolean =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === rookieId);
+    const verbs = advance(s.engine).verb;
+
+    verbs.enterEffectResolution(0);
+    try {
+      await verbs.deletePermanent([s.perm("purpleDeleted").permanentId], "byEffect");
+      await verbs.playInstances([s.inst("chaos").instanceId], "BT5-107");
+    } finally {
+      verbs.leaveEffectResolution();
+    }
+    await settle();
+
+    // The deleted Pillomon is also a legal level 3 purple target in trash, so check that nothing was played at all.
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId).sort()).toEqual(["BT5-073", "BT5-081"]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([rookieId, purpleDeletedId]),
+    );
+
+    await verbs.deletePermanent([s.perm("laterDeleted").permanentId], "byEffect");
+    await settle(rookieOnField);
+    expect(rookieOnField()).toBe(true);
+  });
+
+  it("lets WarGrowlmon's no-deletion follow-up reach Gallantmon (X Antibody) but not ChaosGallantmon or level 7 Crimson Mode (Q2146)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-016", as: "war" }],
+          hand: [
+            { card: "BT5-081", as: "chaos" },
+            { card: "EX2-073", as: "crimson" },
+            { card: "BT9-017", as: "gallantmonX" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const chaosId = s.inst("chaos").instanceId;
+    const crimsonId = s.inst("crimson").instanceId;
+    const gallantmonXId = s.inst("gallantmonX").instanceId;
+    // The auto-selector would pick these first if the engine ever offered them.
+    preferInstanceIds.push(chaosId, crimsonId);
+    s.state.memory = 10;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("war"));
+    await settle(() => s.perm("war").topCard.cardId === "BT9-017");
+
+    const offeredCandidates = s.decisions
+      .filter(({ req }) => req.kind === "selectCards")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredCandidates).not.toContain(chaosId);
+    expect(offeredCandidates).not.toContain(crimsonId);
+    expect(s.perm("war").topCard.instanceId).toBe(gallantmonXId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([chaosId, crimsonId]),
+    );
   });
 });

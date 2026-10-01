@@ -24,7 +24,18 @@ const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
             },
-            count: 1,
+            count: 0,
+            countModifier: {
+              amount: 1,
+              scaling: {
+                per: 2,
+                filter: {
+                  controller: "mine",
+                  kind: ["Tamer"],
+                },
+                unit: "colors",
+              },
+            },
           },
           grant: "immuneToOpponentDigimonEffects",
           duration: "untilOpponentTurnEnd",
@@ -49,7 +60,18 @@ const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
             },
-            count: 1,
+            count: 0,
+            countModifier: {
+              amount: 1,
+              scaling: {
+                per: 2,
+                filter: {
+                  controller: "mine",
+                  kind: ["Tamer"],
+                },
+                unit: "colors",
+              },
+            },
           },
           grant: "immuneToOpponentDigimonEffects",
           duration: "untilOpponentTurnEnd",

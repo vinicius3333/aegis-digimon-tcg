@@ -34,7 +34,7 @@ describe("EX6-068 Descent of the Three Great Angels", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068")).toBe(true);
   });
-  it("publicly still places itself when the optional security placement is declined", async () => {
+  it("publicly still places itself when the optional security placement is declined (Q3818)", async () => {
     const s = setupEngine(
       {
         0: {

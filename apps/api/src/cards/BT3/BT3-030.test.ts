@@ -164,3 +164,45 @@ describe("BT3-030 Leopardmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Jamming")).toBe(false);
   });
 });
+
+describe("BT3-030 Leopardmon — KB Q&A rulings", () => {
+  it("can play a level 4 card from its own digivolution cards as another Digimon (Q1065)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-038",
+              as: "base",
+              under: [
+                { card: "AD1-010", as: "ownLv4" },
+                { card: "BT1-038", as: "ownLv5" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT3-030", as: "leopardmon" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("leopardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("ownLv4").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.perm("base").topCard.cardId).toBe("BT3-030");
+    expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("ownLv4").instanceId)).toBe(false);
+    expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("ownLv5").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(6);
+  });
+});

@@ -128,3 +128,52 @@ describe("ST9-05 Paildramon", () => {
     ).toBe(false);
   });
 });
+
+describe("ST9-05 Paildramon — KB Q&A rulings", () => {
+  it("activates its [When Digivolving] return only on a DNA digivolve, not on a normal digivolve (Q709)", async () => {
+    const normal = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST9-04", as: "base" }], hand: [{ card: "ST9-05", as: "paildramon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    normal.state.memory = 10;
+    expect(
+      normal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: normal.perm("base").permanentId,
+        instanceId: normal.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => normal.perm("base").topCard.cardId === "ST9-05");
+    await settle();
+    expect(normal.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([normal.perm("target").permanentId]);
+    expect(normal.state.players[1]!.deck).toHaveLength(0);
+
+    const dna = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST9-04", as: "blue" },
+            { card: "ST9-09", as: "green" },
+          ],
+          hand: [{ card: "ST9-05", as: "paildramon" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    const targetId = dna.perm("target").topCard.instanceId;
+    expect(
+      dna.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [dna.perm("blue").permanentId, dna.perm("green").permanentId],
+        instanceId: dna.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => dna.state.players[1]!.deck.some((card) => card.instanceId === targetId));
+    expect(dna.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

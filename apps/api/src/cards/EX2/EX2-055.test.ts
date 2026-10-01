@@ -390,3 +390,54 @@ describe("EX2-055 Reaper", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("onlySearcher").instanceId);
   });
 });
+
+describe("EX2-055 Reaper — KB Q&A rulings", () => {
+  async function playReaperOverMother(otherSourceCount: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX2-007",
+              as: "mother",
+              under: [
+                { card: "BT9-109", as: "antibody" },
+                ...Array.from({ length: otherSourceCount }, () => "BT1-009"),
+              ],
+            },
+          ],
+          hand: [{ card: "EX2-055", as: "reaper" }],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const reaperId = s.inst("reaper").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: reaperId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === reaperId));
+    return s;
+  }
+
+  it("sets its cost to 0 by trashing the 7 sources above a bottom X Antibody among 8 (Q1923)", async () => {
+    const s = await playReaperOverMother(7);
+    const antibodyId = s.inst("antibody").instanceId;
+    expect(s.perm("mother").stack.map((card) => card.instanceId)).toEqual([antibodyId]);
+    expect(s.state.players[0]!.trash).toHaveLength(7);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(antibodyId);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it("cannot set its cost to 0 when a bottom X Antibody leaves only 6 trashable sources (Q3288)", async () => {
+    const eight = await playReaperOverMother(7);
+    expect(eight.state.memory).toBe(10);
+
+    const seven = await playReaperOverMother(6);
+    expect(seven.perm("mother").stack).toHaveLength(7);
+    expect(seven.state.players[0]!.trash).toHaveLength(0);
+    expect(seven.state.memory).toBeLessThan(10);
+  });
+});

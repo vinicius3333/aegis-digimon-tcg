@@ -150,3 +150,36 @@ describe("BT16-046", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
   });
 });
+
+describe("BT16-046 GranKuwagamon — KB Q&A rulings", () => {
+  it("suspends 1 of the opponent's Digimon and 1 of their Tamers with one [On Play] (Q2638)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT16-046", as: "gran" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "chosenDigimon" },
+            { card: "BT1-009", as: "untouchedDigimon" },
+            { card: "BT16-085", as: "chosenTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    for (const alias of ["chosenDigimon", "chosenTamer"]) {
+      preferred.push(s.perm(alias).permanentId, s.perm(alias).topCard.instanceId);
+    }
+    const tamerInstanceId = s.perm("chosenTamer").topCard.instanceId;
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gran").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === tamerInstanceId));
+
+    expect(s.perm("chosenDigimon").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("chosenDigimon"), "unsuspend")).toBe(true);
+    expect(s.perm("untouchedDigimon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009", "BT1-009"]);
+  });
+});

@@ -442,3 +442,40 @@ describe("ST12-10 Jesmon", () => {
     await turn;
   });
 });
+
+describe("ST12-10 Jesmon — KB Q&A rulings", () => {
+  it("gets +3000 DP and Security Attack +1 for the same attack when its attack effect plays a Sistermon (Q757)", async () => {
+    async function attackWithHand(handCard: string) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "ST12-10", as: "jesmon" }], hand: [{ card: handCard, as: "handCard" }] },
+          1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("jesmon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
+          s.state.players[1]!.security.length < 3,
+      );
+      return s;
+    }
+
+    const withSistermon = await attackWithHand("ST12-12");
+    expect(withSistermon.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST12-12")).toBe(true);
+    expect(withSistermon.perm("jesmon").currentDP).toBe(withSistermon.perm("jesmon").baseDP + 3000);
+    expect(withSistermon.state.players[1]!.security).toHaveLength(1);
+
+    const withoutSistermon = await attackWithHand("ST12-04");
+    expect(withoutSistermon.perm("jesmon").currentDP).toBe(withoutSistermon.perm("jesmon").baseDP);
+    expect(withoutSistermon.state.players[1]!.security).toHaveLength(2);
+  });
+});

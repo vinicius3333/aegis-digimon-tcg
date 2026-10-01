@@ -349,4 +349,39 @@ describe("EX9-055", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-057")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it("plays by Assembly -6 with 4 [Negamon] from trash and rejects a non-[Negamon] material", async () => {
+    const valid = setupEngine({
+      0: {
+        hand: [{ card: "EX9-055", as: "source" }],
+        trash: [0, 1, 2, 3].map((index) => ({ card: "EX9-005", as: `m${index}` })),
+      },
+    });
+    valid.state.memory = 5;
+    await valid.ready();
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: valid.inst("source").instanceId,
+        assembly: { materialInstanceIds: [0, 1, 2, 3].map((index) => valid.inst(`m${index}`).instanceId) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX9-055"));
+    expect(valid.state.memory).toBe(0);
+
+    const materials = ["EX9-005", "EX9-005", "EX9-005", "BT11-061"];
+    const invalid = setupEngine({
+      0: {
+        hand: [{ card: "EX9-055", as: "source" }],
+        trash: materials.map((card, index) => ({ card, as: `m${index}` })),
+      },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: invalid.inst("source").instanceId,
+        assembly: { materialInstanceIds: materials.map((_, index) => invalid.inst(`m${index}`).instanceId) },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+  });
 });

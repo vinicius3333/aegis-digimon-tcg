@@ -21,7 +21,14 @@ import { mapAssemblyReason, mapDigiXrosReason, mapPlayCardReason } from "../reje
 import type { AppFusionValidation } from "../types.js";
 import { activateEffectDeps, assemblyDeps, digiXrosDeps, digivolveDeps, playCardDeps } from "../actionDeps.js";
 import type { GameEngine } from "../../GameEngine.js";
-import { ruleProcess } from "../ruleProcess.js";
+import { collectRuleProcessPending, ruleProcess } from "../ruleProcess.js";
+import { drainActivatedMainTriggers } from "../timing/fire.js";
+import {
+  beginResolvingWindow,
+  collectDeferredTimingPending,
+  endResolvingWindow,
+  withPendingPoolDrain,
+} from "../windows.js";
 import { continueMainVerb } from "./router.js";
 
 /**
@@ -94,11 +101,28 @@ export function handleActivateEffect(engine: GameEngine, seat: Seat, intent: Act
   continueMainVerb(
     engine,
     async () => {
-      const outcome = await applyActivateEffect(engine.state, seat, intent, deps);
-      // Direct [Main] activations do not pass through a timing-window resolver, so
-      // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
+      // The [Main] body is one resolving effect: what it triggers waits until it finishes.
+      const wasOutermostWindow = beginResolvingWindow(engine);
+      let outcome: Awaited<ReturnType<typeof applyActivateEffect>> | undefined;
+      try {
+        // Deferred watchers are armed from the installed set, so install it before the body runs.
+        await engine.recomputeContinuousEffects();
+        await withPendingPoolDrain(engine, wasOutermostWindow, async () => {
+          outcome = await applyActivateEffect(engine.state, seat, intent, deps);
+          if (!wasOutermostWindow) return;
+          const rulePending = await collectRuleProcessPending(engine);
+          await drainActivatedMainTriggers(engine, [...rulePending, ...collectDeferredTimingPending(engine)]);
+        });
+      } finally {
+        endResolvingWindow(engine, wasOutermostWindow);
+      }
+      // Settle any rule check the drain left behind (e.g. a stack peel exposing a 0-DP card).
+      // The rule check reads the continuous DP tier, and the client reads the projected
+      // keywords and attack targets, so both need a recompute after the body: BT13-110's
+      // Delay grants ＜Rush＞ as the final instruction of the activated effect.
+      await engine.recomputeContinuousEffects();
       await ruleProcess(engine);
-      return outcome;
+      return outcome!;
     },
     (outcome) => {
       if (outcome.ok) {

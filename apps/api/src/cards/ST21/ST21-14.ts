@@ -20,6 +20,7 @@ const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
+              zone: ["battleArea", "breeding"],
               nameOrTrait: [
                 {
                   tokens: ["ADVENTURE"],

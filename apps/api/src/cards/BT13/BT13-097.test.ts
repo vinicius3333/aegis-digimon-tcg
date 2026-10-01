@@ -149,3 +149,45 @@ describe("BT13-097 Thomas H. Norstein", () => {
     expect(s.state.players[1]!.hand.length).toBe(theirHand);
   });
 });
+
+describe("BT13-097 Thomas H. Norstein — KB Q&A rulings", () => {
+  it("makes the opponent draw 1 card without a choice when the controller activates the [Your Turn] effect (Q2344)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-097", as: "thomas" },
+            { card: "BT4-021", as: "gaomon" },
+          ],
+          deck: [{ card: "BT1-009", as: "myDraw" }],
+        },
+        1: {
+          security: ["BT1-009"],
+          deck: [
+            { card: "BT1-010", as: "opponentDraw" },
+            { card: "BT1-011", as: "opponentNext" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentDraw").instanceId));
+
+    expect(s.perm("thomas").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("myDraw").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("opponentDraw").instanceId]);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("opponentNext").instanceId]);
+    expect(s.decisions.filter(({ seat }) => seat === 1)).toEqual([]);
+    // The only optional prompt is the suspend cost; the opponent's draw is not a choice for either player.
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+  });
+});

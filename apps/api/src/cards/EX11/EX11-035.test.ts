@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -261,4 +261,61 @@ describe("EX11-035 Zephagamon", () => {
     await loop;
     assertNoLoudGap(s);
   });
+});
+
+describe("EX11-035 Zephagamon — KB Q&A rulings", () => {
+  it.each([
+    { unsuspend: "opponentSuspended", suspend: "allyStanding" },
+    { unsuspend: "allySuspended", suspend: "opponentStanding" },
+  ] as const)(
+    "offers both players' Digimon to unsuspend ($unsuspend) and then to suspend ($suspend) (Q5857)",
+    async ({ unsuspend, suspend }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: cardId, as: "zephagamon" },
+              { card: "BT1-009", as: "allySuspended", suspended: true },
+              { card: "BT1-010", as: "allyStanding" },
+            ],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-009", as: "opponentSuspended", suspended: true },
+              { card: "BT1-010", as: "opponentStanding" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true },
+      );
+      await s.ready();
+      const offered: string[][] = [];
+      async function choose(alias: string): Promise<void> {
+        await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+        const decision = s.state.pendingDecision!;
+        offered.push(s.decisions.at(-1)!.req.options?.candidateInstanceIds ?? []);
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: decision.decisionId,
+            response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+          }),
+        ).toEqual({ ok: true });
+      }
+
+      const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zephagamon"));
+      await choose(unsuspend);
+      await choose(suspend);
+      await resolution;
+
+      expect(offered[0]).toEqual(
+        expect.arrayContaining([s.perm("allySuspended").permanentId, s.perm("opponentSuspended").permanentId]),
+      );
+      expect(offered[1]).toEqual(
+        expect.arrayContaining([s.perm("allyStanding").permanentId, s.perm("opponentStanding").permanentId]),
+      );
+      expect(s.perm(unsuspend).isSuspended).toBe(false);
+      expect(s.perm(suspend).isSuspended).toBe(true);
+    },
+  );
 });

@@ -15,6 +15,7 @@ import {
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
+import { attackCandidates } from "./candidates.js";
 import { createEvaluationPolicy, type BotPolicy } from "./policy.js";
 import { resolveBotProfile, type BotProfile, type BotProfileName } from "./profiles.js";
 import { createBotRandom } from "./rng.js";
@@ -34,6 +35,12 @@ export const DEFAULT_MAX_ACTION_DELAY_MS = 2_800;
    that nobody waits for it. */
 export const COMBAT_REFLEX_MIN_MS = 300;
 export const COMBAT_REFLEX_MAX_MS = 650;
+
+/* How often a real-time seat rechecks a Main phase blocked on someone else (the
+   opponent's decision, a combat window, an engine continuation). Polling with
+   setImmediate instead keeps the event loop from ever sleeping and pins a core
+   for as long as the human takes to answer. */
+const BLOCKED_MAIN_PHASE_POLL_MS = 50;
 
 /** Safety valve: the most actions the bot will take in one Main phase. */
 const MAX_MAIN_PHASE_ACTIONS = 40;
@@ -208,8 +215,20 @@ export class BotPlayer {
       // phaseChanged event owns the next turn; this stale callback must not act in it.
       if (this.state.turnCount !== requestedTurnCount || this.state.turnSeat !== this.seat) return;
       if (this.state.phase === Phase.Breeding) this.runBreedingPhase();
-      else this.startMainPhaseLoop();
+      else if (this.state.phase === Phase.Main) this.startMainPhaseLoop();
+      else if (request.options?.promptKey === "activateBlitz") this.declareBlitzAttackOutsideMain();
     });
+  }
+
+  /**
+   * An activated ＜Blitz＞ attacks inside the effect that processed it, and that effect can
+   * resolve outside Main ([End of Your Turn]). It waits for this seat's attack declaration,
+   * which the Main loop is not running to send.
+   */
+  private declareBlitzAttackOutsideMain(): void {
+    const view = this.view();
+    const attack = view === undefined ? undefined : attackCandidates(view)[0];
+    if (attack !== undefined) this.act(attack.intent);
   }
 
   /** Resume only after the engine's asynchronous combat continuation has settled. */
@@ -518,7 +537,7 @@ export class BotPlayer {
     while (actionStep < this.maxMainPhaseActions) {
       if (!this.isMyMainPhase()) return;
       if (!this.canChooseMainAction()) {
-        await microtask();
+        await this.waitWhileBlocked();
         continue;
       }
 
@@ -527,7 +546,7 @@ export class BotPlayer {
         if (pending.seat !== this.seat) {
           // A decision for the opponent blocks our actions too. Keep the active seat's
           // driver alive until it closes: only the responding bot is notified directly.
-          await microtask();
+          await this.waitWhileBlocked();
           continue;
         }
         // Our own decision; onDecisionRequested answers it and restarts this loop.
@@ -537,7 +556,7 @@ export class BotPlayer {
       // verb, and the engine refuses an attack until it resolves. A refused attacker is
       // dropped for the rest of the turn, so wait instead of acting into the refusal.
       if (this.state.combatWindow !== undefined) {
-        await microtask();
+        await this.waitWhileBlocked();
         continue;
       }
       actionStep++;
@@ -588,6 +607,11 @@ export class BotPlayer {
     }
 
     if (this.isMyMainPhase() && this.state.pendingDecision === undefined) this.act({ type: "endPhase" });
+  }
+
+  private waitWhileBlocked(): Promise<void> {
+    if (!this.usesRealTimePacing) return microtask();
+    return new Promise<void>((resolve) => setTimeout(resolve, BLOCKED_MAIN_PHASE_POLL_MS));
   }
 
   private isMyMainPhase(): boolean {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compiledEffects, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { compiledEffects, digivolutionRequirementsFor, EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
@@ -457,5 +457,41 @@ describe("EX12-059 Machinedramon ACE", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("EX12-059 Machinedramon — KB Q&A rulings", () => {
+  it("keeps opposing <De-Digivolve> and bottom-card trash effects from trashing any stacked card (Q6859)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source", under: ["EX12-054"] }],
+          hand: [{ card: "EX12-055", as: "handMaterial" }],
+          trash: [{ card: "EX12-055", as: "trashMaterial" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.perm("source").stack.length === 3);
+    await settle(() => s.state.pendingDecision === undefined);
+    const stackBefore = s.perm("source").stack.map(({ instanceId }) => instanceId);
+    const topBefore = s.perm("source").topCard.instanceId;
+
+    for (const opponentCardId of ["EX12-051", "EX12-026"]) {
+      const card = s.give(1, Zone.Hand, opponentCardId);
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
+      await settle(() =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === opponentCardId),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+    }
+
+    expect(s.perm("source").topCard.instanceId).toBe(topBefore);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(stackBefore);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

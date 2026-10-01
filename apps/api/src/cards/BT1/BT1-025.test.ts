@@ -117,3 +117,38 @@ describe("BT1-025 WarGreymon", () => {
     expect(observe(s.engine).suppressesSecurityEffect(s.perm("attacker"), "BT1-112")).toBe(false);
   });
 });
+
+describe("BT1-025 WarGreymon — KB Q&A rulings", () => {
+  it("trashes a checked Option card whose Security effect did not activate (Q886)", async () => {
+    async function checkOption(attackerCardId: string) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: attackerCardId, as: "attacker", dp: 20000 }] },
+        1: { security: [{ card: "BT1-112", as: "option" }] },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+      return s;
+    }
+
+    const warGreymon = await checkOption("BT1-025");
+    const optionId = warGreymon.inst("option").instanceId;
+    expect(warGreymon.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([optionId]);
+    expect(warGreymon.state.players[1]!.hand).toHaveLength(0);
+    expect(warGreymon.events).toContainEqual(
+      expect.objectContaining({ kind: "securityChecked", revealedCardId: "BT1-112", resolution: "trashed" }),
+    );
+
+    const otherDigimon = await checkOption("BT1-016");
+    expect(otherDigimon.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      otherDigimon.inst("option").instanceId,
+    ]);
+    expect(otherDigimon.state.players[1]!.trash).toHaveLength(0);
+  });
+});

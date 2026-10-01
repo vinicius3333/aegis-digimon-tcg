@@ -5,6 +5,9 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT15-031.js";
+import "./BT15-052.js";
+import "./BT15-066.js";
+import "./BT15-079.js";
 
 describe("BT15-031", () => {
   it("retains inherited Blocker", () =>
@@ -175,5 +178,122 @@ describe("BT15-031", () => {
     await settle(() => s.perm("host").isSuspended);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+const darkMasterNames = {
+  "BT15-052": "Puppetmon",
+  "BT15-066": "Machinedramon",
+  "BT15-079": "Piedmon",
+} as const;
+type OtherDarkMaster = keyof typeof darkMasterNames;
+
+function battleCardIds(s: ReturnType<typeof setupEngine>, seat: 0 | 1): string[] {
+  return s.state.players[seat]!.battleArea.map(({ topCard }) => topCard.cardId);
+}
+
+async function runOpponentEndOfTurn(s: ReturnType<typeof setupEngine>): Promise<void> {
+  s.state.turnSeat = 1;
+  s.state.memory = 4;
+  await advance(s.engine).runTurn(1);
+}
+
+function ownZones(s: ReturnType<typeof setupEngine>) {
+  const player = s.state.players[0]!;
+  return {
+    battleArea: battleCardIds(s, 0),
+    darkMastersInHand: player.hand
+      .map(({ cardId }) => cardId)
+      .filter((cardId) => cardId in darkMasterNames || cardId === "BT15-031"),
+    trash: player.trash.map(({ cardId }) => cardId),
+  };
+}
+
+async function playDarkMasterThenReachNextOpponentTurnEnd(played: OtherDarkMaster) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT15-031", as: "metalSeadramon" }],
+        hand: [
+          { card: played, as: "played" },
+          { card: "BT15-031", as: "spareMetalSeadramon" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { deck: ["BT1-009", "BT1-010", "BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+  );
+  await s.ready();
+
+  await runOpponentEndOfTurn(s);
+  const afterPlayedTurn = ownZones(s);
+
+  s.state.turnSeat = 0;
+  s.state.memory = 0;
+  await advance(s.engine).runTurn(0);
+  await runOpponentEndOfTurn(s);
+
+  return { afterPlayedTurn, afterNextOpponentTurn: ownZones(s) };
+}
+
+function expectedWaitForNextOpponentTurnEnd(played: OtherDarkMaster) {
+  return {
+    // A wrong trigger here would delete the played Dark Master and play the spare MetalSeadramon.
+    afterPlayedTurn: { battleArea: [played], darkMastersInHand: ["BT15-031"], trash: ["BT15-031"] },
+    afterNextOpponentTurn: { battleArea: ["BT15-031"], darkMastersInHand: [], trash: ["BT15-031", played] },
+  };
+}
+
+describe("BT15-031 MetalSeadramon — KB Q&A rulings", () => {
+  it("does not activate its [End of Opponent's Turn] when another Dark Master's end-of-turn effect plays it, only at the next opponent turn end (Q2514)", async () => {
+    for (const host of Object.keys(darkMasterNames) as OtherDarkMaster[]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: host, as: "host" }],
+            hand: [
+              { card: "BT15-031", as: "metalSeadramon" },
+              { card: "BT15-066", as: "machinedramon" },
+            ].filter(({ card }) => card !== host),
+            deck: ["BT1-009", "BT1-010"],
+          },
+          1: { deck: ["BT1-009", "BT1-010", "BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+      );
+      await s.ready();
+
+      await runOpponentEndOfTurn(s);
+
+      expect(battleCardIds(s, 0), `${darkMasterNames[host]} plays MetalSeadramon`).toEqual(["BT15-031"]);
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(host);
+
+      s.state.turnSeat = 0;
+      s.state.memory = 0;
+      await advance(s.engine).runTurn(0);
+      await runOpponentEndOfTurn(s);
+
+      expect(battleCardIds(s, 0), "next opponent turn end").not.toContain("BT15-031");
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT15-031");
+    }
+  });
+
+  it("a Puppetmon played by this card's end-of-turn effect does not activate its own [End of Opponent's Turn] until the next opponent turn end (Q2534)", async () => {
+    expect(await playDarkMasterThenReachNextOpponentTurnEnd("BT15-052")).toEqual(
+      expectedWaitForNextOpponentTurnEnd("BT15-052"),
+    );
+  });
+
+  it("a Machinedramon played by this card's end-of-turn effect does not activate its own [End of Opponent's Turn] until the next opponent turn end (Q2552)", async () => {
+    expect(await playDarkMasterThenReachNextOpponentTurnEnd("BT15-066")).toEqual(
+      expectedWaitForNextOpponentTurnEnd("BT15-066"),
+    );
+  });
+
+  it("a Piedmon played by this card's end-of-turn effect does not activate its own [End of Opponent's Turn] until the next opponent turn end (Q2573)", async () => {
+    expect(await playDarkMasterThenReachNextOpponentTurnEnd("BT15-079")).toEqual(
+      expectedWaitForNextOpponentTurnEnd("BT15-079"),
+    );
   });
 });

@@ -258,3 +258,186 @@ describe("BT21-068 Growlmon", () => {
     expect(s.state.memory).toBe(before - 1);
   });
 });
+
+describe("BT21-068 Growlmon — KB Q&A rulings", () => {
+  it("must choose and delete an eligible 4000 DP or less Digimon instead of choosing nothing to mill (Q4575)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-068", as: "growlmon" }],
+          deck: [
+            { card: "BT1-009", as: "millA" },
+            { card: "BT1-010", as: "millB" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-014", as: "chosen" },
+            { card: "BT1-009", as: "spared" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const pending = s.state.pendingDecision!;
+    expect(pending.seat).toBe(0);
+    expect(JSON.parse(pending.payloadJson)).toMatchObject({ min: 1, max: 1, targetFate: "delete" });
+
+    const declined = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: pending.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [] },
+    });
+    expect(declined.ok).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(pending.decisionId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("chosen").instanceId));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("spared").permanentId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("millA").instanceId,
+      s.inst("millB").instanceId,
+    ]);
+  });
+
+  it("meets the didn't-delete condition by choosing an eligible Digimon that prevents its deletion (Q4576)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-068", as: "growlmon" }],
+          deck: [
+            { card: "BT1-009", as: "millA" },
+            { card: "BT1-010", as: "millB" },
+            { card: "BT1-011", as: "sentinel" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT10-074", as: "protected", under: ["BT12-073"] },
+            { card: "BT1-009", as: "unprotected" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("growlmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("protected").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.seat === 1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("protected").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 1);
+
+    expect(s.perm("protected").topCard.cardId).toBe("BT12-073");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("protected").permanentId,
+      s.perm("unprotected").permanentId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("millA").instanceId, s.inst("millB").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sentinel").instanceId]);
+  });
+
+  async function deleteHostCarrying(topCard: string, under: string[], firstTrigger: string) {
+    const preferred: string[] = [];
+    const memoryGainsWithGrowlmonInHand: boolean[] = [];
+    let growlmonInHand = (): boolean => false;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: topCard,
+              as: "host",
+              under: under.map((card) => ({ card, as: card })),
+            },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: [firstTrigger],
+        preferInstanceIds: preferred,
+        onEvent: (event) => {
+          if (event.kind === "memoryChanged" && event.to > event.from) {
+            memoryGainsWithGrowlmonInHand.push(growlmonInHand());
+          }
+        },
+      },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    const growlmon = topCard === "BT21-068" ? s.perm("host").topCard : s.inst("BT21-068");
+    preferred.push(growlmon.instanceId);
+    growlmonInHand = () => s.state.players[0]!.hand.some((card) => card.instanceId === growlmon.instanceId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.pendingDecision === undefined);
+    await settle();
+    return { s, growlmonInstanceId: growlmon.instanceId, memoryGainsWithGrowlmonInHand };
+  }
+
+  it("cannot activate Guilmon's pending inherited effect after Gigimon returns the deleted Growlmon to the hand (Q5758)", async () => {
+    const gigimonFirst = await deleteHostCarrying("BT21-068", ["P-177", "BT21-064"], "P-177");
+    expect(gigimonFirst.s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      gigimonFirst.growlmonInstanceId,
+    ]);
+    expect(gigimonFirst.s.state.memory).toBe(0);
+    expect(gigimonFirst.memoryGainsWithGrowlmonInHand).toEqual([]);
+
+    const guilmonFirst = await deleteHostCarrying("BT21-068", ["P-177", "BT21-064"], "BT21-064");
+    expect(guilmonFirst.s.state.memory).toBe(1);
+    expect(guilmonFirst.memoryGainsWithGrowlmonInHand).toEqual([false]);
+    expect(guilmonFirst.s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      guilmonFirst.growlmonInstanceId,
+    ]);
+  });
+
+  it("still activates Growlmon's inherited memory gain after Gigimon returns it from under the deleted WarGrowlmon (Q5759)", async () => {
+    const { s, growlmonInstanceId, memoryGainsWithGrowlmonInHand } = await deleteHostCarrying(
+      "BT21-076",
+      ["P-177", "BT21-068"],
+      "P-177",
+    );
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([growlmonInstanceId]);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-076")).toBe(true);
+    expect(s.state.memory).toBe(1);
+    expect(memoryGainsWithGrowlmonInHand).toEqual([true]);
+  });
+});

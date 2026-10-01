@@ -34,3 +34,28 @@ describe("ST12-01 Gurimon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 });
+
+describe("ST12-01 Gurimon — KB Q&A rulings", () => {
+  it("counts its own host toward the 2 or more Digimon condition (Q750)", async () => {
+    const withOneOther = setupEngine({
+      0: { battleArea: [{ card: "ST12-02", as: "host", under: ["ST12-01"] }, "ST12-03"] },
+    });
+    await withOneOther.engine.recomputeContinuousEffects();
+    expect(withOneOther.perm("host").currentDP).toBe(withOneOther.perm("host").baseDP + 1000);
+
+    const hostAlone = setupEngine({ 0: { battleArea: [{ card: "ST12-02", as: "host", under: ["ST12-01"] }] } });
+    await hostAlone.engine.recomputeContinuousEffects();
+    expect(hostAlone.perm("host").currentDP).toBe(hostAlone.perm("host").baseDP);
+  });
+
+  it("gives only +1000 DP with 4 Digimon, not +2000 (Q751)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST12-02", as: "host", under: ["ST12-01"] }, "ST12-03", "ST12-02", "ST12-03"],
+      },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(s.state.players[0]!.battleArea).toHaveLength(4);
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
+  });
+});

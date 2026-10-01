@@ -86,3 +86,49 @@ describe("EX6-072 Mega Digimon Assembly!", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lower").instanceId)).toBe(true);
   });
 });
+
+describe("EX6-072 Mega Digimon Assembly! — KB Q&A rulings", () => {
+  it.each([
+    { field: "EX6-056", specified: true },
+    { field: "BT1-025", specified: false },
+  ])(
+    "DNA digivolves only with a field Digimon the target's DNA requirement specifies (field=$field) (Q3822)",
+    async ({ field, specified }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: field, as: "fieldMaterial" },
+              { card: "BT11-095", as: "whiteSource" },
+            ],
+            hand: [
+              { card: "EX6-072", as: "option" },
+              { card: "BT1-082", as: "handMaterial" },
+              { card: "EX6-062", as: "result" },
+            ],
+          },
+          1: { battleArea: [{ card: "EX6-056", as: "opponentLevel6" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+
+      const onBoard = (alias: string) =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst(alias).instanceId);
+      expect(onBoard("result")).toBe(specified);
+      expect(onBoard("fieldMaterial")).toBe(!specified);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handMaterial").instanceId)).toBe(
+        !specified,
+      );
+    },
+  );
+});

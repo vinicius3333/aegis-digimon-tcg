@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-030.js";
+import { answerMandatoryPair } from "./revealAddPair.testSupport.js";
 import "../index.js";
 
 function payload(s: EngineSetup): Record<string, unknown> {
@@ -228,6 +229,31 @@ describe("EX3-030 Gatomon", () => {
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("eligible").instanceId]);
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
+  });
+
+  it("counts a card whose trait only contains [Angel] (e.g. [Archangel])", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-030", as: "gatomon" }],
+          deck: [{ card: "BT1-060", as: "archangel" }, { card: "EX3-025", as: "dragon" }, "BT1-029", "BT1-030"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("archangel").instanceId, s.inst("dragon").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("archangel").instanceId, s.inst("dragon").instanceId].sort(),
+    );
   });
 
   it("Q3406 adds the sole Four Great Dragon when no eligible yellow angel-family card is revealed", async () => {
@@ -559,5 +585,31 @@ describe("EX3-030 Gatomon", () => {
     await settle();
 
     expect(observe(s.engine).hasKeyword(angel, "Rush")).toBe(false);
+  });
+});
+
+describe("EX3-030 Gatomon — KB Q&A rulings", () => {
+  it("must add both the yellow angel-family card and the Four Great Dragons card when both are revealed (Q3407)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-030", as: "gatomon" }],
+          deck: [{ card: "BT1-062", as: "angel" }, { card: "EX3-064", as: "fourGreatDragon" }, "BT1-029", "BT1-030"],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerMandatoryPair(s, ["angel", "fourGreatDragon"]);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("angel").instanceId, s.inst("fourGreatDragon").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-029", "BT1-030"]);
   });
 });

@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-059.js";
 import "../BT17/BT17-079.js";
 import "../BT18/BT18-032.js";
 import "../BT1/BT1-053.js";
 import "../EX3/EX3-045.js";
+import "../BT14/BT14-069.js";
+import "../BT17/BT17-087.js";
 
 describe("BT18-059 Zenimon", () => {
   it("blocks opponent non-Tamer memory gain while preserving Tamer effects", async () => {
@@ -120,6 +122,89 @@ describe("BT18-059 Zenimon", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("egg").stack.at(-1)?.cardId).toBe("BT18-005");
+    assertNoLoudGap(s);
+  });
+});
+
+describe("BT18-059 Zenimon — KB Q&A rulings", () => {
+  const FILLER = ["BT1-009", "BT1-009", "BT1-009"];
+
+  it("stops the opponent's memory gain from any effect except Tamer effects and leaves its controller's gain alone (Q2990)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-059", as: "zenimon" },
+            { card: "BT1-012", as: "ownGazimonHost", under: ["BT14-069"] },
+          ],
+          deck: [...FILLER],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-012", as: "opponentGazimonHost", under: ["BT14-069"] },
+            { card: "BT17-052", as: "opponentAgumon" },
+            { card: "BT17-087", as: "opponentMarcus" },
+          ],
+          deck: [...FILLER],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("opponentGazimonHost").permanentId], "byEffect")).toBe(
+      1,
+    );
+    await drainMicrotasks();
+    await settle();
+    expect(s.state.memory).toBe(3);
+
+    await advance(s.engine).verb.suspend([s.perm("opponentMarcus").permanentId]);
+    await settle(() => s.state.memory === 4);
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("opponentAgumon").currentDP).toBe(4000);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("ownGazimonHost").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.memory === 3);
+    expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
+  });
+
+  it("lets a Marcus Damon treated as a Digimon gain memory when it suspends, because its effect is also a Tamer effect (Q2991)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT17-087", as: "marcus" }],
+          battleArea: [
+            { card: "BT17-052", as: "agumon" },
+            { card: "BT1-012", as: "gazimonHost", under: ["BT14-069"] },
+          ],
+          deck: [...FILLER],
+        },
+        1: { battleArea: [{ card: "BT18-059", as: "zenimon" }], deck: [...FILLER] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker"));
+    expect(advance(s.engine).ledgers.continuous.grantedKinds(s.perm("marcus").permanentId)).toContain("Digimon");
+    expect(s.state.memory).toBe(0);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("gazimonHost").permanentId], "byEffect")).toBe(1);
+    await drainMicrotasks();
+    await settle();
+    expect(s.state.memory).toBe(0);
+
+    await advance(s.engine).verb.suspend([s.perm("marcus").permanentId]);
+    await settle(() => s.state.memory === 1);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("agumon").currentDP).toBe(4000);
     assertNoLoudGap(s);
   });
 });

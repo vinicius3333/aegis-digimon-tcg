@@ -2,19 +2,16 @@ import { describe, expect, it } from "vitest";
 import { cardImageUrls } from "./images.js";
 import { tokenDefinitions } from "./tokens.js";
 
-describe("preview card art", () => {
-  it("uses same-origin art for the P-245 through P-250 wave", () => {
-    for (const id of ["P-245", "P-250"]) {
-      expect(cardImageUrls(id)[0]).toBe(`/cards/preview/${id}.webp`);
-    }
-  });
+const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
 
-  it("uses published EX13 art instead of the low-resolution local previews", () => {
-    for (let number = 1; number <= 77; number++) {
-      const id = `EX13-${String(number).padStart(3, "0")}`;
-      expect(cardImageUrls(id)[0]).toBe(
-        `https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/${id}.webp`,
-      );
+describe("preview card art", () => {
+  it("uses published art for EX13 and the P-245 through P-250 wave", () => {
+    const ids = [
+      ...Array.from({ length: 77 }, (_, index) => `EX13-${String(index + 1).padStart(3, "0")}`),
+      ...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`),
+    ];
+    for (const id of ids) {
+      expect(cardImageUrls(id)[0]).toBe(`${GITHUB_BASE}/${id}.webp`);
     }
   });
 
@@ -36,6 +33,21 @@ describe("alternate art provider fallback", () => {
   });
   it("does not duplicate the original fallback for default or invalid choices", () => {
     expect(cardImageUrls("BT1-010", "BT1-010_P999")).toEqual(cardImageUrls("BT1-010"));
+  });
+});
+
+describe("unpublished printings", () => {
+  it("falls back to the bundled scan after the upstream image", () => {
+    const urls = cardImageUrls("BT22-063", "BT22-063_P2");
+    expect(urls.slice(0, 3)).toEqual([
+      `${GITHUB_BASE}/BT22-063_P2.webp`,
+      "/cards/unpublished/BT22-063_P2.webp",
+      `${GITHUB_BASE}/BT22-063_P2-Sample.webp`,
+    ]);
+  });
+
+  it("covers a base printing the upstream set lacks", () => {
+    expect(cardImageUrls("P-147")).toContain("/cards/unpublished/P-147.webp");
   });
 });
 

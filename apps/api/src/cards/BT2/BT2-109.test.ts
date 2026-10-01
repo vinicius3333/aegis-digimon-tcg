@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-109.js";
 import { compiled } from "./BT2-109.js";
 
@@ -111,5 +111,41 @@ describe("BT2-109 Heat Viper", () => {
     const instanceId = s.inst("securityOption").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
+  });
+});
+
+describe("BT2-109 Heat Viper — KB Q&A rulings", () => {
+  it("cannot delete a Digimon in its owner's breeding area to pay its cost (Q1041)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-067", as: "battleDigimon" }],
+        breeding: { card: "BT2-068", as: "breeding" },
+        hand: [{ card: "BT2-109", as: "option" }],
+      },
+      1: { battleArea: [{ card: "BT2-043", as: "opponent" }] },
+    });
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const costDecision = s.state.pendingDecision!;
+    const costRequest = s.decisions.findLast(({ req }) => req.decisionId === costDecision.decisionId)!.req;
+    expect(costRequest.options!.candidateInstanceIds).toEqual([s.perm("battleDigimon").permanentId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("breeding").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT2-109"));
+    await drainMicrotasks();
+
+    expect(s.perm("breeding").topCard.cardId).toBe("BT2-068");
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT2-068")).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

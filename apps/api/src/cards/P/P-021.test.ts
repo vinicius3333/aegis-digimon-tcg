@@ -187,3 +187,32 @@ describe("P-021 [Security]", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-021 A New World — KB Q&A rulings", () => {
+  it("plays a [Palmon] from hand without paying its memory cost while [Mimi Tachikawa] is in play (Q4130)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: MIMI, as: "mimi" }],
+          hand: [
+            { card: PALMON, as: "palmon" },
+            { card: P_021, as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("palmon").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(3);
+  });
+});

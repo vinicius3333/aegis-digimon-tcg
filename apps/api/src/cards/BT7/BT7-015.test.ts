@@ -51,3 +51,68 @@ describe("BT7-015 AvengeKidmon", () => {
     expect(opponent.trash.some((c) => c.cardId === "BT7-014")).toBe(true);
   });
 });
+
+describe("BT7-015 AvengeKidmon — KB Q&A rulings", () => {
+  it("lets the activating player order both players' returned cards at the bottom of each deck (Q1518)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT7-015", as: "source" }],
+          trash: [
+            { card: "BT7-092", as: "ownFirst" },
+            { card: "BT7-093", as: "ownSecond" },
+          ],
+          deck: ["BT1-010"],
+        },
+        1: {
+          trash: [
+            { card: "BT7-094", as: "opponentFirst" },
+            { card: "BT7-095", as: "opponentSecond" },
+          ],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    s.state.memory = 12;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
+    const ordering = s.decisions.find(({ req }) => req.kind === "orderCards")!;
+    expect(ordering.seat).toBe(0);
+    expect(ordering.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([
+        s.inst("ownFirst").instanceId,
+        s.inst("ownSecond").instanceId,
+        s.inst("opponentFirst").instanceId,
+        s.inst("opponentSecond").instanceId,
+      ]),
+    );
+    expect(s.decisions.some(({ seat }) => seat === 1)).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.req.decisionId,
+        response: {
+          kind: "orderCards",
+          order: [
+            s.inst("opponentSecond").instanceId,
+            s.inst("ownSecond").instanceId,
+            s.inst("opponentFirst").instanceId,
+            s.inst("ownFirst").instanceId,
+          ],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.length === 0);
+
+    const deckBottomTwo = (seat: 0 | 1) => s.state.players[seat]!.deck.slice(-2).map((card) => card.instanceId);
+    expect(deckBottomTwo(0)).toEqual([s.inst("ownSecond").instanceId, s.inst("ownFirst").instanceId]);
+    expect(deckBottomTwo(1)).toEqual([s.inst("opponentSecond").instanceId, s.inst("opponentFirst").instanceId]);
+    expect(s.decisions.filter(({ req }) => req.kind === "orderCards")).toHaveLength(1);
+    expect(s.decisions.some(({ seat }) => seat === 1)).toBe(false);
+  });
+});

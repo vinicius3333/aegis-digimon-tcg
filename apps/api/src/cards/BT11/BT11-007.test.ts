@@ -147,3 +147,75 @@ describe("BT11-007 Biyomon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT11-007 Biyomon — KB Q&A rulings", () => {
+  function playBiyomonRevealing(deck: string[]) {
+    const s = setupEngine({ 0: { hand: [{ card: "BT11-007", as: "biyomon" }], deck } });
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biyomon").instanceId })).toEqual({
+      ok: true,
+    });
+    return s;
+  }
+
+  function cardIdOf(s: ReturnType<typeof playBiyomonRevealing>, instanceId: string) {
+    return s.state.players[0]!.deck.find((card) => card.instanceId === instanceId)?.cardId;
+  }
+
+  it("adds a red Tamer without the Vaccine trait but never a red non-Vaccine Digimon (Q2049)", async () => {
+    const s = playBiyomonRevealing(["BT2-009", "BT1-085", "BT1-028"]);
+    await settle(() => s.decisions.length === 1);
+    const tamerPick = s.decisions[0]!;
+    const offered = (tamerPick.req.options?.candidateInstanceIds ?? []).map((id) => cardIdOf(s, id));
+    expect(offered).toEqual(["BT1-085"]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: tamerPick.req.decisionId,
+        response: { kind: "selectCards", instanceIds: tamerPick.req.options!.candidateInstanceIds! },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1 && s.state.pendingDecision === undefined);
+
+    const guilmonId = s.state.players[0]!.deck.find(({ cardId }) => cardId === "BT2-009")!.instanceId;
+    expect(
+      s.decisions.filter(
+        ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(guilmonId),
+      ),
+    ).toEqual([]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-085"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-028", "BT2-009"]);
+  });
+
+  it("must add both the red Vaccine Digimon and the red Tamer when both are revealed (Q2051)", async () => {
+    const s = playBiyomonRevealing(["BT1-012", "BT1-085", "BT1-028"]);
+
+    for (const expectedCardId of ["BT1-012", "BT1-085"]) {
+      await settle(() => s.state.pendingDecision !== undefined);
+      const pick = s.decisions.at(-1)!;
+      const candidates = pick.req.options?.candidateInstanceIds ?? [];
+      expect(pick.req.options).toMatchObject({ min: 1, max: 1 });
+      expect(candidates.map((id) => cardIdOf(s, id))).toEqual([expectedCardId]);
+
+      const skip = s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pick.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      });
+      expect(skip.ok).toBe(false);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pick.req.decisionId,
+          response: { kind: "selectCards", instanceIds: candidates },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT1-012", "BT1-085"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-028"]);
+  });
+});

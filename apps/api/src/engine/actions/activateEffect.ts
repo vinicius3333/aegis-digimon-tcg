@@ -10,6 +10,7 @@ import {
 import type { CardSource } from "../effects/CardSource.js";
 import type { Effect } from "../effects/Effect.js";
 import type { EffectContext } from "../effects/EffectContext.js";
+import { effectProvenanceKinds } from "../effects/effectProvenance.js";
 import { effectsOf, type CollectedEffect } from "../effects/collect.js";
 import { UseTracker, canTrigger, canActivate } from "../effects/kernel.js";
 
@@ -155,7 +156,7 @@ export async function applyActivateEffect(
 
   const { source, effect, ctx } = check;
   ctx.declaredProcessingCondition = true;
-  const sourceKinds = effect.isLinked ? ["Digimon"] : [...(source.definition.kinds ?? [])];
+  const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
   ctx.effectSourceKinds = sourceKinds;
   deps.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);
   try {

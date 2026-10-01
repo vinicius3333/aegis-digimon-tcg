@@ -54,3 +54,30 @@ describe("BT4-103 Full Moon Blaster", () => {
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT4-045")).toBe(true);
   });
 });
+
+describe("BT4-103 Full Moon Blaster — KB Q&A rulings", () => {
+  it("keeps the returned Digimon in hand when the return itself brings the opponent from 7 to 8 cards (Q1267)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT4-023"], hand: [{ card: "BT4-103", as: "option" }] },
+        1: {
+          hand: Array.from({ length: 7 }, () => "BT1-001") as string[],
+          battleArea: [{ card: "BT4-045", as: "target", under: [{ card: "BT4-044", as: "source" }] }],
+          deck: [{ card: "BT1-002", as: "deckCard" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const targetInstanceId = s.perm("target").topCard.instanceId;
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    const opponent = s.state.players[1]!;
+    expect(opponent.hand).toHaveLength(8);
+    expect(opponent.hand.map((card) => card.instanceId)).toContain(targetInstanceId);
+    expect(opponent.deck.map((card) => card.instanceId)).toEqual([s.inst("deckCard").instanceId]);
+    expect(opponent.trash.map((card) => card.instanceId)).toEqual([s.inst("source").instanceId]);
+  });
+});

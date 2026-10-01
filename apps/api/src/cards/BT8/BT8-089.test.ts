@@ -86,3 +86,44 @@ describe("BT8-089 Cody Hida", () => {
     ).toBe(true);
   });
 });
+
+describe("BT8-089 Cody Hida — KB Q&A rulings", () => {
+  it("counts only the attacking Digimon's own colors, not its digivolution cards' colors (Q1768)", async () => {
+    async function codyReaction(attacker: { card: string; under?: string[] }) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT8-089", as: "cody" },
+              { ...attacker, as: "attacker" },
+            ],
+          },
+          1: { security: ["BT8-034"], battleArea: [{ card: "BT8-017", as: "target" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+      return {
+        codySuspended: s.perm("cody").isSuspended,
+        targetDPLoss: s.perm("target").baseDP - s.perm("target").currentDP,
+      };
+    }
+
+    expect(await codyReaction({ card: "BT1-015", under: ["BT10-059"] })).toEqual({
+      codySuspended: false,
+      targetDPLoss: 0,
+    });
+    expect(await codyReaction({ card: "BT8-015" })).toEqual({ codySuspended: true, targetDPLoss: 2000 });
+  });
+});

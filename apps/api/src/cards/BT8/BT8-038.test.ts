@@ -83,3 +83,45 @@ describe("BT8-038 Magnamon", () => {
     expect(s.perm("veemon").currentDP).toBe(s.perm("veemon").baseDP + 2000);
   });
 });
+
+describe("BT8-038 Magnamon — KB Q&A rulings", () => {
+  it("keeps the [When Digivolving] DP boost after <Armor Purge> trashes Magnamon (Q1726)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-021", as: "veemon" }],
+          hand: [{ card: "BT8-038", as: "magnamon" }],
+          trash: ["BT8-023", "BT8-048"],
+        },
+        1: { battleArea: [{ card: "BT8-032", as: "defender", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    const veemonInstanceId = s.perm("veemon").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("magnamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").currentDP === 11000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("veemon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.instanceId === veemonInstanceId);
+    await settle();
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("magnamon").instanceId)).toBe(true);
+    expect(s.perm("veemon").baseDP).toBe(2000);
+    expect(s.perm("veemon").currentDP).toBe(6000);
+  });
+});

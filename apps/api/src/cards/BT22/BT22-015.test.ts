@@ -369,3 +369,43 @@ describe("BT22-015 Omnimon", () => {
     expect(decodeDecisions[1]!.req.options?.effectText).not.toContain("Red/Black");
   });
 });
+
+describe("BT22-015 Omnimon — KB Q&A rulings", () => {
+  it("cannot play a red plus black or a blue plus yellow pair: each Decode plays 1 card of its own colors (Q4870)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-015",
+              under: [
+                { card: "BT1-009", as: "red" },
+                { card: "BT2-052", as: "black" },
+                { card: "BT1-027", as: "blue" },
+                { card: "BT1-045", as: "yellow" },
+              ],
+              as: "omnimon",
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
+    try {
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("omnimon").permanentId], "byEffect")).toBe(1);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+    await settle(() => s.state.players[0]!.battleArea.length >= 2);
+    await settle();
+
+    const playedIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    const playedFrom = (aliases: string[]) => aliases.filter((alias) => playedIds.includes(s.inst(alias).instanceId));
+    expect(playedIds).toHaveLength(2);
+    expect(playedFrom(["red", "black"])).toHaveLength(1);
+    expect(playedFrom(["blue", "yellow"])).toHaveLength(1);
+  });
+});

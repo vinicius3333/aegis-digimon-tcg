@@ -162,3 +162,80 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
     expect(s.perm("fanglongmon").currentDP).toBe(15000);
   });
 });
+
+describe("EX5-074 Fanglongmon — KB Q&A rulings", () => {
+  it("can still be attacked by an opposing Digimon's <Raid> switch (Q3690)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: FANGLONGMON, as: "fanglongmon" }], security: ["BT1-009", "BT1-010"] },
+        1: { battleArea: [{ card: "BT14-016", as: "raider" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("raider").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT14-016");
+  });
+
+  it("can still be attacked while unsuspended by a Digimon that may attack unsuspended Digimon (Q3690)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: FANGLONGMON, as: "fanglongmon" }] },
+        1: { battleArea: [{ card: "BT8-018", as: "marsmon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("fanglongmon").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("fanglongmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT8-018");
+  });
+
+  it.each([
+    { attacker: FANGLONGMON, expectedDp: 15000 },
+    { attacker: OPP_DIGIMON, expectedDp: 12000 },
+  ])(
+    "ignores a Security Digimon's [Security] effect as a Digimon effect ($attacker) (Q3691)",
+    async ({ attacker, expectedDp }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: attacker, as: "attacker", dp: 15000 }] },
+          1: { security: ["AD1-017"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("attacker").currentDP).toBe(expectedDp);
+    },
+  );
+});

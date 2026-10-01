@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-102.js";
 
@@ -228,5 +228,240 @@ describe("BT15-102", () => {
     await settle(() => turnClosed);
     expect(turnClosed).toBe(true);
     await turn;
+  });
+});
+
+type TurnEndOrder = "apocalymonFirst" | "deleteFirst";
+
+const DELAYED_DELETE_KEY = "delayed-delete-played";
+
+async function resolveTurnEndInOrder(darkMastersCardId: string, order: TurnEndOrder) {
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: darkMastersCardId, as: "darkMaster" }, { card: "BT15-102", as: "apocalymon" }, "BT1-013"],
+        deck: ["BT1-013", "BT1-014", "BT1-009"],
+        trash: ["BT1-009"],
+      },
+      1: { deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-012"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+  );
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+
+  s.state.memory = 6;
+  const handMain = (JSON.parse(s.inst("darkMaster").activatableEffectsJson || "[]") as { effectKey: string }[])[0];
+  expect(handMain).toBeDefined();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.inst("darkMaster").instanceId,
+      effectKey: handMain!.effectKey,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === darkMastersCardId));
+
+  s.state.memory = 6;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("darkMaster").permanentId,
+      instanceId: s.inst("apocalymon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("darkMaster").topCard.cardId === "BT15-102");
+
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await settleAcrossTimers(() => s.state.pendingDecision?.kind === "orderTriggers");
+  const request = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+  expect(request?.seat).toBe(0);
+  const triggerKeys = request!.req.options?.triggerKeys ?? [];
+  expect(triggerKeys).toHaveLength(2);
+  const deleteKey = triggerKeys.find((key) => key.includes(DELAYED_DELETE_KEY));
+  const apocalymonKey = triggerKeys.find((key) => key.includes("BT15-102/") && !key.includes(DELAYED_DELETE_KEY));
+  expect(deleteKey).toBeDefined();
+  expect(apocalymonKey).toBeDefined();
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: request!.req.decisionId,
+      response: { kind: "orderTriggers", order: [order === "apocalymonFirst" ? apocalymonKey! : deleteKey!] },
+    }),
+  ).toEqual({ ok: true });
+  await settleAcrossTimers(() => s.state.turnSeat === 1);
+
+  const outcome = {
+    apocalymonLeftPlay: s.state.players[0]!.battleArea.length === 0,
+    opponentCardsMilled: s.state.players[1]!.trash.length,
+  };
+  s.engine.applyIntent(0, { type: "surrender" });
+  await loop;
+  return outcome;
+}
+
+async function turnEndOutcomesByOrder(darkMastersCardId: string) {
+  return {
+    apocalymonFirst: await resolveTurnEndInOrder(darkMastersCardId, "apocalymonFirst"),
+    deleteFirst: await resolveTurnEndInOrder(darkMastersCardId, "deleteFirst"),
+  };
+}
+
+const outcomesWhenTurnPlayerChoosesOrder = {
+  apocalymonFirst: { apocalymonLeftPlay: true, opponentCardsMilled: 2 },
+  deleteFirst: { apocalymonLeftPlay: true, opponentCardsMilled: 0 },
+};
+
+describe("BT15-102 Apocalymon — KB Q&A rulings", () => {
+  it("places only top cards of battle-area permanents under it, never digivolution cards or cards under Tamers (Q2599)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-102", as: "apocalymon" }],
+          battleArea: [
+            { card: "BT15-066", as: "topMachinedramon" },
+            { card: "BT1-009", as: "monodramon", under: [{ card: "BT15-031", as: "sourceMetalSeadramon" }] },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT15-052", as: "tamerPuppetmon" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("apocalymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    const candidates = selection.options?.candidateInstanceIds ?? [];
+    expect(candidates).toContain(s.inst("topMachinedramon").instanceId);
+    expect(candidates).not.toContain(s.inst("sourceMetalSeadramon").instanceId);
+    expect(candidates).not.toContain(s.inst("tamerPuppetmon").instanceId);
+
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: selection.decisionId,
+      response: {
+        kind: "selectCards",
+        instanceIds: [s.inst("topMachinedramon").instanceId, s.inst("sourceMetalSeadramon").instanceId],
+      },
+    });
+    if (s.state.pendingDecision?.decisionId === selection.decisionId) {
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("topMachinedramon").instanceId] },
+      });
+    }
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-102"));
+
+    expect(s.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-066"]);
+    expect(s.perm("monodramon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-031"]);
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(["BT15-052"]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("skips the opponent deck trash when it does not place a level 6 or lower trash card under it (Q2600)", async () => {
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-102", as: "apocalymon", under: ["BT15-066"] }],
+          trash: [{ card: "BT15-031", as: "eligibleSource" }],
+          deck: ["AD1-001"],
+        },
+        1: { deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await declined.ready();
+    declined.state.turnSeat = 0;
+    await advance(declined.engine).runTurn(0);
+
+    expect(declined.decisions.some(({ req }) => req.kind === "optional" || req.kind === "selectCards")).toBe(true);
+
+    expect(declined.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-066"]);
+    expect(declined.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      declined.inst("eligibleSource").instanceId,
+    );
+    expect(declined.state.players[1]!.deck).toHaveLength(4);
+    expect(declined.state.players[1]!.trash).toHaveLength(0);
+
+    const accepted = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-102", as: "apocalymon", under: ["BT15-066"] }],
+          trash: [{ card: "BT15-031", as: "eligibleSource" }],
+          deck: ["AD1-001"],
+        },
+        1: { deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001", "AD1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await accepted.ready();
+    accepted.state.turnSeat = 0;
+    await advance(accepted.engine).runTurn(0);
+
+    expect(accepted.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-031", "BT15-066"]);
+    expect(accepted.state.players[1]!.trash).toHaveLength(4);
+  });
+
+  it("lets the turn player order EX10-012 MetalSeadramon's turn-end delete against its [End of Your Turn] (Q5036)", async () => {
+    expect(await turnEndOutcomesByOrder("EX10-012")).toEqual(outcomesWhenTurnPlayerChoosesOrder);
+  });
+
+  it("lets the turn player order EX10-020 Puppetmon's turn-end delete against its [End of Your Turn] (Q5063)", async () => {
+    expect(await turnEndOutcomesByOrder("EX10-020")).toEqual(outcomesWhenTurnPlayerChoosesOrder);
+  });
+
+  it("lets the turn player order EX10-035 Machinedramon's turn-end delete against its [End of Your Turn] (Q5110)", async () => {
+    expect(await turnEndOutcomesByOrder("EX10-035")).toEqual(outcomesWhenTurnPlayerChoosesOrder);
+  });
+
+  it("lets the turn player order EX10-057 Piedmon's turn-end delete against its [End of Your Turn] (Q5155)", async () => {
+    expect(await turnEndOutcomesByOrder("EX10-057")).toEqual(outcomesWhenTurnPlayerChoosesOrder);
+  });
+
+  it("can place EX10-072 Spiral Mountain from the battle area under it with its play cost reduction (Q6241)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-102", as: "apocalymon" }],
+          battleArea: [
+            { card: "EX10-072", as: "spiralMountain" },
+            { card: "BT1-085", as: "unrelatedTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("apocalymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    const candidates = selection.options?.candidateInstanceIds ?? [];
+    expect(candidates).toContain(s.inst("spiralMountain").instanceId);
+    expect(candidates).not.toContain(s.inst("unrelatedTamer").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("spiralMountain").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-102"));
+
+    expect(s.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-072"]);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-072")).toBe(false);
+    expect(s.state.memory).toBe(0);
   });
 });

@@ -212,3 +212,37 @@ describe("EX1-046 Kurisarimon", () => {
     await loop;
   });
 });
+
+describe("EX1-046 Kurisarimon — KB Q&A rulings", () => {
+  it("watches Digimon named like the Digimon holding this card, not [Kurisarimon] (Q3232)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-051", as: "host", suspended: true, under: ["EX1-046"] },
+          { card: "BT2-059", as: "kurisarimon" },
+          { card: "BT2-062", as: "infermon" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-070", as: "winner", suspended: true, dp: 9000 }] },
+    });
+    await s.ready();
+    const attackWinner = (alias: string) =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(alias).permanentId,
+        target: { kind: "permanent", permanentId: s.perm("winner").permanentId },
+      });
+    const onBoard = (permanentId: string) =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId);
+
+    const kurisarimonId = s.perm("kurisarimon").permanentId;
+    expect(attackWinner("kurisarimon")).toEqual({ ok: true });
+    await settle(() => !onBoard(kurisarimonId) && s.state.pendingDecision === undefined);
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    const infermonId = s.perm("infermon").permanentId;
+    expect(attackWinner("infermon")).toEqual({ ok: true });
+    await settle(() => !onBoard(infermonId) && s.state.pendingDecision === undefined);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
+});

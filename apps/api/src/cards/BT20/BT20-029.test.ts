@@ -331,3 +331,76 @@ describe("BT20-029 Pulsemon", () => {
     expect(s.state.memory).toBe(3);
   });
 });
+
+describe("BT20-029 Pulsemon — KB Q&A rulings", () => {
+  async function digivolveFrom(zone: "battleArea" | "breeding", destination: string) {
+    const pulsemon = { card: "BT20-029", as: "pulsemon" };
+    const s = setupEngine({
+      0: {
+        ...(zone === "battleArea" ? { battleArea: [pulsemon] } : { breeding: pulsemon }),
+        hand: [{ card: destination, as: "destination" }],
+        deck: ["BT1-010"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("pulsemon").permanentId,
+        instanceId: s.inst("destination").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pulsemon").topCard.cardId === destination);
+    return s.state.memory;
+  }
+
+  async function deleteInBattle(hostDp: number) {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-032", dp: hostDp, as: "host", under: ["BT20-029"] }] },
+      1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }] },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+    await settle();
+    return s;
+  }
+
+  it("treats a card with [Pulsemon] anywhere in its name, traits, or text as having [Pulsemon] in its text (Q4322)", async () => {
+    const pulsemonInText = { tokens: ["Pulsemon"], match: "text" as const };
+    expect(matchNameOrTrait(getCardDefinition("BT16-039")!, pulsemonInText)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("BT17-034")!, pulsemonInText)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("BT16-044")!, pulsemonInText)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "DarkPulsemon" }, pulsemonInText)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("BT20-031")!, pulsemonInText)).toBe(false);
+
+    expect(await digivolveFrom("battleArea", "BT17-034")).toBe(1);
+    expect(await digivolveFrom("battleArea", "BT20-031")).toBe(0);
+  });
+
+  it("does not reduce the digivolution cost while Pulsemon is in the breeding area (Q4323)", async () => {
+    expect(await digivolveFrom("breeding", "BT20-032")).toBe(0);
+    expect(await digivolveFrom("battleArea", "BT20-032")).toBe(1);
+  });
+
+  it("cannot gain memory from its inherited effect when its host and the opponent's Digimon are deleted at the same time (Q4324)", async () => {
+    const simultaneous = await deleteInBattle(1000);
+    expect(simultaneous.state.players[0]!.battleArea).toHaveLength(0);
+    expect(simultaneous.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-029", "BT20-032"]),
+    );
+    expect(simultaneous.state.memory).toBe(3);
+
+    const survivingHost = await deleteInBattle(5000);
+    expect(survivingHost.state.players[0]!.battleArea).toHaveLength(1);
+    expect(survivingHost.state.memory).toBe(4);
+  });
+});

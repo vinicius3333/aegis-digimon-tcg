@@ -5,6 +5,10 @@ import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../e
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT6/BT6-112.js";
+import "../ST3/ST3-16.js";
+import "./BT7-040.js";
 import "./BT7-100.js";
 
 const RASENMON_ID = "BT7-RASENMON";
@@ -290,5 +294,116 @@ describe("BT7-100 [Security] — real combat", () => {
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === securityInstanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === securityInstanceId)).toBe(false);
+  });
+});
+
+describe("BT7-100 Qualialise Blast — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+  const handHas = (s: Setup, instanceId: string) =>
+    s.state.players[0]!.hand.some((handCard) => handCard.instanceId === instanceId);
+  const trashHas = (s: Setup, seat: 0 | 1, instanceId: string) =>
+    s.state.players[seat]!.trash.some((trashCard) => trashCard.instanceId === instanceId);
+
+  async function useFromHand(s: Setup, alias: string) {
+    await s.ready();
+    const instanceId = s.inst(alias).instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId })).toEqual({ ok: true });
+    await settle(() => trashHas(s, 0, instanceId));
+    await settle();
+  }
+
+  it("is not a memory-cost-7 Option for BeelStarmon even when 7 security cards would make it cost 7 (Q1501)", async () => {
+    const playBeelStarmonWith = async (optionCardId: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT6-112", as: "beelstarmon" },
+              { card: optionCardId, as: "option" },
+            ],
+            battleArea: ["BT2-087"],
+            security: 7,
+          },
+          1: { battleArea: [{ card: "BT7-051", as: "target" }] },
+        },
+        { autoSelectCards: true, declineDigiXros: true },
+      );
+      const targetInstanceId = s.perm("target").topCard.instanceId;
+      s.state.memory = 12;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT6-112"));
+      await settle();
+      return { s, targetInstanceId };
+    };
+
+    const qualialise = await playBeelStarmonWith("BT7-100");
+    expect(handHas(qualialise.s, qualialise.s.inst("option").instanceId)).toBe(true);
+    expect(qualialise.s.perm("target").currentDP).toBe(8000);
+
+    const sevenHeavens = await playBeelStarmonWith("ST3-16");
+    expect(trashHas(sevenHeavens.s, 0, sevenHeavens.s.inst("option").instanceId)).toBe(true);
+    expect(trashHas(sevenHeavens.s, 1, sevenHeavens.targetInstanceId)).toBe(true);
+  });
+
+  it("costs 0 memory to use when your security stack is empty (Q1667)", async () => {
+    const useWithSecurity = async (security: number) => {
+      const s = setupEngine({
+        0: { hand: [{ card: "BT7-100", as: "blast" }], battleArea: ["BT2-087"], security },
+        1: { battleArea: [{ card: "BT7-051", as: "target" }] },
+      });
+      s.state.memory = 3;
+      await useFromHand(s, "blast");
+      return s;
+    };
+
+    const emptySecurity = await useWithSecurity(0);
+    expect(emptySecurity.state.memory).toBe(3);
+    expect(emptySecurity.perm("target").currentDP).toBe(5000);
+
+    const twoSecurity = await useWithSecurity(2);
+    expect(twoSecurity.state.memory).toBe(1);
+  });
+
+  it("does not give Security Attack +1 to a Rasenmon played after the Option resolved (Q1668)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT7-100", as: "blast" },
+          { card: "BT7-040", as: "rasenmon" },
+        ],
+        battleArea: ["BT2-087"],
+        security: 3,
+      },
+      1: { battleArea: [{ card: "BT7-051", as: "target" }] },
+    });
+    s.state.memory = 3;
+    await useFromHand(s, "blast");
+    expect(s.perm("target").currentDP).toBe(5000);
+
+    s.state.memory = 11;
+    const rasenmonInstanceId = s.inst("rasenmon").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: rasenmonInstanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === rasenmonInstanceId),
+    );
+    const lateRasenmon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === rasenmonInstanceId,
+    )!;
+    expect(observe(s.engine).keywordAmount(lateRasenmon, "SecurityAttack")).toBe(0);
+
+    const control = setupEngine({
+      0: {
+        hand: [{ card: "BT7-100", as: "blast" }],
+        battleArea: [{ card: "BT7-040", as: "rasenmon" }],
+        security: 3,
+      },
+      1: { battleArea: ["BT7-051"] },
+    });
+    control.state.memory = 3;
+    await useFromHand(control, "blast");
+    expect(observe(control.engine).keywordAmount(control.perm("rasenmon"), "SecurityAttack")).toBe(1);
   });
 });

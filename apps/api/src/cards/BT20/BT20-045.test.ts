@@ -472,3 +472,96 @@ describe("BT20-045 Examon ACE", () => {
     await ownTurn;
   });
 });
+
+describe("BT20-045 Examon — KB Q&A rulings", () => {
+  async function blastDnaCounterOffered(fieldMaterial: string, handMaterial: string): Promise<boolean> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: fieldMaterial, as: "fieldMaterial" }],
+          hand: [
+            { card: handMaterial, as: "handMaterial" },
+            { card: "BT20-045", as: "examon" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "counterWindowOpened" || event.kind === "blockWindowOpened") ||
+        !observe(s.engine).isAttacking(),
+    );
+    const opened = s.events.findLast((event) => event.kind === "counterWindowOpened");
+    const eligible = opened?.kind === "counterWindowOpened" ? opened.eligibleCounters : [];
+    return eligible.some((entry) => entry.instanceId === s.inst("examon").instanceId);
+  }
+
+  async function examonAfterDigimonSuspends(
+    suspendingSeat: 0 | 1,
+  ): Promise<{ triggerSuspended: boolean; before: boolean; after: boolean }> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-045", suspended: true, as: "examon" },
+            ...(suspendingSeat === 0 ? [{ card: "BT20-010", as: "trigger" }] : []),
+          ],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: suspendingSeat === 1 ? [{ card: "BT20-010", as: "trigger" }] : [],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = suspendingSeat;
+    const before = s.perm("examon").isSuspended;
+    expect(
+      s.engine.applyIntent(suspendingSeat, {
+        type: "attack",
+        attackerPermanentId: s.perm("trigger").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const triggerSuspended = s.perm("trigger").isSuspended;
+    let blockDeclineResult: unknown = { ok: true };
+    if (suspendingSeat === 1) {
+      await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+      blockDeclineResult = s.engine.applyIntent(0, { type: "declineBlock" });
+    }
+    expect(blockDeclineResult).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    return { triggerSuspended, before, after: s.perm("examon").isSuspended };
+  }
+
+  it("cannot Blast DNA digivolve with a hand Wingdramon, which is only treated as [Slayerdramon] in the battle area (Q4314)", async () => {
+    expect(await blastDnaCounterOffered("BT20-044", "BT20-025")).toBe(false);
+    expect(await blastDnaCounterOffered("BT20-044", "BT20-027")).toBe(true);
+    expect(await blastDnaCounterOffered("BT20-025", "BT20-044")).toBe(true);
+  });
+
+  it("cannot Blast DNA digivolve with a hand Groundramon, which is only treated as [Breakdramon] in the battle area (Q4359)", async () => {
+    expect(await blastDnaCounterOffered("BT20-027", "BT20-042")).toBe(false);
+    expect(await blastDnaCounterOffered("BT20-027", "BT20-044")).toBe(true);
+    expect(await blastDnaCounterOffered("BT20-042", "BT20-027")).toBe(true);
+  });
+
+  it("unsuspends when either its owner's or the opponent's Digimon suspends (Q4368)", async () => {
+    expect(await examonAfterDigimonSuspends(1)).toEqual({ triggerSuspended: true, before: true, after: false });
+    expect(await examonAfterDigimonSuspends(0)).toEqual({ triggerSuspended: true, before: true, after: false });
+  });
+});

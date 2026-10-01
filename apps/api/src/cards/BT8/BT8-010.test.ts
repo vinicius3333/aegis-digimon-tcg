@@ -17,23 +17,6 @@ describe("BT8-010 Aquilamon", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  it("reduces the play cost only once with multiple yellow Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: ["BT8-034", "BT8-035"],
-        hand: [{ card: "BT8-010", as: "aquilamon" }],
-      },
-    });
-    s.state.memory = 5;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aquilamon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle();
-
-    expect(s.state.memory).toBe(2);
-  });
-
   it("pays the full play cost without a yellow Digimon", async () => {
     const s = setupEngine({
       0: {
@@ -113,5 +96,28 @@ describe("BT8-010 Aquilamon", () => {
 
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("aquilamon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT8-010 Aquilamon — KB Q&A rulings", () => {
+  it("reduces its play cost by only 1 with 2 yellow Digimon in play (Q1700)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT8-034", "BT8-035"],
+        hand: [{ card: "BT8-010", as: "aquilamon" }],
+      },
+    });
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aquilamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("aquilamon").instanceId,
+      ),
+    );
+
+    expect(s.state.memory).toBe(2);
   });
 });

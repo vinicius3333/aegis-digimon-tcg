@@ -7,8 +7,8 @@ import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
 import { selfTargetPermanent } from "./selfTarget.js";
-import { CardKind } from "@aegis/shared";
-import type { CardColor, Condition, Filter, Permanent, Seat } from "@aegis/shared";
+import { CardKind, effectiveExactNames } from "@aegis/shared";
+import type { CardColor, CardDefinition, Condition, Filter, Permanent, Seat } from "@aegis/shared";
 
 /**
  * Whether a card matching the trait `filter` is in the SOURCE permanent's digivolution stack
@@ -192,13 +192,15 @@ function lastDeletedDPBound(ctx: EffectContext): number | undefined {
 }
 
 /**
- * Colors of every Digimon the effect's controller has in the battle area, used by
- * `sharesColorWithControllersBattleAreaDigimon`. Reads live (granted) colors where the engine
- * exposes them, so a color-changed Digimon counts as the color it currently is.
+ * Colors of every Digimon the effect's controller has on the field (battle area and breeding
+ * area), used by `sharesColorWithControllersFieldDigimon`. Reads live (granted) colors where the
+ * engine exposes them, so a color-changed Digimon counts as the color it currently is.
  */
-export function controllersBattleAreaDigimonColors(ctx: EffectContext): Set<CardColor> {
+export function controllersFieldDigimonColors(ctx: EffectContext): Set<CardColor> {
   const colors = new Set<CardColor>();
-  for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {
+  const { battleArea, breeding } = ctx.game.player(ctx.source.ownerSeat);
+  const fieldPermanents = breeding === undefined ? battleArea : [...battleArea, breeding];
+  for (const permanent of fieldPermanents) {
     if (permanent.topCard === undefined) continue;
     const definition = ctx.game.definitionOf(permanent.topCard);
     if (!definition.kinds.includes(CardKind.Digimon)) continue;
@@ -207,6 +209,36 @@ export function controllersBattleAreaDigimonColors(ctx: EffectContext): Set<Card
     for (const color of effective) colors.add(color);
   }
   return colors;
+}
+
+/**
+ * `permanentMatchesFilter` with the permanent's top card read as `definition`: a Tamer that
+ * digivolves "as if it is a level N Digimon" is matched as that Digimon (KB Q1157).
+ */
+export function permanentMatchesFilterAs(
+  ctx: EffectContext,
+  permanent: Permanent,
+  filter: Filter,
+  source: CardSource,
+  definition: CardDefinition,
+): boolean {
+  const topInstanceId = permanent.topCard?.instanceId;
+  const game = new Proxy(ctx.game, {
+    get(target, property) {
+      if (property === "definitionOf") {
+        return (card: Parameters<typeof target.definitionOf>[0]) =>
+          topInstanceId !== undefined && "instanceId" in card && card.instanceId === topInstanceId
+            ? definition
+            : target.definitionOf(card);
+      }
+      const value: unknown = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const asDefinitionContext = new Proxy(ctx, {
+    get: (target, property) => (property === "game" ? game : Reflect.get(target, property, target)),
+  });
+  return permanentMatchesFilter(asDefinitionContext, permanent, filter, source);
 }
 
 export function permanentMatchesFilter(
@@ -334,19 +366,22 @@ export function permanentMatchesFilter(
     filter = rest;
   }
 
-  if (filter.sharesColorWithControllersBattleAreaDigimon === true) {
-    const boardColors = controllersBattleAreaDigimonColors(ctx);
+  if (filter.sharesColorWithControllersFieldDigimon === true) {
+    const boardColors = controllersFieldDigimonColors(ctx);
     const effectiveColors =
       typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
     if (!effectiveColors.some((color) => boardColors.has(color))) return false;
-    const { sharesColorWithControllersBattleAreaDigimon: _sharesColor, ...rest } = filter;
+    const { sharesColorWithControllersFieldDigimon: _sharesColor, ...rest } = filter;
     filter = rest;
   }
 
   // `placedInBattleAreaByEffect`: an Option only becomes a battle-area permanent when a
   // "place this card in the battle area" effect put it there (normal Option use trashes it), so
-  // a battle-area Option permanent always satisfies this — a non-Option never does (Cap-E-006).
-  if (filter.placedInBattleAreaByEffect === true && !def.kinds.includes(CardKind.Option)) {
+  // a battle-area Option permanent satisfies this — a non-Option never does (Cap-E-006). A DUAL
+  // card on the field as a Digimon was not placed that way, so it doesn't either (KB Q6436).
+  const placedOption =
+    def.kinds.includes(CardKind.Option) && (!def.kinds.includes(CardKind.Digimon) || permanent.placedByEffect);
+  if (filter.placedInBattleAreaByEffect === true && !placedOption) {
     return false;
   }
 
@@ -638,15 +673,19 @@ export function permanentMatchesFilter(
   if (filter.sameNameAsSelection !== undefined) {
     const selectedId = ctx.selections?.get(filter.sameNameAsSelection);
     const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
-    const selectedTop = selected?.topCard;
     if (permanent.topCard === undefined) return false;
-    const selectedName = (
-      selectedTop === undefined
-        ? ctx.selectionFacts?.get(filter.sameNameAsSelection)?.name
-        : ctx.game.definitionOf(selectedTop).nameEn
-    )?.toLowerCase();
-    const candidateName = (def.nameEn ?? "").toLowerCase();
-    if (selectedName === undefined || selectedName === "" || selectedName !== candidateName) return false;
+    // Sharing a name means sharing any one name, "also treated as" names included (Q2338).
+    const liveNames = (live: Permanent): readonly string[] =>
+      ctx.game.effectiveNames?.(live) ?? effectiveExactNames(ctx.game.definitionOf(live.topCard));
+    const selectedNames = new Set(
+      (selected?.topCard === undefined
+        ? (ctx.selectionFacts?.get(filter.sameNameAsSelection)?.names ?? [])
+        : liveNames(selected)
+      )
+        .map((name) => name.toLowerCase())
+        .filter((name) => name !== ""),
+    );
+    if (!liveNames(permanent).some((name) => selectedNames.has(name.toLowerCase()))) return false;
   }
 
   // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as
@@ -846,7 +885,7 @@ export function permanentMatchesFilter(
       colorCount: _colorCount,
       ...rest
     } = filter;
-    return definitionMatches(rest, def);
+    filter = rest;
   }
 
   // Kind filter with effective-type grants ("treat as Digimon"): a Tamer permanent
@@ -863,10 +902,13 @@ export function permanentMatchesFilter(
         wanted.includes(CardKind.Digimon) &&
         (def.kinds.includes(CardKind.Digimon) ||
           // CR 4-3-1 treats a Digi-Egg card on the field as a Digimon. Ordinary Digi-Eggs
-          // are legal Digimon in breeding; in the battle area, require printed DP so an
-          // invalid fixture can't turn a no-DP level-2 egg into an effect target.
+          // are legal Digimon in breeding; in the battle area, require printed DP or DP granted
+          // on top of the baseline (Mother Eater, KB BT22-007 Q4864) so an invalid fixture
+          // can't turn a no-DP level-2 egg into an effect target.
           (def.kinds.includes(CardKind.DigiEgg) &&
-            (permanent.inBreeding || (typeof def.dp === "number" && def.dp > 0))));
+            (permanent.inBreeding ||
+              (typeof def.dp === "number" && def.dp > 0) ||
+              permanent.currentDP > permanent.baseDP)));
       const pendingEgg =
         opts?.allowPendingRotationHost === true &&
         def.kinds.includes(CardKind.DigiEgg) &&
@@ -931,9 +973,9 @@ export function permanentMatchesFilter(
 /**
  * True when `permanent` is immune to effects from `source` (Comprehensive Rules
  * §15-15-5: "isn't affected by effects" grants — BT19-089's Option-sourced immunity,
- * BT16-063's Digimon-sourced immunity, and CAP-C-06's blanket opponent immunity). Only
- * ever excludes an OPPONENT's effect; a controller's own effects are never blocked by
- * these grants.
+ * BT16-063's Digimon-sourced immunity, and CAP-C-06's blanket opponent immunity). A
+ * controller's own effects are blocked only by immunities not scoped to the opponent's
+ * effects (LM-020's declared category, Q2657).
  */
 export function isPermanentUnaffectable(
   ctx: EffectContext,
@@ -941,7 +983,9 @@ export function isPermanentUnaffectable(
   permanent: Permanent,
   relevantSourceKinds: readonly string[],
 ): boolean {
-  if (source.ownerSeat === permanent.controllerSeat) return false;
+  if (source.ownerSeat === permanent.controllerSeat) {
+    return ctx.fx.isUnaffectedByOwnEffects?.(permanent.permanentId, relevantSourceKinds) === true;
+  }
   if (relevantSourceKinds.some((k) => ctx.fx.isBeAffectedBySourceKind!(permanent.permanentId, k))) return true;
   return ctx.fx.isUnaffectableByOpponentEffects?.(permanent.permanentId) === true;
 }

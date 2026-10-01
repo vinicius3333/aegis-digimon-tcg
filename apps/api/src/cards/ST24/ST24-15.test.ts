@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { identityVisibility, stackIds, trashBottomTamerCardWithFalcomon } from "./tamerStack.testSupport.js";
 
 describe("ST24-15 DNA Charge", () => {
   it("preserves the DATA SQUAD use requirement, Main placement, start-phase cost, and Security activation", () => {
@@ -163,5 +164,80 @@ describe("ST24-15 DNA Charge", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+async function dnaChargePlacesUnderStackedTamer() {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          {
+            card: "BT25-087",
+            as: "tamer",
+            under: [
+              { card: "BT1-001", as: "priorBottom", faceUp: false },
+              { card: "BT1-002", as: "priorTop", faceUp: false },
+            ],
+          },
+          { card: "ST24-15", as: "dnaCharge" },
+        ],
+        // A seat with no legal main action is auto-passed; Falcomon keeps Main open.
+        hand: ["ST24-12"],
+        deck: ["BT1-003", "BT1-004", "BT1-005"],
+      },
+      1: { deck: ["BT1-006", "BT1-007"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  const placedId = s.inst("dnaCharge").instanceId;
+  const priorIds = [s.inst("priorBottom").instanceId, s.inst("priorTop").instanceId];
+  const loop = s.engine.startTurnLoop();
+  await advance(s.engine).waitForMainPhase(0);
+  return { s, loop, placedId, priorIds };
+}
+
+async function concede(s: EngineSetup, loop: Promise<unknown>) {
+  expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
+
+describe("ST24-15 DNA Charge — KB Q&A rulings", () => {
+  it("places the card at the bottom of a Tamer's existing face-down cards (Q6232)", async () => {
+    const { s, loop, placedId, priorIds } = await dnaChargePlacesUnderStackedTamer();
+
+    expect(stackIds(s.perm("tamer"))).toEqual([placedId, ...priorIds]);
+    expect(s.perm("tamer").stack[0]).toMatchObject({ instanceId: placedId, faceUp: false });
+    await concede(s, loop);
+  });
+
+  it("gives no chance to reorder the face-down cards, so a bottom-card cost takes the placed card (Q6233)", async () => {
+    const { s, loop, placedId, priorIds } = await dnaChargePlacesUnderStackedTamer();
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+
+    const { offeredInstanceIds, trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(offeredInstanceIds.filter((instanceId) => priorIds.includes(instanceId))).toEqual([]);
+    expect(trashed?.instanceId).toBe(placedId);
+    expect(stackIds(s.perm("tamer"))).toEqual(priorIds);
+    await concede(s, loop);
+  });
+
+  it("lets only the owner look at the face-down card under the Tamer (Q6234)", async () => {
+    const { s, loop, placedId } = await dnaChargePlacesUnderStackedTamer();
+    const placed = s.perm("tamer").stack.find(({ instanceId }) => instanceId === placedId)!;
+
+    expect(identityVisibility(s, placed)).toEqual({ owner: true, opponent: false });
+    await concede(s, loop);
+  });
+
+  it("puts a trashed face-down card from under the Tamer face up in the trash (Q6235)", async () => {
+    const { s, loop, placedId } = await dnaChargePlacesUnderStackedTamer();
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed).toMatchObject({ instanceId: placedId, cardId: "ST24-15", faceUp: true });
+    expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
+    await concede(s, loop);
   });
 });

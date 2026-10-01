@@ -88,6 +88,13 @@ export class CombatController {
    * (AttackProcess.EndAttack). Reset by `cleanup`.
    */
   private endRequested = false;
+  /**
+   * The in-flight attack's End of Attack trigger, cleared once that timing arrives so an
+   * effect resolving at End of Attack cannot queue it a second time.
+   */
+  private pendingEndOfAttackTrigger: CombatTrigger | undefined;
+  /** Withdraws the End of Attack timing {@link endAttack} queued, if it has not activated yet. */
+  private withdrawDeferredEndOfAttack: (() => boolean) | undefined;
   /** Permanents that have already attacked this turn (§11-2-3). */
   readonly attackedThisTurn = new Set<string>();
   /** Active ＜Alliance＞ decision window. */
@@ -161,6 +168,12 @@ export class CombatController {
     if (this.access.game.combatWindow?.kind === kind) this.access.game.combatWindow = undefined;
   }
 
+  private effectiveKindsOf(permanent: Permanent): CardKind[] {
+    const printed = permanent.topCard === undefined ? [] : (getCardDefinition(permanent.topCard.cardId)?.kinds ?? []);
+    const granted = this.hooks.continuous?.grantedKinds?.(permanent.permanentId) ?? [];
+    return [...new Set([...printed, ...granted])];
+  }
+
   /**
    * Resolve whatever prompt is currently parked to its safe default, as the backstop for a
    * player who never answers (a connection lost beyond the reconnect grace window would
@@ -189,30 +202,6 @@ export class CombatController {
   /** True while an attack is mid-resolution (source AttackProcess.IsAttacking). */
   get isAttacking(): boolean {
     return this.resolving;
-  }
-
-  /**
-   * Whether `seat` has an unsuspended Digimon with ＜Blitz＞ that hasn't attacked
-   * this turn. Used to gate the turn-end check: when memory has crossed to the
-   * opponent and a Blitz-eligible Digimon exists, the player gets one more attack
-   * before the turn ends (Comprehensive Rules §16-22).
-   */
-  hasBlitzAttackAvailable(seat: Seat): boolean {
-    return this.blitzEligiblePermanentIds(seat).length > 0;
-  }
-
-  /** Unsuspended Blitz holders that can legally receive the current one-shot window. */
-  blitzEligiblePermanentIds(seat: Seat): string[] {
-    const eligible: string[] = [];
-    for (const perm of this.access.battleAreaPermanents(seat)) {
-      if (perm.isSuspended) continue;
-      if (!this.access.isBattleAreaDigimon(perm, this.hooks.continuous)) continue;
-      if (this.attackedThisTurn.has(perm.permanentId)) continue;
-      if (this.hasKeyword(perm.permanentId, "Blitz")) {
-        eligible.push(perm.permanentId);
-      }
-    }
-    return eligible;
   }
 
   /** The attacker permanent id of the in-flight attack, if any (for effect-driven redirect). */
@@ -299,8 +288,25 @@ export class CombatController {
    */
   endAttack(): boolean {
     if (this.currentAttack === undefined) return false;
+    // "If an attack is ended, the end of attack timing comes immediately": its [End of Attack]
+    // effects are derived triggers of the ending effect, activating before the effects still
+    // pending, e.g. the attacker's other [When Attacking] effect (CR §15-4-5-2, KB Q6490).
+    if (!this.endRequested && this.pendingEndOfAttackTrigger !== undefined) {
+      this.withdrawDeferredEndOfAttack = this.hooks.deferEndOfAttack?.({
+        ...this.pendingEndOfAttackTrigger,
+        target: this.currentAttack.target,
+      });
+    }
     this.endRequested = true;
     return true;
+  }
+
+  private async fireEndOfAttack(trigger: CombatTrigger): Promise<void> {
+    const withdrawDeferred = this.withdrawDeferredEndOfAttack;
+    this.withdrawDeferredEndOfAttack = undefined;
+    this.pendingEndOfAttackTrigger = undefined;
+    if (withdrawDeferred !== undefined && !withdrawDeferred()) return;
+    await this.hooks.fireTiming(EffectTiming.OnEndAttack, trigger);
   }
 
   /** True while the defending seat may declare/decline a block. */
@@ -400,7 +406,6 @@ export class CombatController {
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
-      afterAttackEnd?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
       /**
        * Wrap the Counter Timing -> End of Attack steps. An effect-directed attack supplies this
@@ -474,6 +479,8 @@ export class CombatController {
           : {
               permanentId: declaredDefender.permanentId,
               digivolutionCardCount: declaredDefender.stack.length,
+              controllerSeat: declaredDefender.controllerSeat,
+              kinds: this.effectiveKindsOf(declaredDefender),
             };
       const attackTrigger: CombatTrigger = {
         attackerPermanentId: attacker.permanentId,
@@ -482,6 +489,7 @@ export class CombatController {
         ...(target.kind === "permanent" ? { defenderPermanentId: target.permanentId } : {}),
         ...(defenderAtDeclaration === undefined ? {} : { defenderAtDeclaration }),
       };
+      this.pendingEndOfAttackTrigger = attackTrigger;
       const attackSubTriggerPayload: TriggerInfo = {
         attackerPermanentId: attacker.permanentId,
         attackerDPAtDeclaration: attacker.currentDP,
@@ -509,19 +517,23 @@ export class CombatController {
       const combineAttackTiming =
         fireAttackTiming !== undefined &&
         (attackerSuspended ||
+          raidTriggeredAtDeclaration ||
           preparedWhenAttacking !== undefined ||
           preparedWhenOpponentAttacks !== undefined ||
           (allianceCount > 0 &&
             (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false))));
       let allianceResolvedInWindow = false;
+      let raidResolvedInWindow = false;
       let subTriggersResolvedInWindow = false;
       if (combineAttackTiming) {
         const result = await fireAttackTiming(attackTrigger, allianceCount, {
           includeSubTriggers: true,
           subTriggerPayload: attackSubTriggerPayload,
+          raidTriggered: raidTriggeredAtDeclaration,
           ...(attackerSuspended ? { suspendedPermanentId: attacker.permanentId } : {}),
         });
         allianceResolvedInWindow = result.allianceResolvedInWindow;
+        raidResolvedInWindow = result.raidResolvedInWindow;
         subTriggersResolvedInWindow = result.subTriggersResolvedInWindow;
       } else {
         await this.fireSuspended(attacker, attackerSuspended);
@@ -607,39 +619,7 @@ export class CombatController {
         }
       }
 
-      // ＜Raid＞ (§16-23): when this Digimon attacks, you may switch the attack target onto
-      // the opponent's UNSUSPENDED Digimon with the highest DP (§16-23-4: the attacker's
-      // controller picks among any tied for highest).
-      if (raidTriggeredAtDeclaration && this.attackerStillValid(attacker)) {
-        const defendingSeat = this.access.opponentOf(attackerSeat);
-        const unsuspended = this.access
-          .battleAreaPermanents(defendingSeat)
-          .filter(
-            (p) =>
-              !p.isSuspended && this.access.isBattleAreaDigimon(p, this.hooks.continuous) && p.topCard !== undefined,
-          );
-        if (unsuspended.length > 0) {
-          const highestDP = Math.max(...unsuspended.map((p) => p.currentDP));
-          const tied = unsuspended.filter((p) => p.currentDP === highestDP);
-          const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
-            attackerSeat,
-            tied.map((p) => p.topCard!.instanceId),
-            "＜Raid＞: switch the attack target to this opponent's Digimon?",
-            attacker.topCard === undefined ? undefined : this.permanentSource(attacker),
-          );
-          if (chosenInstanceId !== undefined) {
-            const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
-            if (chosen !== undefined) {
-              if (this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId })) {
-                await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
-                  subjectPermanentId: attacker.permanentId,
-                  attackerPermanentId: attacker.permanentId,
-                });
-              }
-            }
-          }
-        }
-      }
+      if (raidTriggeredAtDeclaration && !raidResolvedInWindow) await this.resolveRaidEffect(attacker.permanentId);
 
       // A flagged forced attack can drain the remainder of its already-open timing
       // window here. Combat stays marked as resolving, so another forced attack from
@@ -671,10 +651,7 @@ export class CombatController {
         // directly to End of Attack. Counter Timing never opens for that attack.
         if (this.endRequested) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -708,10 +685,7 @@ export class CombatController {
         // sibling path, rather than returning silently and skipping the window.
         if (!this.attackerStillValid(attacker)) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -720,10 +694,7 @@ export class CombatController {
         // (AttackProcess.EndAttack). The attack does not succeed.
         if (this.endRequested) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -740,10 +711,7 @@ export class CombatController {
 
         if (!this.attackerStillValid(attacker)) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -752,10 +720,7 @@ export class CombatController {
         // pre-block endRequested check, so honor the newly-requested end before comparing DP.
         if (this.endRequested) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -789,17 +754,13 @@ export class CombatController {
 
         // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
         if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          ...attackTrigger,
-          target: effectiveTarget,
-        });
+        await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
       });
     } finally {
       this.cleanup();
       const completedCombat = this.takeCompletedCombat();
       if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
     }
-    await opts.afterAttackEnd?.();
   }
 
   /**
@@ -1025,6 +986,63 @@ export class CombatController {
       .map((p) => p.permanentId);
   }
 
+  /**
+   * ＜Raid＞ (§16-23): when this Digimon attacks, you may switch the attack target onto the
+   * opponent's UNSUSPENDED Digimon with the highest DP (§16-23-4: the attacker's controller
+   * picks among any tied for highest). The trigger is fixed at declaration, but the keyword
+   * must still be there when it resolves: an attacker that lost it meanwhile (for example by
+   * app fusing into a card without it) cannot activate it (Q5444).
+   */
+  canResolveRaid(attackerPermanentId: string): boolean {
+    const attacker = this.access.permanentById(attackerPermanentId);
+    return (
+      this.currentAttack?.attackerPermanentId === attackerPermanentId &&
+      attacker !== undefined &&
+      this.attackerStillValid(attacker) &&
+      this.hasKeyword(attackerPermanentId, "Raid")
+    );
+  }
+
+  /** True when ＜Raid＞ resolving now could switch the attack target. */
+  hasRaidTarget(attackerPermanentId: string): boolean {
+    const attack = this.currentAttack;
+    return attack !== undefined && this.canResolveRaid(attackerPermanentId) && this.raidTargets(attack.seat).length > 0;
+  }
+
+  private raidTargets(attackingSeat: Seat): Permanent[] {
+    return this.access
+      .battleAreaPermanents(this.access.opponentOf(attackingSeat))
+      .filter(
+        (p) => !p.isSuspended && this.access.isBattleAreaDigimon(p, this.hooks.continuous) && p.topCard !== undefined,
+      );
+  }
+
+  /** Resolve ＜Raid＞ from the combined [When Attacking] window or the legacy inline step. */
+  async resolveRaidEffect(attackerPermanentId: string): Promise<void> {
+    const attack = this.currentAttack;
+    const attacker = this.access.permanentById(attackerPermanentId);
+    if (attack === undefined || attacker === undefined || !this.canResolveRaid(attackerPermanentId)) return;
+    const unsuspended = this.raidTargets(attack.seat);
+    if (unsuspended.length === 0) return;
+    const highestDP = Math.max(...unsuspended.map((p) => p.currentDP));
+    const tied = unsuspended.filter((p) => p.currentDP === highestDP);
+    const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
+      attack.seat,
+      tied.map((p) => p.topCard!.instanceId),
+      "＜Raid＞: switch the attack target to this opponent's Digimon?",
+      attacker.topCard === undefined ? undefined : this.permanentSource(attacker),
+    );
+    if (chosenInstanceId === undefined) return;
+    const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
+    if (chosen === undefined) return;
+    if (this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId })) {
+      await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
+        subjectPermanentId: attacker.permanentId,
+        attackerPermanentId: attacker.permanentId,
+      });
+    }
+  }
+
   /** Whether an ＜Alliance＞ instance still has a suspendable ally, re-read from live state. */
   hasAllianceAlly(attackerPermanentId: string): boolean {
     return this.allianceAllyIds(attackerPermanentId).length > 0;
@@ -1226,8 +1244,21 @@ export class CombatController {
     }
   }
 
-  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
+  /**
+   * A "can't be deleted in battle" grant spares the loser, and so does a general "can't be
+   * deleted" (Q3044). A battle has no controlling effect, so opponent-scoped and effect-only
+   * entries do not apply.
+   */
+  private sparedFromBattleDeletion(permanentId: string): boolean {
     const continuous = this.hooks.continuous;
+    if (continuous === undefined) return false;
+    return (
+      continuous.hasRestriction(permanentId, "beDeletedInBattle") ||
+      continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false, byEffect: false })
+    );
+  }
+
+  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
       attackerDP: attacker.currentDP,
@@ -1238,10 +1269,8 @@ export class CombatController {
       defenderHasIceclad: this.hasKeyword(defender.permanentId, "IceClad"),
       attackerDigivolutionCount: attacker.stack.length,
       defenderDigivolutionCount: defender.stack.length,
-      // A "can't be deleted in battle" grant (BT16-018/BT19-023/BT3-099-style
-      // `beDeletedInBattle` restriction) spares the loser from actually being deleted.
-      attackerSparedFromDeletion: continuous?.hasRestriction(attacker.permanentId, "beDeletedInBattle") ?? false,
-      defenderSparedFromDeletion: continuous?.hasRestriction(defender.permanentId, "beDeletedInBattle") ?? false,
+      attackerSparedFromDeletion: this.sparedFromBattleDeletion(attacker.permanentId),
+      defenderSparedFromDeletion: this.sparedFromBattleDeletion(defender.permanentId),
     });
 
     // Capture the winner now, but publish only after every "would be deleted/leave" replacement
@@ -1789,6 +1818,9 @@ export class CombatController {
     this.resolving = false;
     this.currentAttack = undefined;
     this.endRequested = false;
+    this.withdrawDeferredEndOfAttack?.();
+    this.withdrawDeferredEndOfAttack = undefined;
+    this.pendingEndOfAttackTrigger = undefined;
     // Expire UntilEndAttack/UntilEndBattle modifiers and refresh the continuous tier.
     this.hooks.sweepEndOfAttack?.();
   }

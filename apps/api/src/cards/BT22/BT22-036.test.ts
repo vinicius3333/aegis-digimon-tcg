@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT22-036.js";
 
@@ -56,7 +56,9 @@ describe("BT22-036 Chaperomon", () => {
     const s = setupEngine({
       0: { battleArea: ["EX7-024"], hand: [{ card: "BT22-036", as: "chaperomon" }], trash: ["BT22-032"] },
     });
-    const source = (s.engine as any).cardSourceOf(s.inst("chaperomon"));
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("chaperomon"));
     const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
       entry.effectKey.startsWith("BT22-036/"),
     );
@@ -117,7 +119,9 @@ describe("BT22-036 Chaperomon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    const source = (s.engine as any).cardSourceOf(s.inst("chaperomon"));
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("chaperomon"));
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT22-036/"),
     )?.effectKey;
@@ -195,5 +199,107 @@ describe("BT22-036 Chaperomon", () => {
         effectSeat === 0,
       );
     }
+  });
+});
+
+describe("BT22-036 Chaperomon — KB Q&A rulings", () => {
+  const handEffectKey = (s: EngineSetup): string => {
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("chaperomon"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("BT22-036/"),
+    );
+    expect(effect).toBeDefined();
+    return effect!.effectKey;
+  };
+
+  it("digivolves Shoemon for a cost of 2 when Shoemon's reduction applies to the fixed cost of 3 (Q4882)", async () => {
+    const digivolveFromHand = async (shoemonCardId: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: shoemonCardId, as: "shoemon" },
+              { card: "EX7-063", as: "arisa" },
+            ],
+            hand: [{ card: "BT22-036", as: "chaperomon" }],
+            trash: [{ card: "BT22-032", as: "shoeShoemon" }],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+      const effectKey = handEffectKey(s);
+      s.state.memory = 6;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("chaperomon").instanceId,
+          effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("shoemon").topCard?.cardId === "BT22-036");
+
+      expect(s.perm("shoemon").stack.map((card) => card.cardId)).toEqual(["BT22-032", shoemonCardId]);
+      return s.state.memory;
+    };
+
+    expect(await digivolveFromHand("EX7-024")).toBe(4);
+    // BT22-029 Shoemon has no cost reduction, so the fixed cost of 3 is paid in full.
+    expect(await digivolveFromHand("BT22-029")).toBe(3);
+  });
+
+  it("cannot use the hand effect's placement digivolution through Physical Training's digivolve effect (Q4883)", async () => {
+    const setupWithHost = async (host: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "P-105", as: "training" },
+              { card: host, as: "host" },
+              { card: "EX7-063", as: "arisa" },
+            ],
+            hand: [{ card: "BT22-036", as: "chaperomon" }],
+            trash: [{ card: "BT22-032", as: "shoeShoemon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      s.state.turnCount = 1;
+      await s.ready();
+      const abilities = JSON.parse(s.perm("training").activatableEffectsJson) as { effectKey: string }[];
+      expect(abilities).toHaveLength(1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("training").instanceId,
+          effectKey: abilities[0]!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      const trainingId = s.inst("training").instanceId;
+      await settle(() =>
+        s.state.players[0]!.battleArea.every((permanent) => permanent.topCard?.instanceId !== trainingId),
+      );
+      await settle();
+      return s;
+    };
+
+    const fromShoemon = await setupWithHost("EX7-024");
+    expect(fromShoemon.perm("host").topCard?.cardId).toBe("EX7-024");
+    expect(fromShoemon.state.memory).toBe(10);
+    expect(fromShoemon.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT22-036");
+    expect(fromShoemon.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      fromShoemon.inst("shoeShoemon").instanceId,
+    );
+
+    const fromLevelFour = await setupWithHost("BT22-032");
+    expect(fromLevelFour.perm("host").topCard?.cardId).toBe("BT22-036");
+    expect(fromLevelFour.state.memory).toBe(9);
+    expect(fromLevelFour.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      fromLevelFour.inst("shoeShoemon").instanceId,
+    );
   });
 });

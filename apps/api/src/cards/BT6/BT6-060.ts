@@ -33,28 +33,17 @@ const compiled: CompiledCard = {
         },
       ],
     },
-    {
-      effectKey: "BT6-060/digivolve-three-musketeers",
-      trigger: "YourTurn",
-      actions: [
-        {
-          kind: "Digivolve",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Three Musketeers", "ThreeMusketeers"], match: "trait" }],
-          },
-          payCost: true,
-          costOverride: 6,
-          from: ["hand"],
-          ignoreRequirements: true,
-        },
-      ],
-    },
   ],
   coverage: "full",
   residual: [],
+  baseGrantedDigivolve: [
+    {
+      target: { traits: ["Three Musketeers"] },
+      cost: 6,
+      ignoreRequirements: true,
+      sourceZones: ["hand"],
+    },
+  ],
 };
 
 registerIrCard("BT6-060", compiled);

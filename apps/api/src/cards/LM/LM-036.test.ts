@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-036.js";
+import { describeColorWaiverRuling } from "./colorWaiverRulings.testSupport.js";
 
 describe("LM-036 Jade Memory Boost!", () => {
   it("reveals three, adds a green or blue Digimon, bottoms the rest and places itself", async () => {
@@ -109,4 +110,14 @@ describe("LM-036 Jade Memory Boost!", () => {
     expect(compiled?.effects[0]?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", color: "blue" });
     expect(compiled?.effects.some((effect) => (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"))).toBe(true);
   });
+});
+
+describeColorWaiverRuling({
+  cardId: "LM-036",
+  name: "Jade Memory Boost!",
+  qno: "Q4069",
+  waivedDigimon: "BT1-027",
+  waivedTamer: "BT1-086",
+  unrelatedDigimon: "BT1-009",
+  unrelatedTamer: "BT1-085",
 });

@@ -1,6 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-014.js";
 import "../index.js";
@@ -243,5 +244,315 @@ describe("BT21-014 BurningGreymon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(8000);
+  });
+});
+
+const TAKUYA = "BT21-082";
+const AGUNIMON = "BT21-013";
+const ALDAMON = "BT21-020";
+const TAI_KAMIYA = "BT1-085";
+const CALUMON = "EX2-045";
+const KING_DRASIL = "BT13-007";
+const FILLER = ["BT1-010", "BT1-010", "BT1-010"];
+
+function digivolveBurningGreymonOnto(s: EngineSetup, baseAlias: string, burningGreymonAlias = "burningGreymon") {
+  return s.engine.applyIntent(0, {
+    type: "digivolve",
+    permanentId: s.perm(baseAlias).permanentId,
+    instanceId: s.inst(burningGreymonAlias).instanceId,
+    useAlternateCost: true,
+  });
+}
+
+function attackPlayer(s: EngineSetup, attackerAlias: string) {
+  return s.engine.applyIntent(0, {
+    type: "attack",
+    attackerPermanentId: s.perm(attackerAlias).permanentId,
+    target: { kind: "player" },
+  });
+}
+
+async function digivolvedFromTakuya(options: { enteredThisTurn?: boolean } = {}) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: TAKUYA, as: "tamer", enteredThisTurn: options.enteredThisTurn ?? false }],
+        hand: [{ card: "BT21-014", as: "burningGreymon" }],
+        deck: [{ card: "BT1-010", as: "drawn" }, "BT1-010"],
+      },
+      1: { security: ["BT1-010", "BT1-010"], deck: [...FILLER] },
+    },
+    { autoSelectCards: true, autoDeclineOptional: true },
+  );
+  s.state.memory = 5;
+  await s.ready();
+  expect(digivolveBurningGreymonOnto(s, "tamer")).toEqual({ ok: true });
+  await settle(() => s.perm("tamer").topCard.cardId === "BT21-014");
+  expect(s.perm("tamer").topCard.cardId).toBe("BT21-014");
+  expect(s.state.memory).toBe(2);
+  return s;
+}
+
+async function attackAndDigivolveIntoAldamon(options: { agunimonUnder: boolean }) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT21-014", as: "burningGreymon", under: options.agunimonUnder ? [AGUNIMON] : [] }],
+        hand: [{ card: ALDAMON, as: "aldamon" }],
+        deck: [...FILLER],
+      },
+      1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: [...FILLER] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 5;
+  await s.ready();
+  expect(attackPlayer(s, "burningGreymon")).toEqual({ ok: true });
+  await settle(() => s.perm("burningGreymon").topCard.cardId === ALDAMON && !observe(s.engine).isAttacking());
+  return s;
+}
+
+describe("BT21-014 BurningGreymon — KB Q&A rulings", () => {
+  it("resolves the checked card's [Security] effect before its 'security stack is removed from' digivolution (Q4523)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-014", as: "burningGreymon" }],
+          hand: [{ card: ALDAMON, as: "aldamon" }],
+          deck: [...FILLER],
+        },
+        1: { security: [{ card: TAI_KAMIYA, as: "securityTai" }, "BT1-010"], deck: [...FILLER] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(attackPlayer(s, "burningGreymon")).toEqual({ ok: true });
+    const isDigivolveOffer = ({ seat, req }: EngineSetup["decisions"][number]) =>
+      seat === 0 && req.kind === "optional" && req.sourceCardId === "BT21-014";
+    await settle(() => s.decisions.some(isDigivolveOffer));
+    const offer = s.decisions.find(isDigivolveOffer)!.req;
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("securityTai").instanceId,
+    ]);
+    expect(s.perm("burningGreymon").topCard.cardId).toBe("BT21-014");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: offer.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burningGreymon").topCard.cardId === ALDAMON);
+    expect(s.perm("burningGreymon").topCard.cardId).toBe(ALDAMON);
+  });
+
+  it("reduces the Aldamon digivolution cost by 2 in total when Agunimon is in its digivolution cards (Q4524)", async () => {
+    const withAgunimon = await attackAndDigivolveIntoAldamon({ agunimonUnder: true });
+    expect(withAgunimon.perm("burningGreymon").topCard.cardId).toBe(ALDAMON);
+    expect(withAgunimon.state.memory).toBe(3);
+
+    const withoutAgunimon = await attackAndDigivolveIntoAldamon({ agunimonUnder: false });
+    expect(withoutAgunimon.perm("burningGreymon").topCard.cardId).toBe(ALDAMON);
+    expect(withoutAgunimon.state.memory).toBe(2);
+  });
+
+  it("performs another security check after digivolving mid-attack into a <Security A. +1> Digimon (Q4525)", async () => {
+    const digivolved = await attackAndDigivolveIntoAldamon({ agunimonUnder: false });
+    expect(digivolved.state.players[1]!.security).toHaveLength(1);
+
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-014", as: "burningGreymon" }],
+          hand: [{ card: ALDAMON, as: "aldamon" }],
+          deck: [...FILLER],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: [...FILLER] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    declined.state.memory = 5;
+    await declined.ready();
+    expect(attackPlayer(declined, "burningGreymon")).toEqual({ ok: true });
+    await settle(() => declined.state.players[1]!.security.length === 2 && !observe(declined.engine).isAttacking());
+    expect(declined.perm("burningGreymon").topCard.cardId).toBe("BT21-014");
+    expect(declined.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("digivolves from a Tamer as-is: no 'when a Digimon digivolves' trigger and a can't-digivolve lock does not stop it (Q6677)", async () => {
+    const watcherBoard = async (base: typeof TAKUYA | typeof AGUNIMON) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: base, as: "base" },
+              { card: CALUMON, as: "calumon" },
+            ],
+            hand: [{ card: "BT21-014", as: "burningGreymon" }],
+            deck: [...FILLER],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(digivolveBurningGreymonOnto(s, "base")).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "BT21-014");
+      await drainMicrotasks();
+      return s;
+    };
+
+    const fromTamer = await watcherBoard(TAKUYA);
+    expect(fromTamer.perm("calumon").isSuspended).toBe(false);
+    const fromDigimon = await watcherBoard(AGUNIMON);
+    expect(fromDigimon.perm("calumon").isSuspended).toBe(true);
+
+    const locked = setupEngine(
+      {
+        0: {
+          breeding: { card: KING_DRASIL, as: "drasil" },
+          battleArea: [
+            { card: TAKUYA, as: "tamer" },
+            { card: AGUNIMON, as: "agunimon" },
+          ],
+          hand: [
+            { card: "BT21-014", as: "burningGreymon" },
+            { card: "BT21-014", as: "secondBurningGreymon" },
+          ],
+          deck: [...FILLER],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    locked.state.memory = 5;
+    await locked.ready();
+
+    expect(digivolveBurningGreymonOnto(locked, "agunimon", "secondBurningGreymon")).toMatchObject({ ok: false });
+    expect(locked.perm("agunimon").topCard.cardId).toBe(AGUNIMON);
+    expect(digivolveBurningGreymonOnto(locked, "tamer")).toEqual({ ok: true });
+    await settle(() => locked.perm("tamer").topCard.cardId === "BT21-014");
+    expect(locked.perm("tamer").topCard.cardId).toBe("BT21-014");
+  });
+
+  it("performs the digivolution bonus draw when digivolving from a Tamer (Q6678)", async () => {
+    const s = await digivolvedFromTakuya();
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("cannot attack the turn it digivolves from a Tamer played that turn (Q6679)", async () => {
+    const freshTamer = await digivolvedFromTakuya({ enteredThisTurn: true });
+    expect(attackPlayer(freshTamer, "tamer")).toMatchObject({ ok: false });
+    expect(freshTamer.perm("tamer").isSuspended).toBe(false);
+    expect(freshTamer.state.players[1]!.security).toHaveLength(2);
+
+    const establishedTamer = await digivolvedFromTakuya({ enteredThisTurn: false });
+    expect(attackPlayer(establishedTamer, "tamer")).toEqual({ ok: true });
+  });
+
+  it("keeps a Tamer it digivolved from as a digivolution card and trashes it when the Digimon leaves the field (Q6680)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TAKUYA, as: "tamer" }],
+          hand: [{ card: "BT21-014", as: "burningGreymon" }],
+          deck: [...FILLER],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "wall", dp: 13000, suspended: true }],
+          deck: [...FILLER],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const takuyaInstanceId = s.perm("tamer").topCard.instanceId;
+
+    expect(digivolveBurningGreymonOnto(s, "tamer")).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard.cardId === "BT21-014");
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([takuyaInstanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tamer").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [takuyaInstanceId, s.inst("burningGreymon").instanceId].sort(),
+    );
+  });
+
+  it("does not gain the [Security] effect of a Tamer in its digivolution cards (Q6681)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-014", as: "burningGreymon", under: [{ card: TAKUYA, as: "sourceTakuya" }] }],
+          security: [{ card: TAKUYA, as: "securityTakuya" }],
+          deck: [...FILLER],
+        },
+        1: { deck: [...FILLER] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const battleAreaTopCards = () => s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+
+    await advance(s.engine).fire(EffectTiming.SecuritySkill, s.perm("burningGreymon"));
+    await drainMicrotasks();
+    expect(battleAreaTopCards()).toEqual([s.inst("burningGreymon").instanceId]);
+    expect(s.perm("burningGreymon").stack.map((card) => card.instanceId)).toEqual([s.inst("sourceTakuya").instanceId]);
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTakuya"));
+    await settle(() => battleAreaTopCards().includes(s.inst("securityTakuya").instanceId));
+    expect(battleAreaTopCards()).toContain(s.inst("securityTakuya").instanceId);
+    expect(s.perm("burningGreymon").stack.map((card) => card.instanceId)).toEqual([s.inst("sourceTakuya").instanceId]);
+  });
+
+  it("gains the inherited effect of a Tamer in its digivolution cards (Q6682)", async () => {
+    const attackWithTakuyaUnder = async (takuyaUnder: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-014", as: "burningGreymon", under: takuyaUnder ? [TAKUYA] : [] }],
+            hand: [{ card: TAI_KAMIYA, as: "tai" }],
+            deck: [...FILLER],
+          },
+          1: { security: ["BT1-010", "BT1-010"], deck: [...FILLER] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(attackPlayer(s, "burningGreymon")).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+      await drainMicrotasks();
+      return s;
+    };
+
+    const withTakuya = await attackWithTakuyaUnder(true);
+    expect(withTakuya.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      withTakuya.inst("tai").instanceId,
+    );
+    expect(withTakuya.state.players[0]!.hand).toHaveLength(0);
+    expect(withTakuya.state.memory).toBe(5);
+
+    const withoutTakuya = await attackWithTakuyaUnder(false);
+    expect(withoutTakuya.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      withoutTakuya.inst("tai").instanceId,
+    ]);
+    expect(withoutTakuya.state.memory).toBe(5);
   });
 });

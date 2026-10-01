@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { definitionHasKeyword } from "../../engine/effects/interpreter/matching/definition.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -128,5 +129,39 @@ describe("P-111 Knightmon", () => {
     expect(s.perm("target").currentDP).toBe(8000);
     expect(s.perm("parent").keywords).toContain("Blocker");
     expect(s.perm("parent").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+  });
+
+  it("declares ＜Blocker＞ as card information so ＜Blocker＞ searches match it (Discord bug 1555252641649393796)", () => {
+    expect(definitionHasKeyword(getCardDefinition("P-111")!, "Blocker")).toBe(true);
+  });
+});
+
+describe("P-111 Knightmon — KB Q&A rulings", () => {
+  it("targets only 1 of two opposing Digimon with its -3000 DP effect (Q4215)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-111", as: "knightmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-025", as: "first", dp: 11000 },
+            { card: "BT1-025", as: "second", dp: 11000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("knightmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    await settle(() => s.perm("first").currentDP !== s.perm("second").currentDP);
+
+    const targetChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets");
+    expect(targetChoice?.req.options?.max).toBe(1);
+    expect([s.perm("first").currentDP, s.perm("second").currentDP].sort((a, b) => a - b)).toEqual([8000, 11000]);
+    assertNoLoudGap(s);
   });
 });

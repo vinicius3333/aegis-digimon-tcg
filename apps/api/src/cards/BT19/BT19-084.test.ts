@@ -348,3 +348,56 @@ describe("BT19-084 Winr — [Security] play without paying the cost", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT19-084 Winr — KB Q&A rulings", () => {
+  it("turns the face-up security card this Tamer placed face down when the security stack is shuffled (Q3150)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-084", as: "winr" },
+            { card: "BT1-064", as: "source" },
+          ],
+          hand: [
+            { card: "BT19-045", as: "royalBase" },
+            { card: "EX3-029", as: "airdramon" },
+          ],
+          deck: [...FILLER],
+          security: [
+            { card: "BT1-071", as: "securityDigimon", faceUp: true },
+            { card: "BT1-013", as: "faceDownTop" },
+            "BT1-013",
+            "BT1-009",
+          ],
+        },
+        1: { deck: [...FILLER], security: [...SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    const royalBaseId = s.inst("royalBase").instanceId;
+
+    expect(activateMain(s, "winr")).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.at(-1)?.instanceId === royalBaseId);
+    expect(s.state.players[0]!.security.at(-1)!.faceUp).toBe(true);
+
+    preferred.push(s.inst("faceDownTop").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("airdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("faceDownTop").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const security = s.state.players[0]!.security;
+    expect(security.map((card) => card.instanceId)).toContain(royalBaseId);
+    expect(security).toHaveLength(3);
+    expect(security.every((card) => card.faceUp !== true)).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});

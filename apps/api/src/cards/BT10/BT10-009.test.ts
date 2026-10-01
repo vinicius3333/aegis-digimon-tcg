@@ -299,3 +299,115 @@ describe("BT10-009 Shoutmon X4", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT10-009 Shoutmon X4 — KB Q&A rulings", () => {
+  function attackPlayer(s: ReturnType<typeof setupEngine>): void {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shoutmonX4").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  function endOfAttackOffers(s: ReturnType<typeof setupEngine>): number {
+    return s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT10-009").length;
+  }
+
+  it("may decline placing the sources under a Tamer so this Digimon is not deleted (Q1935)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-009", as: "shoutmonX4", under: ["BT10-008", "BT10-049"] },
+            { card: "BT10-087", as: "taiki", suspended: true },
+          ],
+        },
+        1: { security: ["BT10-045"] },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+
+    attackPlayer(s);
+    await settle(() => endOfAttackOffers(s) === 1 && s.state.pendingDecision === undefined);
+    await settle();
+
+    expect(endOfAttackOffers(s)).toBe(1);
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("shoutmonX4"));
+    expect(s.perm("shoutmonX4").stack).toHaveLength(2);
+    expect(s.perm("taiki").stack).toHaveLength(0);
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not activate its end-of-attack effect without digivolution cards to place (Q1936)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-009", as: "shoutmonX4" },
+            { card: "BT10-087", as: "taiki", suspended: true },
+          ],
+        },
+        1: { security: ["BT10-045"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    attackPlayer(s);
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    await settle();
+
+    expect(endOfAttackOffers(s)).toBe(0);
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("shoutmonX4"));
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("may unsuspend a different Tamer than the one that received the sources (Q1937)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-009", as: "shoutmonX4", under: ["BT10-008", "BT10-049"] },
+            { card: "BT10-087", as: "receivingTamer", suspended: true },
+            { card: "BT10-089", as: "unsuspendedTamer", suspended: true },
+          ],
+        },
+        1: { security: ["BT10-045"] },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    const x4InstanceId = s.perm("shoutmonX4").topCard.instanceId;
+    const answered = new Set<string>();
+    const answerNextTarget = async (permanentId: string): Promise<void> => {
+      await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets" && !answered.has(req.decisionId)));
+      const { req } = s.decisions.find(
+        ({ req: request }) => request.kind === "chooseTargets" && !answered.has(request.decisionId),
+      )!;
+      answered.add(req.decisionId);
+      expect(req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.perm("receivingTamer").permanentId, s.perm("unsuspendedTamer").permanentId]),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [permanentId] },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    attackPlayer(s);
+    await answerNextTarget(s.perm("receivingTamer").permanentId);
+    await answerNextTarget(s.perm("unsuspendedTamer").permanentId);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === x4InstanceId));
+
+    expect(s.perm("receivingTamer").stack).toHaveLength(2);
+    expect(s.perm("receivingTamer").isSuspended).toBe(true);
+    expect(s.perm("unsuspendedTamer").stack).toHaveLength(0);
+    expect(s.perm("unsuspendedTamer").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+});

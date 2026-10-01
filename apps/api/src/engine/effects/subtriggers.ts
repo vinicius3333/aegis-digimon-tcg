@@ -1,5 +1,6 @@
-import { CardKind, type CardDefinition, type Condition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
+import { type CardDefinition, type Condition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
+import { effectProvenanceKinds } from "./effectProvenance.js";
 
 /**
  * Sub-trigger / delayed-effect + replacement registry
@@ -49,6 +50,11 @@ export interface SubTriggerSubscription {
   /** Printed placement class of the effect that installed this watcher. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
+  /**
+   * The clause watches its own source ("when THIS Digimon is deleted"), not a class of
+   * permanents that merely includes it ("when one of your [Chessmon] is deleted").
+   */
+  watchesSelf?: boolean;
   /** Permanent this subscription is anchored to (its source), when applicable. */
   sourcePermanentId?: string;
   /**
@@ -248,8 +254,12 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
    * when the card being digivolved INTO satisfies this check. Absent ⇒ applies to all targets.
    */
   intoMatches?: (def: CardDefinition) => boolean;
-  /** Optional target predicate when `sourcePermanentId` is only the lifecycle anchor. */
-  appliesTo?: (target: Permanent, originZone?: ZoneRef) => boolean;
+  /**
+   * Optional target predicate when `sourcePermanentId` is only the lifecycle anchor.
+   * `baseAsDigimon` is the Digimon a Tamer digivolves as ("as if it is a level N Digimon",
+   * KB Q1157), when the digivolving permanent is such a Tamer.
+   */
+  appliesTo?: (target: Permanent, originZone?: ZoneRef, baseAsDigimon?: CardDefinition) => boolean;
   /** For ＜Digisorption＞ redirect (BT3-056): the reduction's suspend cost targets the
    * OPPONENT's Digimon instead of the controller's. See `ReplacementInstallReduceCost`. */
   digisorptionRedirect?: boolean;
@@ -267,6 +277,7 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
     into: CardDefinition,
     evolvingInstanceId?: string,
     materials?: readonly Permanent[],
+    baseAsDigimon?: CardDefinition,
   ) => Promise<boolean | number>;
   /** Remove this replacement after its first successful activation. */
   consumeOnActivate?: boolean;
@@ -312,6 +323,12 @@ export interface ReplacementSubscriptionInstead extends ReplacementSubscriptionB
   appliesToPending?: (ctx: EffectContext, target: Permanent) => boolean;
   /** Stable per-turn key gating this reaction to ONCE PER TURN (BT20-091 "[Once Per Turn]"). */
   oncePerTurnKey?: string;
+  /**
+   * A reaction that plays other cards without replacing the leave itself (＜Decode＞). It
+   * neither claims nor yields to the single replacement a leave event carries (KB Q5352):
+   * another card's reaction to the same leave still resolves beside it (KB Q6884).
+   */
+  sharesLeaveEvent?: boolean;
 }
 
 /**
@@ -336,6 +353,11 @@ export interface ReplacementSubscriptionPrevent extends ReplacementSubscriptionB
   preventCheck: (ctx: EffectContext, leavingPermanentId: string) => Promise<boolean>;
   /** Prevents ALL matching permanents on one activation ("they don't leave"). */
   affectsAll?: boolean;
+  /**
+   * Not offered once an earlier reaction already prevented this leave: ＜Evade＞ asks only
+   * while the Digimon would still be deleted.
+   */
+  yieldsToEarlierPrevention?: boolean;
   /**
    * A stable per-turn key gating this prevention to ONCE PER TURN (e.g. ＜Barrier＞ "once per
    * turn, negate that deletion"). The consult skips the reaction when this key has already
@@ -458,7 +480,7 @@ export class SubTriggerRegistry {
     // A declined resident cost remains installed between payment windows. Only explicit
     // registration provenance makes it reusable: printed timing also labels triggered grants.
     const residentReduction = sub.mode === "reduceCost" && sub.residentReduction === true;
-    const existing = this.replacements.find(
+    const existingIndex = this.replacements.findIndex(
       (replacement) =>
         replacement.event === sub.event &&
         replacement.mode === sub.mode &&
@@ -470,7 +492,17 @@ export class SubTriggerRegistry {
           (residentReduction && replacement.residentReduction === true)) &&
         replacement.activationIdentity === sub.activationIdentity,
     );
-    if (existing !== undefined) return existing.id;
+    const existing = this.replacements[existingIndex];
+    if (existing !== undefined) {
+      // A resident reduction is re-derived in every payment window, and its amount is a
+      // snapshot of the board at registration ("reduce by 1 for each of this Digimon's
+      // digivolution cards"). Keeping the earlier window's record would charge the old count
+      // (BT13-007 paid for 1 source while holding 2), so the fresh derivation replaces it.
+      if (residentReduction && existing.mode === "reduceCost" && existing.residentReduction === true) {
+        this.replacements[existingIndex] = { ...sub, id: existing.id } as ReplacementSubscription;
+      }
+      return existing.id;
+    }
     const id = this.seq++;
     // The spread below loses the sub/mode correlation TS tracks on the discriminated union
     // (it widens to the members' common shape) — `sub`'s own type already guarantees the
@@ -611,10 +643,8 @@ export class SubTriggerRegistry {
       const resolved = announce?.(sub, ctx);
       // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on
       // the same stack used by ordinary timing effects so nested verbs retain effect
-      // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat). A linked
-      // card's watcher remains an effect of its host Digimon even when the linked card itself
-      // is an Option (BT25-100/101, KB Q6471/Q6476).
-      const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
+      // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat).
+      const sourceKinds = effectProvenanceKinds(ctx, { isLinked: sub.isLinkedSource });
       ctx.effectSourceKinds = sourceKinds;
       ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds, ctx.source.permanent?.()?.permanentId);
       try {
@@ -818,13 +848,14 @@ export class SubTriggerRegistry {
     into: CardDefinition,
     turnBudget?: SubTriggerTurnLedger,
     originZone?: ZoneRef,
+    baseAsDigimon?: CardDefinition,
   ): number {
     return this.replacements.reduce((sum, replacement) => {
       if (replacement.event !== event || replacement.mode !== "reduceCost") return sum;
       if (replacement.activate === undefined || replacement.controllerSeat !== seat) return sum;
       if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) return sum;
       if (replacement.appliesTo !== undefined) {
-        if (!replacement.appliesTo(target, originZone)) return sum;
+        if (!replacement.appliesTo(target, originZone, baseAsDigimon)) return sum;
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
         return sum;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) return sum;
@@ -843,6 +874,7 @@ export class SubTriggerRegistry {
     turnBudget?: SubTriggerTurnLedger,
     materials?: readonly Permanent[],
     originZone?: ZoneRef,
+    baseAsDigimon?: CardDefinition,
   ): Promise<number> {
     let reduction = 0;
     const consumed = new Set<number>();
@@ -851,7 +883,7 @@ export class SubTriggerRegistry {
       if (replacement.activate === undefined || replacement.controllerSeat !== seat) continue;
       if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) continue;
       if (replacement.appliesTo !== undefined) {
-        if (!replacement.appliesTo(target, originZone)) continue;
+        if (!replacement.appliesTo(target, originZone, baseAsDigimon)) continue;
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
         continue;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) continue;
@@ -863,7 +895,7 @@ export class SubTriggerRegistry {
       if (ctx === undefined) continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
-      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials);
+      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials, baseAsDigimon);
       if (!activated) {
         continue;
       }

@@ -36,7 +36,7 @@ describe("the match sidebar", () => {
     const onReportBug = vi.fn<() => void>();
     renderSidebar({ onReportBug });
 
-    fireEvent.click(screen.getByRole("button", { name: "Report a bug" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send feedback" }));
 
     expect(onReportBug).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Surrender" })).toBeTruthy();

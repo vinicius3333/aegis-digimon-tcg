@@ -109,3 +109,46 @@ describe("BT14-098", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT14-098")).toBe(true);
   });
 });
+
+describe("BT14-098 DCD Bomb — KB Q&A rulings", () => {
+  it("returns the three trait cards to the top of the deck even when the opponent has no Digimon (Q2483)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-058", as: "blackDigimon" }],
+          hand: [{ card: "BT14-098", as: "option" }],
+          trash: [
+            { card: "BT14-056", as: "commandramon" },
+            { card: "BT14-060", as: "hiCommandramon" },
+            { card: "BT14-064", as: "cargodramon" },
+            { card: "BT1-009", as: "nonTraitCard" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const returnedIds = [s.inst("commandramon"), s.inst("hiCommandramon"), s.inst("cargodramon")].map(
+      (card) => card.instanceId,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 4);
+
+    const player = s.state.players[0]!;
+    expect(
+      player.deck
+        .slice(0, 3)
+        .map((card) => card.instanceId)
+        .toSorted(),
+    ).toEqual(returnedIds.toSorted());
+    expect(player.deck[3]?.cardId).toBe("BT1-009");
+    expect(player.trash.map((card) => card.cardId).toSorted()).toEqual(["BT1-009", "BT14-098"]);
+    expect(player.trash.some((card) => card.instanceId === s.inst("nonTraitCard").instanceId)).toBe(true);
+  });
+});

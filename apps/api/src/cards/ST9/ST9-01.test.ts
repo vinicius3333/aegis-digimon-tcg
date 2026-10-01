@@ -22,3 +22,16 @@ describe("ST9-01 Minomon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 });
+
+describe("ST9-01 Minomon — KB Q&A rulings", () => {
+  it("buffs its host when the host itself is the only blue Digimon in play (Q705)", async () => {
+    const blueHost = setupEngine({ 0: { battleArea: [{ card: "ST9-02", as: "host", under: ["ST9-01"] }] } });
+    await blueHost.engine.recomputeContinuousEffects();
+    expect(blueHost.state.players[0]!.battleArea).toHaveLength(1);
+    expect(blueHost.perm("host").currentDP).toBe(blueHost.perm("host").baseDP + 1000);
+
+    const redHost = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["ST9-01"] }] } });
+    await redHost.engine.recomputeContinuousEffects();
+    expect(redHost.perm("host").currentDP).toBe(redHost.perm("host").baseDP);
+  });
+});

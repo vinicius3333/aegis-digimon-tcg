@@ -49,6 +49,7 @@ export const compiled: CompiledCard = {
                 match: "text",
               },
             ],
+            printedTextOnly: true,
             zone: "battleArea",
           },
           actions: [

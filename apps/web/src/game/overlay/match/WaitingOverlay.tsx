@@ -37,7 +37,7 @@ export function WaitingOverlay({
         <h2 id="aegis-waiting-title">{title}</h2>
         <p>{detail}</p>
         {actionLabel && onAction ? (
-          <Button full variant="secondary" onClick={onAction}>
+          <Button full variant="secondary" className="waiting-dialog__action" onClick={onAction}>
             {actionLabel}
           </Button>
         ) : null}

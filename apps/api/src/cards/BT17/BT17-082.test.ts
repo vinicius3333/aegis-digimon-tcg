@@ -1,6 +1,8 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT16/BT16-025.js";
+import "../ST1/ST1-16.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-082.js";
 import "./index.js";
@@ -235,6 +237,48 @@ describe("BT17-082 Minami Uehara", () => {
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+});
+
+const BLUE_LEVEL_4 = "BT2-024";
+const GREEN_LEVEL_4 = "BT10-047";
+
+describe("BT17-082 Minami Uehara — KB Q&A rulings", () => {
+  it("triggers when Partition plays your Digimon from digivolution cards (Q2860)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-082", as: "minami" },
+            { card: "BT16-025", as: "paildramon", under: [BLUE_LEVEL_4, GREEN_LEVEL_4] },
+          ],
+        },
+        1: { security: [{ card: "ST1-16", as: "gaiaForce" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paildramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "cardPlayed" && event.cardId === GREEN_LEVEL_4));
+    await drainMicrotasks();
+
+    const partitionedDigimon = (cardId: string) =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === cardId)!;
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual(
+      ["BT17-082", BLUE_LEVEL_4, GREEN_LEVEL_4].sort(),
+    );
+    expect(s.perm("minami").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(partitionedDigimon(BLUE_LEVEL_4), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(partitionedDigimon(GREEN_LEVEL_4), "Rush")).toBe(false);
     assertNoLoudGap(s);
   });
 });

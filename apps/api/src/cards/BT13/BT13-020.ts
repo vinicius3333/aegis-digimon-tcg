@@ -7,25 +7,6 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenPlayed",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Tamer"],
-            nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }],
-          },
-          actions: [
-            {
-              kind: "GrantStatic",
-              target: { filter: { useTriggerSource: true }, count: 1 },
-              grant: "kind",
-              tokens: ["Digimon"],
-              staticEffect: { kind: "SetBaseDP", value: 12000, keyword: "Rush", restriction: "digivolve" },
-              duration: "forTheTurn",
-            },
-          ],
-        },
-        {
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -39,6 +20,14 @@ const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           bindResultAs: "playedMarcus",
+        },
+        {
+          kind: "GrantStatic",
+          target: { filter: { boundRef: "playedMarcus" }, count: 1 },
+          grant: "kind",
+          tokens: ["Digimon"],
+          staticEffect: { kind: "SetBaseDP", value: 12000, keyword: "Rush", restriction: "digivolve" },
+          duration: "forTheTurn",
         },
       ],
     },

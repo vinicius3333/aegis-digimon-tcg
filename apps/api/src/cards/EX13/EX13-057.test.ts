@@ -1139,3 +1139,71 @@ describe("EX13-057 Grademon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
   });
 });
+
+describe("EX13-057 Grademon — KB Q&A rulings", () => {
+  async function immuneChronicleOnOpponentTurn(opponent: {
+    battleArea?: { card: string; as: string }[];
+    hand: string;
+  }) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "grademon", under: ["BT1-010"], dp: 7000 },
+            { card: CHRONICLE_LV3, as: "chronicle", dp: 9000 },
+          ],
+          deck: [NON_MATCH, "BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: {
+          battleArea: opponent.battleArea ?? [],
+          hand: [{ card: opponent.hand, as: "opponentCard" }],
+          deck: ["BT1-013", "BT1-011"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chronicle").topCard.instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("grademon"), {
+      attackerPermanentId: s.perm("grademon").permanentId,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentCard").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    const opponentChoice = s.decisions.find(
+      ({ seat, req }) => seat === 1 && req.options?.candidateInstanceIds?.includes(s.perm("chronicle").permanentId),
+    );
+    return { s, opponentChoice };
+  }
+
+  it("lets the opponent's Digimon effect choose the immune Digimon, which then ignores the -3000 DP (Q7381)", async () => {
+    const { s, opponentChoice } = await immuneChronicleOnOpponentTurn({ hand: "BT20-033" });
+
+    expect(opponentChoice).toBeDefined();
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  it("lets the immune Digimon be given ＜Security A. -1＞ without being treated as having it (Q7382)", async () => {
+    const { s, opponentChoice } = await immuneChronicleOnOpponentTurn({
+      battleArea: [{ card: "BT19-035", as: "shootingStarmon" }],
+      hand: "BT10-007",
+    });
+
+    expect(opponentChoice).toBeDefined();
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-035")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("chronicle"), "SecurityAttack")).toBe(0);
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+  });
+});

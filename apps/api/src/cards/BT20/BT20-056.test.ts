@@ -7,6 +7,10 @@ import "./index.js";
 import { compiled } from "./BT20-056.js";
 import "./BT20-060.js";
 import "../ST1/ST1-15.js";
+import "../ST1/ST1-12.js";
+import "../BT4/BT4-088.js";
+import "../BT7/BT7-090.js";
+import "../P/P-204.js";
 
 const ALPHAMON = "BT20-056";
 const RYUDAMON = "BT20-010";
@@ -360,5 +364,184 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
       expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
       await loop;
     }
+  });
+});
+
+describe("BT20-056 Alphamon — KB Q&A rulings", () => {
+  it("does not trigger [When Digivolving] of a Digimon it digivolves in the breeding area (Q4389)", async () => {
+    const control = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-048", as: "dorumon" }],
+          hand: [
+            { card: "BT20-051", as: "raptordramon" },
+            { card: "BT7-090", as: "kota" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.memory = 3;
+    await control.ready();
+    expect(
+      control.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: control.perm("dorumon").permanentId,
+        instanceId: control.inst("raptordramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      control.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT7-090"),
+    );
+    expect(control.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT7-090");
+
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT20-048", as: "breeding" },
+          battleArea: [
+            { card: "BT20-053", as: "attacker" },
+            { card: "BT20-087", as: "tamer" },
+          ],
+          hand: [
+            { card: ALPHAMON, as: "alphamon" },
+            { card: "BT7-090", as: "kota" },
+          ],
+          trash: [{ card: "BT20-051", as: "raptordramon" }],
+          deck: [AGUMON, AGUMON, AGUMON],
+        },
+        1: { security: [AGUMON] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("attacker").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.breeding?.topCard.cardId === "BT20-051" &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    await settle(() => false, 20);
+
+    expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("alphamon").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("raptordramon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("kota").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).not.toContain("BT7-090");
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-051")).toBe(false);
+  });
+
+  it("resolves the [Security] effect first, then the turn player's removal trigger, then the opponent's (Q4390)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ALPHAMON, as: "alphamon" }],
+          security: [AGUMON],
+        },
+        1: {
+          battleArea: [{ card: "BT4-088", as: "removalWatcher" }],
+          security: [{ card: "ST1-12", as: "securityTamer" }, AGUMON],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const baseline = s.events.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alphamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT4-088") &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    const checkEvents = s.events.slice(baseline);
+    const securityEffectResolved = checkEvents.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-12" && event.timing === "Security",
+    );
+    const alphamonTriggered = checkEvents.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === ALPHAMON,
+    );
+    const alphamonResolved = checkEvents.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === ALPHAMON,
+    );
+    const opponentTriggered = checkEvents.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT4-088",
+    );
+    expect(securityEffectResolved).toBeGreaterThanOrEqual(0);
+    expect(alphamonTriggered).toBeGreaterThan(securityEffectResolved);
+    expect(alphamonResolved).toBeGreaterThan(alphamonTriggered);
+    expect(opponentTriggered).toBeGreaterThan(alphamonResolved);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("ST1-12");
+    expect(s.perm("removalWatcher").currentDP).toBe(4000);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("meets 'if during an attack' when another effect digivolves it during an opponent's attack (Q4724)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-204", as: "option" },
+            { card: "BT20-053", as: "host" },
+          ],
+          breeding: { card: "BT20-012", as: "breeding", under: ["BT20-010"] },
+          hand: [{ card: ALPHAMON, as: "alphamon" }],
+          trash: [{ card: "BT20-015", as: "breedingEvolution" }],
+          deck: Array.from({ length: 20 }, () => AGUMON),
+          security: Array.from({ length: 5 }, () => AGUMON),
+        },
+        1: {
+          battleArea: [{ card: AGUMON, as: "opponentAttacker" }],
+          deck: Array.from({ length: 20 }, () => AGUMON),
+          security: Array.from({ length: 5 }, () => AGUMON),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("alphamon").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("breedingEvolution").instanceId);
+    expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-012", "BT20-010"]),
+    );
+    expect(s.state.phase).toBe("Breeding");
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

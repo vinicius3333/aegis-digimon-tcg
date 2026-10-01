@@ -77,3 +77,36 @@ describe("BT4-034 Regalecusmon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT4-034 Regalecusmon — KB Q&A rulings", () => {
+  async function attackWithRegalecusmon(opponentHasSources: boolean) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-034", as: "regal" }], deck: ["BT1-009", "BT1-010"] },
+        1: {
+          battleArea: [{ card: "BT3-015", as: "target", under: opponentHasSources ? ["BT1-001"] : [] }],
+          security: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    const deckBefore = s.state.players[0]!.deck.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("regal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    return { drawn: deckBefore - s.state.players[0]!.deck.length, memory: s.state.memory };
+  }
+
+  it("does not draw or gain memory when no digivolution card was trashed (Q1201)", async () => {
+    expect(await attackWithRegalecusmon(false)).toEqual({ drawn: 0, memory: 0 });
+    expect(await attackWithRegalecusmon(true)).toEqual({ drawn: 1, memory: 1 });
+  });
+});

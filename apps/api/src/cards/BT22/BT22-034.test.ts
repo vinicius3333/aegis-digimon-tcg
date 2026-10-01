@@ -169,3 +169,36 @@ describe("BT22-034 Reppamon", () => {
     expect(s.perm("secondTarget").currentDP).toBe(secondDP);
   });
 });
+
+describe("BT22-034 Reppamon — KB Q&A rulings", () => {
+  it("replaces the -3000 DP with -6000 DP when the security cost is paid instead of stacking both (Q4880)", async () => {
+    async function resolveOnPlay(optionIndex: number) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT22-034", as: "reppamon" }],
+            security: [{ card: "BT22-030", as: "security" }],
+          },
+          1: { battleArea: [{ card: "BT22-024", dp: 10000, as: "opponent" }] },
+        },
+        { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: optionIndex, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reppamon"));
+      await settle(() => s.perm("opponent").currentDP < 10000);
+      await settle();
+      return s;
+    }
+
+    const paid = await resolveOnPlay(0);
+    expect(paid.perm("opponent").currentDP).toBe(4000);
+    expect(paid.state.players[0]!.security).toHaveLength(0);
+    expect(paid.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([paid.inst("security").instanceId]);
+
+    const unpaid = await resolveOnPlay(1);
+    expect(unpaid.perm("opponent").currentDP).toBe(7000);
+    expect(unpaid.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      unpaid.inst("security").instanceId,
+    ]);
+  });
+});

@@ -17,52 +17,34 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Myotismon"], match: "text" }],
+          },
+          position: "bottom",
+          bindHostAs: "myotismonHost",
+          optional: true,
+          abortOnDecline: true,
+          raw: "By placing this Digimon card as the bottom digivolution card of 1 of your Digimon with [Myotismon] in its text",
+        },
+        {
           kind: "Digivolve",
+          condition: { kind: "ifThisEffectActed", raw: "that Digimon" },
           target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
+            filter: { boundRef: "myotismonHost", controller: "mine", kind: ["Digimon"] },
             count: 1,
           },
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["Myotismon"],
-                match: "name",
-              },
-            ],
+            nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }],
           },
           payCost: false,
           from: ["hand"],
           optional: true,
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "By placing this Digimon card as the bottom digivolution card of 1 of your Digimon with [Myotismon] in its text",
-            underFilter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Myotismon"],
-                  match: "text",
-                },
-              ],
-            },
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "target",
-          },
-          abortOnDecline: true,
         },
       ],
     },

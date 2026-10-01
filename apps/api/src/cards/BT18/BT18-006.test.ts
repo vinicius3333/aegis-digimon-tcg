@@ -67,3 +67,24 @@ describe("BT18-006 Frimon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(3);
   });
 });
+
+describe("BT18-006 Frimon — KB Q&A rulings", () => {
+  it("trashes 3 cards for a red/blue Digimon and a red/yellow Tamer, counting red once (Q2908)", async () => {
+    async function trashedCount(opponentBattleArea: { card: string }[]): Promise<number> {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT3-078", dp: 4000, as: "host", under: ["BT18-006"] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { battleArea: opponentBattleArea },
+      });
+      await s.ready();
+      await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+      await settle();
+      return 5 - s.state.players[0]!.deck.length;
+    }
+
+    expect(await trashedCount([{ card: "BT11-018" }, { card: "BT12-092" }])).toBe(3);
+    expect(await trashedCount([{ card: "BT11-018" }])).toBe(2);
+  });
+});

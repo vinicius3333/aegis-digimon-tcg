@@ -394,3 +394,46 @@ describe("BT23-023 Whamon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
   });
 });
+
+describe("BT23-023 Whamon — KB Q&A rulings", () => {
+  it.each([
+    { label: "a blue level 4 non-[CS] Digimon card", card: "BT1-037", played: true },
+    { label: "an off-color level 4 [CS] Digimon card", card: "BT23-050", played: true },
+    { label: "a blue level 5 Digimon card", card: "BT1-038", played: false },
+    { label: "a red level 3 non-[CS] Digimon card", card: "BT1-009", played: false },
+  ])(
+    "plays $label from its digivolution cards only if it is blue or [CS] and level 4 or lower (Q5244)",
+    async ({ card, played }) => {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT23-023", as: "whamon", under: [{ card, as: "source" }] }],
+            deck: INERT_DECK,
+          },
+          1: {
+            battleArea: [{ card: "BT1-021", as: "redEnabler" }],
+            hand: [{ card: "ST1-16", as: "gaia" }],
+            deck: INERT_DECK,
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+      );
+      const { loop } = await toOpponentMain(s);
+      const whamonId = s.perm("whamon").permanentId;
+      const sourceId = s.inst("source").instanceId;
+      preferInstanceIds.push(whamonId);
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === whamonId));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sourceId)).toBe(played);
+      expect(s.state.players[0]!.trash.map((trashed) => trashed.instanceId).includes(sourceId)).toBe(!played);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+});

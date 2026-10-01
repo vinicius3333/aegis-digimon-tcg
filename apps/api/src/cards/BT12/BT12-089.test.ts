@@ -1,22 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
-import { EffectTiming, type CardInstance } from "@aegis/shared";
+import { EffectTiming, type CardInstance, type DecisionResponse } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../AD1/AD1-008.js";
+import "../BT19/BT19-077.js";
+import "../BT21/BT21-064.js";
 import "./BT12-007.js";
 import "./BT12-010.js";
 import "./BT12-016.js";
+import "./BT12-018.js";
 import "./BT12-089.js";
 
-function mainEffectKey(s: EngineSetup, instance: CardInstance): string {
+function mainEffectKey(s: EngineSetup, instance: CardInstance, cardId = "BT12-089"): string {
   const source = (s.engine as unknown as { cardSourceOf(card: CardInstance): CardSource }).cardSourceOf(instance);
   const effect = effectsOf(EffectTiming.OnDeclaration, source).find(({ effectKey }) =>
-    effectKey.startsWith("BT12-089/"),
+    effectKey.startsWith(`${cardId}/`),
   );
-  if (effect === undefined) throw new Error("BT12-089 exposes no Main effect");
+  if (effect === undefined) throw new Error(`${cardId} exposes no Main effect`);
   return effect.effectKey;
 }
 
@@ -228,5 +232,140 @@ describe("BT12-089", () => {
     );
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-089")).toBe(true);
+  });
+});
+
+function takatoBoard(guilmonCard: string, gallantmonCard: string): EngineSetup {
+  return setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-089", as: "takato" },
+          { card: guilmonCard, as: "guilmon" },
+        ],
+        hand: [{ card: gallantmonCard, as: "gallantmon" }],
+        trash: [
+          { card: "BT12-010", as: "growlmon" },
+          { card: "BT12-016", as: "wargrowlmon" },
+        ],
+      },
+    },
+    { autoOrderCards: false },
+  );
+}
+
+function respond(s: EngineSetup, response: DecisionResponse): void {
+  const decision = s.state.pendingDecision!;
+  expect(decision.kind).toBe(response.kind);
+  expect(
+    s.engine.applyIntent(decision.seat, { type: "respondDecision", decisionId: decision.decisionId, response }),
+  ).toEqual({
+    ok: true,
+  });
+}
+
+async function activateTakatoAndPlaceMaterials(s: EngineSetup): Promise<string[]> {
+  const takato = s.inst("takato");
+  const placedOrder = [s.inst("growlmon").instanceId, s.inst("wargrowlmon").instanceId, takato.instanceId];
+  expect(
+    s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: takato.instanceId,
+      effectKey: mainEffectKey(s, takato),
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision !== undefined);
+  if (s.state.pendingDecision?.kind === "selectCards") {
+    respond(s, { kind: "selectCards", instanceIds: [s.perm("guilmon").topCard!.instanceId] });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+  }
+  respond(s, { kind: "orderCards", order: placedOrder });
+  await settle(() => s.state.pendingDecision?.kind === "optional");
+  return placedOrder;
+}
+
+describe("BT12-089 Takato Matsuki — KB Q&A rulings", () => {
+  it("may decline the Gallantmon digivolution and the placed cards stay under Guilmon (Q2223)", async () => {
+    const s = takatoBoard("BT12-007", "BT12-018");
+    await s.ready();
+    s.state.memory = 4;
+    const placedOrder = await activateTakatoAndPlaceMaterials(s);
+
+    respond(s, { kind: "optional", accept: false });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("guilmon").topCard?.cardId).toBe("BT12-007");
+    expect(s.perm("guilmon").stack.map(({ instanceId }) => instanceId)).toEqual(placedOrder);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("gallantmon").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("does not let another card's digivolve effect ignore Gallantmon's level for a Guilmon (Q2224)", async () => {
+    async function activateCalumonWithHand(intoCard: string): Promise<{
+      s: EngineSetup;
+      activation: ReturnType<EngineSetup["engine"]["applyIntent"]>;
+    }> {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT12-089", as: "takato" },
+              { card: "BT12-007", as: "guilmon" },
+              { card: "BT19-077", as: "calumon" },
+            ],
+            hand: [{ card: intoCard, as: "into" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 5;
+      const calumon = s.inst("calumon");
+      const activation = s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: calumon.instanceId,
+        effectKey: mainEffectKey(s, calumon, "BT19-077"),
+      });
+      await settle(() => s.state.pendingDecision === undefined);
+      return { s, activation };
+    }
+
+    // Calumon's By-suspension stays declarable without a legal destination (CR 15-8-4-4-1,
+    // 15-7-5); Q2224 only forbids the Gallantmon digivolution itself.
+    const gallantmon = await activateCalumonWithHand("BT12-018");
+    expect(gallantmon.activation).toEqual({ ok: true });
+    expect(gallantmon.s.perm("calumon").isSuspended).toBe(true);
+    expect(gallantmon.s.perm("guilmon").topCard?.cardId).toBe("BT12-007");
+    expect(gallantmon.s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT12-018"]);
+    expect(gallantmon.s.events.some((event) => event.kind === "digivolved")).toBe(false);
+
+    const growlmon = await activateCalumonWithHand("BT12-010");
+    expect(growlmon.activation).toEqual({ ok: true });
+    expect(growlmon.s.perm("calumon").isSuspended).toBe(true);
+    expect(growlmon.s.perm("guilmon").topCard?.cardId).toBe("BT12-010");
+  });
+
+  it("digivolves a [Hero] Guilmon into AD1-008 Gallantmon for its alternate digivolution cost of 3 (Q6066)", async () => {
+    const s = takatoBoard("BT21-064", "AD1-008");
+    await s.ready();
+    s.state.memory = 3;
+    await activateTakatoAndPlaceMaterials(s);
+
+    respond(s, { kind: "optional", accept: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const { choices } = JSON.parse(s.state.pendingDecision!.payloadJson) as { choices: string[] };
+    expect(choices).toEqual([
+      "Printed digivolution requirement (cost 4)",
+      "Alternate digivolution requirement (cost 3)",
+    ]);
+    respond(s, { kind: "chooseOption", optionIndex: choices.indexOf("Alternate digivolution requirement (cost 3)") });
+    await settle(() => s.perm("guilmon").topCard?.cardId === "AD1-008");
+
+    expect(s.perm("guilmon").topCard?.cardId).toBe("AD1-008");
+    expect(s.events.flatMap((event) => (event.kind === "memoryChanged" ? [[event.from, event.to]] : []))).toEqual([
+      [3, 0],
+    ]);
+    expect(s.state.memory).toBe(0);
   });
 });

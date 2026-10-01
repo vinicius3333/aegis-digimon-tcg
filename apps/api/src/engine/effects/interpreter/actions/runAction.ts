@@ -20,9 +20,9 @@ import { availableEffectPlayAssemblyReduction } from "./effectPlayAssembly.js";
 import { runCombatAction } from "./combat.js";
 import { runControlFlowAction } from "./controlFlow.js";
 import { runDigivolutionAction } from "./digivolution.js";
-import { canAttemptDigivolve } from "./digivolve.js";
+import { canAttemptDigivolveBeforeCost } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
-import { runMetaAction } from "./meta.js";
+import { canReactivateOwnEffect, runMetaAction } from "./meta.js";
 import { DECLINE_MODAL_CHOICE_LABEL, declinableModalChoices, modalHasAvailableOption } from "./modal.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import { allowsOptionalProcessingCostWithoutTarget } from "../processingCondition.js";
@@ -536,13 +536,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   // A breeding move with a processing cost is possible only when the controller's current
   // breeding Digimon satisfies the printed target filter. Preflight before the optional prompt
-  // and generic cost path so an ineligible Lv.-/0-DP card cannot suspend or otherwise pay for a
+  // and generic cost path so an ineligible 0-DP card cannot suspend or otherwise pay for a
   // move that the board handler will reject (BT14-088, Q2463).
   if (action.kind === "MovePermanent" && action.direction === "toBattle") {
     const bred = ctx.game.player(ctx.source.ownerSeat).breeding;
     const eligible =
       bred?.topCard !== undefined &&
-      ctx.game.definitionOf(bred.topCard).level !== undefined &&
       (action.target === undefined || permanentMatchesFilter(ctx, bred, action.target.filter, ctx.source));
     if (!eligible) return unavailableAction(ctx, action, action.abortOnDecline === true);
   }
@@ -564,6 +563,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     return action.cost !== undefined ? action.abortOnDecline === true : false;
   }
   if (isDetachTopAction(action) && !canDetachPermanentTop(ctx, action)) {
+    return unavailableAction(ctx, action, action.abortOnDecline === true);
+  }
+  if (action.kind === "ReactivateEffect" && action.cost !== undefined && !canReactivateOwnEffect(ctx, action)) {
     return unavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
@@ -604,12 +606,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.includePlayer !== true &&
     !allowsOptionalProcessingCostWithoutTarget(action)
   ) {
-    const target =
+    const candidates =
       action.chooser === "opponent"
-        ? { ...action.target, filter: { ...action.target.filter, controller: "opponent" as const } }
-        : action.target;
-    if (candidatePermanents(ctx, target).length === 0)
-      return unavailableAction(ctx, action, action.abortOnDecline === true);
+        ? candidatePermanents(ctx, {
+            ...action.target,
+            filter: { ...action.target.filter, controller: "opponent" as const },
+          })
+        : candidatePermanents(ctx, action.target, { includeUnaffectable: true });
+    if (candidates.length === 0) return unavailableAction(ctx, action, action.abortOnDecline === true);
   }
   const structuredCost = action.kind !== "RawUnparsed" && typeof action.cost !== "number" ? action.cost : undefined;
   if (action.kind === "CostModifier" && action.amount === null && action.dynamicFrom === "deletedDigimonPlayCost") {
@@ -915,29 +919,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // A "may digivolve" prompt is meaningful only when at least one matching source and
     // destination form a legal digivolution. In particular, "without paying the cost" does
     // not waive printed requirements (P-092 Q4182); do this before asking so the UI never
-    // confirms an evolution the resolver will immediately discard.
-    if (action.kind === "Digivolve") {
-      // The placement cost binds the exact base that the following digivolve must use.
-      // Before payment that binding does not exist, so preflight against the cost's host
-      // filter instead. This keeps the cost transactional: no legal trash/hand evolution
-      // means the source card is not first moved under the host (EX10-066).
-      const hostBindingFilter =
-        action.cost?.kind === "place" &&
-        action.cost.bindHostAs !== undefined &&
-        action.cost.bindHostAs === action.target.fromSelectionRef
-          ? (action.cost.underFilter ??
-            (action.cost.host !== undefined && action.cost.host !== null && typeof action.cost.host === "object"
-              ? action.cost.host.filter
-              : undefined))
-          : undefined;
-      const canAttempt =
-        hostBindingFilter === undefined
-          ? canAttemptDigivolve(ctx, action)
-          : canAttemptDigivolve(ctx, {
-              ...action,
-              target: { filter: hostBindingFilter, count: 1 },
-            });
-      if (!canAttempt) return unavailableAction(ctx, action);
+    // confirms an evolution the resolver will immediately discard. A printed "By [cost]"
+    // processing condition is the exception: §15-7-5 lets the player pay it anyway (BT22-090).
+    if (
+      action.kind === "Digivolve" &&
+      !allowsOptionalProcessingCostWithoutTarget(action) &&
+      !canAttemptDigivolveBeforeCost(ctx, action)
+    ) {
+      return unavailableAction(ctx, action);
     }
     const costUnpayable = payableActionCost !== undefined && !canPayCost(ctx, payableActionCost as Cost);
     // "By [cost], you may [effect]" pays first and asks afterwards: the leading prompt would make

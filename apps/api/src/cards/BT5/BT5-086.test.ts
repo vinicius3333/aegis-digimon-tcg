@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import "../BT2/BT2-091.js";
+import "../BT3/BT3-092.js";
 import "./BT5-086.js";
 
 describe("BT5-086 Omnimon", () => {
@@ -123,5 +126,82 @@ describe("BT5-086 Omnimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT5-086", "AD1-004"]),
     );
+  });
+});
+
+describe("BT5-086 Omnimon — KB Q&A rulings", () => {
+  it("can attack with Blitz first and then unsuspend itself with the other [When Digivolving] effect (Q1356)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-004", as: "omnimon" }],
+          hand: [{ card: "BT5-086", as: "evolving" }],
+        },
+        1: { security: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimon").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("omnimon").permanentId));
+    expect(s.state.memory).toBe(-1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omnimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+
+    // hasAttackedThisTurn tracks attack eligibility, which the later unsuspend restores.
+    expect(
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("omnimon").permanentId,
+      ),
+    ).toBe(true);
+    expect(s.perm("omnimon").isSuspended).toBe(false);
+  });
+
+  it('does not trigger "When another Digimon is deleted" effects when its [All Turns] effect keeps it in play (Q1357)', async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT2-009", { card: "BT3-092", as: "maloMyotismon" }],
+          hand: [{ card: "BT2-091", as: "volcanicFlare" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT5-086", as: "omnimon", dp: 4000, under: [{ card: "AD1-004", as: "level6" }] },
+            { card: "BT1-010", as: "bystander" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("omnimon").permanentId, s.perm("omnimon").topCard.instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("volcanicFlare").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("level6").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("omnimon").permanentId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("bystander").permanentId]);
+    expect(s.state.memory).toBe(3);
   });
 });

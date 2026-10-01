@@ -77,3 +77,35 @@ describe("BT4-009 Flamemon", () => {
     expect(s.events.some(({ kind }) => kind === "effectActivated")).toBe(false);
   });
 });
+
+describe("BT4-009 Flamemon — KB Q&A rulings", () => {
+  it("adds exactly 1 Hybrid Digimon card and 1 red Tamer card to hand (Q1156)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT4-009", as: "source" }],
+          deck: [
+            { card: "BT4-011", as: "firstHybrid" },
+            { card: "BT4-092", as: "redTamer" },
+            { card: "BT4-009", as: "secondHybrid" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const hybridIds = [s.inst("firstHybrid").instanceId, s.inst("secondHybrid").instanceId];
+    const redTamerId = s.inst("redTamer").instanceId;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.hand.some((card) => card.instanceId === redTamerId) && player.deck.length === 1);
+
+    expect(player.hand).toHaveLength(2);
+    expect(player.hand.filter((card) => hybridIds.includes(card.instanceId))).toHaveLength(1);
+    expect(player.hand.some((card) => card.instanceId === redTamerId)).toBe(true);
+    expect(hybridIds).toContain(player.deck[0]!.instanceId);
+  });
+});

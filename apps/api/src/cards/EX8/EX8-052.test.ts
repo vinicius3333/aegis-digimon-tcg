@@ -366,3 +366,97 @@ describe("EX8-052 [X Antibody] reference", () => {
     expect(xAntibodyNameGateVerdicts("EX8-052")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });
+
+describe("EX8-052 Cyberdramon (X Antibody) — KB Q&A rulings", () => {
+  async function digivolveWithTriggerFirst(preferTriggerKeys: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-062", as: "base" },
+            { card: "P-155", as: "placedOption" },
+          ],
+          hand: [
+            { card: "EX8-052", as: "xAntibody" },
+            { card: "P-155", as: "device" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX8-029", as: "target", under: ["EX8-020", "EX8-024", "EX8-026"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX8-052" && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it.each([
+    ["ir-7-1", "De-Digivolve first", true],
+    ["ir-7-0", "Device placement first", false],
+  ] as const)(
+    "lets the player choose the order of its simultaneous When Digivolving effects: %s = %s (Q3934)",
+    async (preferredKey, _label, deDigivolvesFirst) => {
+      const s = await digivolveWithTriggerFirst([preferredKey]);
+      const deviceId = s.inst("device").instanceId;
+      const removedTopId = s.inst("target").instanceId;
+      const moveIndex = (instanceId: string) =>
+        s.events.findIndex((event) => event.kind === "cardsMoved" && event.instanceIds.includes(instanceId));
+      const order = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+      expect(order?.req.options?.triggerKeys).toEqual([
+        expect.stringContaining("EX8-052/ir-7-0"),
+        expect.stringContaining("EX8-052/ir-7-1"),
+      ]);
+
+      expect(moveIndex(deviceId)).toBeGreaterThanOrEqual(0);
+      expect(moveIndex(removedTopId)).toBeGreaterThanOrEqual(0);
+      expect(moveIndex(removedTopId) < moveIndex(deviceId)).toBe(deDigivolvesFirst);
+      expect(s.perm("target").topCard?.cardId).toBe("EX8-024");
+      expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "P-155")).toHaveLength(
+        1,
+      );
+    },
+  );
+
+  it.each([
+    ["an Option placed in the battle area by effect", true],
+    ["only an Option card in hand", false],
+  ] as const)(
+    "pays its De-Digivolve cost only with an Option placed in the battle area: %s (Q3935)",
+    async (_label, optionOnField) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX8-052", as: "source", under: ["BT1-010"] },
+              ...(optionOnField ? [{ card: "ST1-15", as: "fieldOption" }] : []),
+            ],
+            hand: [{ card: "ST1-16", as: "handOption" }],
+          },
+          1: { battleArea: [{ card: "EX8-029", as: "target", under: ["EX8-020", "EX8-024", "EX8-026"] }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const fieldOptionId = optionOnField ? s.inst("fieldOption").instanceId : undefined;
+      await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("handOption").instanceId]);
+      if (optionOnField) {
+        expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(fieldOptionId);
+        expect(s.perm("target").topCard?.cardId).toBe("EX8-024");
+      } else {
+        expect(s.perm("target").topCard?.cardId).toBe("EX8-029");
+      }
+    },
+  );
+});

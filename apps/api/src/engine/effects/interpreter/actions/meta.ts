@@ -1,6 +1,7 @@
 // Acting on other effects, plus the unparsed escape hatch.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { runtimeCompiledCard } from "../compiledCards.js";
 import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
@@ -9,6 +10,44 @@ import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { runActivateEffect, runActivateForeignEffect, runActivateMain, runUseOptionWithoutCost } from "./borrowed.js";
 import { EffectTiming } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
+
+/**
+ * Actions that can declare an attack before they finish. The effect's later actions run
+ * right after that declaration, before the battle (Q4962).
+ */
+export function mayDeclareAttack(action: Action): boolean {
+  return (
+    action.kind === "Attack" ||
+    (action.kind === "ReactivateEffect" && action.target === undefined && action.targetSource === "triggerSubject")
+  );
+}
+
+type CompiledEffect = NonNullable<ReturnType<typeof runtimeCompiledCard>>["effects"][number];
+
+function ownEffectActivationDisabled(ctx: EffectContext, effect: CompiledEffect): boolean {
+  const timing =
+    effect.trigger === "WhenDigivolving" ? "whenDigivolving" : effect.trigger === "OnPlay" ? "onPlay" : undefined;
+  const sourcePermanentId = ctx.source.permanent()?.permanentId;
+  return (
+    timing !== undefined &&
+    sourcePermanentId !== undefined &&
+    ctx.game.isTimingEffectDisabled?.(sourcePermanentId, timing) === true
+  );
+}
+
+/**
+ * Whether a self "activate this Digimon's [X] effect" action has any effect it may activate.
+ * When none can activate, the action can't be used, so its "by" cost is never paid (KB Q5749).
+ */
+export function canReactivateOwnEffect(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "ReactivateEffect" }>,
+): boolean {
+  if (action.target !== undefined || action.targetSource !== undefined) return true;
+  const effects = runtimeCompiledCard(ctx.source.cardId)?.effects.filter((e) => e.trigger === action.fromTrigger) ?? [];
+  if (effects.length === 0) return true;
+  return effects.slice(0, action.count).some((effect) => !ownEffectActivationDisabled(ctx, effect));
+}
 
 export async function runMetaAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
@@ -59,7 +98,21 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
           ctx.lastEffectActed = false;
           return false;
         }
-        ctx.lastEffectActed = (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing] })) === true;
+        // Q4962: the rest of the outer effect waits for the whole reactivated [Main]. When
+        // that [Main] ends in an attack, "whole" means up to the attack declaration.
+        const outerContinuation = ctx.continueEffectAfterAttackDeclaration;
+        ctx.lastEffectActed =
+          (await ctx.fx.reactivateOnPlay?.(permanentId, {
+            timings: [timing],
+            ...(outerContinuation === undefined
+              ? {}
+              : {
+                  continueEffectAfterAttackDeclaration: async () => {
+                    ctx.lastEffectActed = true;
+                    await outerContinuation();
+                  },
+                }),
+          })) === true;
         return false;
       }
       const compiled = runtimeCompiledCard(ctx.source.cardId);
@@ -69,16 +122,7 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
       const toRun = compiled.effects.filter((e) => e.trigger === action.fromTrigger).slice(0, action.count);
       for (let i = 0; i < reps; i++) {
         for (const eff of toRun) {
-          const timing =
-            eff.trigger === "WhenDigivolving" ? "whenDigivolving" : eff.trigger === "OnPlay" ? "onPlay" : undefined;
-          const sourcePermanentId = ctx.source.permanent()?.permanentId;
-          if (
-            timing !== undefined &&
-            sourcePermanentId !== undefined &&
-            ctx.game.isTimingEffectDisabled?.(sourcePermanentId, timing)
-          ) {
-            continue;
-          }
+          if (ownEffectActivationDisabled(ctx, eff)) continue;
           // Reactivation is a nested CardEffect coroutine. Keep its effect-resolution
           // frame balanced with the outer timing resolver: nested actions may open
           // deferred timing/sub-trigger work, and those queues must not outlive the
@@ -91,7 +135,7 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
           ctx.activeEffectText = eff.description;
           ctx.fx.enterEffectResolution?.(
             ctx.source.ownerSeat,
-            [...(ctx.source.definition.kinds ?? [])],
+            effectProvenanceKinds(ctx),
             ctx.source.permanent()?.permanentId,
           );
           const finishAnnouncement = ctx.fx.announceEffect?.(ctx, {

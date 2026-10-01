@@ -450,3 +450,90 @@ describe("BT25-034 Angemon", () => {
     expect(unpaid.events.some((event) => event.kind === "barrierPrompt")).toBe(false);
   });
 });
+
+describe("BT25-034 Angemon — KB Q&A rulings", () => {
+  it("does not activate when an opponent's effect only reveals it from the security stack (Q6298)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-034", as: "securityAngemon" }, "BT1-001"],
+          hand: [{ card: "BT25-031", as: "iliadHand" }],
+        },
+        1: { hand: [{ card: "P-078", as: "espimon" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("espimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.security[0]).toMatchObject({
+      instanceId: s.inst("securityAngemon").instanceId,
+      faceUp: false,
+    });
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("iliadHand").instanceId]);
+  });
+
+  it("does not activate when its owner only looks at it in the security stack (Q6298)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-034", as: "salamon" }],
+          security: [{ card: "BT25-034", as: "securityAngemon" }, "BT1-001"],
+          hand: [
+            { card: "BT9-034", as: "lookingSalamon" },
+            { card: "BT25-031", as: "iliadHand" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("salamon").permanentId,
+        instanceId: s.inst("lookingSalamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("salamon").topCard.cardId === "BT9-034" && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && /security/i.test(req.promptText ?? ""))).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("securityAngemon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("iliadHand").instanceId]);
+  });
+
+  it("activates only when an effect trashes it directly from the security stack (Q6298)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-034", as: "securityAngemon" }, "BT1-001"],
+          hand: [{ card: "BT25-031", as: "iliadHand" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-031"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityAngemon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.inst("iliadHand").instanceId,
+    ]);
+  });
+});

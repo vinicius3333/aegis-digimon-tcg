@@ -174,3 +174,113 @@ describe("BT5-082 Tactimon", () => {
     expect(s.perm("notLevel3").topCard.cardId).toBe("BT5-075");
   });
 });
+
+describe("BT5-082 Tactimon — KB Q&A rulings", () => {
+  async function answerNextOption(s: ReturnType<typeof setupEngine>, optionIndex: number): Promise<string[]> {
+    const optionRequests = () => s.decisions.filter(({ req }) => req.kind === "chooseOption");
+    const previousCount = optionRequests().length;
+    await settle(() => optionRequests().length > previousCount);
+    const request = optionRequests().at(-1)!;
+    expect(
+      s.engine.applyIntent(request.seat, {
+        type: "respondDecision",
+        decisionId: request.req.decisionId,
+        response: { kind: "chooseOption", optionIndex },
+      }),
+    ).toEqual({ ok: true });
+    return request.req.options?.choices ?? [];
+  }
+
+  it("lets the owner choose any one of the three effects while another Digimon is in play (Q1350)", async () => {
+    const outcomes: { memory: number; dpGain: number; opponentsLeft: number; offered: string[] }[] = [];
+    for (const optionIndex of [0, 1, 2]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT5-082", as: "tacti" },
+              { card: "BT5-071", as: "ally" },
+            ],
+          },
+          1: { battleArea: ["BT1-009", "BT1-013", "BT1-027", "BT5-075"] },
+        },
+        { autoSelectCards: true },
+      );
+      const tacti = s.perm("tacti");
+      const beforeDP = tacti.currentDP;
+      s.state.memory = 0;
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: tacti.permanentId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      const offered = await answerNextOption(s, optionIndex);
+      await settle(
+        () => s.state.memory !== 0 || tacti.currentDP !== beforeDP || s.state.players[1]!.battleArea.length !== 4,
+      );
+      await settle();
+      outcomes.push({
+        memory: s.state.memory,
+        dpGain: tacti.currentDP - beforeDP,
+        opponentsLeft: s.state.players[1]!.battleArea.length,
+        offered,
+      });
+      expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(1);
+    }
+
+    const allModes = ["Gain 1 memory", "This Digimon gets +2000 DP for the turn", "Delete up to 3 level 3 Digimon"];
+    expect(outcomes).toEqual([
+      { memory: 1, dpGain: 0, opponentsLeft: 4, offered: allModes },
+      { memory: 0, dpGain: 2000, opponentsLeft: 4, offered: allModes },
+      { memory: 0, dpGain: 0, opponentsLeft: 1, offered: allModes },
+    ]);
+  });
+
+  it("lets the owner decide the order of all three effects when no other Digimon is in play (Q1351)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT5-082", as: "tacti" }] },
+        1: { battleArea: ["BT1-009", "BT1-013", "BT1-027", { card: "BT5-075", as: "notLevel3" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const tacti = s.perm("tacti");
+    const beforeDP = tacti.currentDP;
+    s.state.memory = 0;
+    const snapshot = () => ({
+      memory: s.state.memory,
+      dpGain: tacti.currentDP - beforeDP,
+      opponentsLeft: s.state.players[1]!.battleArea.length,
+    });
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: tacti.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+
+    const firstOffer = await answerNextOption(s, 0);
+    const secondOffer = await answerNextOption(s, 1);
+    const thirdOffer = await answerNextOption(s, 0);
+    await settle(() => tacti.currentDP === beforeDP + 2000);
+
+    expect(firstOffer).toEqual([
+      "Gain 1 memory",
+      "This Digimon gets +2000 DP for the turn",
+      "Delete up to 3 level 3 Digimon",
+    ]);
+    expect(secondOffer).toEqual(["This Digimon gets +2000 DP for the turn", "Delete up to 3 level 3 Digimon"]);
+    expect(thirdOffer).toEqual(["This Digimon gets +2000 DP for the turn"]);
+    const resolutionOrder = s.events.flatMap((event) => {
+      if (event.kind === "effectOptionChosen") return [`chose ${event.clause}`];
+      if (event.kind === "memoryChanged") return ["memory gained"];
+      if (event.kind === "cardsMoved" && event.deletedPermanents !== undefined) return ["level 3 Digimon deleted"];
+      return [];
+    });
+    expect(resolutionOrder).toEqual([
+      "chose Gain 1 memory.",
+      "memory gained",
+      "chose Delete up to 3 of your opponent's level 3 Digimon.",
+      "level 3 Digimon deleted",
+      "chose This Digimon gets +2000 DP for the turn.",
+    ]);
+    expect(snapshot()).toEqual({ memory: 1, dpGain: 2000, opponentsLeft: 1 });
+    expect(s.perm("notLevel3").topCard.cardId).toBe("BT5-075");
+  });
+});

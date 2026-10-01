@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -70,4 +70,33 @@ it("resolves the digivolution debuff through a public digivolution intent", asyn
   await settle(() => s.perm("base").topCard?.cardId === "BT12-044");
   expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
   expect(s.state.memory).toBe(0);
+});
+
+describe("BT12-044 Lampmon — KB Q&A rulings", () => {
+  it("counts opposing Digimon affected by either Security Attack + or Security Attack - (Q2177)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-044", as: "lamp" }] },
+        1: {
+          battleArea: [
+            { card: "BT12-017", as: "plusKeyword" },
+            { card: "BT1-009", as: "minusKeyword" },
+            { card: "BT1-009", as: "noKeyword" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("minusKeyword").topCard.instanceId);
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("lamp"), "SecurityAttack")).toBe(1);
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lamp"));
+    await s.ready();
+
+    expect(observe(s.engine).keywordAmount(s.perm("minusKeyword"), "SecurityAttack")).toBe(-2);
+    expect(observe(s.engine).hasKeyword(s.perm("noKeyword"), "SecurityAttack")).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("lamp"), "SecurityAttack")).toBe(2);
+  });
 });

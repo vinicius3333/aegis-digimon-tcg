@@ -224,42 +224,6 @@ describe("BT21-054 Shotmon", () => {
     expect(s.perm("opponent").topCard.cardId).toBe("BT21-049");
   });
 
-  it("trashes its link card at rule check after Tankmon makes the host ineligible", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT21-053", as: "host" }],
-          hand: [
-            { card: "BT21-054", as: "shotmon" },
-            { card: "EX7-043", as: "tankmon" },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "linkCard",
-        instanceId: s.inst("shotmon").instanceId,
-        targetPermanentId: s.perm("host").permanentId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("shotmon").instanceId));
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("tankmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("shotmon").instanceId));
-
-    expect(s.perm("host").linked).toHaveLength(0);
-  });
-
   it("zero-cost evolves through both the Three Musketeers-text and Appmon routes", async () => {
     for (const [base, requirementIndex] of [
       ["BT25-005", 0],
@@ -284,5 +248,124 @@ describe("BT21-054 Shotmon", () => {
       await settle(() => s.perm("base").topCard.instanceId === s.inst("shotmon").instanceId);
       expect(s.state.memory).toBe(1);
     }
+  });
+});
+
+async function linkShotmonOnto(hostCardId: string, extraHand: string[] = []) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: hostCardId, as: "host" }],
+        hand: [{ card: "BT21-054", as: "shotmon" }, ...extraHand.map((card, index) => ({ card, as: `hand${index}` }))],
+        deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+    },
+    { autoSelectCards: true, autoDeclineOptional: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "linkCard",
+      instanceId: s.inst("shotmon").instanceId,
+      targetPermanentId: s.perm("host").permanentId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.perm("host").linked.some((card) => card.instanceId === s.inst("shotmon").instanceId) &&
+      s.state.pendingDecision === undefined,
+  );
+  return s;
+}
+
+async function digivolveHost(
+  s: Awaited<ReturnType<typeof linkShotmonOnto>>,
+  handAlias: string,
+  alternateIndex?: number,
+) {
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("host").permanentId,
+      instanceId: s.inst(handAlias).instanceId,
+      ...(alternateIndex === undefined ? {} : { alternateRequirementIndex: alternateIndex }),
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () => s.perm("host").topCard.instanceId === s.inst(handAlias).instanceId && s.state.pendingDecision === undefined,
+  );
+}
+
+function shotmonIsTrashed(s: Awaited<ReturnType<typeof linkShotmonOnto>>) {
+  return s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("shotmon").instanceId);
+}
+
+describe("BT21-054 Shotmon — KB Q&A rulings", () => {
+  it("counts a card with [Three Musketeers] only in its effect text for the Lv.2 digivolve requirement (Q4557)", async () => {
+    for (const [base, allowed] of [
+      ["BT25-005", true],
+      ["EX7-005", true],
+      // All three are black Lv.2 eggs, so only the [Three Musketeers] text separates them.
+      ["BT13-005", false],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT21-054", as: "shotmon" }] },
+      });
+      s.state.memory = 1;
+      await s.ready();
+
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shotmon").instanceId,
+        alternateRequirementIndex: 0,
+      });
+
+      await settle(() => !allowed || s.perm("base").topCard.instanceId === s.inst("shotmon").instanceId);
+
+      expect({ base, ok: result.ok }).toEqual({ base, ok: allowed });
+      expect(s.perm("base").topCard.cardId).toBe(allowed ? "BT21-054" : base);
+      expect(s.state.memory).toBe(1);
+    }
+  });
+
+  it("trashes the linked Shotmon at rule check when its host digivolves into non-Appmon Tankmon (Q4558)", async () => {
+    const s = await linkShotmonOnto("BT21-053", ["EX7-043"]);
+    expect(shotmonIsTrashed(s)).toBe(false);
+
+    await digivolveHost(s, "hand0");
+    await settle(() => shotmonIsTrashed(s));
+
+    expect(s.perm("host").topCard.cardId).toBe("EX7-043");
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(shotmonIsTrashed(s)).toBe(true);
+  });
+
+  it("trashes the linked Shotmon at rule check when its host digivolves into non-Appmon Gigadramon (Q4578)", async () => {
+    const s = await linkShotmonOnto("BT21-071", ["EX7-044"]);
+    expect(shotmonIsTrashed(s)).toBe(false);
+
+    await digivolveHost(s, "hand0", 0);
+    await settle(() => shotmonIsTrashed(s));
+
+    expect(s.perm("host").topCard.cardId).toBe("EX7-044");
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(shotmonIsTrashed(s)).toBe(true);
+  });
+
+  it("keeps Shotmon linked through an Appmon digivolve but trashes it once the host becomes Gundramon (Q4585)", async () => {
+    const s = await linkShotmonOnto("BT21-071", ["BT21-074", "EX7-048"]);
+
+    await digivolveHost(s, "hand0");
+    expect(s.perm("host").topCard.cardId).toBe("BT21-074");
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("shotmon").instanceId]);
+
+    await digivolveHost(s, "hand1");
+    await settle(() => shotmonIsTrashed(s));
+
+    expect(s.perm("host").topCard.cardId).toBe("EX7-048");
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(shotmonIsTrashed(s)).toBe(true);
   });
 });

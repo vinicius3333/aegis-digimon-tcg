@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -53,7 +53,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },

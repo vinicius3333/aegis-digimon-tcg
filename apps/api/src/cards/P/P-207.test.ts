@@ -224,3 +224,52 @@ describe("P-207 Minervamon", () => {
     await loop;
   });
 });
+
+describe("P-207 Minervamon — KB Q&A rulings", () => {
+  const eligible = ["BT1-012", "BT1-051", "BT12-076", "BT24-013"];
+  const ineligible = ["BT1-033", "BT10-054", "BT1-010"];
+  const pool = [...eligible, ...ineligible].map((card) => ({ card, as: card }));
+
+  function offeredCardIds(s: ReturnType<typeof setupEngine>): string[] {
+    const offered = new Set(s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []));
+    return [...eligible, ...ineligible].filter((alias) => offered.has(s.inst(alias).instanceId)).sort();
+  }
+
+  it("offers only level 4 or lower Bird/Beast/Animal (not Sea Animal) or TS Digimon from hand on play (Q5398)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-207", as: "minerva" }], hand: pool } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("minerva"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(offeredCardIds(s)).toEqual([...eligible].sort());
+  });
+
+  it("offers the same card set from trash when attacking (Q5399)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-207", as: "minerva" }], trash: pool, deck: Array(10).fill("BT3-059") },
+        1: { security: Array(5).fill("BT1-009"), deck: Array(10).fill("BT3-059") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("minerva").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => offeredCardIds(s).length > 0 && s.state.pendingDecision === undefined);
+
+    expect(offeredCardIds(s)).toEqual([...eligible].sort());
+    await advance(s.engine).finishAttack();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});

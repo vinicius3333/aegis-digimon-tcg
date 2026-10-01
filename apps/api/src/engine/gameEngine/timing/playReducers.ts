@@ -52,6 +52,25 @@ export function projectLooseUseCost(engine: GameEngine, instanceId: string, cont
   return Math.max(0, baseCost - reduction);
 }
 
+/**
+ * The cost a card has while it sits in its owner's hand: the printed cost minus only the self
+ * reducers that apply continuously in hand. "When you would use this card" reductions change
+ * only the cost paid, so exact-cost filters must not see them (KB BT2-099 Q1501).
+ */
+export function projectInHandCost(engine: GameEngine, instanceId: string, controllerSeat: Seat): number | undefined {
+  const instance = findLooseInstance(engine, instanceId);
+  if (instance === undefined) return undefined;
+  const source = cardSourceOf(engine, instance);
+  const printedCost = source.definition.playCost;
+  const inHand = engine.state.players[controllerSeat]?.hand.some((card) => card.instanceId === instanceId) === true;
+  if (!inHand || printedCost < 0 || engine.continuous.blocksCostReduction(controllerSeat, "play")) return printedCost;
+  const ctx: EffectContext = { ...buildEffectContext(engine, source, {}), selections: new Map() };
+  const reduction = wouldBePlayedSelfReducersFor(instance.cardId)
+    .filter((reducer) => reducer.whileInHand === true)
+    .reduce((total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer), 0);
+  return Math.max(0, printedCost - reduction);
+}
+
 /** Battle-area effects that react while their controller would play/use another card. */
 export function residentPlayCostEffects(engine: GameEngine, seat: Seat): Array<{ effect: Effect; source: CardSource }> {
   const player = engine.state.players[seat];
@@ -79,7 +98,12 @@ export function residentPlayCostEffects(engine: GameEngine, seat: Seat): Array<{
  * on the played card's own id) does not cover them. The accepted card IDs are explicit because
  * generated cross-card Replacement IR can omit decisive source/subject identity.
  */
-export function crossPermanentPlayReducerWatchers(engine: GameEngine, instance: CardInstance, seat: Seat): Permanent[] {
+export function crossPermanentPlayReducerWatchers(
+  engine: GameEngine,
+  instance: CardInstance,
+  seat: Seat,
+  simultaneousPlayCount = 1,
+): Permanent[] {
   const def = lookupDefinition(instance.cardId);
   if (def === undefined) return [];
   const isLv4PlusBagraArmy =
@@ -93,7 +117,8 @@ export function crossPermanentPlayReducerWatchers(engine: GameEngine, instance: 
     def.kinds.includes(CardKind.Digimon) && (cardHasTrait(def, "Boss") || cardHasTrait(def, "TS"));
   return player.battleArea.filter((perm) => {
     if (perm.inBreeding) return false;
-    if (perm.topCard?.cardId === "BT10-093") return isLv4PlusBagraArmy;
+    // "When you would play 1 ... Digimon card": not when 2 or more cards are played at once (Q2026).
+    if (perm.topCard?.cardId === "BT10-093") return isLv4PlusBagraArmy && simultaneousPlayCount === 1;
     if (perm.topCard?.cardId === "BT26-088") {
       return (
         isBossOrTsDigimon &&

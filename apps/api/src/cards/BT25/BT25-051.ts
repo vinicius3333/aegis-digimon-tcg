@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
               excludeNameOrTrait: [
                 {
                   tokens: ["Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
               controller: "mine",
@@ -31,7 +31,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Beast", "Animal", "Sovereign"],
-                  match: "trait",
+                  match: "traitContains",
                 },
                 {
                   tokens: ["Shaman", "TS"],
@@ -56,7 +56,7 @@ export const compiled: CompiledCard = {
               excludeNameOrTrait: [
                 {
                   tokens: ["Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
               controller: "mine",
@@ -64,7 +64,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Beast", "Animal", "Sovereign"],
-                  match: "trait",
+                  match: "traitContains",
                 },
                 {
                   tokens: ["Shaman", "TS"],

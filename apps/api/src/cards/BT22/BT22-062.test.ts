@@ -1,8 +1,10 @@
+import { EffectDuration } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-062.js";
+import "../BT13/BT13-077.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
@@ -44,9 +46,10 @@ describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
     });
   });
 
-  it("lets the opponent optionally choose one of their Digimon to attack", () => {
+  it("lets its controller optionally choose one of the opponent's Digimon to attack", () => {
     const inherited = compiled.effects.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({ trigger: "EndOfOpponentsTurn", frequency: "OncePerTurn" });
+    expect(inherited?.actions[0]).not.toHaveProperty("target.chooser");
     expect(inherited?.actions[0]).toMatchObject({
       kind: "Attack",
       optional: true,
@@ -54,7 +57,6 @@ describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
       target: {
         filter: { controller: "opponent", kind: ["Digimon"] },
         count: 1,
-        chooser: "opponent",
       },
     });
   });
@@ -175,5 +177,137 @@ describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
 describe("BT22-062 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT22-062")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
+});
+
+describe("BT22-062 MetalTyrannomon (X Antibody) — KB Q&A rulings", () => {
+  const SECURITY = ["BT1-010", "BT1-010", "BT1-010"];
+
+  function attackersDeclared(s: ReturnType<typeof setupEngine>): string[] {
+    return s.events.flatMap((event) => (event.kind === "attackDeclared" ? [event.attackerPermanentId] : []));
+  }
+
+  async function runOpponentTurnToEnd(s: ReturnType<typeof setupEngine>): Promise<void> {
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  }
+
+  it("lets MetalTyrannomon's controller decline to choose any opponent's Digimon (Q4916)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-065", as: "host", under: ["BT22-062"] }], security: SECURITY },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+
+    await runOpponentTurnToEnd(s);
+
+    const offer = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "BT22-062");
+    expect(offer?.seat).toBe(0);
+    expect(attackersDeclared(s)).toEqual([]);
+    expect(s.perm("first").isSuspended).toBe(false);
+    expect(s.perm("second").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
+  it("does not make a chosen Digimon that can't attack attack (Q4917)", async () => {
+    async function runWithChosenDigimon(canAttack: boolean) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT22-065", as: "host", under: ["BT22-062"] }], security: SECURITY },
+          1: { battleArea: [{ card: "BT1-009", as: "chosen", dp: 20000 }] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      if (!canAttack) {
+        await advance(s.engine).verb.restrict(s.perm("chosen").permanentId, "attack", EffectDuration.Permanent);
+      }
+      await runOpponentTurnToEnd(s);
+      return s;
+    }
+
+    const restricted = await runWithChosenDigimon(false);
+    const offer = restricted.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "BT22-062");
+    expect(offer?.seat).toBe(0);
+    expect(attackersDeclared(restricted)).toEqual([]);
+    expect(restricted.perm("chosen").isSuspended).toBe(false);
+    expect(restricted.state.players[0]!.security).toHaveLength(3);
+
+    const unrestricted = await runWithChosenDigimon(true);
+    expect(attackersDeclared(unrestricted)).toEqual([unrestricted.perm("chosen").permanentId]);
+    expect(unrestricted.perm("chosen").isSuspended).toBe(true);
+    expect(unrestricted.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("does not declare a second attack while another effect's end-of-turn attack is in progress (Q4918)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-077", as: "craniamon", suspended: true },
+            { card: "BT22-065", as: "host", under: ["BT22-062"] },
+          ],
+          security: SECURITY,
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "craniamonPick", dp: 20000 },
+            { card: "BT1-010", as: "metalTyrannomonPick", dp: 20000 },
+          ],
+        },
+      },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        preferInstanceIds: preferred,
+        preferTriggerKeys: ["BT13-077"],
+      },
+    );
+    preferred.push(s.perm("craniamonPick").topCard!.instanceId);
+
+    await runOpponentTurnToEnd(s);
+
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.sourceCardId === "BT22-062")).toBe(true);
+    expect(attackersDeclared(s)).toEqual([s.perm("craniamonPick").permanentId]);
+    expect(s.perm("craniamonPick").isSuspended).toBe(true);
+    expect(s.perm("metalTyrannomonPick").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("lets its controller choose a Digimon unaffected by effects, and that Digimon attacks (Q4919)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-065", as: "host", under: ["BT22-062"] }], security: SECURITY },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "immune", dp: 20000 },
+            { card: "BT1-010", as: "ordinary", dp: 20000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("immune").topCard!.instanceId);
+    await advance(s.engine).verb.restrict(s.perm("immune").permanentId, "beAffected", EffectDuration.Permanent);
+
+    await runOpponentTurnToEnd(s);
+
+    const choice = s.decisions.find(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "BT22-062");
+    expect(choice?.seat).toBe(0);
+    expect(attackersDeclared(s)).toEqual([s.perm("immune").permanentId]);
+    expect(s.perm("ordinary").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 });

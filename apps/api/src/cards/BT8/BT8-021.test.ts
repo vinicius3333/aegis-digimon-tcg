@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import type { Permanent, PlayerState } from "@aegis/shared";
+import { type CardSpec, type PermanentSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT8-021.js";
+import "../BT17/BT17-094.js";
+import "../BT3/BT3-040.js";
 import "./BT8-021.js";
+import "./BT8-023.js";
 
 describe("BT8-021 Veemon", () => {
   it("requires exactly two colors for the blue card filter", () => {
@@ -102,5 +105,61 @@ describe("BT8-021 Veemon", () => {
 
     expect(s.perm("greenEgg").topCard.instanceId).toBe(s.inst("veemon").instanceId);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT8-021 Veemon — KB Q&A rulings", () => {
+  const playVeemonRevealing = async (deck: CardSpec[], battleArea: PermanentSpec[] = []) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea,
+          hand: [{ card: "BT8-021", as: "source" }],
+          deck,
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    return s;
+  };
+
+  it("adds a revealed two-color Option card when one of its colors is blue (Q1711)", async () => {
+    const s = await playVeemonRevealing([{ card: "BT17-094", as: "redBlueOption" }, "BT8-020", "BT8-022", "BT8-027"]);
+    const player = s.state.players[0] as PlayerState;
+
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("redBlueOption").instanceId]);
+    expect(player.deck).toHaveLength(3);
+    expect(player.deck.some((card) => card.instanceId === s.inst("redBlueOption").instanceId)).toBe(false);
+  });
+
+  it("does not add a revealed card whose 'also treated as blue' effect would make it two-color blue (Q1712)", async () => {
+    const control = await playVeemonRevealing([
+      { card: "BT8-023", as: "printedBlueYellow" },
+      "BT8-020",
+      "BT8-022",
+      "BT8-027",
+    ]);
+    expect(control.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      control.inst("printedBlueYellow").instanceId,
+    ]);
+
+    const s = await playVeemonRevealing(
+      [{ card: "BT3-040", as: "treatedAsBlue" }, "BT8-020", "BT8-022", "BT8-027"],
+      [{ card: "BT3-040", as: "shakkoumonInPlay" }],
+    );
+    const player = s.state.players[0] as PlayerState;
+    const effectiveColors = (s.engine as unknown as { effectiveColorsOf(target: Permanent): string[] })
+      .effectiveColorsOf;
+
+    // The same card in play is yellow and blue this turn, so only its location in the deck keeps it out.
+    expect(effectiveColors.call(s.engine, s.perm("shakkoumonInPlay")).sort()).toEqual(["Blue", "Yellow"]);
+    expect(player.hand).toHaveLength(0);
+    expect(player.deck).toHaveLength(4);
+    expect(player.deck.some((card) => card.instanceId === s.inst("treatedAsBlue").instanceId)).toBe(true);
   });
 });

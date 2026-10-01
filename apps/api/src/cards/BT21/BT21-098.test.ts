@@ -365,3 +365,48 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT21-098 Ragnarok Cannon — KB Q&A rulings", () => {
+  it("treats a card with [Vemmon] in its name or only in its effect text as a card with [Vemmon] in its text (Q4622)", async () => {
+    const preferred: string[] = [];
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT21-098", as: "option" }],
+          hand: [
+            { card: "BT11-065", as: "effectTextOnly" },
+            { card: "BT21-056", as: "named" },
+          ],
+          trash: [{ card: "BT1-010", as: "unrelated" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("unrelated").instanceId, s.inst("effectTextOnly").instanceId);
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId),
+    );
+
+    const offered = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toContain(s.inst("effectTextOnly").instanceId);
+    expect(offered).toContain(s.inst("named").instanceId);
+    expect(offered).not.toContain(s.inst("unrelated").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("effectTextOnly").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("unrelated").instanceId)).toBe(true);
+  });
+});

@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-035.js";
+import { describeColorWaiverRuling } from "./colorWaiverRulings.testSupport.js";
 
 describe("LM-035 Amber Memory Boost!", () => {
   it("reveals three, adds a yellow or purple Digimon, bottoms the rest and places itself", async () => {
@@ -109,4 +110,14 @@ describe("LM-035 Amber Memory Boost!", () => {
     expect(compiled?.effects[0]?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", color: "purple" });
     expect(compiled?.effects.some((effect) => (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"))).toBe(true);
   });
+});
+
+describeColorWaiverRuling({
+  cardId: "LM-035",
+  name: "Amber Memory Boost!",
+  qno: "Q4067",
+  waivedDigimon: "BT11-075",
+  waivedTamer: "BT12-096",
+  unrelatedDigimon: "BT1-009",
+  unrelatedTamer: "BT1-085",
 });

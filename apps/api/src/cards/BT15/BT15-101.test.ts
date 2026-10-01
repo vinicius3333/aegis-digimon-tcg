@@ -110,3 +110,42 @@ describe("BT15-101", () => {
     await settle(() => s.perm("metalGarurumon").isSuspended === false);
   });
 });
+
+describe("BT15-101 MetalGarurumon — KB Q&A rulings", () => {
+  it("can be digivolved into from [Gabumon] by an effect that digivolves your Digimon while you have Matt and the opponent has a 10000 DP Digimon (Q2598)", async () => {
+    async function playBlueScramble(baseCardId: string) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: baseCardId, as: "base" }, { card: "BT15-083" }],
+            hand: [
+              { card: "LM-028", as: "option" },
+              { card: "BT15-101", as: "metalGarurumon" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-080" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "LM-028"));
+      await settle();
+      return s;
+    }
+
+    const fromGabumon = await playBlueScramble("BT15-020");
+    expect(fromGabumon.perm("base").topCard?.instanceId).toBe(fromGabumon.inst("metalGarurumon").instanceId);
+    expect(fromGabumon.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT15-020"]);
+    const blueScrambleCost = 2;
+    const specialDigivolutionCostAfterReduction = 4 - 3;
+    expect(fromGabumon.state.memory).toBe(5 - blueScrambleCost - specialDigivolutionCostAfterReduction);
+
+    const fromGomamon = await playBlueScramble("BT1-030");
+    expect(fromGomamon.perm("base").topCard?.cardId).toBe("BT1-030");
+    expect(fromGomamon.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT15-101"]);
+  });
+});

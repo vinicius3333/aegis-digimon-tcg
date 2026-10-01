@@ -19,12 +19,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenCardReturnsFromTrashToHand",
-          sourceFilter: {
-            kind: ["Digimon"],
-            colors: ["Red"],
-            nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
-            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
-          },
+          sourceFilter: { kind: ["Digimon"], colors: ["Red"] },
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -33,7 +28,7 @@ const compiled: CompiledCard = {
                   controller: "mine",
                   kind: ["Digimon"],
                   colors: ["Red"],
-                  nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
+                  nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
                   excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
                   dp: { op: "lte", value: 13000 },
                 },

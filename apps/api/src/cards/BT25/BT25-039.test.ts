@@ -861,3 +861,68 @@ describe("BT25-039 Sirenmon", () => {
     expect(s.perm("opponentCandidate").isSuspended).toBe(true);
   });
 });
+
+describe("BT25-039 Sirenmon — KB Q&A rulings", () => {
+  it.each([
+    [2, 0],
+    [1, 5],
+  ])(
+    "stacks Ceresmon's own -5 with the Security play's -7 when %i Digimon are suspended (pays %i) (Q6306)",
+    async (suspendedCount, memoryPaid) => {
+      const s = setupEngine(
+        {
+          0: {
+            security: [{ card: "BT25-039", as: "sirenmon", faceUp: true }],
+            hand: [{ card: "BT25-059", as: "ceresmon" }],
+            deck: ["BT1-001"],
+          },
+          1: {
+            battleArea: Array.from({ length: suspendedCount }, () => ({ card: "BT1-009", suspended: true })),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["suspend"] },
+      );
+      s.state.memory = 3;
+
+      await advance(s.engine).runTurn(0);
+
+      const ceresmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT25-059");
+      expect(ceresmon?.stack.map((card) => card.instanceId)).toEqual([s.inst("sirenmon").instanceId]);
+      const payments = s.events.flatMap((event) =>
+        event.kind === "memoryChanged" && event.reason === "playCard" ? [event.from - event.to] : [],
+      );
+      expect(payments).toEqual(memoryPaid === 0 ? [] : [memoryPaid]);
+    },
+  );
+
+  it("prevents every matching Digimon and Tamer leaving at the same time by deleting itself once (Q6307)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "sirenmon" },
+            { card: "BT25-033", as: "shaman" },
+            { card: "BT25-031", as: "iliad" },
+            { card: "BT24-102", as: "iliadTamer" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const protectedIds = [s.perm("shaman").permanentId, s.perm("iliad").permanentId, s.perm("iliadTamer").permanentId];
+    const unrelatedId = s.perm("unrelated").permanentId;
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    await advance(s.engine).verb.deletePermanent([...protectedIds, unrelatedId], "byEffect");
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const remaining = s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId);
+    expect(remaining).toEqual(expect.arrayContaining(protectedIds));
+    expect(remaining).not.toContain(unrelatedId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-039")).toBe(false);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseTargets")).toBe(false);
+  });
+});

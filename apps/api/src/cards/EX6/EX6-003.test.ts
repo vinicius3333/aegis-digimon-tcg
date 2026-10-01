@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-003.js";
+import "../BT6/BT6-034.js";
+import "../EX1/EX1-029.js";
 
 describe("EX6-003 Cupimon", () => {
   it("returns one security card to hand and places an Angel excluding Fallen Angel as security", () => {
@@ -134,5 +136,45 @@ describe("EX6-003 Cupimon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("securityTop").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nonAngel").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});
+
+describe("EX6-003 Cupimon — KB Q&A rulings", () => {
+  async function attackWithSecurityWatchers(watcher: "EX1-029" | "BT6-034") {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-038", as: "host", under: ["EX6-003", watcher] }],
+          hand: [{ card: "BT1-053", as: "angel" }],
+          security: [{ card: "BT1-009", as: "securityTop" }],
+          deck: Array(5).fill("BT1-009"),
+        },
+        1: { deck: Array(5).fill("BT1-009"), security: Array(3).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("angel").instanceId]);
+    return s;
+  }
+
+  it("counts the Angel placed at the security bottom as a card added to security (Q3692)", async () => {
+    const s = await attackWithSecurityWatchers("EX1-029");
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("counts the security card added to the hand as a card removed from security (Q3693)", async () => {
+    const s = await attackWithSecurityWatchers("BT6-034");
+    expect(s.state.memory).toBe(4);
   });
 });

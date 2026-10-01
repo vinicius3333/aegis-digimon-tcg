@@ -4,7 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { makeDigimon, makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT4/BT4-011.js";
-import "../BT12/BT12-013.js";
+import "../BT17/index.js";
+import "../BT18/BT18-088.js";
 import "./EX3-043.js";
 import "./EX3-052.js";
 import "./EX3-053.js";
@@ -250,7 +251,7 @@ describe("EX3-053 Metallicdramon", () => {
         ],
         hand: [
           { card: "BT4-011", as: "asIfHybrid" },
-          { card: "BT12-013", as: "namedHybrid" },
+          { card: "BT17-012", as: "namedHybrid" },
         ],
         deck: ["BT1-011"],
       },
@@ -412,5 +413,60 @@ describe("EX3-053 Metallicdramon", () => {
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX3-052"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("hina").isSuspended).toBe(true);
+  });
+});
+
+describe("EX3-053 Metallicdramon — KB Q&A rulings", () => {
+  it.each([
+    ["BT17-011 Agunimon (Q2726)", "BT17-011"],
+    ["BT17-012 BurningGreymon (Q2735)", "BT17-012"],
+    ["BT17-022 Lobomon (Q2757)", "BT17-022"],
+    ["BT17-023 KendoGarurumon (Q2766)", "BT17-023"],
+  ])("%s cannot attack the turn it digivolves from a Tamer played that turn", async (_ruling, hybridCardId) => {
+    async function digivolveOntoTamerThenAttack(tamerZone: "hand" | "battleArea") {
+      const tamer = { card: "BT18-088", as: "tamer" };
+      const hybrid = { card: hybridCardId, as: "hybrid" };
+      const s = setupEngine(
+        {
+          0: {
+            ...(tamerZone === "hand" ? { hand: [tamer, hybrid] } : { battleArea: [tamer], hand: [hybrid] }),
+            deck: ["BT1-009", "BT1-009"],
+          },
+          1: { security: ["BT1-009", "BT1-009"], deck: ["BT1-009"] },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const tamerPlay =
+        tamerZone === "hand"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })
+          : { ok: true };
+      expect(tamerPlay).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("tamer").permanentId,
+          instanceId: s.inst("hybrid").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("tamer").topCard.cardId === hybridCardId && s.state.pendingDecision === undefined);
+      const attack = s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tamer").permanentId,
+        target: { kind: "player" },
+      });
+      return { s, attack };
+    }
+
+    const fresh = await digivolveOntoTamerThenAttack("hand");
+    expect(fresh.attack.ok).toBe(false);
+    expect(fresh.s.perm("tamer").isSuspended).toBe(false);
+    expect(fresh.s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+
+    const established = await digivolveOntoTamerThenAttack("battleArea");
+    expect(established.attack).toEqual({ ok: true });
   });
 });

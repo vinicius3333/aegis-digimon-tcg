@@ -34,32 +34,37 @@ describe("BT6-079 Murmukusmon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-080")).toBe(true);
   });
+});
 
-  it("counts the deleted Murmukusmon after it enters the trash (9 cards becomes 10)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT6-079", as: "murmukusmon" }],
-          trash: [
-            { card: "BT6-080", as: "ornismon" },
-            "BT1-001",
-            "BT1-002",
-            "BT1-003",
-            "BT1-004",
-            "BT1-005",
-            "BT1-006",
-            "BT1-007",
-            "BT1-008",
-          ],
+describe("BT6-079 Murmukusmon — KB Q&A rulings", () => {
+  it("counts itself in the trash, so 9 trash cards become 10 and Ornismon is played (Q1468)", async () => {
+    async function deleteMurmukusmonWithTrashSize(trashSize: number) {
+      const fillers = ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT6-079", as: "murmukusmon" }],
+            trash: [{ card: "BT6-080", as: "ornismon" }, ...fillers.slice(0, trashSize - 1)],
+          },
         },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      expect(s.state.players[0]!.trash).toHaveLength(trashSize);
 
-    await advance(s.engine).verb.deletePermanent([s.perm("murmukusmon").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-080"));
+      await advance(s.engine).verb.deletePermanent([s.perm("murmukusmon").permanentId], "byEffect");
+      await settle();
+      return s;
+    }
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-080")).toBe(true);
+    const nineBeforeDeletion = await deleteMurmukusmonWithTrashSize(9);
+    expect(nineBeforeDeletion.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
+      "BT6-080",
+    ]);
+    expect(nineBeforeDeletion.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT6-079");
+
+    const eightBeforeDeletion = await deleteMurmukusmonWithTrashSize(8);
+    expect(eightBeforeDeletion.state.players[0]!.battleArea).toHaveLength(0);
+    expect(eightBeforeDeletion.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT6-080");
   });
 });

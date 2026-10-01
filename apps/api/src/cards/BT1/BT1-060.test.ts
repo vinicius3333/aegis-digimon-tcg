@@ -177,3 +177,23 @@ describe("BT1-060 MagnaAngemon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT1-060 MagnaAngemon — KB Q&A rulings", () => {
+  it("grants no inherited DP bonus with 2 or fewer security cards (Q919)", async () => {
+    const slashAngemonDpWith = async (securityCount: number) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT1-062", as: "slashAngemon", under: ["BT1-060"] }],
+          security: Array.from({ length: securityCount }, () => "BT1-049"),
+        },
+      });
+      await s.ready();
+      return s.perm("slashAngemon").currentDP;
+    };
+
+    expect(await slashAngemonDpWith(0)).toBe(8000);
+    expect(await slashAngemonDpWith(1)).toBe(8000);
+    expect(await slashAngemonDpWith(2)).toBe(8000);
+    expect(await slashAngemonDpWith(3)).toBe(9000);
+  });
+});

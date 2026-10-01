@@ -1,9 +1,13 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
+import "../BT13/BT13-007.js";
+import "../BT16/BT16-084.js";
+import "../BT18/BT18-088.js";
 import { compiled } from "./BT17-012.js";
 
 const PRINTED_EFFECT =
@@ -372,5 +376,226 @@ describe("BT17-012 BurningGreymon", () => {
     expect(getCardDefinition("BT17-079")?.securityEffectText).toBeUndefined();
     expect(getCardDefinition("BT17-079")?.effectText).toContain("[Security] Play this card without paying the cost.");
     expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+});
+
+describe("BT17-012 BurningGreymon — KB Q&A rulings", () => {
+  const TAKUYA = "BT12-088";
+  const TAKUYA_AND_KOJI = "BT18-088";
+  const AGUNIMON = "BT17-011";
+  const ANCIENT_GREYMON = "BT17-017";
+  const RED_TAMER = "BT1-085";
+  const BLUE_TAMER = "BT1-086";
+  const INERT_RED_LV3 = "BT1-009";
+  const YOLEI_AND_KARI = "BT16-084";
+  const KING_DRASIL = "BT13-007";
+
+  function digivolveIntoBurningGreymon(s: EngineSetup, base: string, useAlternateCost: boolean) {
+    return s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm(base).permanentId,
+      instanceId: s.inst("burning").instanceId,
+      useAlternateCost,
+    });
+  }
+
+  async function digivolveWithYoleiAndKari(base: string, useAlternateCost: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: base, as: "base" },
+            { card: YOLEI_AND_KARI, as: "yoleiAndKari" },
+          ],
+          hand: [{ card: "BT17-012", as: "burning" }],
+          deck: [INERT_RED_LV3, INERT_RED_LV3],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(digivolveIntoBurningGreymon(s, "base", useAlternateCost)).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT17-012");
+    await drainMicrotasks();
+    return { watcherFired: s.perm("yoleiAndKari").isSuspended, memory: s.state.memory };
+  }
+
+  async function digivolveUnderKingDrasil(base: string, useAlternateCost: boolean) {
+    const s = setupEngine({
+      0: {
+        breeding: { card: KING_DRASIL, as: "drasil" },
+        battleArea: [{ card: base, as: "base" }],
+        hand: [{ card: "BT17-012", as: "burning" }],
+        deck: [INERT_RED_LV3],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    const result = digivolveIntoBurningGreymon(s, "base", useAlternateCost);
+    await drainMicrotasks();
+    return { accepted: result.ok, top: s.perm("base").topCard?.cardId, memory: s.state.memory };
+  }
+
+  async function chainIntoAncientGreymon(runAttack: (s: EngineSetup) => Promise<void>) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-012", as: "burning", under: [TAKUYA_AND_KOJI] }],
+          hand: [
+            { card: AGUNIMON, as: "agunimon" },
+            { card: ANCIENT_GREYMON, as: "ancient" },
+          ],
+          deck: [INERT_RED_LV3, INERT_RED_LV3, INERT_RED_LV3, INERT_RED_LV3],
+        },
+        1: {
+          security: [INERT_RED_LV3, INERT_RED_LV3, INERT_RED_LV3],
+          deck: [INERT_RED_LV3, INERT_RED_LV3, INERT_RED_LV3],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const stackId = s.perm("burning").permanentId;
+    preferred.push(s.inst("agunimon").instanceId, s.inst("ancient").instanceId);
+
+    await runAttack(s);
+    const stackAfterTurn = s.state.players[0]!.battleArea.find((p) => p.permanentId === stackId);
+    return {
+      top: stackAfterTurn?.topCard?.cardId,
+      sources: stackAfterTurn?.stack.map(({ cardId }) => cardId),
+      opponentSecurity: s.state.players[1]!.security.length,
+    };
+  }
+
+  it("does not delete [AncientGreymon] reached through the end-of-turn attack chain, because the end-of-turn timing has passed (Q2731)", async () => {
+    const mainPhaseAttack = await chainIntoAncientGreymon(async (s) => {
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("burning").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    });
+    expect(mainPhaseAttack).toEqual({ top: undefined, sources: undefined, opponentSecurity: 1 });
+
+    const endOfTurnAttack = await chainIntoAncientGreymon(async (s) => {
+      await advance(s.engine).runTurn(0);
+    });
+    expect(endOfTurnAttack).toEqual({
+      top: ANCIENT_GREYMON,
+      sources: [TAKUYA_AND_KOJI, "BT17-012", AGUNIMON],
+      opponentSecurity: 1,
+    });
+  });
+
+  it("treats a red Tamer digivolved as a level 3 Digimon as a digivolving Digimon: watchers fire and a can't-digivolve lock blocks it (Q2732)", async () => {
+    expect(await digivolveWithYoleiAndKari(AGUNIMON, true)).toEqual({ watcherFired: true, memory: 5 - 1 + 1 });
+    expect(await digivolveUnderKingDrasil(AGUNIMON, true)).toEqual({ accepted: false, top: AGUNIMON, memory: 5 });
+
+    expect(await digivolveWithYoleiAndKari(RED_TAMER, true)).toEqual({ watcherFired: true, memory: 5 - 3 + 1 });
+    expect(await digivolveUnderKingDrasil(RED_TAMER, true)).toEqual({ accepted: false, top: RED_TAMER, memory: 5 });
+  });
+
+  it("lets [Takuya Kanbara] on the cost-2 route digivolve as a Digimon, but only as a Tamer under a can't-digivolve lock (Q2733)", async () => {
+    expect(await digivolveWithYoleiAndKari(AGUNIMON, true)).toEqual({ watcherFired: true, memory: 5 - 1 + 1 });
+    expect(await digivolveUnderKingDrasil(AGUNIMON, true)).toEqual({ accepted: false, top: AGUNIMON, memory: 5 });
+
+    expect(await digivolveWithYoleiAndKari(TAKUYA, true)).toEqual({ watcherFired: true, memory: 5 - 2 + 1 });
+    expect(await digivolveUnderKingDrasil(TAKUYA, true)).toEqual({ accepted: true, top: "BT17-012", memory: 5 - 2 });
+  });
+
+  it("performs the digivolution bonus draw when it digivolves from a Tamer (Q2734)", async () => {
+    for (const base of [TAKUYA, RED_TAMER]) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: base, as: "base" }],
+          hand: [{ card: "BT17-012", as: "burning" }],
+          deck: [{ card: INERT_RED_LV3, as: "bonus" }, "BT1-010"],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(digivolveIntoBurningGreymon(s, "base", true)).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "BT17-012");
+
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bonus").instanceId]);
+      expect(s.state.players[0]!.deck).toHaveLength(1);
+    }
+  });
+
+  it("keeps the Tamer under it as a digivolution card that is trashed with it when it leaves the field (Q2736)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TAKUYA, as: "takuya" }],
+          hand: [{ card: "BT17-012", as: "burning" }],
+          deck: [INERT_RED_LV3, INERT_RED_LV3],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "wall", dp: 20000, suspended: true }],
+          security: [INERT_RED_LV3],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const takuyaId = s.inst("takuya").instanceId;
+    const burningId = s.inst("burning").instanceId;
+    const stackId = s.perm("takuya").permanentId;
+
+    expect(digivolveIntoBurningGreymon(s, "takuya", true)).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard?.instanceId === burningId);
+    expect(s.perm("takuya").stack.map(({ instanceId }) => instanceId)).toEqual([takuyaId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: stackId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === stackId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual([burningId, takuyaId].sort());
+  });
+
+  it("digivolves without an opt-out once declared, and cannot be declared without a card it can digivolve onto (Q4658)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: BLUE_TAMER, as: "blueTamer" },
+          { card: RED_TAMER, as: "redTamer" },
+        ],
+        hand: [{ card: "BT17-012", as: "burning" }],
+        deck: [INERT_RED_LV3, INERT_RED_LV3],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    for (const useAlternateCost of [true, false]) {
+      expect(digivolveIntoBurningGreymon(s, "blueTamer", useAlternateCost)).not.toEqual({ ok: true });
+    }
+    expect(s.perm("blueTamer").topCard?.cardId).toBe(BLUE_TAMER);
+    expect(s.state.memory).toBe(5);
+
+    expect(digivolveIntoBurningGreymon(s, "redTamer", true)).toEqual({ ok: true });
+    await settle(() => s.perm("redTamer").topCard?.cardId === "BT17-012");
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toEqual([]);
+    expect(s.state.memory).toBe(2);
   });
 });

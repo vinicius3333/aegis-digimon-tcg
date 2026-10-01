@@ -14,7 +14,14 @@ import {
   resolveDeletionReactions,
   runTimingWindow,
 } from "./timing.js";
-import { armedSubTriggers, prepareFrozenSubTrigger, prepareSubTrigger, withPendingSubTriggers } from "./subTriggers.js";
+import {
+  armedSubTriggers,
+  parkArmedForEnclosingWindow,
+  prepareFrozenSubTrigger,
+  prepareSubTrigger,
+  withPendingSubTriggers,
+} from "./subTriggers.js";
+import { shouldDeferNestedTiming } from "./windows.js";
 import { cardSourceOf, dropPermanentSubscriptions, effectEnvironment } from "./effectContext.js";
 import { beginBattleScope, endBattleScope, sweepBattleDurations, sweepCombatDurations } from "./turnFlow.js";
 import type { GameEngine } from "../GameEngine.js";
@@ -72,7 +79,23 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
           await engine.fireSubTrigger("whenSuspended", suspensionTrigger);
         }
         await fireTiming(engine, EffectTiming.OnUseAttack, combatTriggerInfo(engine, trigger));
-        return { allianceResolvedInWindow: false, subTriggersResolvedInWindow: false };
+        // An effect-driven attack parks the attacker's [When Attacking] effects in the
+        // resolving effect's window. The turn player's watchers armed by the same declaration
+        // (EX12-069's security "when one of your Digimon attacks") are simultaneous with them,
+        // so they join that window instead of resolving first on the caller's bus (CR §15-4).
+        // Parking claims them, so the caller's `whenAttacking` fire skips them.
+        if (
+          includeSubTriggers &&
+          opts.subTriggerPayload !== undefined &&
+          shouldDeferNestedTiming(engine) &&
+          engine.pendingPoolDrainDepth > 0
+        ) {
+          parkArmedForEnclosingWindow(
+            engine,
+            armedSubTriggers(engine, engine.subTriggers.subscriptionsFor("whenAttacking"), opts.subTriggerPayload),
+          );
+        }
+        return { allianceResolvedInWindow: false, raidResolvedInWindow: false, subTriggersResolvedInWindow: false };
       }
       // Attack declaration opens several trigger channels as one event. Bring continuous
       // watchers up to date before capturing any channel so every resident source is judged
@@ -107,6 +130,33 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
           resolve: async () => engine.combat.resolveAllianceEffect(attacker.permanentId),
         },
       }));
+      // ＜Raid＞ is one more simultaneous [When Attacking] trigger: the controller orders it
+      // against the printed effects (Q4926, Q5444), and the opponent's [Opponent's Turn]
+      // redirect waits for it under turn-player priority (Q2118). `resolveRaidEffect`
+      // re-checks the keyword, so an attacker that lost it meanwhile does nothing (Q5444).
+      const raidEffects: CollectedEffect[] =
+        opts.raidTriggered === true
+          ? [
+              {
+                source: cardSourceOf(engine, top),
+                timing: EffectTiming.OnUseAttack,
+                effect: {
+                  effectKey: `${top.instanceId}/keyword/Raid`,
+                  description: "＜Raid＞: Switch the attack target to the opponent's highest-DP unsuspended Digimon.",
+                  // Not `optional`: the target prompt itself carries the decline, as with ＜Alliance＞.
+                  optional: false,
+                  isInherited: false,
+                  isSecurity: false,
+                  isLinked: false,
+                  maxPerTurn: -1,
+                  canTrigger: () => true,
+                  canActivate: () => engine.combat.canResolveRaid(attacker.permanentId),
+                  announce: () => engine.combat.hasRaidTarget(attacker.permanentId),
+                  resolve: async () => engine.combat.resolveRaidEffect(attacker.permanentId),
+                },
+              },
+            ]
+          : [];
       const attackPayload = opts.subTriggerPayload ?? combatTriggerInfo(engine, trigger);
       const suspensionPayload =
         opts.suspendedPermanentId === undefined
@@ -130,7 +180,7 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
           : attackEnvironment
               .collect(EffectTiming.OnTappedAnyone)
               .map((effect) => ({ ...effect, triggerInfo: suspensionPayload }));
-      const pendingAttackEffects = [...allyAttackEffects, ...suspensionEffects, ...allianceEffects];
+      const pendingAttackEffects = [...allyAttackEffects, ...suspensionEffects, ...allianceEffects, ...raidEffects];
       const timingWindow = async () =>
         fireTimingForPermanent(engine, EffectTiming.OnUseAttack, attacker, attackPayload, pendingAttackEffects);
       const subTriggerPayload = opts.subTriggerPayload ?? combatTriggerInfo(engine, trigger);
@@ -151,7 +201,11 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       } else {
         await timingWindow();
       }
-      return { allianceResolvedInWindow: allianceCount > 0, subTriggersResolvedInWindow: includeSubTriggers };
+      return {
+        allianceResolvedInWindow: allianceCount > 0,
+        raidResolvedInWindow: raidEffects.length > 0,
+        subTriggersResolvedInWindow: includeSubTriggers,
+      };
     },
     fireSubTrigger: async (event, payload) => engine.fireSubTrigger(event, payload),
     prepareSubTrigger: (event, payload) => prepareSubTrigger(engine, event, payload),
@@ -212,6 +266,25 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
     markBarrierFired: (key) => engine.tracker.register(key, "replacement"),
     trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat),
     sweepEndOfAttack: () => sweepCombatDurations(engine),
+    deferEndOfAttack: (trigger) => {
+      if (engine.activeWindowToken === undefined) return undefined;
+      const endOfAttackWindow = {
+        timing: EffectTiming.OnEndAttack,
+        trigger: {
+          subjectPermanentId: trigger.subjectPermanentId,
+          suspendedPermanentId: trigger.suspendedPermanentId,
+          ...combatTriggerInfo(engine, trigger),
+        },
+        transientCandidates: [],
+      };
+      engine.deferredTimingWindows.push(endOfAttackWindow);
+      return () => {
+        const index = engine.deferredTimingWindows.indexOf(endOfAttackWindow);
+        if (index < 0) return false;
+        engine.deferredTimingWindows.splice(index, 1);
+        return true;
+      };
+    },
     beginBattleScope: () => beginBattleScope(engine),
     sweepEndOfBattle: (scopeId) => sweepBattleDurations(engine, scopeId),
     endBattleScope: (scopeId) => endBattleScope(engine, scopeId),

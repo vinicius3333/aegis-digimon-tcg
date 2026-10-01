@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { Phase } from "@aegis/shared";
 import "./ST3-07.js";
 
 describe("ST3-07 Unimon", () => {
@@ -50,5 +51,34 @@ describe("ST3-07 Unimon", () => {
     expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("ST3-07 Unimon — KB Q&A rulings", () => {
+  it("can attack with less than 2 memory and the attack finishes before the turn passes (Q633)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST3-07", as: "unimon" }], security: ["ST3-02"], deck: ["ST3-02", "ST3-02"] },
+      1: { security: ["ST3-02", "ST3-02"], deck: ["ST3-02", "ST3-02"] },
+    });
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main);
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("unimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    const kinds = s.events.map((event) => event.kind);
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: 1, to: -1, reason: "gainMemory" });
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "turnEnded", endingSeat: 0, nextSeat: 1 }));
+    expect(kinds.indexOf("memoryChanged")).toBeLessThan(kinds.indexOf("securityChecked"));
+    expect(kinds.indexOf("securityChecked")).toBeLessThan(kinds.indexOf("turnEnded"));
   });
 });

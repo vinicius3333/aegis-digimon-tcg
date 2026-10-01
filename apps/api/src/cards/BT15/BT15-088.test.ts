@@ -4,6 +4,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-088.js";
 
+const SORA_SELF_RETURN_PROMPT = "returning this Tamer";
+
 describe("BT15-088", () => {
   it("matches the catalog identity and keeps the direct module full and residual-free", () => {
     expect(getCardDefinition("BT15-088")).toMatchObject({
@@ -52,7 +54,12 @@ describe("BT15-088", () => {
           deck: ["BT1-009", "BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+        declinePrompts: [SORA_SELF_RETURN_PROMPT],
+      },
     );
     s.state.turnSeat = 0;
     s.state.memory = 10;
@@ -94,5 +101,52 @@ describe("BT15-088", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-012")).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});
+
+describe("BT15-088 Wings of Love — KB Q&A rulings", () => {
+  async function playWingsWithTamerInHand(tamerCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-012", as: "redSource" }],
+          hand: [
+            { card: "BT15-088", as: "wings" },
+            { card: tamerCardId, as: "tamer" },
+          ],
+          trash: [{ card: "BT1-010", as: "redInTrash" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+        declinePrompts: [SORA_SELF_RETURN_PROMPT],
+      },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const tamerInstanceId = s.inst("tamer").instanceId;
+    const redInTrashId = s.inst("redInTrash").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wings").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[0]!.trash.some((card) => card.cardId === "BT15-088"),
+    );
+
+    return {
+      tamerPlayed: s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === tamerInstanceId,
+      ),
+      redReturned: s.state.players[0]!.hand.some((card) => card.instanceId === redInTrashId),
+    };
+  }
+
+  it("returns a red Digimon from trash when the Tamer the effect just played is Sora Takenouchi (Q2586)", async () => {
+    await expect(playWingsWithTamerInHand("BT15-082")).resolves.toEqual({ tamerPlayed: true, redReturned: true });
+    await expect(playWingsWithTamerInHand("BT1-085")).resolves.toEqual({ tamerPlayed: true, redReturned: false });
   });
 });

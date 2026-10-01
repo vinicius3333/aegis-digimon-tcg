@@ -87,3 +87,32 @@ describe("ST24-08 Lalamon", () => {
     expect(s.perm("host").currentDP).toBe(6000);
   });
 });
+
+async function digivolveLalamonIntoSunflowmon(lalamon: "battleArea" | "breeding") {
+  const s = setupEngine({
+    0: {
+      ...(lalamon === "breeding"
+        ? { breeding: { card: "ST24-08", as: "lalamon" } }
+        : { battleArea: [{ card: "ST24-08", as: "lalamon" }] }),
+      hand: [{ card: "ST24-09", as: "sunflowmon" }],
+    },
+  });
+  s.state.memory = 10;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("lalamon").permanentId,
+      instanceId: s.inst("sunflowmon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("lalamon").topCard.cardId === "ST24-09" && s.state.pendingDecision === undefined);
+  return s.state.memory;
+}
+
+describe("ST24-08 Lalamon — KB Q&A rulings", () => {
+  it("does not reduce the cost when digivolving from the breeding area into a [DATA SQUAD] Digimon (Q6216)", async () => {
+    expect(await digivolveLalamonIntoSunflowmon("breeding")).toBe(8);
+    expect(await digivolveLalamonIntoSunflowmon("battleArea")).toBe(9);
+  });
+});

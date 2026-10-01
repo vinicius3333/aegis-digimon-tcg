@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -404,5 +404,37 @@ describe("BT23-018 Garurumon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([eggId, garurumonId]),
     );
+  });
+});
+
+describe("BT23-018 Garurumon — KB Q&A rulings", () => {
+  it("activates while its only 1000 DP source is reduced by 1000, then rule-deletes the 0 DP top card (Q5239)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-018", as: "garurumon", under: [{ card: "BT23-017", as: "betamon" }] }],
+          hand: [{ card: "BT1-010", as: "agumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const garurumonId = s.inst("garurumon").instanceId;
+    const betamonId = s.inst("betamon").instanceId;
+    const permanentId = s.perm("garurumon").permanentId;
+    await advance(s.engine).verb.modifyDP(permanentId, -1000, EffectDuration.UntilEachTurnEnd);
+    expect(s.perm("garurumon").currentDP).toBe(4000);
+
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: garurumonId, effectKey: mainEffectKey(s) }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === permanentId));
+
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toEqual([s.inst("agumon").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([betamonId, garurumonId]),
+    );
+    expect(s.state.memory).toBe(4);
   });
 });

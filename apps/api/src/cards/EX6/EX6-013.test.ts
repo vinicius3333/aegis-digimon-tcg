@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-013.js";
+import "./EX6-015.js";
 
 describe("EX6-013 Xiquemon", () => {
   it("draws on play and gains memory when played from digivolution cards", () => {
@@ -46,5 +47,35 @@ describe("EX6-013 Xiquemon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+});
+
+describe("EX6-013 Xiquemon — KB Q&A rulings", () => {
+  it("draws and gains memory when Xiangpengmon plays it from digivolution cards (Q3708)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-015", as: "host", under: [{ card: "EX6-013", as: "xique" }] }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("xique").instanceId],
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("xique").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.memory).toBe(1);
   });
 });

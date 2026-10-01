@@ -1,7 +1,8 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-097.js";
 import "../index.js";
 
@@ -222,5 +223,100 @@ describe("BT24-097 Soul Fear", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-080")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-020")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+describe("BT24-097 Soul Fear — KB Q&A rulings", () => {
+  it("counts a TS card in the battle area or the breeding area as on the field for its color waiver (Q5704)", async () => {
+    const useSoulFear = async (field: { battleArea?: string[]; breeding?: string }) => {
+      const s = setupEngine(
+        {
+          0: { ...field, hand: [{ card: "BT24-097", as: "soulFear" }] },
+          1: { battleArea: [{ card: "BT1-080", as: "target" }] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      return { s, result: s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("soulFear").instanceId }) };
+    };
+    const deletedTarget = (s: EngineSetup) =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId);
+
+    for (const field of [{ battleArea: ["BT24-083"] }, { breeding: "BT24-009" }]) {
+      const { s, result } = await useSoulFear(field);
+      expect(result).toEqual({ ok: true });
+      await settle(() => deletedTarget(s));
+    }
+
+    const { s, result } = await useSoulFear({ battleArea: ["BT1-009"] });
+    expect(result.ok).toBe(false);
+    expect(deletedTarget(s)).toBe(false);
+  });
+
+  it("treats its link effect as a Digimon effect, not an Option card effect (Q5705)", async () => {
+    const attackWhileTargetIgnores = async (sourceKind: "Digimon" | "Option") => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT24-009", as: "host", dp: 15000, linked: [{ card: "BT24-097" }] }] },
+          1: { battleArea: [{ card: "BT1-020", as: "target" }], security: ["BT1-013", "BT1-013"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      advance(s.engine).ledgers.continuous.addRestriction(
+        s.perm("target").permanentId,
+        "beAffected",
+        EffectDuration.UntilOpponentTurnEnd,
+        { fromSourceKind: [sourceKind], byOpponentEffectsOnly: true },
+      );
+      await advance(s.engine).recompute();
+      const targetId = s.perm("target").permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking(),
+      );
+      return s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId);
+    };
+
+    expect(await attackWhileTargetIgnores("Digimon")).toBe(true);
+    expect(await attackWhileTargetIgnores("Option")).toBe(false);
+  });
+
+  it("can pay its link cost while an opponent effect prohibits using Option cards (Q5706)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-009", as: "host" }], hand: [{ card: "BT24-097", as: "soulFear" }] },
+      1: { battleArea: [{ card: "BT11-095" }], hand: [{ card: "EX1-072", as: "shutdown" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("shutdown").instanceId));
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("soulFear").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("soulFear").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").linked[0]?.cardId).toBe("BT24-097");
+    expect(s.state.memory).toBe(2);
   });
 });

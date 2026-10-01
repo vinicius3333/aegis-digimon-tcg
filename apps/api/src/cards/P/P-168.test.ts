@@ -82,6 +82,32 @@ describe("P-168 Yao Qinglan", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquatic] into [Aquabeast])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-168", as: "yao" },
+            { card: "BT12-025", under: [{ card: "BT1-033", as: "added" }], as: "host" },
+          ],
+          hand: [{ card: "BT12-027", as: "mermaimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("added").instanceId],
+    });
+    await settle(() => s.perm("host").topCard.cardId === "BT12-027");
+
+    expect(s.perm("yao").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+  });
+
   it("plays itself for free from Security", async () => {
     const s = setupEngine(
       {

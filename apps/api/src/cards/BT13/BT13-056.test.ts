@@ -5,6 +5,8 @@ import "./BT13-052.js";
 import "./BT13-055.js";
 import "./BT13-051.js";
 import "./BT13-040.js";
+import "./BT13-007.js";
+import "./BT13-111.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -238,5 +240,105 @@ describe("BT13-056 Leopardmon", () => {
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(played, "Blocker")).toBe(true);
+  });
+});
+
+describe("BT13-056 Leopardmon — KB Q&A rulings", () => {
+  it("cannot activate the [Main] play effect after using it for [When Digivolving] in the same turn (Q2299)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-055", as: "leo" }],
+          hand: [
+            { card: "BT13-056", as: "evolution" },
+            { card: "BT13-052", as: "green" },
+            { card: "BT13-040", as: "royal" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferInstanceIds.push(s.inst("green").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("leo").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("green").instanceId));
+    await settle();
+    const memoryAfterWhenDigivolving = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("leo").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }).ok,
+    ).toBe(false);
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(memoryAfterWhenDigivolving);
+
+    const control = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-056", as: "leo" }],
+          hand: [{ card: "BT13-040", as: "royal" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.memory = 10;
+    await control.ready();
+    expect(
+      control.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: control.perm("leo").topCard.instanceId,
+        effectKey: mainEffectKey(control),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      control.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === control.inst("royal").instanceId),
+    );
+    expect(control.state.memory).toBe(10 - (7 - 4));
+  });
+
+  it("stacks its play cost reduction with King Drasil_7D6's reduction for a [Royal Knight] card (Q2300)", async () => {
+    async function memoryAfterPlayingGallantmon(withKingDrasil: boolean): Promise<number> {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT13-056", as: "leo" }],
+            hand: [{ card: "BT13-111", as: "gallantmon" }],
+            ...(withKingDrasil ? { breeding: { card: "BT13-007", as: "kingDrasil" } } : {}),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.perm("leo").topCard.instanceId,
+          effectKey: mainEffectKey(s),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gallantmon").instanceId),
+      );
+      await settle();
+      return s.state.memory;
+    }
+
+    expect(await memoryAfterPlayingGallantmon(false)).toBe(10 - (13 - 4));
+    expect(await memoryAfterPlayingGallantmon(true)).toBe(10 - (13 - 4 - 4));
   });
 });

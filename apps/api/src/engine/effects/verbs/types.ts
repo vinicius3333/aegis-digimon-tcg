@@ -2,10 +2,12 @@ import type { ModifierLedger } from "../modifiers.js";
 import type { ContinuousEffectLedger } from "../continuous.js";
 import type { DnaMemoryGain, SubTriggerRegistry } from "../subtriggers.js";
 import type { SubTriggerSourceScope } from "../EffectContext.js";
+import type { AttackDecisionProvenance } from "../context/primitives/index.js";
 import type {
   AttackTarget,
   CardDefinition,
   CardInstance,
+  DigivolutionRequirement,
   GameState,
   Permanent,
   Seat,
@@ -50,6 +52,17 @@ export interface PrimitivesEngine {
    * attack's drain when the body that ordered it is a watcher rather than a timing window.
    */
   drainPendingAttackTriggers?(): Promise<void>;
+  /**
+   * Ask `seat` whether to activate ＜Blitz＞ for `attackerPermanentId`; once accepted, wait for
+   * that seat's attack intent naming one of `candidates` ("player" or opponent permanent ids).
+   * Resolves `undefined` when the Blitz is declined or abandoned.
+   */
+  awaitBlitzAttackDeclaration?(
+    seat: Seat,
+    attackerPermanentId: string,
+    candidates: readonly string[],
+    provenance?: AttackDecisionProvenance,
+  ): Promise<string | undefined>;
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
@@ -125,26 +138,49 @@ export interface PrimitivesEngine {
     useAsOption?: boolean,
     originZone?: ZoneRef,
     projectOnly?: boolean,
+    simultaneousPlayCount?: number,
   ) => Promise<number>;
   /** Activate matching would-be-played replacements before an effect-driven DigiXros picker. */
   prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
-  prepareDigiXrosPlays?(instanceIds: readonly string[]): Promise<Record<string, string[]>>;
+  prepareDigiXrosPlays?(
+    instanceIds: readonly string[],
+    simultaneousPlayCount?: number,
+  ): Promise<Record<string, string[]>>;
   /**
    * Play cards for a keyword effect of `sourceInstanceId` without paying their costs, through the
    * shared effect-play seam that offers DigiXros and Assembly (§7-2-2-13).
    */
-  playForKeywordEffect?(sourceInstanceId: string, instanceIds: readonly string[]): Promise<Permanent[]>;
+  playForKeywordEffect?(
+    sourceInstanceId: string,
+    instanceIds: readonly string[],
+    opts?: { playedFromZone?: import("@aegis/shared").ZoneRef },
+  ): Promise<Permanent[]>;
+  /**
+   * Pay an alternate requirement's `placementCost` for an effect-driven digivolution into
+   * `evolving` (BT7-112). Returns false when the placement could not be paid.
+   */
+  payAlternatePlacement?: (
+    seat: Seat,
+    requirement: DigivolutionRequirement,
+    evolving: CardInstance,
+  ) => Promise<boolean>;
   /** Resolve passive and interactive cost reducers for an effect-driven paid digivolution. */
   finalizeEffectDigivolveCost?: (
     target: Permanent,
     evolvingInstanceId: string,
     into: CardDefinition,
     baseCost: number,
+    baseAsDigimon?: CardDefinition,
   ) => Promise<number>;
   /** Read the effective hand-use cost for eligibility checks that must include automatic self reducers. */
   effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
-  /** Resolve each newly linked physical card's own [When Linking] window. */
-  fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
+  /** Read a loose card's cost while in hand, counting only reducers that apply there (Q1501). */
+  inHandCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
+  /**
+   * Resolve one link event: the host's "when linked" watchers and each newly linked card's
+   * own [When Linking] effect, as one group of simultaneous triggers.
+   */
+  fireLinkEvent?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
   resolveSelfWhenTrashedFromDeck?: (instanceId: string, byEffectCardId?: string) => Promise<void>;
   /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
@@ -165,6 +201,7 @@ export interface PrimitivesEngine {
       timings?: import("@aegis/shared").EffectTiming[];
       chooseOne?: boolean;
       outsideTriggerWindow?: boolean;
+      continueEffectAfterAttackDeclaration?: () => Promise<void>;
     },
   ) => Promise<boolean>;
   /**
@@ -205,7 +242,7 @@ export interface PrimitivesEngine {
     permanentIds: string[],
     cause: import("../EffectContext.js").RemovalCause,
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean; playerAction?: boolean },
+    opts?: { isBounce?: boolean; playerAction?: boolean; includeEvade?: boolean },
   ) => Promise<Set<string>>;
   /** The shared memory gauge (memory-gauge subsystem); single owner of memory math. */
   readonly memory: MemoryPort;
@@ -247,6 +284,8 @@ export interface PrimitivesEngine {
   inContinuousPass?(): boolean;
   /** True while a triggered timing window is resolving, including nested windows. */
   inResolvingWindow?(): boolean;
+  /** The seat whose end-of-turn window is resolving; undefined outside that window. */
+  turnEndWindowSeat?(): Seat | undefined;
   /**
    * Once-per-turn prevention ledger (＜Barrier＞). `barrierFired` returns true
    * when the given per-permanent key has already prevented a removal this turn;
@@ -285,6 +324,7 @@ export interface MemoryPort {
  */
 export interface CombatPort {
   readonly isAttacking: boolean;
+  readonly attackedThisTurn?: ReadonlySet<string>;
   readonly currentAttackerId: string | undefined;
   /** Resolve a direct rules battle without creating an attack declaration. */
   resolveBattle?(attacker: Permanent, defender: Permanent): Promise<void>;
@@ -298,7 +338,6 @@ export interface CombatPort {
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
-      afterAttackEnd?: () => Promise<void>;
       artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
     },

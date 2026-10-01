@@ -181,3 +181,31 @@ describe("BT5-003 Pickmon", () => {
     expect(target.currentDP).toBe(before);
   });
 });
+
+describe("BT5-003 Pickmon — KB Q&A rulings", () => {
+  it("counts the Digimon it is a digivolution card of toward the 3 Digimon (Q1282)", async () => {
+    async function attackWithAllies(allies: string[]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-019", as: "host", under: ["BT5-003"] }, ...allies] },
+          1: { battleArea: [{ card: "BT4-076", as: "target" }], security: ["BT1-011"] },
+        },
+        { autoSelectCards: true },
+      );
+      const target = s.perm("target");
+      const before = target.currentDP;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => target.currentDP === before - 1000 || s.state.players[1]!.security.length === 0);
+      return before - target.currentDP;
+    }
+
+    expect(await attackWithAllies(["BT1-009", "BT1-010"])).toBe(1000);
+    expect(await attackWithAllies(["BT1-009"])).toBe(0);
+  });
+});

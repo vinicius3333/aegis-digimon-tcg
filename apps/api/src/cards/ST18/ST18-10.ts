@@ -29,7 +29,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Bird", "Avian"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -38,7 +38,7 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           condition: {
-            kind: "ifThisEffectActed",
+            kind: "lastSuspendedIsMine",
             raw: "this effect suspends your Digimon",
           },
           optional: true,
@@ -71,7 +71,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Bird", "Avian"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -80,7 +80,7 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           condition: {
-            kind: "ifThisEffectActed",
+            kind: "lastSuspendedIsMine",
             raw: "this effect suspends your Digimon",
           },
           optional: true,
@@ -95,6 +95,14 @@ export const compiled: CompiledCard = {
           event: "whenAttacking",
           sourceFilter: {
             isSelfRef: true,
+          },
+          fireCondition: {
+            kind: "attackTargetMatchesFilter",
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            raw: "When this Digimon attacks your opponent's Digimon",
           },
           actions: [
             {

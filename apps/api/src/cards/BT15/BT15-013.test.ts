@@ -71,6 +71,23 @@ describe("BT15-013", () => {
     );
   });
 
+  it("counts a card whose trait only contains [Beast] (e.g. [Beastkin])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-013", as: "birdramon" }],
+          trash: [{ card: "BT11-014", as: "beastkin" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("birdramon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("beastkin").instanceId);
+  });
+
   it("gains memory from an actual player attack removing the opponent's security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT15-015", as: "host", under: ["BT15-013"] }] },

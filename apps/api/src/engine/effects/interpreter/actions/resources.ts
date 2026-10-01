@@ -320,16 +320,21 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             mode: "reduceCost",
             amount: Math.abs(action.amount),
             controllerSeat: ownerSeat,
-            appliesTo: (target: Permanent) =>
-              target.controllerSeat === ownerSeat &&
-              !target.inBreeding &&
-              target.topCard !== undefined &&
-              ctx.game.definitionOf(target.topCard).kinds.includes(CardKind.Digimon),
+            // KB Q1157, Q3261: a Tamer digivolving as if it is a Digimon is a digivolving Digimon.
+            appliesTo: (target: Permanent, _originZone, baseAsDigimon) => {
+              if (target.controllerSeat !== ownerSeat || target.inBreeding || target.topCard === undefined)
+                return false;
+              if (baseAsDigimon !== undefined) return true;
+              const printedKinds = ctx.game.definitionOf(target.topCard).kinds;
+              return (ctx.game.effectiveKinds?.(target.permanentId, printedKinds) ?? printedKinds).includes(
+                CardKind.Digimon,
+              );
+            },
             activationContext: ctx,
             consumeOnActivate: true,
             expiresOnTurnEndOf: ownerSeat,
             description: action.raw ?? `Reduce the next digivolution cost by ${Math.abs(action.amount)}`,
-            activate: async (runtimeCtx, target, _into, evolvingInstanceId, materials) => {
+            activate: async (runtimeCtx, target, _into, evolvingInstanceId, materials, baseAsDigimon) => {
               if (target.controllerSeat !== ownerSeat || target.inBreeding) return false;
               // An explicit target identifies an ordinary activation cost (EX5-029's top
               // security card). runAction pays that cost before this one-shot replacement is
@@ -338,11 +343,13 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
               // keep resolving that specialized color-matching payment below.
               if (action.cost?.target !== undefined) return true;
               const colors = new Set(
-                (materials ?? [target]).flatMap(
-                  (material) =>
-                    runtimeCtx.game.effectiveColors?.(material) ??
-                    runtimeCtx.game.definitionOf(material.topCard).colors,
-                ),
+                materials === undefined && baseAsDigimon !== undefined
+                  ? baseAsDigimon.colors
+                  : (materials ?? [target]).flatMap(
+                      (material) =>
+                        runtimeCtx.game.effectiveColors?.(material) ??
+                        runtimeCtx.game.definitionOf(material.topCard).colors,
+                    ),
               );
               const candidates = runtimeCtx.game.player(ownerSeat).hand.filter((card) => {
                 if (card.instanceId === evolvingInstanceId) return false;

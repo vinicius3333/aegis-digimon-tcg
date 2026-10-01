@@ -131,3 +131,50 @@ describe("BT10-059 Spadamon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT10-059 Spadamon — KB Q&A rulings", () => {
+  it("can still place itself under a [Xros Heart] Digimon when the opponent has no Digimon (Q1986)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-059", as: "source" }],
+          battleArea: [{ card: "BT10-034", as: "host" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("host").permanentId);
+    s.state.memory = 4;
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.pendingDecision === undefined && s.perm("host").stack.some(({ cardId }) => cardId === "BT10-059"),
+    );
+
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT10-059"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT10-034"]);
+    assertNoLoudGap(s);
+
+    const nearMiss = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-059", as: "source" }],
+          battleArea: [{ card: "BT1-009", as: "nonXrosHeart" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    nearMiss.state.memory = 4;
+    expect(
+      nearMiss.engine.applyIntent(0, { type: "playCard", instanceId: nearMiss.inst("source").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => nearMiss.state.pendingDecision === undefined && nearMiss.state.players[0]!.battleArea.length === 2,
+    );
+    expect(nearMiss.perm("nonXrosHeart").stack).toHaveLength(0);
+  });
+});

@@ -1,8 +1,12 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type CardSpec, type SeatSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-092.js";
+import "./BT13-089.js";
+import "./BT13-102.js";
+import "../BT1/BT1-085.js";
+import "../BT11/BT11-063.js";
 
 describe("BT13-092 BT13-092", () => {
   it("matches burst timing and the two When Digivolving clauses", () => {
@@ -221,5 +225,200 @@ describe("BT13-092 BT13-092", () => {
     expect(s.perm("base").topCard.instanceId).toBe(priorTopId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(burstTopId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
+  });
+});
+
+describe("BT13-092 Ravemon: Burst Mode — KB Q&A rulings", () => {
+  async function endOwnTurnWithRavemonHost(burst: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-089", as: "host", under: [{ card: "BT13-082", as: "avian" }] },
+            { card: "BT13-102", as: "keenan" },
+          ],
+          hand: [{ card: "BT13-092", as: "burst" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009"], security: 2 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const hostTopId = s.perm("host").topCard.instanceId;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const burstResult = burst
+      ? s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("burst").instanceId,
+          alternateRequirementIndex: 0,
+        })
+      : { ok: true };
+    expect(burstResult).toEqual({ ok: true });
+    await settle(() => !burst || s.perm("host").topCard.cardId === "BT13-092");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    const ravemonEndOfTurnTriggered = s.events.some(
+      (event) => event.kind === "effectTriggered" && event.sourceInstanceId === hostTopId,
+    );
+    const hostStillOnField = s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard?.instanceId === hostTopId,
+    );
+    return { s, ravemonEndOfTurnTriggered, hostStillOnField };
+  }
+
+  it("does not trigger the revealed Ravemon's [End of Your Turn] after the burst top card is trashed (Q2335)", async () => {
+    const burst = await endOwnTurnWithRavemonHost(true);
+    expect(burst.s.state.players[0]!.trash.some((card) => card.instanceId === burst.s.inst("burst").instanceId)).toBe(
+      true,
+    );
+    expect(burst.hostStillOnField).toBe(true);
+    expect(burst.ravemonEndOfTurnTriggered).toBe(false);
+
+    const control = await endOwnTurnWithRavemonHost(false);
+    expect(control.ravemonEndOfTurnTriggered).toBe(true);
+    expect(control.hostStillOnField).toBe(false);
+  });
+
+  async function digivolveIntoBurstMode(opponentSecurity: CardSpec[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-089", as: "ravemon" }],
+          hand: [{ card: "BT13-092", as: "burst" }],
+        },
+        1: {
+          hand: [
+            { card: "BT1-009", as: "handCard" },
+            { card: "BT1-010", as: "keptHandCard" },
+          ],
+          security: opponentSecurity,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ravemon").permanentId,
+        instanceId: s.inst("burst").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length < opponentSecurity.length);
+    await settle();
+    return s;
+  }
+
+  it("does not let you look at the security card your opponent adds to their hand (Q2336)", async () => {
+    const s = await digivolveIntoBurstMode([{ card: "ST1-07", as: "addedSecurity" }]);
+    const addedId = s.inst("addedSecurity").instanceId;
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(addedId);
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+
+    const handSearch = s.decisions.filter(
+      (decision) =>
+        decision.seat === 0 &&
+        (decision.req.options?.candidateInstanceIds ?? []).includes(s.inst("handCard").instanceId),
+    );
+    expect(handSearch).toHaveLength(1);
+    const seatZeroSawAddedCard = s.decisions.some(
+      (decision) =>
+        decision.seat === 0 &&
+        ((decision.req.options?.candidateInstanceIds ?? []).includes(addedId) ||
+          (decision.req.options?.visibleCards ?? []).some((card) => card.instanceId === addedId)),
+    );
+    expect(seatZeroSawAddedCard).toBe(false);
+    const addedCardRevealed = s.events.some(
+      (event) =>
+        (event.kind === "cardRevealed" && event.cardId === "ST1-07") ||
+        (event.kind === "securityRevealed" && event.revealedCardId === "ST1-07"),
+    );
+    expect(addedCardRevealed).toBe(false);
+  });
+
+  async function attackWithBurstMode(opponent: SeatSpec) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-092", as: "ravemon" }] },
+        1: { ...opponent, security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const opponentPermanentIds = new Map(
+      (opponent.battleArea ?? []).map((spec) => {
+        const alias = typeof spec === "string" ? spec : (spec.as ?? spec.card);
+        return [alias, s.perm(alias).permanentId];
+      }),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ravemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    const onField = (alias: string): boolean =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentPermanentIds.get(alias));
+    return { s, onField };
+  }
+
+  it("deletes only [Greymon]-named Digimon when [Greymon] is returned, not [MetalGreymon] or [WarGreymon] (Q2337)", async () => {
+    const { s, onField } = await attackWithBurstMode({
+      battleArea: [
+        { card: "ST1-07", as: "greymon" },
+        { card: "ST1-09", as: "metalGreymon" },
+        { card: "ST1-11", as: "warGreymon" },
+      ],
+      trash: [{ card: "ST1-07", as: "returned" }],
+    });
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toContain(s.inst("returned").instanceId);
+    expect(onField("greymon")).toBe(false);
+    expect(onField("metalGreymon")).toBe(true);
+    expect(onField("warGreymon")).toBe(true);
+  });
+
+  it("deletes Digimon sharing either the returned card's own name or its also-treated-as name (Q2338)", async () => {
+    const { s, onField } = await attackWithBurstMode({
+      battleArea: [
+        { card: "BT11-063", as: "geremon" },
+        { card: "BT2-056", as: "numemon" },
+        { card: "BT1-010", as: "unrelated" },
+      ],
+      trash: [{ card: "BT11-063", as: "returned" }],
+    });
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toContain(s.inst("returned").instanceId);
+    expect(onField("geremon")).toBe(false);
+    expect(onField("numemon")).toBe(false);
+    expect(onField("unrelated")).toBe(true);
+  });
+
+  it("does not activate the [Security] effect of the security card added to the opponent's hand (Q2339)", async () => {
+    const s = await digivolveIntoBurstMode([
+      { card: "BT1-085", as: "addedTai" },
+      { card: "BT1-085", as: "checkedTai" },
+    ]);
+    const addedTaiId = s.inst("addedTai").instanceId;
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(addedTaiId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "securityRevealed")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ravemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length > 0);
+    const playedFromSecurity = s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId);
+    expect(playedFromSecurity).toEqual([s.inst("checkedTai").instanceId]);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(addedTaiId);
   });
 });

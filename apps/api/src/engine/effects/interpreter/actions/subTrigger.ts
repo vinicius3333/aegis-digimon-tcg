@@ -1,6 +1,6 @@
 // Arming a watcher that fires on a later game event.
 
-import type { EffectContext, SubTriggerEventName } from "../../EffectContext.js";
+import type { EffectContext, SubTriggerEventName, TriggerInfo } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
@@ -15,6 +15,7 @@ import { findLooseCandidateByInstance } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
 import { canAttemptLink } from "./link.js";
+import { mayDeclareAttack } from "./meta.js";
 import { isDetachTopAction, onlyInfeasibleDetachTop } from "../targeting/detachTop.js";
 import { canActivateEffect } from "../effect.js";
 
@@ -309,7 +310,7 @@ export async function runSubTrigger(
     event === "onDigiBurstCardDiscarded" ||
     (event === "whenUnsuspended" && subjectFilter.isSelfRef === true && anchorPermanentId !== undefined)
       ? undefined
-      : (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, subjectFilter);
+      : subjectMatchSettledAtEvent(subjectFilter);
   const digivolutionTrashByEffectGate =
     event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
       ? (subCtx: EffectContext): boolean =>
@@ -1167,6 +1168,7 @@ export async function runSubTrigger(
       : {}),
     ...(isInheritedSource ? { isInheritedSource: true } : {}),
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
+    ...(sourceFilter?.isSelfRef === true ? { watchesSelf: true } : {}),
     ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
     ...(costFreeOptionalBody
       ? { hasLegalOutcome: (subCtx: EffectContext) => canActivateEffect(subCtx, { actions: action.actions }) }
@@ -1192,6 +1194,12 @@ export async function runSubTrigger(
     // one-shot survives the turn ends its gates reject. Default: persists until its anchor leaves.
     once: action.once === true,
     ...(action.once === true ? { continuous: false } : {}),
+    // A one-shot turn-end clause is pending processing from an effect that already resolved,
+    // so the turn player orders it against the other end-of-turn processing even when the
+    // armed effect is the opponent's (KB Q5564/Q5566/Q5568/Q5723).
+    ...(action.once === true && (event === "endOfTurn" || event === "endOfOpponentTurn")
+      ? { orderedByTurnPlayer: true }
+      : {}),
     ...(matches ? { matches } : {}),
     ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
     ...(action.oncePerTiming ? { oncePerTiming: true } : {}),
@@ -1358,7 +1366,7 @@ export async function runSubTrigger(
           if (gate === undefined || evaluateCondition(subCtx, gate)) anyActionGateMatched = true;
           const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
           let continuationRan = false;
-          if (current.kind === "Attack" && index + 1 < action.actions.length) {
+          if (mayDeclareAttack(current) && index + 1 < action.actions.length) {
             subCtx.continueEffectAfterAttackDeclaration = async () => {
               continuationRan = true;
               await runActionsFrom(index + 1);
@@ -1499,6 +1507,7 @@ export async function runGainTriggeredEffect(
       continuous: false,
       ...(action.raw ? { grantedEffectText: action.raw, printedClause: `[Granted] ${action.raw}` } : {}),
       ...(matches ? { matches } : {}),
+      ...(grantedPermanentDeletionGate !== undefined ? { watchesSelf: true } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       ...(attacksAtStartOfMainPhase
         ? {
@@ -1521,4 +1530,24 @@ export async function runGainTriggeredEffect(
       },
     });
   }
+}
+
+/**
+ * A watcher's subject filter is judged when the event happens. While the subject is still on
+ * the field, a later change to it does not undo the trigger: a suspended Veedramon that
+ * digivolves into a non-Veedramon still lets Rina activate (Q2143). A subject that left the
+ * field is re-read, because "that Digimon" is gone (Q3430).
+ */
+function subjectMatchSettledAtEvent(subjectFilter: Filter): (subCtx: EffectContext) => boolean {
+  const matchedEvents = new WeakSet<TriggerInfo>();
+  return (subCtx) => {
+    const { subjectPermanentId, subjectPermanentIds } = subCtx.trigger;
+    const subjectIds = subjectPermanentIds ?? (subjectPermanentId === undefined ? [] : [subjectPermanentId]);
+    const subjectsOnField =
+      subjectIds.length > 0 && subjectIds.every((id) => subCtx.game.permanentById(id) !== undefined);
+    if (subjectsOnField && matchedEvents.has(subCtx.trigger)) return true;
+    const matched = subjectMatchesFilter(subCtx, subjectFilter);
+    if (matched && subjectsOnField) matchedEvents.add(subCtx.trigger);
+    return matched;
+  };
 }

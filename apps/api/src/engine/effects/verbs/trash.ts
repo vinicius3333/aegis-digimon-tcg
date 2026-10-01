@@ -1,4 +1,4 @@
-import { Permanent, Zone, EffectTiming, requireCardDefinition, CardInstance, type Seat } from "@aegis/shared";
+import { Permanent, Zone, EffectTiming, CardInstance, type Seat } from "@aegis/shared";
 import {
   applyOverflow,
   extractPermanentAt,
@@ -6,10 +6,11 @@ import {
   insertCard,
   setBreeding,
 } from "../../state/access.js";
-import { isOption } from "../../cards/cardData.js";
+import { isOptionPermanent } from "../../cards/cardData.js";
 import { hostOfLinkedInstance, hostOfStackInstance, removeLooseInstance } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { fireSecurityTrashedEvents } from "./securityTrashedEvents.js";
 
 /**
  * Trashing loose cards and a permanent's digivolution cards.
@@ -82,9 +83,13 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     // Cards sitting in a security stack at trash time: an effect is trashing them FROM security
     // (ST22-10's leave-prevention pays by trashing itself from security — KB Q5438). Recorded before
     // removal so OnDiscardSecurity can fire once the card has landed in trash.
-    const fromSecurity = instanceIds.filter((id) =>
-      state.players.some((p) => p?.security.some((c) => c.instanceId === id)),
-    );
+    const securitySeatByInstance = new Map<string, Seat>();
+    for (const p of state.players) {
+      if (p === undefined) continue;
+      for (const card of p.security)
+        if (instanceIds.includes(card.instanceId)) securitySeatByInstance.set(card.instanceId, p.seat);
+    }
+    const fromSecurity = [...securitySeatByInstance.keys()];
     // Seats whose HAND holds a card about to be trashed (recorded before removal). After the move,
     // `whenHandTrashed` fires ONCE per affected seat for this trash ACTION, regardless of card count
     // (KB Q6400/Q6401), carrying the seat so a "when YOUR hand is trashed from" watcher (BT25-084)
@@ -109,7 +114,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
       for (const owner of state.players) {
         const index = owner.battleArea.findIndex((p) => p.topCard?.instanceId === instanceId);
         const permanent = index >= 0 ? owner.battleArea[index] : undefined;
-        if (permanent?.topCard !== undefined && isOption(requireCardDefinition(permanent.topCard.cardId))) {
+        if (permanent?.topCard !== undefined && isOptionPermanent(permanent)) {
           const extracted = extractPermanentAt(owner, index)!;
           dropPermanentLedgers(extracted.permanentId);
           removedOptionPermanent = extracted.topCard;
@@ -186,6 +191,12 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     }
     const discardedFromSecurity = fromSecurity.filter((id) => movedIds.has(id));
     if (discardedFromSecurity.length > 0) {
+      // A card trashing itself from security as a cost still removes it from that stack, so
+      // "when your security stack is removed from" watchers see it (ST22-06 with ST22-10).
+      for (const seat of new Set(discardedFromSecurity.map((id) => securitySeatByInstance.get(id)!))) {
+        const trashedHere = moved.filter((card) => securitySeatByInstance.get(card.instanceId) === seat);
+        await fireSecurityTrashedEvents(engine, seat, trashedHere, opts?.byRule !== true);
+      }
       await engine.fireDiscardedFromSecurity?.(discardedFromSecurity);
     }
     // Fire once per seat whose hand actually lost a card (the move may have skipped some ids).

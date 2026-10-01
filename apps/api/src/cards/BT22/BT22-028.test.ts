@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../BT21/BT21-031.js";
 import { compiled } from "./BT22-028.js";
 
 describe("BT22-028 Ariemon", () => {
@@ -193,5 +194,69 @@ describe("BT22-028 Ariemon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-024"));
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-024"]);
+  });
+});
+
+describe("BT22-028 Ariemon — KB Q&A rulings", () => {
+  it("lets the player choose the order of its simultaneous [When Digivolving] effects (Q4878)", async () => {
+    async function digivolveResolvingFirst(firstEffect: "return" | "play") {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT1-044", as: "host" },
+              { card: "BT21-031", as: "sangomon" },
+            ],
+            hand: [{ card: "BT22-028", as: "ariemon" }],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        },
+        { autoOrderTriggers: false, autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("ariemon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+      const ariemonKeys = (order.options?.triggerKeys ?? []).filter(
+        (_, index) => order.options?.triggerCardIds?.[index] === "BT22-028",
+      );
+      expect(ariemonKeys).toHaveLength(2);
+      const returnEffectKey = compiled.effects.find((effect) => effect.actions[0]?.kind === "Return")!.sharedUseKey!;
+      const returnKey = ariemonKeys.find((key) => key.endsWith(returnEffectKey));
+      const playKey = ariemonKeys.find((key) => key !== returnKey);
+      const chosen = firstEffect === "return" ? returnKey : playKey;
+      expect(chosen).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: order.decisionId,
+          response: { kind: "orderTriggers", order: [chosen!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.battleArea.length === 0);
+      await settle();
+      return s;
+    }
+
+    const returnFirst = await digivolveResolvingFirst("return");
+    expect(returnFirst.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(returnFirst.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
+      "BT21-031",
+      "BT22-028",
+    ]);
+    expect(returnFirst.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-044"]);
+
+    const playFirst = await digivolveResolvingFirst("play");
+    expect(playFirst.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(playFirst.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-028"]);
+    expect(playFirst.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-031", "BT1-044"]);
   });
 });

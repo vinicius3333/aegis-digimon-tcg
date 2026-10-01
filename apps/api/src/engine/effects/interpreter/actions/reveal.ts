@@ -129,6 +129,64 @@ export async function runHandRevealAdd(
   }
 }
 
+interface AllocationSlot {
+  eligible: ReadonlySet<string>;
+  capacity: number;
+  mandatory: boolean;
+}
+
+/**
+ * The most cards each slot can take from `available`, maximizing earlier slots first.
+ * Serving slots in order with augmenting paths never lowers an earlier slot's count,
+ * so the result is the lexicographic maximum.
+ */
+function maximalSlotCounts(slots: readonly AllocationSlot[], available: readonly string[]): number[] {
+  const holderOf = new Map<string, number>();
+  const assign = (slot: number, visited: Set<string>): boolean => {
+    for (const card of available) {
+      if (visited.has(card) || holderOf.get(card) === slot || !slots[slot]!.eligible.has(card)) continue;
+      visited.add(card);
+      const holder = holderOf.get(card);
+      if (holder === undefined || assign(holder, visited)) {
+        holderOf.set(card, slot);
+        return true;
+      }
+    }
+    return false;
+  };
+  return slots.map((slot, index) => {
+    let count = 0;
+    while (count < slot.capacity && assign(index, new Set())) count += 1;
+    return count;
+  });
+}
+
+/**
+ * The cards `current` may take while every later mandatory slot still takes as many cards
+ * as it could, and the fewest cards a mandatory `current` must take.
+ */
+function cardsKeepingLaterSlotsFilled(
+  current: AllocationSlot,
+  laterMandatory: readonly AllocationSlot[],
+  available: readonly string[],
+): { candidates: ReadonlySet<string>; minimum: number } {
+  const leading = current.mandatory ? [current] : [];
+  const best = maximalSlotCounts([...leading, ...laterMandatory], available);
+  const afterPick = current.mandatory
+    ? [{ ...current, capacity: current.capacity - 1 }, ...laterMandatory]
+    : laterMandatory;
+  const expected = current.mandatory ? [best[0]! - 1, ...best.slice(1)] : best;
+  const candidates = available.filter((card) => {
+    if (!current.eligible.has(card)) return false;
+    const counts = maximalSlotCounts(
+      afterPick,
+      available.filter((id) => id !== card),
+    );
+    return counts.every((count, index) => count === expected[index]);
+  });
+  return { candidates: new Set(candidates), minimum: current.mandatory ? best[0]! : 0 };
+}
+
 /**
  * Reveal the top N, then dispatch each matching revealed card per its `to`
  * disposition (add to hand / play without cost), and send the rest to the deck
@@ -247,8 +305,13 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     return { ...withoutScaling, playCostLte: cap } as Filter;
   };
 
-  for (const spec of action.add) {
-    if (spec.ifDigivolveDeclined === true && !digivolveDeclined) continue;
+  // A play-prohibited revealed card is not played; it stays in the pool for a later slot or
+  // `rest` (Q774, Q791, Q4662, Q4666).
+  const playProhibited = (card: import("@aegis/shared").CardInstance) =>
+    ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, card.cardId, "play", "deck") === true;
+
+  const planSlot = (spec: (typeof action.add)[number]) => {
+    if (spec.ifDigivolveDeclined === true && !digivolveDeclined) return undefined;
     const primaryFilter = materializePlayCostScaling(spec.filter);
     const alternativeFilters = (spec.orFilters ?? []).map(materializePlayCostScaling);
     const qualifies = (c: import("@aegis/shared").CardInstance) => {
@@ -262,9 +325,20 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // revealed applicables, not the remaining after earlier slots have consumed some.
     if (spec.requiresMinRevealed !== undefined) {
       const totalApplicable = revealed.filter(qualifies).length;
-      if (totalApplicable < spec.requiresMinRevealed) continue;
+      if (totalApplicable < spec.requiresMinRevealed) return undefined;
     }
     let matches = revealed.filter((c) => !taken.has(c.instanceId) && qualifies(c));
+    if (spec.to === "play") {
+      matches = matches.filter(
+        (card) =>
+          !playProhibited(card) ||
+          (spec.orDispositions ?? []).some(
+            (choice) =>
+              choice.to !== "play" &&
+              (choice.filter === undefined || definitionMatches(choice.filter, revealedDefinition(ctx, card))),
+          ),
+      );
+    }
     if (spec.to === "digivolve") {
       const target = spec.digivolveTarget ?? {
         filter: { controller: "mine", kind: ["Digimon"] },
@@ -287,10 +361,54 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         });
       });
     }
+    const requireDifferentColors =
+      primaryFilter.differentColors === true || alternativeFilters.some((filter) => filter.differentColors === true);
+    const costBudget = spec.costBudget ?? spec.totalPlayCostBudget;
+    const capacity =
+      spec.count === "all"
+        ? undefined
+        : effectiveTargetCount(ctx, {
+            filter: spec.filter,
+            count: spec.count,
+            ...(spec.countModifier !== undefined ? { countModifier: spec.countModifier } : {}),
+          } as Target);
+    // Slots whose legality is not a plain per-card match stay out of the cross-slot allocation.
+    const allocation: AllocationSlot | undefined =
+      capacity === undefined || costBudget !== undefined || requireDifferentColors
+        ? undefined
+        : {
+            eligible: new Set(matches.map((card) => card.instanceId)),
+            capacity,
+            mandatory: spec.optional !== true && spec.upTo !== true,
+          };
+    return { spec, eligible: matches, requireDifferentColors, costBudget, capacity, allocation };
+  };
+  const slotPlans = action.add.map(planSlot);
+
+  for (const [slotIndex, plan] of slotPlans.entries()) {
+    if (plan === undefined) continue;
+    const { spec, requireDifferentColors, costBudget, capacity, allocation } = plan;
+    let matches = plan.eligible.filter((card) => !taken.has(card.instanceId));
+    let minimum: number | undefined;
+    // "Perform as much of the effect as possible": a slot may not take a card that leaves a
+    // later mandatory action short, such as adding [Kiriha Aonuma] to hand when it must be
+    // played (Q2032, Q2033). Slots sharing a destination are one action whose categories the
+    // player assigns freely, even when that adds fewer cards (Q1050, Q1985).
+    if (allocation !== undefined) {
+      const destination = spec.to ?? "hand";
+      const laterMandatory = slotPlans
+        .slice(slotIndex + 1)
+        .flatMap((later) =>
+          later?.allocation?.mandatory === true && (later.spec.to ?? "hand") !== destination ? [later.allocation] : [],
+        );
+      const available = revealed.filter((card) => !taken.has(card.instanceId)).map((card) => card.instanceId);
+      const allowed = cardsKeepingLaterSlotsFilled(allocation, laterMandatory, available);
+      matches = matches.filter((card) => allowed.candidates.has(card.instanceId));
+      minimum = allowed.minimum;
+    }
     // Budget-constrained free play: choose any subset whose SUMMED play cost <= costBudget
     // ("total play costs add up to N or less", BT11-044 / "N play cost's total worth", BT14-068).
     // The card count is bounded by the budget, not a fixed `count`; the pick is always optional.
-    const costBudget = spec.costBudget ?? spec.totalPlayCostBudget;
     if (costBudget !== undefined) {
       const budget = costBudget;
       const playCostOf = (c: import("@aegis/shared").CardInstance) => ctx.game.definitionOf(c).playCost ?? 0;
@@ -326,17 +444,8 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       }
       continue;
     }
-    const want =
-      spec.count === "all"
-        ? matches.length
-        : effectiveTargetCount(ctx, {
-            filter: spec.filter,
-            count: spec.count,
-            ...(spec.countModifier !== undefined ? { countModifier: spec.countModifier } : {}),
-          } as Target);
+    const want = capacity ?? matches.length;
     let chosen = matches.slice(0, want);
-    const requireDifferentColors =
-      primaryFilter.differentColors === true || alternativeFilters.some((filter) => filter.differentColors === true);
     // A bounded reveal selection is confirmed even when only one card is eligible. This keeps
     // every disposition (hand, play, security, place-under, etc.) on the same UI path and lets
     // the player inspect the full reveal, including ineligible cards shown as disabled. Slots
@@ -350,7 +459,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           cardId: c.cardId,
           ...(c.artId ? { artId: c.artId } : {}),
         })),
-        min: spec.optional || spec.upTo ? 0 : Math.min(want, matches.length),
+        min: minimum ?? (spec.optional || spec.upTo ? 0 : Math.min(want, matches.length)),
         max: want,
         differentColors: requireDifferentColors,
       });
@@ -386,7 +495,10 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const definition = revealedDefinition(ctx, c);
         const choices = [disposition, ...alternatives].filter((choice) => {
           if (choice.to === "play") {
-            return definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
+            return (
+              (definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer)) &&
+              !playProhibited(c)
+            );
           }
           if (choice.to === "useOption") return definition.kinds.includes(CardKind.Option);
           return true;
@@ -933,7 +1045,7 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
               : [];
           ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
         } else if (action.to === "hand" && selectedIds.length > 0) {
-          await ctx.fx.returnToHand(selectedIds);
+          await ctx.fx.returnToHand(selectedIds, { publicIdentities: true });
         }
         ctx.lastEffectActed =
           action.then?.kind === "PlayWithoutCost"

@@ -1,7 +1,8 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type EngineSetup, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT10-087.js";
 import "./BT10-096.js";
 
 describe("BT10-096 Burning Star Crusher", () => {
@@ -117,5 +118,141 @@ describe("BT10-096 Burning Star Crusher", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(originalOrder);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT10-096 Burning Star Crusher — KB Q&A rulings", () => {
+  const securityOptions = {
+    autoAcceptOptional: true,
+    autoSelectCards: true,
+    autoOrderCards: true,
+    autoOrderTriggers: true,
+  } as const;
+
+  // Taiki's own [On Play] reveals the next 4 cards, so non-Xros Heart filler keeps it from moving the cards asserted here.
+  const taikiOnPlayFiller = ["BT1-009", "BT1-010", "BT1-009", "BT1-010"];
+
+  const battleAreaCardIds = (s: EngineSetup) =>
+    s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId);
+
+  it("plays a revealed [Taiki Kudo] without paying its cost, but not another Tamer (Q2027)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT10-096", as: "option", faceUp: true }],
+          deck: [
+            { card: "BT10-034", as: "xrosHeart" },
+            { card: "BT10-087", as: "taiki" },
+            { card: "BT10-090", as: "otherTamer" },
+            ...taikiOnPlayFiller,
+          ],
+        },
+      },
+      securityOptions,
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => battleAreaCardIds(s).includes(s.inst("taiki").instanceId));
+
+    expect(battleAreaCardIds(s)).toEqual([s.inst("taiki").instanceId]);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("otherTamer").instanceId);
+  });
+
+  it("still plays [Taiki Kudo] when no Xros Heart Digimon card is revealed (Q2028)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT10-096", as: "option", faceUp: true }],
+          deck: [
+            { card: "BT10-089", as: "xrosHeartTamer" },
+            { card: "BT10-087", as: "taiki" },
+            { card: "BT10-095", as: "xrosHeartOption" },
+            ...taikiOnPlayFiller,
+          ],
+        },
+      },
+      securityOptions,
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => battleAreaCardIds(s).includes(s.inst("taiki").instanceId));
+
+    expect(battleAreaCardIds(s)).toEqual([s.inst("taiki").instanceId]);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("xrosHeartTamer").instanceId, s.inst("xrosHeartOption").instanceId]),
+    );
+  });
+
+  it("must add the Xros Heart Digimon and play [Taiki Kudo] together once the effect is used (Q2029)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT10-096", as: "option", faceUp: true }],
+          deck: [
+            { card: "BT10-034", as: "xrosHeart" },
+            { card: "BT10-087", as: "taiki" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderCards: true, autoOrderTriggers: true },
+    );
+    const xrosHeartId = s.inst("xrosHeart").instanceId;
+    const taikiId = s.inst("taiki").instanceId;
+
+    const resolution = advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    const answerSelectionRefusingSkip = async (expectedId: string) => {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const request = s.decisions.at(-1)!.req;
+      expect(request.kind).toBe("selectCards");
+      expect(request.options?.candidateInstanceIds).toContain(expectedId);
+      expect(request.options?.min).toBe(1);
+      const decisionId = s.state.pendingDecision!.decisionId;
+      const skip = s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      });
+      expect(skip.ok).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(decisionId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId,
+          response: { kind: "selectCards", instanceIds: [expectedId] },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    await answerSelectionRefusingSkip(xrosHeartId);
+    await answerSelectionRefusingSkip(taikiId);
+    await resolution;
+    await settle(() => battleAreaCardIds(s).includes(taikiId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([xrosHeartId]);
+    expect(battleAreaCardIds(s)).toEqual([taikiId]);
+
+    const declined = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT10-096", as: "option", faceUp: true }],
+          deck: [
+            { card: "BT10-034", as: "xrosHeart" },
+            { card: "BT10-087", as: "taiki" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+    await advance(declined.engine).fireForInstance(EffectTiming.SecuritySkill, declined.inst("option"));
+
+    expect(declined.state.players[0]!.hand).toHaveLength(0);
+    expect(declined.state.players[0]!.battleArea).toHaveLength(0);
   });
 });

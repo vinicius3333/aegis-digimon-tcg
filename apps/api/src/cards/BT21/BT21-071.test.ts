@@ -262,3 +262,71 @@ describe("BT21-071 Scopemon", () => {
     expect(s.perm("shotmon").stack.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
   });
 });
+
+describe("BT21-071 Scopemon — KB Q&A rulings", () => {
+  it("treats a card with [Three Musketeers] only in its effect text as meeting the in-text digivolution requirement (Q4577)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT6-068", as: "effectTextOnly" },
+          { card: "BT1-009", as: "noText" },
+        ],
+        hand: [
+          { card: "BT21-071", as: "scopemonA" },
+          { card: "BT21-071", as: "scopemonB" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    const rejected = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("noText").permanentId,
+      instanceId: s.inst("scopemonB").instanceId,
+      alternateRequirementIndex: 0,
+    });
+    expect(rejected.ok).toBe(false);
+    expect(s.perm("noText").topCard.cardId).toBe("BT1-009");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("effectTextOnly").permanentId,
+        instanceId: s.inst("scopemonA").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("effectTextOnly").topCard.instanceId === s.inst("scopemonA").instanceId);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("trashes a linked Shotmon at rule check once Scopemon digivolves into Gigadramon without the [Appmon] trait (Q4578)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-071", as: "scopemon", linked: [{ card: "BT21-054", as: "shotmon" }] }],
+          hand: [{ card: "EX7-044", as: "gigadramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.perm("scopemon").linked.map((card) => card.instanceId)).toEqual([s.inst("shotmon").instanceId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("scopemon").permanentId,
+        instanceId: s.inst("gigadramon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("shotmon").instanceId));
+
+    expect(s.perm("scopemon").topCard.instanceId).toBe(s.inst("gigadramon").instanceId);
+    expect(s.perm("scopemon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("shotmon").instanceId]);
+  });
+});

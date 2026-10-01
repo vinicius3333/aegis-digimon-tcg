@@ -551,3 +551,53 @@ describe("BT21-021 OmniShoutmon", () => {
     expect(observe(other.engine).hasKeyword(other.perm("host"), "Rush")).toBe(false);
   });
 });
+
+describe("BT21-021 OmniShoutmon — KB Q&A rulings", () => {
+  it("cannot use [End of Attack] to delete itself without playing a card (Q4529)", async () => {
+    async function attackAndResolveEndOfAttack(hand: string[], acceptPlay: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-021", as: "omni" }],
+            hand: hand.map((card) => ({ card })),
+          },
+          1: { security: [{ card: "BT1-009" }] },
+        },
+        acceptPlay
+          ? { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true }
+          : { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("omni").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[1]!.security.length === 0 &&
+          !observe(s.engine).isAttacking() &&
+          s.state.pendingDecision === undefined,
+      );
+      const omniId = s.inst("omni").instanceId;
+      return {
+        omniInPlay: s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === omniId),
+        omniInTrash: s.state.players[0]!.trash.some((card) => card.instanceId === omniId),
+        handSize: s.state.players[0]!.hand.length,
+      };
+    }
+
+    const noCardToPlay = await attackAndResolveEndOfAttack([], true);
+    expect(noCardToPlay).toEqual({ omniInPlay: true, omniInTrash: false, handSize: 0 });
+
+    const declinedPlay = await attackAndResolveEndOfAttack(["BT11-012"], false);
+    expect(declinedPlay).toEqual({ omniInPlay: true, omniInTrash: false, handSize: 1 });
+
+    const playedCard = await attackAndResolveEndOfAttack(["BT11-012"], true);
+    expect(playedCard).toEqual({ omniInPlay: false, omniInTrash: true, handSize: 0 });
+  });
+});

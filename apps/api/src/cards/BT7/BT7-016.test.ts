@@ -64,3 +64,38 @@ describe("BT7-016 EmperorGreymon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT7-016 EmperorGreymon — KB Q&A rulings", () => {
+  it("resolves the when-blocked effect after the block and before the battle with the blocker (Q1519)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT7-016", under: ["BT7-011", "BT7-014"], as: "emperor" }] },
+      1: { battleArea: [{ card: "BT5-062", as: "blocker" }], security: ["BT1-001"] },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("emperor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.state.memory).toBe(0);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    const blockedAt = s.events.findIndex((event) => event.kind === "blocked");
+    const memoryGainedAt = s.events.findIndex(
+      (event) => event.kind === "memoryChanged" && event.from === 0 && event.to === 2,
+    );
+    const combatAt = s.events.findIndex((event) => event.kind === "combatResolved");
+    expect(blockedAt).toBeGreaterThanOrEqual(0);
+    expect(memoryGainedAt).toBeGreaterThan(blockedAt);
+    expect(combatAt).toBeGreaterThan(memoryGainedAt);
+    expect(s.perm("emperor").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

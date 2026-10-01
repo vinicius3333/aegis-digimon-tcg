@@ -78,7 +78,7 @@ describe("EX3-026 Aegisdramon", () => {
                 count: 1,
                 orFilters: [
                   { nameOrTrait: [{ tokens: ["Seadramon"], match: "name" }] },
-                  { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }] },
+                  { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }] },
                 ],
               },
             },
@@ -334,6 +334,40 @@ describe("EX3-026 Aegisdramon", () => {
       s.inst("secondBlueLevel3").instanceId,
     );
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-026" && req.kind === "optional")).toHaveLength(2);
+  });
+
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquabeast])", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX3-023", as: "base" },
+            { card: "BT1-033", under: [{ card: "EX5-060", as: "aquabeast" }], as: "sourceHost" },
+          ],
+          hand: [{ card: "EX3-026", as: "aegisdramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("aquabeast").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aegisdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("aquabeast").instanceId),
+    );
+
+    expect(s.perm("sourceHost").stack.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("aquabeast").instanceId,
+    );
   });
 
   it("allows declining the When Digivolving play without moving a digivolution card", async () => {

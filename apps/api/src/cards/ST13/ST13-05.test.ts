@@ -1,7 +1,9 @@
+import type { ServerEvent } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT9/BT9-047.js";
 import "../ST2/ST2-13.js";
 import "./ST13-02.js";
 import "./ST13-03.js";
@@ -131,5 +133,80 @@ describe("ST13-05 Durandamon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.memory).toBe(0);
+  });
+});
+
+const REVEALED = ["ST13-02", "BT1-009", "BT1-010"];
+const BELOW_REVEALED = ["BT1-001", "BT1-002"];
+
+function setupWhenAttacking(opponentBattleArea: string[], answers: { autoAcceptOptional?: boolean }) {
+  return setupEngine(
+    {
+      0: { battleArea: [{ card: "ST13-05", as: "durandamon" }], deck: [...REVEALED, ...BELOW_REVEALED] },
+      1: { battleArea: opponentBattleArea, security: ["BT1-011"] },
+    },
+    { ...answers, autoSelectCards: answers.autoAcceptOptional, autoOrderCards: true },
+  );
+}
+
+function declareSecurityAttack(s: ReturnType<typeof setupWhenAttacking>) {
+  return s.engine.applyIntent(0, {
+    type: "attack",
+    attackerPermanentId: s.perm("durandamon").permanentId,
+    target: { kind: "player" },
+  });
+}
+
+function isLegendArmsPlay(event: ServerEvent) {
+  return event.kind === "cardPlayed" && event.cardId === "ST13-02";
+}
+
+function deckCardIds(s: ReturnType<typeof setupWhenAttacking>) {
+  return Array.from(s.state.players[0]!.deck, (card) => card.cardId);
+}
+
+describe("ST13-05 Durandamon — KB Q&A rulings", () => {
+  it("may choose not to play the revealed Legend-Arms Digimon, which goes to the deck bottom with the rest (Q773)", async () => {
+    const s = setupWhenAttacking([], {});
+    await s.ready();
+
+    expect(declareSecurityAttack(s)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const offer = s.decisions.at(-1)!.req;
+    const legendArms = offer.options?.visibleCards?.find((card) => card.cardId === "ST13-02");
+    expect(offer.options?.candidateInstanceIds).toContain(legendArms?.instanceId);
+    expect(offer.options?.min ?? 0).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: offer.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(Array.from(s.state.players[0]!.battleArea, (permanent) => permanent.topCard.cardId)).toEqual(["ST13-05"]);
+    expect(deckCardIds(s).slice(0, 2)).toEqual(BELOW_REVEALED);
+    expect(deckCardIds(s).slice(2).sort()).toEqual([...REVEALED].sort());
+  });
+
+  it("cannot play the revealed Legend-Arms Digimon while Pomumon is in play, so it goes to the deck bottom (Q774)", async () => {
+    const withPomumon = setupWhenAttacking(["BT9-047"], { autoAcceptOptional: true });
+    await withPomumon.ready();
+    expect(declareSecurityAttack(withPomumon)).toEqual({ ok: true });
+    await settle(() => withPomumon.state.players[1]!.security.length === 0);
+
+    expect(Array.from(withPomumon.state.players[0]!.battleArea, (permanent) => permanent.topCard.cardId)).toEqual([
+      "ST13-05",
+    ]);
+    expect(withPomumon.events.some(isLegendArmsPlay)).toBe(false);
+    expect(deckCardIds(withPomumon).slice(0, 2)).toEqual(BELOW_REVEALED);
+    expect(deckCardIds(withPomumon).slice(2).sort()).toEqual([...REVEALED].sort());
+
+    const withoutPomumon = setupWhenAttacking([], { autoAcceptOptional: true });
+    await withoutPomumon.ready();
+    expect(declareSecurityAttack(withoutPomumon)).toEqual({ ok: true });
+    await settle(() => withoutPomumon.state.players[1]!.security.length === 0);
+    expect(withoutPomumon.events.some(isLegendArmsPlay)).toBe(true);
   });
 });

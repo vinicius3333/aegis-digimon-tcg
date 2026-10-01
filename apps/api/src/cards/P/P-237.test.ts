@@ -6,6 +6,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-237.js";
 import "../EX11/EX11-029.js";
 import "../EX11/EX11-027.js";
+import "../EX11/EX11-070.js";
 
 describe("P-237 Unique Emblem: Machina's Ascension", () => {
   it("requires Maquinamon in text and plays Maquinamon or Unchained", () => {
@@ -150,5 +151,52 @@ describe("P-237 engine behavior", () => {
     await settle(() => s.perm("host").topCard.instanceId === s.inst("maquinamon").instanceId);
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("maquinamon").instanceId);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "P-237")).toBe(true);
+  });
+});
+
+describe("P-237 Unique Emblem: Machina's Ascension — KB Q&A rulings", () => {
+  it.each([
+    ["an effect text naming [Maquinamon]", "EX11-070", true],
+    ["no [Maquinamon] text", "BT1-085", false],
+  ] as const)("meets its Use Req. with a card that has %s (Q6524)", async (_label, fieldCard, usable) => {
+    const s = setupEngine({
+      0: { hand: [{ card: "P-237", as: "emblem" }], battleArea: [fieldCard] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const result = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emblem").instanceId });
+    expect(result.ok).toBe(usable);
+    if (!usable) expect(result).toMatchObject({ reason: "color-requirement-unmet" });
+  });
+
+  it("opens its <Delay> when Unchained's inherited effect plays Unchained from digivolution cards (Q6523)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-237", as: "emblem" },
+            { card: "EX11-027", as: "host", under: [{ card: "EX11-070", as: "unchained" }] },
+          ],
+          hand: [{ card: "EX11-029", as: "turbomon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { deck: ["BT1-012", "BT1-013", "BT1-014"], security: ["BT1-015"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("emblem").placedByEffect = true;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("unchained").instanceId)).toBe(
+      true,
+    );
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("turbomon").instanceId);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "P-237")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

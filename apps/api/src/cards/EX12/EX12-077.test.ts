@@ -9,7 +9,9 @@ import { irNode } from "../../engine/testkit/irNode.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { expectOnlyOneCounterPerAttack } from "./counterOnce.testSupport.js";
 import { compiled } from "./EX12-077.js";
+import { expectPlayerOrdersSimultaneousTriggers } from "./simultaneousTriggers.testSupport.js";
 
 describe("EX12-077 Proximamon", () => {
   it("retains the normal level 6 routes and printed keywords", () => {
@@ -223,6 +225,73 @@ describe("EX12-077 Proximamon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "EX12-069", faceUp: true });
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-069")).toBe(false);
+  });
+
+  it("uses the DUAL Siriusmon it digivolved from as an Option (Discord bug 1554511681621729461)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-018", as: "siriusmon" }], hand: [{ card: "EX12-077", as: "proximamon" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("siriusmon").permanentId,
+        instanceId: s.inst("proximamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-020");
+    expect(s.perm("siriusmon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX12-018"]);
+  });
+
+  it("keeps its shared [Once Per Turn] when Planet Punch attacks inside the When Digivolving use", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-018", as: "siriusmon", under: ["EX12-013"] }],
+          hand: [{ card: "EX12-077", as: "proximamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "target" }], security: ["BT1-101", "BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const siriusmonInstanceId = s.perm("siriusmon").topCard.instanceId;
+    const betelGammamonInstanceId = s.perm("siriusmon").stack[0]!.instanceId;
+    preferred.push(siriusmonInstanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("siriusmon").permanentId,
+        instanceId: s.inst("proximamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const sharedActivations = s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === "EX12-077" &&
+        event.effectKey?.includes("ir-shared-0") === true,
+    );
+    expect(sharedActivations).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === betelGammamonInstanceId)).toBe(
+      false,
+    );
   });
 
   it("pays the placement cost with a non-Digimon card carrying the VB trait", async () => {
@@ -519,5 +588,114 @@ describe("EX12-077 Proximamon", () => {
       attributes: ["Virus"],
       types: ["Unique", "VB"],
     });
+  });
+});
+
+describe("EX12-077 Proximamon — KB Q&A rulings", () => {
+  async function playProximamonPlacing(hand: { card: string; as: string }[], trash: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX12-077", as: "proximamon" }, ...hand],
+          trash,
+          battleArea: [{ card: "EX12-005", as: "host" }],
+        },
+        1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("proximamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-077"));
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("pays the placement with non-VB cards whose text, not name, contains [Gammamon] (Q6897)", async () => {
+    const s = await playProximamonPlacing(
+      [
+        { card: "BT10-011", as: "canoweissmon" },
+        { card: "AD1-007", as: "siriusmon" },
+      ],
+      [],
+    );
+
+    const placed = [...s.perm("host").stack, ...s.perm("proximamon").stack].map(({ instanceId }) => instanceId);
+    expect(placed).toEqual(expect.arrayContaining([s.inst("canoweissmon").instanceId, s.inst("siriusmon").instanceId]));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("pays the placement with 1 card from the hand and 1 from the trash (Q6898)", async () => {
+    const s = await playProximamonPlacing(
+      [{ card: "EX12-005", as: "fromHand" }],
+      [{ card: "EX12-007", as: "fromTrash" }],
+    );
+
+    const placed = [...s.perm("host").stack, ...s.perm("proximamon").stack].map(({ instanceId }) => instanceId);
+    expect(placed).toEqual(expect.arrayContaining([s.inst("fromHand").instanceId, s.inst("fromTrash").instanceId]));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does not delete after placing only 1 of the 2 required cards (Q6899)", async () => {
+    const s = await playProximamonPlacing([{ card: "EX12-005", as: "onlyMatch" }], []);
+
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.perm("proximamon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("onlyMatch").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("applies the cost 10 or lower limit to both the [Gammamon]-text and [VB] alternatives (Q6901)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-077", as: "proximamon", under: ["AD1-007", "EX12-017"] }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(getCardDefinition("AD1-007")?.playCost).toBeGreaterThan(10);
+    expect(getCardDefinition("EX12-017")?.playCost).toBeGreaterThan(10);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("proximamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX12-077"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("proximamon").stack.map(({ cardId }) => cardId)).toEqual(["AD1-007", "EX12-017"]);
+  });
+
+  it("lets the player choose the activation order of its simultaneous play triggers (Q6902)", async () => {
+    await expectPlayerOrdersSimultaneousTriggers(
+      {
+        0: {
+          battleArea: [{ card: "EX12-013", under: ["EX12-007"] }],
+          hand: [{ card: "EX12-077", as: "played" }, "EX12-013", "EX12-016"],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }], security: ["BT1-009"] },
+      },
+      "played",
+      "EX12-077",
+      2,
+    );
+  });
+
+  it("lets only one [Counter] effect activate during one attack (Q6900)", async () => {
+    await expectOnlyOneCounterPerAttack({ card: "EX12-077" }, { card: "EX12-052" });
   });
 });

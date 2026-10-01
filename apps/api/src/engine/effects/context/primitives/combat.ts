@@ -1,5 +1,29 @@
 import type { EffectDuration, Seat } from "@aegis/shared";
 
+export interface AttackDecisionProvenance {
+  sourceCardId?: string;
+  sourceInstanceId?: string;
+  sourcePermanentId?: string;
+  timing?: string;
+  effectText?: string;
+  effectTextPart?: string;
+  isInherited?: boolean;
+}
+
+export interface ForceAttackOptions {
+  withoutSuspending?: boolean;
+  attackPlayer?: boolean;
+  attackPlayerOnly?: boolean;
+  vortex?: boolean;
+  attackMechanic?: string;
+  /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
+  afterAttackDeclaration?: () => Promise<void>;
+  afterAttackTriggers?: () => Promise<void>;
+  artsDigivolveOptionInstanceId?: string;
+  drainTimingWindow?: () => Promise<void>;
+  decisionProvenance?: AttackDecisionProvenance;
+}
+
 /**
  * The attack-and-block subsystem: redirect, add or end an attack while one is
  * in flight.
@@ -16,31 +40,14 @@ export interface CombatPrimitives {
    * no-op when the permanent cannot legally declare, or when one is already
    * mid-resolution and the engine cannot safely nest (the gap is then narrated).
    */
-  forceAttack(
-    attackerPermanentId: string,
-    opts?: {
-      withoutSuspending?: boolean;
-      attackPlayer?: boolean;
-      attackPlayerOnly?: boolean;
-      vortex?: boolean;
-      attackMechanic?: string;
-      /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
-      afterAttackDeclaration?: () => Promise<void>;
-      afterAttackTriggers?: () => Promise<void>;
-      afterAttackEnd?: () => Promise<void>;
-      artsDigivolveOptionInstanceId?: string;
-      drainTimingWindow?: () => Promise<void>;
-      decisionProvenance?: {
-        sourceCardId?: string;
-        sourceInstanceId?: string;
-        sourcePermanentId?: string;
-        timing?: string;
-        effectText?: string;
-        effectTextPart?: string;
-        isInherited?: boolean;
-      };
-    },
-  ): Promise<void>;
+  forceAttack(attackerPermanentId: string, opts?: ForceAttackOptions): Promise<void>;
+  /**
+   * Process ＜Blitz＞ (CR §16-16) for `attackerPermanentId` inside the resolving effect: when
+   * the controller's opponent has 1 or more memory and the Digimon can attack normally, the
+   * controller may activate it and then declares the attack with an ordinary attack intent.
+   * The attack runs as part of the effect, like `forceAttack`.
+   */
+  blitzAttack?(attackerPermanentId: string, opts?: ForceAttackOptions): Promise<void>;
   /** Whether combat is currently resolving an attack. */
   isAttackResolving?(): boolean;
   /**

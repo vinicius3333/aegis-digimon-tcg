@@ -4,6 +4,9 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT7-088.js";
+import "./BT7-029.js";
+import "./BT7-036.js";
+import "../BT19/BT19-077.js";
 
 describe("BT7-088 Zoe Orimoto", () => {
   it("uses trait-substring matching for the security search", () => {
@@ -100,5 +103,64 @@ describe("BT7-088 Zoe Orimoto", () => {
 
     expect(player.security.map((card) => card.instanceId)).toEqual([securityId]);
     expect(player.deck.map((card) => card.instanceId)).toEqual([deckId]);
+  });
+});
+
+describe("BT7-088 Zoe Orimoto — KB Q&A rulings", () => {
+  it("cannot be digivolved into [MagnaGarurumon] by an effect that digivolves one of your Digimon (Q1663)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-077", as: "calumon" },
+            { card: "BT7-088", as: "zoe" },
+            { card: "BT1-042", as: "levelFiveBlue" },
+            { card: "BT1-038", as: "otherLevelFiveBlue" },
+          ],
+          // Zephyrmon may digivolve onto a yellow Tamer by its own rule, so Zoe is a legal
+          // digivolution base and only "a Tamer isn't one of your Digimon" can keep her out.
+          hand: [
+            { card: "BT7-029", as: "magnaGarurumon" },
+            { card: "BT7-036", as: "zephyrmon" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-013"],
+        },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    preferInstanceIds.push(s.perm("levelFiveBlue").permanentId, s.inst("magnaGarurumon").instanceId);
+
+    const entries = JSON.parse(s.perm("calumon").activatableEffectsJson ?? "[]") as { effectKey: string }[];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("calumon").topCard!.instanceId,
+        effectKey: entries[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("levelFiveBlue").topCard?.cardId === "BT7-029");
+
+    const digivolveTargets = s.decisions.find(({ req }) => req.options?.targetFate === "digivolve");
+    expect(digivolveTargets?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("levelFiveBlue").permanentId, s.perm("otherLevelFiveBlue").permanentId]),
+    );
+    expect(digivolveTargets?.req.options?.candidateInstanceIds).not.toContain(s.perm("zoe").permanentId);
+    expect(s.perm("zoe").topCard?.cardId).toBe("BT7-088");
+    expect(s.perm("zoe").stack).toHaveLength(0);
+    expect(s.perm("levelFiveBlue").topCard?.cardId).toBe("BT7-029");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("zoe").permanentId,
+        instanceId: s.inst("zephyrmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("zoe").topCard?.cardId === "BT7-036");
   });
 });

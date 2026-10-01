@@ -2,7 +2,10 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "./BT8-013.js";
 import "./BT8-084.js";
+import "../BT10/BT10-011.js";
 
 describe("BT8-084 Kimeramon", () => {
   it("places a level-5-or-lower Digimon from trash under itself and reduces DP per resulting color", async () => {
@@ -120,5 +123,89 @@ describe("BT8-084 Kimeramon", () => {
     s.state.turnSeat = 0;
     await s.ready();
     expect(s.perm("kimeramon").currentDP).toBe(12000);
+  });
+});
+
+describe("BT8-084 Kimeramon — KB Q&A rulings", () => {
+  it("is treated as white plus the colors of its digivolution cards during your turn (Q1763)", async () => {
+    const onTurn = (turnSeat: 0 | 1) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT8-084", as: "kimeramon", under: ["BT8-013", "BT1-071"] }] },
+      });
+      s.state.turnSeat = turnSeat;
+      return s;
+    };
+
+    const yourTurn = onTurn(0);
+    await yourTurn.ready();
+    expect([...observe(yourTurn.engine).effectiveColors(yourTurn.perm("kimeramon"))].sort()).toEqual([
+      "Green",
+      "Red",
+      "White",
+    ]);
+    expect(yourTurn.perm("kimeramon").currentDP).toBe(8000);
+
+    const opponentsTurn = onTurn(1);
+    await opponentsTurn.ready();
+    expect(observe(opponentsTurn.engine).effectiveColors(opponentsTurn.perm("kimeramon"))).toEqual(["White"]);
+  });
+
+  it("does not activate BetelGammamon's [When Digivolving] Blitz gained after its own [When Digivolving] placed Canoweissmon (Q1940)", async () => {
+    const digivolveBetelGammamonIntoKimeramon = (canoweissmonAlreadyUnder: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT8-013", as: "betelGammamon", under: canoweissmonAlreadyUnder ? ["BT10-011"] : [] }],
+            hand: [{ card: "BT8-084", as: "kimeramon" }],
+            trash: canoweissmonAlreadyUnder ? [] : ["BT10-011"],
+          },
+          1: { security: ["BT8-034"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("betelGammamon").permanentId,
+          instanceId: s.inst("kimeramon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      return s;
+    };
+    const blitzWasOffered = (s: ReturnType<typeof digivolveBetelGammamonIntoKimeramon>) =>
+      s.decisions.some(({ req }) => JSON.stringify(req).includes("activateBlitz"));
+
+    const placedByKimeramon = digivolveBetelGammamonIntoKimeramon(false);
+    await settle();
+    const kimeramon = placedByKimeramon.perm("betelGammamon");
+    expect(kimeramon.topCard?.cardId).toBe("BT8-084");
+    expect(kimeramon.stack.map((card) => card.cardId)).toEqual(["BT10-011", "BT8-013"]);
+    expect(placedByKimeramon.state.memory).toBe(-1);
+    expect(placedByKimeramon.state.turnSeat).toBe(0);
+    expect(blitzWasOffered(placedByKimeramon)).toBe(false);
+    expect(placedByKimeramon.engine.hasAcceptedBlitzAttack(kimeramon.permanentId)).toBe(false);
+    expect(
+      placedByKimeramon.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: kimeramon.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(placedByKimeramon.state.players[1]!.security).toHaveLength(1);
+
+    const alreadyUnder = digivolveBetelGammamonIntoKimeramon(true);
+    await settle();
+    expect(blitzWasOffered(alreadyUnder)).toBe(true);
+    expect(alreadyUnder.engine.hasAcceptedBlitzAttack(alreadyUnder.perm("betelGammamon").permanentId)).toBe(true);
+    expect(
+      alreadyUnder.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: alreadyUnder.perm("betelGammamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => alreadyUnder.state.players[1]!.security.length === 0);
+    expect(alreadyUnder.state.players[1]!.security).toHaveLength(0);
   });
 });

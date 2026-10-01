@@ -97,7 +97,7 @@ export class RuleChecks {
   anyNegativeDpToTrash(): boolean {
     return battleAreaPermanents(this.deps.state).some(
       (p) =>
-        this.deps.access.isBattleAreaDigimon(p) &&
+        this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
         this.deps.modifiers.rawDp(this.deps.state, p.permanentId) < 0 &&
         !this.protectedFromRuleDeletion(p.permanentId),
     );
@@ -112,14 +112,17 @@ export class RuleChecks {
    * `deletePermanent` uses for byRule.
    */
   protectedFromRuleDeletion(permanentId: string): boolean {
-    return this.deps.continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false });
+    return this.deps.continuous.hasRestriction(permanentId, "beDeleted", undefined, {
+      byOpponentEffect: false,
+      byEffect: false,
+    });
   }
 
   /** #4 predicate — a battle-area Digimon at exactly raw DP 0. */
   anyZeroDpDigimon(): boolean {
     return battleAreaPermanents(this.deps.state).some(
       (p) =>
-        this.deps.access.isBattleAreaDigimon(p) &&
+        this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
         this.deps.modifiers.rawDp(this.deps.state, p.permanentId) === 0 &&
         !this.protectedFromRuleDeletion(p.permanentId),
     );
@@ -129,7 +132,9 @@ export class RuleChecks {
   async trashNoDpPermanents(): Promise<void> {
     const ids = battleAreaPermanents(this.deps.state)
       .filter(
-        (p) => this.deps.access.isBattleAreaDigimon(p) && this.deps.modifiers.rawDp(this.deps.state, p.permanentId) < 0,
+        (p) =>
+          this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
+          this.deps.modifiers.rawDp(this.deps.state, p.permanentId) < 0,
       )
       .map((p) => p.permanentId);
     if (ids.length > 0) await this.deps.primitives().deletePermanent(ids, "byRule");
@@ -140,7 +145,8 @@ export class RuleChecks {
     const ids = battleAreaPermanents(this.deps.state)
       .filter(
         (p) =>
-          this.deps.access.isBattleAreaDigimon(p) && this.deps.modifiers.rawDp(this.deps.state, p.permanentId) === 0,
+          this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
+          this.deps.modifiers.rawDp(this.deps.state, p.permanentId) === 0,
       )
       .map((p) => p.permanentId);
     if (ids.length > 0) await this.deps.primitives().deletePermanent(ids, "byRule");
@@ -271,7 +277,7 @@ export class RuleChecks {
     );
   }
 
-  /** §17-1-3-2-2 process — trash every non-effect-placed pure-Option permanent via deletePermanent(byRule). */
+  /** §17-1-3-2-2 process — trash every non-effect-placed pure-Option permanent; this is not a deletion (Q1921). */
   async trashOptionsInBattleArea(): Promise<void> {
     const ids = battleAreaPermanents(this.deps.state)
       .filter(
@@ -279,6 +285,6 @@ export class RuleChecks {
           p.topCard !== undefined && isOption(definitionOf(p.topCard)) && !isDigimonOrDigiEgg(p) && !p.placedByEffect,
       )
       .map((p) => p.permanentId);
-    if (ids.length > 0) await this.deps.primitives().deletePermanent(ids, "byRule");
+    if (ids.length > 0) await this.deps.primitives().trashPermanentByRule(ids);
   }
 }

@@ -173,3 +173,69 @@ describe("BT1-010 Agumon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(order);
   });
 });
+
+describe("BT1-010 Agumon — KB Q&A rulings", () => {
+  it("adds a revealed Tamer that is not red to hand (Q872)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT1-010", as: "agumon" }],
+        deck: [
+          { card: "BT1-013", as: "digimon" },
+          { card: "BT1-087", as: "yellowTamer" },
+          "BT1-009",
+          "BT1-012",
+          "BT1-014",
+        ],
+      },
+    });
+    expect(getCardDefinition("BT1-087")).toMatchObject({ kinds: ["Tamer"], colors: ["Yellow"] });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.options?.candidateInstanceIds).toEqual([s.inst("yellowTamer").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("yellowTamer").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("yellowTamer").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("yellowTamer").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("digimon").instanceId);
+  });
+
+  it("still activates with 4 cards in deck and reveals all of them (Q873)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-010", as: "agumon" }],
+          deck: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-012", as: "second" },
+            { card: "BT1-013", as: "third" },
+            { card: "BT1-086", as: "lastTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("lastTamer").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("lastTamer").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("first").instanceId, s.inst("second").instanceId, s.inst("third").instanceId].sort(),
+    );
+  });
+});

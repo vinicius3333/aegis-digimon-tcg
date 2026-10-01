@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-101.js";
+import "../BT11/BT11-108.js";
+import "../BT2/BT2-099.js";
+import "../BT7/BT7-100.js";
 import "../BT9/BT9-097.js";
 import "../ST14/ST14-12.js";
 import "./BT6-095.js";
@@ -171,6 +175,43 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
   });
 
+  it("does not offer Options whose cost only becomes 7 when they would be used", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT6-112", as: "beelstarmon" },
+            { card: "BT7-100", as: "qualialiseBlast" },
+            { card: "BT11-108", as: "dgDimension" },
+          ],
+          battleArea: ["BT3-095", "BT2-087"],
+          security: 7,
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "stacked", under: ["BT1-009"] }] },
+      },
+      { autoSelectCards: true, declineDigiXros: true },
+    );
+    const conditionalCostIds = [s.inst("qualialiseBlast").instanceId, s.inst("dgDimension").instanceId];
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT6-112"));
+    await settle();
+
+    const offeredIds = s.decisions.flatMap(
+      ({ req }) => (req.options?.candidateInstanceIds as string[] | undefined) ?? [],
+    );
+    for (const instanceId of conditionalCostIds) {
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
+      expect(offeredIds).not.toContain(instanceId);
+    }
+    expect(s.perm("stacked").stack).toHaveLength(1);
+    expect(s.perm("stacked").currentDP).toBe(4000);
+  });
+
   it("digivolves from a legal purple level-5 stack without triggering the hand-play effect", async () => {
     const s = setupEngine({
       0: {
@@ -193,5 +234,97 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
     expect(s.perm("base").topCard.cardId).toBe("BT6-112");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT6-076"]);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT6-112 BeelStarmon — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+  const playBeelStarmon = async (s: Setup) => {
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT6-112"));
+    await settle();
+  };
+  const handHas = (s: Setup, instanceId: string) =>
+    s.state.players[0]!.hand.some((card) => card.instanceId === instanceId);
+  const trashHas = (s: Setup, seat: 0 | 1, instanceId: string) =>
+    s.state.players[seat]!.trash.some((card) => card.instanceId === instanceId);
+  const offeredInstanceIds = (s: Setup) =>
+    s.decisions.flatMap(({ req }) => (req.options?.candidateInstanceIds as string[] | undefined) ?? []);
+
+  it("cannot ignore a cost-7 Option's color requirement (Q1500)", async () => {
+    const useHowlingCrusher = async (blueSource: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT6-112", as: "beelstarmon" }],
+            trash: [{ card: "BT1-101", as: "blueOption" }],
+            battleArea: blueSource ? ["BT15-025"] : [],
+          },
+          1: { battleArea: [{ card: "BT1-014", as: "stacked", under: ["BT1-009"] }] },
+        },
+        { autoSelectCards: true, declineDigiXros: true },
+      );
+      await playBeelStarmon(s);
+      return { s, optionId: s.inst("blueOption").instanceId };
+    };
+
+    const withoutBlue = await useHowlingCrusher(false);
+    expect(handHas(withoutBlue.s, withoutBlue.optionId)).toBe(true);
+    expect(withoutBlue.s.perm("stacked").stack).toHaveLength(1);
+
+    const withBlue = await useHowlingCrusher(true);
+    expect(trashHas(withBlue.s, 0, withBlue.optionId)).toBe(true);
+    expect(withBlue.s.perm("stacked").stack).toHaveLength(0);
+  });
+
+  it("cannot use Options that only cost 7 when used, but can use Glorious Burst reduced to 7 in hand (Q1501)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT6-112", as: "beelstarmon" },
+            { card: "BT7-100", as: "qualialiseBlast" },
+            { card: "BT11-108", as: "dgDimension" },
+          ],
+          battleArea: ["BT3-095", "BT2-087"],
+          security: 7,
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "stacked", under: ["BT1-009"] }] },
+      },
+      { autoSelectCards: true, declineDigiXros: true },
+    );
+    const conditionalCostIds = [s.inst("qualialiseBlast").instanceId, s.inst("dgDimension").instanceId];
+    await playBeelStarmon(s);
+
+    for (const instanceId of conditionalCostIds) {
+      expect(handHas(s, instanceId)).toBe(true);
+      expect(offeredInstanceIds(s)).not.toContain(instanceId);
+    }
+    expect(s.perm("stacked").stack).toHaveLength(1);
+    expect(s.perm("stacked").currentDP).toBe(4000);
+
+    const glorious = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT6-112", as: "beelstarmon" },
+            { card: "BT2-099", as: "gloriousBurst" },
+          ],
+          battleArea: ["BT2-087", "BT2-087"],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "target" }] },
+      },
+      { autoSelectCards: true, declineDigiXros: true },
+    );
+    const gloriousBurstId = glorious.inst("gloriousBurst").instanceId;
+    const targetInstanceId = glorious.perm("target").topCard.instanceId;
+    await playBeelStarmon(glorious);
+
+    expect(trashHas(glorious, 0, gloriousBurstId)).toBe(true);
+    expect(trashHas(glorious, 1, targetInstanceId)).toBe(true);
   });
 });

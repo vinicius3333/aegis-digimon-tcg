@@ -144,3 +144,76 @@ describe("EX1-062 SkullGreymon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("EX1-062 SkullGreymon — KB Q&A rulings", () => {
+  it("does not activate [End of Attack] after <De-Digivolve> trashed this card during the security check (Q3247)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-062", as: "skull", under: [{ card: "BT2-071", as: "wizardmon" }] }],
+          trash: [{ card: "BT1-010", as: "agumon" }],
+          deck: ["BT1-009"],
+        },
+        1: { security: ["BT2-105", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const permanentId = s.perm("skull").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const survivor = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId);
+    expect(survivor?.topCard.instanceId).toBe(s.inst("wizardmon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX1-062", "BT1-010"]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("plays only a card named exactly [Agumon], not [Agumon Expert] or [Agumon - Bond of Bravery] (Q3248)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-062", as: "skull" }],
+          trash: [
+            { card: "BT1-011", as: "expert" },
+            { card: "BT6-018", as: "bond" },
+            { card: "BT1-010", as: "agumon" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("skull").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010"));
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "EX1-062")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(s.inst("expert").instanceId);
+    expect(offered).not.toContain(s.inst("bond").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("agumon").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("expert").instanceId, s.inst("bond").instanceId]),
+    );
+  });
+});

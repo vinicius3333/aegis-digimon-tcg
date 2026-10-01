@@ -344,3 +344,47 @@ describe("BT17-077 Imperialdramon: Paladin Mode", () => {
     expect(choices).toEqual([RETURN_TRASH_LABELS]);
   });
 });
+
+describe("BT17-077 Imperialdramon: Paladin Mode — KB Q&A rulings", () => {
+  it("returns a Digi-Egg card from the trash to the bottom of the Digi-Egg deck, not the main deck (Q2847)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-032", under: [{ card: "BT1-009", as: "base" }], as: "impLv6" }],
+          hand: [{ card: "BT17-077", as: "paladin" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+          eggDeck: [{ card: "BT1-002", as: "eggAlreadyInDeck" }],
+          trash: [
+            { card: "BT1-001", as: "trashedEgg" },
+            { card: "BT1-013", as: "trashedDigimon" },
+          ],
+        },
+      },
+      { autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+    const trashedEggId = s.inst("trashedEgg").instanceId;
+    const trashedDigimonId = s.inst("trashedDigimon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("impLv6").permanentId,
+        instanceId: s.inst("paladin").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 0);
+    await settle();
+
+    const player = s.state.players[0]!;
+    expect(player.trash).toHaveLength(0);
+    expect(player.eggDeck.map((card) => card.instanceId)).toEqual([
+      s.inst("eggAlreadyInDeck").instanceId,
+      trashedEggId,
+    ]);
+    expect(player.deck.map((card) => card.instanceId)).not.toContain(trashedEggId);
+    expect(player.deck.at(-1)?.instanceId).toBe(trashedDigimonId);
+  });
+});

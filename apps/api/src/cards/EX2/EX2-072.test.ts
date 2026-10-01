@@ -339,3 +339,73 @@ describe("EX2-072 Blue Card", () => {
     expect(s.state.memory).toBe(memoryBefore);
   });
 });
+
+describe("EX2-072 Blue Card — KB Q&A rulings", () => {
+  async function digivolveThroughBlueCard() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-019", as: "renamon" },
+            { card: "EX2-060", as: "rika" },
+          ],
+          hand: [{ card: "EX2-072", as: "blueCard" }],
+          deck: [
+            { card: "EX2-021", as: "kyubimon" },
+            { card: "EX2-066", as: "plugIn" },
+            "EX2-067",
+            "EX2-068",
+            "EX2-069",
+            { card: "BT1-009", as: "bonusDraw" },
+          ],
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const revealedIds = ["kyubimon", "plugIn"].map((alias) => s.inst(alias).instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueCard").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("plugIn").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+    const eventIndex = (predicate: (event: (typeof s.events)[number]) => boolean) => s.events.findIndex(predicate);
+    return {
+      s,
+      bonusDrawIndex: eventIndex(
+        (event) =>
+          event.kind === "cardsMoved" &&
+          event.to === "hand" &&
+          event.instanceIds.includes(s.inst("bonusDraw").instanceId),
+      ),
+      restToDeckIndex: eventIndex(
+        (event) =>
+          event.kind === "cardsMoved" && event.to === "deckBottom" && event.instanceIds.includes(revealedIds[1]!),
+      ),
+      whenDigivolvingAddIndex: eventIndex(
+        (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(revealedIds[1]!),
+      ),
+    };
+  }
+
+  it("draws the digivolution bonus from the unrevealed deck before the revealed cards go to the bottom (Q3363)", async () => {
+    const { s, bonusDrawIndex, restToDeckIndex } = await digivolveThroughBlueCard();
+    expect(s.perm("renamon").topCard.instanceId).toBe(s.inst("kyubimon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
+    expect(bonusDrawIndex).toBeGreaterThanOrEqual(0);
+    expect(restToDeckIndex).toBeGreaterThan(bonusDrawIndex);
+  });
+
+  it("resolves the digivolved card's [When Digivolving] only after the rest return to the deck bottom (Q3364)", async () => {
+    const { s, restToDeckIndex, whenDigivolvingAddIndex } = await digivolveThroughBlueCard();
+    expect(restToDeckIndex).toBeGreaterThanOrEqual(0);
+    expect(whenDigivolvingAddIndex).toBeGreaterThan(restToDeckIndex);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("plugIn").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX2-067", "EX2-068", "EX2-069"]),
+    );
+  });
+});

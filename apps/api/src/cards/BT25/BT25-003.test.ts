@@ -201,7 +201,7 @@ describe("BT25-003 Frimon", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it("rejects an otherwise legal level-4 destination without Glowing Dawn", async () => {
+  it("rejects an otherwise legal level-4 destination without Glowing Dawn, but may still trash security (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -227,7 +227,8 @@ describe("BT25-003 Frimon", () => {
 
     expect(s.perm("host").topCard?.cardId).toBe("BT25-032");
     expect(s.state.memory).toBe(5);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongTrait").instanceId);
   });
 });

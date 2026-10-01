@@ -5,7 +5,10 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-053.js";
+import { answerRevealSlotsRejectingEmpty } from "./livePlayTestHelpers.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT16/BT16-015.js";
 
 describe("EX4-053 Falcomon", () => {
   it("matches the catalog and is registered as complete IR", () => {
@@ -35,7 +38,7 @@ describe("EX4-053 Falcomon", () => {
             colors: ["Purple"],
             nameOrTrait: [
               { match: "name", tokens: ["Ravemon"] },
-              { match: "trait", tokens: ["Bird", "Avian"] },
+              { match: "traitContains", tokens: ["Bird", "Avian"] },
             ],
           },
         },
@@ -80,6 +83,27 @@ describe("EX4-053 Falcomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-058", "EX4-064"]));
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX4-054"]);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-053", as: "source" }],
+          deck: ["BT3-080", "EX4-064", "EX4-054"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT3-080", "EX4-064"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX4-054"]);
   });
 
   it("adds Yoshino Fujieda & Keenan Crier as Keenan Crier through its name rule", async () => {
@@ -163,4 +187,85 @@ describe("EX4-053 Falcomon", () => {
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("first").instanceId);
   });
   ex4CardBehaviorTests("EX4-053");
+});
+
+describe("EX4-053 Falcomon — KB Q&A rulings", () => {
+  it("must add a card to each slot that has a revealed match (Q3496)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-053", as: "subject" }],
+          deck: [
+            { card: "EX4-058", as: "ravemon" },
+            { card: "EX4-064", as: "keenan" },
+            { card: "EX4-054", as: "miss" },
+          ],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerRevealSlotsRejectingEmpty(s, 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("ravemon").instanceId, s.inst("keenan").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("miss").instanceId);
+  });
+
+  it("adds the single revealed target when only one slot matches (Q3495)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-053", as: "subject" }],
+          deck: [{ card: "EX4-064", as: "keenan" }, "EX4-054", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("keenan").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-010", "EX4-054"]);
+  });
+
+  it("does not make the opponent trash when Phoenixmon (X Antibody) runs On Deletion effects at End of Attack (Q2614)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-015", as: "phoenix", under: ["EX4-053", "BT2-019"] }] },
+        1: { hand: ["BT1-010", "BT1-011"], security: ["BT1-010"], deck: ["BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenix").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const triggeredSources = s.events
+      .filter((event) => event.kind === "effectTriggered")
+      .map((event) => (event as { sourceCardId?: string }).sourceCardId);
+    expect(triggeredSources).toContain("BT16-015");
+    expect(triggeredSources).not.toContain("EX4-053");
+    expect(s.decisions.some(({ seat, req }) => seat === 1 && req.kind === "selectCards")).toBe(false);
+    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011"]);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
 });

@@ -96,3 +96,31 @@ describe("BT9-097 Metal Storm", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT9-097 Metal Storm — KB Q&A rulings", () => {
+  it("does not reduce its cost for a source with only the [X Antibody] trait (Q1902)", async () => {
+    const traitOnlySource = getCardDefinition("BT9-024")!;
+    expect(traitOnlySource.types).toContain("X Antibody");
+    expect(traitOnlySource.nameEn).not.toBe("X Antibody");
+    const optionCost = 7;
+
+    const memoryAfterPlayOver = async (source: string): Promise<number> => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT9-019", as: "host", under: [source] }],
+          hand: [{ card: "BT9-097", as: "option" }],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+      return s.state.memory;
+    };
+
+    expect(await memoryAfterPlayOver("BT9-024")).toBe(5 - optionCost);
+    expect(await memoryAfterPlayOver("BT9-109")).toBe(5 - optionCost + 2);
+  });
+});

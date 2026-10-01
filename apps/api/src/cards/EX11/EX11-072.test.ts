@@ -1,10 +1,12 @@
 import { getCardDefinition, Zone } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX11-072.js";
 import "../BT12/BT12-057.js";
+import "../index.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 
 describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
   it("preserves the printed Option and complete compiled coverage", () => {
@@ -155,5 +157,50 @@ describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-072 Unique Emblem: Guardian Vortex — KB Q&A rulings", () => {
+  const BIRD_DRAGON_ONLY = "TEST-EX11-072-BIRD-DRAGON-ONLY";
+
+  afterEach(() => {
+    syntheticDefinitions.delete(BIRD_DRAGON_ONLY);
+  });
+
+  it.each([
+    { card: "EX11-028", traits: "both [Bird Dragon] and [LIBERATOR]", digivolves: true },
+    { card: BIRD_DRAGON_ONLY, traits: "only [Bird Dragon]", digivolves: false },
+    { card: "EX11-029", traits: "only [LIBERATOR]", digivolves: false },
+  ])("lets <Delay> digivolve into a card with $traits: $digivolves (Q5944)", async ({ card, digivolves }) => {
+    syntheticDefinitions.set(BIRD_DRAGON_ONLY, {
+      ...getCardDefinition("EX11-028")!,
+      cardId: BIRD_DRAGON_ONLY,
+      nameEn: "Bird Dragon Only",
+      types: ["Bird Dragon"],
+    });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-072", as: "emblem" },
+            { card: "EX11-062", as: "shoto" },
+            { card: "EX11-026", as: "pteromon" },
+          ],
+          hand: [{ card, as: "candidate" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("shoto").permanentId], 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("pteromon").topCard.instanceId === s.inst("candidate").instanceId).toBe(digivolves);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("candidate").instanceId)).toBe(
+      !digivolves,
+    );
   });
 });

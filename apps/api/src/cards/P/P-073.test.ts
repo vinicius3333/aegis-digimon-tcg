@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-073.js";
+import { getCardDefinition } from "@aegis/shared";
+import { effectiveExactNames } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 
 type EngineInternals = {
   primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> };
@@ -230,5 +233,70 @@ describe("P-073 WereGarurumon: Sagittarius Mode", () => {
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(4);
+  });
+});
+
+describe("P-073 WereGarurumon: Sagittarius Mode — KB Q&A rulings", () => {
+  it("trashes 2 digivolution cards of the same level as each other, not of this card's level (Q4174)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-044",
+              as: "defender",
+              dp: 7000,
+              suspended: true,
+              under: [{ card: "BT1-032", as: "level4a" }, { card: "BT1-033", as: "level4b" }, { card: "P-073", as: "sagittarius" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "attacker", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const defenderId = s.perm("defender").permanentId;
+    const pairIds = [s.inst("level4a").instanceId, s.inst("level4b").instanceId];
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === defenderId)).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual([...pairIds].sort());
+    expect(s.perm("defender").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("sagittarius").instanceId]);
+  });
+
+  it("is always also named [WereGarurumon], in hand and in play (Q4175)", async () => {
+    expect(effectiveExactNames(getCardDefinition("P-073")!)).toEqual(
+      expect.arrayContaining(["WereGarurumon: Sagittarius Mode", "WereGarurumon"]),
+    );
+
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "P-073", as: "host" }],
+        hand: [{ card: "P-073", as: "source" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("source").instanceId);
+
+    expect(s.state.memory).toBe(10);
   });
 });

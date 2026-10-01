@@ -40,3 +40,34 @@ describe("ST21-14", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST21-14")).toBe(true);
   });
 });
+
+describe("ST21-14 Believe in Our Friendship — KB Q&A rulings", () => {
+  it("ignores its color requirement for an ADVENTURE Digimon in the breeding area (Q4485)", async () => {
+    const playWithBreeding = async (breedingCardId: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            breeding: breedingCardId,
+            hand: [{ card: "ST21-14", as: "friendship" }],
+            deck: ["ST21-10", "BT1-009", "BT1-045"],
+          },
+        },
+        { autoSelectCards: true, autoOrderCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      return { s, result: s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("friendship").instanceId }) };
+    };
+
+    const adventure = await playWithBreeding("ST21-02");
+    expect(adventure.result).toEqual({ ok: true });
+    await settle(() =>
+      adventure.s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST21-14"),
+    );
+    expect(adventure.s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["ST21-10"]);
+
+    const nonAdventure = await playWithBreeding("ST2-03");
+    expect(nonAdventure.result).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(nonAdventure.s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["ST21-14"]);
+  });
+});

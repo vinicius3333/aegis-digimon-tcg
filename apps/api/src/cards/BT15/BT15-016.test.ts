@@ -112,3 +112,81 @@ describe("BT15-016", () => {
     ]);
   });
 });
+
+describe("BT15-016 Brachiomon — KB Q&A rulings", () => {
+  async function resolveOnPlayAtMemory(memory: number) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-016", as: "brachiomon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "large", dp: 8000 },
+            { card: "BT1-009", as: "small", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = memory;
+    const smallId = s.perm("small").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("brachiomon"));
+    await settle();
+
+    return {
+      restricted: observe(s.engine).isRestricted(s.perm("large"), "attack"),
+      deleted: !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === smallId),
+    };
+  }
+
+  it("reads 'opponent has 4 or less' as any memory on my side, 0, or 1-4 on theirs, and '4 or more' as 4-10 on theirs (Q2500)", async () => {
+    const cases = [
+      { memory: 10, restricted: true, deleted: false },
+      { memory: 3, restricted: true, deleted: false },
+      { memory: 0, restricted: true, deleted: false },
+      { memory: -1, restricted: true, deleted: false },
+      { memory: -4, restricted: true, deleted: true },
+      { memory: -5, restricted: false, deleted: true },
+      { memory: -10, restricted: false, deleted: true },
+    ];
+
+    for (const { memory, restricted, deleted } of cases) {
+      expect({ memory, ...(await resolveOnPlayAtMemory(memory)) }).toEqual({ memory, restricted, deleted });
+    }
+  });
+
+  it("applies both the can't-attack and the delete effect when the opponent has exactly 4 memory (Q2501)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-016", as: "brachiomon" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "large", dp: 8000 },
+            { card: "BT1-009", as: "small", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, declineDigiXros: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const smallId = s.perm("small").permanentId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("brachiomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === smallId));
+    await settle();
+
+    expect(s.state.memory).toBe(-4);
+    expect(observe(s.engine).isRestricted(s.perm("large"), "attack")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("large").permanentId,
+    ]);
+  });
+});

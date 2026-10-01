@@ -6,6 +6,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-080.js";
+import "../BT12/BT12-083.js";
 import "./BT13-083.js";
 import "./BT13-086.js";
 
@@ -240,5 +241,117 @@ describe("BT13-080 ProtoGizmon", () => {
 
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(false);
+  });
+});
+
+describe("BT13-080 ProtoGizmon — KB Q&A rulings", () => {
+  it("can be placed in another Digimon's digivolution cards by an effect despite not being able to digivolve (Q2323)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-083", as: "arrester" }] },
+        1: {
+          battleArea: [
+            { card: "BT13-086", as: "destination" },
+            { card: "BT13-080", as: "proto" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    const protoInstanceId = s.perm("proto").topCard!.instanceId;
+    preferInstanceIds.push(s.perm("proto").permanentId, protoInstanceId, s.perm("destination").permanentId);
+    await s.ready();
+    expect(observe(s.engine).isRestricted(s.perm("proto"), "digivolve")).toBe(true);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arrester"));
+    await settle();
+
+    expect(s.perm("destination").stack.map((card) => card.instanceId)).toContain(protoInstanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT13-086"]);
+  });
+
+  it("can return itself from the trash as part of its own On Deletion cost (Q2324)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-080", as: "proto" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          trash: [
+            { card: "BT13-083", as: "at" },
+            { card: "BT13-086", as: "xt" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const protoInstanceId = s.perm("proto").topCard!.instanceId;
+    preferInstanceIds.push(protoInstanceId, s.inst("xt").instanceId);
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083"));
+    await settle();
+
+    const returnSelection = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(s.inst("xt").instanceId),
+    );
+    expect(returnSelection?.req.options?.candidateInstanceIds).toContain(protoInstanceId);
+    const deck = s.state.players[0]!.deck.map((card) => card.instanceId);
+    expect(deck).toHaveLength(3);
+    expect(deck.slice(-2)).toEqual(expect.arrayContaining([protoInstanceId, s.inst("xt").instanceId]));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === protoInstanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(true);
+  });
+
+  it("can return itself and the only other Gizmon card without playing Gizmon: AT (Q2325)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-080", as: "proto" }],
+          deck: ["BT1-009"],
+          trash: [{ card: "BT13-083", as: "at" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const protoInstanceId = s.perm("proto").topCard!.instanceId;
+    const atInstanceId = s.inst("at").instanceId;
+    await s.ready();
+
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const costDecisionId = s.state.pendingDecision!.decisionId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined ||
+        (s.state.pendingDecision.kind === "optional" && s.state.pendingDecision.decisionId !== costDecisionId),
+    );
+    const playDecision = s.state.pendingDecision;
+    const declinedPlay =
+      playDecision === undefined
+        ? { ok: true }
+        : s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: playDecision.decisionId,
+            response: { kind: "optional", accept: false },
+          });
+    expect(declinedPlay).toEqual({ ok: true });
+    await deletion;
+    await settle();
+
+    const deck = s.state.players[0]!.deck.map((card) => card.instanceId);
+    expect(deck).toHaveLength(3);
+    expect(deck.slice(-2)).toEqual(expect.arrayContaining([protoInstanceId, atInstanceId]));
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });

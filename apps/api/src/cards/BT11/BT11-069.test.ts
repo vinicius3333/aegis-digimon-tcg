@@ -138,7 +138,7 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("does not trash security when its controller's Digimon unsuspends", async () => {
+  it("also trashes security when its controller's own Digimon unsuspends", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -158,7 +158,32 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
       unsuspendedPermanentId: s.perm("ownDigimon").permanentId,
     });
 
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+describe("BT11-069 MetalGreymon (X Antibody) — KB Q&A rulings", () => {
+  it("activates when an opponent's Digimon becomes unsuspended during the opponent's turn (Q2098)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT11-064", as: "host", under: ["BT11-069"] }] },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "opponentDigimon", suspended: true }],
+        security: ["BT1-009", "BT1-011"],
+      },
+    });
+    await s.ready();
+    const securityIds = s.state.players[1]!.security.map(({ instanceId }) => instanceId);
+
+    await advance(s.engine).verb.unsuspend([s.perm("opponentDigimon").permanentId]);
     expect(s.state.players[1]!.security).toHaveLength(2);
+
+    await advance(s.engine).verb.suspend([s.perm("opponentDigimon").permanentId]);
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.unsuspend([s.perm("opponentDigimon").permanentId]);
+
+    expect(s.perm("opponentDigimon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([securityIds[1]]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([securityIds[0]]);
   });
 });
 

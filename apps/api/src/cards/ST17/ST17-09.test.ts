@@ -270,3 +270,56 @@ describe("ST17-09 Cherubimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("ST17-09 Cherubimon — KB Q&A rulings", () => {
+  it("can delete your own green/purple level 4 Digimon and then play that same card from trash for free (Q832)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST17-07", as: "base" },
+            { card: "ST17-04", as: "ownGreenPurple" },
+          ],
+          hand: [{ card: "ST17-09", as: "cherubimon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-037", as: "opponentLevel4" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const deletedInstanceId = s.inst("ownGreenPurple").instanceId;
+    const deletedPermanentId = s.perm("ownGreenPurple").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cherubimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const deleteChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deleteChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [deletedPermanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === deletedInstanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === deletedPermanentId)).toBe(false);
+    const replayed = s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === deletedInstanceId);
+    expect(replayed).toBeDefined();
+    expect(replayed?.permanentId).not.toBe(deletedPermanentId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(deletedInstanceId);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("opponentLevel4").topCard.cardId).toBe("BT1-037");
+  });
+});

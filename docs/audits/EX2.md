@@ -576,6 +576,8 @@ Only coordinator-approved focused Vitest, scoped Oxlint/Oxfmt, and `git diff --c
 
 ### EX2-007 — Mother D-Reaper
 
+2026-09-28 peer regression: the D-Reaper play reduction shares King Drasil's stale resident-reduction registration (Discord bug 1554297556551340062). `EX2-007.test.ts` now plays a non-D-Reaper card, adds an ADR-02 Searcher source, and proves the next D-Reaper play counts both sources (cost 1; pre-fix 2). See [resident-reduction-refresh.md](engine/resident-reduction-refresh.md).
+
 September 25, 2026 follow-up: removed three fake-source registration/timing assertions and their fabricated card/permanent fixtures. The colocated public scenarios already prove the All Turns attack restriction and opponent-effect immunity, the Main Searcher placement and once-per-turn boundary, and the Your Turn D-Reaper play-cost reduction. The IR clause assertion remains. Focused rerun of the resulting **14/14** tests passed under a 2 GB Node heap and one Vitest worker; the earlier 17/17 report below refers to the pre-cleanup suite. Cross-set closeout remains open.
 
 September 25, 2026 re-audit: a new public negative case proves the printed

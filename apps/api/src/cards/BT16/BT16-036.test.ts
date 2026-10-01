@@ -226,3 +226,41 @@ describe("BT16-036", () => {
     expect(observe(s.engine).hasEffectiveTrait(s.perm("chaosmon"), "D-Brigade")).toBe(true);
   });
 });
+
+describe("BT16-036 Chaosmon — KB Q&A rulings", () => {
+  const TOP_SECURITY = "BT1-011";
+  const SECOND_SECURITY = "BT1-009";
+
+  async function endOpponentTurn(ownSecurity: string[], opponentSecurity: string[]) {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT16-036", as: "chaosmon" }], security: ownSecurity, deck: ["BT1-009"] },
+      1: { security: opponentSecurity, deck: ["BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    return s;
+  }
+
+  function securityIds(s: ReturnType<typeof setupEngine>, seat: 0 | 1): string[] {
+    return s.state.players[seat]!.security.map((card) => card.cardId);
+  }
+
+  it("still activates when one player has 0 security, trashing only the other player's top card (Q2631)", async () => {
+    const opponentEmpty = await endOpponentTurn([TOP_SECURITY, SECOND_SECURITY], []);
+
+    expect(securityIds(opponentEmpty, 0)).toEqual([SECOND_SECURITY]);
+    expect(opponentEmpty.state.players[0]!.trash.map((card) => card.cardId)).toEqual([TOP_SECURITY]);
+    expect(securityIds(opponentEmpty, 1)).toEqual([]);
+
+    const ownEmpty = await endOpponentTurn([], [TOP_SECURITY, SECOND_SECURITY]);
+
+    expect(securityIds(ownEmpty, 0)).toEqual([]);
+    expect(securityIds(ownEmpty, 1)).toEqual([SECOND_SECURITY]);
+    expect(ownEmpty.state.players[1]!.trash.map((card) => card.cardId)).toEqual([TOP_SECURITY]);
+  });
+});

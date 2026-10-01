@@ -19,8 +19,13 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "CostGatedBlock",
-          cost: { kind: "deleteOwn", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
-          optional: false,
+          cost: {
+            kind: "deleteOwn",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            raw: "By deleting 1 of your Digimon",
+            declineViaSelection: true,
+          },
+          optional: true,
           abortOnDecline: true,
           actions: [
             {

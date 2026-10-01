@@ -149,3 +149,46 @@ describe("BT12-072 Chaosdramon (X Antibody)", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
+
+describe("BT12-072 Chaosdramon (X Antibody) — KB Q&A rulings", () => {
+  it("trashes the opponent's top security first, then prevents the deletion with gained [EX3-013 Chaosdramon] (Q2212)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT12-072",
+              as: "chaosX",
+              under: [{ card: "BT9-065", as: "firstLevel5" }, { card: "BT9-065", as: "secondLevel5" }, "EX3-013"],
+            },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+        preferTriggerKeys: ["BT12-072"],
+      },
+    );
+    await s.ready();
+    const chaosPermanentId = s.perm("chaosX").permanentId;
+    const topSecurityId = s.state.players[1]!.security[0]!.instanceId;
+    const levelFiveIds = [s.inst("firstLevel5").instanceId, s.inst("secondLevel5").instanceId];
+
+    await advance(s.engine).verb.deletePermanent([chaosPermanentId], "byEffect");
+    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([chaosPermanentId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([topSecurityId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(levelFiveIds));
+    expect(s.perm("chaosX").stack.map(({ cardId }) => cardId)).toEqual(["EX3-013"]);
+    const trashMoves = s.events.filter((event) => event.kind === "cardsMoved" && event.to === "trash");
+    expect(trashMoves.map((event) => event.kind === "cardsMoved" && event.instanceIds)).toEqual([
+      [topSecurityId],
+      levelFiveIds,
+    ]);
+  });
+});

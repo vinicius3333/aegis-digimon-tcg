@@ -1,6 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
+import { CARD_ID_VIEW_TAG, type GameState, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { buildStateView } from "../../engine/state/visibility.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT25-087.js";
 import "../BT15/BT15-090.js";
@@ -185,5 +187,94 @@ describe("BT25-087 Thomas H. Norstein", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === CARD_ID));
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT25-087 Thomas H. Norstein — KB Q&A rulings", () => {
+  /** Both seats' synchronized views; a view only tracks state attached to an encoder, as a room's is. */
+  function seatViews(state: GameState) {
+    const encoder = new Encoder(state);
+    return { encoder, ownerView: buildStateView(state, 0), opponentView: buildStateView(state, 1) };
+  }
+
+  /** Thomas with one face-down card under it reacts to an effect adding to the opponent's hand. */
+  async function placeTopTwoUnderThomas() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "thomas", under: [{ card: "AD1-001", faceUp: false, as: "existing" }] }],
+          deck: [
+            { card: "AD1-002", as: "top" },
+            { card: "AD1-003", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    await settle(() => s.perm("thomas").stack.length === 3);
+    return s;
+  }
+
+  it("places the face-down cards in a fixed order its controller can't rearrange (Q6410)", async () => {
+    const s = await placeTopTwoUnderThomas();
+
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+    expect(s.perm("thomas").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("second").instanceId,
+      s.inst("top").instanceId,
+      s.inst("existing").instanceId,
+    ]);
+  });
+
+  it("lets only its owner see the identity of the face-down cards under it (Q6411)", async () => {
+    const s = await placeTopTwoUnderThomas();
+    const { ownerView, opponentView } = seatViews(s.state);
+
+    for (const card of s.perm("thomas").stack) {
+      expect(card.faceUp).toBe(false);
+      expect(ownerView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(true);
+      expect(opponentView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(false);
+    }
+  });
+
+  it("puts a trashed face-down card face up in the trash (Q6412)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "thomas",
+              under: [
+                { card: "AD1-001", faceUp: false, as: "bottom" },
+                { card: "AD1-002", faceUp: false, as: "upper" },
+              ],
+            },
+            { card: "BT25-021", as: "gaomon" },
+          ],
+          hand: [{ card: "BT25-023", as: "gaogamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gaomon").permanentId,
+        instanceId: s.inst("gaogamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").topCard.cardId === "BT25-023");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("thomas").stack.map((card) => card.instanceId)).toEqual([s.inst("upper").instanceId]);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("bottom").instanceId, faceUp: true }),
+    );
   });
 });

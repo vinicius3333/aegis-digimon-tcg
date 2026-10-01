@@ -245,3 +245,40 @@ describe("EX1-063 VenomMyotismon", () => {
     await loop;
   });
 });
+
+describe("EX1-063 VenomMyotismon — KB Q&A rulings", () => {
+  it("cannot play a Digimon whose <Retaliation> is only an inherited effect (Q3249)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-063", as: "venom" }],
+          trash: [
+            { card: "BT12-076", as: "inheritedOnly" },
+            { card: "EX1-056", as: "printedRetaliation" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("venom").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "EX1-063")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(s.inst("inheritedOnly").instanceId);
+    const played = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    expect(played).toContain(s.inst("printedRetaliation").instanceId);
+    expect(played).not.toContain(s.inst("inheritedOnly").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("inheritedOnly").instanceId]);
+  });
+});

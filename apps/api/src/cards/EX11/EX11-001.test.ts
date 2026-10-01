@@ -316,3 +316,59 @@ describe("EX11-001 Koromon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("EX11-001 Koromon — KB Q&A rulings", () => {
+  it("activates the digivolved Digimon's [When Digivolving] effect before the remaining attack-digivolve effect (Q5787)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-070", as: "host", under: ["EX11-001", "EX11-007", "EX11-009"], dp: 20_000 }],
+          hand: [
+            { card: "EX11-010", as: "master" },
+            { card: "EX11-011", as: "dino" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3_000 }], security: 5 },
+      },
+      { autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: ["BT22-070"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const offeredTimings: string[] = [];
+    async function answerNextOptional(accept: boolean): Promise<void> {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const decision = s.state.pendingDecision!;
+      offeredTimings.push((JSON.parse(decision.payloadJson) as { timing: string }).timing);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    }
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await answerNextOptional(true);
+    await settle(() => s.perm("host").topCard.cardId === "EX11-010");
+    await answerNextOptional(false);
+    await answerNextOptional(true);
+    await settle(() => s.perm("host").topCard.cardId === "EX11-011");
+
+    expect(offeredTimings).toEqual(["WhenAttacking", "WhenDigivolving", "WhenAttacking"]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([
+      "EX11-001",
+      "EX11-007",
+      "EX11-009",
+      "BT22-070",
+      "EX11-010",
+    ]);
+    assertNoLoudGap(s);
+  });
+});

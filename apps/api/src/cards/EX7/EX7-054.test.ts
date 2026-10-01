@@ -6,6 +6,7 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-054.js";
 import "../index.js";
+import { attackIntoEndedAttackWithBlockerReady, attackIntoPreventedDeletionCost } from "./endAttack.testSupport.js";
 
 async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>, seat: 0 | 1): Promise<void> {
   if (!s.state.gameOver && !s.engine.applyIntent(seat, { type: "surrender" }).ok)
@@ -248,5 +249,31 @@ describe("EX7-054", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-040"));
     expect(s.state.players[0]!.security).toHaveLength(1);
     await stopLoop(s, loop, 1);
+  });
+});
+
+describe("EX7-054 BlackGatomon — KB Q&A rulings", () => {
+  const scenario = { host: "BT10-079", inheritedCard: "EX7-054" };
+
+  it("keeps the attack going when another effect prevents the deletion cost (Q3861)", async () => {
+    const s = await attackIntoPreventedDeletionCost(scenario);
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT8-039", "BT1-090"]),
+    );
+    expect(s.perm("armorPurge").topCard.instanceId).toBe(s.inst("armorPurgeSource").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("jumps straight to the end of the attack, skipping the block timing and the security check (Q3862)", async () => {
+    const s = await attackIntoEndedAttackWithBlockerReady(scenario);
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.events.some(({ kind }) => kind === "blockWindowOpened")).toBe(false);
+    expect(s.events.some(({ kind }) => kind === "counterWindowOpened")).toBe(false);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("security").instanceId]);
+    expect(s.perm("attacker").isSuspended).toBe(true);
   });
 });

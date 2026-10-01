@@ -234,3 +234,94 @@ describe("BT1-078 Jagamon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT1-078 Jagamon — KB Q&A rulings", () => {
+  it("may reveal and decline to digivolve, returning every revealed card to the deck bottom (Q930)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-078", as: "attacker" }],
+        deck: [
+          { card: "BT1-081", as: "evolution" },
+          { card: "BT1-010", as: "missA" },
+          { card: "BT1-011", as: "missB" },
+          { card: "BT1-012", as: "unrevealed" },
+        ],
+      },
+      1: { security: ["BT1-012"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const offer = s.decisions.at(-1)!.req;
+    expect(offer.options?.candidateInstanceIds).toContain(s.inst("evolution").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: offer.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("attacker").topCard.cardId).toBe("BT1-078");
+    const deckIds = s.state.players[0]!.deck.map((card) => card.instanceId);
+    expect(deckIds[0]).toBe(s.inst("unrevealed").instanceId);
+    expect(deckIds.slice(1)).toEqual(
+      expect.arrayContaining([s.inst("evolution").instanceId, s.inst("missA").instanceId, s.inst("missB").instanceId]),
+    );
+    expect(deckIds).toHaveLength(4);
+  });
+
+  it("performs the digivolution bonus draw from the unrevealed deck before the rest is bottomed (Q931)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-078", as: "attacker" }],
+          deck: [
+            { card: "BT1-081", as: "evolution" },
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+            { card: "BT1-012", as: "drawn" },
+            { card: "BT1-013", as: "spare" },
+          ],
+        },
+        1: { security: ["BT1-012"] },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+
+    expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("evolution").instanceId);
+    const handIds = s.state.players[0]!.hand.map((card) => card.instanceId);
+    expect(handIds).toEqual([s.inst("drawn").instanceId]);
+    expect(handIds).not.toContain(s.inst("first").instanceId);
+    expect(handIds).not.toContain(s.inst("second").instanceId);
+
+    const decision = s.decisions.at(-1)!.req;
+    const order = [s.inst("second").instanceId, s.inst("first").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderCards", order },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 3);
+
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("spare").instanceId, ...order]);
+  });
+});

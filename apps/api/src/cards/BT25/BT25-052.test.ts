@@ -1,9 +1,10 @@
 import { getCardDefinition } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import { compiled } from "./BT25-052.js";
 
 describe("BT25-052 Logimon", () => {
@@ -19,7 +20,9 @@ describe("BT25-052 Logimon", () => {
         },
         1: { battleArea: [{ card: "BT25-046", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // The link card's [When Linking] could trash Kazuki & Itsuki as its cost, so the player
+      // resolves the simultaneous "when this Digimon gets linked" watcher first.
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT25-052"] },
     );
     s.state.memory = 3;
     await s.ready();
@@ -31,7 +34,12 @@ describe("BT25-052 Logimon", () => {
         effectKey: effect!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("logimon").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    // The [When Linked] watcher activates only after the [Main] that linked finishes (CR §15-4-4).
+    await settle(
+      () =>
+        s.perm("logimon").linked.some((card) => card.instanceId === s.inst("link").instanceId) &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-089"),
+    );
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-089")).toBe(true);
@@ -249,5 +257,56 @@ describe("BT25-052 Logimon", () => {
     expect(s.perm("egg").topCard.cardId).toBe("BT1-001");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-052");
     expect(s.state.memory).toBe(5);
+  });
+});
+
+describe("BT25-052 Logimon — KB Q&A rulings", () => {
+  const noLinkTool = "Q6328-NO-LINK-TOOL";
+
+  beforeAll(() => {
+    const craftmon = getCardDefinition("BT25-036")!;
+    syntheticDefinitions.set(noLinkTool, {
+      ...craftmon,
+      cardId: noLinkTool,
+      nameEn: "No-Link Craftmon",
+      linkRequirement: undefined,
+    });
+  });
+
+  afterAll(() => {
+    syntheticDefinitions.delete(noLinkTool);
+  });
+
+  it("can't link a [Tool] trait Digimon card that has no <Link> (Q6328)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-052", as: "logimon" }],
+          hand: [
+            { card: noLinkTool, as: "noLink" },
+            { card: "BT25-036", as: "link" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const [effect] = observe(s.engine).activatableEffects(s.perm("logimon")) as { effectKey: string }[];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("logimon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("logimon").linked.length === 1 && s.state.pendingDecision === undefined);
+
+    const offeredByLogimon = s.decisions
+      .filter(({ req }) => req.sourceCardId === "BT25-052")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredByLogimon).not.toContain(s.inst("noLink").instanceId);
+    expect(s.perm("logimon").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
   });
 });

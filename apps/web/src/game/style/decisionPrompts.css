@@ -78,9 +78,13 @@
   padding-bottom: 0;
 }
 
+/* Equal thirds clipped "Confirm targets" in a 560px dialog: the label never wraps, so
+   each button starts at its label's width and only the spare space is shared. The
+   `full` button's 100% width would otherwise become every button's flex basis. */
 .decision-overlay--selection .decision-overlay__footer > .aegis-button {
+  width: auto;
   min-width: 0;
-  flex: 1 1 0;
+  flex: 1 1 auto;
 }
 
 /* A portrait tablet is already too narrow for the three long selection actions
@@ -602,6 +606,37 @@
   }
 }
 
+/* Portrait phones: the generic bottom sheet (86dvh) hid the whole board behind the
+   pending-effect prompt. Keep the top of the board in view; the effect list scrolls. */
+@media (width < 600px) and (orientation: portrait) {
+  .game-modal__panel.decision-overlay--trigger-chooser {
+    max-height: min(62dvh, calc(100dvh - 2 * var(--ds-space-3))) !important;
+    padding-top: var(--ds-space-3) !important;
+    overflow: hidden !important;
+  }
+  .decision-overlay--trigger-chooser > .decision-overlay__header {
+    margin-bottom: var(--ds-space-2);
+  }
+  .decision-overlay--trigger-chooser .trigger-chooser__hint {
+    display: none;
+  }
+  .decision-overlay--trigger-chooser .trigger-chooser__toolbar {
+    margin-bottom: var(--ds-space-2);
+  }
+  .decision-overlay--trigger-chooser .trigger-chooser__bulk {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    width: 100%;
+  }
+  .decision-overlay--trigger-chooser .trigger-chooser__preset-option {
+    min-height: 32px;
+  }
+  .decision-overlay--trigger-chooser .trigger-chooser__footer {
+    gap: var(--ds-space-2);
+    padding-top: var(--ds-space-2);
+  }
+}
+
 @media (height < 700px) {
   .decision-overlay--trigger-chooser {
     top: var(--ds-space-3);
@@ -834,6 +869,9 @@
 }
 .waiting-dialog__handle {
   display: none;
+}
+.waiting-dialog__action {
+  margin-top: var(--ds-space-5);
 }
 .waiting-dialog__cancel {
   grid-column: 1 / -1;

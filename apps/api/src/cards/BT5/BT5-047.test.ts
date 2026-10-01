@@ -99,3 +99,57 @@ describe("BT5-047 Palmon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(true);
   });
 });
+
+describe("BT5-047 Palmon — KB Q&A rulings", () => {
+  it("places the Palmon being deleted under an own green Digimon at the bottom (Q1333)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-047", as: "palmon" },
+            { card: "BT5-046", as: "green", under: ["BT5-048"] },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const palmonId = s.perm("palmon").topCard!.instanceId;
+    const existingId = s.perm("green").stack[0]!.instanceId;
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("palmon").permanentId], "byEffect");
+    await settle(() => s.perm("green").stack.some((card) => card.instanceId === palmonId));
+
+    expect(s.perm("green").stack.map((card) => card.instanceId)).toEqual([palmonId, existingId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === palmonId)).toBe(false);
+  });
+
+  it("treats itself as Palmon in the trash after BT11-043 renamed it to Sukamon on the field (Q1334)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-047", as: "palmon" },
+            { card: "BT5-046", as: "green" },
+          ],
+          trash: Array.from({ length: 16 }, () => "BT1-001"),
+        },
+        1: { hand: [{ card: "BT11-043", as: "king" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    const palmonId = s.perm("palmon").topCard!.instanceId;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).effectiveNames(s.perm("palmon")).includes("sukamon"));
+    expect(observe(s.engine).effectiveNames(s.perm("palmon"))).toEqual(["sukamon"]);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("palmon").permanentId], "byEffect");
+    await settle(() => s.perm("green").stack.some((card) => card.instanceId === palmonId));
+
+    expect(s.perm("green").stack[0]!.instanceId).toBe(palmonId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === palmonId)).toBe(false);
+  });
+});

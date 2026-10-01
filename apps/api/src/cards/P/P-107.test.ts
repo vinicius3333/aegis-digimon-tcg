@@ -6,6 +6,12 @@ import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../e
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-107.js";
+import {
+  delayDigivolvesThroughAlternateCondition,
+  expectDelayCannotUseHandMainRoute,
+  expectDelayDoesNotDna,
+  expectDelayIgnoresTamers,
+} from "./qaRulings2.testSupport.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -566,5 +572,44 @@ describe("P-107 (Defense Training)", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-107 Defense Training — KB Q&A rulings", () => {
+  it("does not DNA digivolve into a card in hand (Q4205)", async () => {
+    await expectDelayDoesNotDna("P-107", { first: "BT1-021", second: "BT2-060", target: "EX12-017" }, 4);
+  });
+
+  it("does not digivolve a Tamer into a 'Tamer digivolves as a Digimon' card (Q4206)", async () => {
+    await expectDelayIgnoresTamers("P-107", "BT2-089", "BT7-060");
+  });
+
+  it("cannot run EX10-032 Proganomon's {Hand} [Main] route at the same time (Q5092)", async () => {
+    await expectDelayCannotUseHandMainRoute("P-107", {
+      host: "EX10-025",
+      tamer: "EX10-063",
+      material: "EX10-028",
+      target: "EX10-032",
+    });
+  });
+
+  it("lets ST20-10 Agumon use its [Your Turn] WarGreymon route at the same time (Q5203)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-107",
+      { battleArea: [{ card: "ST20-10", as: "host" }], hand: [{ card: "BT12-070", as: "target" }] },
+      { battleArea: [{ card: "BT1-025", dp: 12000 }] },
+      2,
+      "BT12-070",
+    );
+  });
+
+  it("lets BT6-060 Deputymon use its [Your Turn] Three Musketeers route at the same time (Q6237)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-107",
+      { battleArea: [{ card: "BT6-060", as: "host" }], hand: [{ card: "BT6-065", as: "target" }] },
+      {},
+      4,
+      "BT6-065",
+    );
   });
 });

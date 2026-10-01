@@ -601,3 +601,82 @@ describe("EX13-013 WarGrowlmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX13-013 WarGrowlmon — KB Q&A rulings", () => {
+  it("must delete an available 5000 DP Digimon, so declining to pick cannot claim Piercing and +3000 DP (Q7238)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: LV4_RED, as: "source" }],
+          hand: [{ card: CARD_ID, as: "war" }],
+          deck: [LV3_RED],
+        },
+        1: {
+          battleArea: [
+            { card: BODY, as: "first", dp: 5000 },
+            { card: BODY, as: "second", dp: 2000 },
+          ],
+          security: [LV3_RED],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("war").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.min).toBe(1);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.perm("war").currentDP).toBe(8000);
+    expect(observe(s.engine).hasPierce(s.perm("war"))).toBe(false);
+  });
+
+  it("offers every Tamer carrying [Guilmon] anywhere in its text, and no Tamer without it (Q7240)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "war" }],
+          hand: [
+            { card: PLAIN_TAMER, as: "takuya" },
+            { card: GUILMON_TAMER, as: "takato" },
+            { card: "EX13-068", as: "otherTakato" },
+          ],
+          deck: [LV3_RED],
+          security: [LV3_RED],
+        },
+        1: { security: [LV3_RED, SECOND_SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("war").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && !observe(s.engine).isAttacking());
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const pick = s.decisions.find(({ req }) =>
+      req.options?.candidateInstanceIds?.includes(s.inst("takato").instanceId),
+    );
+    expect(pick?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("takato").instanceId, s.inst("otherTakato").instanceId]),
+    );
+    expect(pick?.req.options?.candidateInstanceIds).not.toContain(s.inst("takuya").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("takuya").instanceId);
+  });
+});

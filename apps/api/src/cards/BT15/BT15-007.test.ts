@@ -56,6 +56,25 @@ describe("BT15-007", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
   });
 
+  it("counts a card whose trait only contains [Beast] (e.g. [Holy Beast])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-007", as: "biyomon" }],
+          hand: [{ card: "BT11-016", as: "holyBeastCost" }],
+          deck: [{ card: "BT1-009", as: "redHit" }, "BT1-045", "BT1-055", "BT1-069"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("biyomon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("holyBeastCost").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("redHit").instanceId);
+  });
+
   it("resolves the reveal through the natural start-of-main-phase window", async () => {
     const s = setupEngine(
       {

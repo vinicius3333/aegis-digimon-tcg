@@ -64,7 +64,7 @@ describe("EX9-049", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("rejects a non-Ver.3 evolution without processing its placement cost", async () => {
+  it("rejects a non-Ver.3 evolution, but may still process its placement cost (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -80,8 +80,9 @@ describe("EX9-049", () => {
     await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-049");
-    expect(s.perm("source").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash).toHaveLength(6);
+    expect(s.perm("source").stack).toHaveLength(3);
+    expect(s.perm("source").stack.every(({ faceUp }) => !faceUp)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
     expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();

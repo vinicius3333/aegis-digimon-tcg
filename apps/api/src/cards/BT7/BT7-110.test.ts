@@ -55,3 +55,37 @@ describe("BT7-110 Evolution Ancient", () => {
     );
   });
 });
+
+describe("BT7-110 Evolution Ancient — KB Q&A rulings", () => {
+  it("can be used without a white Digimon or Tamer while a Digimon with [Hybrid] in its traits is in play (Q1677)", async () => {
+    const setupWith = async (battleCard: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: battleCard, as: "blueDigimon" }],
+            hand: [{ card: "BT7-110", as: "option" }],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      return s;
+    };
+
+    const withoutHybrid = await setupWith("AD1-010");
+    expect(
+      withoutHybrid.engine.applyIntent(0, { type: "playCard", instanceId: withoutHybrid.inst("option").instanceId }).ok,
+    ).toBe(false);
+    expect(withoutHybrid.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT7-110"]);
+
+    const withHybrid = await setupWith("BT7-021");
+    expect(
+      withHybrid.engine.applyIntent(0, { type: "playCard", instanceId: withHybrid.inst("option").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      withHybrid.state.players[0]!.trash.some(({ instanceId }) => instanceId === withHybrid.inst("option").instanceId),
+    );
+    expect(withHybrid.state.players[0]!.hand).toHaveLength(0);
+  });
+});

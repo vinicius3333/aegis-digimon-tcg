@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { answerOrder, answerRemainingOrdersUntil, offeredTriggers } from "../EX12/simultaneousTriggers.testSupport.js";
 import "../index.js";
 
 const FILLER = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"];
@@ -69,14 +71,14 @@ describe("BT19-099 The Wicked God Descends! — catalog and IR", () => {
         keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
         actions: [
           {
-            kind: "SubTrigger",
-            event: "whenDigimonWouldLeave",
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            mode: "instead",
             sourceFilter: {
               controller: "mine",
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Millenniummon"], match: "name" }],
             },
-            pickOne: true,
             actions: [
               {
                 kind: "PlayFromZone",
@@ -390,6 +392,51 @@ describe("BT19-099 The Wicked God Descends! — ＜Delay＞ on a Millenniummon l
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("moon").instanceId);
     expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toContain("BT19-099");
+  });
+});
+
+describe("BT19-099 The Wicked God Descends! — ＜Delay＞ as a would-leave reaction", () => {
+  it("is ordered against MoonMillenniummon's own would-leave effect and plays off the Digimon still on the field", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-099", as: "option" },
+            { card: "BT19-075", as: "moon" },
+            { card: "BT18-019", as: "composite" },
+          ],
+          hand: [{ card: "BT19-101", as: "zeed" }, "BT1-009"],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+        1: { deck: [...FILLER], security: [...SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const moonId = s.perm("moon").permanentId;
+    const compositeId = s.perm("composite").permanentId;
+    const deletion = advance(s.engine).verb.deletePermanent([moonId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const offered = offeredTriggers(s);
+    expect(offered.map(({ cardId }) => cardId).sort()).toEqual(["BT19-075", "BT19-099"]);
+    await answerOrder(s, offered.find(({ cardId }) => cardId === "BT19-099")!.key);
+    await answerRemainingOrdersUntil(s, () => s.state.pendingDecision === undefined);
+    expect(await deletion).toBe(0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const zeedPlayed = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT19-101");
+    const compositeDeleted = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" && (event.deletedPermanents ?? []).some((gone) => gone.permanentId === compositeId),
+    );
+    expect(zeedPlayed).toBeGreaterThanOrEqual(0);
+    expect(compositeDeleted).toBeGreaterThan(zeedPlayed);
+    expect(boardCardIds(s, 0)).toEqual(["BT19-075", "BT19-101"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT19-099", "BT18-019"]),
+    );
   });
 });
 

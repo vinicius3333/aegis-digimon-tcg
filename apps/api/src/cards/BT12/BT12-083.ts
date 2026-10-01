@@ -19,16 +19,18 @@ const saveRequirement = compiled.digivolutionRequirement?.find((requirement) => 
 if (saveRequirement !== undefined) saveRequirement.colors = ["Red", "Black", "Purple"];
 const placement = whenDigivolving?.actions[0];
 const levelScaling = whenDigivolving?.actions[1];
-if (
-  placement?.kind === "PlaceUnder" &&
-  levelScaling?.kind === "CostModifier" &&
-  typeof levelScaling.amount === "number" &&
-  levelScaling.scaling !== undefined
-) {
+if (placement?.kind === "PlaceUnder") {
   placement.targetIsPermanent = true;
   placement.shedOwnCards = true;
-  placement.scaling = { ...levelScaling.scaling, unit: "colors", levelCeilingAdd: levelScaling.amount };
-  whenDigivolving!.actions = [placement];
+  placement.position = "bottom";
+  if (
+    levelScaling?.kind === "CostModifier" &&
+    typeof levelScaling.amount === "number" &&
+    levelScaling.scaling !== undefined
+  ) {
+    placement.scaling = { ...levelScaling.scaling, unit: "colors", levelCeilingAdd: levelScaling.amount };
+    whenDigivolving!.actions = [placement];
+  }
 }
 const inherited = compiled.effects.find((effect) => effect.isInherited === true);
 const draw = inherited?.actions.find((action) => action.kind === "Draw");

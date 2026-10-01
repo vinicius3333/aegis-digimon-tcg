@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-046.js";
 
 describe("BT9-046 Kokuwamon (X Antibody)", () => {
@@ -80,5 +80,40 @@ describe("BT9-046 Kokuwamon (X Antibody)", () => {
 
     expect(player.hand.some((card) => card.instanceId === traitOnlyId)).toBe(false);
     expect(player.deck.some((card) => card.instanceId === traitOnlyId)).toBe(true);
+  });
+});
+
+async function playKokuwamonRevealing(deck: { card: string; as: string }[]): Promise<EngineSetup> {
+  const s = setupEngine({ 0: { hand: [{ card: "BT9-046", as: "source" }], deck } }, { autoSelectCards: true });
+  s.state.memory = 3;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[0]!.battleArea.length === 1);
+  await settle();
+  return s;
+}
+
+function handIds(s: EngineSetup): string[] {
+  return s.state.players[0]!.hand.map((card) => card.instanceId);
+}
+
+describe("BT9-046 Kokuwamon (X Antibody) — KB Q&A rulings", () => {
+  it("still adds the one matching card when only one of the two categories is revealed (Q1842)", async () => {
+    const onlyXAntibody = await playKokuwamonRevealing([
+      { card: "BT9-109", as: "xAntibody" },
+      { card: "BT9-047", as: "vegetation" },
+      { card: "BT1-013", as: "avian" },
+    ]);
+    expect(handIds(onlyXAntibody)).toEqual([onlyXAntibody.inst("xAntibody").instanceId]);
+    expect(onlyXAntibody.state.players[0]!.deck).toHaveLength(2);
+
+    const onlyInsectoid = await playKokuwamonRevealing([
+      { card: "BT9-047", as: "vegetation" },
+      { card: "BT9-049", as: "insectoid" },
+      { card: "BT1-013", as: "avian" },
+    ]);
+    expect(handIds(onlyInsectoid)).toEqual([onlyInsectoid.inst("insectoid").instanceId]);
+    expect(onlyInsectoid.state.players[0]!.deck).toHaveLength(2);
   });
 });

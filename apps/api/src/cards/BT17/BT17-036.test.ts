@@ -1,9 +1,11 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-036.js";
+import "../BT11/BT11-088.js";
 import "../BT18/BT18-040.js";
+import "../ST10/ST10-14.js";
 
 describe("BT17-036 Boutmon", () => {
   it("matches the catalog printed text, evolution costs and alternate requirement", () => {
@@ -392,5 +394,132 @@ describe("BT17-036 Boutmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.memory).toBe(memoryBefore);
+  });
+});
+
+async function opponentUsesChaosDegradationOnBoutmon(s: EngineSetup): Promise<void> {
+  const optionId = s.inst("chaosDegradation").instanceId;
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+  const topOrBottom = s.state.pendingDecision!;
+  expect(
+    s.engine.applyIntent(1, {
+      type: "respondDecision",
+      decisionId: topOrBottom.decisionId,
+      response: { kind: "chooseOption", optionIndex: 0 },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionId));
+}
+
+const OPPONENT_REMOVALS = {
+  trash: (s: EngineSetup) => advance(s.engine).verb.deletePermanent([s.perm("boutmon").permanentId], "byEffect"),
+  hand: (s: EngineSetup) => advance(s.engine).verb.returnToHand([s.perm("boutmon").topCard.instanceId]),
+  deck: (s: EngineSetup) => advance(s.engine).verb.returnToDeck([s.perm("boutmon").topCard.instanceId]),
+  security: opponentUsesChaosDegradationOnBoutmon,
+  digivolutionCardsOnly: (s: EngineSetup) => {
+    const boutmon = s.perm("boutmon");
+    return advance(s.engine).verb.trashDigivolutionCards(boutmon.permanentId, [boutmon.stack[0]!.instanceId], 1);
+  },
+} satisfies Record<string, (s: EngineSetup) => Promise<unknown>>;
+
+async function opponentEffectHitsBoutmon(removal: keyof typeof OPPONENT_REMOVALS): Promise<EngineSetup> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT17-036", under: ["BT7-032"], as: "boutmon" }],
+        security: [
+          { card: "BT1-012", as: "topSecurity" },
+          { card: "BT1-013", as: "bottomSecurity" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-045", as: "yellowHost" },
+          { card: "BT2-067", as: "purpleHost" },
+        ],
+        hand: [{ card: "ST10-14", as: "chaosDegradation" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+  );
+  s.state.turnSeat = 1;
+  s.state.phase = Phase.Main;
+  s.state.memory = 10;
+  await s.ready();
+
+  await OPPONENT_REMOVALS[removal](s);
+  await settle(() => s.state.pendingDecision === undefined);
+  await drainMicrotasks();
+  return s;
+}
+
+async function opponentBagramonPlacesBoutmonUnderAnotherDigimon(): Promise<EngineSetup> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT17-036", under: ["BT7-032"], as: "boutmon" },
+          { card: "BT1-009", as: "otherDigimon" },
+        ],
+        security: [
+          { card: "BT1-012", as: "topSecurity" },
+          { card: "BT1-013", as: "bottomSecurity" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { battleArea: [{ card: "BT11-088", as: "bagramon" }], deck: ["BT1-009", "BT1-010"] },
+    },
+    { autoAcceptOptional: true, autoOrderTriggers: true },
+  );
+  s.state.turnSeat = 1;
+  s.state.phase = Phase.Main;
+  await s.ready();
+
+  void advance(s.engine).fire(EffectTiming.OnPlay, s.perm("bagramon"));
+  for (const alias of ["boutmon", "otherDigimon"]) {
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const choice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+      }),
+    ).toEqual({ ok: true });
+  }
+  await settle(() => s.state.pendingDecision === undefined);
+  await drainMicrotasks();
+  return s;
+}
+
+describe("BT17-036 Boutmon — KB Q&A rulings", () => {
+  it("treats trashing, returning to hand or deck, placing in security, and placing under another card as leaving the battle area (Q2786)", async () => {
+    for (const removal of ["trash", "hand", "deck", "security"] as const) {
+      const s = await opponentEffectHitsBoutmon(removal);
+      const boutmonStillInPlay = s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT17-036",
+      );
+      expect({ removal, boutmonStillInPlay }).toEqual({ removal, boutmonStillInPlay: true });
+      expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+        s.inst("bottomSecurity").instanceId,
+      ]);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
+    }
+
+    const placedUnder = await opponentBagramonPlacesBoutmonUnderAnotherDigimon();
+    expect(placedUnder.perm("boutmon").topCard.cardId).toBe("BT17-036");
+    expect(placedUnder.perm("otherDigimon").stack).toHaveLength(0);
+    expect(placedUnder.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      placedUnder.inst("bottomSecurity").instanceId,
+    ]);
+
+    // Near-miss: trashing only its digivolution cards does not make Boutmon leave the battle area.
+    const control = await opponentEffectHitsBoutmon("digivolutionCardsOnly");
+    expect(control.perm("boutmon").topCard.cardId).toBe("BT17-036");
+    expect(control.perm("boutmon").stack).toHaveLength(0);
+    expect(control.state.players[0]!.security).toHaveLength(2);
   });
 });

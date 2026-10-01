@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../AD1/AD1-018.js";
 import "./BT12-071.js";
 
 describe("BT12-071 AncientWisemon", () => {
@@ -158,5 +159,59 @@ describe("BT12-071 AncientWisemon", () => {
       () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT12-066").length === 1,
     );
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT12-066")).toHaveLength(1);
+  });
+});
+
+describe("BT12-071 AncientWisemon — KB Q&A rulings", () => {
+  it("cannot play a revealed cost-7+ card even when another effect would reduce its cost to 6 (Q2211)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-071", as: "ancient" }],
+          deck: [{ card: "AD1-018", as: "lordKnightmon" }, "BT1-009", "BT1-010"],
+          trash: ["AD1-018", "AD1-018", "AD1-018", "AD1-018"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const lordKnightmonId = s.inst("lordKnightmon").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 0);
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT12-071"]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(lordKnightmonId);
+    const offeredLordKnightmon = s.decisions.some(
+      ({ req }) => req.kind === "selectCards" && JSON.stringify(req.options).includes(lordKnightmonId),
+    );
+    expect(offeredLordKnightmon).toBe(false);
+
+    const reducedFromHand = setupEngine(
+      {
+        0: {
+          hand: [{ card: "AD1-018", as: "lordKnightmon" }],
+          trash: ["AD1-018", "AD1-018", "AD1-018", "AD1-018"],
+        },
+      },
+      { autoDeclineOptional: true, declineDigiXros: true },
+    );
+    reducedFromHand.state.memory = 6;
+    await reducedFromHand.ready();
+    expect(
+      reducedFromHand.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: reducedFromHand.inst("lordKnightmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => reducedFromHand.state.players[0]!.battleArea.length === 1);
+    expect(reducedFromHand.state.memory).toBe(0);
   });
 });

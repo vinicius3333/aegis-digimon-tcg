@@ -6,7 +6,7 @@ import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
 import { compiled as compiledDna } from "./BT20-081.js";
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-081.js";
 import "./index.js";
 
@@ -339,5 +339,142 @@ describe("BT20-081 DNA requirement", () => {
     const kazuchimon = cardDefinition("BT17-040")!;
     expect(dnaDigivolveCostFor(evolving, [cardDefinition("BT17-069")!, kazuchimon])).toBe(0);
     expect(dnaDigivolveCostFor(evolving, [cardDefinition("BT17-101")!, kazuchimon])).toBeUndefined();
+  });
+});
+
+describe("BT20-081 Fenriloogamon: Takemikazuchi — KB Q&A rulings", () => {
+  it("accepts a yellow Lv.6 whose only [Pulsemon] is in its digivolution requirement text as the DNA material (Q4405)", async () => {
+    const dnaDigivolveWith = async (yellowMaterial: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT20-080", as: "fenriloogamon" },
+              { card: yellowMaterial, as: "yellowMaterial" },
+            ],
+            hand: [{ card: "BT20-081", as: "takemikazuchi" }],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      const result = s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("fenriloogamon").permanentId, s.perm("yellowMaterial").permanentId],
+        instanceId: s.inst("takemikazuchi").instanceId,
+      });
+      if (result.ok) {
+        await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT20-081"));
+      }
+      return { result, onField: s.state.players[0]!.battleArea.map((perm) => perm.topCard.cardId) };
+    };
+
+    const pulsemonInRequirement = await dnaDigivolveWith("BT17-040");
+    expect(pulsemonInRequirement.result).toEqual({ ok: true });
+    expect(pulsemonInRequirement.onField).toEqual(["BT20-081"]);
+
+    const noPulsemonText = await dnaDigivolveWith("BT7-041");
+    expect(noPulsemonText.result).toMatchObject({ ok: false });
+    expect(noPulsemonText.onField).toEqual(expect.arrayContaining(["BT20-080", "BT7-041"]));
+  });
+
+  it("cannot choose the same opposing Digimon twice to give it -20000 DP (Q4406)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-080", as: "host" }],
+          hand: [{ card: "BT20-081", as: "takemikazuchi" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "chosenTwice" },
+            { card: "BT10-055", as: "otherA" },
+            { card: "BT10-055", as: "otherB" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("takemikazuchi").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const dpChoice = s.state.pendingDecision!;
+    const chosenTwiceId = s.perm("chosenTwice").permanentId;
+    expect(s.decisions.at(-1)?.req.options).toMatchObject({ min: 2, max: 2 });
+    const duplicatePick = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: dpChoice.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [chosenTwiceId, chosenTwiceId] },
+    });
+    expect(duplicatePick).toMatchObject({ ok: false });
+    await drainMicrotasks();
+    expect(s.state.pendingDecision?.decisionId).toBe(dpChoice.decisionId);
+    expect(s.perm("chosenTwice").currentDP).toBe(12000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: dpChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [chosenTwiceId, s.perm("otherA").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-081" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("chosenTwice").currentDP).toBe(2000);
+    expect(s.perm("otherA").currentDP).toBe(3000);
+    expect(s.perm("otherB").currentDP).toBe(13000);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it("keeps a 0 DP Digimon in play until the whole effect resolves, then deletes it (Q4407)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-080", under: ["BT20-085"], as: "host" }],
+          hand: [{ card: "BT20-081", as: "takemikazuchi" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", dp: 10000, as: "zeroed" },
+            { card: "BT10-055", as: "deletedByEffect" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const zeroedPermanentId = s.perm("zeroed").permanentId;
+    const deletedByEffectPermanentId = s.perm("deletedByEffect").permanentId;
+    const zeroedInstanceId = s.inst("zeroed").instanceId;
+    const deletedByEffectInstanceId = s.inst("deletedByEffect").instanceId;
+    preferred.push(deletedByEffectPermanentId);
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("takemikazuchi").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    const deleteChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets" && req.options?.max === 1);
+    expect(deleteChoice?.req.options?.candidateInstanceIds).toEqual([zeroedPermanentId, deletedByEffectPermanentId]);
+    const deletionOrder = s.events.flatMap((event) =>
+      event.kind === "cardsMoved" ? (event.deletedPermanents ?? []).map((deleted) => deleted.permanentId) : [],
+    );
+    expect(deletionOrder).toEqual([deletedByEffectPermanentId, zeroedPermanentId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([zeroedInstanceId, deletedByEffectInstanceId]),
+    );
   });
 });

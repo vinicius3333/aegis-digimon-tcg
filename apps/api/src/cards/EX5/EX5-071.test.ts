@@ -156,3 +156,27 @@ describe("EX5-071 Loyalty Deeper than the Sea", () => {
     expect(s.perm("host").stack.some((card) => card.cardId === "BT10-079")).toBe(true);
   });
 });
+
+describe("EX5-071 Loyalty Deeper than the Sea — KB Q&A rulings", () => {
+  it("can place a revealed [Four Sovereigns] Option card as a bottom digivolution card (Q3684)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-079", as: "host" }],
+          hand: [{ card: "EX5-071", as: "option" }],
+          deck: [{ card: "EX5-072", as: "revealedOption" }, "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("revealedOption").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+});

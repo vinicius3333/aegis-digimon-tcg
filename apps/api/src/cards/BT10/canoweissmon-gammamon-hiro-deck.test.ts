@@ -54,7 +54,7 @@ describe("BT10 Canoweissmon Gammamon/Hiro deck gauntlet", () => {
 
     expect(s.engine.hasAcceptedBlitzAttack(s.perm("gammamonLine").permanentId)).toBe(true);
     expect(s.state.memory).toBe(-1);
-    expect(s.perm("gammamonLine").currentDP).toBe(12_000);
+    expect(s.perm("gammamonLine").currentDP).toBe(10_000);
     expect(mainPhase.isOpen).toBe(true);
 
     expect(
@@ -77,7 +77,7 @@ describe("BT10 Canoweissmon Gammamon/Hiro deck gauntlet", () => {
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     await turn;
-    expect(s.perm("gammamonLine").currentDP).toBe(12_000);
+    expect(s.perm("gammamonLine").currentDP).toBe(10_000);
     expect(observe(s.engine).keywordAmount(s.perm("gammamonLine"), "SecurityAttack")).toBe(0);
     assertNoLoudGap(s);
   });

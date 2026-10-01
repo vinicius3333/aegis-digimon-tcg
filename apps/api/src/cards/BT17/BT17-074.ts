@@ -85,7 +85,6 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  unsuspended: true,
                   nameOrTrait: [
                     {
                       tokens: ["Eosmon"],

@@ -236,3 +236,53 @@ describe("BT20-002 Bebydomon", () => {
     expect(nonMatching.state.players[0]!.hand).toHaveLength(nonMatchingHandBefore);
   });
 });
+
+describe("BT20-002 Bebydomon — KB Q&A rulings", () => {
+  async function handGainAfterAttack(hostCardId: string): Promise<number> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: hostCardId, as: "host", under: ["BT20-002"] }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { security: ["BT1-090", "BT1-090"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    const handBefore = s.state.players[0]!.hand.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    return s.state.players[0]!.hand.length - handBefore;
+  }
+
+  it("counts a name that contains [Dracomon] or [Examon] as having it in its text (Q4281)", async () => {
+    for (const nameOnlyHost of ["ST1-04", "BT20-045"]) {
+      const definition = getCardDefinition(nameOnlyHost)!;
+      const printedText = `${definition.effectText ?? ""} ${definition.inheritedEffectText ?? ""}`.toLowerCase();
+      expect(printedText).not.toContain("dracomon");
+      expect(printedText).not.toContain("examon");
+      expect(await handGainAfterAttack(nameOnlyHost)).toBe(1);
+    }
+    expect(await handGainAfterAttack("ST1-03")).toBe(0);
+  });
+
+  it("activates under a host with [Dracomon] in its text or one with [Examon] in its text, not other hosts (Q4282)", async () => {
+    const examonTextOnly = getCardDefinition("BT20-025")!;
+    expect(examonTextOnly.nameEn).not.toMatch(/Dracomon|Examon/);
+    expect(examonTextOnly.effectText).toContain("[Examon]");
+    expect(examonTextOnly.effectText).not.toContain("[Dracomon]");
+    const dracomonTextOnly = getCardDefinition("BT20-023")!;
+    expect(dracomonTextOnly.nameEn).not.toMatch(/Dracomon|Examon/);
+    expect(dracomonTextOnly.effectText).toContain("[Dracomon]");
+
+    expect(await handGainAfterAttack("BT20-025")).toBe(1);
+    expect(await handGainAfterAttack("BT20-023")).toBe(1);
+    expect(await handGainAfterAttack("ST1-02")).toBe(0);
+  });
+});

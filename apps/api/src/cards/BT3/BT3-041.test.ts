@@ -67,3 +67,32 @@ describe("BT3-041 Cherubimon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === recoveredId)).toBe(true);
   });
 });
+
+describe("BT3-041 Cherubimon — KB Q&A rulings", () => {
+  it("reveals the yellow Digimon card it moves from trash to security (Q1078)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-041", as: "cherubimon" }],
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+          trash: [{ card: "BT1-059", as: "piximon" }],
+        },
+        1: { security: ["BT1-011"] },
+      },
+      { autoSelectCards: true },
+    );
+    const recoveredId = s.inst("piximon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cherubimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === recoveredId), 5000);
+
+    expect(s.events).toContainEqual({ kind: "cardRevealed", seat: 0, cardId: "BT1-059", sourceCardId: "BT3-041" });
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: recoveredId, faceUp: false });
+  });
+});

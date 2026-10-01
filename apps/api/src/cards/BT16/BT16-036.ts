@@ -101,6 +101,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               zone: "security",
+              position: "top",
             },
             count: 1,
           },
@@ -111,6 +112,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               zone: "security",
+              position: "top",
             },
             count: 1,
           },

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-015.js";
 
@@ -107,6 +108,25 @@ describe("EX6-015 Xiangpengmon", () => {
     );
   });
 
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquatic])", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-015", as: "host", under: [{ card: "BT12-025", as: "aquatic" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("aquatic").instanceId],
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("aquatic").instanceId),
+    ).toBe(true);
+  });
+
   it.each(["play", "digivolve"] as const)(
     "%s places every selected blue Digimon at the bottom, sheds its sources, and scales the return ceiling",
     async (timing) => {
@@ -203,4 +223,52 @@ describe("EX6-015 Xiangpengmon", () => {
       );
     },
   );
+});
+
+describe("EX6-015 Xiangpengmon — KB Q&A rulings", () => {
+  async function playDecliningPlacement() {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX6-015", as: "xiangpengmon" }],
+          battleArea: [
+            { card: "BT12-021", as: "ownBlue" },
+            { card: "BT1-014", as: "ownLow" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentLow" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xiangpengmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  const handIds = (s: Awaited<ReturnType<typeof playDecliningPlacement>>, seat: 0 | 1) =>
+    s.state.players[seat]!.hand.map(({ instanceId }) => instanceId);
+
+  it("returns my own level 4 or lower Digimon to the hand as well (Q3709)", async () => {
+    const s = await playDecliningPlacement();
+    expect(handIds(s, 0)).toEqual(expect.arrayContaining([s.inst("ownBlue").instanceId, s.inst("ownLow").instanceId]));
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(["EX6-015"]);
+  });
+
+  it("returns each Digimon to its owner's hand (Q3710)", async () => {
+    const s = await playDecliningPlacement();
+    expect(handIds(s, 1)).toEqual([s.inst("opponentLow").instanceId]);
+    expect(handIds(s, 0)).not.toContain(s.inst("opponentLow").instanceId);
+  });
+
+  it("still returns all other level 4 or lower Digimon when no Digimon is placed under it (Q3711)", async () => {
+    const s = await playDecliningPlacement();
+    expect(s.perm("xiangpengmon").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(handIds(s, 0)).toHaveLength(2);
+  });
 });

@@ -326,3 +326,58 @@ describe("BT23-070 Belphemon (X Antibody)", () => {
     });
   });
 });
+
+describe("BT23-070 Belphemon (X Antibody) — KB Q&A rulings", () => {
+  it("attacks with its [When Digivolving] effect even though the Digimon is suspended (Q5342)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-088", as: "belphemon", suspended: true }],
+          hand: [{ card: "BT23-070", as: "x" }],
+          deck: [...OWN_DECK],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "high" }],
+          deck: [...OPPONENT_DECK],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("belphemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: expect.any(String) });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("belphemon").permanentId,
+        instanceId: s.inst("x").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 2 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "attackDeclared",
+        attackerPermanentId: s.perm("belphemon").permanentId,
+        target: { kind: "player" },
+      }),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("belphemon").isSuspended).toBe(true);
+  });
+});

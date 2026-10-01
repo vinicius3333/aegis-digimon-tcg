@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-023.js";
 import "../index.js";
 
@@ -82,5 +82,56 @@ describe("BT16-023", () => {
 
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+  });
+});
+
+describe("BT16-023 Divemon — KB Q&A rulings", () => {
+  const digivolveIntoDivemon = async (securityCount: number) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-018", as: "base" },
+            { card: "BT16-018", as: "ally", suspended: true },
+          ],
+          hand: [{ card: "BT16-023", as: "divemon" }],
+          deck: ["BT1-009", "BT1-010"],
+          security: securityCount,
+        },
+        1: { battleArea: [{ card: "BT16-018", as: "target" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.perm("ally").permanentId,
+      s.perm("ally").topCard.instanceId,
+      s.perm("target").permanentId,
+      s.perm("target").topCard.instanceId,
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("divemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT16-023" && !s.perm("ally").isSuspended);
+    await drainMicrotasks();
+    return s;
+  };
+
+  it("resolves both the unsuspend and the bottom-deck return with exactly 3 security cards (Q2618)", async () => {
+    const exactlyThree = await digivolveIntoDivemon(3);
+    expect(exactlyThree.perm("ally").isSuspended).toBe(false);
+    expect(exactlyThree.state.players[1]!.battleArea).toHaveLength(0);
+    expect(exactlyThree.state.players[1]!.deck.at(-1)?.cardId).toBe("BT16-018");
+
+    const four = await digivolveIntoDivemon(4);
+    expect(four.perm("ally").isSuspended).toBe(false);
+    expect(four.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

@@ -103,7 +103,7 @@ describe("BT22-037 Chirinmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
-  it("does not trash security when the optional hand selection is unavailable", async () => {
+  it("may still trash security when no hand card can be digivolved into (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -123,10 +123,11 @@ describe("BT22-037 Chirinmon", () => {
         instanceId: s.inst("chirinmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT22-037");
+    await settle(() => s.perm("base").topCard.cardId === "BT22-037" && s.state.players[0]!.security.length === 0);
 
     expect(s.state.memory).toBe(7);
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("base").topCard.cardId).toBe("BT22-037");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT22-043"]);
   });
 
   it("applies the inherited once-per-turn attack reduction in a CS evolution stack", async () => {

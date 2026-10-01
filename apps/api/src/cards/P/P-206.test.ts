@@ -98,14 +98,16 @@ describe("P-206 Digimon Liberator", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
-  const activateDelayWithTamer = async (tamerCardId: string) => {
+  const activateDelayWithTamer = async (tamerCardId: string, digimonZone: "battleArea" | "breeding" = "battleArea") => {
+    const digimon = { card: "BT1-009", as: "digimon" };
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "P-206", as: "option" },
-            { card: "BT1-009", as: "digimon" },
-          ],
+          battleArea:
+            digimonZone === "battleArea"
+              ? [{ card: "P-206", as: "option" }, digimon]
+              : [{ card: "P-206", as: "option" }],
+          ...(digimonZone === "breeding" ? { breeding: digimon } : {}),
           hand: [{ card: tamerCardId, as: "tamer" }],
         },
       },
@@ -136,5 +138,34 @@ describe("P-206 Digimon Liberator", () => {
 
   it("cannot play a Delay Tamer whose colors match none of your Digimon", async () => {
     expect(await activateDelayWithTamer("BT1-086")).toBe(false);
+  });
+
+  it("counts a Digimon in the breeding area as on the field for the Delay color match (Discord 1554891698088185917)", async () => {
+    expect(await activateDelayWithTamer("BT1-085", "breeding")).toBe(true);
+    expect(await activateDelayWithTamer("BT1-086", "breeding")).toBe(false);
+  });
+
+  describe("KB Q&A rulings", () => {
+    it("treats a Tamer sharing at least 1 of a multicolor card's colors as the same color (Q5201)", async () => {
+      expect(await activateDelayWithTamer("AD1-022")).toBe(true);
+      expect(await activateDelayWithTamer("BT16-085")).toBe(false);
+    });
+
+    it("ignores its color requirements with no cards on the field at all (Q6521)", async () => {
+      const s = setupEngine(
+        { 0: { hand: [{ card: "P-206", as: "option" }], deck: ["BT1-009", "BT1-085", "BT1-095"] } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 4;
+      await s.ready();
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.breeding).toBeUndefined();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-206"));
+      expect(s.state.memory).toBe(0);
+    });
   });
 });

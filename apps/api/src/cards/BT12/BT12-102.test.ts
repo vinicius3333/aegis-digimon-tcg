@@ -3,8 +3,10 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import type { CardSpec } from "../../engine/testkit/harness.js";
 import "./BT12-102.js";
+import "../BT9/BT9-109.js";
 
 describe("BT12-102 compiled IR module", () => {
   it("registers its Main, reduction, and Security clauses through the declarative record", () => {
@@ -183,4 +185,70 @@ it("does not offer the reduction when no distinct blue destination exists", asyn
   expect(s.perm("onlyBlue").stack).toHaveLength(0);
   expect(s.state.memory).toBe(0);
   expect(s.decisions.some(({ req }) => req.sourceCardId === "BT12-102" && req.kind === "optional")).toBe(false);
+});
+
+describe("BT12-102 Great Maelstrom — KB Q&A rulings", () => {
+  async function playWithReduction(movedSources: CardSpec[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT12-102", as: "option" }],
+          battleArea: [
+            { card: "BT1-029", as: "moved", under: movedSources },
+            { card: "BT1-029", as: "destination" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const movedPermanentId = s.perm("moved").permanentId;
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === movedPermanentId));
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("trashes the digivolution cards of the Digimon placed under another blue Digimon (Q2237)", async () => {
+    const s = await playWithReduction([
+      { card: "BT1-009", as: "lowerSource" },
+      { card: "BT1-013", as: "upperSource" },
+    ]);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("destination").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("moved").instanceId]);
+    const trashed = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+    expect(trashed).toContain(s.inst("lowerSource").instanceId);
+    expect(trashed).toContain(s.inst("upperSource").instanceId);
+  });
+
+  it("still trashes [X Antibody] from the placed Digimon's digivolution cards because the rules trash it (Q2238)", async () => {
+    const effectTrash = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-029", as: "moved", under: [{ card: "BT9-109", as: "antibody" }] },
+          { card: "BT1-029", as: "destination" },
+        ],
+      },
+    });
+    await effectTrash.ready();
+    await effectTrash.engine.recomputeContinuousEffects();
+    await advance(effectTrash.engine).verb.trashDigivolutionCards(
+      effectTrash.perm("moved").permanentId,
+      [effectTrash.inst("antibody").instanceId],
+      0,
+    );
+    expect(effectTrash.perm("moved").stack.map(({ instanceId }) => instanceId)).toContain(
+      effectTrash.inst("antibody").instanceId,
+    );
+
+    const s = await playWithReduction([{ card: "BT9-109", as: "antibody" }]);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("destination").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("moved").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("antibody").instanceId);
+    expect(s.perm("destination").stack.map(({ cardId }) => cardId)).not.toContain("BT9-109");
+  });
 });

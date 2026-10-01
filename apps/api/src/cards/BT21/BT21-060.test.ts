@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type BoardSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-060.js";
 import "../index.js";
 
@@ -409,5 +409,94 @@ describe("BT21-060 Destromon", () => {
     await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
 
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
+  });
+});
+
+describe("BT21-060 Destromon — KB Q&A rulings", () => {
+  function destromonDefenderBoard(attacker: string, withBlastCounter = false): BoardSpec {
+    return {
+      0: {
+        battleArea: [
+          {
+            card: "BT21-062",
+            as: "host",
+            under: [
+              { card: "BT21-060", as: "source" },
+              { card: "BT21-056", as: "vemmonA" },
+              { card: "BT11-061", as: "vemmonB" },
+            ],
+          },
+          { card: "BT1-031", as: "blocker" },
+          ...(withBlastCounter ? [{ card: "BT2-063", as: "blastBase" }] : []),
+        ],
+        hand: withBlastCounter ? [{ card: "ST15-12", as: "blastCounter" }] : [],
+        security: [{ card: "BT1-009", as: "security" }],
+      },
+      1: { battleArea: [{ card: attacker, as: "attacker" }] },
+    };
+  }
+
+  it("ends the attack at declaration, skipping the counter and block timings and the security check (Q4729)", async () => {
+    for (const endTheAttack of [true, false]) {
+      const s = setupEngine(
+        destromonDefenderBoard("BT1-010", true),
+        endTheAttack
+          ? { autoAcceptOptional: true, autoSelectCards: true }
+          : { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 0;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+
+      const defenderResponses: ReturnType<typeof s.engine.applyIntent>[] = [];
+      if (!endTheAttack) {
+        await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+        defenderResponses.push(s.engine.applyIntent(0, { type: "respondCounter" }));
+        await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+        defenderResponses.push(s.engine.applyIntent(0, { type: "declineBlock" }));
+      }
+      await settle(() => !observe(s.engine).isAttacking(), 500);
+
+      expect(defenderResponses).toEqual(endTheAttack ? [] : [{ ok: true }, { ok: true }]);
+
+      expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(!endTheAttack);
+      expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(!endTheAttack);
+      expect(s.perm("blastBase").topCard.cardId).toBe("BT2-063");
+      expect(s.state.players[0]!.security).toHaveLength(endTheAttack ? 1 : 0);
+      expect(s.perm("host").stack).toHaveLength(endTheAttack ? 1 : 3);
+      expect(s.perm("blocker").isSuspended).toBe(false);
+    }
+  });
+
+  it("ends an attack by a Digimon that isn't affected by the opponent's effects (Q4730)", async () => {
+    const s = setupEngine(destromonDefenderBoard("BT17-016"), { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(observe(s.engine).hasRestriction(s.perm("attacker"), "beAffected")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 500);
+
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-060"]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("vemmonA").instanceId, s.inst("vemmonB").instanceId]),
+    );
   });
 });

@@ -1,0 +1,46 @@
+/* z-index -1 paints the canvas above the nearest stacking context's background
+   but under all of its content, so no content needs its own z-index. Mount it
+   inside such a context (the .aegis-stage already is one). */
+.aegis-circuit-backdrop {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.aegis-circuit-backdrop__toggle {
+  position: fixed;
+  z-index: var(--ds-z-nav);
+  bottom: calc(var(--ds-space-4) + env(safe-area-inset-bottom));
+  left: max(var(--ds-space-4), env(safe-area-inset-left));
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: var(--ds-fg-muted);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-surface) 80%, transparent);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: color var(--ds-motion-fast);
+}
+
+.aegis-circuit-backdrop__toggle:hover {
+  color: var(--ds-fg);
+}
+
+.aegis-circuit-backdrop__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+/* The toggle only shows where the gutter beside the 1180px content column is
+   wide enough to hold it; anywhere narrower it would cover page content. The
+   traces stay, and reduced motion in the OS settings still stops the pulses. */
+@media (width < 1300px) {
+  .aegis-circuit-backdrop__toggle {
+    display: none;
+  }
+}

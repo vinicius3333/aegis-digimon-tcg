@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, getCardDefinition, type PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type PermanentSpec,
+  type SetupEngineOptions,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT25-076.js";
 import "../BT14/BT14-062.js";
@@ -269,5 +275,98 @@ describe("A3 BT25-076 — lowest-cost delete, fallback security, and shared timi
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === immuneId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
+});
+
+describe("BT25-076 Ghoulmon — KB Q&A rulings", () => {
+  /** Play Ghoulmon from the hand at full cost, so its [On Play] resolves against `opponent`. */
+  async function playGhoulmon(opponent: PermanentSpec[], options: SetupEngineOptions) {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: BT25_076, as: "ghoul" }] },
+        1: { battleArea: opponent, security: ["BT1-013", "BT1-013"] },
+      },
+      options,
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ghoul").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === BT25_076));
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("must delete the opponent's lowest play cost Digimon, so it can't skip the delete to trash security (Q6373)", async () => {
+    const s = await playGhoulmon([{ card: "BT1-013", as: "low" }], {
+      autoDeclineOptional: true,
+      autoSelectCards: true,
+    });
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === BT25_076 && req.kind === "optional")).toBe(false);
+  });
+
+  it("trashes the top security when it chooses a tied lowest-cost Digimon that can't be deleted (Q6374)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: BT25_076, as: "ghoul" }] },
+        1: {
+          battleArea: [
+            { card: "BT14-062", as: "immune" },
+            { card: "BT1-075", as: "deletable" },
+          ],
+          security: ["BT1-013", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("immune").permanentId);
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ghoul").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === BT25_076)
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toEqual(expect.arrayContaining([s.perm("immune").permanentId, s.perm("deletable").permanentId]));
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([
+      s.perm("immune").permanentId,
+      s.perm("deletable").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
+
+  it.each([
+    ["[Negamon] only in its Assembly text", NEGAMON_TEXT_11, 1],
+    ["no [Negamon] in its text", "BT1-013", 12],
+  ] as const)("counts a Digimon with %s for the cost reduction (Q6714)", async (_label, top, paid) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: top, as: "sacrifice", under: ["EX9-005", "EX9-046", "EX9-047", "EX9-054"] }],
+          hand: [{ card: BT25_076, as: "ghoul" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ghoul").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === BT25_076), 300);
+
+    expect(2 - s.state.memory).toBe(paid);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === top)).toBe(paid === 12);
   });
 });

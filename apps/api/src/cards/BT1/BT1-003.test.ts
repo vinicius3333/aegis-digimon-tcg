@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT1-003.js";
 import "./BT1-028.js";
 
@@ -201,5 +201,37 @@ describe("BT1-003 Upamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT1-003 Upamon — KB Q&A rulings", () => {
+  const attackPlayerWithOpponent = async (opponent: SeatSpec) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-032", as: "attacker", under: ["BT1-003"] }],
+        deck: [{ card: "BT1-010", as: "top" }],
+      },
+      1: { ...opponent, security: ["BT1-011"] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    return s;
+  };
+
+  it("does not draw when the opponent's only source-less Digimon is in the breeding area (Q868)", async () => {
+    const breeding = await attackPlayerWithOpponent({ breeding: "BT1-016" });
+    expect(breeding.state.players[0]!.hand).toHaveLength(0);
+    expect(breeding.state.players[0]!.deck).toHaveLength(1);
+
+    const battleArea = await attackPlayerWithOpponent({ battleArea: ["BT1-016"] });
+    expect(battleArea.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      battleArea.inst("top").instanceId,
+    ]);
   });
 });

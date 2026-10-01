@@ -20,12 +20,12 @@ import { WinCheck } from "../security/winCheck.js";
 import { runSecurityCheck, type SecurityCheckDeps, type SecurityCheckAttacker } from "../security/securityCheck.js";
 import { validateDecklist } from "../deckValidation.js";
 import { MAIN_DECK_SIZE, MAX_EGG_DECK_SIZE, RED_DECK } from "../testDecks.js";
-import { makeInstance as instance, makeDigimon as digimon, setupEngine as setup } from "../testkit/harness.js";
+import { makeInstance as instance, makeDigimon as digimon, setupEngine as setup, settle } from "../testkit/harness.js";
 // Self-registers card modules (boot side-effect); needed for effect-text-driven keyword checks.
 import "../../cards/index.js";
 
 /**
- * Comprehensive Rules chapter 1 "Game Overview" (comprehensive-0001, 0019-0030, 0273-0276).
+ * Comprehensive Rules chapter 1 "Game Overview" (comprehensive-0001, 0019-0030, 0273-0277).
  *
  * See `README.md` for the citation contract. Each test names the rule it proves in its
  * description (or a leading comment) so the KB mapping is auditable without opening the
@@ -247,6 +247,222 @@ describe("§1-3-7..1-3-11-3 Fundamental Principles, cont'd (comprehensive-0024)"
     expect(state.memory).toBe(MEMORY_MAX);
     gauge.setMemory(-9999);
     expect(state.memory).toBe(MEMORY_MIN);
+  });
+});
+
+describe("§1-3-11-3/1-3-11-4 Alternate costs with optional processing (comprehensive-0277)", () => {
+  // EX8-074 MedievalGallantmon is the rule's own example: play cost 11, "When this card would be
+  // played, by suspending 2 Digimon, reduce the play cost by 4." At 0 memory only the alternate
+  // cost of 7 is payable (0 - 11 would pass -10).
+  function medievalGallantmon(suspendable: 1 | 2, options: { autoAcceptOptional?: boolean } = {}) {
+    const battleArea =
+      suspendable === 2
+        ? [
+            { card: "EX8-047", as: "first" },
+            { card: "EX8-048", as: "second" },
+          ]
+        : [{ card: "EX8-047", as: "first" }];
+    const s = setup(
+      { 0: { battleArea, hand: [{ card: "EX8-074", as: "medieval" }] } },
+      { autoSelectCards: true, ...options },
+    );
+    s.state.memory = 0;
+    return s;
+  }
+
+  function onField(s: ReturnType<typeof setup>, cardId: string): boolean {
+    return s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId);
+  }
+
+  it("1-3-11-3: with the conditions met, EX8-074 is declared at 0 memory and both Digimon are suspended to pay 7", async () => {
+    cite(
+      "comprehensive-0277",
+      "1-3-11-3 declaring a card whose optional processing is part of the alternate cost; the " +
+        "player performs that processing (suspend 2 Digimon) and pays the alternate cost of 7",
+      "0127a131952c993768bd3a5825760826d8a001c30241dd202dcba6e639870bc2",
+    );
+
+    const s = medievalGallantmon(2, { autoAcceptOptional: true });
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => onField(s, "EX8-074") && s.state.pendingDecision === undefined);
+
+    expect(onField(s, "EX8-074")).toBe(true);
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-7);
+  });
+
+  it("1-3-11-3: the declaration is refused when the optional processing conditions can't be met", async () => {
+    cite(
+      "comprehensive-0277",
+      "1-3-11-3 the player can declare the card only if the processing conditions are met and the " +
+        "alternate cost can be paid; 1 suspendable Digimon can't meet 'suspending 2'",
+      "0127a131952c993768bd3a5825760826d8a001c30241dd202dcba6e639870bc2",
+    );
+
+    const s = medievalGallantmon(1, { autoAcceptOptional: true });
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("medieval").instanceId);
+    expect(s.perm("first").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("1-3-11-3 control: when the printed cost is payable, the reduction isn't needed and declining it pays 11", async () => {
+    cite(
+      "comprehensive-0277",
+      "1-3-11-3 the player performs only as much processing as needed to pay; at 7 memory the " +
+        "printed 11 is payable (Q4443), so declining the suspension keeps both Digimon unsuspended",
+      "0127a131952c993768bd3a5825760826d8a001c30241dd202dcba6e639870bc2",
+    );
+
+    const s = medievalGallantmon(2);
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => onField(s, "EX8-074"));
+
+    expect(onField(s, "EX8-074")).toBe(true);
+    expect(s.perm("first").isSuspended).toBe(false);
+    expect(s.perm("second").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(-4);
+  });
+
+  it("1-3-11-3: after declaring at 0 memory the suspension is mandatory, so no 'you may' prompt opens", async () => {
+    cite(
+      "comprehensive-0277",
+      "1-3-11-3 'the player must perform as much of the processing as needed in order to pay the " +
+        "cost'. At 0 memory only the alternate cost of 7 is payable, so the engine performs the " +
+        "suspension without offering to decline it",
+      "0127a131952c993768bd3a5825760826d8a001c30241dd202dcba6e639870bc2",
+    );
+
+    const s = medievalGallantmon(2);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => onField(s, "EX8-074"));
+
+    const reductionPrompts = s.decisions.filter(
+      ({ req }) => req.kind === "optional" && String(req.options?.effectText ?? "").includes("would be played"),
+    );
+    expect(reductionPrompts).toEqual([]);
+    expect(onField(s, "EX8-074")).toBe(true);
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-7);
+  });
+
+  // BT10-009 Shoutmon X4: play cost 9, "DigiXros -2". BT19-079 Taiki Kudo: "When any of your
+  // [Xros Heart] trait Digimon cards with DigiXros requirements would be played, by suspending this
+  // Tamer, you may place cards from under your Tamers as digivolution cards for a DigiXros." At -2
+  // memory the printed 9 is unpayable; only the alternate cost of 7 is.
+  function shoutmonX4(taikiSuspended: boolean) {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-079", as: "taiki", suspended: taikiSuspended, under: [{ card: "BT10-008", as: "under" }] },
+          ],
+          hand: [{ card: "BT10-009", as: "xros" }],
+          deck: ["BT1-009", "BT1-010", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-012", "BT1-013"],
+        },
+        1: { security: ["BT1-009", "BT1-012", "BT1-013"], deck: ["BT1-009", "BT1-010", "BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -2;
+    return s;
+  }
+
+  it("1-3-11-4: a DigiXros is declared when its alternate cost is payable only through an immediate effect that widens the source areas", async () => {
+    cite(
+      "comprehensive-0277",
+      "1-3-11-4 DigiXros is declarable only if the alternate cost can be paid, including immediate " +
+        "effects triggered by the declaration that widen source areas; the widening processing " +
+        "(suspending Taiki Kudo) is performed",
+      "0127a131952c993768bd3a5825760826d8a001c30241dd202dcba6e639870bc2",
+    );
+
+    const s = shoutmonX4(false);
+    await s.ready();
+    const xrosId = s.inst("xros").instanceId;
+    const underId = s.inst("under").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: xrosId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: xrosId,
+        digiXros: { materialInstanceIds: [underId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: xrosId,
+        digiXros: { materialInstanceIds: [underId], expanderPermanentIds: [s.perm("taiki").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => onField(s, "BT10-009"));
+
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-009");
+    expect(played?.stack.map((card) => card.instanceId)).toEqual([underId]);
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-9);
+  });
+
+  it("1-3-11-4: the DigiXros declaration is refused when the widening effect's processing can't be performed", async () => {
+    cite(
+      "comprehensive-0277",
+      "1-3-11-4 an already-suspended Taiki Kudo can't widen the source areas, so the alternate cost " +
+        "can't be paid and the card can't be declared",
+      "0127a131952c993768bd3a5825760826d8a001c30241dd202dcba6e639870bc2",
+    );
+
+    const s = shoutmonX4(true);
+    await s.ready();
+    const underId = s.inst("under").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("xros").instanceId,
+        digiXros: { materialInstanceIds: [underId], expanderPermanentIds: [s.perm("taiki").permanentId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-expander" });
+    await settle();
+
+    expect(onField(s, "BT10-009")).toBe(false);
+    expect(s.perm("taiki").stack.map((card) => card.instanceId)).toEqual([underId]);
+    expect(s.state.memory).toBe(-2);
   });
 });
 

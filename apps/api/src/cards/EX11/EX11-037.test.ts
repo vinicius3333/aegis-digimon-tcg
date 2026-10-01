@@ -4,6 +4,14 @@ import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harne
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import { identityVisibility } from "../ST24/tamerStack.testSupport.js";
+import {
+  allSecurityFaceDown,
+  checkFaceUpSecurity,
+  expectFaceUpCardCheckedNormally,
+  publicSecurity,
+  shuffleSecurityHolding,
+} from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-037";
 
@@ -139,5 +147,51 @@ describe("EX11-037 Espimon", () => {
       s.inst("securityDigimon").instanceId,
     );
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-037 Espimon — KB Q&A rulings", () => {
+  it("leaves the security card it flips revealed to both players as an ordinary security card (Q5861)", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: cardId, as: "source" }], deck: ["BT1-009"] },
+      1: {
+        security: [
+          { card: "BT1-009", as: "flipped" },
+          { card: "BT1-013", as: "hidden" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security[0]?.faceUp === true);
+
+    expect(publicSecurity(s, 1)).toEqual([
+      { faceUp: true, cardId: "BT1-009" },
+      { faceUp: false, cardId: "" },
+    ]);
+    expect(identityVisibility(s, s.inst("flipped"))).toEqual({ owner: true, opponent: true });
+    expect(identityVisibility(s, s.inst("hidden")).owner).toBe(false);
+  });
+
+  it("checks a face-up security card with it left revealed, otherwise like any security check (Q5862)", async () => {
+    const s = await expectFaceUpCardCheckedNormally(cardId);
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({ resolution: "battle" });
+  });
+
+  it("activates a face-up security card's [Security] effect when it is checked (Q5863)", async () => {
+    const s = await checkFaceUpSecurity("EX11-062");
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("checked").instanceId,
+    ]);
+  });
+
+  it("turns face-up security cards face down when the security stack is shuffled (Q5864)", async () => {
+    const s = await shuffleSecurityHolding([cardId]);
+
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toContain(cardId);
+    expect(allSecurityFaceDown(s, 0)).toBe(true);
   });
 });

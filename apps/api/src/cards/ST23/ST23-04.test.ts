@@ -118,3 +118,77 @@ describe("ST23-04 Murasamemon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+async function playMurasamemonIntoZeroDp(branch: { hand: string; optionIndex: number }) {
+  let glowingDawnId = "";
+  let opponentId = "";
+  let opponentWhenBranchLanded: { onField: boolean; dp?: number } | undefined;
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "ST23-13", as: "tamer", under: [{ card: "BT1-001", faceUp: false }] }],
+        hand: [
+          { card: "ST23-04", as: "murasamemon" },
+          { card: branch.hand, as: "glowingDawn" },
+        ],
+        deck: ["ST23-02", "BT1-002", "BT1-003"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 5000 }] },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      preferOptionIndex: branch.optionIndex,
+      onEvent: (event) => {
+        if (event.kind !== "cardsMoved" || event.to !== "battleArea") return;
+        if (!event.instanceIds.includes(glowingDawnId)) return;
+        const opponent = s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === opponentId);
+        opponentWhenBranchLanded = { onField: opponent !== undefined, dp: opponent?.currentDP };
+      },
+    },
+  );
+  opponentId = s.perm("opponent").permanentId;
+  glowingDawnId = s.inst("glowingDawn").instanceId;
+  s.state.memory = 10;
+  await s.ready();
+
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("murasamemon").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId));
+
+  const branchIndex = s.events.findIndex(
+    (event) => event.kind === "cardsMoved" && event.to === "battleArea" && event.instanceIds.includes(glowingDawnId),
+  );
+  const deletionIndex = s.events.findIndex(
+    (event) =>
+      event.kind === "cardsMoved" &&
+      (event.deletedPermanents ?? []).some((deleted) => deleted.permanentId === opponentId),
+  );
+  return { s, opponentWhenBranchLanded, branchIndex, deletionIndex };
+}
+
+describe("ST23-04 Murasamemon — KB Q&A rulings", () => {
+  it("keeps a 0 DP Digimon on the field until the played Glowing Dawn card has resolved (Q6166)", async () => {
+    const { s, opponentWhenBranchLanded, branchIndex, deletionIndex } = await playMurasamemonIntoZeroDp({
+      hand: "ST23-02",
+      optionIndex: 0,
+    });
+    expect(opponentWhenBranchLanded).toEqual({ onField: true, dp: 0 });
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(deletionIndex).toBeGreaterThan(branchIndex);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST23-02")).toBe(true);
+  });
+
+  it("keeps a 0 DP Digimon on the field until the used Glowing Dawn Option finishes its [Main] effect (Q6166)", async () => {
+    const { s, opponentWhenBranchLanded, branchIndex, deletionIndex } = await playMurasamemonIntoZeroDp({
+      hand: "P-236",
+      optionIndex: 1,
+    });
+    expect(opponentWhenBranchLanded).toEqual({ onField: true, dp: 0 });
+    expect(branchIndex).toBeGreaterThanOrEqual(0);
+    expect(deletionIndex).toBeGreaterThan(branchIndex);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-236")).toBe(true);
+  });
+});

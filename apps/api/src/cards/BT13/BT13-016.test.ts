@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT13-016.js";
+import "../BT6/BT6-082.js";
 
 describe("BT13-016 SaviorHuckmon", () => {
   it("after an allied Sistermon play may digivolve into Jesmon while paying 2 less", async () => {
@@ -213,5 +214,49 @@ describe("BT13-016 SaviorHuckmon", () => {
     await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT6-082").length === 2);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;
+  });
+});
+
+describe("BT13-016 SaviorHuckmon — KB Q&A rulings", () => {
+  async function playSistermonResolvingFirst(firstCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-016", as: "savior" }],
+          hand: [
+            { card: "BT6-082", as: "sistermon" },
+            { card: "BT13-017", as: "handJesmon" },
+          ],
+          deck: [{ card: "BT13-017", as: "drawnJesmon" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [firstCardId] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("savior").topCard.cardId === "BT13-017");
+    await settle();
+
+    const orderRequest = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(orderRequest?.seat).toBe(0);
+    expect(orderRequest?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT6-082", "BT13-016"]));
+    const destinationChoice = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT13-016",
+    );
+    return { s, destinationCandidates: destinationChoice?.req.options?.candidateInstanceIds ?? [] };
+  }
+
+  it("lets the player order the Sistermon [On Play] and this card's [Your Turn] effect (Q2275)", async () => {
+    const drawFirst = await playSistermonResolvingFirst("BT6-082");
+    expect(drawFirst.destinationCandidates).toContain(drawFirst.s.inst("drawnJesmon").instanceId);
+    expect(drawFirst.destinationCandidates).toContain(drawFirst.s.inst("handJesmon").instanceId);
+
+    const digivolveFirst = await playSistermonResolvingFirst("BT13-016");
+    expect(digivolveFirst.destinationCandidates).not.toContain(digivolveFirst.s.inst("drawnJesmon").instanceId);
+    expect(digivolveFirst.s.perm("savior").topCard.instanceId).toBe(digivolveFirst.s.inst("handJesmon").instanceId);
   });
 });

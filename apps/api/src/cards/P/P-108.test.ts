@@ -6,6 +6,14 @@ import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../e
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-108.js";
+import {
+  delayDigivolvesThroughAlternateCondition,
+  expectDelayCannotUseHandMainRoute,
+  expectDelayDoesNotBurst,
+  expectDelayIgnoresTamers,
+  expectDelayKeepsRequirements,
+  expectDelayMayDecline,
+} from "./qaRulings2.testSupport.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -465,5 +473,69 @@ describe("P-108 (Wisdom Training)", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").topCard.cardId).toBe("BT10-074");
+  });
+});
+
+describe("P-108 Wisdom Training — KB Q&A rulings", () => {
+  it("keeps the target's digivolution requirements: a level 3 cannot take a level 5 (Q4208)", async () => {
+    await expectDelayKeepsRequirements("P-108", "BT2-067", "BT2-075");
+  });
+
+  it("does not burst digivolve into a card in hand (Q4209)", async () => {
+    await expectDelayDoesNotBurst("P-108", { host: "BT13-089", tamer: "BT13-102", target: "BT13-092" }, 5);
+  });
+
+  it("does not digivolve a Tamer into a 'Tamer digivolves as a Digimon' card (Q4210)", async () => {
+    await expectDelayIgnoresTamers("P-108", "BT2-090", "BT7-071");
+  });
+
+  it("may be activated without digivolving (Q4211)", async () => {
+    await expectDelayMayDecline("P-108", "BT2-067", "BT2-071");
+  });
+
+  it("digivolves Impmon into BT2-111 Beelzemon with 10 or more cards in trash (Q4212)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-108",
+      {
+        battleArea: [{ card: "BT2-068", as: "host" }],
+        hand: [{ card: "BT2-111", as: "target" }],
+        trash: Array.from({ length: 10 }, () => "BT1-009"),
+      },
+      {},
+      2,
+      "BT2-111",
+    );
+  });
+
+  it("lets ST21-10 Gabumon use its [Your Turn] MetalGarurumon route at the same time (Q5204)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-108",
+      { battleArea: [{ card: "ST21-10", as: "host" }], hand: [{ card: "BT2-081", as: "target" }] },
+      { battleArea: [{ card: "BT1-025", dp: 12000 }] },
+      2,
+      "BT2-081",
+    );
+  });
+
+  it("cannot run BT23-065 Phantomon's {Hand} [Main] route at the same time (Q5335)", async () => {
+    await expectDelayCannotUseHandMainRoute("P-108", {
+      host: "BT23-061",
+      tamer: "BT23-087",
+      material: "BT15-073",
+      target: "BT23-065",
+    });
+  });
+
+  it("lets BT25-082 BlackGatomon use its Three Musketeers Tamer route at the same time (Q6392)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-108",
+      {
+        battleArea: [{ card: "BT25-082", as: "host" }, "BT24-088"],
+        hand: [{ card: "BT6-112", as: "target" }],
+      },
+      {},
+      2,
+      "BT6-112",
+    );
   });
 });

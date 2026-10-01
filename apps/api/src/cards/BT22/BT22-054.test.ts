@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-054.js";
 import "./index.js";
 
@@ -79,7 +80,7 @@ describe("BT22-054 Hagurumon", () => {
     );
     const host = s.perm("host");
     const hagurumon = host.stack.find((card) => card.cardId === "BT22-054")!;
-    const source = (s.engine as any).cardSourceOf(hagurumon);
+    const source = observe(s.engine).cardSource(hagurumon);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT22-054/"),
     )!.effectKey;
@@ -124,5 +125,49 @@ describe("BT22-054 Hagurumon", () => {
     await settle(() => s.perm("host").topCard?.cardId === "BT1-014");
 
     expect(s.perm("opponent").currentDP).toBe(6000);
+  });
+});
+
+describe("BT22-054 Hagurumon — KB Q&A rulings", () => {
+  async function restackWithHagurumonInherited(under: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009"],
+          battleArea: [{ card: "BT22-056", as: "host", under }],
+        },
+        1: { battleArea: [{ card: "BT22-071", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const host = s.perm("host");
+    const hagurumon = host.stack.find((card) => card.cardId === "BT22-054")!;
+    const inheritedDraw = observe(s.engine)
+      .activatableEffects(host)
+      .find((effect) => effect.instanceId === hagurumon.instanceId && effect.effectKey.startsWith("BT22-054/"));
+    expect(inheritedDraw).toBeDefined();
+    const initialHand = s.state.players[0]!.hand.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: hagurumon.instanceId,
+        effectKey: inheritedDraw!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === initialHand + 1);
+    return s;
+  }
+
+  it("triggers its [Your Turn] effect when the restack makes this card the top card (Q4907)", async () => {
+    const becomesTop = await restackWithHagurumonInherited(["BT1-009", "BT22-054"]);
+    expect(becomesTop.perm("host").topCard.cardId).toBe("BT22-054");
+    expect(becomesTop.perm("host").stack[0]!.cardId).toBe("BT22-056");
+    expect(becomesTop.perm("opponent").currentDP).toBe(3000);
+
+    const staysUnder = await restackWithHagurumonInherited(["BT22-054", "BT1-009"]);
+    expect(staysUnder.perm("host").topCard.cardId).toBe("BT1-009");
+    expect(staysUnder.perm("opponent").currentDP).toBe(6000);
   });
 });

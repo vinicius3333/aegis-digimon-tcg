@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup, type PermanentSpec } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 function primitivesOf(s: EngineSetup): Primitives {
@@ -302,5 +303,78 @@ describe("ST17-13 Magnamon [Security] — end of security battle digivolution", 
     expect(s.perm("veemon").topCard.cardId).toBe("BT11-023");
     expect(s.perm("veemon").stack).toHaveLength(0);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+  });
+});
+
+describe("ST17-13 Magnamon — KB Q&A rulings", () => {
+  async function attackIntoCheckedMagnamon(securityPlayerBoard: PermanentSpec[]) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST8-09", as: "attacker", dp: 12000 }] },
+        1: { battleArea: securityPlayerBoard, security: [{ card: "ST17-13", as: "checked" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+      3000,
+    );
+    return s;
+  }
+
+  it("does not ignore digivolution requirements when digivolving into the checked card after the battle (Q833)", async () => {
+    const illegal = await attackIntoCheckedMagnamon([
+      { card: "BT1-009", as: "redLevel3" },
+      { card: "BT1-037", as: "blueLevel4" },
+    ]);
+    expect(illegal.perm("redLevel3").topCard.cardId).toBe("BT1-009");
+    expect(illegal.perm("blueLevel4").topCard.cardId).toBe("BT1-037");
+    expect(illegal.state.players[1]!.trash.map((card) => card.instanceId)).toContain(
+      illegal.inst("checked").instanceId,
+    );
+
+    const legal = await attackIntoCheckedMagnamon([{ card: "BT11-023", as: "blueLevel3" }]);
+    expect(legal.perm("blueLevel3").topCard.instanceId).toBe(legal.inst("checked").instanceId);
+  });
+
+  it("resolves De-Digivolve 1 on the attacker before the security battle compares DP (Q834)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST8-09", as: "attacker", under: ["BT1-038"] }] },
+        1: { security: [{ card: "ST17-13", as: "checked" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    const attackerPermanentId = s.perm("attacker").permanentId;
+    expect(s.perm("attacker").currentDP).toBe(11000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"), 3000);
+
+    const check = s.events.find((event) => event.kind === "securityChecked");
+    expect(check).toMatchObject({
+      revealedCardId: "ST17-13",
+      battle: { attackerDP: 6000, securityCardDP: 7000, attackerDeleted: true },
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.permanentId === attackerPermanentId), 3000);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["ST8-09", "BT1-038"]));
   });
 });

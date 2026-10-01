@@ -119,7 +119,7 @@ describe("EX4-018 MailBirdramon", () => {
     ).toBe(true);
   });
 
-  it("keeps the attack effect on its original target after that target digivolves", async () => {
+  it("keeps the attack effect on its original target after that target digivolves (Q3459)", async () => {
     const s = setupEngine(
       {
         0: {

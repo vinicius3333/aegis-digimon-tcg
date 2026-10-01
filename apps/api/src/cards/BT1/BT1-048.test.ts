@@ -182,3 +182,32 @@ describe("BT1-048 Patamon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT1-048 Patamon — KB Q&A rulings", () => {
+  it("still activates with 3 or fewer cards in deck and reveals every remaining card (Q908)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-048", as: "patamon" }],
+          deck: [
+            { card: "BT1-087", as: "yellowTamerA" },
+            { card: "BT1-049", as: "digimon" },
+            { card: "BT10-089", as: "yellowTamerB" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const tamers = [s.inst("yellowTamerA").instanceId, s.inst("yellowTamerB").instanceId];
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("patamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => tamers.every((id) => player.hand.some((card) => card.instanceId === id)));
+
+    expect(player.hand.map((card) => card.instanceId).sort()).toEqual([...tamers].sort());
+    expect(player.deck.map((card) => card.instanceId)).toEqual([s.inst("digimon").instanceId]);
+  });
+});

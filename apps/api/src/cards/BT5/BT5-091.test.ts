@@ -195,3 +195,37 @@ describe('BT5-091 [All Turns] level 3 Digimon gain "[When Attacking] Lose 1 memo
     expect(s.state.memory).not.toBe(4);
   });
 });
+
+async function memoryAfterOwnAttack(takumiCount: number, attackerCard: string): Promise<number> {
+  const takumis = Array.from({ length: takumiCount }, (_, index) => ({ card: TAKUMI, as: `takumi${index}` }));
+  const s = setupEngine(
+    {
+      0: { battleArea: [...takumis, { card: attackerCard, as: "attacker" }], security: 3 },
+      1: { battleArea: [{ card: DUMMY_TARGET, dp: 1000, as: "oppTarget", suspended: true }], security: 3 },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 5;
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("oppTarget").permanentId },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.battleArea.length === 0, 400);
+  return s.state.memory;
+}
+
+describe("BT5-091 Takumi Aiba — KB Q&A rulings", () => {
+  it("gives your own level 3 Digimon the [When Attacking] memory loss (Q1369)", async () => {
+    expect(await memoryAfterOwnAttack(1, LV3_DIGIMON)).toBe(4);
+    expect(await memoryAfterOwnAttack(1, "AD1-010")).toBe(5);
+  });
+
+  it("loses 2 memory when two copies are in play and a level 3 Digimon attacks (Q1370)", async () => {
+    expect(await memoryAfterOwnAttack(2, LV3_DIGIMON)).toBe(3);
+    expect(await memoryAfterOwnAttack(1, LV3_DIGIMON)).toBe(4);
+  });
+});

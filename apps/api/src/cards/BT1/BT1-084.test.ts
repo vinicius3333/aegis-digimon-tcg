@@ -273,3 +273,73 @@ describe("BT1-084 Omnimon", () => {
     expect(s.perm("attacker").stack.map((card) => card.instanceId)).toContain(s.inst("level6").instanceId);
   });
 });
+
+describe("BT1-084 Omnimon — KB Q&A rulings", () => {
+  it("deletes the chosen Digimon itself along with every same-name Digimon (Q940)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-025", as: "base" }], hand: [{ card: "BT1-084", as: "evolving" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "chosen" },
+            { card: "BT1-010", as: "sameName" },
+            { card: "BT1-011", as: "different" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const chosenTop = s.perm("chosen").topCard.instanceId;
+    const sameNameTop = s.perm("sameName").topCard.instanceId;
+    preferred.push(s.perm("chosen").permanentId, chosenTop);
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("different").permanentId,
+    ]);
+    const trashIds = s.state.players[1]!.trash.map((card) => card.instanceId);
+    expect(trashIds).toEqual(expect.arrayContaining([chosenTop, sameNameTop]));
+  });
+
+  it("must unsuspend after returning a level 6 digivolution card, with no separate choice (Q944)", async () => {
+    let decisionsWhenReturned: number | undefined;
+    const s: ReturnType<typeof setupEngine> = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-084", as: "attacker", under: [{ card: "BT1-025", as: "level6" }] }] },
+        1: { security: ["BT1-010"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: () => {
+          const returned = s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("level6").instanceId);
+          if (returned && decisionsWhenReturned === undefined) decisionsWhenReturned = s.decisions.length;
+        },
+      },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("level6").instanceId);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(decisionsWhenReturned).toBeDefined();
+    expect(s.decisions).toHaveLength(decisionsWhenReturned!);
+  });
+});

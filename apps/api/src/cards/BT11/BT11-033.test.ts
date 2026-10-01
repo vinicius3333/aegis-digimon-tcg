@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-033.js";
 import "../BT15/BT15-090.js";
+import "../BT17/BT17-083.js";
 
 describe("BT11-033 MirageGaogamon", () => {
   it("matches the catalog, current restriction, and both complete executable contracts", () => {
@@ -216,5 +217,59 @@ describe("BT11-033 MirageGaogamon", () => {
     expect(frequency.state.memory).toBe(0);
     advance(frequency.engine).endMainPhaseIfOpen(0);
     await laterTurn;
+  });
+});
+
+describe("BT11-033 MirageGaogamon — KB Q&A rulings", () => {
+  it("does not activate the [Security] effect of a security card its fallback adds to the hand (Q2070)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-028", as: "base" }],
+          hand: [{ card: "BT11-033", as: "mirage" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "AD1-025", as: "level7", suspended: true }],
+          security: [
+            { card: "BT17-083", as: "addedTamer" },
+            { card: "BT17-083", as: "checkedTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const addedTamerId = s.inst("addedTamer").instanceId;
+    const checkedTamerId = s.inst("checkedTamer").instanceId;
+    const opponentBattleTopIds = () => s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some(({ instanceId }) => instanceId === addedTamerId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([addedTamerId]);
+    expect(opponentBattleTopIds()).not.toContain(addedTamerId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponentBattleTopIds().includes(checkedTamerId));
+
+    expect(opponentBattleTopIds()).toContain(checkedTamerId);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([addedTamerId]);
   });
 });

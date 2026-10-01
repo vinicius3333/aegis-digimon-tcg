@@ -7,9 +7,23 @@ import { compiled as compiledDna } from "./EX8-029.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
-import { getCardDefinition } from "@aegis/shared";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
+import type { BoardSpec, EngineSetup, PermanentSpec, SeatSpec } from "../../engine/testkit/harness.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter/compiledCards.js";
+import { EffectDuration, getCardDefinition, type CompiledCard } from "@aegis/shared";
 import "./index.js";
+import "../BT2/BT2-107.js";
+import "../BT14/BT14-075.js";
+import "../BT18/BT18-049.js";
+import "../BT18/BT18-066.js";
+import "../BT24/BT24-013.js";
+import "../EX4/EX4-018.js";
+import "../EX5/EX5-059.js";
+import "../BT1/BT1-055.js";
+import "../BT1/BT1-070.js";
+import "../P/P-134.js";
+import "../EX10/EX10-045.js";
 import { compiled } from "./EX8-029.js";
 
 describe("EX8-029", () => {
@@ -302,5 +316,373 @@ describe("EX8-029 DNA requirement", () => {
     expect(illegal.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT15-032", "BT2-029"]);
     expect(illegal.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX8-029"]);
     expect(illegal.state.memory).toBe(10);
+  });
+});
+
+describe("EX8-029 Aegisdramon — KB Q&A rulings", () => {
+  const filler = ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"];
+
+  function aegisdramonBoard(opponent: SeatSpec, lockPresent = true, ownOthers: PermanentSpec[] = []): BoardSpec {
+    return {
+      0: {
+        battleArea: [...(lockPresent ? [{ card: "EX8-029", as: "aegisdramon" }] : []), ...ownOthers],
+        security: ["BT1-010"],
+        deck: filler,
+      },
+      1: { deck: filler, ...opponent },
+    };
+  }
+
+  async function startSeatOneTurn(s: EngineSetup, memory = 10): Promise<void> {
+    s.state.turnSeat = 1;
+    s.state.memory = memory;
+    await s.ready();
+    await advance(s.engine).recompute();
+  }
+
+  async function seatOnePlays(s: EngineSetup, alias: string): Promise<void> {
+    const instanceId = s.inst(alias).instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+  }
+
+  it("keeps an opposing Digimon's [On Play] from activating when it is played at 1 or less memory (Q3900)", async () => {
+    const devimonBoard = aegisdramonBoard({ hand: [{ card: "BT14-075", as: "devimon" }] });
+
+    const locked = setupEngine(devimonBoard, { autoSelectCards: true });
+    await startSeatOneTurn(locked, 10);
+    await seatOnePlays(locked, "devimon");
+    expect(locked.state.memory).toBe(3);
+    expect(locked.state.players[1]!.deck).toHaveLength(filler.length);
+
+    const unlocked = setupEngine(devimonBoard, { autoSelectCards: true });
+    await startSeatOneTurn(unlocked, 5);
+    await seatOnePlays(unlocked, "devimon");
+    expect(unlocked.state.memory).toBe(-2);
+    expect(unlocked.state.players[1]!.deck).toHaveLength(filler.length - 3);
+  });
+
+  it("still lets an opposing [On Play] [When Attacking] effect activate on the attack timing (Q3901)", async () => {
+    const s = setupEngine(aegisdramonBoard({ battleArea: [{ card: "BT14-075", as: "devimon" }] }), {
+      autoSelectCards: true,
+    });
+    await startSeatOneTurn(s);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("devimon"), "onPlay")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("devimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.deck).toHaveLength(filler.length - 3);
+  });
+
+  it("stops an opposing Digimon from activating its own [On Play] through an effect (Q3902)", async () => {
+    const dobermonBoard: SeatSpec = {
+      battleArea: [{ card: "BT14-071", under: ["BT4-082"], as: "dobermonBase" }],
+      hand: [{ card: "EX5-059", as: "dobermonX" }, "BT1-010"],
+    };
+    const digivolveIntoDobermonX = async (s: EngineSetup) => {
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("dobermonBase").permanentId,
+          instanceId: s.inst("dobermonX").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("dobermonBase").topCard.cardId === "EX5-059" && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+    };
+
+    const locked = setupEngine(aegisdramonBoard(dobermonBoard), { autoSelectCards: true, autoAcceptOptional: true });
+    await startSeatOneTurn(locked);
+    await digivolveIntoDobermonX(locked);
+    expect(locked.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-010");
+    expect(observe(locked.engine).hasKeyword(locked.perm("dobermonBase"), "Retaliation")).toBe(false);
+
+    const unlocked = setupEngine(aegisdramonBoard(dobermonBoard, false), {
+      autoSelectCards: true,
+      autoAcceptOptional: true,
+    });
+    await startSeatOneTurn(unlocked);
+    await digivolveIntoDobermonX(unlocked);
+    expect(observe(unlocked.engine).hasKeyword(unlocked.perm("dobermonBase"), "Retaliation")).toBe(true);
+  });
+
+  it("stops an opposing Digimon from activating another card's [On Play] as its own effect (Q3903)", async () => {
+    const sephirothmonBoard: SeatSpec = {
+      battleArea: [
+        { card: "BT1-030", as: "target" },
+        { card: "BT18-064", as: "sephirothmonBase" },
+      ],
+      hand: [{ card: "BT18-066", as: "sephirothmon" }],
+      trash: [{ card: "BT18-049", as: "hybrid", faceUp: true }],
+    };
+    const targetDpAfterSephirothmon = async (lockPresent: boolean) => {
+      const preferred: string[] = [];
+      const s = setupEngine(aegisdramonBoard(sephirothmonBoard, lockPresent), {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        preferInstanceIds: preferred,
+      });
+      await startSeatOneTurn(s);
+      preferred.push(s.perm("target").permanentId, s.perm("target").topCard.instanceId);
+      const dpBefore = s.perm("target").currentDP;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("sephirothmonBase").permanentId,
+          instanceId: s.inst("sephirothmon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.perm("sephirothmonBase").stack.some((card) => card.instanceId === s.inst("hybrid").instanceId),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+      return s.perm("target").currentDP - dpBefore;
+    };
+
+    expect(await targetDpAfterSephirothmon(true)).toBe(0);
+    expect(await targetDpAfterSephirothmon(false)).toBe(3000);
+  });
+
+  it("lets an unaffected card activate a locked Digimon's [On Play] as an effect of itself (Q3904)", async () => {
+    // No printed card lets a non-Digimon card borrow a battle-area Digimon's [On Play]
+    // "as an effect of this card", so an Option probe stands in for one.
+    const optionId = "BT2-107";
+    const printedOption = runtimeCompiledCard(optionId);
+    if (printedOption === undefined) throw new Error(`Expected ${optionId} to be registered`);
+    const borrowingOption: CompiledCard = {
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "ActivateEffect",
+              asEffectOf: "this card",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              effectType: "OnPlay",
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    };
+    registerIrCard(optionId, borrowingOption);
+    try {
+      const s = setupEngine(
+        aegisdramonBoard({
+          battleArea: [{ card: "BT14-075", as: "devimon" }],
+          hand: [{ card: optionId, as: "option" }],
+        }),
+        { autoSelectCards: true },
+      );
+      await startSeatOneTurn(s);
+      expect(observe(s.engine).timingEffectDisabled(s.perm("devimon"), "onPlay")).toBe(true);
+      const optionInstanceId = s.inst("option").instanceId;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionInstanceId })).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionInstanceId));
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[1]!.deck).toHaveLength(filler.length - 3);
+    } finally {
+      registerIrCard(optionId, printedOption);
+    }
+  });
+
+  it("does not let a locked [On Play] pay just its 'by trashing' cost (Q3905)", async () => {
+    const fugamonBoard: SeatSpec = {
+      hand: [
+        { card: "BT24-013", as: "fugamon" },
+        { card: "BT1-010", as: "fodder" },
+      ],
+    };
+    const victim: PermanentSpec = { card: "BT20-010", as: "victim" };
+    const afterFugamon = async (lockPresent: boolean) => {
+      const s = setupEngine(aegisdramonBoard(fugamonBoard, lockPresent, [victim]), {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+      });
+      await startSeatOneTurn(s);
+      await seatOnePlays(s, "fugamon");
+      return {
+        fodderInHand: s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("fodder").instanceId),
+        victimInPlay: s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010"),
+      };
+    };
+
+    expect(await afterFugamon(true)).toEqual({ fodderInHand: true, victimInPlay: true });
+    expect(await afterFugamon(false)).toEqual({ fodderInHand: false, victimInPlay: false });
+  });
+
+  it("does not spend a shared [Once Per Turn] when the locked [On Play] cannot activate (Q3906)", async () => {
+    const tuwarmonBoard: SeatSpec = {
+      battleArea: [{ card: "EX10-045", under: ["BT1-010", "BT1-010"], as: "bagraHost" }],
+      hand: [{ card: "EX10-045", as: "tuwarmon" }],
+    };
+    const hostStackAfterPlayAndAttack = async (lockPresent: boolean) => {
+      const s = setupEngine(
+        aegisdramonBoard(tuwarmonBoard, lockPresent, lockPresent ? [] : [{ card: "BT1-024", as: "aegisdramon" }]),
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      await startSeatOneTurn(s);
+      await seatOnePlays(s, "tuwarmon");
+      const afterPlay = s.perm("bagraHost").stack.length;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("tuwarmon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => observe(s.engine).blockingSeat() === 0);
+      const afterAttack = s.perm("bagraHost").stack.length;
+      // Tuwarmon's ＜Collision＞ forces the only seat-0 Digimon to block.
+      expect(
+        s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("aegisdramon").permanentId }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+      return { afterPlay, afterAttack };
+    };
+
+    expect(await hostStackAfterPlayAndAttack(true)).toEqual({ afterPlay: 2, afterAttack: 1 });
+    expect(await hostStackAfterPlayAndAttack(false)).toEqual({ afterPlay: 1, afterAttack: 1 });
+  });
+
+  function immunityBoard(opponentHand: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-029", as: "aegisdramon" },
+            { card: "EX8-020", as: "ds" },
+            { card: "BT1-016", as: "nonDs" },
+          ],
+          deck: filler,
+        },
+        1: {
+          hand: [{ card: opponentHand, as: "played" }],
+          battleArea: [{ card: "BT1-009", as: "opponentDigimon" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: filler,
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+    );
+    return { s, preferred };
+  }
+
+  /** Seat 1 plays its hand card so the payment leaves seat 0 with 2 memory: DS immunity on, [On Play] lock off. */
+  async function seatOnePlaysLeavingTwoMemory(s: EngineSetup, preferred: string[], targetAlias: string) {
+    preferred.push(s.perm(targetAlias).topCard.instanceId);
+    await startSeatOneTurn(s, (getCardDefinition(s.inst("played").cardId)!.playCost ?? 0) - 2);
+    await seatOnePlays(s, "played");
+    expect(s.state.memory).toBe(-2);
+  }
+
+  function offeredToSeatOne(s: EngineSetup, alias: string): boolean {
+    const ids = [s.perm(alias).permanentId, s.perm(alias).topCard.instanceId];
+    return s.decisions
+      .filter(({ seat, req }) => seat === 1 && req.kind === "chooseTargets")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])
+      .some((id) => ids.includes(id));
+  }
+
+  async function seatZeroAttacksWith(s: EngineSetup, alias: string, memory: number) {
+    s.state.turnSeat = 0;
+    s.state.memory = memory;
+    await advance(s.engine).recompute();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(alias).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+  }
+
+  it("keeps an opposing Digimon's suspend and -3000 DP effects off a DS Digimon (Q3907)", async () => {
+    const afterKuwagamon = async (targetAlias: string) => {
+      const { s, preferred } = immunityBoard("BT1-070");
+      await seatOnePlaysLeavingTwoMemory(s, preferred, targetAlias);
+      return s.perm(targetAlias).isSuspended;
+    };
+    expect(await afterKuwagamon("ds")).toBe(false);
+    expect(await afterKuwagamon("nonDs")).toBe(true);
+
+    const dpLossFromAngemon = async (targetAlias: string) => {
+      const { s, preferred } = immunityBoard("BT1-055");
+      const before = s.perm(targetAlias).currentDP;
+      await seatOnePlaysLeavingTwoMemory(s, preferred, targetAlias);
+      return before - s.perm(targetAlias).currentDP;
+    };
+    expect(await dpLossFromAngemon("ds")).toBe(0);
+    expect(await dpLossFromAngemon("nonDs")).toBe(3000);
+  });
+
+  it("lets the opponent choose the unaffected DS Digimon, and the choice does nothing (Q3908)", async () => {
+    const { s, preferred } = immunityBoard("BT1-070");
+    await seatOnePlaysLeavingTwoMemory(s, preferred, "ds");
+
+    expect(offeredToSeatOne(s, "ds")).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(0);
+  });
+
+  it("can be given an opponent's <Security A. -1> without being considered to have it (Q3909)", async () => {
+    const securityAttackAfterShoemon = async (targetAlias: string) => {
+      const { s, preferred } = immunityBoard("P-134");
+      await seatOnePlaysLeavingTwoMemory(s, preferred, targetAlias);
+      expect(offeredToSeatOne(s, targetAlias)).toBe(true);
+      return observe(s.engine).keywordAmount(s.perm(targetAlias), "SecurityAttack");
+    };
+    expect(await securityAttackAfterShoemon("ds")).toBe(0);
+    expect(await securityAttackAfterShoemon("nonDs")).toBe(-1);
+  });
+
+  it("stops an opposing DP reduction already on the Digimon as soon as it becomes unaffected (Q3910)", async () => {
+    const { s } = immunityBoard("BT1-070");
+    await startSeatOneTurn(s, 3);
+    const driver = advance(s.engine);
+    driver.verb.enterEffectResolution(1, ["Digimon"], s.perm("opponentDigimon").permanentId);
+    await driver.verb.modifyDP(s.perm("ds").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
+    driver.verb.leaveEffectResolution();
+    expect(s.perm("ds").currentDP).toBe(1000);
+
+    s.state.memory = -1;
+    await advance(s.engine).recompute();
+    expect(s.perm("ds").currentDP).toBe(4000);
+  });
+
+  it("applies an opposing effect given during the immunity as soon as the immunity ends (Q3911)", async () => {
+    const checksAfterShoemon = async (seatZeroMemory: number) => {
+      const { s, preferred } = immunityBoard("P-134");
+      await seatOnePlaysLeavingTwoMemory(s, preferred, "ds");
+      await seatZeroAttacksWith(s, "ds", seatZeroMemory);
+      return 2 - s.state.players[1]!.security.length;
+    };
+    expect(await checksAfterShoemon(1)).toBe(1);
+    expect(await checksAfterShoemon(0)).toBe(0);
+  });
+
+  it("does not trigger an opponent-given [When Attacking] effect while the DS Digimon is unaffected (Q3912)", async () => {
+    const memoryAfterAttack = async (seatZeroMemory: number) => {
+      const { s, preferred } = immunityBoard("EX4-018");
+      await seatOnePlaysLeavingTwoMemory(s, preferred, "ds");
+      expect(offeredToSeatOne(s, "ds")).toBe(true);
+      await seatZeroAttacksWith(s, "ds", seatZeroMemory);
+      return s.state.memory;
+    };
+    expect(await memoryAfterAttack(3)).toBe(3);
+    expect(await memoryAfterAttack(0)).toBe(-2);
   });
 });

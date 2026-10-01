@@ -185,3 +185,48 @@ describe("BT11-083 LadyDevimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("non-angel"), "Retaliation")).toBe(false);
   });
 });
+
+describe("BT11-083 LadyDevimon — KB Q&A rulings", () => {
+  it("returns the [Mirei Mikagura] that its own hand-trash step just discarded (Q2107)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-079", as: "base" }],
+          hand: [
+            { card: "BT11-083", as: "lady" },
+            { card: "BT11-094", as: "mirei" },
+            { card: "BT1-009", as: "keep" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    const mireiId = s.inst("mirei").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lady").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const handTrash = s.decisions.findLast(({ req }) => req.kind === "selectCards")!.req;
+    expect(handTrash.options?.candidateInstanceIds).toEqual(expect.arrayContaining([mireiId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: handTrash.decisionId,
+        response: { kind: "selectCards", instanceIds: [mireiId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === mireiId));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([mireiId, s.inst("keep").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(mireiId);
+  });
+});

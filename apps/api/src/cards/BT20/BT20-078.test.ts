@@ -2,12 +2,16 @@ import "../P/P-106.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { describe, it, expect } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup, type SeatSpec } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT20-078.js";
 import "./BT20-073.js";
 import "./BT20-069.js";
 import "./index.js";
+import "../BT4/BT4-011.js";
+import "../BT6/BT6-017.js";
+import "../BT6/BT6-060.js";
+import "../P/P-103.js";
 
 const REAPERMON = "BT20-078";
 const AGUMON = "BT1-010";
@@ -319,5 +323,110 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("reapermon").permanentId)).toBe(true);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+const reapermonWatchesOpponentTurn = async (opponent: SeatSpec) => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: REAPERMON, as: "reapermon" }], deck: [AGUMON, AGUMON] },
+      1: { deck: [AGUMON, AGUMON, AGUMON], ...opponent },
+    },
+    { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+  );
+  s.state.turnSeat = 1;
+  s.state.turnCount = 2;
+  s.state.memory = 10;
+  await s.ready();
+  return s;
+};
+
+const activateTrainingDelay = (s: EngineSetup, alias: string) => {
+  const training = s.perm(alias);
+  const [delay] = observe(s.engine).activatableEffects(training);
+  expect(delay).toBeDefined();
+  return s.engine.applyIntent(1, {
+    type: "activateEffect",
+    sourceInstanceId: training.topCard.instanceId,
+    effectKey: delay!.effectKey,
+  });
+};
+
+const reapermonTriggered = (s: EngineSetup) =>
+  s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === REAPERMON);
+
+describe("BT20-078 Reapermon — KB Q&A rulings", () => {
+  it("resolves the turn player's [When Digivolving] before Reapermon's simultaneous [All Turns] (Q4401)", async () => {
+    const s = await reapermonWatchesOpponentTurn({
+      battleArea: [
+        { card: "BT1-064", as: "base" },
+        { card: "P-106", as: "training" },
+      ],
+      hand: [{ card: "BT20-039", as: "diatrymon" }],
+    });
+
+    expect(activateTrainingDelay(s, "training")).toEqual({ ok: true });
+    await settle(() => reapermonTriggered(s) && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    const triggerOrder = s.events
+      .filter((event) => event.kind === "effectTriggered")
+      .map((event) => event.sourceCardId)
+      .filter((cardId) => cardId === "BT20-039" || cardId === REAPERMON);
+    expect(triggerOrder).toEqual(["BT20-039", REAPERMON]);
+    expect(s.perm("reapermon").isSuspended).toBe(true);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-064");
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("diatrymon").instanceId)).toBe(true);
+  });
+
+  it("triggers only on digivolution by an effect, not on Agunimon's Tamer route or Deputymon's requirement waiver (Q4402)", async () => {
+    const byTrainingEffect = await reapermonWatchesOpponentTurn({
+      battleArea: [
+        { card: METAL_GREYMON, as: "metalGreymon" },
+        { card: "P-103", as: "offenseTraining" },
+      ],
+      hand: [{ card: "BT6-017", as: "magnaKidmon" }],
+    });
+    expect(activateTrainingDelay(byTrainingEffect, "offenseTraining")).toEqual({ ok: true });
+    await settle(() => reapermonTriggered(byTrainingEffect) && byTrainingEffect.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(byTrainingEffect.perm("metalGreymon").topCard.cardId).toBe(METAL_GREYMON);
+    expect(
+      byTrainingEffect.state.players[1]!.trash.some(
+        (card) => card.instanceId === byTrainingEffect.inst("magnaKidmon").instanceId,
+      ),
+    ).toBe(true);
+
+    const byDeputymonWaiver = await reapermonWatchesOpponentTurn({
+      battleArea: [{ card: "BT6-060", as: "deputymon" }],
+      hand: [{ card: "BT6-017", as: "magnaKidmon" }],
+    });
+    expect(
+      byDeputymonWaiver.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: byDeputymonWaiver.perm("deputymon").permanentId,
+        instanceId: byDeputymonWaiver.inst("magnaKidmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => byDeputymonWaiver.perm("deputymon").topCard.cardId === "BT6-017");
+    await drainMicrotasks();
+    expect(reapermonTriggered(byDeputymonWaiver)).toBe(false);
+    expect(byDeputymonWaiver.perm("deputymon").topCard.cardId).toBe("BT6-017");
+
+    const byAgunimonTamerRoute = await reapermonWatchesOpponentTurn({
+      battleArea: [{ card: "BT1-085", as: "tamer" }],
+      hand: [{ card: "BT4-011", as: "agunimon" }],
+    });
+    expect(
+      byAgunimonTamerRoute.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: byAgunimonTamerRoute.perm("tamer").permanentId,
+        instanceId: byAgunimonTamerRoute.inst("agunimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => byAgunimonTamerRoute.perm("tamer").topCard.cardId === "BT4-011");
+    await drainMicrotasks();
+    expect(reapermonTriggered(byAgunimonTamerRoute)).toBe(false);
+    expect(byAgunimonTamerRoute.perm("tamer").topCard.cardId).toBe("BT4-011");
   });
 });

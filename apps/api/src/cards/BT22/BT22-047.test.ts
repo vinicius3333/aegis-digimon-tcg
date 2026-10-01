@@ -111,3 +111,53 @@ describe("BT22-047 Kuwagamon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT22-047 Kuwagamon — KB Q&A rulings", () => {
+  it("can lock a different opponent Digimon from unsuspending than the one it suspended (Q4899)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT22-043", as: "base", under: ["BT22-043"] }],
+        hand: [{ card: "BT22-047", as: "kuwagamon" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "suspendTarget" },
+          { card: "BT1-009", as: "lockTarget" },
+        ],
+      },
+    });
+    await s.ready();
+    s.state.memory = 2;
+    async function chooseTarget(decisionIndex: number, alias: string): Promise<void> {
+      await settle(() => s.decisions.length > decisionIndex);
+      const { req } = s.decisions[decisionIndex]!;
+      expect(req.kind).toBe("chooseTargets");
+      expect(req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.perm("suspendTarget").permanentId, s.perm("lockTarget").permanentId]),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kuwagamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await chooseTarget(0, "suspendTarget");
+    await chooseTarget(1, "lockTarget");
+    await settle(() => observe(s.engine).isRestricted(s.perm("lockTarget"), "unsuspend"));
+
+    expect(s.perm("suspendTarget").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspendTarget"), "unsuspend")).toBe(false);
+    expect(s.perm("lockTarget").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("lockTarget"), "unsuspend")).toBe(true);
+  });
+});

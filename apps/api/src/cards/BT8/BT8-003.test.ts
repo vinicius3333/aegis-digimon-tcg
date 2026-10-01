@@ -37,3 +37,21 @@ describe("BT8-003 Frimon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 });
+
+describe("BT8-003 Frimon — KB Q&A rulings", () => {
+  it("does not boost a Digimon in the breeding area, and 6 security cards still give only +1000 DP (Q1694)", async () => {
+    const sixSecurity = ["BT8-034", "BT8-034", "BT8-034", "BT8-034", "BT8-034", "BT8-034"];
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT8-034", as: "raising", under: ["BT8-003"] },
+        battleArea: [{ card: "BT8-034", as: "fielded", under: ["BT8-003"] }],
+        security: sixSecurity,
+      },
+    });
+    await s.ready();
+
+    expect(s.state.players[0]!.security).toHaveLength(6);
+    expect(s.perm("raising").currentDP).toBe(s.perm("raising").baseDP);
+    expect(s.perm("fielded").currentDP).toBe(s.perm("fielded").baseDP + 1000);
+  });
+});

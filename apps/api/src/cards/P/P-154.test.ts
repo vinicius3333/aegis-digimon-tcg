@@ -91,8 +91,10 @@ describe("P-154 Maildramon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-154")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("knight"), "Blocker")).toBe(true);
   });
+});
 
-  it("prevents all simultaneous Knightmon-text Digimon from leaving for one placement", async () => {
+describe("P-154 Maildramon — KB Q&A rulings", () => {
+  it("prevents every simultaneous leave of other [Knightmon]-text Digimon with one placement (Q4268)", async () => {
     const s = setupEngine(
       {
         0: {

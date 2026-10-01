@@ -214,3 +214,44 @@ describe("BT3-111 Imperialdramon: Dragon Mode", () => {
     await loop;
   });
 });
+
+describe("BT3-111 Imperialdramon: Dragon Mode — KB Q&A rulings", () => {
+  it("does not reduce the digivolution cost onto a Paildramon in the breeding area (Q1150)", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT3-027", as: "raisedPaildramon" },
+        battleArea: [{ card: "BT3-027", as: "battlePaildramon" }],
+        hand: [
+          { card: "BT3-111", as: "breedingDragon" },
+          { card: "BT3-111", as: "battleDragon" },
+        ],
+        deck: ["BT1-009", "BT1-009"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("raisedPaildramon").permanentId,
+        instanceId: s.inst("breedingDragon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("raisedPaildramon").topCard.cardId === "BT3-111", 5000);
+
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("raisedPaildramon").inBreeding).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("battlePaildramon").permanentId,
+        instanceId: s.inst("battleDragon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("battlePaildramon").topCard.cardId === "BT3-111", 5000);
+
+    expect(s.state.memory).toBe(2);
+  });
+});

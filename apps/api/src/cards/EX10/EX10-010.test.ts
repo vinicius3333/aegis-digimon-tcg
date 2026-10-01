@@ -798,3 +798,143 @@ describe("EX10-010 BlackWarGreymon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("EX10-010 BlackWarGreymon — KB Q&A rulings", () => {
+  async function attackPlayer(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
+    s.state.turnSeat = 0;
+    await s.engine.recomputeContinuousEffects();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(alias).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+  }
+
+  it("can be given an opposing ＜Security A. -1＞ while immune, but checks as if it lacked it until the immunity ends (Q5022)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: BIG_13K, as: "big" }],
+          hand: [{ card: "BT5-036", as: "renamon" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("renamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT5-036") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    for (const permanent of s.state.players[1]!.battleArea) permanent.isSuspended = true;
+    await attackPlayer(s, "source");
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("big").permanentId], "byEffect")).toBe(1);
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("source"), "SecurityAttack")).toBe(-1);
+  });
+
+  it.each([
+    { immuneAtAttack: false, memoryLost: 2 },
+    { immuneAtAttack: true, memoryLost: 0 },
+  ])(
+    "a granted [When Attacking] triggers only if it is affected at attack time: immune=$immuneAtAttack loses $memoryLost memory (Q5025)",
+    async ({ immuneAtAttack, memoryLost }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CARD_ID, as: "source" }],
+            security: ["BT1-009"],
+            deck: ["BT1-010", "BT1-011"],
+          },
+          1: {
+            hand: [{ card: "EX4-018", as: "granter" }],
+            security: ["BT1-009", "BT1-009"],
+            deck: ["BT1-012", "BT1-013"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.turnSeat = 1;
+      s.state.memory = 5;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("granter").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "EX4-018") &&
+          s.state.pendingDecision === undefined,
+      );
+      expect(observe(s.engine).customEffectGrants(s.perm("source")).length).toBeGreaterThan(0);
+
+      if (immuneAtAttack) s.putOnBoard(1, BIG_13K);
+      await s.engine.recomputeContinuousEffects();
+      expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(immuneAtAttack);
+
+      s.state.turnSeat = 0;
+      s.state.memory = 5;
+      await attackPlayer(s, "source");
+
+      expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+      expect(s.state.memory).toBe(5 - memoryLost);
+    },
+  );
+
+  it("is deleted by a Zwart Defeat's [On Deletion] because the 13000 DP Digimon has already left (Q5026)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "source" }], deck: ["BT1-010", "BT1-011"] },
+        1: {
+          battleArea: [{ card: "BT5-112", as: "zwart", suspended: true }],
+          security: ["BT1-009"],
+          deck: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const sourceId = s.perm("source").permanentId;
+    expect(s.perm("source").currentDP).toBe(15000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: sourceId,
+        target: { kind: "permanent", permanentId: s.perm("zwart").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sourceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT5-112");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
+  });
+});

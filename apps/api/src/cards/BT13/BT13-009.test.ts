@@ -148,3 +148,45 @@ describe("BT13-009 Huckmon", () => {
     expect(s.state.memory).toBe(7);
   });
 });
+
+describe("BT13-009 Huckmon — KB Q&A rulings", () => {
+  async function playSistermonResolvingFirst(firstCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-009", as: "huckmon" }],
+          hand: [
+            { card: "BT6-082", as: "sistermon" },
+            { card: "BT13-013", as: "handBao" },
+          ],
+          deck: [{ card: "BT13-013", as: "drawnBao" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [firstCardId] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("huckmon").topCard.cardId === "BT13-013");
+    await settle();
+
+    const orderRequest = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(orderRequest?.seat).toBe(0);
+    expect(orderRequest?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT6-082", "BT13-009"]));
+    const baoChoice = s.decisions.find(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT13-009");
+    return { s, baoCandidates: baoChoice?.req.options?.candidateInstanceIds ?? [] };
+  }
+
+  it("lets the player order the Sistermon [On Play] and this card's [Your Turn] effect (Q2268)", async () => {
+    const drawFirst = await playSistermonResolvingFirst("BT6-082");
+    expect(drawFirst.baoCandidates).toContain(drawFirst.s.inst("drawnBao").instanceId);
+    expect(drawFirst.baoCandidates).toContain(drawFirst.s.inst("handBao").instanceId);
+
+    const digivolveFirst = await playSistermonResolvingFirst("BT13-009");
+    expect(digivolveFirst.baoCandidates).not.toContain(digivolveFirst.s.inst("drawnBao").instanceId);
+    expect(digivolveFirst.s.perm("huckmon").topCard.instanceId).toBe(digivolveFirst.s.inst("handBao").instanceId);
+  });
+});

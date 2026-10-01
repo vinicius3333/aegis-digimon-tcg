@@ -436,3 +436,42 @@ describe("EX13-004 DemiMeramon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
+
+describe("EX13-004 DemiMeramon — KB Q&A rulings", () => {
+  it("activates the inherited digivolve with 0 security cards and trashes nothing (Q7218)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: HOST, as: "host", under: [CARD_ID] }],
+          hand: [{ card: WITCHELNY_DESTINATION, as: "sorcermon" }],
+          security: [],
+          deck: DECK,
+        },
+        1: { security: [INERT, INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === WITCHELNY_DESTINATION);
+
+    expect(
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.isInherited === true,
+      ),
+    ).toBe(true);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("sorcermon").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CARD_ID, HOST]);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+});

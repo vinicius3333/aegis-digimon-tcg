@@ -19,19 +19,31 @@ export interface ContinuousPrimitives {
    * permanent controls the resolving effect, leaving the controller's own effects free to
    * target it. Omit it for unscoped wording ("effects can't delete or trash it", EX9-005) and
    * for prohibitions that must also survive rule-based processing (BT18-086's 0 DP Digimon).
+   * `byEffectsOnly` keeps an unscoped prohibition away from rule processing and battle
+   * ("prevent effects from deleting it", BT7-064).
    */
   restrict(
     permanentId: string,
     restriction: EnforcedRestriction,
     duration: EffectDuration,
-    opts?: { fromSourceKind?: string[]; byOpponentEffectsOnly?: boolean; continuous?: boolean },
+    opts?: {
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+      continuous?: boolean;
+    },
   ): void;
-  /** Apply a live, duration-scoped restriction to every matching permanent a player controls. */
+  /**
+   * Apply a live, duration-scoped restriction to every matching permanent a player controls.
+   * `matchesAsDigimon` extends a "Digimon can't digivolve" rule to a Tamer digivolving as if it
+   * is that Digimon (KB Q1157).
+   */
   restrictPlayer?(
     seat: Seat,
     restriction: EnforcedRestriction,
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
+    opts?: { matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean },
   ): void;
   /**
    * Prevent one attacker from declaring an attack against one exact opposing Digimon while
@@ -60,6 +72,12 @@ export interface ContinuousPrimitives {
    * an opponent effect of any kind (CAP-C-06, BT19-101).
    */
   isUnaffectableByOpponentEffects?(permanentId: string): boolean;
+  /**
+   * Whether an effect of the permanent's own controller cannot affect it. Only `beAffected`
+   * entries not scoped to the opponent's effects count, such as LM-020's declared card
+   * category (Q2657). `sourceKinds` selects the source-kind-qualified entries that apply.
+   */
+  isUnaffectedByOwnEffects?(permanentId: string, sourceKinds: readonly string[]): boolean;
   /**
    * Record a positive "can only digivolve into [X]" constraint on a permanent (EX10-035). The
    * `matchesInto` predicate is satisfied by the allowed evolving card's definition; the
@@ -107,7 +125,7 @@ export interface ContinuousPrimitives {
     kind: "name" | "trait",
     tokens: string[],
     duration: EffectDuration,
-    opts?: { digiXrosOnly?: boolean; ruleDerived?: boolean },
+    opts?: { digiXrosOnly?: boolean; fromRule?: boolean; nameContainsOnly?: boolean },
   ): void;
   /** Grant names whose current values are recomputed from live game state. */
   grantDynamicNames?(permanentId: string, names: () => string[], duration: EffectDuration): void;

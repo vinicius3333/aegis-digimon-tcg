@@ -152,3 +152,112 @@ describe("BT10-101 LxF3nkhē Adistakto", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
   });
 });
+
+describe("BT10-101 LxF3nkhē Adistakto — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+
+  async function chooseTarget(s: Setup, seat: 0 | 1, decisionIndex: number, permanentId: string) {
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseTargets").length === decisionIndex + 1);
+    const decision = s.decisions.filter(({ req }) => req.kind === "chooseTargets")[decisionIndex]!;
+    expect(decision.seat).toBe(seat);
+    expect(
+      s.engine.applyIntent(seat, {
+        type: "respondDecision",
+        decisionId: decision.req.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [permanentId] },
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  it("activates both the -12000 DP and the place-in-security effects with exactly 3 security cards (Q2035)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT10-029"],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          hand: [{ card: "BT10-101", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT10-086", as: "dpTarget" },
+            { card: "BT1-010", as: "securityTarget" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    const securityTargetCardId = s.perm("securityTarget").topCard.instanceId;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await chooseTarget(s, 0, 0, s.perm("dpTarget").permanentId);
+    await chooseTarget(s, 0, 1, s.perm("securityTarget").permanentId);
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("dpTarget").currentDP).toBe(16000 - 12000);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([securityTargetCardId]);
+    expect(s.state.players[1]!.security[0]!.faceUp).toBe(false);
+
+    const withFourSecurity = setupEngine(
+      {
+        0: {
+          battleArea: ["BT10-029"],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          hand: [{ card: "BT10-101", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT10-086", as: "dpTarget" }, "BT1-010"] },
+      },
+      { autoOrderTriggers: true },
+    );
+    withFourSecurity.state.memory = 10;
+    expect(
+      withFourSecurity.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: withFourSecurity.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await chooseTarget(withFourSecurity, 0, 0, withFourSecurity.perm("dpTarget").permanentId);
+    await settle(() => withFourSecurity.perm("dpTarget").currentDP === 4000);
+    await settle();
+
+    expect(withFourSecurity.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
+    expect(withFourSecurity.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("counts a 4-card security stack as 3 once this card is revealed by a security check (Q2036)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker" },
+            { card: "BT10-086", as: "bystander" },
+          ],
+        },
+        1: {
+          battleArea: ["BT10-029"],
+          security: [{ card: "BT10-101", as: "option" }, "BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    const attackerCardId = s.perm("attacker").topCard.instanceId;
+    const bystanderCardId = s.perm("bystander").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await chooseTarget(s, 1, 0, s.perm("attacker").permanentId);
+    await chooseTarget(s, 1, 1, s.perm("bystander").permanentId);
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === attackerCardId)).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([bystanderCardId]);
+  });
+});

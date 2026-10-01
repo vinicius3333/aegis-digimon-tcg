@@ -132,3 +132,37 @@ describe("BT1-018 Flarerizamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(true);
   });
 });
+
+describe("BT1-018 Flarerizamon — KB Q&A rulings", () => {
+  async function attackWithThreeMemory(security: string[]) {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-018", as: "attacker" }] },
+      1: { security },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  it("loses the second check when Hammer Spark drops its memory to 2 or less mid-attack (Q881)", async () => {
+    const control = await attackWithThreeMemory(["BT1-009", "BT1-009", "BT1-009"]);
+    await settle(() => control.state.players[1]!.security.length === 1);
+    expect(control.state.players[1]!.security).toHaveLength(1);
+    expect(control.state.memory).toBe(3);
+
+    const s = await attackWithThreeMemory(["ST2-13", "BT1-009", "BT1-009"]);
+    await settle(() => s.state.memory === 1 && s.state.players[1]!.security.length < 3);
+    await settle();
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009"]);
+    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "SecurityAttack")).toBe(false);
+  });
+});

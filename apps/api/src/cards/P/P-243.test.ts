@@ -257,3 +257,33 @@ describe("P-243 engine behavior", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("dmPlay").instanceId)).toBe(true);
   });
 });
+
+describe("P-243 Digiseabass — KB Q&A rulings", () => {
+  it.each([
+    ["the trash is declined", [{ card: "ST1-16", as: "kept" }], { autoDeclineOptional: true, autoSelectCards: true }],
+    ["the hand is empty", [], { autoAcceptOptional: true, autoSelectCards: true }],
+  ] as const)("neither draws nor places itself when %s (Q6929)", async (_label, extraHand, options) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-243", as: "digiseabass" }, ...extraHand],
+          deck: ["BT1-009", "BT1-009"],
+          battleArea: [{ card: "BT22-049", as: "dmField" }],
+        },
+      },
+      options,
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("digiseabass").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId) && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(extraHand.length);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(false);
+  });
+});

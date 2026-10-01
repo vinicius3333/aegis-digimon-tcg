@@ -182,3 +182,39 @@ describe("EX6-034 Antylamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("beast").instanceId)).toBe(true);
   });
 });
+
+describe("EX6-034 Antylamon — KB Q&A rulings", () => {
+  it("can play the very Digimon its inherited effect returned to hand (Q3755)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-060", as: "antyHost", under: ["EX6-034"] },
+            { card: "BT1-049", as: "returned", suspended: true },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const originalPermanentId = s.perm("returned").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("antyHost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const replayed = () =>
+      s.state.players[0]!.battleArea.find(
+        (permanent) =>
+          permanent.topCard?.instanceId === s.inst("returned").instanceId &&
+          permanent.permanentId !== originalPermanentId,
+      );
+    await settle(() => replayed() !== undefined && s.state.pendingDecision === undefined);
+    expect(replayed()!.isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+});

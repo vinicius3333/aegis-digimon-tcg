@@ -290,3 +290,109 @@ describe("EX9-072", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-072 File Island — KB Q&A rulings", () => {
+  it("ignores its color requirement with 0 security cards (Q4835)", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX9-072", as: "source" }] } }, { autoOrderTriggers: true });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("with 0 security cards adds nothing and only places itself in security (Q4836)", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX9-072", as: "source" }, "BT1-009"], deck: ["BT1-010"] } },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.security.map(({ instanceId, faceUp }) => [instanceId, faceUp])).toEqual([
+      [s.inst("source").instanceId, true],
+    ]);
+  });
+
+  it("stays a revealed security card that counts like any other security card (Q4837)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX9-072", as: "source" },
+            { card: "EX9-072", as: "second" },
+          ],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-037", as: "attacker" }], deck: ["BT1-009"] },
+      },
+      { autoOrderTriggers: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.security.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([
+      ["BT1-009", false],
+      ["EX9-072", true],
+    ]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([["EX9-072", true]]);
+  });
+
+  it("performs the security check with the face-up card left revealed and activates its [Security] effect (Q4838)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "EX9-072", as: "island", faceUp: true }],
+          hand: [{ card: "EX9-009", as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX9-072")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-009"]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-072"]);
+  });
+});

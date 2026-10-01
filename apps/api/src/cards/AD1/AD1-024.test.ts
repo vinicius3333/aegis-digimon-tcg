@@ -376,3 +376,42 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
     expect(continuous.hasKeyword(s.perm("fighter").permanentId, "Blocker")).toBe(true);
   });
 });
+
+describe("AD1-024 Imperialdramon: Fighter Mode — KB Q&A rulings", () => {
+  it("must unsuspend itself whenever it suspends an opposing Digimon (Q6518)", async () => {
+    function setup(accept: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "AD1-024", as: "fighter", suspended: true }],
+            hand: [{ card: "BT1-010", as: "played" }],
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+        },
+        accept
+          ? { autoSelectCards: true, autoAcceptOptional: true }
+          : { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      s.state.memory = 10;
+      return s;
+    }
+
+    const accepted = setup(true);
+    expect(
+      accepted.engine.applyIntent(0, { type: "playCard", instanceId: accepted.inst("played").instanceId }),
+    ).toEqual({ ok: true });
+    await settle();
+    const offers = accepted.decisions.filter(({ req }) => req.sourceCardId === "AD1-024" && req.kind === "optional");
+    expect(offers).toHaveLength(1);
+    expect(accepted.perm("opponent").isSuspended).toBe(true);
+    expect(accepted.perm("fighter").isSuspended).toBe(false);
+
+    const declined = setup(false);
+    expect(
+      declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("played").instanceId }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(declined.perm("opponent").isSuspended).toBe(false);
+    expect(declined.perm("fighter").isSuspended).toBe(true);
+  });
+});

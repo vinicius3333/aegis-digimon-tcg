@@ -64,3 +64,32 @@ describe("ST24-12 Falcomon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level4Id)).toBe(true);
   });
 });
+
+describe("ST24-12 Falcomon — KB Q&A rulings", () => {
+  it("returns the [DATA SQUAD] Digimon its own cost just trashed from under a Tamer (Q6223)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST24-14", as: "tamer", under: [{ card: "ST24-08", as: "trashedByCost", faceUp: false }] },
+          ],
+          hand: [{ card: "ST24-12", as: "falcomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const trashedByCostId = s.inst("trashedByCost").instanceId;
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === trashedByCostId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([trashedByCostId]);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+});

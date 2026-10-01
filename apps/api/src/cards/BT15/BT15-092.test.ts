@@ -149,11 +149,11 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionInstanceId));
+    await settle(() => s.state.players[0]!.security.some((zoneCard) => zoneCard.instanceId === optionInstanceId));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eligibleInstanceId)).toBe(true);
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(optionInstanceId);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === eligibleInstanceId)).toBe(false);
+    expect(s.state.players[0]!.security.some((zoneCard) => zoneCard.instanceId === eligibleInstanceId)).toBe(false);
   });
 
   it("naturally activates its security effect when revealed by an attack", async () => {
@@ -176,5 +176,91 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
     await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.perm("attacker").currentDP).toBe(7000);
+  });
+});
+
+describe("BT15-092 Revelation of Light — KB Q&A rulings", () => {
+  const OPPONENT_BYSTANDER = "BT15-053";
+
+  async function bystanderDpAfterSecurityCheckReveal(): Promise<number> {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT15-092", as: "revealed" }, "BT1-009"] },
+        1: { battleArea: [{ card: OPPONENT_BYSTANDER, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const revealedId = s.inst("revealed").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((zoneCard) => zoneCard.instanceId === revealedId));
+    await settle(() => s.state.pendingDecision === undefined);
+    return s.perm("attacker").currentDP;
+  }
+
+  async function bystanderDpAfterSecuritySearch(): Promise<number> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-033", as: "yellowSource" }],
+          hand: [{ card: "BT15-092", as: "searcher" }],
+          security: [{ card: "BT15-092", as: "searched" }, "BT1-009"],
+        },
+        1: { battleArea: [{ card: OPPONENT_BYSTANDER, as: "bystander" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const searcherId = s.inst("searcher").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: searcherId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((zoneCard) => zoneCard.instanceId === searcherId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security.map((zoneCard) => zoneCard.instanceId)).toContain(
+      s.inst("searched").instanceId,
+    );
+    return s.perm("bystander").currentDP;
+  }
+
+  async function bystanderDpAfterEffectTrashesIt(): Promise<number> {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-033", as: "yellowSource" }],
+          hand: [{ card: "BT15-093", as: "arrow" }],
+          security: [{ card: "BT15-092", as: "trashed" }, "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-084", as: "arrowTarget", dp: 30000 },
+            { card: OPPONENT_BYSTANDER, as: "bystander" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("arrowTarget").permanentId, s.perm("arrowTarget").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const arrowId = s.inst("arrow").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: arrowId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((zoneCard) => zoneCard.instanceId === arrowId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.map((zoneCard) => zoneCard.instanceId)).toContain(s.inst("trashed").instanceId);
+    return s.perm("bystander").currentDP;
+  }
+
+  it("activates its trash trigger only when an effect trashes it directly, not when revealed or searched in security (Q6239)", async () => {
+    await expect(bystanderDpAfterSecurityCheckReveal()).resolves.toBe(7000);
+    await expect(bystanderDpAfterSecuritySearch()).resolves.toBe(12000);
+    await expect(bystanderDpAfterEffectTrashesIt()).resolves.toBe(7000);
   });
 });

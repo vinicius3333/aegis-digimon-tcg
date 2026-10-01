@@ -4,6 +4,8 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-073.js";
 import "./BT13-042.js";
 import "./BT13-070.js";
+import "../BT6/BT6-059.js";
+import "../ST1/ST1-16.js";
 
 describe("BT13-073 QueenChessmon", () => {
   it("keeps Blocker, Chessmon evolution cost 3, and deletion-triggered unsuspend", () => {
@@ -127,5 +129,57 @@ describe("BT13-073 QueenChessmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blocked"));
     expect(s.perm("queen").isSuspended).toBe(true);
+  });
+});
+
+describe("BT13-073 QueenChessmon — KB Q&A rulings", () => {
+  it("does not unsuspend when <Decoy> prevents its deletion, because no Chessmon was deleted (Q2311)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-073", as: "queen", suspended: true },
+            { card: "BT6-059", as: "machmon" },
+            { card: "BT13-070", as: "rook", suspended: true },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "redSource" }],
+          hand: [
+            { card: "ST1-16", as: "firstGaia" },
+            { card: "ST1-16", as: "secondGaia" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    const queenId = s.perm("queen").permanentId;
+    const machmonTopId = s.perm("machmon").topCard.instanceId;
+    const rookTopId = s.perm("rook").topCard.instanceId;
+    const firstGaiaId = s.inst("firstGaia").instanceId;
+    const secondGaiaId = s.inst("secondGaia").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    preferInstanceIds.push(s.perm("queen").topCard.instanceId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: firstGaiaId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === firstGaiaId));
+    await settle();
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(machmonTopId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === queenId)).toBe(true);
+    expect(s.perm("queen").isSuspended).toBe(true);
+
+    // Control: Machmon is gone, so a second Gaia Force really deletes the suspended RookChessmon.
+    // Re-suspend Queen so this check cannot pass just because the first step already unsuspended it.
+    s.perm("queen").isSuspended = true;
+    preferInstanceIds.splice(0, preferInstanceIds.length, rookTopId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: secondGaiaId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === rookTopId));
+    await settle();
+
+    expect(s.perm("queen").isSuspended).toBe(false);
   });
 });

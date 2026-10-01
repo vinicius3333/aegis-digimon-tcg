@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-018.js";
 
@@ -201,5 +201,45 @@ describe("BT15-018 memory gates", () => {
     await advance(s.engine).runTurn(1);
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondExpensiveId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});
+
+describe("BT15-018 Cannondramon — KB Q&A rulings", () => {
+  async function opponentDigimonLeftAfterEndOfTurn(timing: EffectTiming, turnSeat: 0 | 1, memory: number) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-018", as: "cannondramon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = turnSeat;
+    s.state.memory = memory;
+    await advance(s.engine).fire(timing, s.perm("cannondramon"));
+    await drainMicrotasks();
+    return s.state.players[1]!.battleArea.length;
+  }
+
+  it("deletes at the end of your turn only while the opponent's side shows 4 through 10 memory (Q2502)", async () => {
+    const opponentSideMemory = (value: number) => -value;
+    expect(await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfYourTurn, 0, opponentSideMemory(4))).toBe(0);
+    expect(await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfYourTurn, 0, opponentSideMemory(10))).toBe(0);
+    expect(await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfYourTurn, 0, opponentSideMemory(3))).toBe(1);
+    expect(await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfYourTurn, 0, 1)).toBe(1);
+  });
+
+  it("deletes at the end of the opponent's turn while your side shows 4 or less, 0, or any opponent-side memory (Q2503)", async () => {
+    const ownSideMemoryOnOpponentTurn = (value: number) => -value;
+    expect(
+      await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfOpponentsTurn, 1, ownSideMemoryOnOpponentTurn(4)),
+    ).toBe(0);
+    expect(
+      await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfOpponentsTurn, 1, ownSideMemoryOnOpponentTurn(1)),
+    ).toBe(0);
+    expect(await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfOpponentsTurn, 1, 0)).toBe(0);
+    expect(await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfOpponentsTurn, 1, 10)).toBe(0);
+    expect(
+      await opponentDigimonLeftAfterEndOfTurn(EffectTiming.EndOfOpponentsTurn, 1, ownSideMemoryOnOpponentTurn(5)),
+    ).toBe(1);
   });
 });

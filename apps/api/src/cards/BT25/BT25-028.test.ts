@@ -320,37 +320,6 @@ describe("BT25-028 Dianamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("triggers the All Turns watcher when Dianamon itself is played", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT1-025", as: "redPartner" }],
-          hand: [{ card: "BT25-028", as: "diana" }],
-        },
-        1: {
-          battleArea: [
-            {
-              card: "BT1-025",
-              as: "victim",
-              suspended: true,
-              under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"],
-            },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 20;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diana").instanceId })).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-028") &&
-        s.perm("victim").stack.length === 0,
-    );
-    expect(s.perm("victim").stack).toHaveLength(0);
-  });
-
   it("Q6293: accepting All Turns DNA first must suppress Dianamon's pending On Play branch", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -588,5 +557,135 @@ describe("BT25-028 Dianamon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     await advance(s.engine).verb.suspend([tamer.permanentId]);
     expect(tamer.isSuspended).toBe(false);
+  });
+});
+
+describe("BT25-028 Dianamon — KB Q&A rulings", () => {
+  it("triggers its [All Turns] watcher when this card itself is played (Q6292)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-025", as: "redPartner" }],
+          hand: [{ card: "BT25-028", as: "diana" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-025",
+              as: "victim",
+              suspended: true,
+              under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diana").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-028") &&
+        s.perm("victim").stack.length === 0,
+    );
+    expect(s.perm("victim").stack).toHaveLength(0);
+  });
+
+  it("triggers its [All Turns] watcher when one of my Digimon digivolves into this card (Q6292)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-026", as: "host" }],
+          hand: [{ card: "BT25-028", as: "diana" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-025",
+              as: "victim",
+              suspended: true,
+              under: ["BT1-001", "BT1-009", "BT1-014", "BT1-020"],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("diana").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT25-028" && s.perm("victim").stack.length === 0);
+
+    expect(s.perm("victim").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-009", "BT1-014", "BT1-020"]),
+    );
+  });
+
+  /**
+   * Play Dianamon with no opposing Digimon on the board, then let an opposing Digimon with one
+   * digivolution card enter the battle area after the effect resolved, and hand the turn over.
+   */
+  async function entrantAfterDianamon() {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-028", as: "diana" }], security: ["BT1-001", "BT1-002"], deck: ["BT1-003"] },
+        1: { hand: [{ card: "BT1-014", as: "evolution" }], deck: ["BT1-004", "BT1-005"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diana").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-028"));
+    await settle(() => s.state.pendingDecision === undefined);
+    s.putOnBoard(1, { card: "BT1-009", as: "entrant", under: ["BT1-001"] });
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const attackPlayer = () =>
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("entrant").permanentId,
+        target: { kind: "player" },
+      });
+    return { s, turn, attackPlayer };
+  }
+
+  it("keeps a Digimon with 1 or fewer digivolution cards that enters later from suspending (Q6294)", async () => {
+    const { s, turn, attackPlayer } = await entrantAfterDianamon();
+
+    expect(attackPlayer()).toMatchObject({ ok: false });
+    expect(s.perm("entrant").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("lets that Digimon suspend again once it has 2 or more digivolution cards (Q6295)", async () => {
+    const { s, turn, attackPlayer } = await entrantAfterDianamon();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("entrant").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("entrant").topCard.cardId === "BT1-014" && s.state.pendingDecision === undefined);
+    expect(s.perm("entrant").stack).toHaveLength(2);
+
+    expect(attackPlayer()).toEqual({ ok: true });
+    expect(s.perm("entrant").isSuspended).toBe(true);
+    await advance(s.engine).finishAttack();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 });

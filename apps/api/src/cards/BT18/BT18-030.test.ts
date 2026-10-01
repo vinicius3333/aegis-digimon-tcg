@@ -128,3 +128,47 @@ describe("BT18-030 Candlemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
+
+describe("BT18-030 Candlemon — KB Q&A rulings", () => {
+  // Sirenmon only fits the yellow [Data] slot and Mistymon only fits the [Witchelny] slot, so
+  // adding as many cards as possible means both must go to the hand. A card that fits both slots
+  // may count toward either one (Q1050), so this ruling is checked without such a card.
+  it("must add as many revealed matching cards to the hand as possible (Q2953)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT18-030", as: "candlemon" }],
+        deck: [
+          { card: "BT1-057", as: "sirenmon" },
+          { card: "BT18-039", as: "mistymon" },
+          { card: "BT1-009", as: "nonMatch" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candlemon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (let slot = 0; slot < 2; slot += 1) {
+      await settle(() => s.state.pendingDecision !== undefined || s.state.players[0]!.hand.length === 2);
+      if (s.state.pendingDecision === undefined) break;
+      const selection = s.decisions.at(-1)!.req;
+      const respond = (instanceIds: string[]) =>
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds },
+        });
+
+      expect(selection.options?.min).toBe(1);
+      expect(respond([]).ok).toBe(false);
+      expect(respond([selection.options!.candidateInstanceIds![0]!])).toEqual({ ok: true });
+    }
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("sirenmon").instanceId, s.inst("mistymon").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonMatch").instanceId]);
+  });
+});

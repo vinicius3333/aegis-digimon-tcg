@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX12-033.js";
+import "../index.js";
+import { expectOnlyOneCounterPerAttack } from "./counterOnce.testSupport.js";
 
 const cardId = "EX12-033";
 
@@ -389,5 +391,11 @@ describe("EX12-033 Amphimon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("EX12-033 Amphimon — KB Q&A rulings", () => {
+  it("lets only one [Counter] effect activate during one attack (Q6773)", async () => {
+    await expectOnlyOneCounterPerAttack({ card: "EX12-033" }, { card: "EX12-057" });
   });
 });

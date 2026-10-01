@@ -195,6 +195,11 @@ export interface TrashAction extends ActionBase {
    * prompted the controller, silently upgrading the opponent's own discard into a reach-in.
    */
   chooser?: "controller" | "opponent";
+  /**
+   * Suppress card identities in a `zone === "hand"` pick while keeping opaque instance ids:
+   * "trash 1 card in your opponent's hand without looking" (BT14-075 Q2445).
+   */
+  blind?: boolean;
 }
 
 export interface ReturnAction extends ActionBase {

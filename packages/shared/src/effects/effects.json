@@ -981,6 +981,15 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 4,
+        "materials": [
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["MetalGreymon: Alterous Mode"] },
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["Greymon"] }
+        ]
+      }
+    ],
     "digivolutionRequirement": [
       { "level": 5, "names": ["Greymon"], "cost": 3, "isAlternate": true },
       { "traits": ["ADVENTURE"], "cost": 3, "isAlternate": true, "level": 5 }
@@ -1128,7 +1137,11 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 4, "traits": ["Free"], "cost": 3, "isAlternate": true },
+      { "level": 4, "traits": ["Hero"], "cost": 3, "isAlternate": true }
+    ]
   },
   "AD1-012": {
     "effects": [
@@ -1286,6 +1299,15 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 4,
+        "materials": [
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["WereGarurumon: Sagittarius Mode"] },
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["Garurumon"] }
+        ]
+      }
+    ],
     "digivolutionRequirement": [
       { "level": 5, "names": ["Garurumon"], "cost": 3, "isAlternate": true },
       { "traits": ["ADVENTURE"], "cost": 3, "isAlternate": true, "level": 5 }
@@ -1999,7 +2021,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": ["Digimon", "Tamer", "Option"],
+                    "kind": ["Digimon", "Tamer"],
                     "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
                   },
                   "count": 1
@@ -2641,7 +2663,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["WarGreymon"] },
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["MetalGarurumon"] }
+        ]
+      }
+    ]
   },
   "BT1-001": {
     "effects": [
@@ -4961,6 +4992,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
             "filter": { "zone": "digivolutionCards", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
+            "excludeInherited": true,
             "duration": "permanent"
           }
         ]
@@ -4973,6 +5005,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "effects",
             "filter": { "zone": "digivolutionCards", "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
+            "excludeInherited": true,
             "duration": "permanent"
           }
         ],
@@ -10574,7 +10607,7 @@
                   "kind": ["Digimon"],
                   "or": [
                     { "colors": ["Blue"], "levels": [3] },
-                    { "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }] }
+                    { "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }] }
                   ]
                 },
                 "count": 1,
@@ -12606,7 +12639,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenUnsuspended",
-            "sourceFilter": { "controller": "opponent", "kind": ["Digimon"] },
+            "sourceFilter": { "controller": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "SecurityManipulation",
@@ -13593,7 +13626,7 @@
               "filter": {
                 "zone": "trash",
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "traitContains" }]
               },
               "count": 2,
               "upTo": true
@@ -14982,7 +15015,8 @@
               "count": 1
             },
             "optional": true,
-            "attackPlayer": true
+            "attackPlayer": true,
+            "attackPlayerOnly": true
           }
         ]
       },
@@ -18827,7 +18861,8 @@
               "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"] },
               "unit": "colors",
               "levelCeilingAdd": 1
-            }
+            },
+            "position": "bottom"
           }
         ]
       },
@@ -19043,8 +19078,7 @@
             ],
             "rest": "deckBottom"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "OnDeletion",
@@ -19074,7 +19108,8 @@
           }
         ],
         "isInherited": true
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -19226,7 +19261,6 @@
         "condition": {
           "kind": "allOf",
           "conditions": [
-            { "kind": "memoryAtLeast", "value": 4, "controller": "mine" },
             {
               "kind": "youHave",
               "filter": {
@@ -19292,7 +19326,6 @@
             },
             "from": ["hand"],
             "payCost": true,
-            "costOverride": 4,
             "ignoreLevelRequirement": true,
             "optional": true,
             "abortOnDecline": true,
@@ -19355,8 +19388,8 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "multicolor": true,
-              "colors": ["Blue", "Green"]
+              "colorsAll": ["Blue", "Green"],
+              "colorCount": 2
             },
             "actions": [
               {
@@ -20753,11 +20786,6 @@
                 }
               },
               {
-                "kind": "TrashDigivolution",
-                "target": { "fromSelectionRef": "bt12112Shoutmon", "filter": {}, "count": 1 },
-                "amount": 99
-              },
-              {
                 "kind": "PlaceUnder",
                 "target": { "fromSelectionRef": "bt12112Shoutmon", "filter": {}, "count": 1 },
                 "targetIsPermanent": true,
@@ -20779,7 +20807,7 @@
     "residual": [],
     "digiXrosRequirement": [
       {
-        "materials": [{ "traits": ["Xros Heart", "Blue Flare"], "differentCardNumbers": true }],
+        "materials": [{ "traits": ["Xros Heart", "Blue Flare", "BlueFlare"], "differentCardNumbers": true }],
         "count": "∞",
         "costReduction": 1
       }
@@ -21723,8 +21751,7 @@
             "payCost": false,
             "optional": true
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -21748,9 +21775,9 @@
             "payCost": false,
             "optional": true
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
-      }
+        ]
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -21760,25 +21787,6 @@
       {
         "trigger": "WhenDigivolving",
         "actions": [
-          {
-            "kind": "SubTrigger",
-            "event": "whenPlayed",
-            "sourceFilter": {
-              "controller": "mine",
-              "kind": ["Tamer"],
-              "nameOrTrait": [{ "tokens": ["Marcus Damon"], "match": "nameExact" }]
-            },
-            "actions": [
-              {
-                "kind": "GrantStatic",
-                "target": { "filter": { "useTriggerSource": true }, "count": 1 },
-                "grant": "kind",
-                "tokens": ["Digimon"],
-                "staticEffect": { "kind": "SetBaseDP", "value": 12000, "keyword": "Rush", "restriction": "digivolve" },
-                "duration": "forTheTurn"
-              }
-            ]
-          },
           {
             "kind": "PlayWithoutCost",
             "target": {
@@ -21793,6 +21801,14 @@
             "payCost": false,
             "optional": true,
             "bindResultAs": "playedMarcus"
+          },
+          {
+            "kind": "GrantStatic",
+            "target": { "filter": { "boundRef": "playedMarcus" }, "count": 1 },
+            "grant": "kind",
+            "tokens": ["Digimon"],
+            "staticEffect": { "kind": "SetBaseDP", "value": 12000, "keyword": "Rush", "restriction": "digivolve" },
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -24385,8 +24401,7 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -24397,8 +24412,7 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "EndOfOpponentsTurn",
@@ -24410,7 +24424,8 @@
             "attackPlayer": true
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -28236,7 +28251,8 @@
               "count": "all"
             },
             "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -28251,7 +28267,8 @@
               "count": "all"
             },
             "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       }
@@ -29320,7 +29337,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenTrashedFromHand",
+            "event": "whenHandTrashed",
             "fireCondition": {
               "kind": "triggerByYourEffect",
               "raw": "when one of your effects trashes a card in your hand"
@@ -29335,7 +29352,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenTrashedFromHand",
+            "event": "whenHandTrashed",
             "fireCondition": {
               "kind": "triggerByYourEffect",
               "raw": "when one of your effects trashes a card in your hand"
@@ -29417,7 +29434,11 @@
       {
         "trigger": "OnDeletion",
         "actions": [
-          { "kind": "Trash", "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } } }
+          {
+            "kind": "Trash",
+            "blind": true,
+            "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } }
+          }
         ]
       }
     ],
@@ -29974,7 +29995,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Vegetation", "Plant", "Fairy"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Vegetation", "Plant", "Fairy"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -30050,7 +30071,8 @@
                   { "nameOrTrait": [{ "tokens": ["Numemon"], "match": "name" }] },
                   { "nameOrTrait": [{ "tokens": ["Monzaemon"], "match": "name" }] },
                   { "trait": "DigiPolice" }
-                ]
+                ],
+                "controller": "mine"
               },
               "count": 1,
               "controller": "mine"
@@ -30778,18 +30800,11 @@
         "isSecurity": true,
         "actions": [
           {
-            "kind": "SetBaseDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "value": 3000,
-            "duration": "untilYourTurnEnd",
-            "raw": "Until the end of your turn, change 1 of your opponent's Digimon into having 3000 DP."
-          },
-          {
             "kind": "GrantStatic",
-            "target": { "filter": {}, "count": 1, "sameTarget": true },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "grant": { "dp": 3000, "color": "white", "originalName": "Sukamon" },
             "duration": "untilYourTurnEnd",
-            "raw": "Until the end of your turn, change that Digimon into being white, having 3000 DP, and having an original name of [Sukamon]."
+            "raw": "Until the end of your turn, change 1 of your opponent's Digimon into being white and having 3000 DP and an original name of [Sukamon]."
           }
         ]
       }
@@ -31100,7 +31115,9 @@
                 "zone": "trash",
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }]
+                "nameOrTrait": [
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ]
               },
               "count": 1
             },
@@ -31259,7 +31276,9 @@
                   "zone": "hand",
                   "controller": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }]
+                  "nameOrTrait": [
+                    { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                  ]
                 },
                 "count": 1
               },
@@ -31475,7 +31494,9 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "colors": ["Red"],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }]
+                "nameOrTrait": [
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ]
               },
               "count": 1
             },
@@ -34003,7 +34024,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digiXrosRequirement": [
+      { "materials": [{ "names": ["Agumon", "Greymon"] }, { "names": ["Gabumon", "Garurumon"] }], "count": 1 }
+    ]
   },
   "BT15-061": {
     "effects": [
@@ -35048,7 +35072,8 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 }
               },
-              "count": 1
+              "count": 1,
+              "chooser": "opponent"
             },
             "from": ["trash"],
             "payCost": false,
@@ -35300,12 +35325,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenCardReturnsFromTrashToHand",
-            "sourceFilter": {
-              "kind": ["Digimon"],
-              "colors": ["Red"],
-              "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }],
-              "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
-            },
+            "sourceFilter": { "kind": ["Digimon"], "colors": ["Red"] },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -35314,7 +35334,9 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "colors": ["Red"],
-                    "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }],
+                    "nameOrTrait": [
+                      { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                    ],
                     "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }],
                     "dp": { "op": "lte", "value": 13000 }
                   },
@@ -36251,9 +36273,11 @@
             "kind": "CostGatedBlock",
             "cost": {
               "kind": "deleteOwn",
-              "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 }
+              "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+              "raw": "By deleting 1 of your Digimon",
+              "declineViaSelection": true
             },
-            "optional": false,
+            "optional": true,
             "abortOnDecline": true,
             "actions": [
               {
@@ -38157,7 +38181,7 @@
                   "controllerDefault": "mine",
                   "nameOrTrait": [{ "tokens": ["Night Claw"], "match": "trait" }]
                 },
-                "orFilters": [{ "controllerDefault": "mine", "multicolor": true }],
+                "orFilters": [{ "controllerDefault": "mine", "multicolor": true, "colorCount": 2 }],
                 "count": 1,
                 "to": "hand"
               }
@@ -38511,8 +38535,14 @@
       {
         "trigger": "EndOfOpponentsTurn",
         "actions": [
-          { "kind": "Trash", "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 } },
-          { "kind": "Trash", "target": { "filter": { "controller": "opponent", "zone": "security" }, "count": 1 } }
+          {
+            "kind": "Trash",
+            "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 }
+          },
+          {
+            "kind": "Trash",
+            "target": { "filter": { "controller": "opponent", "zone": "security", "position": "top" }, "count": 1 }
+          }
         ]
       }
     ],
@@ -39728,10 +39758,6 @@
             "optional": true,
             "abortOnDecline": true
           }
-        ],
-        "keywords": [
-          { "keyword": "Blocker", "raw": "＜Blocker＞" },
-          { "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }
         ]
       },
       {
@@ -39744,6 +39770,14 @@
             "duration": "permanent",
             "condition": { "kind": "selfHasNoDigivolutionCards", "raw": "this Digimon has no digivolution cards" }
           }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          { "keyword": "Blocker", "raw": "＜Blocker＞" },
+          { "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }
         ]
       }
     ],
@@ -41335,7 +41369,12 @@
           {
             "effectTextPart": "Then, you may play 1 Tamer card from your hand and 1 [Ukkomon] from your trash without paying the costs.",
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "kind": ["Tamer"] }, "count": 1, "controller": "mine", "location": "hand" },
+            "target": {
+              "filter": { "kind": ["Tamer"], "controller": "mine" },
+              "count": 1,
+              "controller": "mine",
+              "location": "hand"
+            },
             "payCost": false,
             "optional": true,
             "abortOnDecline": true
@@ -47482,11 +47521,7 @@
               {
                 "kind": "RedirectAttack",
                 "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "unsuspended": true,
-                    "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }]
-                  },
+                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }] },
                   "count": 1
                 },
                 "optional": true
@@ -48094,28 +48129,6 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "fireCondition": {
-              "kind": "anyOf",
-              "conditions": [
-                {
-                  "kind": "youHave",
-                  "filter": {
-                    "controllerDefault": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
-                  }
-                },
-                {
-                  "kind": "youHave",
-                  "filter": {
-                    "controllerDefault": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Garurumon"], "match": "name" }]
-                  }
-                }
-              ],
-              "raw": "you have a Digimon with [Greymon] or [Garurumon] in its name"
-            },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               {
@@ -48154,28 +48167,6 @@
           {
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
-            "fireCondition": {
-              "kind": "anyOf",
-              "conditions": [
-                {
-                  "kind": "youHave",
-                  "filter": {
-                    "controllerDefault": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
-                  }
-                },
-                {
-                  "kind": "youHave",
-                  "filter": {
-                    "controllerDefault": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Garurumon"], "match": "name" }]
-                  }
-                }
-              ],
-              "raw": "you have a Digimon with [Greymon] or [Garurumon] in its name"
-            },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               {
@@ -49894,13 +49885,7 @@
     "coverage": "full",
     "residual": [],
     "dnaDigivolveRequirement": [
-      {
-        "cost": 0,
-        "materials": [
-          { "namesExact": ["Fenriloogamon"] },
-          { "namesExact": ["Kazuchimon"] }
-        ]
-      }
+      { "cost": 0, "materials": [{ "namesExact": ["Fenriloogamon"] }, { "namesExact": ["Kazuchimon"] }] }
     ]
   },
   "BT17-102": {
@@ -50967,7 +50952,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand",
@@ -50994,7 +50979,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand",
@@ -52200,6 +52185,7 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSp"], "cost": 3, "isAlternate": true }],
     "dnaDigivolveRequirement": [
       {
         "cost": 0,
@@ -52690,7 +52676,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -52708,7 +52694,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -52742,7 +52728,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "levels": [6],
-              "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "traitContains" }]
             },
             "actions": [
               {
@@ -52997,7 +52983,7 @@
                     "levelComparison": { "op": "lte", "value": 4 },
                     "nameOrTrait": [
                       { "tokens": ["Hybrid"], "match": "trait" },
-                      { "tokens": ["Avian", "Bird", "Fairy"], "match": "trait" }
+                      { "tokens": ["Avian", "Bird", "Fairy"], "match": "traitContains" }
                     ]
                   },
                   "count": 1
@@ -62360,14 +62346,14 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenDigimonWouldLeave",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Millenniummon"], "match": "name" }]
             },
-            "pickOne": true,
             "actions": [
               {
                 "kind": "PlayFromZone",
@@ -64794,6 +64780,7 @@
             "event": "wouldBePlayed",
             "mode": "reduceCost",
             "amount": 1,
+            "whileInHand": true,
             "raw": "Reduce the memory cost of this card in your hand by 1",
             "scaling": {
               "per": 1,
@@ -67858,7 +67845,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "textContains": ["[Dracomon]", "[Examon]"] },
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "textContains": ["Dracomon", "Examon"] },
             "fireCondition": {
               "kind": "triggerSourceNotDeletedAtSameTiming",
               "raw": "that Digimon is not deleted at the same timing"
@@ -67882,7 +67869,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "textContains": ["[Dracomon]", "[Examon]"] },
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "textContains": ["Dracomon", "Examon"] },
             "fireCondition": {
               "kind": "triggerSourceNotDeletedAtSameTiming",
               "raw": "that Digimon is not deleted at the same timing"
@@ -70419,7 +70406,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levels": [3],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -71839,12 +71826,43 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "kind": "SelectBind",
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "survivorMine" },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "survivorOpponent"
+            },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
             "effectTextPart": "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
             "kind": "Delete",
             "target": {
-              "filter": { "kind": ["Digimon"] },
-              "count": "all",
-              "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
+              "filter": { "kind": ["Digimon"], "excludeSelectionRef": ["survivorMine", "survivorOpponent"] },
+              "count": "all"
             },
             "condition": {
               "kind": "selfDigivolutionStackMatchesFilter",
@@ -71869,12 +71887,43 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "kind": "SelectBind",
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "survivorMine" },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "survivorOpponent"
+            },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
             "effectTextPart": "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
             "kind": "Delete",
             "target": {
-              "filter": { "kind": ["Digimon"] },
-              "count": "all",
-              "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
+              "filter": { "kind": ["Digimon"], "excludeSelectionRef": ["survivorMine", "survivorOpponent"] },
+              "count": "all"
             },
             "condition": {
               "kind": "selfDigivolutionStackMatchesFilter",
@@ -73934,7 +73983,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["WG"], "cost": 3, "isAlternate": true }]
   },
   "BT21-040": {
     "effects": [
@@ -82172,6 +82222,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "text" }],
+              "printedTextOnly": true,
               "zone": "battleArea"
             },
             "actions": [
@@ -82414,6 +82465,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "text" }],
+              "printedTextOnly": true,
               "zone": "battleArea"
             },
             "actions": [
@@ -82605,12 +82657,9 @@
         "actions": [
           {
             "kind": "Attack",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"] },
-              "count": 1,
-              "chooser": "opponent"
-            },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
+            "attackPlayer": true,
             "drainTimingWindowDuringAttack": true
           }
         ],
@@ -82787,11 +82836,7 @@
         "actions": [
           {
             "kind": "Attack",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"] },
-              "count": 1,
-              "chooser": "opponent"
-            },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
             "drainTimingWindowDuringAttack": true
           }
@@ -83892,6 +83937,12 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [{ "count": 5, "kinds": ["Digimon"], "traits": ["Flame"], "differentCardNumbers": true }]
+      }
+    ],
     "digivolutionRequirement": [{ "level": 5, "traits": ["Flame", "CS"], "cost": 3, "isAlternate": true }]
   },
   "BT22-079": {
@@ -84463,6 +84514,8 @@
         "actions": [
           {
             "kind": "CostGatedBlock",
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "return",
               "to": "deckBottom",
@@ -84512,7 +84565,7 @@
             "triggerFilter": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
             },
             "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }],
             "cost": {
@@ -84614,6 +84667,8 @@
         "actions": [
           {
             "kind": "CostGatedBlock",
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "return",
               "to": "deckBottom",
@@ -85274,7 +85329,7 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                   },
                   "count": 1
                 },
@@ -87240,6 +87295,7 @@
         "target": { "namesExact": ["Antylamon"] },
         "cost": 3,
         "ignoreRequirements": true,
+        "sourceZones": ["hand"],
         "condition": { "kind": "tamerHasExactName", "name": "Makiko Date" }
       }
     ],
@@ -94173,7 +94229,7 @@
                   "kind": ["Digimon"],
                   "nameOrTrait": [
                     { "tokens": ["Sea Beast", "Shaman"], "match": "trait" },
-                    { "tokens": ["Aqua", "Sea Animal"], "match": "trait" }
+                    { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -95687,6 +95743,7 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }],
     "dnaDigivolveRequirement": [
       {
         "cost": 0,
@@ -96903,7 +96960,11 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
-            "sourceFilter": { "isSelfRef": true, "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "text" }] },
+            "sourceFilter": {
+              "isSelfRef": true,
+              "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "text" }],
+              "printedTextOnly": true
+            },
             "actions": [
               {
                 "kind": "Prevent",
@@ -97586,6 +97647,10 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      { "reduceCost": 2, "materials": [{ "count": 1, "namesExact": ["Blimpmon"] }] },
+      { "reduceCost": 2, "materials": [{ "count": 1, "kinds": ["Tamer"], "traits": ["TS"] }] }
+    ],
     "digivolutionRequirement": [{ "level": 4, "traits": ["Machine", "Cyborg", "TS"], "cost": 3, "isAlternate": true }]
   },
   "BT24-063": {
@@ -99037,7 +99102,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [
+          { "namesExact": ["Titamon"], "count": 1 },
+          { "namesExact": ["SkullBaluchimon"], "count": 1 }
+        ]
+      }
+    ]
   },
   "BT24-082": {
     "effects": [
@@ -104495,11 +104569,11 @@
             "kind": "ModifyDP",
             "target": {
               "filter": {
-                "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }],
+                "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }],
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "nameOrTrait": [
-                  { "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" },
+                  { "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" },
                   { "tokens": ["Shaman", "TS"], "match": "trait" }
                 ]
               },
@@ -104517,11 +104591,11 @@
             "kind": "ModifyDP",
             "target": {
               "filter": {
-                "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }],
+                "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }],
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "nameOrTrait": [
-                  { "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" },
+                  { "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" },
                   { "tokens": ["Shaman", "TS"], "match": "trait" }
                 ]
               },
@@ -104938,7 +105012,7 @@
                     "kind": ["Digimon"],
                     "dp": { "op": "lte", "value": 4000 },
                     "nameOrTrait": [
-                      { "tokens": ["Vegetation", "Plant", "Avian", "Bird"], "match": "trait" },
+                      { "tokens": ["Vegetation", "Plant", "Avian", "Bird"], "match": "traitContains" },
                       { "tokens": ["TS"], "match": "trait" }
                     ]
                   },
@@ -107332,6 +107406,15 @@
       { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": false },
       { "level": 3, "texts": ["Three Musketeers"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
+    ],
+    "baseGrantedDigivolve": [
+      {
+        "target": { "traits": ["Three Musketeers"] },
+        "cost": 4,
+        "ignoreRequirements": true,
+        "allTurns": true,
+        "condition": { "kind": "tamerHasText", "text": "Three Musketeers" }
+      }
     ]
   },
   "BT25-083": {
@@ -109493,7 +109576,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 6, "traits": ["TS"], "cost": 5, "isAlternate": true }]
   },
   "BT25-104": {
     "effects": [
@@ -109781,7 +109865,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["RagnaLoardmon"], "match": "nameExact" }]
+                  "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -109790,7 +109874,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["RagnaLoardmon"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -111122,7 +111206,7 @@
   },
   "BT3-075": {
     "effects": [
-      { "trigger": "AllTurns", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "AllTurns",
         "actions": [
@@ -111408,12 +111492,8 @@
             "kind": "SubTrigger",
             "event": "onDeletionOf",
             "sourceFilter": { "excludeSelf": true, "kind": ["Digimon"] },
-            "actions": [
-              {
-                "kind": "GainMemory",
-                "amount": 1
-              }
-            ],
+            "notSimultaneous": true,
+            "actions": [{ "kind": "GainMemory", "amount": 1 }],
             "raw": "When another Digimon is deleted, gain 1 memory for each Digimon deleted"
           }
         ]
@@ -111869,7 +111949,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "attackPlayers",
-            "duration": "forTheTurn"
+            "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true
           }
         ],
         "isSecurity": true
@@ -111958,18 +112039,10 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "GainTriggeredEffect",
+            "kind": "GrantStatic",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "gainedTrigger": "onDeletionOf",
-            "gainedActions": [
-              {
-                "kind": "GrantStatic",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "grant": "effects",
-                "tokens": ["OnDeletionPlaySelfNoOnPlay"],
-                "duration": "forTheTurn"
-              }
-            ],
+            "grant": "effects",
+            "tokens": ["OnDeletionPlaySelfNoOnPlay"],
             "duration": "forTheTurn"
           }
         ]
@@ -113774,7 +113847,12 @@
                 "kind": "GainKeyword",
                 "target": { "filter": {}, "count": 1, "sourceRef": "triggerSubject" },
                 "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
-                "duration": "forTheTurn"
+                "duration": "forTheTurn",
+                "condition": {
+                  "kind": "playedFromZone",
+                  "zone": "trash",
+                  "raw": "When you play a Digimon from your trash"
+                }
               }
             ]
           }
@@ -114213,22 +114291,8 @@
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
-            "duration": "untilYourTurnEnd"
-          },
-          {
-            "kind": "SubTrigger",
-            "event": "whenPlayed",
-            "playerScoped": true,
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "duration": "untilYourTurnEnd",
-            "actions": [
-              {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isTriggerSource": true }, "count": 1 },
-                "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
-                "duration": "untilYourTurnEnd"
-              }
-            ]
+            "playerScoped": true
           }
         ],
         "isSecurity": true
@@ -114549,7 +114613,7 @@
             "target": { "filter": { "controllerDefault": "mine" }, "count": 1, "sameTarget": true },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd",
-            "condition": { "kind": "lastTargetDpAtLeast", "value": 13000 }
+            "condition": { "kind": "lastTargetDpAtLeast", "value": 16000 }
           },
           {
             "effectTextPart": "Then, if that Digimon has 16000 DP or more, that Digimon gains ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead), ＜Reboot＞ (Unsuspend this Digimon during your opponent's unsuspend phase), and ＜Security Attack +1＞ (This Digimon checks 1 additional security card) until the end of your opponent's next turn.",
@@ -114557,7 +114621,7 @@
             "target": { "filter": { "controllerDefault": "mine" }, "count": 1, "sameTarget": true },
             "keyword": { "keyword": "Reboot", "raw": "＜Reboot＞" },
             "duration": "untilOpponentTurnEnd",
-            "condition": { "kind": "lastTargetDpAtLeast", "value": 13000 }
+            "condition": { "kind": "lastTargetDpAtLeast", "value": 16000 }
           },
           {
             "effectTextPart": "Then, if that Digimon has 16000 DP or more, that Digimon gains ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead), ＜Reboot＞ (Unsuspend this Digimon during your opponent's unsuspend phase), and ＜Security Attack +1＞ (This Digimon checks 1 additional security card) until the end of your opponent's next turn.",
@@ -114565,7 +114629,7 @@
             "target": { "filter": { "controllerDefault": "mine" }, "count": 1, "sameTarget": true },
             "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
             "duration": "untilOpponentTurnEnd",
-            "condition": { "kind": "lastTargetDpAtLeast", "value": 13000 }
+            "condition": { "kind": "lastTargetDpAtLeast", "value": 16000 }
           }
         ]
       },
@@ -119446,29 +119510,13 @@
             "rest": "trash"
           }
         ]
-      },
-      {
-        "effectKey": "BT6-060/digivolve-three-musketeers",
-        "trigger": "YourTurn",
-        "actions": [
-          {
-            "kind": "Digivolve",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Three Musketeers", "ThreeMusketeers"], "match": "trait" }]
-            },
-            "payCost": true,
-            "costOverride": 6,
-            "from": ["hand"],
-            "ignoreRequirements": true
-          }
-        ]
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "baseGrantedDigivolve": [
+      { "target": { "traits": ["Three Musketeers"] }, "cost": 6, "ignoreRequirements": true, "sourceZones": ["hand"] }
+    ]
   },
   "BT6-061": {
     "effects": [
@@ -120062,7 +120110,13 @@
           },
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "controller": "opponent", "kind": ["Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "zone": "hand", "kind": ["Tamer"] },
+              "count": 1,
+              "upTo": true,
+              "chooser": "opponent"
+            },
+            "from": ["hand"],
             "payCost": false,
             "optional": true
           }
@@ -121768,6 +121822,7 @@
               "count": "all"
             },
             "to": "deckBottom",
+            "order": "any",
             "trackCount": "returnedByEffect"
           },
           {
@@ -123245,7 +123300,7 @@
           {
             "kind": "SubTrigger",
             "event": "onAddDigivolutionCards",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": { "isSelfRef": true, "byEffect": true },
             "actions": [{ "kind": "GainMemory", "amount": 1 }]
           }
         ],
@@ -123428,7 +123483,8 @@
             "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } }
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],
@@ -123569,6 +123625,7 @@
             "kind": "Restrict",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "restriction": "beDeleted",
+            "byEffectsOnly": true,
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "ifThisEffectActed" }
           },
@@ -125935,8 +125992,7 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" },
               "count": 1,
-              "bindAs": "spared",
-              "upTo": true
+              "bindAs": "spared"
             },
             "chooser": "opponent"
           },
@@ -128683,6 +128739,7 @@
             "event": "wouldBePlayed",
             "mode": "reduceCost",
             "amount": 1,
+            "whileInHand": true,
             "raw": "Reduce the memory cost of this card in your hand by 1",
             "scaling": {
               "per": 1,
@@ -132966,6 +133023,7 @@
               "count": 1
             },
             "attackPlayer": true,
+            "attackPlayerOnly": true,
             "optional": true
           }
         ]
@@ -138256,7 +138314,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": ["Digimon", "Tamer", "Option"],
+                    "kind": ["Digimon", "Tamer"],
                     "playCostLte": 4,
                     "hostFilter": { "isSelfRef": true }
                   },
@@ -138292,7 +138350,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "texts": ["Knightmon"], "cost": 4, "isAlternate": true }],
+    "digivolutionRequirement": [{ "level": 4, "texts": ["Knightmon"], "cost": 3, "isAlternate": true }],
     "digiXrosRequirement": [
       { "materials": [{ "names": ["SkullKnightmon"] }, { "names": ["DeadlyAxemon"] }], "count": 1 }
     ]
@@ -140956,7 +141014,11 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1,
+              "chooser": "opponent"
+            },
             "optional": true,
             "controller": "opponent"
           },
@@ -140981,7 +141043,11 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1,
+              "chooser": "opponent"
+            },
             "optional": true,
             "controller": "opponent"
           },
@@ -144165,7 +144231,7 @@
                 "kind": ["Digimon"],
                 "colors": ["Green"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -145265,8 +145331,9 @@
                     "nameOrTrait": [{ "tokens": ["Mineral", "Rock"], "match": "trait" }]
                   },
                   "from": ["trash"],
-                  "count": 3
+                  "count": 1
                 },
+                "count": 3,
                 "underFilter": { "isSelfRef": true },
                 "position": "bottom",
                 "optional": true
@@ -154172,8 +154239,8 @@
         "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenDigimonWouldLeave",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -154749,6 +154816,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -154775,6 +154843,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -154801,6 +154870,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -154827,6 +154897,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -159249,7 +159320,7 @@
                 {
                   "controller": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }],
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }],
                   "hostFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Blue"] }
                 }
               ]
@@ -159332,7 +159403,10 @@
                   "controllerDefault": "mine",
                   "colors": ["Yellow"],
                   "nameOrTrait": [
-                    { "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"], "match": "trait" }
+                    {
+                      "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"],
+                      "match": "traitContains"
+                    }
                   ]
                 },
                 "count": 1,
@@ -159395,7 +159469,10 @@
                   "controllerDefault": "mine",
                   "colors": ["Yellow"],
                   "nameOrTrait": [
-                    { "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"], "match": "trait" }
+                    {
+                      "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"],
+                      "match": "traitContains"
+                    }
                   ]
                 },
                 "count": 1,
@@ -160322,9 +160399,9 @@
                     "suspended": true,
                     "excludeSelf": true,
                     "nameOrTrait": [
-                      { "tokens": ["Vegetation"], "match": "trait" },
-                      { "tokens": ["Plant"], "match": "trait" },
-                      { "tokens": ["Fairy"], "match": "trait" }
+                      { "tokens": ["Vegetation"], "match": "traitContains" },
+                      { "tokens": ["Plant"], "match": "traitContains" },
+                      { "tokens": ["Fairy"], "match": "traitContains" }
                     ]
                   }
                 }
@@ -160355,9 +160432,9 @@
                     "kind": ["Digimon"],
                     "suspended": true,
                     "nameOrTrait": [
-                      { "tokens": ["Vegetation"], "match": "trait" },
-                      { "tokens": ["Plant"], "match": "trait" },
-                      { "tokens": ["Fairy"], "match": "trait" }
+                      { "tokens": ["Vegetation"], "match": "traitContains" },
+                      { "tokens": ["Plant"], "match": "traitContains" },
+                      { "tokens": ["Fairy"], "match": "traitContains" }
                     ]
                   },
                   "countMin": 2
@@ -161393,8 +161470,8 @@
               "count": "all"
             },
             "restriction": "attack",
-            "duration": "untilOpponentTurnEnd",
-            "whileMatchesTargetFilter": true
+            "whileMatchesTargetFilter": true,
+            "duration": "untilOpponentTurnEnd"
           }
         ]
       },
@@ -163347,13 +163424,6 @@
         "trigger": "EndOfAttack",
         "actions": [
           {
-            "kind": "TrashDigivolution",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "fromTop": true,
-            "amount": 99,
-            "stopAtLevel": 3
-          },
-          {
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1
@@ -164248,7 +164318,7 @@
                   "colors": ["Purple"],
                   "nameOrTrait": [
                     { "tokens": ["Ravemon"], "match": "name" },
-                    { "tokens": ["Bird", "Avian"], "match": "trait" }
+                    { "tokens": ["Bird", "Avian"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -164479,7 +164549,7 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }], "controller": "mine" },
                   "count": 1,
                   "location": "trash",
                   "controller": "mine"
@@ -164513,7 +164583,8 @@
           {
             "effectTextPart": "[On Deletion] If your opponent has 8 or more cards in their hand, they trash 1 card in their hand.",
             "kind": "Trash",
-            "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1, "chooser": "opponent" },
+            "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 },
+            "chooser": "opponent",
             "controller": "opponent",
             "condition": {
               "kind": "zoneCount",
@@ -164963,7 +165034,7 @@
               "colors": ["Purple"],
               "nameOrTrait": [
                 { "tokens": ["Ravemon"], "match": "name" },
-                { "tokens": ["Bird", "Avian"], "match": "trait" }
+                { "tokens": ["Bird", "Avian"], "match": "traitContains" }
               ]
             },
             "actions": [
@@ -165304,6 +165375,7 @@
             "kind": "Trash",
             "target": { "filter": { "controller": "opponent", "zone": "hand", "kind": ["Option"] }, "count": 1 },
             "optional": true,
+            "chooser": "opponent",
             "controller": "opponent"
           },
           {
@@ -165350,7 +165422,7 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }], "controller": "mine" },
                   "count": 1,
                   "location": "trash",
                   "controller": "mine"
@@ -169053,7 +169125,8 @@
                 "kind": ["Digimon"],
                 "controller": "opponent"
               },
-              "count": 1
+              "count": 1,
+              "chooser": "opponent"
             },
             "suspended": true,
             "from": ["trash"],
@@ -169073,7 +169146,8 @@
                 "kind": ["Digimon"],
                 "controller": "opponent"
               },
-              "count": 1
+              "count": 1,
+              "chooser": "opponent"
             },
             "suspended": true,
             "from": ["trash"],
@@ -171021,7 +171095,7 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "levelComparison": { "op": "lte", "value": 5 },
-                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                   },
                   "count": 1
                 },
@@ -172404,10 +172478,11 @@
             "op": "placeAsSecurity",
             "controller": "mine",
             "source": {
-              "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "keywords": ["SecurityAttack"] },
+              "filter": { "controllerDefault": "any", "kind": ["Digimon"], "keywords": ["SecurityAttack"] },
               "count": 1
             },
             "from": ["battleArea"],
+            "ownerSecurity": true,
             "toTop": true,
             "optional": true
           }
@@ -174060,7 +174135,11 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1,
+              "chooser": "opponent"
+            },
             "optional": true,
             "controller": "opponent"
           },
@@ -174085,7 +174164,11 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1,
+              "chooser": "opponent"
+            },
             "optional": true,
             "controller": "opponent"
           },
@@ -175027,8 +175110,9 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenDigimonWouldLeave",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
             "leaveCause": "otherThanYourEffect",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
@@ -175076,7 +175160,7 @@
                 "filter": {
                   "controller": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "from": ["hand"]
@@ -179141,8 +179225,8 @@
               "count": "all"
             },
             "restriction": "attack",
-            "duration": "untilOpponentTurnEnd",
-            "whileMatchesTargetFilter": true
+            "whileMatchesTargetFilter": true,
+            "duration": "untilOpponentTurnEnd"
           }
         ]
       },
@@ -179413,14 +179497,15 @@
             "kind": "GainTriggeredEffect",
             "once": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "gainedTrigger": "endOfOpponentTurn",
+            "gainedTrigger": "EndOfYourTurn",
             "gainedActions": [
               {
                 "kind": "Delete",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "chooser": "opponent" }
               }
             ],
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "raw": "[End of Your Turn] Delete 1 of your Digimon."
           }
         ]
       },
@@ -180751,7 +180836,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["DS"], "cost": 3, "isAlternate": true }]
   },
   "EX8-026": {
     "effects": [
@@ -181266,7 +181352,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["NSo"], "cost": 3, "isAlternate": true }]
   },
   "EX8-034": {
     "effects": [
@@ -181879,7 +181966,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSo"], "cost": 3, "isAlternate": true }]
   },
   "EX8-046": {
     "effects": [
@@ -182846,7 +182934,7 @@
             "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
             "kind": "Trash",
             "chooser": "opponent",
-            "target": { "controller": "opponent", "filter": { "zone": "hand" }, "count": 1 },
+            "target": { "controller": "opponent", "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
             "optional": true
           },
           {
@@ -182877,7 +182965,7 @@
             "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
             "kind": "Trash",
             "chooser": "opponent",
-            "target": { "controller": "opponent", "filter": { "zone": "hand" }, "count": 1 },
+            "target": { "controller": "opponent", "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
             "optional": true
           },
           {
@@ -183120,6 +183208,7 @@
                   "count": 1
                 },
                 "amount": 1,
+                "choose": true,
                 "cost": {
                   "kind": "suspend",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -183146,6 +183235,7 @@
                   "count": 1
                 },
                 "amount": 1,
+                "choose": true,
                 "cost": {
                   "kind": "suspend",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -183281,7 +183371,7 @@
               "count": "all"
             },
             "effect": { "kind": "restriction", "restriction": "beDeletedInBattle" },
-            "while": { "kind": "memoryAtLeast", "value": 1 }
+            "while": { "kind": "memoryAtLeast", "value": 1, "controller": "mine" }
           }
         ],
         "isSecurity": true
@@ -185119,6 +185209,7 @@
         ]
       }
     ],
+    "digivolutionRequirement": [{ "level": 6, "traits": ["DM"], "cost": 5, "isAlternate": true }],
     "dnaDigivolveRequirement": [
       {
         "cost": 0,
@@ -186941,6 +187032,9 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      { "reduceCost": 3, "materials": [{ "count": 4, "kinds": ["Digimon"], "namesExact": ["Eyesmon: Scatter Mode"] }] }
+    ],
     "digivolutionRequirement": [{ "namesExact": ["Eyesmon: Scatter Mode"], "cost": 1, "isAlternate": true }]
   },
   "EX9-048": {
@@ -187450,7 +187544,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "assemblyRequirement": [{ "reduceCost": 6, "materials": [{ "namesExact": ["Negamon"], "count": 4 }] }]
   },
   "EX9-056": {
     "effects": [
@@ -189189,6 +189284,12 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [{ "count": 4, "kinds": ["Digimon"], "level": 5, "traits": ["Cyborg"], "differentNames": true }]
+      }
+    ],
     "digivolutionRequirement": [{ "level": 5, "traits": ["DM"], "cost": 3, "isAlternate": true }]
   },
   "EX9-074": {
@@ -192099,6 +192200,7 @@
             "effectTextPart": "[On Deletion] If your opponent has 5 or more cards in their hand, they trash 1 card in their hand.",
             "kind": "Trash",
             "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 },
+            "chooser": "opponent",
             "controller": "opponent",
             "condition": {
               "kind": "zoneCount",
@@ -196199,7 +196301,19 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digiXrosRequirement": [
+      {
+        "materials": [
+          { "names": ["Snatchmon"] },
+          { "names": ["Vemmon"] },
+          { "names": ["Vemmon"] },
+          { "names": ["Vemmon"] },
+          { "names": ["Vemmon"] }
+        ],
+        "count": 1
+      }
+    ]
   },
   "P-095": {
     "effects": [
@@ -196798,22 +196912,9 @@
             "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Green"] },
             "from": ["hand"],
+            "reduceCost": 2,
             "payCost": true,
             "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldDigivolve",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldDigivolve",
-                "mode": "reduceCost",
-                "amount": 2,
-                "raw": "reduce the cost by 2"
-              }
-            ]
           }
         ],
         "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
@@ -197006,6 +197107,7 @@
   },
   "P-111": {
     "effects": [
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -197016,8 +197118,7 @@
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -197029,8 +197130,7 @@
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "AllTurns",
@@ -198220,7 +198320,7 @@
             "sourceFilter": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
             },
             "actions": [
               {
@@ -199842,7 +199942,7 @@
                   "controller": "mine",
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 },
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "from": ["hand"]
@@ -199869,7 +199969,7 @@
                   "controller": "mine",
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 },
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "from": ["hand"]
@@ -199993,7 +200093,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
             },
             "from": ["hand"],
             "payCost": true,
@@ -200023,7 +200123,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
             },
             "from": ["hand"],
             "payCost": true,
@@ -200169,7 +200269,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
             },
             "actions": [
               {
@@ -200178,7 +200278,7 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                   },
                   "count": 1,
                   "sourceRef": "triggerSubject"
@@ -200186,7 +200286,7 @@
                 "into": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "from": ["hand"],
                 "payCost": true,
@@ -200417,7 +200517,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["DS"], "cost": 3, "isAlternate": true }]
   },
   "P-172": {
     "effects": [
@@ -200493,7 +200594,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSp"], "cost": 3, "isAlternate": true }]
   },
   "P-173": {
     "effects": [
@@ -200620,7 +200722,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSo"], "cost": 3, "isAlternate": true }]
   },
   "P-175": {
     "effects": [
@@ -202401,11 +202504,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Tamer"],
-                "sharesColorWithControllersBattleAreaDigimon": true
-              },
+              "filter": { "controller": "mine", "kind": ["Tamer"], "sharesColorWithControllersFieldDigimon": true },
               "count": 1
             },
             "from": ["hand"],
@@ -203349,11 +203448,7 @@
             "restriction": "digivolve",
             "duration": "permanent"
           },
-          {
-            "kind": "DelayedDeletePlayed",
-            "timing": "endOfOpponentTurn",
-            "raw": "deleted at turn end (opponent's turn end)"
-          }
+          { "kind": "DelayedDeletePlayed", "timing": "endOfCurrentTurn", "raw": "is deleted at turn end" }
         ]
       },
       {
@@ -203365,7 +203460,8 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Dark Masters"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Dark Masters"], "match": "trait" }],
+                "faceUp": true
               },
               "count": 1
             },
@@ -203716,6 +203812,14 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [
+          { "count": 3, "kinds": ["Digimon"], "traits": ["Composite", "Ver.3", "Ver.5"], "differentLevels": true }
+        ]
+      }
+    ],
     "dnaDigivolveRequirement": [
       { "cost": 0, "materials": [{ "namesExact": ["Kimeramon"] }, { "namesExact": ["Machinedramon"] }] }
     ]
@@ -203739,6 +203843,7 @@
             "kind": "Restrict",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "restriction": "beAffected",
+            "byOpponentEffectsOnly": true,
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "isDnaDigivolving" }
           }
@@ -203932,10 +204037,7 @@
         "trigger": "StartOfYourMainPhase",
         "actions": [
           {
-            "kind": "Draw",
-            "amount": 1,
-            "controller": "mine",
-            "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" },
+            "kind": "CostGatedBlock",
             "cost": {
               "kind": "place",
               "target": {
@@ -203950,7 +204052,15 @@
               "raw": "By placing 1 [Xros Heart] or [Twilight] trait Digimon card from your hand or trash under this Tamer"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "actions": [
+              {
+                "kind": "Draw",
+                "amount": 1,
+                "controller": "mine",
+                "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" }
+              }
+            ]
           }
         ]
       },
@@ -203958,10 +204068,7 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "Draw",
-            "amount": 1,
-            "controller": "mine",
-            "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" },
+            "kind": "CostGatedBlock",
             "cost": {
               "kind": "place",
               "target": {
@@ -203976,7 +204083,15 @@
               "raw": "By placing 1 [Xros Heart] or [Twilight] trait Digimon card from your hand or trash under this Tamer"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "actions": [
+              {
+                "kind": "Draw",
+                "amount": 1,
+                "controller": "mine",
+                "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" }
+              }
+            ]
           }
         ]
       },
@@ -204897,8 +205012,26 @@
         "trigger": "OnDeletion",
         "actions": [
           {
+            "kind": "PlaceUnder",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "underFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Myotismon"], "match": "text" }]
+            },
+            "position": "bottom",
+            "bindHostAs": "myotismonHost",
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By placing this Digimon card as the bottom digivolution card of 1 of your Digimon with [Myotismon] in its text"
+          },
+          {
             "kind": "Digivolve",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "condition": { "kind": "ifThisEffectActed", "raw": "that Digimon" },
+            "target": {
+              "filter": { "boundRef": "myotismonHost", "controller": "mine", "kind": ["Digimon"] },
+              "count": 1
+            },
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
@@ -204906,21 +205039,7 @@
             },
             "payCost": false,
             "from": ["hand"],
-            "optional": true,
-            "cost": {
-              "kind": "place",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-              "raw": "By placing this Digimon card as the bottom digivolution card of 1 of your Digimon with [Myotismon] in its text",
-              "underFilter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Myotismon"], "match": "text" }]
-              },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target"
-            },
-            "abortOnDecline": true
+            "optional": true
           }
         ]
       },
@@ -205071,7 +205190,42 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 5, "texts": ["Gammamon"], "cost": 4, "isAlternate": true },
+      { "level": 5, "traits": ["VB"], "cost": 4, "isAlternate": true }
+    ],
+    "assemblyRequirement": [
+      {
+        "materials": [
+          {
+            "count": 1,
+            "nameOrTrait": [
+              { "tokens": ["Gammamon"], "match": "text" },
+              { "tokens": ["VB"], "match": "trait" }
+            ],
+            "level": 5
+          },
+          {
+            "count": 1,
+            "nameOrTrait": [
+              { "tokens": ["Gammamon"], "match": "text" },
+              { "tokens": ["VB"], "match": "trait" }
+            ],
+            "level": 4
+          },
+          {
+            "count": 1,
+            "nameOrTrait": [
+              { "tokens": ["Gammamon"], "match": "text" },
+              { "tokens": ["VB"], "match": "trait" }
+            ],
+            "level": 3
+          }
+        ],
+        "reduceCost": 6
+      }
+    ]
   },
   "P-241": {
     "effects": [
@@ -207136,7 +207290,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "colors": ["Green"],
-              "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }],
+              "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" }],
               "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
             },
             "restriction": "suspendThisTamer",
@@ -207477,7 +207631,8 @@
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
-            "duration": "untilYourTurnEnd"
+            "duration": "untilYourTurnEnd",
+            "playerWide": true
           }
         ],
         "isSecurity": true
@@ -207848,11 +208003,20 @@
     "effects": [
       {
         "trigger": "Security",
+        "timing": "endOfBattle",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "payCost": false
+            "kind": "SubTrigger",
+            "event": "whenSecurityBattleEnded",
+            "once": true,
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "from": ["trash"],
+                "payCost": false
+              }
+            ]
           }
         ]
       },
@@ -208256,7 +208420,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"] },
+            "sourceFilter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"], "byEffect": true },
             "actions": [
               {
                 "kind": "ModifyDP",
@@ -208291,7 +208455,10 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Huckmon", "Sistermon"], "match": "name" }]
+                "nameOrTrait": [
+                  { "tokens": ["Huckmon"], "match": "nameExact" },
+                  { "tokens": ["Sistermon"], "match": "name" }
+                ]
               },
               "count": 1
             },
@@ -208332,6 +208499,8 @@
             "kind": "Draw",
             "controller": "mine",
             "amount": 2,
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "trash",
               "target": { "filter": { "controller": "mine" }, "count": 1 },
@@ -208422,13 +208591,32 @@
         "trigger": "Main",
         "actions": [
           {
+            "effectTextPart": "[Main] 1 of your Digimon gets +2000 DP for the turn.",
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "amount": 2000,
-            "duration": "forTheTurn",
-            "effectTextPart": "[Main] 1 of your Digimon gets +2000 DP for the turn."
+            "duration": "forTheTurn"
           },
           {
+            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)",
+            "kind": "GainMemory",
+            "amount": 1,
+            "condition": {
+              "kind": "youHave",
+              "filter": {
+                "zone": "battleArea",
+                "controllerDefault": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [
+                  { "tokens": ["Huckmon"], "match": "name" },
+                  { "tokens": ["Royal Knight"], "match": "trait" }
+                ]
+              },
+              "raw": "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play"
+            }
+          },
+          {
+            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)",
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
@@ -208445,26 +208633,7 @@
                 ]
               },
               "raw": "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play"
-            },
-            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)"
-          },
-          {
-            "kind": "GainMemory",
-            "amount": 1,
-            "condition": {
-              "kind": "youHave",
-              "filter": {
-                "zone": "battleArea",
-                "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [
-                  { "tokens": ["Huckmon"], "match": "name" },
-                  { "tokens": ["Royal Knight"], "match": "trait" }
-                ]
-              },
-              "raw": "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play"
-            },
-            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)"
+            }
           }
         ]
       },
@@ -209266,7 +209435,10 @@
             "kind": "TrashTopDeck",
             "controller": "mine",
             "amount": 2,
-            "condition": { "kind": "raw", "raw": "this Digimon has [Wizard] or [Demon Lord] in its traits" }
+            "condition": {
+              "kind": "selfHasTrait",
+              "filter": { "nameOrTrait": [{ "tokens": ["Wizard", "Demon Lord"], "match": "trait" }] }
+            }
           }
         ],
         "isInherited": true,
@@ -209285,15 +209457,13 @@
             "kind": "Digivolve",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Beelzemon"], "match": "name" }]
-              },
-              "count": 1
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Beelzemon"], "match": "nameExact" }]
             },
             "payCost": true,
             "costOverride": 3,
+            "ignoreRequirements": true,
             "optional": true,
             "condition": {
               "kind": "zoneCount",
@@ -209302,7 +209472,8 @@
               "op": "gte",
               "value": 20,
               "raw": "you have 20 or more cards in your trash"
-            }
+            },
+            "from": ["trash"]
           }
         ]
       },
@@ -209389,7 +209560,10 @@
             "kind": "Aura",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "modifyDP", "amount": 2000 },
-            "while": { "kind": "raw", "raw": "this Digimon has [Wizard] or [Demon Lord] in its traits" }
+            "while": {
+              "kind": "selfHasTrait",
+              "filter": { "nameOrTrait": [{ "tokens": ["Wizard", "Demon Lord"], "match": "trait" }] }
+            }
           }
         ],
         "isInherited": true
@@ -209405,9 +209579,36 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "GrantAuraToOpponents",
+            "kind": "GainTriggeredEffect",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "effectText": "GRANTEFFECT58TOKEN"
+            "gainedTrigger": "onDeletionOf",
+            "once": true,
+            "duration": "untilOpponentTurnEnd",
+            "gainedActions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Beelzemon"], "match": "nameExact" }]
+                  },
+                  "count": 1
+                },
+                "from": ["trash"],
+                "payCost": false,
+                "optional": true,
+                "condition": {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "trash",
+                  "op": "gte",
+                  "value": 10,
+                  "raw": "there are 10 or more cards in your trash"
+                }
+              }
+            ],
+            "raw": "This Digimon gains its printed On Deletion effect until the end of your opponent's turn"
           }
         ]
       },
@@ -209418,7 +209619,10 @@
             "kind": "Aura",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "modifyDP", "amount": 2000 },
-            "while": { "kind": "raw", "raw": "this Digimon has [Wizard] or [Demon Lord] in its traits" }
+            "while": {
+              "kind": "selfHasTrait",
+              "filter": { "nameOrTrait": [{ "tokens": ["Wizard", "Demon Lord"], "match": "trait" }] }
+            }
           }
         ],
         "isInherited": true
@@ -209435,9 +209639,15 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenDeckTrashed",
-            "actions": [{ "kind": "GainMemory", "amount": 1 }],
-            "scaling": { "per": 10, "filter": { "zone": "trash", "controller": "mine" }, "unit": "trash" }
+            "event": "onDiscardLibrary",
+            "actions": [
+              {
+                "kind": "GainMemory",
+                "amount": 1,
+                "scaling": { "per": 10, "filter": { "zone": "trash", "controller": "mine" }, "unit": "trash" }
+              }
+            ],
+            "sourceFilter": { "controller": "mine" }
           }
         ],
         "frequency": "OncePerTurn"
@@ -209447,7 +209657,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenDeckTrashed",
+            "event": "onDiscardLibrary",
             "actions": [
               {
                 "kind": "GainKeyword",
@@ -209455,7 +209665,8 @@
                 "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
                 "duration": "forTheTurn"
               }
-            ]
+            ],
+            "sourceFilter": { "controller": "mine" }
           }
         ],
         "frequency": "OncePerTurn"
@@ -209491,7 +209702,8 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenDeckTrashed",
+            "event": "onDiscardLibrary",
+            "sourceFilter": { "controller": "mine" },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -209501,15 +209713,16 @@
                 },
                 "from": ["trash"],
                 "payCost": false,
-                "optional": true
+                "optional": true,
+                "bindResultAs": "playedImpmon"
+              },
+              {
+                "kind": "GainKeyword",
+                "target": { "filter": { "boundRef": "playedImpmon", "kind": ["Digimon"] }, "count": 1 },
+                "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
+                "duration": "forTheTurn"
               }
             ]
-          },
-          {
-            "kind": "GainKeyword",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
-            "duration": "forTheTurn"
           }
         ],
         "frequency": "OncePerTurn"
@@ -209520,7 +209733,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenOpponentAttacks",
-            "actions": [{ "kind": "Trash", "target": { "filter": { "controller": "mine" }, "count": 1 } }]
+            "actions": [{ "kind": "TrashTopDeck", "controller": "mine", "amount": 1 }]
           }
         ]
       }
@@ -209531,15 +209744,31 @@
   "ST14-10": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "AllTurns",
         "actions": [
-          { "kind": "Delete", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
           {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "level",
-            "amount": 1,
-            "scaling": { "per": 10, "filter": { "zone": "trash", "controller": "mine" }, "unit": "trash" }
+            "kind": "SubTrigger",
+            "event": "whenTrashedFromDeck",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "Delete",
+                "target": {
+                  "filter": {
+                    "controller": "opponent",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 3 }
+                  },
+                  "count": 1
+                },
+                "scaling": {
+                  "per": 10,
+                  "filter": { "zone": "trash", "controller": "mine" },
+                  "unit": "trash",
+                  "levelCeilingAdd": 1
+                }
+              }
+            ]
           }
         ]
       },
@@ -209598,17 +209827,20 @@
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
             "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Purple"] },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "suspend this Tamer"
+            },
+            "optional": true,
+            "raw": "suspend this Tamer to gain 1 memory",
             "actions": [
               {
-                "kind": "GainMemory",
-                "amount": 1,
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer and return 1 card from your hand to your deck"
-                },
-                "optional": true
-              }
+                "kind": "Return",
+                "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+                "to": "deckTop"
+              },
+              { "kind": "GainMemory", "amount": 1 }
             ]
           }
         ]
@@ -209631,12 +209863,15 @@
   "ST14-12": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "MovePermanent",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "to": "battleArea"
+            "kind": "SubTrigger",
+            "event": "whenTrashedFromDeck",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [{ "kind": "PlaceInBattleAreaSelf" }],
+            "optional": true,
+            "raw": "when this card is trashed from the deck, you may place it in the battle area"
           }
         ]
       },
@@ -211353,7 +211588,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -211404,7 +211639,7 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "nameOrTrait": [
-                      { "tokens": ["Bird"], "match": "trait" },
+                      { "tokens": ["Bird"], "match": "traitContains" },
                       { "tokens": ["Vortex Warriors"], "match": "trait" }
                     ]
                   },
@@ -211521,7 +211756,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Vegetation", "Plant"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Vegetation", "Plant"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -211562,13 +211797,13 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
               },
               "count": 1
             },
             "from": ["hand"],
             "payCost": false,
-            "condition": { "kind": "raw", "raw": "this effect suspends your Digimon" },
+            "condition": { "kind": "lastSuspendedIsMine", "raw": "this effect suspends your Digimon" },
             "optional": true
           }
         ]
@@ -211587,20 +211822,38 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
               },
               "count": 1
             },
             "from": ["hand"],
             "payCost": false,
-            "condition": { "kind": "raw", "raw": "this effect suspends your Digimon" },
+            "condition": { "kind": "lastSuspendedIsMine", "raw": "this effect suspends your Digimon" },
             "optional": true
           }
         ]
       },
       {
         "trigger": "YourTurn",
-        "actions": [{ "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }],
+        "actions": [
+          {
+            "kind": "SubTrigger",
+            "event": "whenAttacking",
+            "sourceFilter": { "isSelfRef": true },
+            "fireCondition": {
+              "kind": "attackTargetMatchesFilter",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "raw": "When this Digimon attacks your opponent's Digimon"
+            },
+            "actions": [
+              {
+                "kind": "Unsuspend",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "optional": true
+              }
+            ]
+          }
+        ],
         "isInherited": true,
         "frequency": "OncePerTurn"
       }
@@ -211643,14 +211896,14 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[When Digivolving] Suspend 1 Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "[When Digivolving] Suspend 1 Digimon."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           },
           {
+            "effectTextPart": "Then, unsuspend 1 Digimon.",
             "kind": "Unsuspend",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "Then, unsuspend 1 Digimon."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           }
         ]
       },
@@ -211658,10 +211911,24 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "unsuspended": true, "kind": ["Digimon"] }, "count": 1 },
-            "amount": 3000,
-            "duration": "forTheTurn"
+            "kind": "SubTrigger",
+            "event": "whenUnsuspended",
+            "actions": [
+              {
+                "kind": "Restrict",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "restriction": "beAffected",
+                "byOpponentEffectsOnly": true,
+                "fromSourceKind": ["Digimon"],
+                "duration": "forTheTurn"
+              },
+              {
+                "kind": "ModifyDP",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "amount": 3000,
+                "duration": "forTheTurn"
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn"
@@ -211733,6 +212000,11 @@
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
+                "condition": {
+                  "kind": "not",
+                  "condition": { "kind": "attackTargetsPlayer" },
+                  "raw": "one of your Digimon attacks your opponent's Digimon"
+                },
                 "optional": true,
                 "abortOnDecline": true
               }
@@ -211761,21 +212033,21 @@
         "trigger": "Main",
         "actions": [
           {
+            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck.",
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           },
           {
+            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck.",
             "kind": "Return",
             "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
             "to": "deckBottom",
-            "condition": { "kind": "raw", "raw": "this effect suspended your Digimon" },
-            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck."
+            "condition": { "kind": "lastSuspendedIsMine", "raw": "this effect suspended your Digimon" }
           },
           {
+            "effectTextPart": "Then, unsuspend 1 Digimon.",
             "kind": "Unsuspend",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "Then, unsuspend 1 Digimon."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           }
         ]
       },
@@ -213187,45 +213459,6 @@
   "ST20-10": {
     "effects": [
       {
-        "trigger": "YourTurn",
-        "actions": [
-          {
-            "kind": "Digivolve",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["WarGreymon"], "match": "name" }] },
-            "payCost": true,
-            "from": ["hand"],
-            "costOverride": 4,
-            "ignoreRequirements": true,
-            "condition": {
-              "kind": "orConditions",
-              "conditions": [
-                {
-                  "kind": "opponentHas",
-                  "filter": {
-                    "controllerDefault": "opponent",
-                    "kind": ["Digimon"],
-                    "dp": { "op": "gte", "value": 10000 }
-                  },
-                  "raw": "your opponent has a Digimon with 10000 DP or more"
-                },
-                {
-                  "kind": "zoneColorCount",
-                  "seat": "mine",
-                  "zone": "battleArea",
-                  "filter": { "kind": ["Tamer"] },
-                  "unit": "distinctColors",
-                  "op": "gte",
-                  "value": 3,
-                  "raw": "your Tamers have 3 or more total colors"
-                }
-              ],
-              "raw": "your opponent has a Digimon with 10000 DP or more, or your Tamers have 3 or more total colors"
-            }
-          }
-        ]
-      },
-      {
         "trigger": "Static",
         "actions": [],
         "isInherited": true,
@@ -213234,6 +213467,21 @@
     ],
     "coverage": "full",
     "residual": [],
+    "baseGrantedDigivolve": [
+      {
+        "target": { "namesExact": ["WarGreymon"] },
+        "cost": 4,
+        "ignoreRequirements": true,
+        "sourceZones": ["hand"],
+        "condition": {
+          "kind": "anyOf",
+          "conditions": [
+            { "kind": "opponentHasDigimonDpAtLeast", "dp": 10000 },
+            { "kind": "tamerColorCountAtLeast", "count": 3 }
+          ]
+        }
+      }
+    ],
     "digivolutionRequirement": [{ "level": 2, "traits": ["ADVENTURE", "Hero"], "cost": 0, "isAlternate": true }]
   },
   "ST20-11": {
@@ -213249,7 +213497,14 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 0,
+              "countModifier": {
+                "amount": 1,
+                "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+              }
+            },
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
@@ -213261,7 +213516,14 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 0,
+              "countModifier": {
+                "amount": 1,
+                "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+              }
+            },
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
@@ -213439,6 +213701,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
               },
@@ -213456,10 +213719,12 @@
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenDigimonWouldLeave",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -213483,8 +213748,7 @@
               }
             ]
           }
-        ],
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
+        ]
       },
       { "trigger": "Security", "actions": [{ "kind": "PlaceInBattleAreaSelf" }], "isSecurity": true }
     ],
@@ -213611,11 +213875,17 @@
       {
         "trigger": "OnPlay",
         "actions": [
-          { "kind": "Trash", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
+          {
+            "effectTextPart": "[On Play] [When Digivolving] Trash the top 2 digivolution cards of 1 if your opponent's Digimon.",
+            "kind": "TrashDigivolution",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "amount": 2,
+            "fromTop": true
+          },
           {
             "kind": "Restrict",
             "target": {
-              "filter": { "digivolutionCards": "none", "controller": "opponent", "kind": ["Digimon"] },
+              "filter": { "digivolutionCards": "none", "controllerDefault": "opponent", "kind": ["Digimon"] },
               "count": 1
             },
             "restriction": "attackOrBlock",
@@ -213626,11 +213896,17 @@
       {
         "trigger": "WhenDigivolving",
         "actions": [
-          { "kind": "Trash", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
+          {
+            "effectTextPart": "[On Play] [When Digivolving] Trash the top 2 digivolution cards of 1 if your opponent's Digimon.",
+            "kind": "TrashDigivolution",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "amount": 2,
+            "fromTop": true
+          },
           {
             "kind": "Restrict",
             "target": {
-              "filter": { "digivolutionCards": "none", "controller": "opponent", "kind": ["Digimon"] },
+              "filter": { "digivolutionCards": "none", "controllerDefault": "opponent", "kind": ["Digimon"] },
               "count": 1
             },
             "restriction": "attackOrBlock",
@@ -213669,18 +213945,21 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have.",
             "kind": "TrashDigivolution",
-            "target": { "filter": { "owner": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
             "amount": 1,
-            "position": "top",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have."
+            "choose": true,
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           },
           {
+            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "to": "hand",
-            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand."
+            "target": {
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"], "digivolutionCardsAtMost": 1 },
+              "count": 1
+            },
+            "to": "hand"
           }
         ]
       },
@@ -213688,18 +213967,21 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have.",
             "kind": "TrashDigivolution",
-            "target": { "filter": { "owner": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
             "amount": 1,
-            "position": "top",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have."
+            "choose": true,
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           },
           {
+            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "to": "hand",
-            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand."
+            "target": {
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"], "digivolutionCardsAtMost": 1 },
+              "count": 1
+            },
+            "to": "hand"
           }
         ]
       },
@@ -213712,12 +213994,23 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
           },
@@ -213727,21 +214020,25 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "Attack",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "withoutSuspending": false,
-            "optional": true,
-            "effectTextPart": "Then, 1 of your Digimon may attack."
           }
         ],
         "frequency": "OncePerTurn"
@@ -213775,8 +214072,10 @@
             "from": ["hand"],
             "payCost": false,
             "condition": {
-              "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "kind": ["Tamer"] },
+              "kind": "permanentCount",
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "op": "lte",
+              "value": 1,
               "raw": "you have 1 or fewer Tamers"
             },
             "optional": true
@@ -213814,14 +214113,13 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 6000 } },
               "count": 1
             },
+            "sourceDpCeilingScaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "amount": 2000
+            },
             "toTop": true
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "dp",
-            "amount": 2000,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -213836,14 +214134,13 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 6000 } },
               "count": 1
             },
+            "sourceDpCeilingScaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "amount": 2000
+            },
             "toTop": true
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "dp",
-            "amount": 2000,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -213856,12 +214153,23 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
           },
@@ -213871,21 +214179,25 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "Attack",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "withoutSuspending": false,
-            "optional": true,
-            "effectTextPart": "Then, 1 of your Digimon may attack."
           }
         ],
         "frequency": "OncePerTurn"
@@ -213960,7 +214272,14 @@
             "payCost": false,
             "from": ["hand"],
             "optional": true,
-            "condition": { "kind": "raw", "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors" }
+            "condition": {
+              "kind": "zoneColorCount",
+              "cardType": "Tamer",
+              "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+              "op": "gte",
+              "value": 3,
+              "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors"
+            }
           }
         ]
       },
@@ -213978,7 +214297,14 @@
             "payCost": false,
             "from": ["hand"],
             "optional": true,
-            "condition": { "kind": "raw", "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors" }
+            "condition": {
+              "kind": "zoneColorCount",
+              "cardType": "Tamer",
+              "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+              "op": "gte",
+              "value": 3,
+              "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors"
+            }
           }
         ]
       },
@@ -214005,19 +214331,22 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon.",
             "kind": "Suspend",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } },
               "count": "all"
-            },
-            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon."
+            }
           },
           {
+            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controllerDefault": "opponent", "suspended": true, "kind": ["Digimon"] },
+              "count": 1
+            },
             "to": "deckBottom",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck."
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -214025,19 +214354,22 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon.",
             "kind": "Suspend",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } },
               "count": "all"
-            },
-            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon."
+            }
           },
           {
+            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controllerDefault": "opponent", "suspended": true, "kind": ["Digimon"] },
+              "count": 1
+            },
             "to": "deckBottom",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck."
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -214050,12 +214382,23 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "if any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
           },
@@ -214065,21 +214408,25 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "if any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "Attack",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "withoutSuspending": false,
-            "optional": true,
-            "effectTextPart": "Then, 1 of your Digimon may attack."
           }
         ],
         "frequency": "OncePerTurn"
@@ -214098,37 +214445,18 @@
   "ST21-10": {
     "effects": [
       {
-        "trigger": "YourTurn",
-        "actions": [
-          {
-            "kind": "Digivolve",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon", "Tamer"] }, "count": 1 },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["MetalGarurumon"], "match": "name" }] },
-            "payCost": true,
-            "from": ["hand"],
-            "costOverride": 4,
-            "ignoreRequirements": true,
-            "condition": {
-              "kind": "opponentHas",
-              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"], "dp": { "op": "gte", "value": 10000 } },
-              "raw": "your opponent has a Digimon with 10000 DP or more"
-            }
-          }
-        ]
-      },
-      {
         "trigger": "WhenAttacking",
         "actions": [
           {
+            "effectTextPart": "[When Attacking] [Once Per Turn] ＜Draw 1＞.",
             "kind": "Draw",
             "controller": "mine",
-            "amount": 1,
-            "effectTextPart": "[When Attacking] [Once Per Turn] ＜Draw 1＞."
+            "amount": 1
           },
           {
+            "effectTextPart": "Then, trash 1 card in your hand.",
             "kind": "Trash",
-            "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1 },
-            "effectTextPart": "Then, trash 1 card in your hand."
+            "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1 }
           }
         ],
         "isInherited": true,
@@ -214137,6 +214465,21 @@
     ],
     "coverage": "full",
     "residual": [],
+    "baseGrantedDigivolve": [
+      {
+        "target": { "namesExact": ["MetalGarurumon"] },
+        "cost": 4,
+        "ignoreRequirements": true,
+        "sourceZones": ["hand"],
+        "condition": {
+          "kind": "anyOf",
+          "conditions": [
+            { "kind": "opponentHasDigimonDpAtLeast", "dp": 10000 },
+            { "kind": "tamerColorCountAtLeast", "count": 3 }
+          ]
+        }
+      }
+    ],
     "digivolutionRequirement": [{ "level": 2, "traits": ["ADVENTURE"], "cost": 0, "isAlternate": true }]
   },
   "ST21-11": {
@@ -214160,14 +214503,13 @@
               },
               "count": 1
             },
-            "to": "deckBottom"
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "level",
-            "amount": 1,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+            "to": "deckBottom",
+            "scaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "levelCeilingAdd": 1
+            }
           }
         ]
       },
@@ -214184,14 +214526,13 @@
               },
               "count": 1
             },
-            "to": "deckBottom"
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "level",
-            "amount": 1,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+            "to": "deckBottom",
+            "scaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "levelCeilingAdd": 1
+            }
           }
         ]
       },
@@ -214360,6 +214701,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
               },
               "raw": "you have a Digimon or Tamer with the [ADVENTURE] trait on the field"
@@ -214410,6 +214752,8 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": "security",
+                "faceUp": true,
                 "nameOrTrait": [{ "tokens": ["Gennai's House"], "match": "name" }]
               },
               "raw": "you have no face-up [Gennai's House] security cards"
@@ -214440,7 +214784,7 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "faceUp": true,
             "toTop": false
           }
         ]
@@ -214512,7 +214856,8 @@
                 "controller": "mine",
                 "nameOrTrait": [{ "tokens": ["Onmyōjutsu", "Plug-In"], "match": "trait" }]
               },
-              "count": 1
+              "count": 1,
+              "upTo": true
             },
             "to": "hand",
             "cost": {
@@ -214536,7 +214881,8 @@
                 "controller": "mine",
                 "nameOrTrait": [{ "tokens": ["Onmyōjutsu", "Plug-In"], "match": "trait" }]
               },
-              "count": 1
+              "count": 1,
+              "upTo": true
             },
             "to": "hand",
             "cost": {
@@ -214854,36 +215200,59 @@
           {
             "kind": "SubTrigger",
             "event": "whenOptionUsed",
-            "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent" }],
-            "cost": {
-              "kind": "place",
-              "target": {
-                "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
-                "count": 1,
-                "from": ["battleArea"]
+            "sourceFilter": { "controller": "mine", "kind": ["Option"] },
+            "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
+            "optional": true,
+            "fireCondition": {
+              "kind": "opponentHas",
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }
+            },
+            "actions": [
+              {
+                "kind": "SecurityManipulation",
+                "op": "addBottom",
+                "controller": "opponent",
+                "source": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+                  "count": 1
+                },
+                "faceDown": true
               },
-              "destination": "security",
-              "position": "bottom",
-              "targetIsPermanent": true,
-              "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
-            }
+              {
+                "kind": "SecurityManipulation",
+                "op": "trashTop",
+                "controller": "opponent",
+                "condition": { "kind": "ifThisEffectActed" }
+              }
+            ]
           },
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
-            "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent" }],
-            "cost": {
-              "kind": "place",
-              "target": {
-                "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
-                "count": 1,
-                "from": ["battleArea"]
+            "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
+            "optional": true,
+            "fireCondition": {
+              "kind": "opponentHas",
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }
+            },
+            "actions": [
+              {
+                "kind": "SecurityManipulation",
+                "op": "addBottom",
+                "controller": "opponent",
+                "source": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+                  "count": 1
+                },
+                "faceDown": true
               },
-              "destination": "security",
-              "position": "bottom",
-              "targetIsPermanent": true,
-              "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
-            }
+              {
+                "kind": "SecurityManipulation",
+                "op": "trashTop",
+                "controller": "opponent",
+                "condition": { "kind": "ifThisEffectActed" }
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn"
@@ -215032,7 +215401,6 @@
             "kind": "Link",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "recipient": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "bindRecipientAs": "linkedRecipient",
             "payCost": false,
             "optional": true
           },
@@ -215043,10 +215411,23 @@
               "filter": {
                 "controller": "opponent",
                 "kind": ["Digimon"],
-                "dp": { "op": "lte", "valueFrom": "linkedRecipient" }
+                "dp": { "op": "lte", "relativeToFilter": { "controller": "mine", "kind": ["Digimon"] } }
               },
               "count": 1
-            },
+            }
+          }
+        ]
+      },
+      {
+        "trigger": "EndOfYourTurn",
+        "isLinked": true,
+        "frequency": "OncePerTurn",
+        "actions": [
+          {
+            "kind": "Attack",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "attackPlayer": true,
+            "drainTimingWindowDuringAttack": true,
             "optional": true
           }
         ]
@@ -215103,6 +215484,12 @@
             "optional": true
           }
         ]
+      },
+      {
+        "trigger": "Static",
+        "isLinked": true,
+        "actions": [],
+        "keywords": [{ "keyword": "Jamming", "raw": "＜Jamming＞" }]
       }
     ],
     "coverage": "full",
@@ -215230,6 +215617,12 @@
             "duration": "untilOpponentTurnEnd"
           }
         ]
+      },
+      {
+        "trigger": "Static",
+        "isLinked": true,
+        "actions": [],
+        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
       }
     ],
     "coverage": "full",
@@ -216652,6 +217045,8 @@
             "effectTextPart": "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
             "kind": "PlaceUnder",
             "fromDeckTop": true,
+            "faceDown": true,
+            "position": "bottom",
             "target": { "filter": { "controller": "mine" }, "count": 1 },
             "underFilter": {
               "controller": "mine",
@@ -216676,6 +217071,8 @@
             "effectTextPart": "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
             "kind": "PlaceUnder",
             "fromDeckTop": true,
+            "faceDown": true,
+            "position": "bottom",
             "target": { "filter": { "controller": "mine" }, "count": 1 },
             "underFilter": {
               "controller": "mine",
@@ -216912,17 +217309,9 @@
               ]
             ],
             "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "faceDown": true,
-                  "hostFilter": { "kind": ["Tamer"] },
-                  "position": "bottom"
-                },
-                "count": 2
-              },
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
             },
             "optional": true,
@@ -216978,17 +217367,9 @@
               ]
             ],
             "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "faceDown": true,
-                  "hostFilter": { "kind": ["Tamer"] },
-                  "position": "bottom"
-                },
-                "count": 2
-              },
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
             },
             "optional": true,
@@ -217044,17 +217425,9 @@
               ]
             ],
             "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "faceDown": true,
-                  "hostFilter": { "kind": ["Tamer"] },
-                  "position": "bottom"
-                },
-                "count": 2
-              },
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
             },
             "optional": true,
@@ -217083,17 +217456,9 @@
             "optional": true,
             "abortOnDecline": true,
             "cost": {
-              "kind": "trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "digivolutionCards",
-                  "faceDown": true,
-                  "hostFilter": { "kind": ["Tamer"] },
-                  "position": "bottom"
-                },
-                "count": 1
-              },
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
               "raw": "by trashing the bottom face-down card from under any of your Tamers, it doesn't leave"
             },
             "raw": "it doesn't leave"
@@ -217265,6 +217630,8 @@
             "effectTextPart": "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
             "kind": "PlaceUnder",
             "fromDeckTop": true,
+            "faceDown": true,
+            "position": "bottom",
             "target": { "filter": { "controller": "mine" }, "count": 1 },
             "underFilter": {
               "controller": "mine",
@@ -217288,6 +217655,8 @@
             "effectTextPart": "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
             "kind": "PlaceUnder",
             "fromDeckTop": true,
+            "faceDown": true,
+            "position": "bottom",
             "target": { "filter": { "controller": "mine" }, "count": 1 },
             "underFilter": {
               "controller": "mine",
@@ -218277,6 +218646,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -218311,13 +218681,9 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "isSelfRef": true, "zone": "digivolutionCards" }, "count": 2 },
-              "raw": "＜Digi-Burst 2＞"
-            }
+            "kind": "TrashDigivolution",
+            "target": { "filter": { "isSelfRef": true, "digivolutionCards": "hasAny" }, "count": 1, "isSelf": true },
+            "amount": 2
           },
           { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } }
         ],
@@ -218394,8 +218760,18 @@
             "to": "hand"
           },
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": "all" }
+            "kind": "TrashDigivolution",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": ["Digimon"],
+                "suspended": true,
+                "digivolutionCards": "hasAny"
+              },
+              "count": 1,
+              "sameTarget": true
+            },
+            "amount": "all"
           }
         ]
       },
@@ -218408,15 +218784,16 @@
     "effects": [
       {
         "trigger": "YourTurn",
+        "isInherited": true,
         "actions": [
           {
-            "kind": "Aura",
+            "kind": "ModifyDP",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "effect": { "kind": "modifyDP", "amount": 1000 },
-            "while": { "kind": "selfHasKeyword", "keyword": "Blocker" }
+            "amount": 1000,
+            "duration": "forTheTurn",
+            "condition": { "kind": "selfHasKeyword", "keyword": "Blocker" }
           }
-        ],
-        "isInherited": true
+        ]
       }
     ],
     "coverage": "full",
@@ -218432,6 +218809,7 @@
     "effects": [
       {
         "trigger": "EndOfOpponentsTurn",
+        "isInherited": true,
         "actions": [
           {
             "kind": "Draw",
@@ -218439,8 +218817,7 @@
             "amount": 1,
             "condition": { "kind": "opponentDidNotAttackWithDigimonThisTurn" }
           }
-        ],
-        "isInherited": true
+        ]
       }
     ],
     "coverage": "full",
@@ -218451,6 +218828,7 @@
     "effects": [
       {
         "trigger": "EndOfOpponentsTurn",
+        "isInherited": true,
         "actions": [
           {
             "kind": "Draw",
@@ -218458,8 +218836,7 @@
             "amount": 1,
             "condition": { "kind": "opponentDidNotAttackWithDigimonThisTurn" }
           }
-        ],
-        "isInherited": true
+        ]
       }
     ],
     "coverage": "full",
@@ -218496,8 +218873,8 @@
     "effects": [
       {
         "trigger": "Static",
-        "actions": [],
         "isInherited": true,
+        "actions": [],
         "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
       }
     ],
@@ -218530,24 +218907,21 @@
       },
       {
         "trigger": "Main",
+        "keywords": [{ "keyword": "DigiBurst", "amount": 2, "raw": "＜Digi-Burst 2＞" }],
         "actions": [
-          {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "isSelfRef": true, "zone": "digivolutionCards" }, "count": 2 },
-              "raw": "＜Digi-Burst 2＞"
-            }
-          },
           {
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "amount": 4000,
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "cost": {
+              "kind": "trash",
+              "target": { "filter": { "isSelfRef": true, "zone": "digivolutionCards" }, "count": 2 },
+              "raw": "＜Digi-Burst 2＞"
+            },
+            "abortOnDecline": true
           }
-        ],
-        "keywords": [{ "keyword": "DigiBurst", "amount": 2, "raw": "＜Digi-Burst 2＞" }]
+        ]
       }
     ],
     "coverage": "full",
@@ -218606,7 +218980,7 @@
           }
         ]
       },
-      { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
+      { "trigger": "Security", "isSecurity": true, "actions": [{ "kind": "ActivateMain" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -218618,11 +218992,14 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 }
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "playCost": { "op": "lte", "value": 7 } },
+              "count": 1
+            }
           }
         ]
       },
-      { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
+      { "trigger": "Security", "isSecurity": true, "actions": [{ "kind": "ActivateMain" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -219037,6 +219414,7 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
+            "notSimultaneous": true,
             "sourceFilter": { "controller": "opponent", "kind": ["Digimon"] },
             "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
@@ -219074,6 +219452,7 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
+            "notSimultaneous": true,
             "sourceFilter": { "controller": "opponent", "kind": ["Digimon"] },
             "actions": [{ "kind": "GainMemory", "amount": 1 }]
           }
@@ -219089,11 +219468,20 @@
     "effects": [
       {
         "trigger": "Security",
+        "timing": "endOfBattle",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "payCost": false
+            "kind": "SubTrigger",
+            "event": "whenSecurityBattleEnded",
+            "once": true,
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "from": ["trash"],
+                "payCost": false
+              }
+            ]
           }
         ]
       },
@@ -219217,22 +219605,19 @@
         "trigger": "Main",
         "actions": [
           {
+            "effectTextPart": "[Main] 1 of your Digimon gets +2000 DP for the turn.",
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "amount": 2000,
-            "duration": "forTheTurn",
-            "effectTextPart": "[Main] 1 of your Digimon gets +2000 DP for the turn."
+            "duration": "forTheTurn"
           },
           {
+            "effectTextPart": "Then, if the number of cards in your security stack is less than or equal to your opponent's, 1 of your Digimon gains ＜Security Attack +1＞ for the turn. (This Digimon checks 1 additional security card.)",
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
             "duration": "forTheTurn",
-            "condition": {
-              "kind": "raw",
-              "raw": "the number of cards in your security stack is less than or equal to your opponent's"
-            },
-            "effectTextPart": "Then, if the number of cards in your security stack is less than or equal to your opponent's, 1 of your Digimon gains ＜Security Attack +1＞ for the turn. (This Digimon checks 1 additional security card.)"
+            "condition": { "kind": "not", "condition": { "kind": "securityCompare", "op": "gt" } }
           }
         ]
       },
@@ -219394,26 +219779,32 @@
     "effects": [
       {
         "trigger": "WhenAttacking",
+        "isInherited": true,
+        "condition": {
+          "kind": "zoneCount",
+          "seat": "mine",
+          "zone": "hand",
+          "op": "gte",
+          "value": 8,
+          "raw": "you have 8 or more cards in your hand"
+        },
         "actions": [
           {
-            "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
-            "to": "hand",
-            "condition": {
-              "kind": "zoneCount",
-              "seat": "mine",
-              "zone": "hand",
-              "op": "gte",
-              "value": 8,
-              "raw": "you have 8 or more cards in your hand"
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] },
+              "count": 1,
+              "bindAs": "returnTarget"
             }
           },
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": "all" }
-          }
-        ],
-        "isInherited": true
+            "kind": "TrashDigivolution",
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "returnTarget" },
+            "amount": 99,
+            "raw": "Trash all of the digivolution cards of that Digimon."
+          },
+          { "kind": "Return", "target": { "filter": {}, "count": 1, "fromSelectionRef": "returnTarget" }, "to": "hand" }
+        ]
       }
     ],
     "coverage": "full",
@@ -219423,13 +219814,24 @@
     "effects": [
       {
         "trigger": "Security",
+        "timing": "endOfBattle",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "payCost": false
+            "kind": "SubTrigger",
+            "event": "whenSecurityBattleEnded",
+            "once": true,
+            "raw": "At the end of the battle, play this card without paying its memory cost.",
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "from": ["trash"],
+                "payCost": false
+              }
+            ]
           }
-        ]
+        ],
+        "isSecurity": true
       },
       { "trigger": "OnPlay", "actions": [{ "kind": "Draw", "controller": "mine", "amount": 2 }] }
     ],
@@ -219877,11 +220279,20 @@
     "effects": [
       {
         "trigger": "Security",
+        "timing": "endOfBattle",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "payCost": false
+            "kind": "SubTrigger",
+            "event": "whenSecurityBattleEnded",
+            "once": true,
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "from": ["trash"],
+                "payCost": false
+              }
+            ]
           }
         ]
       },
@@ -225554,8 +225965,8 @@
                   "colors": ["Purple"],
                   "nameOrTrait": [
                     { "tokens": ["Ravemon"], "match": "name" },
-                    { "tokens": ["Avian"], "match": "trait" },
-                    { "tokens": ["Bird"], "match": "trait" }
+                    { "tokens": ["Avian"], "match": "traitContains" },
+                    { "tokens": ["Bird"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -228688,7 +229099,12 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
-            "cost": { "kind": "return", "target": { "filter": { "isSelfRef": true }, "count": 1 }, "to": "deckBottom" }
+            "cost": {
+              "kind": "return",
+              "target": { "filter": { "isSelfRef": true }, "count": 1 },
+              "to": "deckBottom",
+              "raw": "By returning this Tamer to the bottom of the deck"
+            }
           }
         ]
       },
@@ -232814,10 +233230,6 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
-            "condition": {
-              "kind": "selfIsInBattleArea",
-              "raw": "this Digimon remains in the battle area after placing your Digimon"
-            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -232846,10 +233258,6 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
-            "condition": {
-              "kind": "selfIsInBattleArea",
-              "raw": "this Digimon remains in the battle area after placing your Digimon"
-            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -232878,10 +233286,6 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
-            "condition": {
-              "kind": "selfIsInBattleArea",
-              "raw": "this Digimon remains in the battle area after placing your Digimon"
-            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -233638,6 +234042,7 @@
             "actions": [
               {
                 "kind": "PlayWithoutCost",
+                "chooseDualMode": true,
                 "target": {
                   "filter": {
                     "controllerDefault": "mine",

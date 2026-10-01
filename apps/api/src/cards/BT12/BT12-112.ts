@@ -6,11 +6,19 @@ const digiXros = compiled.digiXrosRequirement?.[0];
 if (digiXros !== undefined) {
   digiXros.count = "∞";
   digiXros.costReduction = 1;
+  // The catalog spells the trait both "Blue Flare" and "BlueFlare" (e.g. BT10-018 Gaossmon).
+  for (const material of digiXros.materials) {
+    if (material.traits?.includes("Blue Flare") === true && !material.traits.includes("BlueFlare")) {
+      material.traits = [...material.traits, "BlueFlare"];
+    }
+  }
 }
 
 for (const effect of compiled.effects) {
   for (const action of effect.actions) {
     if (action.kind !== "Replacement" || action.event !== "wouldBePlayed") continue;
+    // The placed [Shoutmon]'s digivolution cards are trashed by rule, not by this effect (Q2251).
+    action.actions = action.actions?.filter((nested) => nested.kind !== "TrashDigivolution");
     for (const nested of action.actions ?? []) {
       if (nested.kind !== "SelectBind" || nested.target.filter === undefined) continue;
       const filter = nested.target.filter as typeof nested.target.filter & { names?: string[] };

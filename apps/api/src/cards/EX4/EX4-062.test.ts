@@ -11,6 +11,36 @@ import "../BT1/BT1-010.js";
 const EX4_062 = "EX4-062";
 const BLUE_FLARE_DIGIMON = "BT11-030";
 const METALGREYMON = "BT10-024";
+const OMNIMON_ZWART = "BT5-087";
+const MIGHTY_AXE_MODE = "BT10-061";
+const NON_XROS_DIGIMON = "BT2-070";
+
+async function playFromTrashWithOmnimonZwart(trash: string[]) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: EX4_062, as: "tamer", under: [{ card: "BT7-058", as: "skullKnightmon" }] },
+          { card: OMNIMON_ZWART, as: "zwart" },
+        ],
+        trash: trash.map((card, index) => ({ card, as: `played${index}` })),
+        hand: [{ card: "BT7-059", as: "deadlyAxemon" }],
+        deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zwart"));
+  await settle(() =>
+    trash.every((_card, index) =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst(`played${index}`).instanceId,
+      ),
+    ),
+  );
+  return s;
+}
 
 describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", () => {
   it("registers full residual-free IR with the suspend-paid zone expansion", () => {
@@ -181,5 +211,85 @@ describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", ()
       digiXros: { materialInstanceIds: [trashMat.instanceId] },
     });
     expect(res.ok).toBe(false);
+  });
+
+  it("cannot be used when an effect plays 2 or more cards at the same time", async () => {
+    const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
+    expect(single.perm("tamer").isSuspended).toBe(true);
+    expect(single.perm("tamer").stack).toHaveLength(0);
+
+    const pair = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE, NON_XROS_DIGIMON]);
+    expect(pair.perm("tamer").isSuspended).toBe(false);
+    expect(pair.perm("tamer").stack.map((card) => card.instanceId)).toEqual([pair.inst("skullKnightmon").instanceId]);
+  });
+});
+
+describe("EX4-062 Kiriha Aonuma & Nene Amano — KB Q&A rulings", () => {
+  function playCyberLauncher(materialAliases: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: EX4_062, as: "tamer", under: [{ card: METALGREYMON, as: "underMetalGreymon" }] },
+            { card: "BT1-085", as: "otherTamer", under: [{ card: "BT23-055", as: "underCyberdramon" }] },
+          ],
+          trash: [{ card: "BT23-055", as: "trashCyberdramon" }],
+          hand: [
+            { card: BLUE_FLARE_DIGIMON, as: "xros" },
+            { card: METALGREYMON, as: "handMetalGreymon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("xros").instanceId,
+      digiXros: {
+        materialInstanceIds: materialAliases.map((alias) => s.inst(alias).instanceId),
+        expanderPermanentIds: [s.perm("tamer").permanentId],
+      },
+    });
+    return { s, result };
+  }
+
+  it("uses only 1 card from under 1 Tamer even with several Tamers holding cards (Q3503)", async () => {
+    const rejected = playCyberLauncher(["underMetalGreymon", "underCyberdramon"]);
+    expect(rejected.result.ok).toBe(false);
+    expect(rejected.s.perm("otherTamer").stack.map(({ cardId }) => cardId)).toEqual(["BT23-055"]);
+
+    expect(playCyberLauncher(["handMetalGreymon", "underCyberdramon"]).result).toEqual({ ok: true });
+
+    const accepted = playCyberLauncher(["underMetalGreymon", "trashCyberdramon"]);
+    expect(accepted.result).toEqual({ ok: true });
+    const { s } = accepted;
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === BLUE_FLARE_DIGIMON));
+    const played = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === BLUE_FLARE_DIGIMON)!;
+    expect(played.stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("underMetalGreymon").instanceId, s.inst("trashCyberdramon").instanceId]),
+    );
+    expect(s.perm("otherTamer").stack.map(({ cardId }) => cardId)).toEqual(["BT23-055"]);
+  });
+
+  it("counts as [Kiriha Aonuma] for a name search outside the battle area (Q3504)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-016", as: "greymon" }],
+          deck: [{ card: EX4_062, as: "dualTamer" }, { card: METALGREYMON, as: "xrosCard" }, "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("dualTamer").instanceId);
   });
 });

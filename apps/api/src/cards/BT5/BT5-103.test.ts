@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-026.js";
 import "./BT5-103.js";
 
 describe("BT5-103 A Blazing Storm of Metal!", () => {
@@ -63,5 +64,61 @@ describe("BT5-103 A Blazing Storm of Metal!", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
     advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 1);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(false);
+  });
+});
+
+describe("BT5-103 A Blazing Storm of Metal! — KB Q&A rulings", () => {
+  it("still lets a Piercing Digimon that deletes a Digimon in battle check security after the [Security] effect (Q1376)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "firstAttacker" },
+          { card: "BT1-026", as: "piercer" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "defender", suspended: true }],
+        security: [
+          { card: "BT5-103", as: "blazingStorm" },
+          { card: "BT1-010", as: "checked" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("blazingStorm").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(observe(s.engine).isRestricted(s.perm("piercer"), "attackPlayers")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("piercer").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("piercer").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("checked").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("piercer").permanentId,
+    );
   });
 });
