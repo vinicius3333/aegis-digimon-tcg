@@ -28,5 +28,8 @@ describe("BT7-043 Gotsumon", () => {
 
     expect(player.deck.map((card) => card.instanceId)).toEqual([greenDigimonId, s.inst("oldTop").instanceId]);
     expect(player.deck[0]?.faceUp).toBe(false);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
+      expect.objectContaining({ seat: 0, cardId: "BT1-064", sourceCardId: "BT7-043" }),
+    ]);
   });
 });

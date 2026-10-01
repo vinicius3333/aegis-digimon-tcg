@@ -108,4 +108,15 @@ describe("BT14-084 T.K. Takaishi — KB Q&A rulings", () => {
     expect(s.events.some((event) => event.kind === "cardRevealed" && event.cardId === "BT1-010")).toBe(false);
     expect(s.decisions.some(({ seat }) => seat === 1)).toBe(false);
   });
+
+  it("Discord 1555015560587247616 reveals the yellow [Vaccine] card placed from hand into security", async () => {
+    const s = playTkWithHand([{ card: "P-074", as: "yellowVaccine" }]);
+    await settle(() => s.state.pendingDecision === undefined && s.perm("tk").isSuspended);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("yellowVaccine").instanceId,
+    ]);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
+      expect.objectContaining({ seat: 0, cardId: "P-074", sourceCardId: "BT14-084" }),
+    ]);
+  });
 });
