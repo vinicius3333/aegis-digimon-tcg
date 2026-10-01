@@ -660,9 +660,10 @@ button.game-player-line__name {
   width: 560px;
 }
 
-/* A choice between a few answers ("printed or alternate requirement?") is read beside
-   the board, not over it: it docks on the same left edge as the board rail, without the
-   dimmed backdrop, so the field stays visible while the player picks. */
+/* A choice between a few answers ("printed or alternate requirement?") or a yes/no
+   optional effect is read beside the board, not over it: it docks on the same left edge
+   as the board rail, without the dimmed backdrop, so the field stays visible while the
+   player picks. */
 @media (min-width: 1024px) {
   .decision-overlay.decision-overlay--side {
     left: var(--ds-space-4);

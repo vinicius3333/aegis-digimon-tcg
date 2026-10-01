@@ -206,7 +206,7 @@ A release takes two steps. It is not public until you run step 2.
    `messages.json`. Commit as `chore(release): prepare vX.Y.Z-BETA` and push `main`.
 2. **Publish.** From a clean worktree at that commit, run
    `pnpm release:publish -- vX.Y.Z-BETA`. It runs the release checks, pushes the tag and
-   creates the GitHub pre-release with the notes from `pnpm release:notes`.
+   creates the GitHub release, marked as latest, with the notes from `pnpm release:notes`.
 
 `pnpm release:notes -- vX.Y.Z-BETA` prints the notes for an older release.
 

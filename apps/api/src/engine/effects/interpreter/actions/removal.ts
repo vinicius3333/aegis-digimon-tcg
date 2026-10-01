@@ -8,6 +8,7 @@ import { viableColorCandidates } from "../targeting/colorMatching.js";
 import { seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "../targeting/loose.js";
+import { revealPrivateRequirementPicks } from "../targeting/privateReveal.js";
 import {
   candidatePermanents,
   raiseDeletionDpCap,
@@ -826,6 +827,8 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           }
           return false;
         }
+        if (action.to === "hand" || action.to === "deckTop" || action.to === "deckBottom")
+          revealPrivateRequirementPicks(ctx, returnTarget, candidates, chosen);
         let ordered = chosen;
         if (action.order === "any" && chosen.length > 1) {
           ordered =

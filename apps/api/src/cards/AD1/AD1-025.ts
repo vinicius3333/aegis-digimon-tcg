@@ -135,6 +135,15 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 6,
+      materials: [
+        { count: 1, kinds: ["Digimon"], namesExact: ["WarGreymon"] },
+        { count: 1, kinds: ["Digimon"], namesExact: ["MetalGarurumon"] },
+      ],
+    },
+  ],
 };
 
 registerIrCard("AD1-025", compiled);
