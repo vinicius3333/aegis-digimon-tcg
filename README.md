@@ -122,7 +122,8 @@ pnpm dev
 ```
 
 `pnpm dev` starts the shared package in watch mode, the API on port `2567`, and
-the client at `http://localhost:5173`. The client talks to `ws://localhost:2567`
+the client at `http://localhost:5173`. The API builds once and does not watch: restart
+`pnpm dev` to pick up API changes. The client talks to `ws://localhost:2567`
 unless you set `VITE_AEGIS_API_URL`.
 
 ### Commands

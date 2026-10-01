@@ -46,6 +46,7 @@ export interface AegisJoinOptions {
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
     | "arena-bt14-chuumon-security-reveal"
     | "arena-bt20-omnimon-each-player-survivor"
+    | "arena-bt20-ouryuken-reduction-resumes"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
     | "arena-ex13-craniamon-assembly"

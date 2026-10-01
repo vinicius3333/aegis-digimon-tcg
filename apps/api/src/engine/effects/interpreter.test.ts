@@ -1059,7 +1059,6 @@ function makeContext(opts: {
       rec.calls.push({ verb: "placeUnderFromDeck", args: a });
       return undefined;
     },
-    restoreDpReductions: record("restoreDpReductions"),
     placeUnderFromEggDeck: async (...a) => {
       rec.calls.push({ verb: "placeUnderFromEggDeck", args: a });
       return undefined;
