@@ -35,5 +35,12 @@ describe("BT23 Examon opponent-turn DNA arena scenario", () => {
     expect(s.events.filter((event) => event.kind === "attackDeclared")).toEqual([]);
     expect(s.decisions.filter(({ req }) => /^attack/.test(String(req.options?.selectionContext ?? "")))).toEqual([]);
     expect(s.state.players[1]!.security).toHaveLength(securityBefore);
+
+    const geneInstanceId = s.state.players[0]!.trash.find(({ cardId }) => cardId === "BT20-093")!.instanceId;
+    const geneMoves = s.events.filter(
+      (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(geneInstanceId),
+    );
+    expect(geneMoves).toHaveLength(1);
+    expect(geneMoves[0]).not.toHaveProperty("deletedPermanents");
   });
 });

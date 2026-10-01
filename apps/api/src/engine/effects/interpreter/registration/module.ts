@@ -8,6 +8,7 @@ import { getEffectModule, registerCard, unregisterCard } from "../../registry.js
 import { registeredCompiledCards, registeredIrModules } from "../compiledCards.js";
 import { describeEffect } from "../describe.js";
 import { runEffect } from "../dispatch.js";
+import { trashDelaySource } from "../optionTrash.js";
 import {
   builderForTrigger,
   canActivateEffect,
@@ -302,7 +303,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // trashing this card in your battle area, [payload]" activatable that "can't activate
         // the turn this card enters play". Inject those semantics for EVERY delay clause so the
         // whole Memory Boost family is correct without per-card cost/condition IR — the source
-        // option (placed as a battle-area permanent by its on-play effect) is deleted as the
+        // option (placed as a battle-area permanent by its on-play effect) is trashed as the
         // cost, then the payload runs.
         // A `sharedUseKey` makes several clauses (across different timings) share ONE per-turn use
         // ledger entry — the UseTracker keys on (instanceId, effectKey), so a stable key shared by
@@ -353,7 +354,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             },
             resolve: async (ctx) => {
               if (!effectCondition(effect, ctx)) return;
-              // "By trashing this card" — delete the source option permanent (the cost); only run
+              // "By trashing this card" — trash the source Option permanent (the cost); only run
               // the payload if it was actually trashed.
               const self = ctx.source.permanent();
               if (self === undefined) return;
@@ -367,12 +368,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
                 delayArmedConsumed = true;
               }
-              const trashed = await ctx.fx.deletePermanent([self.permanentId]);
+              const trashed = await trashDelaySource(ctx, self);
               // A prevented/failed trash does not pay ＜Delay＞'s activation cost, so its
               // payload cannot resolve. A replacement may move the source before reporting
               // a zero-like result while still having paid the cost.
               if (trashed <= 0 && ctx.source.permanent() !== undefined) return;
-              // The source is the activation cost. Delete it before resolving the payload so
+              // The source is the activation cost. Trash it before resolving the payload so
               // state observers cannot see the Delay reward while the paid card remains in play.
               const outerEffectKey = ctx.activeEffectKey;
               ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);
@@ -413,13 +414,13 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             },
             resolve: async (ctx) => {
               if (!effectCondition(effect, ctx)) return;
-              // "By trashing this card" — delete the source permanent (the cost); only run the
+              // "By trashing this card" — trash the source permanent (the cost); only run the
               // payload if it was actually trashed. §16-17-2: the whole thing is optional.
               const self = ctx.source.permanent();
               if (self === undefined) return;
               const activate = await ctx.ask.optional(ctx, "Trash this card to activate its ＜Delay＞ effect?");
               if (!activate) return;
-              const trashed = await ctx.fx.deletePermanent([self.permanentId]);
+              const trashed = await trashDelaySource(ctx, self);
               if (trashed <= 0 && ctx.source.permanent() !== undefined) return;
               const outerEffectKey = ctx.activeEffectKey;
               ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);

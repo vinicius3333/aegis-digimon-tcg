@@ -4,6 +4,7 @@ import type { EffectContext, SubTriggerEventName, TriggerInfo } from "../../Effe
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
+import { trashDelaySource } from "../optionTrash.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionHasKeyword, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
@@ -1301,7 +1302,7 @@ export async function runSubTrigger(
         }
         subCtx.oncePerTurnActivationChosen = true;
         subCtx.oncePerTurnActivationDeclined = false;
-        const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
+        const trashed = await trashDelaySource(subCtx, delaySource);
         if (trashed <= 0 && subCtx.source.permanent() !== undefined) return;
         activationCostPaid = true;
       } else {
