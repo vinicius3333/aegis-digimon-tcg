@@ -98,6 +98,10 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    { reduceCost: 2, materials: [{ count: 1, namesExact: ["Blimpmon"] }] },
+    { reduceCost: 2, materials: [{ count: 1, kinds: ["Tamer"], traits: ["TS"] }] },
+  ],
   digivolutionRequirement: [
     {
       level: 4,

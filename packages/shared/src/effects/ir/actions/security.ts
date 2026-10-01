@@ -116,8 +116,9 @@ export interface SecurityManipulationAction extends ActionBase {
    */
   ownerSecurity?: boolean;
   /**
-   * For placeAsSecurity from a LOOSE zone: reveal the chosen card to the opponent before it goes
-   * face down onto the stack (LM-023 Q4025).
+   * For placeAsSecurity from a LOOSE zone: always reveal the chosen card to the opponent before it
+   * goes face down onto the stack (LM-023 Q4025). Without it, the engine still reveals a card
+   * taken from hand/deck under a filter requirement, as the rules require for every card.
    */
   revealChosen?: boolean;
   position?: string;

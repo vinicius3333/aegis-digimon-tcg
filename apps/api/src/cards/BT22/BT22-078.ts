@@ -55,6 +55,12 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 6,
+      materials: [{ count: 5, kinds: ["Digimon"], traits: ["Flame"], differentCardNumbers: true }],
+    },
+  ],
   digivolutionRequirement: [
     {
       level: 5,

@@ -20,7 +20,6 @@ const compiled: CompiledCard = {
           rest: "deckBottom",
         },
       ],
-      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {
       trigger: "OnDeletion",
@@ -49,6 +48,11 @@ const compiled: CompiledCard = {
         },
       ],
       isInherited: true,
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
   ],
   coverage: "full",

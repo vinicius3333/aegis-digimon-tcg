@@ -35,12 +35,12 @@ export function createStatsVerbs(pc: PrimitivesContext) {
   const modifyDP: Primitives["modifyDP"] = (permanentId, delta, duration, opts): void => {
     const before = access.permanentById(permanentId);
     if (before === undefined) return; // no such battle-area permanent; nothing to buff
-    // "DP can't be reduced" (§15-1-3). Every printed instance of this protection says REDUCED
-    // (BT3-105, EX1-073, BT23-085, BT7-064, BT9-098, BT19-089), so it gates negative deltas
-    // only — a buff still lands on a DP-immune Digimon.
+    // "DP can't be reduced" (§15-1-3) gates negative deltas only. The ledger suppresses a
+    // reduction while `dpImmune` holds rather than dropping it, so it applies for the rest
+    // of its duration once the protection ends.
     const byOpponentEffect = pc.helpers.isOpponentEffectAgainst(permanentId);
-    if (delta < 0 && continuous.hasRestriction(permanentId, "dpImmune", undefined, { byOpponentEffect })) return;
     ledger.addDpModifier(state, permanentId, delta, durationForTarget(permanentId, duration), {
+      byOpponentEffect,
       ...(opts?.continuous === undefined ? continuousOpt() : { continuous: opts.continuous }),
       ...(opts?.sourceInstanceId !== undefined ? { sourceInstanceId: opts.sourceInstanceId } : {}),
       ...((opts?.sourceSeat ?? effectSeatStack.at(-1)) !== undefined
@@ -65,10 +65,6 @@ export function createStatsVerbs(pc: PrimitivesContext) {
         ? { sourceKinds: opts?.sourceKinds ?? effectSourceKindsStack.at(-1) }
         : {}),
     });
-  };
-
-  const restoreDpReductions: Primitives["restoreDpReductions"] = (permanentId): void => {
-    ledger.restoreDpReductions(state, permanentId);
   };
 
   const setBaseDP = (permanentId: string, value: number, duration: EffectDuration): void => {
@@ -179,7 +175,6 @@ export function createStatsVerbs(pc: PrimitivesContext) {
   return {
     modifyDP,
     modifyPlayerDP,
-    restoreDpReductions,
     setBaseDP,
     grantPierce,
     changeEvoCost,

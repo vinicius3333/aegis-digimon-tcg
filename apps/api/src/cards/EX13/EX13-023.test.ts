@@ -732,7 +732,7 @@ describe("EX13-023 UlforceVeedramon", () => {
     assertNoLoudGap(s);
   });
 
-  it("refuses the opponent's DP reduction while unsuspended and accepts it once suspended", async () => {
+  it("holds the opponent's DP reduction while unsuspended and applies it once suspended (Q7269)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -753,13 +753,15 @@ describe("EX13-023 UlforceVeedramon", () => {
 
     await advance(s.engine).verb.suspend([s.perm("ulforce").permanentId], 0);
     expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(false);
+    expect(s.perm("ulforce").currentDP).toBe(9000);
     advance(s.engine).verb.enterEffectResolution(1);
     await advance(s.engine).verb.modifyDP(s.perm("ulforce").permanentId, -3000, EffectDuration.UntilEachTurnEnd);
     advance(s.engine).verb.leaveEffectResolution();
-    expect(s.perm("ulforce").currentDP).toBe(9000);
+    expect(s.perm("ulforce").currentDP).toBe(6000);
 
     await advance(s.engine).verb.unsuspend([s.perm("ulforce").permanentId]);
     expect(observe(s.engine).isRestricted(s.perm("ulforce"), "dpImmune")).toBe(true);
+    expect(s.perm("ulforce").currentDP).toBe(12_000);
   });
 
   it("refuses a real opponent card's -3000 DP effect", async () => {

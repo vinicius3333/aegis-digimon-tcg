@@ -32,7 +32,7 @@ export type PrePlayPrompt =
       kind: "assembly";
       instanceId: string;
       cardId: string;
-      requirement: AssemblyRequirement;
+      requirements: AssemblyRequirement[];
       candidates: AssemblyCandidate[];
     }
   | { kind: DragKind.Play; instanceId: string; cardId: string };
@@ -71,8 +71,8 @@ export function prePlayPromptFor({
       requirements: [...requirements],
       ...digiXrosMaterials({ cardId, instanceId, viewer, requirements }),
     };
-  const requirement = assemblyRequirementFor(cardId)?.[0];
-  if (requirement) {
+  const assemblyRequirements = assemblyRequirementFor(cardId) ?? [];
+  if (assemblyRequirements.length > 0) {
     const candidates: AssemblyCandidate[] = viewer.trash.map((ci) => ({
       instanceId: ci.instanceId,
       cardId: ci.cardId,
@@ -82,8 +82,8 @@ export function prePlayPromptFor({
       const definition = getCardDefinition(candidate.cardId);
       return definition ? [{ instanceId: candidate.instanceId, definition }] : [];
     });
-    if (assemblyPossible(requirement, candidateDefinitions))
-      return { kind: "assembly", instanceId, cardId, requirement, candidates };
+    if (assemblyPossible(assemblyRequirements, candidateDefinitions, getCardDefinition(cardId)))
+      return { kind: "assembly", instanceId, cardId, requirements: [...assemblyRequirements], candidates };
   }
   if (confirmDrop && actionConfirmationsEnabled) return { kind: DragKind.Play, instanceId, cardId };
   return undefined;

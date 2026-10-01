@@ -3,6 +3,7 @@ import {
   EffectTiming,
   Phase,
   Zone,
+  assemblyMaterialLevels,
   assemblyRequirementFor,
   canAssignDistinctColors,
   type AssemblyMaterial,
@@ -32,7 +33,7 @@ import { normalizeCost, placePermanent } from "./digiXros.js";
  *     the player's own declaration order when the requirement is a single repeated slot (§7-3-2-6)
  *
  * IR coverage: `AssemblyMaterial` carries `names`/`namesExact`/`traits`/`nameOrTrait`/`printedKeywords`/`level`/`levelMin`/
- * `levelMax`/`colors`/`differentLevels`/`differentNames`/`differentColors`, all enforced below. The
+ * `levelMax`/`colors`/`differentLevels`/`differentNames`/`differentColors`/`differentCardNumbers`, all enforced below. The
  * `differentColors` constraint applies to the repeated single-slot form used by EX13-077. `nameOrTrait` mirrors
  * `DigiXrosMaterial.nameOrTrait` for a genuine cross-kind disjunction the compiler can't flatten
  * into one AND-combined `names`+`traits` slot (e.g. EX12-016/-017's "in name or ... trait",
@@ -125,15 +126,11 @@ export function validateAssembly(
 
   const definition = definitionOf(instance.cardId);
   if (!isDigimon(definition)) return { ok: false, reason: "not-playable-kind" };
-  const requirement = assemblyRequirementFor(instance.cardId)?.[0];
-  if (requirement === undefined) return { ok: false, reason: "not-assembly" };
+  const requirements = assemblyRequirementFor(instance.cardId) ?? [];
+  if (requirements.length === 0) return { ok: false, reason: "not-assembly" };
 
   const materialIds = intent.assembly.materialInstanceIds;
   if (materialIds.length === 0) return { ok: false, reason: "no-materials" };
-
-  // §7-3-2-4: the EXACT total count across all slots must be placed, no partial Assembly.
-  const requiredTotal = requirement.materials.reduce((sum, slot) => sum + slot.count, 0);
-  if (materialIds.length !== requiredTotal) return { ok: false, reason: "invalid-material" };
 
   // §7-3-1: materials come from the trash ONLY (unlike DigiXros's hand/field/trash/under-Tamer).
   const materialDefs: CardDefinition[] = [];
@@ -146,9 +143,8 @@ export function validateAssembly(
     materialDefs.push(definitionOf(inTrash.cardId));
   }
 
-  if (!materialsSatisfyAssemblyRecipe(materialDefs, requirement.materials, definition)) {
-    return { ok: false, reason: "invalid-material" };
-  }
+  const requirement = satisfiedAssemblyRequirement(requirements, materialDefs, definition);
+  if (requirement === undefined) return { ok: false, reason: "invalid-material" };
 
   const printed = normalizeCost(definition.playCost);
   const base = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
@@ -267,10 +263,7 @@ export function materialMatchesAssemblySlot(
     if (!slot.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return false;
   }
   if (slot.printedKeywords?.some((keyword) => !definitionHasKeyword(def, keyword))) return false;
-  // "Also treated as level 4" is an additional permission for Kimeramon only;
-  // it neither changes the catalog definition nor removes SkullGreymon's printed level.
-  const levels = def.cardId === "EX9-062" && destination?.nameEn === "Kimeramon" ? [def.level, 4] : [def.level];
-  return levels.some(
+  return assemblyMaterialLevels(def, destination).some(
     (level) =>
       (slot.level === undefined || level === slot.level) &&
       (slot.levelMin === undefined || (level !== undefined && level >= slot.levelMin)) &&
@@ -305,6 +298,10 @@ export function materialsSatisfyAssemblyRecipe(
       if (new Set(names).size !== names.length) return false;
     }
     if (slot.differentColors === true && !canAssignDistinctColors(materials.map((m) => m.colors))) return false;
+    if (slot.differentCardNumbers === true) {
+      const cardNumbers = materials.map((m) => m.cardId);
+      if (new Set(cardNumbers).size !== cardNumbers.length) return false;
+    }
     return true;
   }
   // Multi-slot: each slot claims its own exact-count partition of qualifying materials, tried
@@ -321,4 +318,20 @@ export function materialsSatisfyAssemblyRecipe(
     if (claimed !== slot.count) return false;
   }
   return remaining.length === 0;
+}
+
+/**
+ * The first alternative recipe that `materials` fully satisfies. §7-3-2-4 demands the exact
+ * count, so a recipe of another size never matches.
+ */
+export function satisfiedAssemblyRequirement(
+  requirements: readonly AssemblyRequirement[],
+  materials: CardDefinition[],
+  destination?: CardDefinition,
+): AssemblyRequirement | undefined {
+  return requirements.find(
+    (requirement) =>
+      materials.length === requirement.materials.reduce((sum, slot) => sum + slot.count, 0) &&
+      materialsSatisfyAssemblyRecipe(materials, requirement.materials, destination),
+  );
 }

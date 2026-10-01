@@ -277,6 +277,8 @@ describe("EX9-069", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    // "1 card" has no requirement, so the face-down card stays hidden (Discord 1555015560587247616).
+    expect(s.events.some((event) => event.kind === "cardRevealed")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
