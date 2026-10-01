@@ -9,11 +9,27 @@ import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
-import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { candidateLooseInstances, type LooseCandidate, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { revealPrivateRequirementPicks } from "../targeting/privateReveal.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
 import { extractCardAt, insertCard } from "../../../state/access.js";
 import { Zone, type Action, type Filter, type Seat, type Target, type ZoneRef } from "@aegis/shared";
+
+/**
+ * A face-up placement is already public, so it needs no separate reveal. `revealChosen`
+ * forces one (LM-023 Q4025).
+ */
+function revealSecurityPlacement(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "SecurityManipulation" }>,
+  target: Target,
+  candidates: readonly LooseCandidate[],
+  chosen: readonly string[],
+): void {
+  if (action.revealChosen !== true && action.faceUp === true) return;
+  revealPrivateRequirementPicks(ctx, target, candidates, chosen, action.revealChosen === true);
+}
 
 /** ST23-05: optional trash of a most-security player's top, then ＜Recovery +N＞. */
 export async function runRecoverByTrashingMostSecurity(
@@ -356,14 +372,7 @@ export async function runSecurityManipulation(
           }
         }
         const chosen = await pickLoose(ctx, scaledSource, candidates);
-        // "Do I reveal the card to my opponent? Yes" (LM-023 Q4025): the card is shown before it
-        // goes face down onto the stack, so a hidden-zone placement stays public information.
-        if (action.revealChosen === true) {
-          for (const instanceId of chosen) {
-            const card = candidates.find((candidate) => candidate.instanceId === instanceId);
-            if (card !== undefined) ctx.fx.revealCard(ctx.source.ownerSeat, card.cardId, ctx.source.cardId);
-          }
-        }
+        revealSecurityPlacement(ctx, action, scaledSource, candidates, chosen);
         if (chosen.length > 0)
           await ctx.fx.addSecurity(seat, chosen, { toTop: await placementToTop(), faceUp: action.faceUp });
         return;
@@ -616,6 +625,7 @@ async function runSecurityAdd(
     // that hand, so a pick routed through ctx.ask would be a blind choice among card backs.
     const asker = ownController === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
     const chosen = await pickLoose(ctx, target, candidates, undefined, asker);
+    revealSecurityPlacement(ctx, { ...action, faceUp: opts.faceUp }, target, candidates, chosen);
     if (chosen.length > 0) await ctx.fx.addSecurity(seat, chosen, opts);
     return;
   }
@@ -628,6 +638,7 @@ async function runSecurityAdd(
     if (zones.length > 0) {
       const candidates = candidateLooseInstances(ctx, source, zones);
       const chosen = await pickLoose(ctx, source, candidates);
+      revealSecurityPlacement(ctx, { ...action, faceUp: opts.faceUp }, source, candidates, chosen);
       if (chosen.length > 0) await ctx.fx.addSecurity(seat, chosen, opts);
       // A follow-up action may depend on the number of cards actually placed (BT18-102).
       // The source can be a digivolution stack, so derive the receipt from the destination

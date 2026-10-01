@@ -25,6 +25,9 @@ export function RightPileColumn({
   viewerDeckRiffling,
   viewerTrashClassName,
   breedingBurst,
+  breedingEffectSource,
+  breedingEffectLinked,
+  breedingHighlight,
   securityCount,
   securityBreak,
   securityBreakMine,
@@ -51,6 +54,9 @@ export function RightPileColumn({
   /** The trash marks itself when an effect is resolving from the pile. */
   viewerTrashClassName: string;
   breedingBurst: PermanentBurst | undefined;
+  breedingEffectSource: boolean;
+  breedingEffectLinked: boolean;
+  breedingHighlight: boolean;
   /** What the shield shows: a scene still holding a card keeps the higher figure. */
   securityCount: number;
   securityBreak: SecurityBreakCue | null;
@@ -101,6 +107,9 @@ export function RightPileColumn({
               label={t("game.pile.raising")}
               compact={compactPiles}
               burst={breedingBurst}
+              effectSource={breedingEffectSource}
+              effectLinked={breedingEffectLinked}
+              highlight={breedingHighlight}
               width={pileWidth}
               onClick={onOpenOpponentBreeding}
             />

@@ -90,8 +90,8 @@ export function DecisionPrompts({
   const boardSelectionKind =
     decision?.kind === "selectCards" || decision?.kind === "chooseTargets" ? decision.kind : undefined;
   const assemblyCardId = decision?.kind === "selectCards" ? decision.options?.assemblyCardId : undefined;
-  const assemblyRequirement = assemblyCardId ? assemblyRequirementFor(assemblyCardId)?.[0] : undefined;
-  const isAssemblyDecision = assemblyCardId !== undefined && assemblyRequirement !== undefined;
+  const assemblyRequirements = assemblyCardId ? assemblyRequirementFor(assemblyCardId) : undefined;
+  const isAssemblyDecision = assemblyCardId !== undefined && (assemblyRequirements?.length ?? 0) > 0;
   const digiXrosCardId = decision?.kind === "selectCards" ? decision.options?.digiXrosCardId : undefined;
   const digiXrosRequirements = digiXrosCardId ? digiXrosRequirementFor(digiXrosCardId) : undefined;
   const isDigiXrosDecision = digiXrosCardId !== undefined && digiXrosRequirements !== undefined;
@@ -167,10 +167,10 @@ export function DecisionPrompts({
         />
       ) : null}
 
-      {decision?.kind === "selectCards" && assemblyCardId && assemblyRequirement ? (
+      {decision?.kind === "selectCards" && assemblyCardId && assemblyRequirements && isAssemblyDecision ? (
         <AssemblyMaterialOverlay
           playingCardId={assemblyCardId}
-          requirement={assemblyRequirement}
+          requirements={assemblyRequirements}
           candidates={candidates.flatMap((candidate) =>
             candidate.cardId
               ? [{ instanceId: candidate.instanceId, cardId: candidate.cardId, artId: candidate.artId }]

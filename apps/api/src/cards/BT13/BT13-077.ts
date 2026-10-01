@@ -19,12 +19,6 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
       ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
-        },
-      ],
     },
     {
       trigger: "WhenDigivolving",
@@ -40,12 +34,6 @@ export const compiled: CompiledCard = {
           },
           grant: "immuneToOpponentDigimonEffects",
           duration: "untilOpponentTurnEnd",
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
         },
       ],
     },
@@ -65,6 +53,11 @@ export const compiled: CompiledCard = {
           attackPlayer: true,
         },
       ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
   ],
   coverage: "full",

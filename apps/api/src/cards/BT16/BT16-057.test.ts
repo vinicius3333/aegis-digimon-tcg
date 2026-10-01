@@ -6,9 +6,17 @@ import "../index.js";
 
 describe("BT16-057", () => {
   it("de-digivolves an opposing Digimon by 1 by placing another DigiPolice Digimon underneath itself", () => {
+    expect(compiled.effects?.at(-1)).toEqual({
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        { keyword: "Blocker", raw: "＜Blocker＞" },
+        { keyword: "Armor Purge", raw: "＜Armor Purge＞" },
+      ],
+    });
+    expect(compiled.effects?.[0]?.keywords).toBeUndefined();
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "OnPlay",
-      keywords: [{ keyword: "Blocker" }, { keyword: "Armor Purge" }],
       actions: [
         {
           kind: "DeDigivolve",
