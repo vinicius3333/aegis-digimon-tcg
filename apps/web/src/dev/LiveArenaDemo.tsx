@@ -204,6 +204,26 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Compre BT1-009, encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT19-069 e EX8-046 têm Blocker apenas herdado e devem voltar ao fundo.",
     en: "Draw BT1-009, end breeding, and play Gotsumon. Only BT20-047 should be eligible for the Blocker search; BT19-069 and EX8-046 have inherited-only Blocker and must return to the bottom.",
   },
+  "arena-ex13-craniamon-assembly": {
+    ptBR: "Compre a carta do turno e encerre a criação. Jogue Craniamon (EX13-062) com a memória em 0: o seletor de Assembly deve abrir. Somente Bulbmon (Lv.5), Guardromon (Lv.4) e Gotsumon (Lv.3) devem ser elegíveis; Bokomon (Blocker só herdado) e Monmon (azul) não. Escolha os três: Craniamon custa 7 e a memória vai para 7 do oponente.",
+    en: "Draw the turn card and end breeding. Play Craniamon (EX13-062) with memory at 0: the Assembly picker must open. Only Bulbmon (Lv.5), Guardromon (Lv.4), and Gotsumon (Lv.3) may be eligible; Bokomon (inherited-only Blocker) and Monmon (blue) may not. Pick all three: Craniamon costs 7 and memory goes to 7 on the opponent's side.",
+  },
+  "arena-p220-millenniummon-assembly": {
+    ptBR: 'Compre a carta do turno e encerre a criação. Jogue Millenniummon (P-220) com a memória em 0: o seletor de Assembly deve abrir. Escolha Patamon (Lv.3): o outro Lv.3 (Kunemon) e Groundramon (sem o traço) não podem ser elegíveis. Complete com Deltamon (Lv.4) e Kimeramon (Lv.5): Millenniummon custa 8. Recuse "você pode deletar 1 Digimon": a memória vai para 8 do oponente.',
+    en: 'Draw the turn card and end breeding. Play Millenniummon (P-220) with memory at 0: the Assembly picker must open. Pick Patamon (Lv.3): the other Lv.3 (Kunemon) and Groundramon (no trait) may not be eligible. Finish with Deltamon (Lv.4) and Kimeramon (Lv.5): Millenniummon costs 8. Decline "you may delete 1 Digimon": memory goes to 8 on the opponent\'s side.',
+  },
+  "arena-ex9-kimeramon-skullgreymon-assembly": {
+    ptBR: "Compre a carta do turno e encerre a criação. Jogue Kimeramon (EX9-074) com a memória em 0: o seletor de Assembly deve abrir e oferecer os seis Lv.4 [DM] e também SkullGreymon (Lv.5 tratado como Lv.4 para o Kimeramon). Escolha os sete: Kimeramon custa 3 e a memória vai para 3 do oponente.",
+    en: "Draw the turn card and end breeding. Play Kimeramon (EX9-074) with memory at 0: the Assembly picker must open and offer the six Lv.4 [DM] Digimon plus SkullGreymon (Lv.5, treated as Lv.4 for Kimeramon). Pick all seven: Kimeramon costs 3 and memory goes to 3 on the opponent's side.",
+  },
+  "arena-bt24-masterblimpmon-assembly": {
+    ptBR: "Compre a carta do turno e encerre a criação. Jogue MasterBlimpmon (BT24-062): o seletor de Assembly deve abrir e listar as duas receitas ([Blimpmon] / Tamer [TS]). Somente o Tamer [TS] deve ser elegível; Shamanmon (Digimon [TS]) não. Escolha o Tamer: MasterBlimpmon custa 5 e a memória vai para 5 do oponente.",
+    en: "Draw the turn card and end breeding. Play MasterBlimpmon (BT24-062): the Assembly picker must open and list both recipes ([Blimpmon] / [TS] Tamer). Only the [TS] Tamer may be eligible; Shamanmon ([TS] Digimon) may not. Pick the Tamer: MasterBlimpmon costs 5 and memory goes to 5 on the opponent's side.",
+  },
+  "arena-bt22-boltmon-assembly": {
+    ptBR: "Compre a carta do turno e encerre a criação. Jogue Boltmon (BT22-078) com a memória em 0: o seletor de Assembly deve abrir. Depois de escolher uma Candlemon BT15-069, a segunda BT15-069 não pode ser elegível. Escolha os cinco números diferentes: Boltmon custa 6 e a memória vai para 6 do oponente.",
+    en: "Draw the turn card and end breeding. Play Boltmon (BT22-078) with memory at 0: the Assembly picker must open. Once one Candlemon BT15-069 is picked, the second BT15-069 may not be eligible. Pick the five different card numbers: Boltmon costs 6 and memory goes to 6 on the opponent's side.",
+  },
   "arena-rainbow-evo-cost": {
     ptBR: "Compre a carta do turno e encerre a criação. Digivolva Omnimon: Merciful Mode em WarGreymon (Lv.6 vermelho/preto) pagando 6: a memória vai de 12 para 6. Recuse o ataque. Depois digivolva Susanoomon em Boltmon (Lv.6 roxo) pagando 6: a memória chega a 0. As duas cartas devem oferecer Digivolver, não só Jogar.",
     en: "Draw the turn card and end breeding. Digivolve Omnimon: Merciful Mode onto WarGreymon (red/black Lv.6) for 6: memory goes from 12 to 6. Decline the attack. Then digivolve Susanoomon onto Boltmon (purple Lv.6) for 6: memory reaches 0. Both cards must offer Digivolve, not only Play.",
@@ -398,6 +418,11 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
+  ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
+  ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],
+  ["arena-ex9-kimeramon-skullgreymon-assembly", "EX9 Kimeramon · SkullGreymon as Lv.4 material"],
+  ["arena-bt24-masterblimpmon-assembly", "BT24 MasterBlimpmon · alternative Assembly recipes"],
+  ["arena-bt22-boltmon-assembly", "BT22 Boltmon · Assembly with different card numbers"],
   ["arena-rainbow-evo-cost", "EX13 Merciful Mode / EX12 Susanoomon · any-color Lv.6 digivolve"],
   ["arena-mightyaxe-mode-digixros", "BT10 Mighty Axe Mode · DigiXros name alias"],
   ["arena-hand-reconnect-sync", "Reconnect · card drawn offline reaches the hand"],

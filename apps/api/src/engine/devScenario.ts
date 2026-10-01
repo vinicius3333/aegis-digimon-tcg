@@ -64,6 +64,11 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-ex13-gotsumon-blocker-search",
+  "arena-ex13-craniamon-assembly",
+  "arena-p220-millenniummon-assembly",
+  "arena-ex9-kimeramon-skullgreymon-assembly",
+  "arena-bt24-masterblimpmon-assembly",
+  "arena-bt22-boltmon-assembly",
   "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
   "arena-sukamon-transform-digivolve",
@@ -1026,6 +1031,149 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * Discord regression (match d64ba0e9): EX13-062 Craniamon's [Assembly -5] needs black Lv.5/Lv.4/Lv.3
+ * cards with printed ＜Blocker＞. Memory 0 makes the full-cost play illegal, so only Assembly works.
+ * EX13-050 (inherited-only Blocker) and BT1-031 (blue) are decoys the picker must not offer.
+ */
+function layEx13CraniamonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-craniamon", "EX13-062", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv5", "BT20-054", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv4", "EX1-047", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv3", "BT13-061", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-inherited-blocker", "EX13-050", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-blue-blocker", "BT1-031", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * Discord regression: P-220 Millenniummon prints [Assembly -6] with three [Composite]/[Ver.3]/[Ver.5]
+ * Digimon of different levels. Memory 0 makes the full-cost play (14) illegal. EX9-034 repeats
+ * Patamon's level and BT1-020 lacks the traits, so neither may complete the set.
+ */
+function layP220MillenniummonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-millenniummon", "P-220", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-lv3", "EX9-023", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-lv4", "BT18-013", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-lv5", "BT18-015", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-same-level", "EX9-034", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-millenniummon-no-trait", "BT1-020", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * EX9-062 SkullGreymon is also treated as Lv.4 for EX9-074 Kimeramon's [Assembly -7]. The trash
+ * holds six differently named Lv.4 [DM] Digimon, so the seventh material must be SkullGreymon.
+ */
+function layEx9KimeramonSkullGreymonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-kimeramon", "EX9-074", 0));
+    for (const cardId of ["EX9-009", "EX9-010", "EX9-017", "EX9-025", "EX9-026", "EX9-028"]) {
+      insertCard(human, Zone.Trash, faceUpCard(`dev-kimeramon-${cardId}`, cardId, 0));
+    }
+    insertCard(human, Zone.Trash, faceUpCard("dev-kimeramon-skullgreymon", "EX9-062", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * BT24-062 MasterBlimpmon prints two alternative recipes: "[Blimpmon]/Tamer card w/[TS] trait".
+ * Only the [TS] Tamer is in the trash; the [TS] Digimon decoy must not qualify.
+ */
+function layBt24MasterBlimpmonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-masterblimpmon", "BT24-062", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-masterblimpmon-ts-tamer", "BT24-083", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-masterblimpmon-ts-digimon", "BT24-009", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
+ * BT22-078 Boltmon needs five [Flame] Digimon with different card numbers. The trash holds a
+ * second BT15-069, which may not join a set that already has one. Memory 0 rules out the
+ * full-cost play (12).
+ */
+function layBt22BoltmonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-boltmon", "BT22-078", 0));
+    for (const cardId of ["BT11-084", "BT15-009", "BT15-015", "BT15-069", "BT18-030"]) {
+      insertCard(human, Zone.Trash, faceUpCard(`dev-boltmon-${cardId}`, cardId, 0));
+    }
+    insertCard(human, Zone.Trash, faceUpCard("dev-boltmon-repeated-number", "BT15-069", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** EX13-077 and EX12-076 print a rainbow Lv.6 digivolve cost: any-color Lv.6 bases qualify. */
@@ -3091,6 +3239,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
+  "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,
+  "arena-ex9-kimeramon-skullgreymon-assembly": layEx9KimeramonSkullGreymonAssemblyScenario,
+  "arena-bt24-masterblimpmon-assembly": layBt24MasterBlimpmonAssemblyScenario,
+  "arena-bt22-boltmon-assembly": layBt22BoltmonAssemblyScenario,
   "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,
