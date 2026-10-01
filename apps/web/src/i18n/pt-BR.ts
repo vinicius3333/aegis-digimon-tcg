@@ -770,6 +770,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.cardEffect": "{name} · efeito",
   "overlay.resolveEffect": "Resolver efeito",
   "overlay.chooseEffectPrompt": "Escolha um efeito",
+  "overlay.chooseCardOrderPrompt": "Escolha a ordem das cartas",
   "overlay.useEffectPrompt": "Usar este efeito?",
   "overlay.choiceRevealedCards": "Cartas reveladas",
   "overlay.choiceHandCards": "Carta em questão",

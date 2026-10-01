@@ -566,6 +566,39 @@ describe("generic engine selection prompts", () => {
     expect(screen.queryByText(promptText)).toBeNull();
   });
 
+  it("titles the engine's card-order prompt in the player's language (Discord 1555224478416633927)", () => {
+    localStorage.setItem("aegis:locale", "pt-BR");
+    try {
+      render(
+        <I18nProvider>
+          <DecisionOverlay
+            request={{
+              decisionId: "generic-order",
+              seat: 0,
+              kind: "orderCards",
+              promptText: "Choose the card order",
+              sourceCardId: "EX12-018",
+              options: { orderDestination: "stackBottom" },
+            }}
+            sourceCardId="EX12-018"
+            candidates={[
+              { instanceId: "first", cardId: "EX12-007" },
+              { instanceId: "second", cardId: "EX12-013" },
+            ]}
+            picks={[]}
+            onTogglePick={vi.fn()}
+            onRespond={vi.fn()}
+          />
+        </I18nProvider>,
+      );
+
+      expect(screen.queryByText("Choose the card order")).toBeNull();
+      expect(screen.getByText("Escolha a ordem das cartas")).toBeTruthy();
+    } finally {
+      localStorage.removeItem("aegis:locale");
+    }
+  });
+
   it("replaces the generic modal prompt with a friendly localized instruction", () => {
     renderDecision({
       decisionId: "generic-modal",

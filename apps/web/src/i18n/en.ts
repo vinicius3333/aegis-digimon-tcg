@@ -755,6 +755,7 @@ export const en = {
   "overlay.cardEffect": "{name} · effect",
   "overlay.resolveEffect": "Resolve effect",
   "overlay.chooseEffectPrompt": "Choose an effect",
+  "overlay.chooseCardOrderPrompt": "Choose the card order",
   "overlay.useEffectPrompt": "Use this effect?",
   "overlay.choiceRevealedCards": "Revealed cards",
   "overlay.choiceHandCards": "Card in question",
