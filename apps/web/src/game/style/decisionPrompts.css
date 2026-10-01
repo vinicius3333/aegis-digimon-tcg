@@ -866,6 +866,9 @@
 .waiting-dialog__handle {
   display: none;
 }
+.waiting-dialog__action {
+  margin-top: var(--ds-space-5);
+}
 .waiting-dialog__cancel {
   grid-column: 1 / -1;
   margin-top: var(--ds-space-4);
