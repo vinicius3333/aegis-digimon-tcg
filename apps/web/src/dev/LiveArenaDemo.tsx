@@ -208,6 +208,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Compre BT1-009, encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT19-069 e EX8-046 têm Blocker apenas herdado e devem voltar ao fundo.",
     en: "Draw BT1-009, end breeding, and play Gotsumon. Only BT20-047 should be eligible for the Blocker search; BT19-069 and EX8-046 have inherited-only Blocker and must return to the bottom.",
   },
+  "arena-ex13-gotsumon-promo-knightmon": {
+    ptBR: "Compre BT1-009, encerre a criação e jogue Gotsumon. Ele revela Tai Kamiya, Knightmon promo (P-111) e Black Scramble. Na escolha da carta com Blocker, Knightmon P-111 deve ser oferecido e ir para a mão; Tai Kamiya e Black Scramble voltam ao fundo do deck.",
+    en: "Draw BT1-009, end breeding, and play Gotsumon. It reveals Tai Kamiya, promo Knightmon (P-111), and Black Scramble. The Blocker choice must offer Knightmon P-111 and add it to the hand; Tai Kamiya and Black Scramble return to the bottom of the deck.",
+  },
   "arena-rainbow-evo-cost": {
     ptBR: "Compre a carta do turno e encerre a criação. Digivolva Omnimon: Merciful Mode em WarGreymon (Lv.6 vermelho/preto) pagando 6: a memória vai de 12 para 6. Recuse o ataque. Depois digivolva Susanoomon em Boltmon (Lv.6 roxo) pagando 6: a memória chega a 0. As duas cartas devem oferecer Digivolver, não só Jogar.",
     en: "Draw the turn card and end breeding. Digivolve Omnimon: Merciful Mode onto WarGreymon (red/black Lv.6) for 6: memory goes from 12 to 6. Decline the attack. Then digivolve Susanoomon onto Boltmon (purple Lv.6) for 6: memory reaches 0. Both cards must offer Digivolve, not only Play.",
@@ -403,6 +407,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
+  ["arena-ex13-gotsumon-promo-knightmon", "EX13 Gotsumon · promo Knightmon P-111 Blocker search"],
   ["arena-rainbow-evo-cost", "EX13 Merciful Mode / EX12 Susanoomon · any-color Lv.6 digivolve"],
   ["arena-mightyaxe-mode-digixros", "BT10 Mighty Axe Mode · DigiXros name alias"],
   ["arena-hand-reconnect-sync", "Reconnect · card drawn offline reaches the hand"],

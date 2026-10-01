@@ -47,6 +47,7 @@ export interface AegisJoinOptions {
     | "arena-bt14-chuumon-security-reveal"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
+    | "arena-ex13-gotsumon-promo-knightmon"
     | "arena-rainbow-evo-cost"
     | "arena-mightyaxe-mode-digixros"
     | "arena-hand-reconnect-sync"
