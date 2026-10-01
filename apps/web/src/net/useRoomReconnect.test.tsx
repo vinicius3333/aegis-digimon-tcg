@@ -145,6 +145,36 @@ describe("useRoom reconnection token persistence", () => {
     expect(loadReconnectSession()).toMatchObject({ roomId: "room-1" });
   }, 3_000);
 
+  it("keeps the persisted session fresh so a reload late in a long match still resumes", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "Date"], shouldAdvanceTime: true });
+    try {
+      const joined = fakeRoom("long-match");
+      joinOrCreate.mockResolvedValue(joined.room);
+      const { result } = renderHook(() => useRoom(OPTIONS));
+      await waitFor(() => expect(result.current.status).toBe("connected"));
+
+      vi.advanceTimersByTime(4 * 60_000);
+      expect(loadReconnectSession()).toMatchObject({ roomId: "long-match" });
+      expect(Date.now() - loadReconnectSession()!.savedAt).toBeLessThanOrEqual(5_000);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops retrying at once when the server says the room is gone", async () => {
+    const joined = fakeRoom("gone");
+    joinOrCreate.mockResolvedValue(joined.room);
+    reconnect.mockRejectedValue(Object.assign(new Error("room not found"), { code: 522 }));
+    const { result } = renderHook(() => useRoom(OPTIONS));
+    await waitFor(() => expect(result.current.status).toBe("connected"));
+
+    joined.emitLeave(1006);
+
+    await waitFor(() => expect(result.current.status).toBe("closed"));
+    expect(reconnect).toHaveBeenCalledOnce();
+    expect(loadReconnectSession()).toBeUndefined();
+  });
+
   it("forgets the session once the match is over", async () => {
     const joined = fakeRoom("room-1");
     joinOrCreate.mockResolvedValue(joined.room);

@@ -1003,17 +1003,26 @@ export class CombatController {
     );
   }
 
+  /** True when ＜Raid＞ resolving now could switch the attack target. */
+  hasRaidTarget(attackerPermanentId: string): boolean {
+    const attack = this.currentAttack;
+    return attack !== undefined && this.canResolveRaid(attackerPermanentId) && this.raidTargets(attack.seat).length > 0;
+  }
+
+  private raidTargets(attackingSeat: Seat): Permanent[] {
+    return this.access
+      .battleAreaPermanents(this.access.opponentOf(attackingSeat))
+      .filter(
+        (p) => !p.isSuspended && this.access.isBattleAreaDigimon(p, this.hooks.continuous) && p.topCard !== undefined,
+      );
+  }
+
   /** Resolve ＜Raid＞ from the combined [When Attacking] window or the legacy inline step. */
   async resolveRaidEffect(attackerPermanentId: string): Promise<void> {
     const attack = this.currentAttack;
     const attacker = this.access.permanentById(attackerPermanentId);
     if (attack === undefined || attacker === undefined || !this.canResolveRaid(attackerPermanentId)) return;
-    const defendingSeat = this.access.opponentOf(attack.seat);
-    const unsuspended = this.access
-      .battleAreaPermanents(defendingSeat)
-      .filter(
-        (p) => !p.isSuspended && this.access.isBattleAreaDigimon(p, this.hooks.continuous) && p.topCard !== undefined,
-      );
+    const unsuspended = this.raidTargets(attack.seat);
     if (unsuspended.length === 0) return;
     const highestDP = Math.max(...unsuspended.map((p) => p.currentDP));
     const tied = unsuspended.filter((p) => p.currentDP === highestDP);

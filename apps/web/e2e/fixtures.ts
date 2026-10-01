@@ -31,7 +31,7 @@ class BrowserMatch {
     await this.page.goto("/e2e/harness.html");
     if (scenario === "security") return;
     await expect(this.page.getByText(/finding an opponent/i)).toBeVisible();
-    this.opponent = await joinHeadlessOpponent("ws://127.0.0.1:2569", {
+    this.opponent = await joinHeadlessOpponent(this.server.directEndpoint, {
       displayName: "Observer Opponent",
       deck: BLUE_DECK,
     });
