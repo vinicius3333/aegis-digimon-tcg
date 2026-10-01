@@ -2974,6 +2974,34 @@ describe("decision board preview", () => {
     expect(screen.queryByText("gainMemory")).toBeNull();
   });
 
+  it("hides Millenniummon's generated cost summary and docks the prompt on the left rail", () => {
+    const generated =
+      "By paying: By returning 3 [Composite], [Wicked God] or [DM] cards from your trash to the bottom of the deck → Play without paying the cost";
+    render(
+      <I18nProvider>
+        <DecisionOverlay
+          request={{
+            decisionId: "millenniummon-on-deletion",
+            seat: 0,
+            kind: "optional",
+            promptText: generated,
+            sourceCardId: "P-220",
+            options: { timing: "OnDeletion" },
+          }}
+          sourceCardId="P-220"
+          candidates={[]}
+          picks={[]}
+          onTogglePick={vi.fn()}
+          onRespond={vi.fn()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByText(generated)).toBeNull();
+    expect(screen.getByText(/\[On Deletion\] By returning 3 \[Composite\]/)).toBeTruthy();
+    expect(screen.getByRole("dialog").classList.contains("decision-overlay--side")).toBe(true);
+  });
+
   it("shows Homeros's printed clause for its cost-bearing foreign-effect decision", () => {
     render(
       <I18nProvider>
