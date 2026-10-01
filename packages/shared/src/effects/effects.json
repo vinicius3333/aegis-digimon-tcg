@@ -93559,6 +93559,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenTrashedFromHand",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Draw",

@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Draw",
