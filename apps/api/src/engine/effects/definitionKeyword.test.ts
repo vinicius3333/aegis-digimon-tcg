@@ -26,6 +26,25 @@ describe("definition keyword matching", () => {
     expect(matched).toEqual(["ST3-07", "BT22-041", "BT23-056", "EX10-029"]);
   });
 
+  it("matches keywords printed outside any timing window, declared at the card root (Discord bug 1555252641649393796)", () => {
+    const rootDeclared = [
+      ["LM-066", "Blocker"],
+      ["LM-066", "Piercing"],
+      ["LM-066", "Vortex"],
+      ["BT26-043", "Blocker"],
+      ["BT26-060", "Blocker"],
+      ["BT26-060", "SecurityAttack"],
+      ["BT26-085", "Blocker"],
+      ["BT26-103", "Blocker"],
+      ["BT26-083", "Rush"],
+      ["LM-068", "SecurityAttack"],
+    ] as const;
+    const unmatched = rootDeclared.filter(
+      ([cardId, keyword]) => !definitionMatches({ keywords: [keyword] }, getCardDefinition(cardId)!),
+    );
+    expect(unmatched).toEqual([]);
+  });
+
   it("matches Royal Knights whose printed ＜Blocker＞ is a Static declaration (Discord bug 1555252641649393796)", () => {
     const royalKnights = ["BT13-019", "BT13-077", "BT3-075"];
     const matched = royalKnights.filter((cardId) =>

@@ -317,6 +317,9 @@ export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { k
     if (compiled !== undefined) {
       const matchesRequested = (entry: { keyword?: string } | undefined): boolean =>
         (entry?.keyword ?? "").replace(/[^a-z0-9]/gi, "").toLowerCase() === requested;
+      // Keywords printed outside any timing window are declared on the card root; the
+      // registered card expands them into Static effects, but this raw record does not.
+      if ((compiled.keywords ?? []).some(matchesRequested)) return true;
       const declared = compiled.effects.some(
         (effect) =>
           effect.isInherited !== true &&

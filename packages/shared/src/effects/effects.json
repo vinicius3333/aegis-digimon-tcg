@@ -223858,8 +223858,7 @@
             ]
           }
         ]
-      },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
+      }
     ],
     "coverage": "full",
     "residual": [],
@@ -225633,8 +225632,7 @@
             "raw": "When your effect adds cards to decks, you may delete 1 of your opponent's Digimon."
           }
         ]
-      },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
+      }
     ],
     "coverage": "full",
     "residual": [],
@@ -228018,8 +228016,7 @@
             ]
           }
         ]
-      },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
+      }
     ],
     "coverage": "full",
     "residual": [],
@@ -229772,8 +229769,7 @@
             ]
           }
         ]
-      },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
+      }
     ],
     "coverage": "full",
     "residual": [],
@@ -238258,8 +238254,7 @@
             }
           }
         ]
-      },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
+      }
     ],
     "coverage": "full",
     "residual": [],
