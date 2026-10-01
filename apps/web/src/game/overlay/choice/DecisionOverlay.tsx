@@ -191,20 +191,21 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={dialogLabel}
-      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${isChoose ? " decision-overlay--side" : ""}`}
+      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${isChoose || isOptional ? " decision-overlay--side" : ""}`}
       onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
       /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
          hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
       style={{
-        // A choice docks on the left rail at its own width (redesignArena.css).
-        width: isChoose
-          ? undefined
-          : isResolutionPlan
-            ? 760
-            : wideDialog && Math.max(candidates.length, triggerKeys.length) > 3
-              ? 1000
-              : 560,
+        // A choice or a yes/no question docks on the left rail at its own width (redesignArena.css).
+        width:
+          isChoose || isOptional
+            ? undefined
+            : isResolutionPlan
+              ? 760
+              : wideDialog && Math.max(candidates.length, triggerKeys.length) > 3
+                ? 1000
+                : 560,
       }}
     >
       {/* Artwork and the question share the same compact header as combat prompts. */}

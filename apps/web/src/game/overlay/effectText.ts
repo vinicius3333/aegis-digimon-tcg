@@ -295,6 +295,8 @@ export function resolvedEffectClause(
 
 // Engine summaries remain useful only for filtering generic decision prompts.
 const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
+  // An optional processing cost is summarized as "By paying: <cost> → <processing>".
+  /^By paying: .+ → .+$/,
   /^Draw -?\d+$/,
   // A target count is a number or the literal "all" (`String(action.target.count)`
   // in describeAction stringifies both), so "Delete all target(s)" is generated too.
