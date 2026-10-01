@@ -215,6 +215,11 @@ export function canAttackerDeclare(
   if (!withoutSuspending && reader?.hasRestriction(attacker.permanentId, "suspend")) {
     return "illegal-target";
   }
+  // CR 11-1-2: only the turn player can attack, so an effect that says "this Digimon may
+  // attack" does nothing during the opponent's turn (KB Q2891).
+  if (access.game.turnSeat !== seat) {
+    return "not-your-turn";
+  }
   return null;
 }
 
