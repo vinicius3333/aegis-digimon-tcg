@@ -84167,10 +84167,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon.",
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "playCost": { "op": "lte", "value": 7 } },
-              "count": 1
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card.",
@@ -84193,10 +84190,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon.",
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "playCost": { "op": "lte", "value": 7 } },
-              "count": 1
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card.",
@@ -84764,7 +84758,7 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Tamer"],
-                "playCost": { "op": "gte", "value": 4 },
+                "playCostGte": 4,
                 "nameOrTrait": [
                   { "tokens": ["Mirei Mikagura"], "match": "nameExact" },
                   { "tokens": ["CS"], "match": "trait" }
@@ -218993,10 +218987,7 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "playCost": { "op": "lte", "value": 7 } },
-              "count": 1
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 }
           }
         ]
       },

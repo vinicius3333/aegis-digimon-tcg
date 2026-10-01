@@ -11,7 +11,7 @@ describe("BT22-082 Eater Adam", () => {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions[0]).toMatchObject({
         kind: "Delete",
-        target: { filter: { controller: "opponent", kind: ["Digimon"], playCost: { op: "lte", value: 7 } }, count: 1 },
+        target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 7 }, count: 1 },
       });
       expect(effect?.actions[1]).toMatchObject({
         kind: "PlaceUnder",
@@ -43,6 +43,27 @@ describe("BT22-082 Eater Adam", () => {
     });
   });
 
+  it("cannot delete a play cost 10 Digimon on play (Discord 1555135721101197382 sweep)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT22-082", as: "adam" }] },
+        1: { battleArea: [{ card: "ST5-12", as: "tooExpensive" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const adamId = s.inst("adam").instanceId;
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: adamId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === adamId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("tooExpensive").permanentId,
+    ]);
+  });
+
   it("deletes the cost-7 boundary and places Arata from hand under the played Eater", async () => {
     const s = setupEngine(
       {
@@ -52,7 +73,7 @@ describe("BT22-082 Eater Adam", () => {
             { card: "BT22-091", as: "arata" },
           ],
         },
-        1: { battleArea: [{ card: "BT22-014", as: "victim" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "victim" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

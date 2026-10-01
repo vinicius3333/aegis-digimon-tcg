@@ -65,6 +65,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
   "arena-bt22-palmon-cs-restack",
+  "arena-bt22-mirei-play-cost-floor",
   "arena-bt14-chuumon-security-reveal",
   "arena-bt20-omnimon-each-player-survivor",
   "arena-bt20-ouryuken-reduction-resumes",
@@ -546,6 +547,27 @@ function layBt20OuryukenReductionResumesScenario(state: GameState, decks: readon
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT26-029", "BT26-016"], "-ouryuken-chronomon"));
   }
+}
+
+/** BT22-089 Mirei Mikagura may play only a play cost 4 or higher Mirei or [CS] Tamer. */
+function layBt22MireiPlayCostFloorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT22-089"], "-mirei-source"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-mirei-cost-three", "BT22-089", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-mirei-ami-cost-four", "BT22-093", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** P-240 Arcturusmon plays by Assembly -6 and digivolves from a Red/Yellow Lv.5 [VB] Digimon. */
@@ -3416,6 +3438,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-bt22-palmon-cs-restack": layBt22PalmonCsRestackScenario,
+  "arena-bt22-mirei-play-cost-floor": layBt22MireiPlayCostFloorScenario,
   "arena-bt14-chuumon-security-reveal": layBt14ChuumonSecurityRevealScenario,
   "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
