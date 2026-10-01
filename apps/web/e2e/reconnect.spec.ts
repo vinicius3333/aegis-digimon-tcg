@@ -119,3 +119,47 @@ test("reload resumes the same room and pending decision", async ({ page, match }
   expect(after.pendingDecision).toBeUndefined();
   expect(after.memory).toBe(3);
 });
+
+function persistedRoomId(page: import("@playwright/test").Page) {
+  return page.evaluate(() => {
+    const raw = sessionStorage.getItem("aegis:matchSession");
+    return raw ? (JSON.parse(raw).roomId as string) : undefined;
+  });
+}
+
+test("resumes the same seat after an edge outage longer than the old retry budget", async ({ page, match }) => {
+  test.setTimeout(180_000);
+  const game = new GamePage(page);
+  await match.start("reconnect");
+  await game.endBreeding();
+  const roomId = match.opponent.room.roomId;
+  await expect.poll(() => persistedRoomId(page)).toBe(roomId);
+
+  await match.server.edge.stop();
+  await expect(page.getByText("Reconnecting…")).toBeVisible();
+  await page.waitForTimeout(50_000);
+  await match.server.edge.start();
+
+  await expect(page.getByTestId("hand")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("Reconnecting…")).toHaveCount(0);
+  expect(await persistedRoomId(page)).toBe(roomId);
+  await page.getByRole("button", { name: /^end phase$/i }).click();
+  await expect.poll(() => match.state().turnSeat).toBe(1);
+});
+
+test("a reload late in a long match resumes the same seat", async ({ page, match }) => {
+  await page.clock.install();
+  const game = new GamePage(page);
+  await match.start("reconnect");
+  await game.endBreeding();
+  const roomId = match.opponent.room.roomId;
+  await expect.poll(() => persistedRoomId(page)).toBe(roomId);
+
+  await page.clock.fastForward("04:00");
+  await page.reload();
+
+  await expect(page.getByTestId("hand")).toBeVisible({ timeout: 20_000 });
+  await expect.poll(() => persistedRoomId(page)).toBe(roomId);
+  await page.getByRole("button", { name: /^end phase$/i }).click();
+  await expect.poll(() => match.state().turnSeat).toBe(1);
+});

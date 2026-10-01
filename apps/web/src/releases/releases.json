@@ -1,5 +1,25 @@
 [
   {
+    "version": "1.7.8-beta",
+    "releasedAt": "2026-10-01",
+    "summaryKey": "releases.1.7.8-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.8-beta.fix.assemblyRecipes"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.reconnect"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.optionalPrompt"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.botWait"
+      }
+    ]
+  },
+  {
     "version": "1.7.7-beta",
     "releasedAt": "2026-10-01",
     "summaryKey": "releases.1.7.7-beta.summary",

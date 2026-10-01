@@ -13,6 +13,9 @@ export function BreedingSlot({
   focused,
   compact,
   burst,
+  effectSource,
+  effectLinked,
+  highlight,
   width,
   onClick,
   drop,
@@ -29,6 +32,11 @@ export function BreedingSlot({
    * vignette, an evolution in breeding takes the same centre-lit treatment.
    */
   burst?: PermanentBurst;
+  /** The raised Digimon's effect is activating or being read, as on the battle rows. */
+  effectSource?: boolean;
+  effectLinked?: boolean;
+  /** A board-mode prompt points at the raised Digimon whose effect is asking. */
+  highlight?: boolean;
   /** Explicit slot width; overrides the `compact` default. */
   width?: number;
   onClick?: () => void;
@@ -77,7 +85,15 @@ export function BreedingSlot({
           </span>
         ) : null}
         {perm && perm.topCard?.cardId ? (
-          <PermanentView perm={perm} keywordLabels={keywordLabels} compact={compact} width={w} />
+          <PermanentView
+            perm={perm}
+            keywordLabels={keywordLabels}
+            compact={compact}
+            width={w}
+            effectSource={effectSource}
+            effectLinked={effectLinked}
+            highlight={highlight}
+          />
         ) : (
           <span
             style={{

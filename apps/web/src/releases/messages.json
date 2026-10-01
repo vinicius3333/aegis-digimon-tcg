@@ -1,4 +1,24 @@
 {
+  "releases.1.7.8-beta.summary": {
+    "en": "This update makes Assembly follow each card's printed recipe, keeps trying to bring you back to a match after a connection drop, and shows only the printed card text in optional effect prompts.",
+    "pt-BR": "Esta atualização faz o Assembly seguir a receita impressa de cada carta, continua tentando te devolver à partida após uma queda de conexão e mostra só o texto impresso da carta nos efeitos opcionais."
+  },
+  "releases.1.7.8-beta.fix.assemblyRecipes": {
+    "en": "Assembly now follows each card's printed recipe. EX13-062 Craniamon needs cards with a printed ＜Blocker＞, P-220 Millenniummon needs different levels, BT22-078 Boltmon needs different card numbers, BT24-062 MasterBlimpmon accepts either of its recipes, and EX9-062 SkullGreymon counts as Lv.4 for EX9-074 Kimeramon.",
+    "pt-BR": "O Assembly agora segue a receita impressa de cada carta. EX13-062 Craniamon exige cartas com ＜Blocker＞ impresso, P-220 Millenniummon exige níveis diferentes, BT22-078 Boltmon exige números de carta diferentes, BT24-062 MasterBlimpmon aceita qualquer uma das duas receitas e EX9-062 SkullGreymon conta como Lv.4 para EX9-074 Kimeramon."
+  },
+  "releases.1.7.8-beta.fix.reconnect": {
+    "en": "After a connection drop, the game keeps trying to bring you back for the full 3 minutes your seat is held. Reloading the page during a long match now returns you to it instead of starting matchmaking.",
+    "pt-BR": "Após uma queda de conexão, o jogo continua tentando te devolver à partida durante os 3 minutos em que seu lugar fica reservado. Recarregar a página numa partida longa agora te devolve a ela em vez de iniciar a busca por partida."
+  },
+  "releases.1.7.8-beta.fix.optionalPrompt": {
+    "en": "Optional effect prompts show only the printed card text and sit beside the board, so the field stays visible. Selection buttons no longer cut off their labels.",
+    "pt-BR": "Os efeitos opcionais mostram só o texto impresso da carta e ficam ao lado do campo, que continua visível. Os botões de seleção não cortam mais o texto."
+  },
+  "releases.1.7.8-beta.fix.botWait": {
+    "en": "Bots no longer slow down the server while they wait for your answer.",
+    "pt-BR": "Os bots não deixam mais o servidor lento enquanto esperam sua resposta."
+  },
   "releases.1.7.7-beta.summary": {
     "en": "This update reveals cards with a requirement when an effect moves them between private areas, lets you leave a match while your opponent is away, and fixes the pending-effects sheet on phones.",
     "pt-BR": "Esta atualização revela cartas com requisito quando um efeito as move entre áreas privadas, permite sair da partida enquanto o oponente está ausente e corrige o painel de efeitos pendentes no celular."
