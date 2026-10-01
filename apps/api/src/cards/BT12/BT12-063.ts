@@ -2,6 +2,7 @@ import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled = structuredClone(getCompiledCard("BT12-063")!);
+compiled.digiXrosRequirement = [{ materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 }];
 compiled.effects = compiled.effects.filter(
   (effect) => !(effect.trigger === "Static" && effect.actions.some((action) => action.kind === "RawUnparsed")),
 );

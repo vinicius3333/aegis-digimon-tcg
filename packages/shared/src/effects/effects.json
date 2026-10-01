@@ -7757,7 +7757,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT10-078": {
     "effects": [
@@ -9623,7 +9623,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT10-112": {
     "effects": [
@@ -13585,7 +13585,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 3 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 3, "maxMaterials": 1 }]
   },
   "BT11-087": {
     "effects": [
@@ -15730,7 +15730,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-012": {
     "effects": [
@@ -16927,7 +16927,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-038": {
     "effects": [
@@ -17411,7 +17411,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 2, "texts": ["Save"], "cost": 0, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-049": {
     "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }],
@@ -17539,7 +17539,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-052": { "effects": [], "coverage": "full", "residual": [] },
   "BT12-053": {
@@ -17978,7 +17978,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-064": {
     "effects": [
@@ -18438,7 +18438,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 2, "texts": ["Save"], "cost": 0, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-075": {
     "effects": [
@@ -18489,7 +18489,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 2, "texts": ["Save"], "cost": 0, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-076": {
     "effects": [
@@ -136952,7 +136952,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "EX10-016": {
     "effects": [

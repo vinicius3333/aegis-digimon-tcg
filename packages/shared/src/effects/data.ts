@@ -1962,6 +1962,7 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [{ traits: ["Xros Heart"] }],
       count: 3,
+      maxMaterials: 1,
     },
   ],
   // BT11-009: two distinct printed slots. The compiler kept only Shoutmon and thereby made
@@ -1979,6 +1980,7 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [{ traits: ["Xros Heart"] }],
       count: 2,
+      maxMaterials: 1,
     },
   ],
   // EX4-021: [DigiXros -2] "Blue MetalGreymon" + "DarkKnightmon" (documented behavior — slot 1 is
