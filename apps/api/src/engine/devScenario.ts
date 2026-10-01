@@ -89,6 +89,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
   "arena-ex13-examon-battle-win-timing",
+  "arena-bt23-examon-opponent-turn-dna",
   "arena-ex13-chirinmon-cost-choice",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
@@ -3089,6 +3090,46 @@ function layCounterBlastDnaScenario(state: GameState, decks: readonly [Decklist,
   state.memory = 0;
 }
 
+/**
+ * Discord 1555244967428100348: during the bot's turn, BT20-093's ＜Delay＞ DNA digivolves
+ * Breakdramon and the suspended Slayerdramon into BT23-047 Examon. Only the turn player can
+ * attack (CR 11-1-2, KB Q2891), so Examon's "this Digimon may attack" must not be offered.
+ */
+function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    // An Option lives on the battle area only because an effect placed it there (rule 17-1-3-2-2),
+    // and ＜Delay＞ reads the arrival turn, so it must also predate this turn.
+    const gene = establishedDigimon(0, ["BT20-093"], "-examon-gene");
+    gene.placedByEffect = true;
+    placePermanent(human, gene);
+    // Suspended, so Slayerdramon's own "by suspending this Digimon, they don't leave" can't
+    // compete with ＜Delay＞.
+    const slayerdramon = establishedDigimon(0, ["BT20-027"], "-examon-blue");
+    slayerdramon.isSuspended = true;
+    placePermanent(human, slayerdramon);
+    placePermanent(human, establishedDigimon(0, ["BT20-044"], "-examon-green"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-examon-bt23", "BT23-047", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["ST2-06"], "-examon-target"));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-examon-bounce", "ST2-16", 1));
+    insertCard(bot, Zone.Deck, faceDownCard("dev-examon-bounce-draw", "ST2-16", 1), "top");
+  }
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 7;
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
@@ -3147,6 +3188,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
+  "arena-bt23-examon-opponent-turn-dna": layBt23ExamonOpponentTurnDnaScenario,
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
