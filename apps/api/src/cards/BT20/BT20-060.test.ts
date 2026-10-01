@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-060.js";
 import "../ST1/ST1-07.js";
 import "../BT1/BT1-090.js";
+import "../BT24/index.js";
+import "../BT26/index.js";
 import "./index.js";
 
 describe("BT20-060 Alphamon: Ouryuken", () => {
@@ -357,6 +359,57 @@ describe("BT20-060 Alphamon: Ouryuken — KB Q&A rulings", () => {
     await settle(() => s.state.turnSeat === 1);
     expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("BT20-060 Alphamon: Ouryuken — blocked reduction resumes", () => {
+  it("applies -15000 once the target's DP-reduction protection ends, through their turn (Discord 1555069212727185488)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-029", as: "holy", under: ["BT24-034"] },
+            { card: "BT1-010", as: "protected", dp: 9000 },
+          ],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+        },
+        1: {
+          hand: [{ card: "BT20-060", as: "alphamon" }],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const protectedId = s.perm("protected").permanentId;
+    const protectedPermanent = () => s.state.players[0]!.battleArea.find((p) => p.permanentId === protectedId);
+    preferred.push(s.perm("protected").topCard.instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestricted(protectedPermanent()!, "dpImmune")).toBe(true);
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("alphamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT20-060") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(protectedPermanent()?.currentDP).toBe(9000);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(protectedPermanent()).toBeUndefined();
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 });
