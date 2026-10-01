@@ -41,6 +41,7 @@ export interface AegisJoinOptions {
     | "arena-ex7-seventh-fascination-turn"
     | "arena-p240-arcturusmon-vb-routes"
     | "arena-ex12-proximamon-dual-siriusmon"
+    | "arena-ex12-siriusmon-group-placement"
     | "arena-ex12-virus-busters-effect-attack"
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
