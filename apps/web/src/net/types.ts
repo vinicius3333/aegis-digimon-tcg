@@ -43,6 +43,7 @@ export interface AegisJoinOptions {
     | "arena-ex12-proximamon-dual-siriusmon"
     | "arena-ex12-virus-busters-effect-attack"
     | "arena-ex7-seventh-fascination-trash-turn"
+    | "arena-bt20-dragon-gene-skip-play"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
     | "arena-bt14-chuumon-security-reveal"
     | "arena-bt8-digimon-emperor-breeding-memory"

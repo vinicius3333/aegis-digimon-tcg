@@ -44,9 +44,13 @@ import type { DecisionManager } from "./index.js";
  * order or sequence multiple effects.
  */
 export function createDecisionApi(manager: DecisionManager): DecisionApi {
-  const controller = buildSeatScopedApi(manager, (ctx) => ctx.source.ownerSeat, { honorsPresets: true });
+  const controller = buildSeatScopedApi(manager, (ctx) => ctx.source.ownerSeat, {
+    honorsPresets: true,
+    asksController: true,
+  });
   const opponent = buildSeatScopedApi(manager, (ctx) => ctx.game.opponentOf(ctx.source.ownerSeat), {
     honorsPresets: false,
+    asksController: false,
   });
   return { ...controller, opponent };
 }
@@ -79,7 +83,7 @@ export function requireOpponentAsk(ctx: EffectContext): SeatScopedDecisionApi {
 function buildSeatScopedApi(
   manager: DecisionManager,
   resolveSeat: (ctx: EffectContext) => Seat,
-  { honorsPresets }: { honorsPresets: boolean },
+  { honorsPresets, asksController }: { honorsPresets: boolean; asksController: boolean },
 ): SeatScopedDecisionApi {
   const provenance = (ctx: EffectContext) => ({
     timing: ctx.activeTiming,
@@ -90,8 +94,18 @@ function buildSeatScopedApi(
     ...(ctx.affectedPermanentIds !== undefined ? { affectedPermanentIds: [...ctx.affectedPermanentIds] } : {}),
     // Raised by `payCost` for as long as a cost payment is on the stack. Without it a
     // cost selection and a target selection reach the deciding seat as the same request.
-    ...((ctx.payingCostDepth ?? 0) > 0 ? { purpose: "cost" as const } : {}),
+    ...((ctx.payingCostDepth ?? 0) > 0
+      ? { purpose: "cost" as const }
+      : backsOutOfAcceptedOptional(ctx)
+        ? { purpose: "acceptedOptional" as const }
+        : {}),
   });
+  // The controller already accepted this action's "you may"; a single-card pick may still
+  // answer nothing to back out. Cost payments keep their printed minimum.
+  const backsOutOfAcceptedOptional = (ctx: EffectContext): boolean =>
+    asksController && ctx.pickingAcceptedOptional === true && (ctx.payingCostDepth ?? 0) === 0;
+  const pickMinimum = (ctx: EffectContext, min: number, max: number): number =>
+    min === 1 && max === 1 && backsOutOfAcceptedOptional(ctx) ? 0 : min;
   const presetAnswer = (ctx: EffectContext): boolean | undefined =>
     honorsPresets ? ctx.presetOptionalAnswer : undefined;
   // A "No" preset declines every optional part of the effect, and a selection whose floor is
@@ -124,7 +138,8 @@ function buildSeatScopedApi(
         maxTotalDP?: number;
       },
     ): Promise<string[]> {
-      if (declinedByPreset(ctx, opts.min)) return [];
+      const min = pickMinimum(ctx, opts.min, opts.max);
+      if (declinedByPreset(ctx, min)) return [];
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "chooseTargets",
@@ -135,7 +150,7 @@ function buildSeatScopedApi(
         options: {
           candidateInstanceIds: opts.candidates,
           visibleInstanceIds: opts.visible ?? opts.candidates,
-          min: opts.min,
+          min,
           max: opts.max,
           ...(opts.maxTotalPlayCost !== undefined ? { maxTotalPlayCost: opts.maxTotalPlayCost } : {}),
           ...(opts.maxTotalDP !== undefined ? { maxTotalDP: opts.maxTotalDP } : {}),
@@ -169,7 +184,8 @@ function buildSeatScopedApi(
         digiXrosCardId?: string;
       },
     ): Promise<string[]> {
-      if (declinedByPreset(ctx, opts.min)) return [];
+      const min = pickMinimum(ctx, opts.min, opts.max);
+      if (declinedByPreset(ctx, min)) return [];
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "selectCards",
@@ -182,7 +198,7 @@ function buildSeatScopedApi(
           visibleInstanceIds: opts.visible ?? opts.candidates,
           visibleCards: opts.visibleCards,
           maxTotalPlayCost: opts.maxTotalPlayCost,
-          min: opts.min,
+          min,
           max: opts.max,
           differentColors: opts.differentColors,
           distinctCardIds: opts.distinctCardIds,
@@ -204,7 +220,8 @@ function buildSeatScopedApi(
       ctx: EffectContext,
       opts: { candidates: string[]; min: number; max: number; maxTotalPlayCost?: number },
     ): Promise<string[]> {
-      if (declinedByPreset(ctx, opts.min)) return [];
+      const min = pickMinimum(ctx, opts.min, opts.max);
+      if (declinedByPreset(ctx, min)) return [];
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "chooseTargets",
@@ -214,7 +231,7 @@ function buildSeatScopedApi(
         sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           candidateInstanceIds: opts.candidates,
-          min: opts.min,
+          min,
           max: opts.max,
           ...(opts.maxTotalPlayCost !== undefined ? { maxTotalPlayCost: opts.maxTotalPlayCost } : {}),
           ...provenance(ctx),

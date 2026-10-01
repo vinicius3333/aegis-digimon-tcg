@@ -596,8 +596,11 @@ export interface DecisionRequest {
      * choice. The two are otherwise indistinguishable from the request shape — both arrive
      * as `selectCards` over the controller's own cards — which is exactly what an automated
      * seat needs to tell apart before answering.
+     *
+     * `"acceptedOptional"` marks a pick of an action whose "you may" the controller already
+     * accepted. A `min: 0` there only lets the player back out; an empty answer does nothing.
      */
-    purpose?: "cost";
+    purpose?: "cost" | "acceptedOptional";
     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
     assemblyCardId?: string;
     /** Effect-driven play awaiting the existing DigiXros material picker for this card. */

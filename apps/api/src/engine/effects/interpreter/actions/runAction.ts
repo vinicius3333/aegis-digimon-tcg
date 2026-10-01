@@ -246,9 +246,12 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
   ctx.activeTargetFate = targetFateOf(action);
   ctx.activeSelectionContext = action.kind === "Attack" ? "attackSource" : undefined;
+  const outerPickingAcceptedOptional = ctx.pickingAcceptedOptional;
+  ctx.pickingAcceptedOptional = false;
   try {
     return await runActionInner(ctx, action);
   } finally {
+    ctx.pickingAcceptedOptional = outerPickingAcceptedOptional;
     ctx.activeTargetFate = outerFate;
     ctx.activeSelectionContext = outerSelectionContext;
     ctx.activeEffectTextPart = outerEffectTextPart;
@@ -263,6 +266,31 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     ctx.activeCostDecisionAction = outerCostDecisionAction;
   }
 }
+
+/**
+ * Kinds whose single-card pick stays declinable after the player accepts their "you may".
+ * Left out on purpose: Attack and RedirectAttack (the attack proceeds once accepted, BT11-092),
+ * SelectBind (its pick can precede the yes/no), and kinds that ask their own question
+ * (Replacement, UseOptionWithoutCost).
+ */
+const PICK_DECLINABLE_AFTER_YES: ReadonlySet<Action["kind"]> = new Set([
+  "PlayWithoutCost",
+  "PlayFromZone",
+  "Delete",
+  "Return",
+  "Trash",
+  "Suspend",
+  "Unsuspend",
+  "ModifyDP",
+  "GainKeyword",
+  "Restrict",
+  "DeDigivolve",
+  "TrashDigivolution",
+  "PlaceInBattleAreaSelf",
+  "PlaceUnder",
+  "Digivolve",
+  "Link",
+]);
 
 function markActivationChosen(ctx: EffectContext): void {
   ctx.oncePerTurnActivationChosen = true;
@@ -300,6 +328,7 @@ function isOpponentChosenProcessing(action: Action): boolean {
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
+  let acceptedBeforeItsPick = false;
   const paysProcessingCostBeforeOptional =
     action.kind !== "RawUnparsed" &&
     action.optional === true &&
@@ -961,6 +990,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         else markActivationDeclined(ctx);
         return action.abortOnDecline === true;
       }
+      // A cost paid between this answer and the pick must not be stranded by backing out.
+      acceptedBeforeItsPick =
+        chooser === ctx.ask && payableActionCost === undefined && additionalCost === undefined && additionalCosts.length === 0;
       markActivationChosen(ctx);
     }
   }
@@ -1106,6 +1138,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       markActivationDeclined(ctx);
       return action.abortOnDecline === true;
     }
+    // Every cost is already paid, so backing out at the pick equals declining here.
+    acceptedBeforeItsPick = true;
     markActivationChosen(ctx);
   }
   // An "up to N" <Digi-Burst> cost scales its action by the number of cards actually paid
@@ -1186,6 +1220,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     markActivationChosen(ctx);
   }
+
+  ctx.pickingAcceptedOptional = acceptedBeforeItsPick && PICK_DECLINABLE_AFTER_YES.has(action.kind);
 
   // Everything the prologue worked out that a case body still needs.
   const scope: ActionScope = { scale, deferredCostSuspensions };

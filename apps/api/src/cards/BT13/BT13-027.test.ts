@@ -89,6 +89,51 @@ describe("BT13-027 Shaujinmon", () => {
     await settle(() => !observe(s.engine).isAttacking());
   });
 
+  it("lets the controller pick no stack card after accepting the play (Discord 1555073882145423380)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-027", as: "shaujin", under: ["BT13-022", "BT13-026"] }],
+          security: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT13-027"));
+    const pick = s.decisions.find(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT13-027")!.req;
+    expect(pick.options?.candidateInstanceIds).toHaveLength(2);
+    expect(pick.options?.min).toBe(0);
+    expect(pick.options?.purpose).toBe("acceptedOptional");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pick.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(
+      s
+        .perm("shaujin")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual(["BT13-022", "BT13-026"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+  });
+
   it("keeps Blocker as a static keyword", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-027", as: "shaujin" }] } });
     await s.ready();

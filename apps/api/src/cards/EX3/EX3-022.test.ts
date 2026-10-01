@@ -103,7 +103,7 @@ describe("EX3-022 MegaSeadramon", () => {
       max: number;
     };
     expect(s.decisions.at(-1)!.req.sourceCardId).toBe("EX3-022");
-    expect(payload).toMatchObject({ min: 1, max: 1 });
+    expect(payload).toMatchObject({ min: 0, max: 1 });
     expect(payload.candidateInstanceIds).toEqual(
       expect.arrayContaining([s.inst("aquaticLineGabumon").instanceId, s.inst("otherEligible").instanceId]),
     );
@@ -129,7 +129,7 @@ describe("EX3-022 MegaSeadramon", () => {
     expect(s.decisions.at(-1)!.req).toMatchObject({
       sourceCardId: "EX3-022",
       options: {
-        min: 1,
+        min: 0,
         max: 1,
         timing: "WhenAttacking",
         effectText: expect.stringContaining("play 1 blue level 3"),
