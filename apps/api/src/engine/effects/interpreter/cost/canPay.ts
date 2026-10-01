@@ -6,7 +6,7 @@ import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, findLooseCandidateByInstance, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, raiseDeletionDpCap } from "../targeting/permanents.js";
-import { rotatesChosenStack } from "./stacks.js";
+import { rotatesChosenStack, selfRestackHost } from "./stacks.js";
 import {
   distinctColorPermanentIds,
   isSelfFromFieldPlaceCost,
@@ -313,8 +313,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     // offered to the controller.
     if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
       if (rotatesChosenStack(cost)) return candidatePermanents(ctx, cost.target).some((p) => p.stack.length > 0);
-      const selfPerm = ctx.source.permanent();
-      return selfPerm !== undefined && selfPerm.stack.length > 0;
+      return selfRestackHost(ctx, cost) !== undefined;
     }
     // A placement cost needs both halves to exist before an optional activation is
     // offered: enough matching loose cards in the declared source zones and a legal

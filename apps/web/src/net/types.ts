@@ -45,6 +45,7 @@ export interface AegisJoinOptions {
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
     | "arena-bt24-fugamon-self-trash"
+    | "arena-bt22-palmon-cs-restack"
     | "arena-bt14-chuumon-security-reveal"
     | "arena-bt20-omnimon-each-player-survivor"
     | "arena-bt20-ouryuken-reduction-resumes"
