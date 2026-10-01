@@ -237,6 +237,9 @@ describe("EX13-033 Mistymon", () => {
 
     const securityIds = s.state.players[0]!.security.map((card) => card.instanceId);
     expect(securityIds).toEqual([s.inst("bottom").instanceId, s.inst("toPlace").instanceId]);
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
+      expect.objectContaining({ seat: 0, cardId: WITCHELNY_LV4, sourceCardId: CARD_ID }),
+    ]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("top").instanceId);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
