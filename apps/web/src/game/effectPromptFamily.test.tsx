@@ -40,7 +40,7 @@ it("retains Assembly material selection and order while inspecting the board", (
     <I18nProvider>
       <AssemblyMaterialOverlay
         playingCardId="BT1-010"
-        requirement={{ reduceCost: 2, materials: [{ count: 1, namesExact: ["Agumon"] }] }}
+        requirements={[{ reduceCost: 2, materials: [{ count: 1, namesExact: ["Agumon"] }] }]}
         candidates={[{ instanceId: "agumon-trash", cardId: "BT1-010" }]}
         onConfirm={onConfirm}
         onSkip={onSkip}

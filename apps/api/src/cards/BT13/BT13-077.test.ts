@@ -10,14 +10,12 @@ import "../BT19/BT19-062.js";
 
 describe("BT13-077 Craniamon", () => {
   it("grants Blocker and opponent-Digimon effect immunity through the opponent's turn", () => {
-    expect(
-      compiled.effects
-        ?.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(entry.trigger))
-        .every((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Blocker")),
-    ).toBe(true);
+    expect(compiled.effects?.filter((entry) => entry.trigger === "Static")).toEqual([
+      { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
+    ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.keywords).toBeUndefined();
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
-        keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
         actions: [
           {
             kind: "GrantStatic",

@@ -59,7 +59,7 @@ export function PlayChoicePrompts({
     canEvolveNormally: boolean;
   } | null;
   evoCostChoice: { handCardId: string; baseName: string; options: EvoCostOption[] } | null;
-  assemblyPick: { cardId: string; requirement: AssemblyRequirement; candidates: AssemblyCandidate[] } | null;
+  assemblyPick: { cardId: string; requirements: AssemblyRequirement[]; candidates: AssemblyCandidate[] } | null;
   digiXrosPick: {
     cardId: string;
     requirements: DigiXrosRequirement[];
@@ -149,7 +149,7 @@ export function PlayChoicePrompts({
       {assemblyPick ? (
         <AssemblyMaterialOverlay
           playingCardId={assemblyPick.cardId}
-          requirement={assemblyPick.requirement}
+          requirements={assemblyPick.requirements}
           candidates={assemblyPick.candidates}
           onConfirm={onAssembly}
           onSkip={onAssemblySkip}

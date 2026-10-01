@@ -32,6 +32,21 @@ import "../effectPromptFamily.css";
 /** The art of the card asking the question, big enough to recognise beside its clause. */
 const DECISION_SOURCE_ART_WIDTH = 64;
 
+type DialogWidthParams = {
+  docksOnRail: boolean;
+  isResolutionPlan: boolean;
+  wideDialog: boolean;
+  itemCount: number;
+};
+
+/** A choice or yes/no prompt docks on the left rail at its own width (redesignArena.css). */
+function dialogWidth({ docksOnRail, isResolutionPlan, wideDialog, itemCount }: DialogWidthParams): number | undefined {
+  if (docksOnRail) return undefined;
+  if (isResolutionPlan) return 760;
+  if (wideDialog && itemCount > 3) return 1000;
+  return 560;
+}
+
 export function DecisionOverlay({
   request,
   sourceCardId,
@@ -67,6 +82,7 @@ export function DecisionOverlay({
   const choiceClauses = request.options?.choiceClauses;
   const isOptional = request.kind === "optional";
   const isChoose = request.kind === "chooseOption";
+  const docksOnRail = isChoose || isOptional;
   const choosesPrintedBullet =
     isChoose &&
     choiceEffects === undefined &&
@@ -193,20 +209,18 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={dialogLabel}
-      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${isChoose ? " decision-overlay--side" : ""}`}
+      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
       onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
       /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
          hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
       style={{
-        // A choice docks on the left rail at its own width (redesignArena.css).
-        width: isChoose
-          ? undefined
-          : isResolutionPlan
-            ? 760
-            : wideDialog && Math.max(candidates.length, triggerKeys.length) > 3
-              ? 1000
-              : 560,
+        width: dialogWidth({
+          docksOnRail,
+          isResolutionPlan,
+          wideDialog,
+          itemCount: Math.max(candidates.length, triggerKeys.length),
+        }),
       }}
     >
       {/* Artwork and the question share the same compact header as combat prompts. */}
