@@ -9,10 +9,11 @@ import "../../cards/index.js";
 /**
  * Printed declarations the training action space cannot make yet, accepted on purpose. The
  * bot still plays the card by its normal route and pays the full cost.
- * EX9-055 Abbadomon prints [Assembly -6] 4 [Negamon]; the catalog gained it after the
- * Abbadomon deck was pinned, and the bot has no Assembly declaration.
+ * EX9-055 Abbadomon prints [Assembly -6] 4 [Negamon] and EX9-047 Eyesmon prints
+ * [Assembly -3] 4 [Eyesmon: Scatter Mode]; the catalog gained both after the Abbadomon deck
+ * was pinned, and the bot has no Assembly declaration.
  */
-const KNOWN_UNDECLARED_REQUIREMENTS = new Set(["EX9-055:assemblyRequirement"]);
+const KNOWN_UNDECLARED_REQUIREMENTS = new Set(["EX9-055:assemblyRequirement", "EX9-047:assemblyRequirement"]);
 
 describe("BT26 training main and breeding actions", () => {
   it("declares an alternate Glowing Dawn evolution through the real engine", async () => {

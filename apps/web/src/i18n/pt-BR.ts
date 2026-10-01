@@ -938,6 +938,7 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Coloque cartas do seu lixo embaixo dela para reduzir o custo de jogar em {reduction} (para {cost}).",
   "overlay.assemblyDifferentLevels": "níveis diferentes",
   "overlay.assemblyDifferentColors": "cores diferentes",
+  "overlay.assemblyDifferentCardNumbers": "números de carta diferentes",
   "overlay.assemblyNoMaterials": "Nenhuma carta elegível no seu lixo.",
   "overlay.assemblySelected": "{count} de {needed} materiais selecionados.",
   "overlay.assemblyConfirm": "Assembly ({count} cartas)",

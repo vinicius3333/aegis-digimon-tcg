@@ -981,6 +981,15 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 4,
+        "materials": [
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["MetalGreymon: Alterous Mode"] },
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["Greymon"] }
+        ]
+      }
+    ],
     "digivolutionRequirement": [
       { "level": 5, "names": ["Greymon"], "cost": 3, "isAlternate": true },
       { "traits": ["ADVENTURE"], "cost": 3, "isAlternate": true, "level": 5 }
@@ -1290,6 +1299,15 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 4,
+        "materials": [
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["WereGarurumon: Sagittarius Mode"] },
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["Garurumon"] }
+        ]
+      }
+    ],
     "digivolutionRequirement": [
       { "level": 5, "names": ["Garurumon"], "cost": 3, "isAlternate": true },
       { "traits": ["ADVENTURE"], "cost": 3, "isAlternate": true, "level": 5 }
@@ -2645,7 +2663,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["WarGreymon"] },
+          { "count": 1, "kinds": ["Digimon"], "namesExact": ["MetalGarurumon"] }
+        ]
+      }
+    ]
   },
   "BT1-001": {
     "effects": [
@@ -83846,6 +83873,12 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [{ "count": 5, "kinds": ["Digimon"], "traits": ["Flame"], "differentCardNumbers": true }]
+      }
+    ],
     "digivolutionRequirement": [{ "level": 5, "traits": ["Flame", "CS"], "cost": 3, "isAlternate": true }]
   },
   "BT22-079": {
@@ -97550,6 +97583,10 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      { "reduceCost": 2, "materials": [{ "count": 1, "namesExact": ["Blimpmon"] }] },
+      { "reduceCost": 2, "materials": [{ "count": 1, "kinds": ["Tamer"], "traits": ["TS"] }] }
+    ],
     "digivolutionRequirement": [{ "level": 4, "traits": ["Machine", "Cyborg", "TS"], "cost": 3, "isAlternate": true }]
   },
   "BT24-063": {
@@ -186930,6 +186967,9 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      { "reduceCost": 3, "materials": [{ "count": 4, "kinds": ["Digimon"], "namesExact": ["Eyesmon: Scatter Mode"] }] }
+    ],
     "digivolutionRequirement": [{ "namesExact": ["Eyesmon: Scatter Mode"], "cost": 1, "isAlternate": true }]
   },
   "EX9-048": {
@@ -189179,6 +189219,12 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [{ "count": 4, "kinds": ["Digimon"], "level": 5, "traits": ["Cyborg"], "differentNames": true }]
+      }
+    ],
     "digivolutionRequirement": [{ "level": 5, "traits": ["DM"], "cost": 3, "isAlternate": true }]
   },
   "EX9-074": {
@@ -203702,6 +203748,14 @@
     ],
     "coverage": "full",
     "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [
+          { "count": 3, "kinds": ["Digimon"], "traits": ["Composite", "Ver.3", "Ver.5"], "differentLevels": true }
+        ]
+      }
+    ],
     "dnaDigivolveRequirement": [
       { "cost": 0, "materials": [{ "namesExact": ["Kimeramon"] }, { "namesExact": ["Machinedramon"] }] }
     ]

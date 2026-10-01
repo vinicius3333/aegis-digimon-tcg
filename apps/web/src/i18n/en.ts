@@ -922,6 +922,7 @@ export const en = {
   "overlay.assemblyDetail": "Place cards from your trash under it to reduce its play cost by {reduction} (to {cost}).",
   "overlay.assemblyDifferentLevels": "different levels",
   "overlay.assemblyDifferentColors": "different colors",
+  "overlay.assemblyDifferentCardNumbers": "different card numbers",
   "overlay.assemblyNoMaterials": "No qualifying cards in your trash.",
   "overlay.assemblySelected": "{count} of {needed} materials selected.",
   "overlay.assemblyConfirm": "Assembly ({count} cards)",
