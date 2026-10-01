@@ -52,6 +52,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você tem 5 cards de segurança, BT22-090 Rie Kishibe e EX13-074 Rie Kishibe ([CS]) em campo, e BT19-073 e EX13-064 LordKnightmon na mão. Encerre seu turno. O [Fim do Seu Turno] da BT22-090 deve oferecer deletar a EX13-074: aceite. A EX13-074 vai para a lixeira, mas a BT22-090 não evolui, porque nenhuma LordKnightmon cumpre o requisito com mais de 3 cards de segurança. As duas LordKnightmon ficam na mão.",
     en: "You have 5 security cards, BT22-090 Rie Kishibe and EX13-074 Rie Kishibe ([CS]) in play, and BT19-073 and EX13-064 LordKnightmon in hand. End your turn. BT22-090's [End of Your Turn] must offer to delete EX13-074: accept. EX13-074 goes to the trash, but BT22-090 does not digivolve, because no LordKnightmon meets its requirement with more than 3 security cards. Both LordKnightmon stay in hand.",
   },
+  "arena-bt22-palmon-cs-restack": {
+    ptBR: "Você tem dois Digimon com BT22-044 Palmon como card de evolução: EX13-077 Omnimon: Merciful Mode (sem o traço [CS]) e BT22-031 GoldNumemon ([CS]). Avance até sua Fase Principal. 1) O Omnimon: Merciful Mode não deve oferecer o [Principal] herdado da Palmon. 2) Ative o [Principal] herdado da Palmon no GoldNumemon e aceite. O GoldNumemon vai para o fundo da pilha, a Palmon fica no topo, você compra 1 card, e o [Seu Turno] da Palmon dá +1 de memória.",
+    en: "You have two Digimon with BT22-044 Palmon as a digivolution card: EX13-077 Omnimon: Merciful Mode (no [CS] trait) and BT22-031 GoldNumemon ([CS]). Advance to your main phase. 1) Omnimon: Merciful Mode must not offer Palmon's inherited [Main]. 2) Activate Palmon's inherited [Main] on GoldNumemon and accept. GoldNumemon moves to the bottom of the stack, Palmon becomes the top card, you draw 1 card, and Palmon's [Your Turn] gives +1 memory.",
+  },
   "arena-ex3-wingdramon-evade-suspend-lock": {
     ptBR: "Use Bishop Device e escolha o Wingdramon adversário. Em seguida, use Crimson Flare para deletá-lo. Wingdramon não pode suspender para pagar Evade: não deve aparecer uma escolha de Evade, e ele deve ir para a lixeira.",
     en: "Use Bishop Device and choose the opposing Wingdramon. Then use Crimson Flare to delete it. Wingdramon cannot suspend to pay for Evade: no Evade choice should appear, and it should go to the trash.",
@@ -421,6 +425,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
+  ["arena-bt22-palmon-cs-restack", "BT22 Palmon · [CS] restack only on a [CS] host"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],

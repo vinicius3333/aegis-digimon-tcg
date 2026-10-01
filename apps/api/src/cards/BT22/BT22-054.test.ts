@@ -170,4 +170,19 @@ describe("BT22-054 Hagurumon — KB Q&A rulings", () => {
     expect(staysUnder.perm("host").topCard.cardId).toBe("BT1-009");
     expect(staysUnder.perm("opponent").currentDP).toBe(6000);
   });
+
+  it("Discord 1555135293399629824: does not offer the restack when this Digimon lacks the [CS] trait", async () => {
+    const s = setupEngine({
+      0: { deck: ["BT1-009"], battleArea: [{ card: "EX13-077", as: "host", under: ["BT22-054"] }] },
+    });
+    await s.ready();
+    const hagurumon = s.perm("host").stack[0]!;
+
+    expect(
+      observe(s.engine)
+        .activatableEffects(s.perm("host"))
+        .some((effect) => effect.instanceId === hagurumon.instanceId),
+    ).toBe(false);
+    expect(s.perm("host").topCard?.cardId).toBe("EX13-077");
+  });
 });
