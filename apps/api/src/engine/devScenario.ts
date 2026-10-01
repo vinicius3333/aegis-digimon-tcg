@@ -70,6 +70,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex9-kimeramon-skullgreymon-assembly",
   "arena-bt24-masterblimpmon-assembly",
   "arena-bt22-boltmon-assembly",
+  "arena-ex13-gotsumon-promo-knightmon",
   "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
   "arena-sukamon-transform-digivolve",
@@ -1054,6 +1055,32 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-inherited-blocker-bt19", "BT19-069", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-main-blocker", "BT20-047", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-turn-draw", "BT1-009", 0), "top");
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1555252641649393796: EX13-047 reveals promo Knightmon P-111, whose ＜Blocker＞ qualifies. */
+function layEx13GotsumonPromoKnightmonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-gotsumon-knightmon", "EX13-047", 0));
+    // Insert in reverse because deck[0] is the top card. The neutral card absorbs the turn draw.
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-black-scramble", "LM-031", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-promo-knightmon", "P-111", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-tai-kamiya", "ST15-14", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-knightmon-turn-draw", "BT1-009", 0), "top");
   }
 
   state.turnSeat = 0;
@@ -3274,6 +3301,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex9-kimeramon-skullgreymon-assembly": layEx9KimeramonSkullGreymonAssemblyScenario,
   "arena-bt24-masterblimpmon-assembly": layBt24MasterBlimpmonAssemblyScenario,
   "arena-bt22-boltmon-assembly": layBt22BoltmonAssemblyScenario,
+  "arena-ex13-gotsumon-promo-knightmon": layEx13GotsumonPromoKnightmonScenario,
   "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,

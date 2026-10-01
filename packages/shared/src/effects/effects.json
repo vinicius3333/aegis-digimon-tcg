@@ -19078,8 +19078,7 @@
             ],
             "rest": "deckBottom"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "OnDeletion",
@@ -19109,7 +19108,8 @@
           }
         ],
         "isInherited": true
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -21751,8 +21751,7 @@
             "payCost": false,
             "optional": true
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -21776,9 +21775,9 @@
             "payCost": false,
             "optional": true
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
-      }
+        ]
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -24402,8 +24401,7 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -24414,8 +24412,7 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "EndOfOpponentsTurn",
@@ -24427,7 +24424,8 @@
             "attackPlayer": true
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -39760,10 +39758,6 @@
             "optional": true,
             "abortOnDecline": true
           }
-        ],
-        "keywords": [
-          { "keyword": "Blocker", "raw": "＜Blocker＞" },
-          { "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }
         ]
       },
       {
@@ -39776,6 +39770,14 @@
             "duration": "permanent",
             "condition": { "kind": "selfHasNoDigivolutionCards", "raw": "this Digimon has no digivolution cards" }
           }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          { "keyword": "Blocker", "raw": "＜Blocker＞" },
+          { "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }
         ]
       }
     ],
@@ -111142,7 +111144,7 @@
   },
   "BT3-075": {
     "effects": [
-      { "trigger": "AllTurns", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "AllTurns",
         "actions": [
@@ -123419,7 +123421,8 @@
             "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } }
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],
@@ -197042,6 +197045,7 @@
   },
   "P-111": {
     "effects": [
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -197052,8 +197056,7 @@
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -197065,8 +197068,7 @@
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "AllTurns",

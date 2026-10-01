@@ -52,6 +52,7 @@ export interface AegisJoinOptions {
     | "arena-ex9-kimeramon-skullgreymon-assembly"
     | "arena-bt24-masterblimpmon-assembly"
     | "arena-bt22-boltmon-assembly"
+    | "arena-ex13-gotsumon-promo-knightmon"
     | "arena-rainbow-evo-cost"
     | "arena-mightyaxe-mode-digixros"
     | "arena-hand-reconnect-sync"

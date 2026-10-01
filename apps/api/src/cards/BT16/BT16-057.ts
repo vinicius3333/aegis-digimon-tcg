@@ -43,16 +43,6 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
         },
       ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
-        },
-        {
-          keyword: "Armor Purge",
-          raw: "＜Armor Purge＞",
-        },
-      ],
     },
     {
       trigger: "YourTurn",
@@ -73,6 +63,14 @@ const compiled: CompiledCard = {
             raw: "this Digimon has no digivolution cards",
           },
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        { keyword: "Blocker", raw: "＜Blocker＞" },
+        { keyword: "Armor Purge", raw: "＜Armor Purge＞" },
       ],
     },
   ],
