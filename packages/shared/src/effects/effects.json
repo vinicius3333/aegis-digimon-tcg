@@ -196996,6 +196996,7 @@
   },
   "P-111": {
     "effects": [
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -197006,8 +197007,7 @@
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -197019,8 +197019,7 @@
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "AllTurns",

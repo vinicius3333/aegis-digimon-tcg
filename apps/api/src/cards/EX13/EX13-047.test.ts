@@ -126,6 +126,37 @@ describe("EX13-047 Gotsumon", () => {
     assertNoLoudGap(s);
   });
 
+  it("adds promo Knightmon P-111 as the ＜Blocker＞ card (Discord bug 1555252641649393796)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gotsumon" }],
+          deck: [
+            { card: "ST15-14", as: "taiKamiya" },
+            { card: "P-111", as: "promoKnightmon" },
+            { card: "LM-031", as: "blackScramble" },
+            { card: "BT1-013", as: "unrevealed" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gotsumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.every(({ faceUp }) => !faceUp));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("promoKnightmon").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("unrevealed").instanceId,
+      s.inst("taiKamiya").instanceId,
+      s.inst("blackScramble").instanceId,
+    ]);
+  });
+
   it("lets one [Royal Knight] ＜Blocker＞ card fill a single slot while a second card fills the other", async () => {
     const s = setupEngine(
       {
