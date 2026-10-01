@@ -112,6 +112,7 @@ export interface CompiledCard {
   /** What the card may be linked to, and at what cost. */
   linkRequirement?: LinkRequirement[];
   digiXrosRequirement?: DigiXrosRequirement[];
+  /** Alternative recipes: one full recipe satisfies the Assembly ("[Blimpmon]/Tamer card w/[TS] trait", BT24-062). */
   assemblyRequirement?: AssemblyRequirement[];
   /** Structural capture only; the pairing behavior is not yet executed. */
   mindLinkRequirement?: MindLinkRequirement[];

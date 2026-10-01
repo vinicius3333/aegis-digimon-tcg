@@ -55,6 +55,7 @@ describe("BT7-061 Gigasmon", () => {
           trigger: "AllTurns",
           actions: [{ kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Blocker" } } }],
         },
+        { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
       ],
     });
   });

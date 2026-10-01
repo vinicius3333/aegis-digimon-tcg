@@ -3197,7 +3197,6 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     placeMixedMaterialsUnder: true,
     resolveCardEffect: true,
     resolvingEffectSourceKinds: true,
-    restoreDpReductions: true,
     restrict: true,
     restrictAttackTarget: true,
     restrictCostReduction: true,

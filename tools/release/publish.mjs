@@ -64,7 +64,7 @@ try {
   const notes = `${run("node", ["tools/release/render-notes.mjs"])}\n\nPlay and read the in-app notes: https://aegis-digi.online/whats-new`;
   run("git", ["tag", "-a", tag, "-m", `${tag} release`], { inherit: true });
   run("git", ["push", "origin", tag], { inherit: true });
-  run("gh", ["release", "create", tag, "--prerelease", "--title", tag, "--notes", notes], { inherit: true });
+  run("gh", ["release", "create", tag, "--latest", "--title", tag, "--notes", notes], { inherit: true });
 } catch (error) {
   console.error(`[release] ${error.message}`);
   process.exitCode = 1;

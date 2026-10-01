@@ -17,8 +17,11 @@ describe("BT13-019 Gankoomon", () => {
   it("optionally plays an allowed Sistermon or breeding-area Royal Knight", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    for (const effect of compiled.effects) {
-      expect(effect.keywords).toContainEqual(expect.objectContaining({ keyword: "Blocker" }));
+    expect(compiled.effects.filter((effect) => effect.trigger === "Static")).toEqual([
+      { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
+    ]);
+    for (const effect of compiled.effects.filter((entry) => entry.trigger !== "Static")) {
+      expect(effect.keywords).toBeUndefined();
       expect(effect.actions[0]).toMatchObject({
         kind: "PlayWithoutCost",
         from: ["trash", "digivolutionCards"],

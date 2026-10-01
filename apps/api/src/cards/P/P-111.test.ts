@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { definitionHasKeyword } from "../../engine/effects/interpreter/matching/definition.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -128,6 +129,10 @@ describe("P-111 Knightmon", () => {
     expect(s.perm("target").currentDP).toBe(8000);
     expect(s.perm("parent").keywords).toContain("Blocker");
     expect(s.perm("parent").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+  });
+
+  it("declares ＜Blocker＞ as card information so ＜Blocker＞ searches match it (Discord bug 1555252641649393796)", () => {
+    expect(definitionHasKeyword(getCardDefinition("P-111")!, "Blocker")).toBe(true);
   });
 });
 

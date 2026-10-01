@@ -83,5 +83,8 @@ describe("BT8-065 CatchMamemon — KB Q&A rulings", () => {
     expect(player.trash).toHaveLength(0);
     expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("handLeftover").instanceId]);
     expect(s.perm("target").topCard?.cardId).toBe("BT1-015");
+    // Only the hand cards were private; the trash cards were already public.
+    const revealed = s.events.flatMap((event) => (event.kind === "cardRevealed" ? [event.cardId] : []));
+    expect(revealed.sort()).toEqual(["BT3-071", "BT6-063"]);
   });
 });
