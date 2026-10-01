@@ -85,6 +85,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.7.7-beta.summary": releaseMessages["releases.1.7.7-beta.summary"]["pt-BR"],
+  "releases.1.7.7-beta.feature.leaveWhileAway": releaseMessages["releases.1.7.7-beta.feature.leaveWhileAway"]["pt-BR"],
+  "releases.1.7.7-beta.fix.privateReveal": releaseMessages["releases.1.7.7-beta.fix.privateReveal"]["pt-BR"],
+  "releases.1.7.7-beta.fix.pendingEffectsPhone":
+    releaseMessages["releases.1.7.7-beta.fix.pendingEffectsPhone"]["pt-BR"],
+  "releases.1.7.7-beta.fix.promoArt": releaseMessages["releases.1.7.7-beta.fix.promoArt"]["pt-BR"],
   "releases.1.7.6-beta.summary": releaseMessages["releases.1.7.6-beta.summary"]["pt-BR"],
   "releases.1.7.6-beta.feature.loginLayout": releaseMessages["releases.1.7.6-beta.feature.loginLayout"]["pt-BR"],
   "releases.1.7.6-beta.fix.mercifulModeOrder": releaseMessages["releases.1.7.6-beta.fix.mercifulModeOrder"]["pt-BR"],

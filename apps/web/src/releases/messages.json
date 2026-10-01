@@ -1,4 +1,24 @@
 {
+  "releases.1.7.7-beta.summary": {
+    "en": "This update reveals cards with a requirement when an effect moves them between private areas, lets you leave a match while your opponent is away, and fixes the pending-effects sheet on phones.",
+    "pt-BR": "Esta atualização revela cartas com requisito quando um efeito as move entre áreas privadas, permite sair da partida enquanto o oponente está ausente e corrige o painel de efeitos pendentes no celular."
+  },
+  "releases.1.7.7-beta.feature.leaveWhileAway": {
+    "en": "While your opponent is disconnected, a \"Leave match\" button lets you leave. Leaving counts as a surrender.",
+    "pt-BR": "Enquanto o oponente está desconectado, um botão \"Sair da partida\" permite sair. Sair conta como desistência."
+  },
+  "releases.1.7.7-beta.fix.privateReveal": {
+    "en": "Effects that move a \"card with XX\" from hand, deck, or security into another private area now reveal it to the opponent first, such as BT14-032 Chuumon placing a [Sukamon] card in security. A plain \"card\" stays hidden.",
+    "pt-BR": "Efeitos que movem uma \"carta com XX\" da mão, do deck ou da segurança para outra área privada agora a revelam ao oponente antes, como BT14-032 Chuumon ao colocar uma carta [Sukamon] na segurança. Uma \"carta\" sem requisito continua escondida."
+  },
+  "releases.1.7.7-beta.fix.pendingEffectsPhone": {
+    "en": "On portrait phones, the pending-effects sheet no longer hides the whole board. Its effect list scrolls inside it.",
+    "pt-BR": "Em celulares na vertical, o painel de efeitos pendentes não esconde mais o campo inteiro. A lista de efeitos rola dentro dele."
+  },
+  "releases.1.7.7-beta.fix.promoArt": {
+    "en": "P-245 to P-250 now show their published card art.",
+    "pt-BR": "As cartas P-245 a P-250 agora mostram a arte publicada."
+  },
   "releases.1.7.6-beta.summary": {
     "en": "This update fixes the order of Omnimon: Merciful Mode's attack effects, makes the Assembly picker respect different colors, and simplifies the login screen.",
     "pt-BR": "Esta atualização corrige a ordem dos efeitos de ataque de Omnimon: Merciful Mode, faz a seleção de Assembly respeitar cores diferentes e simplifica a tela de entrada."
