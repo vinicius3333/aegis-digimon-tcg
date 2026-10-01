@@ -63,6 +63,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
+  "arena-bt20-ouryuken-reduction-resumes",
   "arena-ex13-gotsumon-blocker-search",
   "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
@@ -391,6 +392,33 @@ function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * Discord 1555069212727185488: BT20-060's -15000 DP hits a Chronomon: Holy Mode that BT26-029
+ * protected until the end of this turn. The startup installs that protection
+ * (`startDevScenario`); the reduction must apply on the bot's turn.
+ *
+ * Two routes put Alphamon: Ouryuken in play. From the hand, King Drasil_7D6 (4 + 5 sources)
+ * drops its play cost from 9 to 0 and its [On Play] resolves. From King Drasil's digivolution
+ * cards, BT13-110's ＜Delay＞ plays it, and the printed rule keeps its [On Play] from activating.
+ */
+function layBt20OuryukenReductionResumesScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human !== undefined) {
+    const drasil = establishedDigimon(0, ["BT20-060", ...Array<string>(5).fill("BT13-007")], "-ouryuken-king-drasil");
+    drasil.inBreeding = true;
+    setBreeding(human, drasil);
+    const purge = establishedDigimon(0, ["BT13-110"], "-ouryuken-royal-purge");
+    purge.placedByEffect = true;
+    placePermanent(human, purge);
+    insertCard(human, Zone.Hand, faceDownCard("dev-ouryuken", "BT20-060", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT26-029", "BT26-016"], "-ouryuken-chronomon"));
+  }
 }
 
 /** P-240 Arcturusmon plays by Assembly -6 and digivolves from a Red/Yellow Lv.5 [VB] Digimon. */
@@ -3090,6 +3118,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
+  "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
