@@ -18,4 +18,15 @@ describe("definition keyword matching", () => {
     expect(definitionMatches({ keywords: ["Blocker"] }, mainBlocker)).toBe(true);
     expect(definitionMatches({ keywords: ["Blocker"] }, inheritedBlockerReference)).toBe(false);
   });
+
+  it("matches a printed ＜Blocker＞ compiled as a Static self GainKeyword (Discord bug 1555252641649393796)", () => {
+    const matched = ["ST3-07", "BT22-041", "BT23-056", "EX10-029"].filter((cardId) =>
+      definitionMatches({ keywords: ["Blocker"] }, getCardDefinition(cardId)!),
+    );
+    expect(matched).toEqual(["ST3-07", "BT22-041", "BT23-056", "EX10-029"]);
+  });
+
+  it("ignores a keyword that only a link effect grants", () => {
+    expect(definitionMatches({ keywords: ["Collision"] }, getCardDefinition("BT25-100")!)).toBe(false);
+  });
 });
