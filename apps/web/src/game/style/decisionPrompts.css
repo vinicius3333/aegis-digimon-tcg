@@ -78,9 +78,13 @@
   padding-bottom: 0;
 }
 
+/* Equal thirds clipped "Confirm targets" in a 560px dialog: the label never wraps, so
+   each button starts at its label's width and only the spare space is shared. The
+   `full` button's 100% width would otherwise become every button's flex basis. */
 .decision-overlay--selection .decision-overlay__footer > .aegis-button {
+  width: auto;
   min-width: 0;
-  flex: 1 1 0;
+  flex: 1 1 auto;
 }
 
 /* A portrait tablet is already too narrow for the three long selection actions
