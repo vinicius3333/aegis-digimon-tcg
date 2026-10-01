@@ -657,6 +657,14 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       digivolveDeps(engine).fireWouldDigivolve!(engine.state, seat, target, into),
     consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
       engine.consultLeavePrevention(ids, cause, resolvingSeat, opts),
+    interruptDigiXrosMaterialLeave: async (fieldPermanentIds, resolvingSeat) => {
+      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byEffect", resolvingSeat, {
+        isDigiXros: true,
+        isBounce: true,
+      });
+      return { prevented, triggered: takeLeaveReplacementPending(engine) };
+    },
+    resolveHeldTriggeredEffects: (effects) => runPendingTimingWindow(engine, effects),
     consultDigivolutionTrashRedirect: (ids) => engineConsultDigivolutionTrashRedirect(engine, ids),
     get combat() {
       return getCombat();

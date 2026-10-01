@@ -118,6 +118,7 @@ export async function fireEnteredByEffectTiming(
     playedByEffectSourceCardId?: string;
     playedByDecode?: boolean;
     deferWhenPlayed?: boolean;
+    procedurePending?: readonly CollectedEffect[];
   },
 ): Promise<void> {
   const attackerPermanentId = engine.combat?.currentAttackerId;
