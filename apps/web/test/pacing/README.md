@@ -113,3 +113,6 @@ which the repository must not hold. So the harness rebuilds the chains as dev sc
 - A watched cue (a DP pulse, a draw flight from a hand count) is matched to the effect whose
   batch revision it first covers. A pipeline cue uses the batch its step was enqueued for.
 - The human's think times are fixed. They move `chain ms`, not `shown ms`.
+- Fixed timing can miss a wait cycle that real browser timing closes (a start-of-main
+  chain froze every track in Chromium). `e2e/effects-lab-pacing.spec.ts` covers that in a
+  real browser; run it with `pnpm --filter @aegis/web test:browser effects-lab-pacing.spec.ts`.
