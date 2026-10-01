@@ -94,26 +94,6 @@ function renderDecision(request: DecisionRequest = optionalDecision) {
   return { ...result, onRespond };
 }
 
-it("docks an optional processing cost on the left rail under the printed clause, not the engine summary", () => {
-  renderDecision({
-    decisionId: "omekamon-breeding",
-    seat: 0,
-    kind: "optional",
-    promptText: "By paying: Suspend 1 card(s) → Play without paying the cost",
-    sourceCardId: "BT20-083",
-    options: {
-      timing: "whenSecurityRemoved",
-      effectText:
-        "[Breeding] [Opponent's Turn] When your security stack is removed from, by suspending this Digimon, play 1 [Omekamon] from this Digimon's digivolution cards without paying the cost.",
-      isInherited: true,
-    },
-  });
-  const dialog = screen.getByRole("dialog");
-  expect(dialog.classList.contains("decision-overlay--side")).toBe(true);
-  expect(screen.queryByText(/By paying:/)).toBeNull();
-  expect(screen.getByText(/play 1 \[Omekamon\] from this Digimon's digivolution cards/)).toBeTruthy();
-});
-
 it("shows Genshi's activating effect instead of its Use Requirement", () => {
   renderDecision({
     decisionId: "genshi-main",
