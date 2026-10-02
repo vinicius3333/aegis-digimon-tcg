@@ -43,9 +43,10 @@ describe("Ginkakumon Promote purple discard deck", () => {
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;
+    // Bottom to top. The placement goes directly under the top card, where order 1 lands.
     const stackOrder = [s.inst("ginkakumon").instanceId, s.inst("kinkakumon").instanceId];
     expect(ordering.sourceCardId).toBe("BT6-075");
-    expect(ordering.options?.orderDestination).toBe("stackBottom");
+    expect(ordering.options?.orderDestination).toBe("stackTop");
     expect(ordering.options?.visibleCards).toEqual([
       { instanceId: s.inst("kinkakumon").instanceId, cardId: "BT6-071" },
       { instanceId: s.inst("ginkakumon").instanceId, cardId: "BT6-073" },
@@ -54,7 +55,7 @@ describe("Ginkakumon Promote purple discard deck", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: ordering.decisionId,
-        response: { kind: "orderCards", order: stackOrder },
+        response: { kind: "orderCards", order: [...stackOrder].reverse() },
       }),
     ).toEqual({ ok: true });
     await settle(

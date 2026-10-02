@@ -46,7 +46,9 @@ describe("BT12-074 Gumdramon", () => {
   });
 
   it("uses one Save material for DigiXros -2", () => {
-    expect(digiXrosRequirementFor("BT12-074")).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    expect(digiXrosRequirementFor("BT12-074")).toEqual([
+      { materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 },
+    ]);
   });
 
   it("publicly DigiXroses with one Save material for the exact reduction", async () => {

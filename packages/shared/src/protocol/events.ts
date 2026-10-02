@@ -312,6 +312,17 @@ export type ServerEvent =
         /** The card whose effect stripped the stack, when an effect did. */
         sourceCardId?: string;
       };
+      /**
+       * Digivolution cards an effect trashed from under a permanent that stays on the field.
+       * `hostCardId` is the permanent's top card, so the client can name the Digimon that lost
+       * them; `cardIds` and `seat` name the trashed cards and their owner.
+       */
+      trashedSources?: {
+        permanentId: string;
+        hostCardId: string;
+        /** The card whose effect trashed them, when an effect did. */
+        sourceCardId?: string;
+      };
       /** A scheduled turn-end deletion, attributed to the card that installed it. */
       turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
       /**
@@ -526,8 +537,10 @@ export interface DecisionRequest {
     distinctNames?: boolean; // prevent selecting cards sharing a name, including exact-name aliases
     /** Lets the client use a dedicated in-board interaction without inferring semantics from prompt text. */
     selectionContext?: "attackSource" | "attackTarget";
-    orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination
+    orderDestination?: "deckTop" | "deckBottom" | "stackTop" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
+    /** `chooseOption` only: the zone whose ends the "top" and "bottom" choices name. */
+    topBottomZone?: "digivolutionCards" | "security" | "deck";
     /**
      * `chooseOption` only: the choice is which digivolution requirement an effect-driven
      * digivolution uses. `costs` aligns with `choices`; `costDelta` is the effect's own
@@ -596,8 +609,11 @@ export interface DecisionRequest {
      * choice. The two are otherwise indistinguishable from the request shape — both arrive
      * as `selectCards` over the controller's own cards — which is exactly what an automated
      * seat needs to tell apart before answering.
+     *
+     * `"acceptedOptional"` marks a pick of an action whose "you may" the controller already
+     * accepted. A `min: 0` there only lets the player back out; an empty answer does nothing.
      */
-    purpose?: "cost";
+    purpose?: "cost" | "acceptedOptional";
     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
     assemblyCardId?: string;
     /** Effect-driven play awaiting the existing DigiXros material picker for this card. */

@@ -155,12 +155,12 @@ export interface DigiXrosDeps {
     sourcePermanentId: string,
     opts?: { belowTop?: boolean; shedOwnCards?: boolean },
   ): boolean;
-  /** Relocate a field material after consulting leave-play replacements for the player action. */
-  relocatePermanentForDigiXros?(
-    destPermanentId: string,
-    sourcePermanentId: string,
-    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
-  ): Promise<boolean>;
+  /**
+   * Resolve the "would leave" interrupts of the chosen field materials before they are placed
+   * (§7-2-2-7, §15-8-5-2, Q3724/Q3725). The played card is still only revealed at this point.
+   * Returns the material permanents whose leave was prevented or replaced.
+   */
+  interruptFieldMaterialLeave?(fieldPermanentIds: string[]): Promise<Set<string>>;
   /**
    * Zones an ACTIVE effect grant has opened as DigiXros material sources for this seat, from the
    * engine's `expandDigiXrosZones` ledger (BT17-057's Static "while you have a black Tamer",
@@ -386,14 +386,29 @@ export async function applyDigiXros(
     await deps.suspendPermanent(permanentId);
   }
 
-  // (2) Pay the (reduced) memory cost.
+  // (2) The chosen field materials' "would leave" interrupts resolve right before they are
+  //     placed, while the played card is only revealed: it is neither paid for nor in play yet.
+  //     A prevented or replaced material is not placed, so it does not reduce the cost.
+  const fieldMaterialPermanentIds = materials.flatMap((material) =>
+    material.source === "field" && material.fieldPermanentId !== undefined ? [material.fieldPermanentId] : [],
+  );
+  const interruptedPermanentIds =
+    fieldMaterialPermanentIds.length === 0
+      ? new Set<string>()
+      : ((await deps.interruptFieldMaterialLeave?.(fieldMaterialPermanentIds)) ?? new Set<string>());
+  const interruptedMaterialCount = materials.filter(
+    (material) => material.fieldPermanentId !== undefined && interruptedPermanentIds.has(material.fieldPermanentId),
+  ).length;
+  cost += interruptedMaterialCount * check.perMaterialReduction;
+
+  // (3) Pay the (reduced) memory cost.
   if (cost > 0) {
     const memoryBefore = state.memory;
     deps.payMemory(state, seat, cost);
     deps.emit?.({ kind: "memoryChanged", from: memoryBefore, to: state.memory, reason: "playCard" });
   }
 
-  // (3) Remove the played card from hand and place it as a new battle-area permanent.
+  // (4) Remove the played card from hand and place it as a new battle-area permanent.
   const playIndex = player.hand.findIndex((c) => c.instanceId === check.instance.instanceId);
   if (playIndex < 0) return { ok: false, reason: "card-not-in-zone" };
   const instance = extractCardAt(player, Zone.Hand, playIndex);
@@ -415,7 +430,7 @@ export async function applyDigiXros(
     sourceCardIds: materials.map((material) => material.definition.cardId),
   });
 
-  // (4) Place each material under the new permanent. A battle-area material contributes only its
+  // (5) Place each material under the new permanent. A battle-area material contributes only its
   //     TOP card — §7-2-2-7 removes it from the battle area, so anything under it is trashed
   //     (`shedOwnCards`). A hand / trash / under-Tamer material is a single loose card already.
   //     "Would be played" placements resolve first, so a card they trash by rule can be a material (Q2252/Q2253).
@@ -435,22 +450,13 @@ export async function applyDigiXros(
   for (const index of orderedMaterialIndices) {
     const material = materials[index]!;
     if (material.source === "field" && material.fieldPermanentId !== undefined) {
-      if (deps.relocatePermanentForDigiXros !== undefined) {
-        const relocated = await deps.relocatePermanentForDigiXros(permanent.permanentId, material.fieldPermanentId, {
-          shedOwnCards: true,
-          belowTop: false,
-        });
-        if (!relocated) {
-          continue;
-        }
-      } else {
-        const relocated = deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, {
-          shedOwnCards: true,
-          belowTop: false,
-        });
-        if (!relocated) {
-          continue;
-        }
+      if (interruptedPermanentIds.has(material.fieldPermanentId)) continue;
+      const relocated = deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, {
+        shedOwnCards: true,
+        belowTop: false,
+      });
+      if (!relocated) {
+        continue;
       }
     } else {
       if (material.awaitsRuleTrash === true && !player.trash.some((card) => card.instanceId === material.instanceId)) {
@@ -461,11 +467,12 @@ export async function applyDigiXros(
     placedIds.push(material.instanceId);
   }
 
-  // A leave replacement can stop a declared field material from actually being placed. DigiXros
-  // reduces the play cost for cards placed, so restore the reduction for every prevented move and
-  // report only the material count that reached the new permanent.
-  const preventedMaterialCount = materials.length - placedIds.length;
-  const restoredCost = preventedMaterialCount * check.perMaterialReduction;
+  // A declared material can still fail to arrive after payment (it moved during an interrupt, or
+  // a "would be played" cost did not trash it). DigiXros reduces the play cost only for cards
+  // placed, so restore that reduction and report only the material count that reached the new
+  // permanent.
+  const unplacedAfterPaymentCount = materials.length - interruptedMaterialCount - placedIds.length;
+  const restoredCost = unplacedAfterPaymentCount * check.perMaterialReduction;
   if (restoredCost > 0) {
     const memoryBefore = state.memory;
     deps.payMemory(state, seat, restoredCost);
@@ -473,7 +480,7 @@ export async function applyDigiXros(
     cost += restoredCost;
   }
 
-  // (5) Fire On Play, carrying the material count so `digiXrosCount` conditions can gate on it.
+  // (6) Fire On Play, carrying the material count so `digiXrosCount` conditions can gate on it.
   await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, placedIds.length);
 
   return {

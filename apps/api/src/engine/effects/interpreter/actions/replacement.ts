@@ -4,6 +4,7 @@ import type { EffectContext, ReplacementEventName } from "../../EffectContext.js
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
+import { trashDelaySource } from "../optionTrash.js";
 import { unsupported } from "../errors.js";
 import { printedClause } from "../describe.js";
 import { scaleFactor } from "../scaling.js";
@@ -441,7 +442,7 @@ export async function runReplacement(
           const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some((g) => g.keyword === "Delay");
           if (!hasDelay) return false;
           subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
-          const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
+          const trashed = await trashDelaySource(subCtx, source);
           if (trashed <= 0) return false;
         }
         // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
@@ -452,7 +453,7 @@ export async function runReplacement(
           const source = subCtx.source.permanent();
           if (source === undefined) return false;
           if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-          const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
+          const trashed = await trashDelaySource(subCtx, source);
           if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
         }
         const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
@@ -793,7 +794,7 @@ export async function runReplacement(
           if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
             return false;
           }
-          const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
+          const trashed = await trashDelaySource(subCtx, delaySource);
           if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
         } else if (
           (action.optional === true || hasOptionalDigiXrosCost) &&

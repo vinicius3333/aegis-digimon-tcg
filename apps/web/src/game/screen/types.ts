@@ -139,7 +139,7 @@ export interface EvoCostChoice {
   handInstanceId: string;
   permanentId: string;
   handCardId: string;
-  baseName: string;
+  baseCardId: string;
   options: EvoCostOption[];
 }
 

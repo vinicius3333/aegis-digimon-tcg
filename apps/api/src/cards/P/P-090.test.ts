@@ -143,4 +143,36 @@ describe("P-090 Diarbbitmon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+
+  it("ignores an opponent's Digimon deleting one of yours in battle (Discord 1555163238696484875 sweep)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-090", as: "diarbbitmon", under: ["BT10-044"] },
+            { card: "BT1-009", as: "victim", suspended: true, dp: 1000 },
+            { card: "BT1-010", as: "rested", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker", dp: 9000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === victimId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("rested").isSuspended).toBe(true);
+  });
 });

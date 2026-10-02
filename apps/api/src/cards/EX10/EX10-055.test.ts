@@ -353,6 +353,50 @@ describe("EX10-055 Tactimon", () => {
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT10-064"]);
   });
 
+  it("Q2352: a battle-area DigiXros material does not leave by effects, so it is not prevented (Discord bug 1555206206417674281 follow-up)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX10-056", as: "bagramon" }],
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "tactimon",
+              under: [
+                { card: "BT1-009", as: "first" },
+                { card: "BT1-013", as: "second" },
+              ],
+            },
+            { card: "EX10-026", as: "material" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+    const materialId = s.perm("material").permanentId;
+    const bagramonInPlay = () => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX10-056");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("bagramon").instanceId,
+        digiXros: { materialInstanceIds: [s.perm("material").topCard!.instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => bagramonInPlay() && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.map(({ req }) => req.sourceCardId)).not.toContain(CARD_ID);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(materialId);
+    expect(s.perm("bagramon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-026"]);
+    expect(s.perm("tactimon").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("Q5139 prevents every simultaneous [Bagra Army] departure for one 2-card payment", async () => {
     const s = setupEngine(
       {

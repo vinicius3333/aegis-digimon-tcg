@@ -107,6 +107,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "SecurityManipulation",

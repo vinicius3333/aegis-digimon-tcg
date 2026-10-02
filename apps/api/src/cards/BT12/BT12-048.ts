@@ -2,6 +2,7 @@ import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled = structuredClone(getCompiledCard("BT12-048")!);
+compiled.digiXrosRequirement = [{ materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 }];
 const onPlay = compiled.effects.find((effect) => effect.trigger === "OnPlay");
 if (onPlay !== undefined) {
   onPlay.actions = [

@@ -86,6 +86,7 @@ export async function recomputeContinuousEffects(engine: GameEngine): Promise<vo
       }
     } while (engine.recomputeQueued);
 
+    engine.modifiers.refreshReducedDp(engine.state);
     engine.projection.syncActivatableEffects();
     engine.projection.syncKeywords();
     engine.projection.syncSummoningSickness();

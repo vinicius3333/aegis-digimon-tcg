@@ -45,16 +45,8 @@ describe("Decoy continuous source", () => {
         target: { kind: "permanent", permanentId: source.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision !== undefined, 5000);
-    const optional = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optional.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined, 5000);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT1-084")).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(sourceId);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(inheritedSourceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(attackerId);

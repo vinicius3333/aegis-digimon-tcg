@@ -181,7 +181,7 @@ describe("EX3-068 God Flame", () => {
           s.inst("trial").instanceId,
           s.inst("unrelated").instanceId,
         ],
-        min: 1,
+        min: 0,
         max: 1,
         timing: "Main",
       },

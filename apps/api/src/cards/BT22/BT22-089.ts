@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              playCost: { op: "gte", value: 4 },
+              playCostGte: 4,
               nameOrTrait: [
                 { tokens: ["Mirei Mikagura"], match: "nameExact" },
                 { tokens: ["CS"], match: "trait" },

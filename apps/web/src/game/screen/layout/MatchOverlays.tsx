@@ -10,7 +10,7 @@
    each of them. */
 
 import type { RefObject } from "react";
-import { canMoveFromBreeding, canUseBreedingAction, parseActivatable } from "../../boardModel";
+import { canMoveFromBreeding, canUseBreedingAction, displayMemory, parseActivatable } from "../../boardModel";
 import type { GameState, DecisionRequest, Permanent, PlayerState, Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { ActionConfirmationOverlay, MulliganOverlay, printedCardName } from "../../overlay";
@@ -351,6 +351,7 @@ export function MatchOverlays({
             : null
         }
         evoCostChoice={overlays.evoCostChoice}
+        memory={displayMemory(state, viewerSeat)}
         assemblyPick={overlays.assemblyPick}
         digiXrosPick={overlays.digiXrosPick}
         {...playAnswers}

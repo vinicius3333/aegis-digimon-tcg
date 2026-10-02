@@ -163,6 +163,13 @@ export interface RemovalPrimitives {
   ): Promise<void>;
   unsuspend(permanentIds: string[]): Promise<void>;
   /**
+   * Whether `unsuspend` would turn this permanent: it is suspended, no "can't unsuspend"
+   * restriction holds it, and its controller can pay any granted hand-trash cost. An
+   * "unsuspend" cost is payable only with such a permanent. Optional on the port so faked
+   * primitives in tests need no change.
+   */
+  canUnsuspend?(permanentId: string): boolean;
+  /**
    * Return cards to their owners' hands. Async because a permanent bounce consults the
    * leave-the-battle-area PREVENT reactions first (a "would leave" reaction voids hand
    * bounce too, not just deletion); a prevented permanent is left in play. When

@@ -121,30 +121,36 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
     return true;
   };
 
+  const canUnsuspend: NonNullable<Primitives["canUnsuspend"]> = (permanentId: string): boolean => {
+    const permanent = access.permanentById(permanentId);
+    if (permanent === undefined) return false;
+    // Only an actual suspended -> unsuspended TRANSITION counts as "becoming unsuspended"
+    // (mirrors `suspend`'s own-transition gate above): unsuspending an already-unsuspended
+    // permanent opens no whenUnsuspended window.
+    if (!permanent.isSuspended) return false;
+    // "Can't unsuspend" is not limited to the Active phase. Effect-driven unsuspension
+    // routes through this primitive, so enforce the same continuous restriction here too
+    // (Samādhi Śānti and the wider freeze family). Active-phase code keeps its earlier
+    // filter to report an accurate list of permanents that changed orientation.
+    if (
+      isRestricted(permanentId, "unsuspend") ||
+      (state.phase === Phase.Active &&
+        (isRestricted(permanentId, "unsuspendDuringUnsuspendPhase") ||
+          (state.turnSeat === permanent.controllerSeat &&
+            isRestricted(permanentId, "unsuspendDuringOwnUnsuspendPhase"))))
+    )
+      return false;
+    const handTrashCost = continuous.restrictionCount(permanentId, "unsuspendHandTrashCost");
+    return player(permanent.controllerSeat).hand.length >= handTrashCost;
+  };
+
   const unsuspend: Primitives["unsuspend"] = async (permanentIds: string[]): Promise<void> => {
     for (const permanentId of permanentIds) {
-      const permanent = access.permanentById(permanentId);
-      if (permanent === undefined) continue;
-      // Only an actual suspended -> unsuspended TRANSITION counts as "becoming unsuspended"
-      // (mirrors `suspend`'s own-transition gate above): unsuspending an already-unsuspended
-      // permanent opens no whenUnsuspended window.
-      if (!permanent.isSuspended) continue;
-      // "Can't unsuspend" is not limited to the Active phase. Effect-driven unsuspension
-      // routes through this primitive, so enforce the same continuous restriction here too
-      // (Samādhi Śānti and the wider freeze family). Active-phase code keeps its earlier
-      // filter to report an accurate list of permanents that changed orientation.
-      if (
-        isRestricted(permanentId, "unsuspend") ||
-        (state.phase === Phase.Active &&
-          (isRestricted(permanentId, "unsuspendDuringUnsuspendPhase") ||
-            (state.turnSeat === permanent.controllerSeat &&
-              isRestricted(permanentId, "unsuspendDuringOwnUnsuspendPhase"))))
-      )
-        continue;
+      if (!canUnsuspend(permanentId)) continue;
+      const permanent = access.permanentById(permanentId)!;
       const handTrashCost = continuous.restrictionCount(permanentId, "unsuspendHandTrashCost");
       if (handTrashCost > 0) {
         const hand = player(permanent.controllerSeat).hand;
-        if (hand.length < handTrashCost) continue;
         const chosen = await engine.ask.selectInstances(
           permanent.controllerSeat,
           Array.from(hand, (card) => card.instanceId),
@@ -169,5 +175,5 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
     }
   };
 
-  return { fireSuspensionTriggers, suspend, canPayActivationCost, payActivationCost, unsuspend };
+  return { fireSuspensionTriggers, suspend, canPayActivationCost, payActivationCost, canUnsuspend, unsuspend };
 }

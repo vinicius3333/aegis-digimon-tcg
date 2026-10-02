@@ -488,6 +488,116 @@ describe("EX12-018 Siriusmon", () => {
     }
   });
 
+  describe("Discord 1555224478416633927: places the whole group at one chosen end", () => {
+    function setupGroupPlacement(opponentDP: number) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX12-014", as: "base", under: ["BT1-009"] }],
+            hand: [
+              { card: "EX12-018", as: "source" },
+              { card: "EX12-007", as: "handMaterial" },
+            ],
+            trash: [{ card: "EX12-013", as: "trashMaterial" }],
+          },
+          1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: opponentDP }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+      );
+      s.state.memory = 10;
+      return s;
+    }
+
+    const placementPrompts = (s: ReturnType<typeof setupGroupPlacement>) =>
+      s.decisions.filter(({ req }) => req.kind === "chooseOption");
+    const orderPrompts = (s: ReturnType<typeof setupGroupPlacement>) =>
+      s.decisions.filter(({ req }) => req.kind === "orderCards");
+
+    async function placeGroup(
+      s: ReturnType<typeof setupGroupPlacement>,
+      optionIndex: number,
+      order: (handId: string, trashId: string) => string[],
+    ) {
+      const handId = s.inst("handMaterial").instanceId;
+      const trashId = s.inst("trashMaterial").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("source").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => placementPrompts(s).length > 0);
+      const placement = placementPrompts(s)[0]!;
+      expect(placement.req.options?.choices).toEqual(["top", "bottom"]);
+      expect(placement.req.options?.topBottomZone).toBe("digivolutionCards");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: placement.req.decisionId,
+          response: { kind: "chooseOption", optionIndex },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => placementPrompts(s).length > 1 || orderPrompts(s).length > 0);
+      expect(placementPrompts(s)).toHaveLength(1);
+      const ordering = orderPrompts(s)[0]!;
+      expect([...(ordering.req.options?.candidateInstanceIds ?? [])].sort()).toEqual([handId, trashId].sort());
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: ordering.req.decisionId,
+          response: { kind: "orderCards", order: order(handId, trashId) },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && s.perm("opponent").currentDP === 2000);
+      return { handId, trashId, ordering };
+    }
+
+    function placementMoves(s: ReturnType<typeof setupGroupPlacement>, ids: string[]) {
+      return s.events.filter(
+        (event) =>
+          event.kind === "cardsMoved" &&
+          event.to === "battleArea" &&
+          event.instanceIds.some((instanceId) => ids.includes(instanceId)),
+      );
+    }
+
+    it("asks top or bottom once and places both cards at the bottom in the chosen order", async () => {
+      const s = setupGroupPlacement(10_000);
+      const { handId, trashId, ordering } = await placeGroup(s, 1, (hand, trash) => [trash, hand]);
+
+      expect(ordering.req.options?.orderDestination).toBe("stackBottom");
+      expect(
+        s
+          .perm("base")
+          .stack.map((card) => card.instanceId)
+          .slice(0, 2),
+      ).toEqual([trashId, handId]);
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX12-013", "EX12-007", "BT1-009", "EX12-014"]);
+      const moves = placementMoves(s, [handId, trashId]);
+      expect(moves).toHaveLength(1);
+      expect(moves[0]!.kind === "cardsMoved" && [...moves[0]!.instanceIds].sort()).toEqual([handId, trashId].sort());
+      expect(s.perm("opponent").currentDP).toBe(2000);
+    });
+
+    it("asks top or bottom once and places both cards directly beneath the top card in the chosen order", async () => {
+      const s = setupGroupPlacement(10_000);
+      const { handId, trashId, ordering } = await placeGroup(s, 0, (hand, trash) => [hand, trash]);
+
+      expect(ordering.req.options?.orderDestination).toBe("stackTop");
+      expect(s.perm("base").topCard.cardId).toBe("EX12-018");
+      expect(
+        s
+          .perm("base")
+          .stack.map((card) => card.instanceId)
+          .slice(2),
+      ).toEqual([trashId, handId]);
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-009", "EX12-014", "EX12-013", "EX12-007"]);
+      expect(placementMoves(s, [handId, trashId])).toHaveLength(1);
+      expect(s.perm("opponent").currentDP).toBe(2000);
+    });
+  });
+
   it("rejects an off-color level-5 card without Gammamon text or VB", () => {
     const s = setupEngine({
       0: {

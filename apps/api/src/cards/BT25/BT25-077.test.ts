@@ -113,6 +113,7 @@ describe("BT25-077 Bacchusmon", () => {
   });
 
   it("suspends one Digimon when any Digimon is manually played, including while Bacchusmon is suspended", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -121,8 +122,9 @@ describe("BT25-077 Bacchusmon", () => {
         },
         1: { battleArea: [{ card: HIGH, as: "opponent" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("bacchusmon").topCard.instanceId);
     await s.ready();
     s.state.memory = 3;
     const playedId = s.inst("played").instanceId;

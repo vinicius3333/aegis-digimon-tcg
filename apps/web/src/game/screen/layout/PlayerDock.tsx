@@ -1,6 +1,7 @@
 /* The strip along the bottom: the raising area on a wide screen, then the action bar
    and the hand, then the viewer's own counters. A portrait phone moves the raising
-   area up into the field, so the dock takes it as a slot rather than rendering it. */
+   area up into the field, so the dock takes it as a slot rather than rendering it. A
+   short desktop moves the deck and trash down from the right rail the same way. */
 
 import type { ReactNode, RefObject } from "react";
 import { ArenaCounters } from "../../ArenaCounters";
@@ -13,6 +14,7 @@ export function PlayerDock({
   playerName,
   playerAvatarId,
   breedingDock,
+  pileDock,
   handDockRef,
   cardWidth,
   minExposure,
@@ -38,6 +40,8 @@ export function PlayerDock({
   /** The board is showing the viewer's own turn, so their line does not wait. */
   /** The raising area, when this screen puts it here rather than in the field. */
   breedingDock: ReactNode;
+  /** The deck and trash, when this screen puts them here rather than in the rail. */
+  pileDock: ReactNode;
   handDockRef: RefObject<HTMLDivElement | null>;
   cardWidth: number;
   minExposure?: number;
@@ -103,6 +107,7 @@ export function PlayerDock({
           onHoverChange={onHoverChange}
         />
       </div>
+      {pileDock}
       <ArenaCounters side={Side.Viewer} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
     </footer>
   );

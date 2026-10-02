@@ -192,6 +192,69 @@ describe("AD1-008 Gallantmon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+
+  it("orders its [When Attacking] effect with the deletion watchers its [When Digivolving] attack triggered (Discord bug 1555207697991864380, Q2044)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-016", as: "base", under: ["ST7-05"] }],
+          hand: [{ card: "AD1-008", as: "gallantmon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 5000, as: "budgetTarget" },
+            { card: "BT1-010", dp: 12000, as: "whenAttackingTarget" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        preferTriggerKeys: ["ir-7-0", "activation"],
+        preferInstanceIds,
+      },
+    );
+    preferInstanceIds.push(s.perm("budgetTarget").topCard.instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gallantmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking(), 5000);
+
+    const deletionWatcherWindow = s.decisions.find(
+      ({ req }) => req.kind === "orderTriggers" && (req.options?.triggerCardIds ?? []).includes("ST7-05"),
+    );
+    expect(deletionWatcherWindow).toBeDefined();
+    expect(deletionWatcherWindow?.req.options?.triggerCardIds).toContain("AD1-008");
+    const budgetDeletionPrompt = s.decisions.find(({ req }) => req.options?.targetFate === "delete");
+    const attackPrompt = s.decisions.find(({ req }) => req.options?.selectionContext === "attackSource");
+    expect(budgetDeletionPrompt?.req.options?.effectTextPart).toBe(
+      "[When Digivolving] Delete up to 10000 DP total worth of your opponent's Digimon.",
+    );
+    expect(attackPrompt?.req.options?.effectTextPart).toBe("Then, this Digimon may attack.");
+    const attackDeclared = s.events.findIndex((event) => event.kind === "attackDeclared");
+    const whenAttackingResolved = s.events.findIndex(
+      (event, index) =>
+        index > attackDeclared && event.kind === "effectResolved" && event.effectKey === "AD1-008/ir-shared-0",
+    );
+    const memoryGains = s.events.flatMap((event, index) =>
+      event.kind === "memoryChanged" && event.reason === "gainMemory" ? [index] : [],
+    );
+    expect(attackDeclared).toBeGreaterThanOrEqual(0);
+    expect(whenAttackingResolved).toBeGreaterThan(attackDeclared);
+    expect(memoryGains[0]).toBeGreaterThan(whenAttackingResolved);
+    expect(memoryGains).toHaveLength(2);
+    expect(s.state.memory).toBe(4);
+  });
 });
 
 const TAKATO = "BT12-089";

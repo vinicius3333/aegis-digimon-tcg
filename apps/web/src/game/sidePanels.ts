@@ -208,7 +208,9 @@ export function sidePanelFromEvent(
         ? event.strippedStackTops.reason === "deDigivolve"
           ? "panel.deDigivolvedCards"
           : "panel.strippedTopCards"
-        : titleForMovement(event.from, event.to);
+        : event.trashedSources
+          ? "panel.trashedDigivolutionCards"
+          : titleForMovement(event.from, event.to);
       if (!titleKey) return null;
       // The event's own identities first: the index can be one state patch behind
       // the movement the event narrates (see securityDestructionsFromEvents).

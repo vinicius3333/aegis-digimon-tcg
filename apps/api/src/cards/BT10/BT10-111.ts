@@ -51,7 +51,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digiXrosRequirement: [{ materials: [{ traits: ["Xros Heart"] }], count: 2 }],
+  digiXrosRequirement: [{ materials: [{ traits: ["Xros Heart"] }], count: 2, maxMaterials: 1 }],
 };
 
 registerIrCard("BT10-111", compiled);

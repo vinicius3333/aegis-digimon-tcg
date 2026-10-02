@@ -16,6 +16,8 @@ export type ChooseOptionExtras = {
   visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
   /** Index into `choices` of the entry that declines an optional effect (see `DecisionRequest.options.declineIndex`). */
   declineIndex?: number;
+  /** See `DecisionRequest.options.topBottomZone`. */
+  topBottomZone?: "digivolutionCards" | "security" | "deck";
   /** See `DecisionRequest.options.digivolveCostChoice`. */
   digivolveCostChoice?: {
     fromCardId: string;
@@ -84,7 +86,7 @@ export interface SeatScopedDecisionApi {
       candidates: string[];
       visible?: string[];
       visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
-      destination?: "deckTop" | "deckBottom" | "stackBottom";
+      destination?: "deckTop" | "deckBottom" | "stackTop" | "stackBottom";
     },
   ): Promise<string[]>;
   selectPermanents(

@@ -25,8 +25,7 @@ import { PermanentRestrictionBadges } from "./PermanentRestrictionBadges";
 import { PermanentSourceBadge } from "./PermanentSourceBadge";
 import { PermanentSparkles } from "./PermanentSparkles";
 import { PermanentSummoningRing } from "./PermanentSummoningRing";
-import { PermanentTransformToken } from "./PermanentTransformToken";
-import { permanentTransformation } from "../transformation";
+import { originalDP, permanentTransformation } from "../transformation";
 import type { DropAttrs } from "./types";
 import "./fieldBadges.css";
 
@@ -111,7 +110,7 @@ export function PermanentView({
   const topId = perm.topCard?.cardId;
   if (!topId) return null;
   const def = getCardDefinition(topId);
-  const delta = perm.currentDP - perm.baseDP;
+  const delta = perm.currentDP - originalDP(perm);
   const hasDpDelta = delta !== 0;
   const activeKeywords = resolvePermanentKeywordEntries({ perm, keywordLabels });
   // Server truth (`Permanent.keywords`): the resolved keyword list already folds a
@@ -127,7 +126,7 @@ export function PermanentView({
   // this position currently COUNTS AS after an effect rewrote its original card information.
   const transformation = permanentTransformation(perm);
 
-  const cardName = def?.nameEn ?? topId;
+  const cardName = transformation?.name || def?.nameEn || topId;
   const activate = onKeyboardActivate ?? onClick;
   const interactive = !!activate || !!onPointerDown;
   return (
@@ -208,6 +207,7 @@ export function PermanentView({
           selected={highlight}
           attackable={candidate}
           dp={perm.currentDP}
+          identity={transformation}
           info
           zoomOnHover={false}
         />
@@ -233,14 +233,7 @@ export function PermanentView({
         <PermanentRestrictionBadges
           restrictions={restrictions}
           dpDelta={hasDpDelta && !dpBadgeSuppressed ? delta : undefined}
-          baseDp={perm.baseDP}
-        />
-      ) : null}
-      {transformation ? (
-        <PermanentTransformToken
-          transformation={transformation}
-          width={permanentWidth}
-          suspended={isVisuallySuspended}
+          baseDp={originalDP(perm)}
         />
       ) : null}
       {onInspect ? (

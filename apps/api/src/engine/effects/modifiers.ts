@@ -54,6 +54,11 @@ export interface DpModifier {
   /** Ignore only the canonical opponent-turn end already in progress. */
   skipsCurrentOpponentTurnEnd?: boolean;
   /**
+   * An opposing effect produced this delta. A reduction stays recorded while the target is
+   * DP-immune and applies once that protection ends (Q6841 family, BT20-060 vs BT26-029).
+   */
+  byOpponentEffect?: boolean;
+  /**
    * True when this delta was produced by a PERSISTENT (static / `EffectTiming.None`)
    * effect rather than a one-shot triggered effect. The continuous-recompute pass
    * (GameEngine.recomputeContinuousEffects) clears every continuous modifier and
@@ -374,6 +379,7 @@ export class ModifierLedger {
       sourceSeat?: Seat;
       sourceKinds?: string[];
       skipsCurrentOpponentTurnEnd?: boolean;
+      byOpponentEffect?: boolean;
     },
   ): DpModifier {
     const modifier: DpModifier = {
@@ -385,6 +391,7 @@ export class ModifierLedger {
       sourceSeat: opts?.sourceSeat,
       sourceKinds: opts?.sourceKinds,
       skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
+      byOpponentEffect: opts?.byOpponentEffect,
     };
     this.dpModifiers.push(modifier);
     this.durationOwners.set(modifier, ownerSeatOfPermanent(state, permanentId));
@@ -452,7 +459,20 @@ export class ModifierLedger {
     return sum;
   }
 
+  /** A `dpImmune` gate may have opened or closed: refresh every permanent carrying a reduction. */
+  refreshReducedDp(state: GameState): void {
+    const reduced = new Set(this.dpModifiers.filter(({ delta }) => delta < 0).map(({ permanentId }) => permanentId));
+    for (const permanentId of reduced) this.recomputeDP(state, permanentId);
+  }
+
   private dpModifierIsSuppressed(state: GameState, modifier: DpModifier): boolean {
+    if (
+      modifier.delta < 0 &&
+      this.continuous?.hasRestriction(modifier.permanentId, "dpImmune", undefined, {
+        byOpponentEffect: modifier.byOpponentEffect === true,
+      })
+    )
+      return true;
     if (modifier.sourceSeat === undefined || modifier.sourceKinds === undefined || this.continuous === undefined) {
       return false;
     }
@@ -533,14 +553,6 @@ export class ModifierLedger {
     return sourceKinds.some((kind) =>
       this.continuous!.hasRestriction(permanent.permanentId, "beAffected", kind, { byOpponentEffect: true }),
     );
-  }
-
-  /** Remove active DP reductions when an effect makes that Digimon immune to DP reduction. */
-  restoreDpReductions(state: GameState, permanentId: string): void {
-    this.dpModifiers = this.dpModifiers.filter(
-      (modifier) => modifier.permanentId !== permanentId || modifier.delta >= 0,
-    );
-    this.recomputeDP(state, permanentId);
   }
 
   /**

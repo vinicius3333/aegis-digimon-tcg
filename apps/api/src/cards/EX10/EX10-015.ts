@@ -49,6 +49,7 @@ const compiled: CompiledCard = {
     {
       materials: [{ texts: ["Save"] }],
       count: 2,
+      maxMaterials: 1,
     },
   ],
 };

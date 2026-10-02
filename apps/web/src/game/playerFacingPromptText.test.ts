@@ -15,6 +15,12 @@ describe("playerFacingPromptText", () => {
     expect(playerFacingPromptText("GainMemory", "optional")).toBeUndefined();
   });
 
+  it("drops the summary of an optional processing cost (BT20-083 from breeding)", () => {
+    expect(
+      playerFacingPromptText("By paying: Suspend 1 card(s) → Play without paying the cost", "optional"),
+    ).toBeUndefined();
+  });
+
   it("only filters summaries on optional decisions", () => {
     expect(playerFacingPromptText("Draw 2", "selectCards")).toBe("Draw 2");
   });
