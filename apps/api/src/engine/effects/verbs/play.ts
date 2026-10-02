@@ -14,6 +14,7 @@ import { isOption } from "../../cards/cardData.js";
 import { digiXrosMaterialOrder } from "../../actions/digiXros.js";
 import { digiXrosOnlyNameAliasesFor, universalNameAliasesFor } from "../interpreter/compiledCards.js";
 import type { Primitives } from "../EffectContext.js";
+import type { CollectedEffect } from "../collect.js";
 import { isPermanentKind, placePermanent } from "../verbs/cardPlacement.js";
 import {
   hostOfStackInstance,
@@ -38,8 +39,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
   const effectDrivenPlayCost: PrimitivesContext["helpers"]["effectDrivenPlayCost"] = (...args) =>
     pc.helpers.effectDrivenPlayCost(...args);
   const placeUnder: Primitives["placeUnder"] = (...args) => pc.fx.placeUnder(...args);
-  const relocatePermanentByEffect: NonNullable<Primitives["relocatePermanentByEffect"]> = (...args) =>
-    pc.fx.relocatePermanentByEffect!(...args);
+  const relocatePermanent: Primitives["relocatePermanent"] = (...args) => pc.fx.relocatePermanent(...args);
 
   const playFromHand = async (
     instanceIds: string[],
@@ -191,6 +191,8 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       instanceIds.map((id) => [id, opts?.playedFromZone ?? looseZoneOfInstance(state, id)]),
     );
     const securityOriginSeats = new Set<Seat>();
+    const placedMaterialCountByInstance = new Map<string, number>();
+    const heldTriggeredByInstance = new Map<string, readonly CollectedEffect[]>();
     for (const instanceId of instanceIds) {
       const owner = ownerSeatOfLoose(state, instanceId);
       if (owner === undefined) continue;
@@ -210,9 +212,38 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       if (!isPermanentKind(definition) || isOption(definition)) continue;
       const effectSeat = effectSeatStack.at(-1) ?? ownerPlayer.seat;
       if (continuous.isPlayBlocked(effectSeat, definition, "play", true, originByInstance.get(instanceId))) continue;
+      const declaredMaterials =
+        opts?.digiXrosMaterialInstanceIdsByPlay?.[instanceId] ?? opts?.digiXrosMaterialInstanceIds;
+      // The battle-area materials' "would leave" interrupts resolve before payment and placement,
+      // while the played card is only revealed. A prevented material is not placed and does not
+      // reduce the cost; what the interrupts triggered waits for this card's [On Play].
+      const battleAreaMaterials = (declaredMaterials ?? []).flatMap((materialInstanceId) => {
+        const fieldMaterial = Array.from(state.players)
+          .flatMap((candidatePlayer) => Array.from(candidatePlayer.battleArea))
+          .find((candidate) => candidate.topCard?.instanceId === materialInstanceId);
+        return fieldMaterial === undefined ? [] : [{ materialInstanceId, permanentId: fieldMaterial.permanentId }];
+      });
+      const materialInterrupt =
+        battleAreaMaterials.length === 0
+          ? undefined
+          : await engine.interruptDigiXrosMaterialLeave?.(
+              battleAreaMaterials.map(({ permanentId }) => permanentId),
+              effectSeat,
+            );
+      const preventedMaterialInstanceIds = new Set(
+        battleAreaMaterials
+          .filter(({ permanentId }) => materialInterrupt?.prevented.has(permanentId) === true)
+          .map(({ materialInstanceId }) => materialInstanceId),
+      );
+      const playMaterials = declaredMaterials?.filter(
+        (materialInstanceId) => !preventedMaterialInstanceIds.has(materialInstanceId),
+      );
+      const abandonPlay = async () => {
+        if ((materialInterrupt?.triggered.length ?? 0) > 0)
+          await engine.resolveHeldTriggeredEffects?.(materialInterrupt!.triggered);
+      };
       if (opts?.payCost) {
         const requirement = digiXrosRequirementFor(definition.cardId)?.[0];
-        const playMaterials = opts.digiXrosMaterialInstanceIdsByPlay?.[instanceId] ?? opts.digiXrosMaterialInstanceIds;
         const materialCount = playMaterials?.length ?? 0;
         const perMaterialReduction =
           requirement?.count === "∞" ? (requirement.costReduction ?? 1) : (requirement?.count ?? 0);
@@ -228,7 +259,10 @@ export function createPlayVerbs(pc: PrimitivesContext) {
           false,
           instanceIds.length,
         );
-        if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
+        if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) {
+          await abandonPlay();
+          continue;
+        }
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
       } else {
         // A free play still opens the would-be-played window (EX9-030 Q4784).
@@ -249,7 +283,10 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       const resolvedHostPermanentId =
         hostOfStackInstance(state, instanceId)?.hostPermanentId ?? opts?.hostPermanentIds?.[instanceId];
       const instance = removeLooseInstance(state, instanceId, true, resolvedHostPermanentId);
-      if (instance === undefined) continue;
+      if (instance === undefined) {
+        await abandonPlay();
+        continue;
+      }
       instance.faceUp = true;
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
       if (originByInstance.get(instanceId) === "security") securityOriginSeats.add(ownerPlayer.seat);
@@ -261,7 +298,8 @@ export function createPlayVerbs(pc: PrimitivesContext) {
         setBreeding(ownerPlayer, permanent);
       }
       created.push(permanent);
-      const playMaterials = opts?.digiXrosMaterialInstanceIdsByPlay?.[instanceId] ?? opts?.digiXrosMaterialInstanceIds;
+      if (playMaterials !== undefined) placedMaterialCountByInstance.set(instanceId, playMaterials.length);
+      if (materialInterrupt !== undefined) heldTriggeredByInstance.set(instanceId, materialInterrupt.triggered);
       if ((playMaterials?.length ?? 0) > 0) {
         const fieldMaterials = playMaterials!.map((materialInstanceId) =>
           Array.from(state.players)
@@ -302,7 +340,7 @@ export function createPlayVerbs(pc: PrimitivesContext) {
             if (fieldMaterial !== undefined) break;
           }
           if (fieldMaterial !== undefined && fieldMaterial.permanentId !== permanent.permanentId) {
-            await relocatePermanentByEffect(permanent.permanentId, fieldMaterial.permanentId, {
+            relocatePermanent(permanent.permanentId, fieldMaterial.permanentId, {
               belowTop: false,
               faceUp: true,
               shedOwnCards: true,
@@ -346,12 +384,13 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       // Each effect-played Digimon's OWN [On Play] fires (it was PLAYED, not merely placed), with
       // `enteredByEffect` set to its controller (the producer for the BT25-084 by-effect gate). A
       // manual hand play takes the play action's own seam, which leaves the marker unset.
-      if (opts?.suppressOnPlayEffects !== true) {
+      if (opts?.suppressOnPlayEffects === true) {
+        for (const held of heldTriggeredByInstance.values()) await engine.resolveHeldTriggeredEffects?.(held);
+      } else {
         for (const permanent of created) {
           if (permanent.topCard === undefined) continue;
-          const playMaterials =
-            opts?.digiXrosMaterialInstanceIdsByPlay?.[permanent.topCard.instanceId] ??
-            opts?.digiXrosMaterialInstanceIds;
+          const placedMaterialCount = placedMaterialCountByInstance.get(permanent.topCard.instanceId);
+          const heldTriggered = heldTriggeredByInstance.get(permanent.topCard.instanceId);
           await engine.fireEnteredByEffect?.(
             EffectTiming.OnPlay,
             permanent.topCard.instanceId,
@@ -360,11 +399,12 @@ export function createPlayVerbs(pc: PrimitivesContext) {
               ...(originByInstance.get(permanent.topCard.instanceId) !== undefined
                 ? { playedFromZone: originByInstance.get(permanent.topCard.instanceId)! }
                 : {}),
-              ...(playMaterials !== undefined ? { digiXrosMaterialCount: playMaterials.length } : {}),
+              ...(placedMaterialCount !== undefined ? { digiXrosMaterialCount: placedMaterialCount } : {}),
               ...(opts?.effectSourceCardId !== undefined
                 ? { playedByEffectSourceCardId: opts.effectSourceCardId }
                 : {}),
               ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
+              ...(heldTriggered !== undefined ? { procedurePending: heldTriggered } : {}),
               // A multi-card play is one event, so its per-entry windows defer the watcher
               // bus to the canonical batch event below. A one-card play publishes through
               // its entry window, where replacement-play watchers can be snapshotted and
