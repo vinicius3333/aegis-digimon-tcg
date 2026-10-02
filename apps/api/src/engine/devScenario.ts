@@ -92,6 +92,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-matt-repeated-effect-presets",
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
+  "arena-ex12-susanoomon-later-arrival-dp",
   "arena-ex13-examon",
   "arena-ex13-examon-battle-win-timing",
   "arena-ex13-chirinmon-cost-choice",
@@ -1957,6 +1958,38 @@ function layP246MotimonScenario(state: GameState, decks: readonly [Decklist, Dec
   state.memory = stage === "botDeDigivolves" ? 8 : 3;
 }
 
+/**
+ * Discord 1555352172206493706: EX12-076 Susanoomon's "all of your opponent's Digimon" DP
+ * reduction lasts for the turn, so the face-up BT26-082 Ravemon that plays itself from
+ * security at the end of that turn arrives at 0 DP and is deleted.
+ */
+function layEx12SusanoomonLaterArrivalDpScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-015", "EX12-020", "EX12-019"], "-ex12-susanoomon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex12-susanoomon", "EX12-076", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Security, faceUpCard("dev-ex12-susanoomon-ravemon", "BT26-082", 1), "top");
+    takeBottom(bot, Zone.Security);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /** KingSukamon rewrites an opponent that EX13-035 then rule-deletes at 0 DP. */
 function layEx13KingSukamonZeroDpScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -3298,6 +3331,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-matt-repeated-effect-presets": layMattRepeatedEffectPresetsScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
+  "arena-ex12-susanoomon-later-arrival-dp": layEx12SusanoomonLaterArrivalDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,

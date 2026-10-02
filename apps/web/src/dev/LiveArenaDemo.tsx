@@ -372,6 +372,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon.",
     en: "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon.",
   },
+  "arena-ex12-susanoomon-later-arrival-dp": {
+    ptBR: "Digievolua Susanoomon sobre Nezhamon com o custo alternativo 5: as 4 cores das fontes dão -12000 DP a todos os Digimon adversários no turno. Encerre o turno sem atacar. O Ravemon (BT26-082) com a face para cima na segurança adversária se joga no fim do seu turno e deve ser deletado com 0 DP.",
+    en: "Digivolve Susanoomon onto Nezhamon with the alternate cost 5: the 4 source colors give all opposing Digimon -12000 DP for the turn. End the turn without attacking. The face-up BT26-082 Ravemon in the opponent's security plays itself at the end of your turn and must be deleted at 0 DP.",
+  },
   "arena-bt16-phoenixmon-x-antibody-name": {
     ptBR: "Você tem 2 Phoenixmon (X Antibody). Ataque um dos 3 Digimon adversários suspensos com o que tem só WarGrowlmon (X Antibody) embaixo: o On Deletion NÃO deve ganhar End of Attack, e nada mais é deletado. Depois ataque com o que tem a Opção X Antibody (BT9-109) embaixo: no End of Attack, o On Deletion herdado de Garudamon deve deletar outro Digimon adversário.",
     en: "You have 2 Phoenixmon (X Antibody). Attack one of the 3 suspended opposing Digimon with the one that has only WarGrowlmon (X Antibody) under it: its On Deletion effects must NOT gain End of Attack, and nothing else is deleted. Then attack with the one that has the X Antibody Option (BT9-109) under it: at End of Attack, Garudamon's inherited On Deletion must delete another opposing Digimon.",
@@ -443,6 +447,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-matt-repeated-effect-presets", "Optional effects · 5/5 Matt simultaneous discard"],
   ["arena-ex13-kings-opponent-sukamon", "EX13 Kings · opponent Sukamon"],
   ["arena-ex13-kingsukamon-immunity-lapse", "EX13 KingSukamon · 0 DP deletion"],
+  ["arena-ex12-susanoomon-later-arrival-dp", "EX12 Susanoomon · DP on later arrival"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
   ["arena-ex13-chirinmon-cost-choice", "EX13 Chirinmon · either-or cost choice"],
