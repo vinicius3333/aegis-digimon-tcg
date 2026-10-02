@@ -385,6 +385,11 @@
     background: transparent;
   }
 
+  /* The portrait strip shows the security cards themselves, not the shield's face. */
+  .game-board .game-security-shield::before {
+    content: none;
+  }
+
   .game-security-shield--opp,
   .game-security-shield-wrap:has(.game-security-shield--opp) {
     grid-area: 1 / 3;

@@ -2,6 +2,7 @@ import { COARSE_POINTER_QUERY, useMediaQuery } from "../../../design/useMediaQue
 import { HAND_CARD_WIDTH_COMPACT, HAND_MIN_EXPOSURE_TOUCH } from "../../piece";
 import {
   COMPACT_PILES_QUERY,
+  DOCKED_VIEWER_PILES_QUERY,
   LANDSCAPE_PHONE_QUERY,
   NARROW_LAYOUT_QUERY,
   PORTRAIT_ARENA_QUERY,
@@ -13,6 +14,8 @@ export type ArenaLayout = {
   narrowGameLayout: boolean;
   /** Piles shrink: the sidebar has moved under the board and the rails are short. */
   compactPiles: boolean;
+  /** The viewer's deck and trash sit in the bottom strip, not in the right rail. */
+  dockViewerPiles: boolean;
   /** No room for a full-size Digimon in each battle row. */
   shortBoard: boolean;
   portraitArena: boolean;
@@ -40,6 +43,7 @@ export type ArenaLayout = {
 export function useArenaLayout(): ArenaLayout {
   const narrowGameLayout = useMediaQuery(NARROW_LAYOUT_QUERY);
   const compactPiles = useMediaQuery(COMPACT_PILES_QUERY);
+  const dockViewerPiles = useMediaQuery(DOCKED_VIEWER_PILES_QUERY);
   const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
   const portraitArena = useMediaQuery(PORTRAIT_ARENA_QUERY);
   const shortPortraitArena = useMediaQuery("(max-width: 1023px) and (orientation: portrait) and (height < 650px)");
@@ -48,6 +52,8 @@ export function useArenaLayout(): ArenaLayout {
   );
   const tabletPortraitArena = useMediaQuery("(min-width: 600px) and (max-width: 1023px) and (orientation: portrait)");
   const compactArena = useMediaQuery("(height < 950px)");
+  // Under this height a rail cannot stack two full-size piles over a security shield.
+  const shortRails = useMediaQuery("(height < 640px) and (orientation: landscape)");
   const tightArena = useMediaQuery("(height < 875px)");
   const arenaPileWidth = portraitArena
     ? tabletPortraitArena
@@ -55,7 +61,7 @@ export function useArenaLayout(): ArenaLayout {
       : shortPortraitArena
         ? 40
         : 44
-    : compactPiles
+    : compactPiles || shortRails
       ? 56
       : 72;
   const arenaPermanentWidth = portraitArena
@@ -79,6 +85,7 @@ export function useArenaLayout(): ArenaLayout {
   return {
     narrowGameLayout,
     compactPiles,
+    dockViewerPiles,
     shortBoard,
     portraitArena,
     landscapePhone,
