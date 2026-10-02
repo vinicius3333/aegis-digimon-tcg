@@ -200278,7 +200278,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 [Mineral]/[Rock] trait from any of your Digimon's digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -200311,7 +200313,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 [Mineral]/[Rock] trait from any of your Digimon's digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
