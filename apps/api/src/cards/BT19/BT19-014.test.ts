@@ -143,6 +143,45 @@ describe("BT19-014 Shoutmon EX6", () => {
       expect(s.state.pendingDecision).toBeUndefined();
     });
 
+    it("applies its color-scaled DP reduction to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT19-014", as: "ex6" },
+              { card: "BT19-012", as: "omni" },
+              { card: "BT19-026", as: "zeig" },
+              { card: "BT19-035", as: "handShooting" },
+            ],
+            battleArea: [{ card: "BT19-079", as: "tamer", under: ["BT19-020", "BT5-039"] }],
+            security: INERT_SECURITY,
+          },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "small", dp: 5000 }],
+            hand: [{ card: "BT1-024", as: "future" }],
+            security: INERT_SECURITY,
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("ex6").instanceId,
+          digiXros: { materialInstanceIds: ["omni", "zeig"].map((a) => s.inst(a).instanceId) },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT5-039"));
+      expect(s.perm("small").currentDP).toBe(1000);
+
+      await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+
+      expect(s.perm("future").currentDP).toBe(6000);
+    });
+
     it("applies no DP penalty and plays nothing when this Digimon has no digivolution cards", async () => {
       const s = setupEngine(
         {

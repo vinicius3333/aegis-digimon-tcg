@@ -50,6 +50,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -2000,
           duration: "forTheTurn",
           scaling: {
@@ -92,6 +93,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -2000,
           duration: "forTheTurn",
           scaling: {

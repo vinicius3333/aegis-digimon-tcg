@@ -71,6 +71,39 @@ describe("BT8-101 Plasma Shot", () => {
     expect(s.perm("chosen").currentDP).toBe(4_000);
     expect(s.perm("other").currentDP).toBe(8_000);
   });
+
+  it("applies its trash-scaled DP reduction to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-012", as: "armor" }],
+          hand: [{ card: "BT8-101", as: "option" }],
+          trash: ["BT8-023", "BT8-039"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT8-053", as: "chosen", dp: 10_000 },
+            { card: "BT8-012", as: "other", dp: 10_000 },
+          ],
+          hand: [{ card: "BT1-019", as: "future" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("other").currentDP === 8_000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+
+    expect(s.perm("future").currentDP).toBe(4_000);
+  });
 });
 
 describe("BT8-101 Plasma Shot — KB Q&A rulings", () => {

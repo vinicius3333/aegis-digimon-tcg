@@ -49,6 +49,34 @@ describe("BT5-103 A Blazing Storm of Metal!", () => {
     expect(observe(s.engine).hasKeyword(s.perm("first"), "Blocker")).toBe(false);
   });
 
+  it("gives later-played Reboot Digimon +1000 DP and Blocker but not later-played non-Reboot Digimon (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-068", as: "first" }],
+          hand: [
+            { card: "BT5-103", as: "option" },
+            { card: "BT5-070", as: "laterReboot" },
+            { card: "BT5-071", as: "laterNormal" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("first"), "Blocker"));
+
+    await advance(s.engine).verb.playInstances([s.inst("laterReboot").instanceId, s.inst("laterNormal").instanceId]);
+
+    expect(s.perm("laterReboot").currentDP).toBe(s.perm("laterReboot").baseDP + 1000);
+    expect(observe(s.engine).hasKeyword(s.perm("laterReboot"), "Blocker")).toBe(true);
+    expect(s.perm("laterNormal").currentDP).toBe(s.perm("laterNormal").baseDP);
+    expect(observe(s.engine).hasKeyword(s.perm("laterNormal"), "Blocker")).toBe(false);
+  });
+
   it("security prevents opposing Digimon from attacking players and adds itself to hand", async () => {
     const s = setupEngine({
       0: {

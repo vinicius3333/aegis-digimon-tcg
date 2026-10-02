@@ -15,6 +15,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -4000,
           duration: "forTheTurn",
           cost: {

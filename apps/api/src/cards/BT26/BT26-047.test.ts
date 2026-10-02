@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assemblyRequirementFor, digivolutionRequirementsFor, EffectDuration } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -404,5 +404,44 @@ describe("BT26-047 TyrantKabuterimon", () => {
     expect([...s.state.players[0]!.battleArea].flatMap((permanent) => [...permanent.grantedEffectTexts])).toEqual([]);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+
+  it("buffs and protects Insectoid or Titan Digimon that become suspended later in the turn (Discord 1555352172206493706)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-047", as: "tyrant" },
+            { card: "BT26-045", as: "eligible" },
+            { card: "BT1-065", as: "nonMatching" },
+            { card: "BT1-065", as: "payer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("payer").permanentId);
+    await s.ready();
+    const optionImmune = (alias: string) =>
+      observe(s.engine).isRestrictedByEffect(s.perm(alias), "beAffected", "Option");
+    const digimonImmune = (alias: string) =>
+      observe(s.engine).isRestrictedByEffect(s.perm(alias), "beAffected", "Digimon");
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tyrant"));
+    expect(s.perm("payer").isSuspended).toBe(true);
+    expect(s.perm("eligible").currentDP).toBe(11000);
+    expect(optionImmune("eligible")).toBe(false);
+
+    await advance(s.engine).verb.suspend([s.perm("eligible").permanentId, s.perm("nonMatching").permanentId]);
+    expect(s.perm("eligible").currentDP).toBe(14000);
+    expect(optionImmune("eligible")).toBe(true);
+    expect(digimonImmune("eligible")).toBe(false);
+    expect(s.perm("nonMatching").currentDP).toBe(4000);
+    expect(optionImmune("nonMatching")).toBe(false);
+
+    await advance(s.engine).verb.unsuspend([s.perm("eligible").permanentId]);
+    expect(s.perm("eligible").currentDP).toBe(11000);
+    expect(optionImmune("eligible")).toBe(false);
   });
 });

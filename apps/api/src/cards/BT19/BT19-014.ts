@@ -48,6 +48,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -1000,
           duration: "forTheTurn",
           scaling: {

@@ -45,6 +45,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -3000,
           duration: "forTheTurn",
           scaling: {
@@ -70,6 +71,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -3000,
           duration: "forTheTurn",
           scaling: {
@@ -85,7 +87,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
-      optional: true,
       actions: [
         {
           kind: "SecurityManipulation",

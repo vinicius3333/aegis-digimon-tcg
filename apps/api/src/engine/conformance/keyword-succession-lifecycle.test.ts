@@ -409,7 +409,7 @@ describe("Succession committed consumer evolution", () => {
             security: [NEUTRAL],
           },
           1: {
-            battleArea: [{ card: mode.startsWith("blocked") ? "BT19-101" : NEUTRAL, as: "payment" }],
+            battleArea: [{ card: mode.startsWith("blocked") ? "BT19-101" : NEUTRAL, as: "payment", dp: 8000 }],
             deck: [NEUTRAL],
             security: ["BT1-028"],
           },
@@ -492,8 +492,8 @@ describe("Succession committed consumer evolution", () => {
         },
         1: {
           battleArea: [
-            { card: NEUTRAL, as: "firstPayment" },
-            { card: NEUTRAL, as: "secondPayment" },
+            { card: NEUTRAL, as: "firstPayment", dp: 8000 },
+            { card: NEUTRAL, as: "secondPayment", dp: 8000 },
           ],
           deck: [NEUTRAL],
           security: ["BT1-028"],
@@ -693,7 +693,7 @@ describe("Succession committed consumer evolution", () => {
           deck: [NEUTRAL, NEUTRAL, NEUTRAL, "BT1-028"],
           security: ["BT1-028"],
         },
-        1: { battleArea: [{ card: NEUTRAL, as: "payment" }], deck: [NEUTRAL], security: ["BT1-028"] },
+        1: { battleArea: [{ card: NEUTRAL, as: "payment", dp: 8000 }], deck: [NEUTRAL], security: ["BT1-028"] },
       },
       options,
     );
@@ -772,7 +772,7 @@ describe("Succession committed consumer evolution", () => {
         },
         1: {
           battleArea: [
-            { card: NEUTRAL, as: "payment" },
+            { card: NEUTRAL, as: "payment", dp: 8000 },
             { card: "BT6-063", as: "reactionTarget", suspended: true },
           ],
           deck: [NEUTRAL],

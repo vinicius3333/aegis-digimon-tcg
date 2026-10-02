@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: 3000,
           duration: "untilOpponentTurnEnd",
         },

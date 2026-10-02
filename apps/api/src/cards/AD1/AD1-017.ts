@@ -51,6 +51,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -6000,
           duration: "forTheTurn",
           cost: {
@@ -87,6 +88,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -6000,
           duration: "forTheTurn",
           cost: {

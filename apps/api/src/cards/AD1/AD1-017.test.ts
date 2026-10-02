@@ -48,6 +48,27 @@ describe("AD1-017 Dynasmon", () => {
     expect(s.perm("target").currentDP).toBe(2000);
   });
 
+  it("applies -6000 DP to an opposing Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-028", "BT1-029"] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "current", dp: 8000 }],
+          hand: [{ card: "BT1-024", as: "future" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("current").currentDP === 2000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+    expect(s.perm("future").currentDP).toBe(4000);
+  });
+
   it("reduces its play cost by 5 with four Lucemon-text cards in trash", async () => {
     const s = setupEngine({
       0: {

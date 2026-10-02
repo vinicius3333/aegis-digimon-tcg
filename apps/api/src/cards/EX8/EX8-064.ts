@@ -95,6 +95,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: -6000,
           duration: "forTheTurn",
         },

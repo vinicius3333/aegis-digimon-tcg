@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-074.js";
@@ -114,6 +115,34 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
     expect(s.perm("oppDigimon").currentDP).toBe(2000);
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashDeva").instanceId)).toBe(false);
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashFourSovs").instanceId)).toBe(false);
+  });
+
+  it("applies the scaled -8000 DP to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [
+            { card: DEVA, as: "trashDeva" },
+            { card: FOUR_SOVS, as: "trashFourSovs" },
+          ],
+          hand: [{ card: FANGLONGMON, as: "fanglongmon" }],
+        },
+        1: {
+          battleArea: [{ card: OPP_DIGIMON, dp: 10000, as: "oppDigimon" }],
+          hand: [{ card: OPP_DIGIMON, as: "late" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 15;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fanglongmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("oppDigimon").currentDP === 2000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(2000);
   });
 
   it("returns a qualifying card during an attack and applies its one-card DP reduction", async () => {

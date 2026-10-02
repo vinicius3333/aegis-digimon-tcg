@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT9-043.js";
@@ -83,5 +84,31 @@ describe("BT9-043 Magnadramon (X Antibody)", () => {
 
     expect(s.perm("target").currentDP).toBe(s.perm("target").baseDP);
     expect(observe(s.engine).securityDp(1)).toBe(0);
+  });
+
+  it("applies the security-scaled reduction to an opposing Digimon played after it resolves (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT2-039", as: "base" }], hand: [{ card: "BT9-043", as: "evolving" }], security: 3 },
+        1: {
+          battleArea: [{ card: "BT2-047", as: "present" }],
+          hand: [{ card: "BT1-024", as: "late" }],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("present").currentDP === 3000 && observe(s.engine).securityDp(1) === -3000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(7000);
   });
 });

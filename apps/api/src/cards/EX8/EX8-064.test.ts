@@ -188,6 +188,27 @@ describe("EX8-064", () => {
     expect(s.perm("first").currentDP).toBe(10000);
     expect(s.perm("second").currentDP).toBe(8000);
   });
+  it("applies the -6000 DP turn modifier to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-064", as: "source" }],
+          deck: Array(40).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "first", dp: 10000 }],
+          hand: [{ card: "BT1-024", as: "late" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.perm("first").currentDP === 4000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(4000);
+  });
   it("de-digivolves the selected opposing stack by exactly 3 before applying the global DP reduction", async () => {
     const s = setupEngine(
       {
