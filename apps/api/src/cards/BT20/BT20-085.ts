@@ -92,6 +92,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By suspending this Tamer",
           },
+          optional: true,
           abortOnDecline: true,
         },
         {
