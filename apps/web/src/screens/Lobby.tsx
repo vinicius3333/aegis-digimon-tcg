@@ -6,6 +6,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
+  allCards,
   bannedPairViolations,
   effectiveCopyLimit as banlistLimit,
   getCardDefinition,
@@ -239,8 +240,9 @@ export function Lobby({
     [active],
   );
   const betaEnabled = !randomSelected && betaQueueMode && betaCards.length > 0;
-  // A deck without beta cards may still join the beta queue when the player asks for it.
-  const betaOptional = betaQueueMode && (randomSelected || betaCards.length === 0);
+  const betaPeriod = useMemo(() => allCards().some((card) => isBetaOnlyCard(card)), []);
+  // While a set is in preview, a deck without its cards may still join the beta queue on request.
+  const betaOptional = betaPeriod && betaQueueMode && (randomSelected || betaCards.length === 0);
   const betaOptedIn = betaOptional && betaQueueChosen;
   const deckLegal =
     !!active &&

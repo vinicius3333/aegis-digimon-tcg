@@ -220,6 +220,27 @@ describe("famous deck selection", () => {
     expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true);
   });
 
+  it("hides the beta queue option when no set is in preview", () => {
+    vi.setSystemTime(new Date("2026-10-15T12:00:00.000Z"));
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByRole("checkbox", { name: /Play in the beta queue/ })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(screen.queryByRole("checkbox", { name: /Play in the beta queue/ })).toBeNull();
+  });
+
   it("routes every mystery draw to the beta queue once the player opts in", () => {
     const onStart = vi.fn();
     render(
