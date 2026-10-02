@@ -41,7 +41,8 @@ describe("EX5-046 Targetmon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions?.[0]).toMatchObject({
       kind: "AddToHandSelf",
       cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
-      optional: false,
+      optional: true,
+      abortOnDecline: true,
     });
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "AllTurns",
@@ -146,6 +147,73 @@ describe("EX5-046 Targetmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
+  });
+
+  it("declines the optional 'by' cost by selecting no hand card and stays in the trash", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX5-046", as: "source", suspended: true }],
+        hand: [{ card: "BT11-040", as: "cost" }],
+      },
+      1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 5000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("source").instanceId]);
+  });
+
+  it("lets the player decline the inherited 'by' deletion and lose the host instead", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-021", under: ["EX5-046"], as: "host", dp: 1000, suspended: true },
+          { card: "BT11-040", as: "sukamon" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 5000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const sukamonId = s.perm("sukamon").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([sukamonId]);
   });
 
   it("uses the inherited replacement once and locks the immediate recursive activation (Q3624)", async () => {

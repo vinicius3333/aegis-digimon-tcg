@@ -541,6 +541,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Delete" &&
     looseCostDefinesDeleteTarget &&
+    action.allowCostWithoutTarget !== true &&
     typeof payableActionCost !== "number" &&
     !looseCostCanProduceDeleteTarget(ctx, action, payableActionCost)
   ) {
