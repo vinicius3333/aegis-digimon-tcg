@@ -64,6 +64,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
+  "arena-ex12-metalgarurumon-trash-then-return",
   "arena-bt22-palmon-cs-restack",
   "arena-bt22-mirei-play-cost-floor",
   "arena-bt14-chuumon-security-reveal",
@@ -423,6 +424,34 @@ function layBt24FugamonSelfTrashScenario(state: GameState, decks: readonly [Deck
   const bot = state.players[1];
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-fugamon-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * EX12-035 MetalGarurumon's When Digivolving against the Discord board: the bot's only
+ * digivolution card sits under Cherubimon, so the trash has no choice and Salamon has none.
+ */
+function layEx12MetalGarurumonTrashThenReturnScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-032"], "-metalgarurumon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-metalgarurumon-in-hand", "EX12-035", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT16-024", "EX6-035"], "-metalgarurumon-cherubimon"));
+    placePermanent(bot, establishedDigimon(1, ["BT15-034"], "-metalgarurumon-salamon"));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -3437,6 +3466,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
+  "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,
   "arena-bt22-palmon-cs-restack": layBt22PalmonCsRestackScenario,
   "arena-bt22-mirei-play-cost-floor": layBt22MireiPlayCostFloorScenario,
   "arena-bt14-chuumon-security-reveal": layBt14ChuumonSecurityRevealScenario,
