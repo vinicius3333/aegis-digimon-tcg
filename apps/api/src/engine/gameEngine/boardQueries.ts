@@ -1,6 +1,8 @@
-import { CardKind, type CardDefinition, type CardInstance, type GameState, type Permanent } from "@aegis/shared";
-import { definitionOf } from "../cards/cardData.js";
-import { linkCategoryAllowsHost } from "../effects/mindLink.js";
+import { CardKind, type CardInstance, type GameState, type Permanent } from "@aegis/shared";
+import { definitionOf, staticTraitsOf } from "../cards/cardData.js";
+import type { ContinuousEffectLedger } from "../effects/continuous.js";
+import { effectiveNames, effectiveTraits } from "../effects/continuous/effective.js";
+import { linkCategoryAllowsHost, type LinkHost } from "../effects/mindLink.js";
 
 export { parseLinkCategory } from "../effects/mindLink.js";
 
@@ -45,13 +47,24 @@ export function isDigimonOrDigiEgg(permanent: Permanent): boolean {
   return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.DigiEgg);
 }
 
+/** A permanent's live link identity: its top card with name rewrites and trait grants applied. */
+export function linkHostOf(continuous: ContinuousEffectLedger, permanent: Permanent): LinkHost | undefined {
+  if (permanent.topCard === undefined) return undefined;
+  const definition = definitionOf(permanent.topCard);
+  return {
+    definition,
+    names: effectiveNames(continuous, permanent, definition.nameEn),
+    traits: effectiveTraits(continuous, permanent.permanentId, staticTraitsOf(definition)),
+  };
+}
+
 /**
  * §17-1-3-2-6/§17-1-3-2-7 — whether a linked card's own printed `<Link>` category
- * requirement is satisfied by its live host's CURRENT definition. A card with no
+ * requirement is satisfied by its live host's CURRENT identity. A card with no
  * `linkRequirement` at all, or one whose printed header this engine can't parse into a
  * category, carries nothing to violate (conservative: never invents a gate from an
  * unrecognized shape).
  */
-export function linkRequirementSatisfied(hostDef: CardDefinition, linkedCard: CardInstance): boolean {
-  return linkCategoryAllowsHost(hostDef, definitionOf(linkedCard));
+export function linkRequirementSatisfied(host: LinkHost, linkedCard: CardInstance): boolean {
+  return linkCategoryAllowsHost(host, definitionOf(linkedCard));
 }
