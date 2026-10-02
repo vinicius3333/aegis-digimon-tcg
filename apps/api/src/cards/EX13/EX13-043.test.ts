@@ -1220,4 +1220,70 @@ describe("EX13-043 Leopardmon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(cardId);
   });
+  describe("Discord 1555307344550694942: a Digimon that can't unsuspend can't pay the unsuspend cost", () => {
+    const UNSUSPEND_LOCK = "EX13-040";
+
+    async function lockWithOpponentMikemon(s: ReturnType<typeof setupEngine>, alias: string): Promise<void> {
+      s.state.memory = 8;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lock").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => observe(s.engine).isRestricted(s.perm(alias), "unsuspend"));
+      await settle(() => s.state.pendingDecision === undefined);
+    }
+
+    it("lets the opponent's effect delete a lone locked Leopardmon: no Digimon can pay", async () => {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: UNSUSPEND_LOCK, as: "lock" }], deck: DECK, security: ["BT1-012"] },
+          1: {
+            battleArea: [{ card: cardId, as: "leopardmon", suspended: true }],
+            deck: DECK,
+            security: ["BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      await s.ready();
+      await lockWithOpponentMikemon(s, "leopardmon");
+      const leopardmonId = s.perm("leopardmon").permanentId;
+
+      advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+      expect(await advance(s.engine).verb.deletePermanent([leopardmonId], "byEffect")).toBe(1);
+      advance(s.engine).verb.leaveEffectResolution();
+      await settle();
+
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toEqual([cardId]);
+    });
+
+    it("offers only an unlocked suspended Digimon as the unsuspend payment", async () => {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: UNSUSPEND_LOCK, as: "lock" }], deck: DECK, security: ["BT1-012"] },
+          1: {
+            battleArea: [
+              { card: cardId, as: "leopardmon", suspended: true },
+              { card: GREEN_MAMMAL_LV3, as: "victim", suspended: true },
+            ],
+            deck: DECK,
+            security: ["BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      await s.ready();
+      await lockWithOpponentMikemon(s, "leopardmon");
+      const victimId = s.perm("victim").permanentId;
+
+      advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+      expect(await advance(s.engine).verb.deletePermanent([victimId], "byEffect")).toBe(0);
+      advance(s.engine).verb.leaveEffectResolution();
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(victimId);
+      expect(s.perm("victim").isSuspended).toBe(false);
+      expect(s.perm("leopardmon").isSuspended).toBe(true);
+    });
+  });
 });

@@ -3094,6 +3094,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     cannotIgnoreDigivolution: true,
     canPayActivationCost: true,
     canTrashDigivolutionCard: true,
+    canUnsuspend: true,
     changeEvoCost: true,
     changePlayCost: true,
     conferStackEffects: true,
