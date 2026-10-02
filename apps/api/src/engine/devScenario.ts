@@ -61,6 +61,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-p240-arcturusmon-vb-routes",
   "arena-ex12-proximamon-dual-siriusmon",
   "arena-ex12-virus-busters-effect-attack",
+  "arena-ex12-diarbbitmon-option-trigger-timing",
+  "arena-bt15-leviamon-x-played-subject-left",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
@@ -1655,6 +1657,76 @@ function layBt11RinaUlforceImmunityScenario(state: GameState, decks: readonly [D
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * Discord bug 1555168521175048263: the human uses EX12-052 Diarbbitmon's Option side, which
+ * suspends the bot's EX13-023 UlforceVeedramon. The bot's BT11-112 Rina Shinomiya and the
+ * inherited EX13-022 AeroVeedramon watcher must wait until the Option finishes, including the
+ * Arts Digivolve onto P-093 Bastemon. The turn player's [When Digivolving] effects resolve first.
+ */
+function layEx12DiarbbitmonOptionTriggerTimingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["P-093"], "-diarb-bastemon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-diarb-option", "EX12-052", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT11-112"], "-diarb-rina"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-022", "EX13-023"], "-diarb-ulforce"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
+}
+
+/**
+ * KB Q4735: the human uses BT2-108 Night Raid to play BT2-067 DemiDevimon from the trash. The
+ * bot's EX5-069 Biting Crush ＜Delay＞ plays EX5-063 Leviamon, whose derived [On Play] deletes
+ * the human's Digimon, DemiDevimon included. BT15-081 Leviamon (X Antibody)'s pending trash
+ * trigger never refers to the played Digimon, so it still digivolves Leviamon.
+ */
+function layBt15LeviamonXPlayedSubjectLeftScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT2-069"], "-leviamon-purple"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-leviamon-night-raid", "BT2-108", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-leviamon-demidevimon", "BT2-067", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const bitingCrush = establishedDigimon(1, ["EX5-069"], "-leviamon-biting-crush");
+    bitingCrush.placedByEffect = true;
+    placePermanent(bot, bitingCrush);
+    insertCard(bot, Zone.Trash, faceUpCard("dev-leviamon-base", "EX5-063", 1));
+    insertCard(bot, Zone.Trash, faceUpCard("dev-leviamon-x", "BT15-081", 1));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /**
@@ -3433,6 +3505,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,
   "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
+  "arena-ex12-diarbbitmon-option-trigger-timing": layEx12DiarbbitmonOptionTriggerTimingScenario,
+  "arena-bt15-leviamon-x-played-subject-left": layBt15LeviamonXPlayedSubjectLeftScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,

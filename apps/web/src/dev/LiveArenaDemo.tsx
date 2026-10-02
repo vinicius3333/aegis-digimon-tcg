@@ -144,6 +144,14 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Rebootmon. Ao Atacar, vincule Logimon de graça e desuspenda Rebootmon (imunidade a efeitos de Digimon do oponente). Logimon suspende UlforceVeedramon; a Rina do bot ativa o Quando Digivolve de Ulforce. Rebootmon deve ficar; só BT1-013 volta ao fundo do deck.",
     en: "End breeding and attack security with Rebootmon. On When Attacking, link Logimon for free and unsuspend Rebootmon (immune to opponent Digimon effects). Logimon suspends UlforceVeedramon; the bot's Rina activates Ulforce's When Digivolving. Rebootmon must stay; only BT1-013 goes to the deck bottom.",
   },
+  "arena-ex12-diarbbitmon-option-trigger-timing": {
+    ptBR: "Encerre a criação e use o lado Opção de Diarbbitmon (Truskmore Advance). Suspenda UlforceVeedramon e trave 2 cartas do bot. A Rina e o herdado de AeroVeedramon do bot NÃO podem ativar antes de a Opção terminar. Faça a Digievolução Arts de Bastemon em Diarbbitmon: seus efeitos Quando Digivolve resolvem primeiro e depois os do bot.",
+    en: "End breeding and use Diarbbitmon's Option side (Truskmore Advance). Suspend UlforceVeedramon and lock 2 of the bot's cards. The bot's Rina and AeroVeedramon's inherited effect must NOT activate before the Option finishes. Arts Digivolve Bastemon into Diarbbitmon: your When Digivolving effects resolve first, then the bot's.",
+  },
+  "arena-bt15-leviamon-x-played-subject-left": {
+    ptBR: "Encerre a criação e use Night Raid para jogar DemiDevimon do lixo. O ＜Atraso＞ do Biting Crush do bot joga Leviamon, cujo Ao Jogar apaga seus Digimon (DemiDevimon incluso). Mesmo assim, o Leviamon (X Antibody) do lixo do bot deve digievoluir Leviamon (Q4735).",
+    en: "End breeding and use Night Raid to play DemiDevimon from the trash. The bot's Biting Crush ＜Delay＞ plays Leviamon, whose On Play deletes your Digimon (DemiDevimon included). The bot's Leviamon (X Antibody) in the trash must still digivolve Leviamon (Q4735).",
+  },
   "arena-bt20-grademon-redirect": {
     ptBR: "O bot ataca sua segurança. Aceite o efeito herdado de Grademon e escolha seu Digimon para mudar o alvo do ataque para ele.",
     en: "The bot attacks your security. Accept Grademon's inherited effect and choose your Digimon to redirect the attack to it.",
@@ -424,6 +432,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
+  ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],
+  ["arena-bt15-leviamon-x-played-subject-left", "BT15 Leviamon X · trigger survives a deleted played Digimon"],
   ["arena-ex3-wingdramon-evade-suspend-lock", "EX3 Wingdramon · Evade cannot pay suspend"],
   ["arena-ex13-wingdramon-evade-suspend-lock", "EX13 Wingdramon · Evade cannot pay suspend"],
   ["arena-bt20-grademon-redirect", "BT20 Grademon · inherited redirect"],
@@ -450,7 +460,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt22-mirei-play-cost-floor", "BT22 Mirei Mikagura · play cost 4 or higher only"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
   ["arena-bt20-omnimon-each-player-survivor", "BT20 Omnimon (X Antibody) · over Omekamon, one survivor per player"],
-  ["arena-bt20-ouryuken-reduction-resumes", "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy"],
+  [
+    "arena-bt20-ouryuken-reduction-resumes",
+    "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy",
+  ],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
   ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],
