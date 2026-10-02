@@ -227,7 +227,7 @@ describe("EX13-003 Kyaromon", () => {
           deck: ["BT1-011", "BT1-012"],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, declinePrompts: ["Digivolve"], autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();

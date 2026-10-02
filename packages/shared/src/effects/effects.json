@@ -1825,7 +1825,9 @@
                 "count": 1
               },
               "raw": "By trashing your top or bottom security card"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -1846,7 +1848,9 @@
                 "count": 1
               },
               "raw": "By trashing your top or bottom security card"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },

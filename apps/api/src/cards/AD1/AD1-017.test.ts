@@ -48,6 +48,64 @@ describe("AD1-017 Dynasmon", () => {
     expect(s.perm("target").currentDP).toBe(2000);
   });
 
+  it("declines the optional 'by' cost on play without trashing security", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-028", "BT1-029"] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
+    });
+    s.state.memory = 11;
+    const security = s.state.players[0]!.security.map(({ instanceId }) => instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(security);
+    expect(s.perm("target").currentDP).toBe(8000);
+  });
+
+  it("declines the optional 'by' cost when digivolving without trashing security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-057", as: "base" }],
+        hand: [{ card: "AD1-017", as: "dynasmon" }],
+        security: ["BT1-028", "BT1-029"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
+    });
+    s.state.memory = 3;
+    const security = s.state.players[0]!.security.map(({ instanceId }) => instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dynasmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(security);
+    expect(s.perm("target").currentDP).toBe(8000);
+  });
+
   it("applies -6000 DP to an opposing Digimon played later in the turn (Discord 1555352172206493706)", async () => {
     const s = setupEngine(
       {
