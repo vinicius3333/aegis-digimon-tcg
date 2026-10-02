@@ -1,5 +1,6 @@
 import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-097.js";
 import "../BT8/BT8-097.js";
@@ -228,6 +229,34 @@ describe("BT17-097 Return to the Primogenitor", () => {
 
     expect(s.perm("redBase").topCard?.cardId).toBe("BT3-017");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonFreeMega").instanceId)).toBe(true);
+  });
+
+  it("does not offer Delay for a deletion on the turn it was placed (Discord 1555673696960774224)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-028", as: "freeTarget" }],
+          hand: [{ card: "BT17-097", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    s.give(0, Zone.Hand, { card: "BT12-030", as: "imperialdramon" });
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("freeTarget").permanentId], "byBattle");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT12-028"));
+
+    expect(
+      s.decisions.filter(({ req }) => req.kind === "optional" && req.promptText === "Prevent leaving the battle area?"),
+    ).toEqual([]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("imperialdramon").instanceId)).toBe(true);
   });
 
   it("cannot prevent deletion when the deleted Free Digimon fails the Imperialdramon requirement (Q2886)", async () => {

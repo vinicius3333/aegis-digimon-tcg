@@ -293,6 +293,11 @@ export const TIMINGS = {
   effectHandRise: 540,
   /** The card's own art breaking into shards where it was deleted. */
   cardShatter: 520,
+  /**
+   * The gap between cards one effect takes off the field. Each leaves as the previous card's
+   * art finishes breaking, so a board wipe reads one Digimon at a time.
+   */
+  removalStagger: 520,
   /** A stripped top card (＜De-Digivolve＞) lifting off its permanent toward the trash. */
   stackStripPeel: 560,
 } as const;

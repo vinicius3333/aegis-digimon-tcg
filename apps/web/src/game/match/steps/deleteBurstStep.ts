@@ -12,6 +12,7 @@ import {
   type DeletionReadyAt,
   type PresentationGate,
 } from "../presentationGate";
+import { startRemoval, waitForRemovalTurn, type RemovalTurn } from "../removalChain";
 
 /**
  * The burst left where a deleted permanent stood. The board has already dropped the
@@ -41,6 +42,7 @@ export function deleteBurstStep({
   causingEffectGate,
   stateVersion,
   causedByOption = false,
+  removal,
   readBeforeBreak = true,
 }: {
   queue: AnimationQueue;
@@ -63,6 +65,12 @@ export function deleteBurstStep({
   causingEffectGate: PresentationGate | null;
   stateVersion?: number;
   causedByOption?: boolean;
+  /**
+   * This card's place in the run of cards one effect takes off the field. One that follows
+   * another waits its turn instead of a reading beat of its own: the first already had it.
+   * The caller releases the link if the step never runs.
+   */
+  removal?: RemovalTurn;
   /**
    * Whether the causing clause gets its readable beat before the card breaks. A ＜Delay＞
    * Option's gate opens on its own glow, before any clause is on screen, so it breaks at once.
@@ -106,6 +114,7 @@ export function deleteBurstStep({
     track: `deleteBurst-${key}`,
     async run(context) {
       const leaveUnshown = () => {
+        if (removal) startRemoval(removal);
         releaseHeldDeletion();
         started.release();
         shattered.release();
@@ -114,7 +123,12 @@ export function deleteBurstStep({
       // The clause that did the deleting is still being read out, so once it is on screen
       // it gets one readable beat before the card it names breaks. A clause read out long
       // before this step began — the server took its time — has had its beat already.
-      const clauseUnread = readBeforeBreak && effectDeletion && causingEffectGate !== null && !causingEffectGate.open;
+      const clauseUnread =
+        readBeforeBreak &&
+        effectDeletion &&
+        removal?.previous === undefined &&
+        causingEffectGate !== null &&
+        !causingEffectGate.open;
       let clauseShownAt = Date.now();
       // A permanent beaten in battle takes the blow before it breaks.
       await Promise.all([
@@ -136,11 +150,14 @@ export function deleteBurstStep({
           await waitForGate(blow.gate, context, TIMINGS.securityDockMax, "deleteBurst/securityBlow");
       }
       if (context.cancelled) return leaveUnshown();
+      if (removal) await waitForRemovalTurn(removal, context);
+      if (context.cancelled) return leaveUnshown();
       try {
         // The shards take over from the card in the same commit, so the slot is never empty.
         releaseHeldDeletion();
         setDeleteBursts((bursts) => [...bursts, burst]);
         started.release();
+        if (removal) startRemoval(removal);
         await context.wait(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
       } finally {
         shattered.release();

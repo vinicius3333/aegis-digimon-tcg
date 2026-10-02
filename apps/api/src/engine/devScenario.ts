@@ -146,6 +146,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
   "arena-bt25-beelstarmon-option-trash-trigger",
+  "arena-bt20-last-guardian-omnimon-wipe",
   "arena-ex7-deputymon-option-trash-trigger",
   "arena-bt13-king-drasil-source-count",
   "arena-bt13-omnimon-later-token-rush",
@@ -3448,6 +3449,32 @@ function layBt6BeelStarmonDuplicateCostScenario(state: GameState, decks: readonl
 }
 
 /**
+ * Discord bug 1555673696960774224 (match f1c49980): BT20-102 Omnimon (X Antibody)'s board wipe
+ * deletes the Omnimon itself when another Digimon is kept. One BT20-100 The Last Guardian has
+ * waited since an earlier turn and a second copy is in hand to place this turn. Only the earlier
+ * copy may offer ＜Delay＞ (§16-17-3). Four neutral Tamers on top cover the draw and the reveal.
+ * The bot keeps Monodramon and loses Garurumon, so the Option breaks alongside a real deletion.
+ */
+function layBt20LastGuardianOmnimonWipeScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human === undefined || bot === undefined) return;
+  const guardian = establishedDigimon(0, ["BT20-100"], "-last-guardian-established");
+  guardian.placedByEffect = true;
+  placePermanent(human, guardian);
+  placePermanent(human, establishedDigimon(0, ["BT5-086"], "-last-guardian-omnimon"));
+  placePermanent(human, establishedDigimon(0, ["ST1-07"], "-last-guardian-survivor"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-last-guardian-fresh", "BT20-100", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-last-guardian-omnimon-x", "BT20-102", 0));
+  for (const index of [0, 1, 2, 3]) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-last-guardian-neutral-${index}`, "BT1-085", 0), "top");
+  }
+  placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-last-guardian-target"));
+  placePermanent(bot, establishedDigimon(1, ["ST2-06"], "-last-guardian-wiped"));
+}
+
+/**
  * Reproduce Discord bug 1555578375677018193: BT25-085 BeelStarmon's [When Attacking] unsuspend
  * cost trashes EX7-071 Hurricane Screw Shot from digivolution cards, which must fire its
  * "gain 1 memory".
@@ -4399,6 +4426,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,
   "arena-bt25-beelstarmon-option-trash-trigger": layBt25BeelStarmonOptionTrashTriggerScenario,
+  "arena-bt20-last-guardian-omnimon-wipe": layBt20LastGuardianOmnimonWipeScenario,
   "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,

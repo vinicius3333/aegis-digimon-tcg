@@ -298,12 +298,27 @@ export async function runReplacement(
     const sourceleaveReason = action.sourceFilter?.leaveReason;
     const leaveCause = action.leaveCause ?? (sourceleaveReason === "effect" ? "byEffect" : "any");
     const exceptDeletion = action.exceptDeletion === true;
+    const requiresIntrinsicDelay = (action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true;
+    // §16-17-3 bars a ＜Delay＞ activation the turn its card entered play, and an armed Delay
+    // also needs its grant. A reaction that can only refuse must not ask "Prevent leaving the
+    // battle area?" first: the player answers yes and sees nothing happen (Discord
+    // 1555673696960774224, BT20-100 placed the same turn as BT20-102's board wipe).
+    const delayCanActivate = (subCtx: EffectContext): boolean => {
+      if (action.requiresDelayArmed !== true && !requiresIntrinsicDelay) return true;
+      const delaySource = subCtx.source.permanent();
+      if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+      return (
+        action.requiresDelayArmed !== true ||
+        (subCtx.fx.grantedKeywords?.(delaySource.permanentId) ?? []).some((grant) => grant.keyword === "Delay")
+      );
+    };
     ctx.fx.subscribeReplacement({
       ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
       sourceInstanceId: ctx.source.instanceId,
       activationIdentity,
+      ...(action.requiresDelayArmed === true || requiresIntrinsicDelay ? { preventionKeyword: "Delay" as const } : {}),
       mode: "prevent",
       exceptDigiXros: action.exceptDigiXros,
       affectsAll: action.affectsAll,
@@ -334,6 +349,7 @@ export async function runReplacement(
       protects: (subCtx, leavingId) => {
         const leaving = subCtx.game.permanentById(leavingId);
         if (leaving === undefined) return false;
+        if (!delayCanActivate(subCtx)) return false;
         // "It doesn't leave" affects the saved permanent, so an immunity to this clause's
         // card kind keeps it from applying (CR 15-15-5-1). A linked Option's clause is a
         // Digimon effect (KB Q6476).
@@ -435,42 +451,58 @@ export async function runReplacement(
           printedClause(action.raw) ?? printedClause(ctx.activeEffectText) ?? subCtx.source.definition.effectText;
         const runCtx: EffectContext =
           action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
-        if (action.requiresDelayArmed === true) {
-          const source = subCtx.source.permanent();
-          if (source === undefined) return false;
-          if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-          const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some((g) => g.keyword === "Delay");
-          if (!hasDelay) return false;
-          subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
-          const trashed = await trashDelaySource(subCtx, source);
-          if (trashed <= 0) return false;
+        // A ＜Delay＞ is an activated effect the viewer must see: the client paces the Option's
+        // break and the save behind this clause, so without it both land the instant the prompt
+        // closes (Discord 1555673696960774224).
+        const resolvedNotice =
+          action.requiresDelayArmed === true || requiresIntrinsicDelay
+            ? subCtx.fx.announceEffect?.(subCtx, {
+                effectKey: activationIdentity ?? `replacement/${ctx.source.cardId}/delay`,
+                description: subCtx.activeEffectText ?? "",
+                timing: subCtx.activeTiming ?? "AllTurns",
+                ...(subCtx.activeEffectIsInherited === true ? { isInherited: true } : {}),
+              })
+            : undefined;
+        try {
+          if (action.requiresDelayArmed === true) {
+            const source = subCtx.source.permanent();
+            if (source === undefined) return false;
+            if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+            const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some((g) => g.keyword === "Delay");
+            if (!hasDelay) return false;
+            subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
+            const trashed = await trashDelaySource(subCtx, source);
+            if (trashed <= 0) return false;
+          }
+          // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
+          // §16-17) — the printed keyword's OWN cost, not the separate GainKeyword-armed model
+          // above. §16-17-3 bars activation the turn the card entered play; §16-17-1 makes
+          // trashing the source card (already asked as the "prevent?" confirm above) the cost.
+          if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+            const source = subCtx.source.permanent();
+            if (source === undefined) return false;
+            if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+            const trashed = await trashDelaySource(subCtx, source);
+            if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
+          }
+          const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
+          if (preventCosts.length > 0) {
+            const paid = await payOneCostOption(subCtx, preventCosts);
+            if (!paid) return false;
+          }
+          for (const inner of action.actions ?? []) {
+            if (inner.kind === "Prevent") continue;
+            if (inner.kind === "GrantStatic" && isCannotLeavePlayGrant((inner as { grant?: unknown }).grant)) continue;
+            const abort = await runAction(runCtx, inner);
+            if (abort) break;
+          }
+          if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
+            return false;
+          }
+          return true;
+        } finally {
+          resolvedNotice?.();
         }
-        // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
-        // §16-17) — the printed keyword's OWN cost, not the separate GainKeyword-armed model
-        // above. §16-17-3 bars activation the turn the card entered play; §16-17-1 makes
-        // trashing the source card (already asked as the "prevent?" confirm above) the cost.
-        if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
-          const source = subCtx.source.permanent();
-          if (source === undefined) return false;
-          if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-          const trashed = await trashDelaySource(subCtx, source);
-          if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
-        }
-        const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
-        if (preventCosts.length > 0) {
-          const paid = await payOneCostOption(subCtx, preventCosts);
-          if (!paid) return false;
-        }
-        for (const inner of action.actions ?? []) {
-          if (inner.kind === "Prevent") continue;
-          if (inner.kind === "GrantStatic" && isCannotLeavePlayGrant((inner as { grant?: unknown }).grant)) continue;
-          const abort = await runAction(runCtx, inner);
-          if (abort) break;
-        }
-        if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
-          return false;
-        }
-        return true;
       },
     });
     return;

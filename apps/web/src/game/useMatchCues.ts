@@ -98,6 +98,7 @@ import { createAnimationQueue, type AnimationStep, type AnimationStepContext } f
 import { createPresentationProgress } from "./presentationProgress";
 import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
 import type { CostClause, DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
+import type { RemovalLink } from "./match/removalChain";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
 import { type FieldClashScene, type OpenAttack } from "./fieldClash";
@@ -407,6 +408,7 @@ export function useMatchCues({
   const lastPresentedSeqRef = useRef(0);
   /** Deletions already queued, spanning adjacent server batches. */
   const deletionBurstPresentedRef = useRef(new Set<string>());
+  const removalChainRef = useRef<RemovalLink | null>(null);
   const noticeSequenceRef = useRef(0);
   const sidePanelSequenceRef = useRef(0);
   const narrationSequenceRef = useRef(0);
@@ -818,6 +820,7 @@ export function useMatchCues({
       launchDrawFlight,
       launchDeckToUnderFlight,
       flyDockedOptionUnder,
+      flyCardToDeck,
       releaseTrashArrivalsThrough,
       launchSecurityGainFlight,
       securityCountOf,
@@ -875,6 +878,7 @@ export function useMatchCues({
       deleteBurstKeyRef,
       deletionReadyAtRef,
       deletionBurstPresentedRef,
+      removalChainRef,
       setPendingPermanentIds,
       setHeldDrawState,
       setZoneShowcase,
@@ -1061,6 +1065,7 @@ export function useMatchCues({
     launchDrawFlight,
     launchDeckToUnderFlight,
     flyCardUnder,
+    flyCardToDeck,
   } = cueFlights({
     queue,
     anchors,

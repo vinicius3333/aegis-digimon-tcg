@@ -2,6 +2,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
 import type { CostClause, DeletionReadyAt, PresentationGate } from "../presentationGate";
+import { joinRemovalChain, type RemovalLink } from "../removalChain";
 import type { StateSnapshot } from "../../../net/presentedState";
 import { deletionAnchorIdsFromEvent, fieldDeparturesFromEvent } from "../../showcases";
 import { heldDeletionFrom } from "../heldDeletion";
@@ -24,6 +25,9 @@ import type { DeleteBurst, HeldDeletion, MatchCueAnchors } from "../types";
  * Until the shatter begins the permanent stays on the board: the batch is presented, and its
  * board rendered, as soon as it is reached, which is before the clause explaining the
  * deletion has been read out.
+ *
+ * Everything one effect takes off the field leaves one card at a time (`removalChain.ts`): a
+ * ＜Delay＞ Option paying its cost first, then each Digimon the wipe deletes.
  */
 export function enqueueDeletionBursts({
   queue,
@@ -36,6 +40,7 @@ export function enqueueDeletionBursts({
   deleteBurstKeyRef,
   deletionReadyAtRef,
   deletionBurstPresentedRef,
+  removalChainRef,
   securityBlowRef,
   causingEffectGate,
   costClause,
@@ -57,6 +62,8 @@ export function enqueueDeletionBursts({
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   /** Mutated: every anchor already given a shatter, across batches. */
   deletionBurstPresentedRef: MutableRefObject<Set<string>>;
+  /** Mutated: the latest card an effect took off the field, which the next one follows. */
+  removalChainRef: MutableRefObject<RemovalLink | null>;
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
   causingEffectGate: PresentationGate | null;
   /**
@@ -84,7 +91,10 @@ export function enqueueDeletionBursts({
       fieldDeparturesFromEvent(event).map((departed) => [departed.permanentId, departed] as const),
     ),
   );
+
   for (const event of fresh) {
+    const trashedOptionIds =
+      event.kind === "cardsMoved" ? (event.trashedPermanents ?? []).map((trashed) => trashed.permanentId) : [];
     for (const anchorId of deletionAnchorIdsFromEvent(event)) {
       if (deletionBurstAnchors.has(anchorId) || deletionBurstPresentedRef.current.has(anchorId)) continue;
       deletionBurstAnchors.add(anchorId);
@@ -103,6 +113,9 @@ export function enqueueDeletionBursts({
               : Math.min(playLeadInMs, PLAY_LEAD_IN_BUDGET_MS);
       const deleted = deletionMetadata.get(anchorId);
       const key = (deleteBurstKeyRef.current += 1);
+      const trashedOption = trashedOptionIds.includes(anchorId);
+      const effectDeletion = blowKey === undefined && !clashLoserIds.has(anchorId) && !beaten.has(anchorId);
+      const removal = trashedOption || effectDeletion ? joinRemovalChain(removalChainRef) : undefined;
       const step = deleteBurstStep({
         queue,
         anchors,
@@ -116,15 +129,17 @@ export function enqueueDeletionBursts({
         metadataArtId: deleted?.artId,
         metadataSeat: deleted?.seat,
         metadataInstanceId: deleted?.instanceId,
-        effectDeletion: blowKey === undefined && !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
+        effectDeletion,
         blowKey,
         securityBlowRef,
         causingEffectGate: anchorId === costClause?.permanentId ? costClause.focused : causingEffectGate,
         readBeforeBreak: anchorId !== costClause?.permanentId,
         stateVersion,
         causedByOption,
+        ...(removal ? { removal } : {}),
       });
       if (!step) {
+        removal?.link.started.release();
         if (anchorId === costClause?.permanentId) costClause.departing.release();
         continue;
       }
@@ -132,6 +147,7 @@ export function enqueueDeletionBursts({
       const held = heldDeletionFrom({ snapshots, seat: deleted?.seat, permanentId: anchorId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
       enqueue(step);
+      if (removal) void queue.idle().then(() => removal.link.started.release());
       if (anchorId === costClause?.permanentId) costClause.departing.release();
       // A step a later `replace` drops never runs, so the card would stand there for the
       // rest of the match. Registered after the enqueue: on an idle queue the promise

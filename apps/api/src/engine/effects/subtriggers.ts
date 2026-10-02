@@ -1,4 +1,11 @@
-import { type CardDefinition, type Condition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
+import {
+  type CardDefinition,
+  type Condition,
+  type Permanent,
+  type PreventionKeyword,
+  type Seat,
+  type ZoneRef,
+} from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 import { effectProvenanceKinds } from "./effectProvenance.js";
 
@@ -210,6 +217,8 @@ export interface ReplacementSubscriptionBase {
   sourceInstanceId?: string;
   /** Stable compiled effect/action identity. Description is display text and must not identify rules uses. */
   activationIdentity?: string;
+  /** The keyword a successful "prevent" names to the players (a ＜Delay＞ Option saving a Digimon). */
+  preventionKeyword?: PreventionKeyword;
   /** Stable key used to consume a persistent replacement at most once in a turn. */
   oncePerTurnKey?: string;
   /**

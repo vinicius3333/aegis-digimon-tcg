@@ -1,4 +1,4 @@
-import type { Permanent, Seat } from "@aegis/shared";
+import type { Permanent, PreventionKeyword, Seat } from "@aegis/shared";
 import type { EffectContext, RemovalCause } from "./EffectContext.js";
 import type { ReplacementSubscription, SubTriggerRegistry } from "./subtriggers.js";
 function replacementActivationKey(replacement: ReplacementSubscription): string {
@@ -49,10 +49,11 @@ export interface LeavePreventionHost {
    * narrates itself through its own effect events.
    */
   keywordPrevented?(
-    activationIdentity: string,
+    activationIdentity: string | undefined,
     sourcePermanentId: string | undefined,
     sourceCardId: string | undefined,
     savedPermanentId: string,
+    preventionKeyword: PreventionKeyword | undefined,
   ): void;
 }
 
@@ -291,8 +292,14 @@ export async function consultLeavePrevention(
       }
       if (!did) continue;
       const announce = (savedId: string) => {
-        if (repl.activationIdentity === undefined) return;
-        host.keywordPrevented?.(repl.activationIdentity, repl.sourcePermanentId, sourceCardId, savedId);
+        if (repl.activationIdentity === undefined && repl.preventionKeyword === undefined) return;
+        host.keywordPrevented?.(
+          repl.activationIdentity,
+          repl.sourcePermanentId,
+          sourceCardId,
+          savedId,
+          repl.preventionKeyword,
+        );
       };
       announce(leavingId);
       prevented.add(leavingId);

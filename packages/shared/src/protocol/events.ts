@@ -65,7 +65,7 @@ export type DigivolveMechanic =
  * board change (Comprehensive Rules §16-18, §16-19, §16-32, §16-37, and ＜Guard＞).
  * ＜Evade＞ and ＜Barrier＞ are absent because they already have prompt/resolved events.
  */
-export type PreventionKeyword = "Scapegoat" | "Decoy" | "Guard" | "Fragment" | "Armor Purge";
+export type PreventionKeyword = "Scapegoat" | "Decoy" | "Guard" | "Fragment" | "Armor Purge" | "Delay";
 
 export type ServerEvent =
   | { kind: "matchStarted"; firstSeat: Seat }
@@ -165,7 +165,7 @@ export type ServerEvent =
   | { kind: "attackEnded"; seat: Seat; attackerPermanentId: string }
   /**
    * A deletion (or leave) that a keyword paid to prevent: ＜Scapegoat＞, ＜Decoy＞, ＜Guard＞,
-   * ＜Fragment＞ and ＜Armor Purge＞. Unlike ＜Evade＞ and ＜Barrier＞, these have no prompt
+   * ＜Fragment＞, ＜Armor Purge＞, and a ＜Delay＞ Option that keeps a Digimon on the field. Unlike ＜Evade＞ and ＜Barrier＞, these have no prompt
    * event of their own — without this, the client sees only the cost card leaving and a
    * battle that quietly failed, and the viewer is never told which keyword saved what.
    * Emitted only when the prevention actually happened; a declined prompt emits nothing.
@@ -305,6 +305,17 @@ export type ServerEvent =
       placedUnder?: { permanentId: string };
       /** Actual deleted field cards, captured before removal; excludes their supporting cards. */
       deletedPermanents?: {
+        permanentId: string;
+        instanceId: string;
+        cardId: string;
+        artId?: string;
+        seat: Seat;
+      }[];
+      /**
+       * Field permanents a move returned whole to a deck, captured before removal so the client
+       * can send each one from where it stood. Absent for cards returned from any other zone.
+       */
+      returnedPermanents?: {
         permanentId: string;
         instanceId: string;
         cardId: string;

@@ -53,6 +53,8 @@ import { presentSecurityAttack } from "./attackLunge";
 import { enqueueCombatImpact } from "./combatImpact";
 import { traceCueBatch } from "../../cueTrace";
 import { enqueueDeletionBursts } from "./deletionBursts";
+import type { RemovalLink } from "../removalChain";
+import { enqueueDeckReturns, type FlyCardToDeck } from "./deckReturns";
 import { enqueueStackStripPeels } from "./stackStripPeels";
 import { enqueueSecurityDestructions } from "./securityDestructions";
 import { enqueueOptionDock, type FlyDockedOptionUnder, type OptionDockHold } from "./optionDock";
@@ -106,6 +108,7 @@ export function presentServerBatch({
   launchDrawFlight,
   launchDeckToUnderFlight,
   flyDockedOptionUnder,
+  flyCardToDeck,
   releaseTrashArrivalsThrough,
   launchSecurityGainFlight,
   securityCountOf,
@@ -163,6 +166,7 @@ export function presentServerBatch({
   deleteBurstKeyRef,
   deletionReadyAtRef,
   deletionBurstPresentedRef,
+  removalChainRef,
   setPendingPermanentIds,
   setHeldDrawState,
   setZoneShowcase,
@@ -208,6 +212,7 @@ export function presentServerBatch({
   launchDrawFlight: (side: Side, burst: boolean, delayMs: number, card?: DrawFlightCard) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   flyDockedOptionUnder: FlyDockedOptionUnder;
+  flyCardToDeck: FlyCardToDeck;
   releaseTrashArrivalsThrough: (stateVersion: number) => void;
   launchSecurityGainFlight: (seat: Seat) => void;
   securityCountOf: (seat: Seat) => number | undefined;
@@ -272,6 +277,8 @@ export function presentServerBatch({
   deleteBurstKeyRef: MutableRefObject<number>;
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   deletionBurstPresentedRef: MutableRefObject<Set<string>>;
+  /** The latest card an effect took off the field, which the next one follows. */
+  removalChainRef: MutableRefObject<RemovalLink | null>;
   setPendingPermanentIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
   setZoneShowcase: Dispatch<SetStateAction<ZoneShowcase | null>>;
@@ -771,6 +778,7 @@ export function presentServerBatch({
     deleteBurstKeyRef,
     deletionReadyAtRef,
     deletionBurstPresentedRef,
+    removalChainRef,
     securityBlowRef,
     causingEffectGate: causingEffectGateRef.current,
     costClause: costClauseRef.current,
@@ -780,6 +788,19 @@ export function presentServerBatch({
     stateVersion,
     causedByOption: optionResolving,
   });
+  enqueueDeckReturns({
+    queue,
+    fresh,
+    snapshots,
+    anchors,
+    removalChainRef,
+    causingEffectGate: causingEffectGateRef.current,
+    holdKeyRef: deleteBurstKeyRef,
+    setHeldDeletions,
+    flyCardToDeck,
+    enqueue,
+  });
+
   enqueueStackStripPeels({
     fresh,
     anchors,

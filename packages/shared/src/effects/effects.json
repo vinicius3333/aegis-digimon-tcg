@@ -71917,6 +71917,7 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
             "kind": "SelectBind",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "survivorMine" },
             "condition": {
@@ -71931,6 +71932,7 @@
             }
           },
           {
+            "effectTextPart": "Then, return 1 of your opponent's Digimon to the bottom of the deck.",
             "kind": "SelectBind",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -71978,6 +71980,7 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
             "kind": "SelectBind",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "survivorMine" },
             "condition": {
@@ -71992,6 +71995,7 @@
             }
           },
           {
+            "effectTextPart": "Then, return 1 of your opponent's Digimon to the bottom of the deck.",
             "kind": "SelectBind",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
