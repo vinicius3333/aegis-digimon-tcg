@@ -43,6 +43,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon",
           },
+          optional: true,
           abortOnDecline: true,
         },
         {
@@ -92,6 +93,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon",
           },
+          optional: true,
           abortOnDecline: true,
         },
         {
