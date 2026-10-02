@@ -156,6 +156,13 @@ export function deletionAnchorIdsFromEvent(event: ServerEvent): readonly string[
   return [];
 }
 
+/** Option permanents a move trashed whole from the battle area: not deleted, but gone all the same. */
+export function trashedPermanentAnchorIdsFromEvent(event: ServerEvent): readonly string[] {
+  if (event.kind === "cardsMoved" && event.to === "trash" && event.trashedPermanents?.length)
+    return event.trashedPermanents.map((trashed) => trashed.permanentId);
+  return [];
+}
+
 /** The phase name the protocol uses for the draw step of a turn. */
 const DRAW_PHASE = "Draw";
 

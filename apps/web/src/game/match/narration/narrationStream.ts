@@ -292,6 +292,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
               ownDeletion.stateVersion > itemVersion;
             const shatter =
               deletedLater ||
+              ownDeletion?.paysOwnClause === true ||
               (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? ""))
                 ? undefined
                 : ownDeletion;

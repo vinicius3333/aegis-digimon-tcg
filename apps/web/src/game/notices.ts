@@ -74,7 +74,7 @@ export type NoticeKeyword =
   | "armorPurge";
 
 /** The notice each prevention keyword earns, keyed by the name the protocol uses. */
-const PREVENTION_NOTICE_KEYWORDS: Record<PreventionKeyword, NoticeKeyword> = {
+const PREVENTION_NOTICE_KEYWORDS: Record<Exclude<PreventionKeyword, "Delay">, NoticeKeyword> = {
   Scapegoat: "scapegoat",
   Decoy: "decoy",
   Guard: "guard",
@@ -289,6 +289,8 @@ export function preventionNoticeFromEvent(
   nowMs: number,
 ): MatchNotice | null {
   if (event.kind !== "deletionPrevented" || event.cardId === undefined) return null;
+  // A ＜Delay＞ save is already named by its own clause, read out as the Option breaks.
+  if (event.keyword === "Delay") return null;
   return {
     id,
     side: sideOf(event.seat, viewerSeat),

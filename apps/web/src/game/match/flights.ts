@@ -260,8 +260,44 @@ export function cueFlights(deps: CueFlightsDeps) {
     return true;
   }
 
+  /**
+   * A face-up card leaving the field for its owner's deck, from where it stood. `from` is
+   * measured by the caller before it lets go of the card, since the board drops it then.
+   * Runs inside the caller's step; false when there is no geometry to fly between.
+   */
+  async function flyCardToDeck(
+    card: DrawFlightCard,
+    from: { x: number; y: number },
+    seat: Seat,
+    context: AnimationStepContext,
+  ): Promise<boolean> {
+    const board = anchors.board.current;
+    const deck = seat === viewerSeat ? anchors.yourDeck.current : anchors.oppDeck.current;
+    if (!board || !deck || context.mode !== "live") return false;
+    const boardRect = board.getBoundingClientRect();
+    const deckRect = deck.getBoundingClientRect();
+    if (!deckRect.width) return false;
+    const to = {
+      x: deckRect.left + deckRect.width / 2 - boardRect.left,
+      y: deckRect.top + deckRect.height / 2 - boardRect.top,
+    };
+    const key = ++drawFlightKeyRef.current;
+    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
+    setDrawFlights((flights) => [
+      ...flights,
+      { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y, duration, card },
+    ]);
+    try {
+      await context.wait(duration);
+    } finally {
+      setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+    }
+    return true;
+  }
+
   return {
     flyCardUnder,
+    flyCardToDeck,
     launchSecurityGainFlight,
     launchOpeningSecurityDeal,
     launchDrawFlight,

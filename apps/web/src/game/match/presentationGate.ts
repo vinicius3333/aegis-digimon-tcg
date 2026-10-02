@@ -95,6 +95,8 @@ export interface DeletionReadyAt {
   stateVersion?: number;
   /** A resolving Option deleted it, so its shatter waits on the dock rather than on a clause. */
   causedByOption?: boolean;
+  /** The card broke paying for its own clause (a ＜Delay＞ cost), so that clause reads first. */
+  paysOwnClause?: boolean;
   instanceId?: string;
   started?: PresentationGate;
   shattered?: PresentationGate;
