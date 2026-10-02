@@ -61,6 +61,7 @@ import {
   flushDeferredTimingWindows,
   inContinuousPass,
   parkDeferredSecurityRemovalTriggersForAttack,
+  parkDeferredTimingWindowsForAttack,
   resolveLeaveReplacementBody,
   settleBetweenEffects,
   shouldDeferNestedTiming,
@@ -398,10 +399,12 @@ export async function engineConsultLeavePrevention(
     },
   );
   // No [On Deletion] window follows a bounce or a fully averted leave, so what the replacement
-  // triggered activates now instead of waiting for one.
+  // triggered activates now instead of waiting for one. A DigiXros material interrupt is the
+  // exception: it happens inside the play procedure, so its caller hands what it triggered to
+  // the played Digimon's [On Play] window (CR §15-4-3-2, §15-8-3-2).
   const averted =
     opts?.isBounce === true || opts?.insteadOnly === true || permanentIds.every((id) => prevented.has(id));
-  if (averted) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
+  if (averted && opts?.isDigiXros !== true) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
   return prevented;
 }
 
@@ -456,10 +459,12 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // effects, even though the enclosing card will resume after combat.
       const pausedDepth = engine.effectResolutionDepth;
       const pausedOptionDepth = engine.optionResolutionDepth;
+      const pausedOptionMainDepth = engine.optionMainDepth;
       engine.effectResolutionDepth = 0;
+      engine.optionMainDepth = 0;
       try {
         parkDeferredSecurityRemovalTriggersForAttack(engine);
-        await flushDeferredTimingWindows(engine);
+        parkDeferredTimingWindowsForAttack(engine);
         // Settle the already-armed watcher tier before exposing the Option's older
         // printed entry/attack effects. Then settle the interrupted Option's rule
         // check in that same parent pool before Counter Timing/security can proceed.
@@ -475,6 +480,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;
+        engine.optionMainDepth = pausedOptionMainDepth;
       }
     },
     // Called only from inside `runAttackSteps`, where the depth is already 0, so
@@ -491,8 +497,10 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // (a defender's Blast Digivolve [When Digivolving] resolving after combat).
       const pausedDepth = engine.effectResolutionDepth;
       const pausedOptionDepth = engine.optionResolutionDepth;
+      const pausedOptionMainDepth = engine.optionMainDepth;
       engine.effectResolutionDepth = 0;
       engine.optionResolutionDepth = 0;
+      engine.optionMainDepth = 0;
       try {
         await flushDeferredTimingWindows(engine);
         await body();
@@ -500,6 +508,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;
+        engine.optionMainDepth = pausedOptionMainDepth;
       }
     },
     baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
@@ -655,6 +664,14 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       digivolveDeps(engine).fireWouldDigivolve!(engine.state, seat, target, into),
     consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
       engine.consultLeavePrevention(ids, cause, resolvingSeat, opts),
+    interruptDigiXrosMaterialLeave: async (fieldPermanentIds, resolvingSeat) => {
+      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byEffect", resolvingSeat, {
+        isDigiXros: true,
+        isBounce: true,
+      });
+      return { prevented, triggered: takeLeaveReplacementPending(engine) };
+    },
+    resolveHeldTriggeredEffects: (effects) => runPendingTimingWindow(engine, effects),
     consultDigivolutionTrashRedirect: (ids) => engineConsultDigivolutionTrashRedirect(engine, ids),
     get combat() {
       return getCombat();

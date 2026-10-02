@@ -194,7 +194,7 @@ describe("EX3-034 Angewomon", () => {
         ]),
         timing: "WhenDigivolving",
         effectText: expect.stringContaining("may place 1 [Trial of the Four Great Dragons]"),
-        min: 1,
+        min: 0,
         max: 1,
       },
     });

@@ -130,27 +130,62 @@
 
 /* --- Security shields ---------------------------------------------------- */
 
+/* A heraldic shield: square shoulders, straight flanks, then a curve into the point.
+   The rim is the element's own background; the face is a copy of the outline inset
+   inside it, because a border or drop shadow would be clipped away with the box. */
 .game-security-shield {
+  --security-shield-outline: polygon(
+    5% 0%,
+    95% 0%,
+    100% 5%,
+    100% 46%,
+    98.5% 58%,
+    95% 68%,
+    89% 77%,
+    81% 85%,
+    71% 92%,
+    60% 97.5%,
+    50% 100%,
+    40% 97.5%,
+    29% 92%,
+    19% 85%,
+    11% 77%,
+    5% 68%,
+    1.5% 58%,
+    0% 46%,
+    0% 5%
+  );
   position: relative;
   display: grid;
   width: 4.1rem;
   aspect-ratio: 0.86;
   place-items: center;
-  clip-path: polygon(6% 0%, 94% 0%, 100% 14%, 100% 58%, 50% 100%, 0% 58%, 0% 14%);
+  clip-path: var(--security-shield-outline);
+  background: var(--security-shield-rim);
   filter: drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
   transition: filter 200ms;
 }
 
-.game-security-shield--opp {
+.game-security-shield::before {
+  position: absolute;
+  inset: 3px;
+  clip-path: var(--security-shield-outline);
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
-    linear-gradient(180deg, #2c7de8 0%, #123f8f 100%);
+    radial-gradient(120% 70% at 50% 0%, rgb(255 255 255 / 28%) 0%, transparent 55%),
+    linear-gradient(180deg, var(--security-shield-light) 0%, var(--security-shield-dark) 100%);
+  content: "";
+}
+
+.game-security-shield--opp {
+  --security-shield-light: #3b8cf0;
+  --security-shield-dark: #123f8f;
+  --security-shield-rim: linear-gradient(180deg, #bfdcff 0%, #4f86d6 100%);
 }
 
 .game-security-shield--you {
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
-    linear-gradient(180deg, #e8542c 0%, #8f1c12 100%);
+  --security-shield-light: #ee6a3e;
+  --security-shield-dark: #8f1c12;
+  --security-shield-rim: linear-gradient(180deg, #ffd2bd 0%, #d46a48 100%);
 }
 
 .game-security-shield--glow {

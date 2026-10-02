@@ -64,6 +64,44 @@ describe("EX6-015 Xiangpengmon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([host.permanentId]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+  it("Discord 1555224478416633927: the player orders the placed Digimon at the bottom (CR 3-1-3-4)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-027", as: "armadillomon" },
+            { card: "BT1-028", as: "elecmon" },
+          ],
+          hand: [{ card: "EX6-015", as: "xiangpengmon" }],
+        },
+        1: { security: Array(5).fill("BT1-009"), deck: Array(10).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const armadillomonId = s.inst("armadillomon").instanceId;
+    const elecmonId = s.inst("elecmon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xiangpengmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
+    const ordering = s.decisions.find(({ req }) => req.kind === "orderCards")!.req;
+    expect(ordering.options?.orderDestination).toBe("stackBottom");
+    expect([...(ordering.options?.candidateInstanceIds ?? [])].sort()).toEqual([armadillomonId, elecmonId].sort());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: [armadillomonId, elecmonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("xiangpengmon").stack.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("xiangpengmon").stack.map((card) => card.instanceId)).toEqual([armadillomonId, elecmonId]);
+  });
+
   it("inherits once-per-turn play from digivolution cards and grants the Aquatic trait", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
@@ -195,8 +233,8 @@ describe("EX6-015 Xiangpengmon", () => {
       const host = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "EX6-015")!;
       expect(host.stack.map(({ instanceId }) => instanceId)).toEqual(
         timing === "play"
-          ? [blueTwoId, blueOneId]
-          : [blueTwoId, blueOneId, s.inst("existingHost").instanceId, hostTopId!],
+          ? [blueOneId, blueTwoId]
+          : [blueOneId, blueTwoId, s.inst("existingHost").instanceId, hostTopId!],
       );
       expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("shedOne").instanceId);
       expect(

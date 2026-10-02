@@ -805,6 +805,7 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[When Digivolving] Delete up to 10000 DP total worth of your opponent's Digimon.",
             "kind": "Delete",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -814,6 +815,7 @@
             }
           },
           {
+            "effectTextPart": "Then, this Digimon may attack.",
             "kind": "Attack",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "withoutSuspending": false,
@@ -6840,7 +6842,7 @@
           {
             "effectTextPart": "[When Digivolving] You may suspend 1 of your Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "unsuspended": true }, "count": 1 },
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "optional": true
           },
           {
@@ -7784,7 +7786,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT10-078": {
     "effects": [
@@ -9650,7 +9652,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT10-112": {
     "effects": [
@@ -13612,7 +13614,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 3 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 3, "maxMaterials": 1 }]
   },
   "BT11-087": {
     "effects": [
@@ -15757,7 +15759,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-012": {
     "effects": [
@@ -16853,7 +16855,12 @@
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenDeletesInBattle", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
@@ -16954,7 +16961,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-038": {
     "effects": [
@@ -17438,7 +17445,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 2, "texts": ["Save"], "cost": 0, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-049": {
     "effects": [{ "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }],
@@ -17566,7 +17573,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-052": { "effects": [], "coverage": "full", "residual": [] },
   "BT12-053": {
@@ -18005,7 +18012,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-064": {
     "effects": [
@@ -18465,7 +18472,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 2, "texts": ["Save"], "cost": 0, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-075": {
     "effects": [
@@ -18516,7 +18523,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 2, "texts": ["Save"], "cost": 0, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT12-076": {
     "effects": [
@@ -23483,10 +23490,7 @@
             "actions": [
               {
                 "kind": "Suspend",
-                "target": {
-                  "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"], "unsuspended": true },
-                  "count": 1
-                }
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 }
               }
             ]
           }
@@ -23502,10 +23506,7 @@
       {
         "trigger": "WhenDigivolving",
         "actions": [
-          {
-            "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true }, "count": 1 }
-          },
+          { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
@@ -33597,18 +33598,14 @@
           {
             "kind": "Suspend",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true },
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": 1,
               "bindAs": "digimonTarget"
             }
           },
           {
             "kind": "Suspend",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Tamer"], "unsuspended": true },
-              "count": 1,
-              "bindAs": "tamerTarget"
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Tamer"] }, "count": 1, "bindAs": "tamerTarget" }
           },
           {
             "kind": "Restrict",
@@ -36705,6 +36702,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "GainMemory",
@@ -45600,6 +45598,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Unsuspend",
@@ -52806,6 +52805,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -59251,6 +59251,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -84167,10 +84168,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon.",
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "playCost": { "op": "lte", "value": 7 } },
-              "count": 1
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card.",
@@ -84193,10 +84191,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon.",
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "playCost": { "op": "lte", "value": 7 } },
-              "count": 1
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card.",
@@ -84764,7 +84759,7 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Tamer"],
-                "playCost": { "op": "gte", "value": 4 },
+                "playCostGte": 4,
                 "nameOrTrait": [
                   { "tokens": ["Mirei Mikagura"], "match": "nameExact" },
                   { "tokens": ["CS"], "match": "trait" }
@@ -93656,6 +93651,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenTrashedFromHand",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Draw",
@@ -111560,6 +111556,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green", "Blue"] },
             "actions": [
               {
@@ -123193,6 +123190,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -132600,6 +132598,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green", "Blue"] },
             "actions": [
               {
@@ -135112,6 +135111,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -135147,10 +135147,7 @@
       {
         "trigger": "WhenAttacking",
         "actions": [
-          {
-            "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "unsuspended": true, "kind": ["Digimon"] }, "count": 1 }
-          }
+          { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } }
         ]
       }
     ],
@@ -135167,6 +135164,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -137054,7 +137052,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2, "maxMaterials": 1 }]
   },
   "EX10-016": {
     "effects": [
@@ -138753,7 +138751,7 @@
       { "level": 5, "colors": ["Black"], "cost": 5, "isAlternate": false },
       { "level": 5, "colors": ["Purple"], "cost": 5, "isAlternate": false }
     ],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "maxMaterials": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "maxMaterials": 3 }]
   },
   "EX10-035": {
     "effects": [
@@ -160319,6 +160317,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "raw": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "effectTextPart": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "sourceFilter": {
@@ -160340,6 +160339,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "raw": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "effectTextPart": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "sourceFilter": {
@@ -167783,6 +167783,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
@@ -174622,7 +174623,6 @@
               "target": {
                 "filter": {
                   "controller": "opponent",
-                  "unsuspended": true,
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 }
                 },
@@ -174664,7 +174664,6 @@
               "target": {
                 "filter": {
                   "controller": "opponent",
-                  "unsuspended": true,
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 }
                 },
@@ -196067,6 +196066,8 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "actions": [
               {
                 "kind": "Unsuspend",
@@ -206595,6 +206596,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -206614,7 +206616,7 @@
           {
             "effectTextPart": "[When Digivolving][When Attacking] Suspend 1 of your opponent’s Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if your opponent has no unsuspended Digimon, gain 1 memory.",
@@ -206634,7 +206636,7 @@
           {
             "effectTextPart": "[When Digivolving][When Attacking] Suspend 1 of your opponent’s Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if your opponent has no unsuspended Digimon, gain 1 memory.",
@@ -211135,6 +211137,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -218992,10 +218995,7 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "playCost": { "op": "lte", "value": 7 } },
-              "count": 1
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": 1 }
           }
         ]
       },
@@ -233666,7 +233666,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] You may suspend 1 Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "any", "kind": ["Digimon"], "unsuspended": true }, "count": 1 },
+            "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
             "raw": "You may suspend 1 Digimon"
           },
@@ -233689,7 +233689,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] You may suspend 1 Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "any", "kind": ["Digimon"], "unsuspended": true }, "count": 1 },
+            "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
             "raw": "You may suspend 1 Digimon"
           },

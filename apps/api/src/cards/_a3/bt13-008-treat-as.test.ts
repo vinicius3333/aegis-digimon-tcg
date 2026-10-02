@@ -28,6 +28,7 @@ function _marcusDamonDef(): CardDefinition {
 
 function fakeState(tamerA: Permanent, tamerB: Permanent): GameState {
   return {
+    turnSeat: 0 as Seat,
     players: [
       { seat: 0 as Seat, battleArea: [tamerA], breeding: undefined },
       { seat: 1 as Seat, battleArea: [tamerB], breeding: undefined },

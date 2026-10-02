@@ -581,7 +581,7 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
         ...collected.effect,
         canActivate: () => {
           sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
-          return !sourceDeparted;
+          return !sourceDeparted && !oncePerTurnSpentByAnotherOccurrence(engine, item);
         },
         resolve: async (resolverCtx: EffectContext) => {
           // Retire the pending trigger before its body can open another window, mirroring
@@ -841,18 +841,23 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
   const ctx = item.contextAtFireTime();
   if (ctx === undefined) return false;
   if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
-  // Once-per-turn siblings share only their own event occurrence. If a different occurrence
-  // consumed the live ledger, engine item must drop from the ordering prompt; the per-occurrence
-  // success set is what distinguishes an allowed same-event sibling from a later event/group.
+  if (oncePerTurnSpentByAnotherOccurrence(engine, item)) return false;
+  if (item.sub.hasLegalOutcome !== undefined && !item.sub.hasLegalOutcome(ctx)) return false;
+  return item.sub.canFire === undefined || item.sub.canFire(ctx);
+}
+
+/**
+ * Once-per-turn siblings share only their own event occurrence. When a different occurrence
+ * consumed the live ledger, this one can no longer activate; the per-occurrence success set is
+ * what distinguishes an allowed same-event sibling from a later event or group.
+ */
+function oncePerTurnSpentByAnotherOccurrence(engine: GameEngine, item: ArmedSubTrigger): boolean {
   const oncePerTurnKey = item.sub.oncePerTurnKey;
-  if (
+  return (
     oncePerTurnKey !== undefined &&
     engine.tracker.count(oncePerTurnKey, "subtrigger") > 0 &&
     !item.occurrence.oncePerTurnSuccessfulKeys.has(oncePerTurnKey)
-  )
-    return false;
-  if (item.sub.hasLegalOutcome !== undefined && !item.sub.hasLegalOutcome(ctx)) return false;
-  return item.sub.canFire === undefined || item.sub.canFire(ctx);
+  );
 }
 
 /** Present a watcher to the ordering prompt as an ordinary collected effect. */

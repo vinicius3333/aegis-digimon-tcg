@@ -1,12 +1,12 @@
 import type { EffectContext } from "../../EffectContext.js";
-import { definitionMatches } from "../matching/definition.js";
 import { seatsForController } from "../matching/permanent.js";
+import { knownCards, orderForStackEnd } from "../placeAtChosenStackEnd.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { isSelfFromFieldPlaceCost, selfFromFieldPlaceHosts } from "./candidates.js";
 import { relocateByEffect } from "./relocate.js";
 import { payRoutedPlaceCost } from "./placeRouted.js";
-import { payPlaceOwnTopAtStackBottomCost, rotatesChosenStack } from "./stacks.js";
+import { payPlaceOwnTopAtStackBottomCost, rotatesChosenStack, selfRestackHost } from "./stacks.js";
 import { CardKind } from "@aegis/shared";
 import type { Cost, Filter, Target, ZoneRef } from "@aegis/shared";
 
@@ -32,21 +32,8 @@ export async function payPlaceCost(ctx: EffectContext, cost: Cost, out?: { paidC
   if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
     // P-225 "the top stacked card of any of your [CS] Digimon" names no "this": rotate a chosen Digimon.
     if (rotatesChosenStack(cost)) return payPlaceOwnTopAtStackBottomCost(ctx, cost, out);
-    const selfPerm = ctx.source.permanent();
+    const selfPerm = selfRestackHost(ctx, cost);
     if (selfPerm === undefined) return false;
-    // EX5-016's inherited payment names the HOST trait, not merely a top-card
-    // rotation. Do not let the generic self-restack shortcut pay it on another host.
-    if (/Night Claw.*Light Fang|Light Fang.*Night Claw/i.test(cost.raw)) {
-      const top = selfPerm.topCard;
-      if (
-        top === undefined ||
-        !definitionMatches(
-          { nameOrTrait: [{ tokens: ["Night Claw", "Light Fang"], match: "trait" }] },
-          ctx.game.definitionOf(top),
-        )
-      )
-        return false;
-    }
     const rotated = await ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
     if (rotated && out) out.paidCount = 1;
     return rotated;
@@ -140,17 +127,15 @@ export async function payPlaceCost(ctx: EffectContext, cost: Cost, out?: { paidC
     }
   }
   if (hostId === undefined) return false;
-  let orderedChosen = chosen;
-  if (chosen.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
-    orderedChosen = await ctx.ask.orderCards(ctx, {
-      candidates: chosen,
-      visibleCards: chosen.map((instanceId) => {
-        const card = candidates.find((candidate) => candidate.instanceId === instanceId);
-        return { instanceId, cardId: card?.cardId ?? "" };
-      }),
-      destination: "stackBottom",
-    });
-  }
+  const orderedChosen = await orderForStackEnd(
+    ctx,
+    chosen,
+    knownCards(
+      ctx,
+      candidates.filter(({ instanceId }) => chosen.includes(instanceId)),
+    ),
+    false,
+  );
   await ctx.fx.placeUnder(hostId, [...orderedChosen].reverse(), {
     belowTop: false,
     faceUp: cost.faceDown !== true,

@@ -1,6 +1,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { runDigivolve } from "../actions/digivolve.js";
 import { raiseDeletionDpCap, resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
+import { canUnsuspendForCost } from "./canPay.js";
 import type { Action, Cost } from "@aegis/shared";
 
 /**
@@ -105,16 +106,28 @@ export async function payUnsuspendCost(ctx: EffectContext, cost: Cost): Promise<
   // inverse — you can't unsuspend an already-unsuspended permanent), so an unsuspended
   // source makes the optional-processing condition unperformable (Comprehensive Rules
   // §15-8-4-4-1) and the cost fails.
+  const canPayWith = (permanentId: string): boolean => canPayUnsuspendWith(ctx, permanentId);
   const ids = cost.target
-    ? await resolvePermanentTargets(ctx, cost.target)
+    ? await resolvePermanentTargets(ctx, cost.target, { eligible: canPayWith })
     : (() => {
         const self = ctx.source.permanent();
         return self ? [self.permanentId] : [];
       })();
-  const suspendedIds = ids.filter((id) => ctx.game.permanentById(id)?.isSuspended === true);
-  if (suspendedIds.length === 0) return false;
-  await ctx.fx.unsuspend(suspendedIds);
-  return true;
+  const payableIds = ids.filter(canPayWith);
+  if (payableIds.length === 0) return false;
+  await ctx.fx.unsuspend(payableIds);
+  return allUnsuspended(ctx, payableIds);
+}
+
+function canPayUnsuspendWith(ctx: EffectContext, permanentId: string): boolean {
+  const permanent = ctx.game.permanentById(permanentId);
+  return permanent !== undefined && canUnsuspendForCost(ctx, permanent);
+}
+
+// The unsuspend primitive skips a permanent it can't turn (a declined hand-trash cost), so a
+// cost reads the board afterwards instead of trusting the selection.
+function allUnsuspended(ctx: EffectContext, permanentIds: readonly string[]): boolean {
+  return permanentIds.every((permanentId) => ctx.game.permanentById(permanentId)?.isSuspended === false);
 }
 
 /**
@@ -125,15 +138,13 @@ export async function payUnsuspendNamedCost(ctx: EffectContext, cost: Cost): Pro
   if (targets.length === 0) return false;
   const ids: string[] = [];
   for (const target of targets) {
-    const candidates = (await resolvePermanentTargets(ctx, target)).filter(
-      (id) => ctx.game.permanentById(id)?.isSuspended === true,
-    );
+    const candidates = (await resolvePermanentTargets(ctx, target)).filter((id) => canPayUnsuspendWith(ctx, id));
     if (candidates.length !== 1) return false;
     ids.push(candidates[0]!);
   }
   if (new Set(ids).size !== ids.length) return false;
   await ctx.fx.unsuspend(ids);
-  return true;
+  return allUnsuspended(ctx, ids);
 }
 
 /**

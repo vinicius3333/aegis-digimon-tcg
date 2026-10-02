@@ -19,6 +19,16 @@ function suspendedOpponentCount(s: ReturnType<typeof setupEngine>): number {
   return s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended).length;
 }
 
+function resolvedSuspendCount(s: ReturnType<typeof setupEngine>, sourceInstanceId: string): number {
+  return s.events.filter(
+    (event) =>
+      event.kind === "effectResolved" &&
+      event.sourceCardId === "BT17-043" &&
+      event.sourceInstanceId === sourceInstanceId &&
+      event.description.includes("suspend 1 of your opponent's Digimon"),
+  ).length;
+}
+
 async function declineOnlyTheSuspend(s: ReturnType<typeof setupEngine>): Promise<void> {
   for (let step = 0; step < 8; step += 1) {
     await settle();
@@ -133,12 +143,15 @@ describe("BT17-043 Terriermon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => suspendedOpponentCount(s) === 1);
+    await settle(() => suspendedOpponentCount(s) === 2);
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === playedId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === playedId)).toBe(false);
-    expect(suspendedOpponentCount(s)).toBe(1);
+    // The Terriermon already in play sees the effect play, and the played one triggers on itself (Q2797).
+    expect(resolvedSuspendCount(s, s.perm("terriermon").topCard.instanceId)).toBe(1);
+    expect(resolvedSuspendCount(s, playedId)).toBe(1);
+    expect(suspendedOpponentCount(s)).toBe(2);
     expect(s.perm("terriermon").isSuspended).toBe(false);
     expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
@@ -240,7 +253,10 @@ describe("BT17-043 Terriermon", () => {
       ),
     );
     await settle();
-    expect(suspendedOpponentCount(s)).toBe(1);
+    // The Terriermon in play already spent its Once Per Turn on Izzy; only the played one triggers (Q2797).
+    expect(resolvedSuspendCount(s, s.perm("terriermon").topCard.instanceId)).toBe(1);
+    expect(resolvedSuspendCount(s, s.inst("trashedTerriermon").instanceId)).toBe(1);
+    expect(suspendedOpponentCount(s)).toBe(2);
     expect(s.state.memory).toBe(1);
 
     await advance(s.engine).runTurn(0);
@@ -264,9 +280,12 @@ describe("BT17-043 Terriermon", () => {
         effectKey: st17MainEffectKey(s, "st17"),
       }),
     ).toEqual({ ok: true });
-    await settle(() => suspendedOpponentCount(s) === 1);
+    await settle(() => suspendedOpponentCount(s) === 2);
 
-    expect(suspendedOpponentCount(s)).toBe(1);
+    // Both Terriermons are in play now and each Once Per Turn has reset.
+    expect(resolvedSuspendCount(s, s.perm("terriermon").topCard.instanceId)).toBe(2);
+    expect(resolvedSuspendCount(s, s.inst("trashedTerriermon").instanceId)).toBe(2);
+    expect(suspendedOpponentCount(s)).toBe(2);
     s.engine.applyIntent(0, { type: "endPhase" });
     await nextOwnTurn;
   });

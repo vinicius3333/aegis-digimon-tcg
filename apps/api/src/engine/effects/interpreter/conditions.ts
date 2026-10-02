@@ -1051,6 +1051,13 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (attackerId === undefined) return false;
       return ctx.game.permanentById(attackerId) !== undefined;
     }
+    case "triggerAttackerSurvivedBattle": {
+      // Combat matches battle-deletion watchers while both losers are still on the field (Q7339),
+      // so the board cannot show a trade yet. The event's deletion batch can.
+      const attackerId = ctx.trigger.attackerPermanentId;
+      if (attackerId === undefined) return false;
+      return !(ctx.trigger.deletedPermanentIds ?? []).includes(attackerId);
+    }
     case "selfHasNameContaining": {
       // "This Digimon has [X] in its name" (BT20-080): true when the SOURCE permanent's
       // current top-card name contains any of `cond.names` as a substring. Off-field source

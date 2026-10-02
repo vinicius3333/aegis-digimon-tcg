@@ -6,7 +6,7 @@ import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, findLooseCandidateByInstance, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, raiseDeletionDpCap } from "../targeting/permanents.js";
-import { rotatesChosenStack } from "./stacks.js";
+import { rotatesChosenStack, selfRestackHost } from "./stacks.js";
 import {
   distinctColorPermanentIds,
   isSelfFromFieldPlaceCost,
@@ -16,6 +16,17 @@ import {
 } from "./candidates.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Cost, Filter, Target, ZoneRef } from "@aegis/shared";
+
+/**
+ * An unsuspend cost is paid only by a permanent that actually turns. A suspended Digimon
+ * under "can't unsuspend" (EX13-040, EX13-044) can't pay it (Discord 1555307344550694942).
+ */
+export function canUnsuspendForCost(
+  ctx: EffectContext,
+  permanent: { permanentId: string; isSuspended: boolean },
+): boolean {
+  return permanent.isSuspended && ctx.fx.canUnsuspend?.(permanent.permanentId) !== false;
+}
 
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
@@ -145,10 +156,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "unsuspend") {
     const candidates = cost.target
-      ? candidatePermanents(ctx, cost.target).filter((permanent) => permanent.isSuspended)
+      ? candidatePermanents(ctx, cost.target).filter((permanent) => canUnsuspendForCost(ctx, permanent))
       : (() => {
           const self = ctx.source.permanent();
-          return self?.isSuspended ? [self] : [];
+          return self !== undefined && canUnsuspendForCost(ctx, self) ? [self] : [];
         })();
     const required = cost.target?.count === "all" ? candidates.length : (cost.target?.count ?? 1);
     return required > 0 && candidates.length >= required;
@@ -313,8 +324,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     // offered to the controller.
     if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
       if (rotatesChosenStack(cost)) return candidatePermanents(ctx, cost.target).some((p) => p.stack.length > 0);
-      const selfPerm = ctx.source.permanent();
-      return selfPerm !== undefined && selfPerm.stack.length > 0;
+      return selfRestackHost(ctx, cost) !== undefined;
     }
     // A placement cost needs both halves to exist before an optional activation is
     // offered: enough matching loose cards in the declared source zones and a legal
@@ -599,7 +609,7 @@ function canPayUnsuspendNamedCost(ctx: EffectContext, cost: Cost): boolean {
   if (targets.some((target) => isUnboundSelectionRef(ctx, target.fromSelectionRef))) return true;
   const candidateIdsPerTarget = targets.map((target) =>
     candidatePermanents(ctx, target)
-      .filter((permanent) => permanent.isSuspended)
+      .filter((permanent) => canUnsuspendForCost(ctx, permanent))
       .map((permanent) => permanent.permanentId),
   );
   const assignDistinct = (index: number, used: ReadonlySet<string>): boolean =>

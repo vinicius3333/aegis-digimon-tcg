@@ -66,7 +66,7 @@ describe("BT10-090 Zenjiro Tsurugi", () => {
       sourceCardId: "BT10-090",
       options: {
         candidateInstanceIds: expect.arrayContaining([s.inst("fromHand").instanceId, s.inst("underTamer").instanceId]),
-        min: 1,
+        min: 0,
         max: 1,
       },
     });

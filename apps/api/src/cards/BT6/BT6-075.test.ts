@@ -88,6 +88,7 @@ describe("BT6-075 Ginkakumon Promote", () => {
     const decision = s.decisions.at(-1)!.req;
     const order = [s.inst("ginkakumon").instanceId, s.inst("kinkakumon").instanceId];
     expect(decision.sourceCardId).toBe("BT6-075");
+    expect(decision.options?.orderDestination).toBe("stackTop");
     expect(decision.options?.visibleCards).toEqual(
       expect.arrayContaining([
         { instanceId: s.inst("kinkakumon").instanceId, cardId: "BT6-071" },
@@ -103,7 +104,7 @@ describe("BT6-075 Ginkakumon Promote", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
-    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.instanceId)).toEqual(order);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.instanceId)).toEqual([...order].reverse());
   });
 
   it("places the only available exact name but does not draw or gain memory", async () => {

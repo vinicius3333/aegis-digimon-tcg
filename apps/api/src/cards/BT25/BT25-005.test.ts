@@ -164,7 +164,7 @@ describe("BT25-005 Pagumon", () => {
         },
         1: { battleArea: [{ card: "BT1-013", as: "opponent" }] },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoSelectCards: true, declinePrompts: ["Arts Digivolve"], preferInstanceIds: preferred },
     );
     preferred.push(
       s.inst("placedSource").instanceId,

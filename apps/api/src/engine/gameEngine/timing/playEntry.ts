@@ -2,7 +2,7 @@ import { isTimingActivationDisabled } from "../../effects/timingActivation.js";
 import { EffectTiming, Permanent, type Seat, type ZoneRef } from "@aegis/shared";
 import { definitionOf } from "../../cards/cardData.js";
 import { canActivate, canTrigger } from "../../effects/kernel.js";
-import { effectsOf } from "../../effects/collect.js";
+import { effectsOf, type CollectedEffect } from "../../effects/collect.js";
 import type { EffectContext, TriggerInfo } from "../../effects/EffectContext.js";
 import { digivolvedFromTamerBase } from "../subTriggerIdentity.js";
 import { findInstance } from "../intents.js";
@@ -27,10 +27,11 @@ export async function firePlayEntryWindows(
   timing: EffectTiming,
   sourceInstanceId: string,
   scopedTrigger: TriggerInfo = {},
-  opts: { deferWhenPlayed?: boolean } = {},
+  opts: { deferWhenPlayed?: boolean; procedurePending?: readonly CollectedEffect[] } = {},
 ): Promise<void> {
-  // Whatever a play-cost deletion triggered rides into engine play's own window (Q5131).
-  const costDeletionEffects = engine.pendingPlayCostDeletionEffects.splice(0);
+  // Whatever a play-cost deletion or an interrupt inside the play procedure triggered rides
+  // into engine play's own window (Q5131; CR §15-4-3-2, §15-8-3-2).
+  const costDeletionEffects = [...engine.pendingPlayCostDeletionEffects.splice(0), ...(opts.procedurePending ?? [])];
   if (timing !== EffectTiming.OnPlay) {
     await engine.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
     return;
@@ -117,6 +118,7 @@ export async function fireEnteredByEffectTiming(
     playedByEffectSourceCardId?: string;
     playedByDecode?: boolean;
     deferWhenPlayed?: boolean;
+    procedurePending?: readonly CollectedEffect[];
   },
 ): Promise<void> {
   const attackerPermanentId = engine.combat?.currentAttackerId;

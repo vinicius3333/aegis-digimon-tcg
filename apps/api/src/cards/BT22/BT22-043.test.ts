@@ -173,4 +173,19 @@ describe("BT22-043 Terriermon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+
+  it("Discord 1555135293399629824: does not offer the restack when this Digimon lacks the [CS] trait", async () => {
+    const s = setupEngine({
+      0: { deck: ["BT1-009"], battleArea: [{ card: "EX13-077", as: "host", under: ["BT22-043"] }] },
+    });
+    await s.ready();
+    const terriermon = s.perm("host").stack[0]!;
+
+    expect(
+      observe(s.engine)
+        .activatableEffects(s.perm("host"))
+        .some((effect) => effect.instanceId === terriermon.instanceId),
+    ).toBe(false);
+    expect(s.perm("host").topCard?.cardId).toBe("EX13-077");
+  });
 });

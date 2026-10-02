@@ -280,8 +280,9 @@ it("returns focus from board inspection to the unanswered evolution-cost choice"
     <I18nProvider>
       <EvoCostChoiceOverlay
         evolvingCardId="ST1-07"
-        baseName="Agumon"
-        options={[]}
+        baseCardId="BT1-010"
+        memory={3}
+        options={[{ type: "normal", label: "Red Lv.3", cost: 3 }]}
         onConfirm={confirm}
         onCancel={cancel}
       />
@@ -290,7 +291,7 @@ it("returns focus from board inspection to the unanswered evolution-cost choice"
   fireEvent.click(screen.getByRole("button", { name: "View board" }));
   expect(document.activeElement).toBe(screen.getByRole("button", { name: "Return to decision" }));
   fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
-  expect(document.activeElement).toBe(screen.getByRole("dialog"));
+  expect(document.activeElement).toBe(screen.getByRole("button", { name: "Red Lv.3 · 3 memory, from 3 to 0" }));
   expect(confirm).not.toHaveBeenCalled();
   expect(cancel).not.toHaveBeenCalled();
 });

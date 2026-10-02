@@ -22,7 +22,7 @@ describe("EmperorGreymon and MagnaGarurumon dual Hybrid deck", () => {
           hand: [
             { card: "BT7-016", as: "emperor" },
             { card: "BT7-021", as: "blueOne" },
-            { card: "BT7-021", as: "blueTwo" },
+            { card: "BT7-019", as: "blueTwo" },
             { card: "BT7-021", as: "blueThree" },
             { card: "BT7-021", as: "blueFour" },
             { card: "BT7-021", as: "blueFive" },
@@ -30,7 +30,7 @@ describe("EmperorGreymon and MagnaGarurumon dual Hybrid deck", () => {
           ],
           trash: [
             { card: "BT7-011", as: "redOne" },
-            { card: "BT7-011", as: "redTwo" },
+            { card: "BT7-008", as: "redTwo" },
             { card: "BT7-011", as: "redThree" },
             { card: "BT7-011", as: "redFour" },
             { card: "BT7-011", as: "redFive" },

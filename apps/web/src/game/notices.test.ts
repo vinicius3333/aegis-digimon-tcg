@@ -376,7 +376,7 @@ it.each(["whenHandTrashed", "whenDigivolutionTrashed", "whenOptionUsed", "whenSu
 );
 
 describe("stackStripNoticeFromEvent", () => {
-  const deDigivolved: ServerEvent = {
+  const trashedTop: ServerEvent = {
     kind: "cardsMoved",
     instanceIds: ["king"],
     cardIds: ["EX13-035"],
@@ -384,23 +384,45 @@ describe("stackStripNoticeFromEvent", () => {
     seat: 0,
     from: "battleArea",
     to: "trash",
-    strippedStackTops: { permanentId: "perm-1", reason: "deDigivolve", sourceCardId: "BT25-025" },
+    strippedStackTops: { permanentId: "perm-1", reason: "trashTop", sourceCardId: "BT25-025" },
   };
 
   it("names the stripped card and the card that stripped it, on the owner's side", () => {
-    expect(stackStripNoticeFromEvent(deDigivolved, VIEWER, "n", 5)).toEqual({
+    expect(stackStripNoticeFromEvent(trashedTop, VIEWER, "n", 5)).toEqual({
       id: "n",
       side: Side.Viewer,
       fromSecurity: false,
-      body: { variant: "stackStrip", reason: "deDigivolve", cardId: "EX13-035", sourceCardId: "BT25-025" },
+      body: { variant: "stackStrip", reason: "trashTop", cardId: "EX13-035", sourceCardId: "BT25-025" },
       createdAt: 5,
     });
-    expect(stackStripNoticeFromEvent(deDigivolved, 1, "n", 5)?.side).toBe(Side.Opponent);
+    expect(stackStripNoticeFromEvent(trashedTop, 1, "n", 5)?.side).toBe(Side.Opponent);
+  });
+
+  it("ignores a De-Digivolve strip", () => {
+    const deDigivolved: ServerEvent = {
+      ...trashedTop,
+      strippedStackTops: { permanentId: "perm-1", reason: "deDigivolve", sourceCardId: "BT25-025" },
+    };
+    expect(stackStripNoticeFromEvent(deDigivolved, VIEWER, "n", 5)).toBeNull();
   });
 
   it("ignores a plain trash movement and a deletion", () => {
-    const { strippedStackTops: _stripped, ...plain } = deDigivolved as Extract<ServerEvent, { kind: "cardsMoved" }>;
+    const { strippedStackTops: _stripped, ...plain } = trashedTop as Extract<ServerEvent, { kind: "cardsMoved" }>;
     expect(stackStripNoticeFromEvent(plain, VIEWER, "n", 0)).toBeNull();
+  });
+
+  it("leaves trashed digivolution cards to their side panel (Discord 1555176240359415878)", () => {
+    const trashedSources: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["s1-19"],
+      cardIds: ["BT16-024"],
+      artIds: ["BT16-024"],
+      seat: 1,
+      from: "various",
+      to: "trash",
+      trashedSources: { permanentId: "perm-5", hostCardId: "EX6-035", sourceCardId: "EX12-035" },
+    };
+    expect(stackStripNoticeFromEvent(trashedSources, VIEWER, "n", 5)).toBeNull();
   });
 });
 

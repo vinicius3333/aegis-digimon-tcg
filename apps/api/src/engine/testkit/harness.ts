@@ -372,7 +372,10 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         (promptRefused &&
           (req.kind === "optional" ||
             declineIndex !== undefined ||
-            ((req.kind === "selectCards" || req.kind === "chooseTargets") && (req.options?.min ?? 0) === 0))) ||
+            // An accepted "you may" pick already answered its question; its zero floor is no prompt.
+            ((req.kind === "selectCards" || req.kind === "chooseTargets") &&
+              (req.options?.min ?? 0) === 0 &&
+              req.options?.purpose !== "acceptedOptional"))) ||
         (opts?.autoDeclineOptional === true && declineIndex !== undefined);
       if (declined) {
         queueMicrotask(() =>
@@ -482,7 +485,12 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           };
           const pa = preferred(a) ? 0 : 1;
           const pb = preferred(b) ? 0 : 1;
-          return pa - pb;
+          if (pa !== pb) return pa - pb;
+          // Suspending an already suspended Digimon is legal (Q1782) but a no-op, so a
+          // stand-in player only picks one when it prefers it or nothing else is left.
+          const alreadySuspended = (id: string): number =>
+            req.options?.targetFate === "suspend" && findPermanentForDecisionId(state, id)?.isSuspended ? 1 : 0;
+          return alreadySuspended(a) - alreadySuspended(b);
         });
         // A malformed/NaN `max` (e.g. a compiled action with an unset materials.count) must not
         // collapse the selection to empty: Array.prototype.slice treats a NaN end as 0.

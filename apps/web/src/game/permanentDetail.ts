@@ -11,7 +11,7 @@
 
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { restrictionBadges, type RestrictionBadge } from "./fieldBadges";
-import { permanentTransformation, type PermanentTransformation } from "./transformation";
+import { originalDP, permanentTransformation, type PermanentTransformation } from "./transformation";
 import type { StackCard } from "./overlay";
 
 /** How many security cards an attack checks with no modifier at all. */
@@ -112,8 +112,8 @@ export function buildPermanentDetail(
     name: getCardDefinition(topCardId)?.nameEn ?? topCardId,
     cards,
     currentDP: permanent.currentDP,
-    baseDP: permanent.baseDP,
-    dpDelta: permanent.currentDP - permanent.baseDP,
+    baseDP: originalDP(permanent),
+    dpDelta: permanent.currentDP - originalDP(permanent),
     keywords,
     grantedKeywords: [...permanent.grantedKeywords],
     grantedEffectTexts: [...permanent.grantedEffectTexts],

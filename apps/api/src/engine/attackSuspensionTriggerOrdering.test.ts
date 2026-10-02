@@ -199,9 +199,12 @@ describe("attack declaration suspension trigger ordering", () => {
     expect(triggeredEvents(s).some((event) => event.timing === "OnUseAttack")).toBe(true);
   });
 
-  it.each(["ir-12-0", "whenSuspended"])(
-    "keeps the derived suspension trigger ahead of an older nested attack trigger despite preference %s",
-    async (firstKey) => {
+  it.each([
+    ["ir-12-0", ["OnUseAttack", "whenSuspended"]],
+    ["ir-35-3", ["whenSuspended", "OnUseAttack"]],
+  ] as const)(
+    "lets the turn player order the attack triggers once the placing Option finishes (preference %s)",
+    async (firstKey, expectedOrder) => {
       const s = setupEngine(
         {
           0: {
@@ -227,10 +230,14 @@ describe("attack declaration suspension trigger ordering", () => {
         ok: true,
       });
       await settle(() => s.events.some((event) => event.kind === "attackDeclared") && !observe(s.engine).isAttacking());
-      expect(triggeredEvents(s, ["EX11-074"]).map((event) => event.timing)).toEqual([
-        "whenSuspended",
-        "OnUseAttack",
-      ]);
+      const placed = s.events.findIndex(
+        (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("option").instanceId),
+      );
+      const motimonTriggered = s.events.findIndex(
+        (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT23-003",
+      );
+      expect(motimonTriggered).toBeGreaterThan(placed);
+      expect(triggeredEvents(s, ["EX11-074"]).map((event) => event.timing)).toEqual(expectedOrder);
     },
   );
 });

@@ -58,7 +58,7 @@ import {
   withPendingSubTriggers,
 } from "./subTriggers.js";
 import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
-import { collectDeferredTimingPending } from "./windows.js";
+import { collectDeferredTimingPending, takeLeaveReplacementPending } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
@@ -95,9 +95,11 @@ export function resolutionDeps(
     }
     return [...unique.values()];
   };
-  // A card an Option plays waits with its [On Play] and the watchers its play event armed
-  // until the Option finishes (Q2577); only the Option's other pending watchers resolve here.
-  const pendingWhileOptionResolves = (): CollectedEffect[] => pendingWindowWatchersCollected(engine);
+  // Everything a used Option's [Main] body triggers waits until the Option is trashed or Arts
+  // Digivolved (Q2577, Q6215). Its watchers then join the Arts [When Digivolving] pool, so the
+  // turn player resolves first; without Arts they drain when the Option finishes.
+  const pendingWhileOptionResolves = (): CollectedEffect[] =>
+    engine.optionMainDepth > 0 ? [] : pendingWindowWatchersCollected(engine);
   const unannounced = new Set<CollectedEffect>();
   return {
     // The outermost loop settles deferred queues between effects. A nested resolver normally
@@ -604,6 +606,10 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
       firePlayEntryWindows(engine, timing, sourceInstanceId),
     beginOptionResolution: () => {
       engine.optionResolutionDepth += 1;
+      engine.optionMainDepth += 1;
+    },
+    finishOptionMain: () => {
+      engine.optionMainDepth = Math.max(0, engine.optionMainDepth - 1);
     },
     finishOptionResolution: async () => {
       if (engine.optionResolutionDepth === 1) {
@@ -733,6 +739,7 @@ export function activateEffectDeps(engine: GameEngine): ActivateEffectDeps {
  */
 export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
   const mem = memoryDepsFromGauge(engine.memory);
+  const materialInterruptPending: CollectedEffect[] = [];
   return {
     maxAffordable: mem.maxAffordable,
     payMemory: mem.payMemory,
@@ -770,20 +777,28 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
     placePendingDigivolution: playCardDeps(engine).placePendingDigivolution,
     relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
       engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),
-    relocatePermanentForDigiXros: async (destPermanentId, sourcePermanentId, opts) => {
-      const prevented = await engine.consultLeavePrevention([sourcePermanentId], "byEffect", undefined, {
+    interruptFieldMaterialLeave: async (fieldPermanentIds) => {
+      // A DigiXros from a main phase action is not an effect (Q2352, Q4184), so "by effects"
+      // clauses must not see these materials leave.
+      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byRule", undefined, {
         playerAction: true,
         isDigiXros: true,
         isBounce: true,
       });
-      if (prevented.has(sourcePermanentId)) return false;
-      return engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts);
+      materialInterruptPending.push(...takeLeaveReplacementPending(engine));
+      return prevented;
     },
     suspendPermanent: async (permanentId) => {
       await engine.primitives.suspend([permanentId]);
     },
     fireTiming: async (_state, _seat, timing, sourceInstanceId, materialCount) =>
-      firePlayEntryWindows(engine, timing, sourceInstanceId, { digiXrosMaterialCount: materialCount }),
+      firePlayEntryWindows(
+        engine,
+        timing,
+        sourceInstanceId,
+        { digiXrosMaterialCount: materialCount },
+        { procedurePending: materialInterruptPending.splice(0) },
+      ),
     emit: (event) => engine.hooks.emit(event as ServerEvent),
   };
 }

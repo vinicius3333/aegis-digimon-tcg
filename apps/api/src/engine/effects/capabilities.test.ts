@@ -1685,8 +1685,8 @@ describe("condition.selfHasTrait (EX12-004)", () => {
   });
 });
 
-// Gap #6 (EX12-ENGINE-GAPS.md): Cost.position "choice" prompts the controller for top
-// or bottom per placed card (EX12-077 "as 1 of your Digimon's top or bottom digivolution cards").
+// Gap #6 (EX12-ENGINE-GAPS.md): Cost.position "choice" prompts the controller once for top
+// or bottom for the whole placed group (EX12-077 "as 1 of your Digimon's top or bottom digivolution cards").
 describe("place-as-cost position:choice (EX12-077)", () => {
   it("places the card and honors the controller's top/bottom choice", async () => {
     // Host Digimon receives the placed card. chooseOption mock returns 0 (top).

@@ -157,6 +157,8 @@ export interface PlayCardDeps {
   fireSubTrigger?(event: "whenPlayed", payload: { subjectPermanentId: string; playedPlayCost?: number }): Promise<void>;
   /** Defer rule processing until an Option has completed its trash/Arts/Delay routing. */
   beginOptionResolution?(): void;
+  /** Mark the Option's [Main] body finished, before its Arts Digivolve or trash routing. */
+  finishOptionMain?(): void;
   /** Release the Option-resolution deferral and run the pending rule-process fixpoint. */
   finishOptionResolution?(): Promise<void>;
   /** Notify armed watchers after a genuine Option use finishes resolving its [Main] effect. */
@@ -461,6 +463,7 @@ export async function applyPlayCard(
     try {
       await deps.fireTiming(state, seat, ON_USE_OPTION_TIMING, instance.instanceId);
     } finally {
+      deps.finishOptionMain?.();
       // CR §4-19 Arts Digivolve: a rule on DUAL cards, not a per-card effect. It OVERWRITES
       // the trash step below (§4-19-2), so it must be offered BEFORE that step, while the
       // instance still sits in resolvingOption. A DUAL card resolved via its Option side may

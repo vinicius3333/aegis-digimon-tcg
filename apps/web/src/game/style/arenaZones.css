@@ -311,6 +311,11 @@
     transform: translateX(-50%);
   }
 
+  /* The tall board shows the security cards themselves, not the shield's face. */
+  .game-security-shield::before {
+    content: none;
+  }
+
   .game-security-shield--opp {
     top: var(--arena-security-top);
   }

@@ -22,6 +22,7 @@ import type { Action, CardInstance, Permanent, Seat, Target } from "@aegis/share
 import { definitionMatches } from "../matching/definition.js";
 import { COLOR_MAP } from "../maps.js";
 import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
+import { isOptionPermanent, trashOptionPermanents } from "../optionTrash.js";
 
 function isCompleteCardOrder(candidates: readonly string[], order: readonly string[]): order is string[] {
   return (
@@ -90,6 +91,13 @@ async function returnDigivolutionCardsFirst(
     const orderedForPermanent = orderedStackIds.filter((instanceId) => ids.includes(instanceId));
     if (orderedForPermanent.length > 0) await ctx.fx.returnToDeck(orderedForPermanent, { toTop: false });
   }
+}
+
+/** The cards under the resolving Digimon that a "return from this Digimon's digivolution cards" may take. */
+export function returnableDigivolutionCards(ctx: EffectContext, target: Target): CardInstance[] {
+  return (
+    ctx.source.permanent()?.stack.filter((card) => definitionMatches(target.filter, ctx.game.definitionOf(card))) ?? []
+  );
 }
 
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
@@ -644,12 +652,18 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // A field-scoped Trash action names a card in a permanent's stack (the IR uses the
       // dedicated TrashDigivolution verb when the wording is explicit, but older generated
       // records encode the same operation as Trash against a Digimon target). The permanent's
-      // top card is not a loose card and must never be passed to the generic trash primitive.
+      // top card is not a loose card and must never be passed to the generic trash primitive,
+      // except an Option permanent, which the trash verb removes whole (CR 4-16-3: not a deletion).
       const ids: string[] = [];
+      const options: Permanent[] = [];
       for (const permanentId of permanentIds) {
         const permanent = ctx.game.permanentById(permanentId);
         const top = permanent?.topCard;
-        if (top !== undefined) {
+        if (permanent !== undefined && top !== undefined) {
+          if (isOptionPermanent(ctx, permanent)) {
+            options.push(permanent);
+            continue;
+          }
           const kinds = ctx.game.definitionOf(top).kinds;
           if (kinds.includes(CardKind.Option) || kinds.includes(CardKind.Tamer)) {
             await ctx.fx.deletePermanent([permanentId]);
@@ -659,6 +673,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const source = permanent?.stack.at(-1);
         if (source !== undefined) ids.push(source.instanceId);
       }
+      await trashOptionPermanents(ctx, options);
       if (ids.length > 0) await ctx.fx.trash(ids, { byEffectSeat: ctx.source.ownerSeat });
       return false;
     }
@@ -720,17 +735,8 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // as Return(isSelfRef). The source is a loose security card, so it has no
       // permanent for resolvePermanentTargets to find.
       if (action.from?.includes("digivolutionCards")) {
-        const self = ctx.source.permanent();
-        const candidates =
-          self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
+        const candidates = returnableDigivolutionCards(ctx, returnTarget);
         if (candidates.length === 0) {
-          ctx.lastEffectActed = false;
-          return false;
-        }
-        if (
-          action.optional === true &&
-          !(await ctx.ask.optional(ctx, "Return a level 6 digivolution card to your hand?"))
-        ) {
           ctx.lastEffectActed = false;
           return false;
         }

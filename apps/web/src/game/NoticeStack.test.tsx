@@ -239,14 +239,14 @@ it("highlights the printed timing markers in Plutomon's effect notice", () => {
 });
 
 describe("NoticeStack stack strip", () => {
-  it("says which card de-digivolved which of your cards", () => {
+  it("says which card trashed the top of your Digimon", () => {
     renderNotice(
       notice({
-        body: { variant: "stackStrip", reason: "deDigivolve", cardId: "EX13-035", sourceCardId: "BT25-025" },
+        body: { variant: "stackStrip", reason: "trashTop", cardId: "EX13-035", sourceCardId: "BT25-025" },
       }),
     );
-    expect(screen.getByText("＜De-Digivolve＞")).toBeTruthy();
-    expect(screen.getByText("Aegiochusmon: Blue de-digivolved your KingEtemon")).toBeTruthy();
+    expect(screen.getByText("Top card trashed")).toBeTruthy();
+    expect(screen.getByText("Aegiochusmon: Blue trashed your KingEtemon from the top of its Digimon")).toBeTruthy();
   });
 
   it("names the opponent's card when the stripped permanent is theirs", () => {

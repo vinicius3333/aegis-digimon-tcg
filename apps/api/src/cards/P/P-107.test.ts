@@ -126,7 +126,10 @@ function makeContext(opts: {
       opts.recorder.calls.push({ verb: "deletePermanent", args });
       return (args[0] as string[]).length;
     },
-    trash: record("trash"),
+    trash: async (...args) => {
+      opts.recorder.calls.push({ verb: "trash", args });
+      return (args[0] as string[]).map((instanceId) => ({ instanceId, cardId: "", ownerSeat: 0 as Seat }) as never);
+    },
     grantKeyword: record("grantKeyword"),
     grantPierce: record("grantPierce"),
     placeOptionAsPermanent: async (...args) => {
@@ -336,10 +339,11 @@ describe("P-107 (Defense Training)", () => {
 
     await digivolveClause().resolve(ctx);
 
-    const deletes = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deletes).toHaveLength(1);
-    expect(deletes[0]!.args[0]).toEqual([SOURCE_PERMANENT_ID]);
-    expect(deletes[0]!.args[0]).not.toEqual(["OWN-DIGI"]);
+    // CR 4-16-3: trashing is not deletion, so the cost never routes through deletePermanent.
+    expect(recorder.calls.some((c) => c.verb === "deletePermanent")).toBe(false);
+    const trashes = recorder.calls.filter((c) => c.verb === "trash");
+    expect(trashes).toHaveLength(1);
+    expect(trashes[0]!.args[0]).toEqual([makeSource().instanceId]);
   });
 
   it("OnDeclaration <Delay> only digivolves into a BLACK Digimon in hand (Q4204 / documented behavior HasCardColor(Black))", async () => {

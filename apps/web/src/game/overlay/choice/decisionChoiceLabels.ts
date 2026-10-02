@@ -1,14 +1,25 @@
+import type { DecisionRequest } from "@aegis/shared";
 import type { Translate, TranslationKey } from "../../../i18n";
+
+type TopBottomZone = NonNullable<NonNullable<DecisionRequest["options"]>["topBottomZone"]>;
+
+/*
+   "top" and "bottom" name the ends of the zone the decision carries. A decision without one
+   predates the field and reads as the deck, as it always did.
+*/
+const TOP_BOTTOM_LABEL_KEYS: Readonly<Record<TopBottomZone, { top: TranslationKey; bottom: TranslationKey }>> = {
+  deck: { top: "overlay.deckTop", bottom: "overlay.deckBottom" },
+  digivolutionCards: { top: "overlay.digivolutionCardsTop", bottom: "overlay.digivolutionCardsBottom" },
+  security: { top: "overlay.securityTop", bottom: "overlay.securityBottom" },
+};
 
 /*
    The choices a `chooseOption` decision names are the engine's own words for where a card
-   goes — the destination keys `RevealAdd` builds its prompt from, and the two deck ends an
-   ordering asks about. Printed straight, a Zenith-style "add it or play it" prompt offered
-   buttons reading "hand" and "play"; each one gets the sentence a player would recognise.
+   goes — the destination keys `RevealAdd` builds its prompt from. Printed straight, a
+   Zenith-style "add it or play it" prompt offered buttons reading "hand" and "play"; each
+   one gets the sentence a player would recognise.
 */
 const CHOICE_LABEL_KEYS: Readonly<Record<string, TranslationKey>> = {
-  top: "overlay.deckTop",
-  bottom: "overlay.deckBottom",
   hand: "overlay.dispositionHand",
   play: "overlay.dispositionPlay",
   useOption: "overlay.dispositionUseOption",
@@ -29,7 +40,16 @@ const DIGIVOLUTION_REQUIREMENT_LABELS: readonly { pattern: RegExp; key: Translat
   { pattern: /^Alternate digivolution requirement \(cost (-?\d+)\)$/, key: "overlay.digivolutionRequirementAlternate" },
 ];
 
-export function choiceLabel({ choice, t }: { choice: string; t: Translate }): string {
+export function choiceLabel({
+  choice,
+  t,
+  topBottomZone = "deck",
+}: {
+  choice: string;
+  t: Translate;
+  topBottomZone?: TopBottomZone;
+}): string {
+  if (choice === "top" || choice === "bottom") return t(TOP_BOTTOM_LABEL_KEYS[topBottomZone][choice]);
   const key = CHOICE_LABEL_KEYS[choice];
   if (key !== undefined) return t(key);
   for (const { pattern, key: requirementKey } of DIGIVOLUTION_REQUIREMENT_LABELS) {

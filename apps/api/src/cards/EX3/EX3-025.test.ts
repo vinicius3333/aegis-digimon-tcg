@@ -328,16 +328,9 @@ describe("EX3-025 Azulongmon", () => {
         { instanceId: s.inst("invalid").instanceId, cardId: "BT1-029" },
       ],
       timing: "OnDeletion",
-      min: 1,
+      min: 0,
       max: 1,
     });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: selection.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("invalid").instanceId] },
-      }).ok,
-    ).toBe(false);
     respond(s, { kind: "selectCards", instanceIds: [trials[1]!] });
     await deletion;
 

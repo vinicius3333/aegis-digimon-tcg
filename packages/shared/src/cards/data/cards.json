@@ -71051,7 +71051,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Mineral", "Bagra Army"],
-    "effectText": "＜Collision＞ \n＜Fragment (3)＞ \n＜Blocker＞ \n[On Play] [When Digivolving] Until your opponent's turn ends, give 1 of their Digimon \"[Start of Your Main Phase] This Digimon attacks.\"[All Turns] [Once Per Turn] When Digimon attack, by trashing any 2 of this Digimon's digivolution cards, this Digimon gains ＜Security A. +1＞ and +3000 DP until your turn ends.\n\n[DigiXros -2] 2 Digimon cards w/[Bagra Army] trait",
+    "effectText": "＜Collision＞ \n＜Fragment (3)＞ \n＜Blocker＞ \n[On Play] [When Digivolving] Until your opponent's turn ends, give 1 of their Digimon \"[Start of Your Main Phase] This Digimon attacks.\"[All Turns] [Once Per Turn] When Digimon attack, by trashing any 2 of this Digimon's digivolution cards, this Digimon gains ＜Security A. +1＞ and +3000 DP until your turn ends.\n\n[DigiXros -2] 3 Digimon cards w/[Bagra Army] trait",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "EX10-034"
