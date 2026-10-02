@@ -52,8 +52,13 @@ export const en = {
     "Beta cards can be played in Quick Match, Practice vs AI or a private room. Choose one of these modes to use this deck.",
   "lobby.betaConfirmTitle": "Play with beta cards?",
   "lobby.betaConfirmHint":
-    "{deck} uses cards from a set that is not out yet. Their text and behavior can still change. Matches with this deck run in a separate beta queue, so you only face other beta decks. Continue?",
+    "{deck} uses cards from a set that is not out yet. Their text and behavior can still change. Matches with this deck run in a separate beta queue, where your opponent may also use beta cards. Continue?",
   "lobby.enterBetaQueue": "Enter beta queue",
+  "lobby.betaQueueOption": "Play in the beta queue",
+  "lobby.betaQueueOptionHint":
+    "Face players who test cards from sets that are not out yet. Those cards can still change.",
+  "lobby.betaQueueOptionBotHint":
+    "The AI can use decks with cards from sets that are not out yet. Those cards can still change.",
   "beta.message": "Aegis is still in beta. Things may break and data can be reset.",
   "beta.reportLink": "Report a bug on Discord",
   "beta.dismiss": "Got it",

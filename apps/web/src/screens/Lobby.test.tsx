@@ -5,8 +5,15 @@ import { I18nProvider } from "../i18n";
 import { Lobby, deckHasBetaCards, randomDeckPool } from "./Lobby";
 import { DECKS, selectableDecks } from "../game/decks";
 
+// EX13 is the beta fixture, so the clock stays before its 2026-10-02 release.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-09-15T12:00:00.000Z"));
+});
+
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   localStorage.removeItem("aegis:locale");
 });
 
@@ -124,10 +131,11 @@ describe("famous deck selection", () => {
 
     expect(onStart).toHaveBeenCalledTimes(1);
     const [startMode, code, botDeckId, betaBattleMode, deckId] = onStart.mock.calls[0]!;
-    expect([startMode, code, botDeckId]).toEqual(["casual", undefined, undefined]);
     const drawn = selectableDecks(DECKS).find((deck) => deck.id === deckId);
     expect(drawn).toBeDefined();
-    expect(betaBattleMode).toBe(deckHasBetaCards(drawn!) ? true : undefined);
+    const drawnBeta = deckHasBetaCards(drawn!);
+    expect([startMode, code, botDeckId]).toEqual([drawnBeta ? "beta" : "casual", undefined, undefined]);
+    expect(betaBattleMode).toBe(drawnBeta ? true : undefined);
   });
 
   it("builds mystery pools by source and excludes drafts and beta cards", () => {
@@ -167,7 +175,100 @@ describe("famous deck selection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
 
     expect(onStart).toHaveBeenCalledTimes(1);
-    expect(onStart.mock.calls[0]).toEqual(["casual", undefined, undefined, true, beta.id]);
+    expect(onStart.mock.calls[0]).toEqual(["beta", undefined, undefined, true, beta.id]);
+  });
+
+  it("lets an ordinary deck opt into the beta queue without the beta-card warning", () => {
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /Play in the beta queue/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Enter beta queue" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(onStart).toHaveBeenCalledWith("beta", undefined, undefined, true);
+  });
+
+  it("lets an ordinary deck face the beta bot", () => {
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Play in the beta queue/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Play vs Bot" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(onStart).toHaveBeenCalledWith("bot", undefined, undefined, true);
+  });
+
+  it("hides the beta queue option when no set is in preview", () => {
+    vi.setSystemTime(new Date("2026-10-15T12:00:00.000Z"));
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByRole("checkbox", { name: /Play in the beta queue/ })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(screen.queryByRole("checkbox", { name: /Play in the beta queue/ })).toBeNull();
+  });
+
+  it("routes every mystery draw to the beta queue once the player opts in", () => {
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Surprise me" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Play in the beta queue/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Enter beta queue" }));
+
+    expect(onStart).toHaveBeenCalledTimes(1);
+    const [startMode, , , betaBattleMode] = onStart.mock.calls[0]!;
+    expect([startMode, betaBattleMode]).toEqual(["beta", true]);
   });
 
   it("automatically enables beta for an EX13 deck and still allows private matches", () => {
@@ -187,6 +288,7 @@ describe("famous deck selection", () => {
       </I18nProvider>,
     );
     expect(screen.queryByRole("button", { name: "Enter queue" })).toBeNull();
+    expect(screen.queryByRole("checkbox", { name: /Play in the beta queue/ })).toBeNull();
     expect((screen.getByRole("button", { name: "Enter beta queue" }) as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
     expect((screen.getByRole("button", { name: "Play vs Bot" }) as HTMLButtonElement).disabled).toBe(false);
