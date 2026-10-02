@@ -119,6 +119,7 @@ export interface AegisJoinOptions {
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
     | "arena-bt13-king-drasil-source-count"
+    | "arena-bt24-hyogamon-pending-trash-digivolve"
     | "arena-ex10-darkness-bagramon-digixros-interrupt"
     | "arena-ex10-tactimon-digixros-material"
     | "arena-hellscythe-onplay-priority"
