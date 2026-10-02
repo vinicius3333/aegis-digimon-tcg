@@ -41,6 +41,7 @@ export function deleteBurstStep({
   causingEffectGate,
   stateVersion,
   causedByOption = false,
+  readBeforeBreak = true,
 }: {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
@@ -62,6 +63,11 @@ export function deleteBurstStep({
   causingEffectGate: PresentationGate | null;
   stateVersion?: number;
   causedByOption?: boolean;
+  /**
+   * Whether the causing clause gets its readable beat before the card breaks. A ＜Delay＞
+   * Option's gate opens on its own glow, before any clause is on screen, so it breaks at once.
+   */
+  readBeforeBreak?: boolean;
 }): AnimationStep | null {
   const center = anchors.permanentCenter?.(anchorId);
   if (!center) return null;
@@ -108,7 +114,7 @@ export function deleteBurstStep({
       // The clause that did the deleting is still being read out, so once it is on screen
       // it gets one readable beat before the card it names breaks. A clause read out long
       // before this step began — the server took its time — has had its beat already.
-      const clauseUnread = effectDeletion && causingEffectGate !== null && !causingEffectGate.open;
+      const clauseUnread = readBeforeBreak && effectDeletion && causingEffectGate !== null && !causingEffectGate.open;
       let clauseShownAt = Date.now();
       // A permanent beaten in battle takes the blow before it breaks.
       await Promise.all([

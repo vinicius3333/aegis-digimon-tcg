@@ -15,6 +15,7 @@ import {
   createPresentationGate,
   waitForGate,
   type DeletionReadyAt,
+  type CostClause,
   type PendingAnnounceGate,
   type PresentationGate,
 } from "../presentationGate";
@@ -63,6 +64,8 @@ export interface NarrationStreamDeps {
   effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
   /** A gate a batch armed before it knew which clause would carry it. */
   pendingAnnounceGateRef: MutableRefObject<PendingAnnounceGate | null>;
+  /** The ＜Delay＞ clause whose Option break, toast and played card are being kept in order. */
+  costClauseRef: MutableRefObject<CostClause | null>;
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
   setNarration: Dispatch<SetStateAction<ReadonlyMap<string, NarrationItem>>>;
   collapseNarrationRef: MutableRefObject<boolean>;
@@ -99,6 +102,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     effectSourceKeyRef,
     effectAnnounceGateRef,
     pendingAnnounceGateRef,
+    costClauseRef,
     setEffectSources,
     setNarration,
     collapseNarrationRef,
@@ -152,6 +156,13 @@ export function narrationStream(deps: NarrationStreamDeps) {
         : null;
     const announceGate = body?.variant === "effect" ? (adopted ?? createPresentationGate()) : null;
     if (adopted) pendingAnnounceGateRef.current = null;
+    const pendingCostClause = costClauseRef.current;
+    const costClause =
+      body?.variant === "effect" &&
+      pendingCostClause?.sourceKey === `${seat}:${body.cardId}` &&
+      !pendingCostClause.read.open
+        ? pendingCostClause
+        : null;
     const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
     const itemVersion = heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId);
     // A clause is only the consequence of an announcement from its own batch or an earlier one.
@@ -221,6 +232,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
           await runNarrationStep();
         } finally {
           announceGate?.release();
+          costClause?.focused.release();
+          costClause?.read.release();
           if (activation && !linked) {
             const key = activation.key;
             setEffectSources((sources) => sources.filter((source) => source.key !== key));
@@ -263,7 +276,26 @@ export function narrationStream(deps: NarrationStreamDeps) {
             )
               await context.wait(16);
           }
-          if (context.mode === "live" && body?.variant === "effect") {
+          if (context.mode === "live" && body?.variant === "effect" && costClause) {
+            // A ＜Delay＞ pays by trashing its own Option: the Option is lit where it stands,
+            // it breaks, and only then is the clause read — the card it plays waits for that.
+            activation = {
+              key: ++effectSourceKeyRef.current,
+              cardId: body.cardId,
+              seat,
+              site: { zone: "field", permanentId: costClause.permanentId },
+              itemId: item.id,
+            };
+            setEffectSources((sources) => [...sources, activation as EffectActivation]);
+            reportShown(`effect-source-${activation.key}`, context);
+            await context.wait(effectSourceHoldMs);
+            costClause.focused.release();
+            await waitForGate(costClause.departing, context, TIMINGS.costClauseDeparture, "narration/costDeparting");
+            const departure = deletionReadyAtRef.current.get(costClause.sourceKey);
+            if (costClause.departing.open && departure)
+              await waitForGate(departure.shattered, context, TIMINGS.securityDockMax, "narration/costShattered");
+            if (context.cancelled || narrationSkipRef.current) return;
+          } else if (context.mode === "live" && body?.variant === "effect") {
             // Let this batch register its deletion beats before locating the source.
             await Promise.resolve();
             for (const deleted of item.notice?.afterDeletions ?? []) {
@@ -350,6 +382,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
             );
           }
           announceGate?.release();
+          costClause?.read.release();
           reportShown(`narration-step-${item.id}`, context);
           // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
           // single moment, give every clause one readable beat before the next server event

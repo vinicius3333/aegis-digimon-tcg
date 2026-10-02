@@ -38,7 +38,8 @@ import type {
   SecurityClause,
 } from "../types";
 import { securityCheckSegments } from "../../securityClash";
-import { hasTurnStartDraw } from "../../showcases";
+import { fieldDeparturesFromEvent, hasTurnStartDraw } from "../../showcases";
+import { costClauseFromEvent } from "./costClause";
 import { TIMINGS } from "../../timings";
 import { otherSeat } from "../../boardModel";
 import { CueTrack } from "../enums";
@@ -70,6 +71,7 @@ import {
   createPresentationGate,
   type DeletionReadyAt,
   type PendingAnnounceGate,
+  type CostClause,
   type PresentationGate,
 } from "../presentationGate";
 
@@ -154,6 +156,7 @@ export function presentServerBatch({
   causingEffectGateRef,
   effectAnnounceGateRef,
   pendingAnnounceGateRef,
+  costClauseRef,
   securityClashKeyRef,
   securityAttackerRef,
   pendingDestructionsRef,
@@ -261,6 +264,8 @@ export function presentServerBatch({
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
   pendingAnnounceGateRef: MutableRefObject<PendingAnnounceGate | null>;
+  /** The ＜Delay＞ clause whose Option break, toast and played card are being kept in order. */
+  costClauseRef: MutableRefObject<CostClause | null>;
   securityClashKeyRef: MutableRefObject<number>;
   securityAttackerRef: MutableRefObject<SecurityClashAttacker | undefined>;
   pendingDestructionsRef: MutableRefObject<number>;
@@ -439,9 +444,7 @@ export function presentServerBatch({
     const now = Date.now();
     const deletedThisBatch = new Set(
       fresh.flatMap((event) =>
-        event.kind === "cardsMoved"
-          ? (event.deletedPermanents ?? []).map((deleted) => `${deleted.seat}:${deleted.cardId}`)
-          : [],
+        fieldDeparturesFromEvent(event).map((departed) => `${departed.seat}:${departed.cardId}`),
       ),
     );
     const announcesEffect = fresh.some(
@@ -455,6 +458,12 @@ export function presentServerBatch({
       pendingAnnounceGateRef.current = { batchId, gate: batchAnnounceGate, deleted: deletedThisBatch };
       causingEffectGateRef.current = batchAnnounceGate;
     }
+    for (const event of fresh) {
+      const clause = costClauseFromEvent(event);
+      if (clause) costClauseRef.current = clause;
+    }
+    // What the clause plays waits for it to be read; once it has been, arrivals go on as usual.
+    const pendingCostClause = costClauseRef.current?.read.open === false ? costClauseRef.current : null;
     const showcasePlays = queue.getMode() === "live";
     // A security check owns the centre of the screen and reads its card's reveals beside it,
     // so a reveal it causes stays in the narration panel instead of competing for the stage.
@@ -503,6 +512,7 @@ export function presentServerBatch({
       releaseArrivalHoldsWhenIdle,
       narrate,
       enqueue,
+      ...(pendingCostClause ? { costClause: pendingCostClause } : {}),
     });
     enqueueEffectSources({
       fresh,
@@ -763,6 +773,7 @@ export function presentServerBatch({
     deletionBurstPresentedRef,
     securityBlowRef,
     causingEffectGate: causingEffectGateRef.current,
+    costClause: costClauseRef.current,
     setDeleteBursts,
     setHeldDeletions,
     enqueue,

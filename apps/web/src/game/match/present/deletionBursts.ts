@@ -1,9 +1,9 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
-import type { DeletionReadyAt, PresentationGate } from "../presentationGate";
+import type { CostClause, DeletionReadyAt, PresentationGate } from "../presentationGate";
 import type { StateSnapshot } from "../../../net/presentedState";
-import { deletionAnchorIdsFromEvent } from "../../showcases";
+import { deletionAnchorIdsFromEvent, fieldDeparturesFromEvent } from "../../showcases";
 import { heldDeletionFrom } from "../heldDeletion";
 import { COMBAT_IMPACT_TOTAL_MS, FIELD_CLASH_TOTAL_MS, PLAY_LEAD_IN_BUDGET_MS } from "../../timings";
 import { deleteBurstStep } from "../steps/deleteBurstStep";
@@ -38,6 +38,7 @@ export function enqueueDeletionBursts({
   deletionBurstPresentedRef,
   securityBlowRef,
   causingEffectGate,
+  costClause,
   setDeleteBursts,
   setHeldDeletions,
   enqueue,
@@ -58,6 +59,11 @@ export function enqueueDeletionBursts({
   deletionBurstPresentedRef: MutableRefObject<Set<string>>;
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
   causingEffectGate: PresentationGate | null;
+  /**
+   * A ＜Delay＞ Option paying its own cost breaks once it has been lit, not after its clause:
+   * the clause waits for the break instead, so waiting on it here would hold both.
+   */
+  costClause: CostClause | null;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
   enqueue: (step: AnimationStep) => void;
@@ -75,9 +81,7 @@ export function enqueueDeletionBursts({
   const deletionBurstAnchors = new Set<string>();
   const deletionMetadata = new Map(
     fresh.flatMap((event) =>
-      event.kind === "cardsMoved" && event.deletedPermanents
-        ? event.deletedPermanents.map((deleted) => [deleted.permanentId, deleted] as const)
-        : [],
+      fieldDeparturesFromEvent(event).map((departed) => [departed.permanentId, departed] as const),
     ),
   );
   for (const event of fresh) {
@@ -115,15 +119,20 @@ export function enqueueDeletionBursts({
         effectDeletion: blowKey === undefined && !clashLoserIds.has(anchorId) && !beaten.has(anchorId),
         blowKey,
         securityBlowRef,
-        causingEffectGate,
+        causingEffectGate: anchorId === costClause?.permanentId ? costClause.focused : causingEffectGate,
+        readBeforeBreak: anchorId !== costClause?.permanentId,
         stateVersion,
         causedByOption,
       });
-      if (!step) continue;
+      if (!step) {
+        if (anchorId === costClause?.permanentId) costClause.departing.release();
+        continue;
+      }
       deletionBurstPresentedRef.current.add(anchorId);
       const held = heldDeletionFrom({ snapshots, seat: deleted?.seat, permanentId: anchorId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
       enqueue(step);
+      if (anchorId === costClause?.permanentId) costClause.departing.release();
       // A step a later `replace` drops never runs, so the card would stand there for the
       // rest of the match. Registered after the enqueue: on an idle queue the promise
       // settles at once and the hold would be given back before it began.

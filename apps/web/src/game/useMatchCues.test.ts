@@ -5574,3 +5574,80 @@ describe("a permanent an opponent's clause deletes", () => {
     expect(result.current.heldDeletions.size).toBe(0);
   });
 });
+
+// BT23-099's ＜Delay＞ pays by trashing the Option itself, and the server sends the trigger,
+// the trash and the card it plays as three batches. The Option is lit where it stands, it
+// breaks, its clause is read, and only then does the Sistermon it played arrive.
+it("plays a ＜Delay＞ Option's break, then its clause, then the card it played", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [{ permanentId: "perm-dead", topCard: { cardId: "BT23-099", instanceId: "gym-card" } }],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  const trigger: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "BT23-099",
+    sourcePermanentId: "perm-dead",
+    sourceInstanceId: "gym-card",
+    effectKey: "subtrigger/1/delay",
+    description:
+      "[Your Turn] When any of your Digimon digivolve into a Digimon with [Huckmon] or [Jesmon] in its name, ＜Delay＞ ・You may play 1 card with [Sistermon] in its name from your hand or trash without paying the cost.",
+    timing: "YourTurn",
+  };
+  const trash: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["gym-card"],
+    from: "various",
+    to: "trash",
+    trashedPermanents: [{ permanentId: "perm-dead", instanceId: "gym-card", cardId: "BT23-099", seat: 0 }],
+  };
+  const play: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT23-077", permanentId: "perm-ciel" };
+
+  rerender([trigger]);
+  rerender([trigger, trash]);
+  rerender([trigger, trash, play]);
+
+  const firstSeen: Partial<Record<"glow" | "break" | "clause" | "arrival", number>> = {};
+  for (let elapsed = 0; elapsed <= 6000; elapsed += 20) {
+    const seen = {
+      glow: result.current.effectSources.some(
+        (source) => source.site.zone === "field" && source.site.permanentId === "perm-dead",
+      ),
+      break: result.current.deleteBursts.some((burst) => burst.cardId === "BT23-099"),
+      clause: result.current.notices.some(
+        (notice) => notice.body.variant === "effect" && notice.body.cardId === "BT23-099",
+      ),
+      arrival: result.current.permanentBursts.has("perm-ciel"),
+    };
+    for (const [beat, shown] of Object.entries(seen) as [keyof typeof seen, boolean][])
+      if (shown && firstSeen[beat] === undefined) firstSeen[beat] = elapsed;
+    await advance(20);
+  }
+
+  expect(firstSeen.glow).toBeDefined();
+  expect(firstSeen.break).toBeGreaterThanOrEqual(firstSeen.glow! + TIMINGS.effectSourceHold - 20);
+  expect(firstSeen.clause).toBeGreaterThan(firstSeen.break!);
+  expect(firstSeen.arrival).toBeGreaterThanOrEqual(firstSeen.clause! + TIMINGS.effectAnnounce - 20);
+});
+
+it("does not name a ＜Delay＞ Option twice in a trashed-cards panel beside its break", async () => {
+  const { result, rerender } = renderCues();
+  rerender([
+    {
+      kind: "cardsMoved",
+      instanceIds: ["gym-card"],
+      from: "various",
+      to: "trash",
+      trashedPermanents: [{ permanentId: "perm-dead", instanceId: "gym-card", cardId: "BT23-099", seat: 0 }],
+    },
+  ]);
+  await advance(TIMINGS.cardBurst + TIMINGS.effectSourceHold);
+  expect(result.current.sidePanels).toEqual([]);
+});

@@ -97,7 +97,7 @@ import type { RevealShowcase } from "./match/present/revealShowcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
 import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
-import type { DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
+import type { CostClause, DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
 import { type FieldClashScene, type OpenAttack } from "./fieldClash";
@@ -505,6 +505,7 @@ export function useMatchCues({
   const effectAnnounceGateRef = useRef<PresentationGate | null>(null);
   const causingEffectGateRef = useRef<PresentationGate | null>(null);
   const pendingAnnounceGateRef = useRef<PendingAnnounceGate | null>(null);
+  const costClauseRef = useRef<CostClause | null>(null);
   const deckRiffleKeyRef = useRef(0);
   // Where every card the viewer can see currently sits, so an activation can be
   // played at its source and a reshuffle at the pile it landed in.
@@ -620,6 +621,7 @@ export function useMatchCues({
     effectSourceKeyRef,
     effectAnnounceGateRef,
     pendingAnnounceGateRef,
+    costClauseRef,
     setEffectSources,
     setNarration,
     collapseNarrationRef,
@@ -866,6 +868,7 @@ export function useMatchCues({
       causingEffectGateRef,
       effectAnnounceGateRef,
       pendingAnnounceGateRef,
+      costClauseRef,
       securityClashKeyRef,
       securityAttackerRef,
       pendingDestructionsRef,

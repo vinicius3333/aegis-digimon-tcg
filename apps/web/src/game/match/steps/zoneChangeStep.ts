@@ -4,6 +4,7 @@ import { withoutId } from "../eventLookup";
 import type { PermanentBurst, ZoneShowcase } from "../../showcases";
 import { SHOWCASE_TOTAL_MS, TIMINGS } from "../../timings";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
 
 /**
  * One zone change, in the order the reference client plays it: the card is held
@@ -26,6 +27,7 @@ export function zoneChangeStep({
   burst,
   leadInMs = 0,
   track = CueTrack.CenterStage,
+  waitFor,
 }: {
   queue: AnimationQueue;
   presentationBatchRef: MutableRefObject<{ batchId: string; stateVersion: number } | undefined>;
@@ -43,6 +45,8 @@ export function zoneChangeStep({
    * so waiting for that clause to be read cannot hold the toast itself behind it.
    */
   track?: string;
+  /** The clause this arrival is the consequence of; the card arrives once it has been read. */
+  waitFor?: PresentationGate;
 }): AnimationStep {
   const origin = presentationBatchRef.current && {
     ...presentationBatchRef.current,
@@ -58,6 +62,7 @@ export function zoneChangeStep({
         if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
         return;
       }
+      await waitForGate(waitFor, context, CONSEQUENCE_GATE_MAX_MS, "zoneChange/costClause");
       // A card that changed zones because of a battle waits for the battle to play.
       if (leadInMs > 0) await context.wait(leadInMs);
       if (context.cancelled) {

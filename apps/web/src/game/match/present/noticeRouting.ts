@@ -5,6 +5,7 @@ import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
 import { SHOWCASE_TOTAL_MS, TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
+import { fieldDeparturesFromEvent } from "../../showcases";
 import type { NarrationPlacement } from "../narration/narrationStream";
 import type { RevealOnStage } from "../types";
 
@@ -137,9 +138,7 @@ export function routeBatchNotices({
   if (arriving && presenting) {
     const heldForShowcase = showcased ? afterShowcaseNotices : raised;
     const panelsForShowcase = opened;
-    const deletesFromField = fresh.some(
-      (event) => event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0,
-    );
+    const deletesFromField = fresh.some((event) => fieldDeparturesFromEvent(event).length > 0);
     // The clause the played card triggered gets the beat after the showcase to itself: it is
     // read out, and only then does what it did reach the board. A deletion keeps the final
     // 200 ms of the source glow under the toast, then breaks immediately.
