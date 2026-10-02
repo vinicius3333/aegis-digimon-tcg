@@ -106,6 +106,34 @@ describe("BT25-085 BeelStarmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("announces the Option it uses from its sources before the Option resolves (Discord 1555578375677018193)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "beel", under: [{ card: "EX7-071", as: "shot" }] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["trashing 1 Option card"] },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("beel"));
+
+    const announced = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "EX7-071");
+    const mainTriggered = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX7-071",
+    );
+    const deleted = s.events.findIndex((event) => event.kind === "cardsMoved" && event.deletedPermanents !== undefined);
+    expect(s.events[announced]).toMatchObject({ kind: "cardPlayed", seat: 0, cardId: "EX7-071" });
+    expect(s.events[announced]).not.toHaveProperty("permanentId");
+    expect(s.events[mainTriggered]).toMatchObject({
+      sourceInstanceId: s.inst("shot").instanceId,
+      timing: "OnUseOption",
+      printedTiming: "Main",
+    });
+    expect(mainTriggered).toBeGreaterThan(announced);
+    expect(deleted).toBeGreaterThan(mainTriggered);
+  });
+
   it("trashes one Option link card from any own Digimon and then unsuspends", async () => {
     const s = setupEngine(
       {
@@ -123,6 +151,34 @@ describe("BT25-085 BeelStarmon", () => {
     expect(s.perm("beel").isSuspended).toBe(false);
     expect(s.perm("other").linked).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
+  });
+
+  it("fires the trashed Option's digivolution-card trash trigger when paying the unsuspend cost (Discord 1555578375677018193)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-012", as: "base", suspended: true, under: [{ card: "EX7-071", as: "screwShot" }] },
+          ],
+          hand: [{ card: CARD_ID, as: "beel" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Use an Option", "Arts Digivolve"] },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("beel").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("base").isSuspended && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("screwShot").instanceId);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not pay the unsuspend cost from a non-Digimon's linked cards", async () => {

@@ -54,7 +54,7 @@ import { traceCueBatch } from "../../cueTrace";
 import { enqueueDeletionBursts } from "./deletionBursts";
 import { enqueueStackStripPeels } from "./stackStripPeels";
 import { enqueueSecurityDestructions } from "./securityDestructions";
-import { enqueueOptionDock } from "./optionDock";
+import { enqueueOptionDock, type FlyDockedOptionUnder, type OptionDockHold } from "./optionDock";
 import { enqueueRevealShowcases, revealShowcasesFromEvents, type RevealShowcase } from "./revealShowcases";
 import { routeBatchNotices } from "./noticeRouting";
 import { enqueueBatchSounds } from "./sounds";
@@ -103,6 +103,8 @@ export function presentServerBatch({
   flushHeldNotices,
   launchDrawFlight,
   launchDeckToUnderFlight,
+  flyDockedOptionUnder,
+  releaseTrashArrivalsThrough,
   launchSecurityGainFlight,
   securityCountOf,
   holdSecurityCard,
@@ -202,6 +204,8 @@ export function presentServerBatch({
   flushHeldNotices: () => void;
   launchDrawFlight: (side: Side, burst: boolean, delayMs: number, card?: DrawFlightCard) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
+  flyDockedOptionUnder: FlyDockedOptionUnder;
+  releaseTrashArrivalsThrough: (stateVersion: number) => void;
   launchSecurityGainFlight: (seat: Seat) => void;
   securityCountOf: (seat: Seat) => number | undefined;
   holdSecurityCard: (key: number, seat: Seat, count: number | undefined) => void;
@@ -240,7 +244,7 @@ export function presentServerBatch({
   presentedTurnSeatRef: MutableRefObject<Seat>;
   turnStartDrawRef: MutableRefObject<{ you: boolean; opp: boolean }>;
   optionDockKeyRef: MutableRefObject<number>;
-  optionDockRef: MutableRefObject<{ key: number; closed: boolean } | null>;
+  optionDockRef: MutableRefObject<OptionDockHold | null>;
   decisionPendingRef: MutableRefObject<boolean>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
@@ -248,7 +252,8 @@ export function presentServerBatch({
   securityDockRef: MutableRefObject<{ key: number; closed: boolean } | null>;
   securityHoldRef: MutableRefObject<{ key: number; closed: boolean; handedOver?: boolean } | null>;
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
-  blowHoldState: () => GameState | undefined;
+  /** The board the battle is fought on; `true` stands the attacker as the reveal found it. */
+  blowHoldState: (attackerAsRevealed?: boolean) => GameState | undefined;
   setHeldBlowState: Dispatch<SetStateAction<GameState | undefined>>;
   securityEffectHoldState: () => GameState | undefined;
   setHeldSecurityEffectState: Dispatch<SetStateAction<GameState | undefined>>;
@@ -343,7 +348,16 @@ export function presentServerBatch({
       origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
       ...(replayingHistory ? { mode: "replay" as const } : {}),
     });
-  if (optionRouted && optionDockRef.current) optionDockRef.current.closed = true;
+  const optionRoutedUnder = fresh.find(
+    (event) => event.kind === "cardsMoved" && event.optionUsed === true && event.placedUnder !== undefined,
+  );
+  const routedUnderPermanentId =
+    optionRoutedUnder?.kind === "cardsMoved" ? optionRoutedUnder.placedUnder?.permanentId : undefined;
+  if (optionRouted && optionDockRef.current && !optionDockRef.current.closed) {
+    optionDockRef.current.closed = true;
+    optionDockRef.current.routedAtVersion = stateVersion;
+    if (routedUnderPermanentId !== undefined) optionDockRef.current.routedUnderPermanentId = routedUnderPermanentId;
+  }
   // A permanent that lost a battle takes the claw and the shake first, and its
   // burst waits behind them — the reference client hits the card, then breaks
   // it. Only combat deletions get the impact; an effect deletion has no blow
@@ -555,13 +569,18 @@ export function presentServerBatch({
     )
       batchAnnounceGate.release();
     enqueueOptionDock({
+      queue,
+      stateVersion,
       usedOption,
       optionRouted,
+      routedUnderPermanentId,
       viewerSeat,
       optionDockKeyRef,
       optionDockRef,
       decisionPendingRef,
       setOptionBranch,
+      flyDockedOptionUnder,
+      releaseTrashArrivalsThrough,
       enqueue,
     });
     ({ heldNotices, heldPanels, afterArrivalNotices, afterArrivalPanels, deferredZoneChanges, playLeadInMs } =
@@ -628,7 +647,7 @@ export function presentServerBatch({
     enqueue,
     viewerSeat,
     replayingHistory,
-    batchId,
+    stateVersion,
     revealOnStageRef,
     queuedSecurityKeyRef,
     securityDockRef,
@@ -730,6 +749,7 @@ export function presentServerBatch({
     causingEffectGate: effectAnnounceGateRef.current ?? causingEffectGateRef.current,
     enqueue,
   });
+  const optionResolving = optionDockRef.current !== null && !optionDockRef.current.closed;
   enqueueDeletionBursts({
     queue,
     fresh,
@@ -746,6 +766,8 @@ export function presentServerBatch({
     setDeleteBursts,
     setHeldDeletions,
     enqueue,
+    stateVersion,
+    causedByOption: optionResolving,
   });
   enqueueStackStripPeels({
     fresh,

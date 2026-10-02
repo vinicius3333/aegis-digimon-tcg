@@ -41,6 +41,8 @@ export function enqueueDeletionBursts({
   setDeleteBursts,
   setHeldDeletions,
   enqueue,
+  stateVersion,
+  causedByOption,
 }: {
   queue: AnimationQueue;
   fresh: readonly ServerEvent[];
@@ -59,6 +61,8 @@ export function enqueueDeletionBursts({
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
   enqueue: (step: AnimationStep) => void;
+  stateVersion: number;
+  causedByOption: boolean;
 }) {
   function releaseHeldDeletion(key: number) {
     setHeldDeletions((held) => {
@@ -112,6 +116,8 @@ export function enqueueDeletionBursts({
         blowKey,
         securityBlowRef,
         causingEffectGate,
+        stateVersion,
+        causedByOption,
       });
       if (!step) continue;
       deletionBurstPresentedRef.current.add(anchorId);

@@ -124,6 +124,8 @@ export interface AegisJoinOptions {
     | "arena-mirage-hidden-hand"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
+    | "arena-bt25-beelstarmon-option-trash-trigger"
+    | "arena-ex7-deputymon-option-trash-trigger"
     | "arena-bt13-king-drasil-source-count"
     | "arena-bt24-hyogamon-pending-trash-digivolve"
     | "arena-ex10-darkness-bagramon-digixros-interrupt"

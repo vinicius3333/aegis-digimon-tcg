@@ -56,6 +56,19 @@ export interface HeldDeletion {
   trash: readonly CardInstance[];
 }
 
+/**
+ * Cards one batch moved to a seat's trash, kept out of the pile until that batch is narrated.
+ * One patch can carry a whole chain, so without this a card shows up in the trash while the
+ * screen is still presenting an earlier use of it (an Option docked, then placed under a
+ * Digimon, before a cost trashes it).
+ */
+export interface HeldTrashArrival {
+  seat: Seat;
+  instanceIds: readonly string[];
+  /** The state version of the batch that moved them. */
+  stateVersion: number;
+}
+
 /** The shield break, and which of its two beats the defender's shield is playing. */
 export type SecurityBreakCue = SecurityBreakScene & { phase: SecurityBreakPhase };
 
@@ -236,6 +249,8 @@ export interface MatchCues {
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** Deleted permanents still on the board, by the key of the shatter that will take them. */
   heldDeletions: ReadonlyMap<number, HeldDeletion>;
+  /** Cards the server has already trashed whose move to the trash is not on screen yet. */
+  heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
   /** The last announced phase persists through the gaps between ribbons. */
   displayedPhase: GameState["phase"] | undefined;
   /**

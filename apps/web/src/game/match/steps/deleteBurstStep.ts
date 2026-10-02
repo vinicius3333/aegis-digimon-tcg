@@ -39,6 +39,8 @@ export function deleteBurstStep({
   blowKey,
   securityBlowRef,
   causingEffectGate,
+  stateVersion,
+  causedByOption = false,
 }: {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
@@ -58,6 +60,8 @@ export function deleteBurstStep({
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
   /** The clause that caused this deletion, which is read out before the card breaks. */
   causingEffectGate: PresentationGate | null;
+  stateVersion?: number;
+  causedByOption?: boolean;
 }): AnimationStep | null {
   const center = anchors.permanentCenter?.(anchorId);
   if (!center) return null;
@@ -74,6 +78,8 @@ export function deleteBurstStep({
     const now = Date.now();
     deletionReadyAtRef.current.set(`${metadataSeat}:${cardId}`, {
       readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
+      stateVersion,
+      causedByOption,
       instanceId: metadataInstanceId,
       started,
       shattered,
