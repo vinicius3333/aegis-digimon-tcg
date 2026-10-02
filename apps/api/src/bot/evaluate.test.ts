@@ -365,6 +365,27 @@ describe("decision candidate ranking", () => {
     });
   });
 
+  it("prefers an unsuspended opposing body when the selection would suspend it", () => {
+    const policy = createEvaluationPolicy({ profile: balanced, seed: 3 });
+    const resting = unit({ permanentId: "perm-e1", dp: 11_000, level: 6, suspended: true });
+    const standing = unit({ permanentId: "perm-e2", dp: 3_000, level: 3 });
+    const state = view({ opponentBoard: [resting, standing] });
+
+    const intent = policy.answerDecision(state, {
+      decisionId: "d1",
+      seat: 1,
+      kind: "chooseTargets",
+      promptText: "Suspend 1 of your opponent's Digimon",
+      options: { candidateInstanceIds: ["perm-e1", "perm-e2"], min: 1, max: 1, targetFate: "suspend" },
+    });
+
+    expect(intent).toEqual({
+      type: "respondDecision",
+      decisionId: "d1",
+      response: { kind: "chooseTargets", instanceIds: ["perm-e2"] },
+    });
+  });
+
   it("pays an optional cost out of hand instead of declining it", () => {
     // The P-193 shape: "[Main] By trashing 1 card from your hand, Draw 2. Then, place
     // this card in the battle area." The cost arrives as a min:0 selectCards over our own
