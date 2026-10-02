@@ -125,6 +125,7 @@ export interface AegisJoinOptions {
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
     | "arena-bt25-beelstarmon-option-trash-trigger"
+    | "arena-bt20-last-guardian-omnimon-wipe"
     | "arena-ex7-deputymon-option-trash-trigger"
     | "arena-bt13-king-drasil-source-count"
     | "arena-bt24-hyogamon-pending-trash-digivolve"
