@@ -1028,6 +1028,7 @@ export const en = {
   "panel.strippedTopCards": "Trashed from the top of a Digimon",
   "notice.deletion": "Deleted",
   "panel.trashedCards": "Cards put to trash",
+  "panel.trashedDigivolutionCards": "Digivolution cards trashed",
   "panel.revealedCards": "Revealed Cards",
   "panel.playedCard": "Played Card",
   "panel.dismiss": "Dismiss {title}",

@@ -1044,6 +1044,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "panel.strippedTopCards": "Enviadas do topo de um Digimon ao lixo",
   "notice.deletion": "Deletada",
   "panel.trashedCards": "Cartas enviadas ao lixo",
+  "panel.trashedDigivolutionCards": "Cartas de digivolução enviadas ao lixo",
   "panel.revealedCards": "Cartas reveladas",
   "panel.playedCard": "Carta jogada",
   "panel.dismiss": "Fechar {title}",
