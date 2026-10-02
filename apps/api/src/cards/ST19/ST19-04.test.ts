@@ -31,6 +31,40 @@ describe("ST19-04 PawnChessmon", () => {
     ]);
   });
 
+  it("declines the optional 'by' cost and keeps the Puppet without drawing", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "ST19-04", as: "pawn" },
+          { card: "ST19-02", as: "cost" },
+        ],
+        deck: [
+          { card: "BT1-010", as: "first" },
+          { card: "BT1-011", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pawn").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined || s.state.players[0]!.deck.length === 0);
+    expect(s.state.pendingDecision?.kind).toBe("selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(JSON.parse(decision.payloadJson)).toMatchObject({ min: 0, max: 1, purpose: "cost" });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await s.ready();
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
   it("catalogues the inherited Reboot keyword", () => {
     expect(getCardDefinition("ST19-04")).toMatchObject({ inheritedEffectText: "＜Reboot＞." });
   });

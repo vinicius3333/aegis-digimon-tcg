@@ -40,6 +40,8 @@ describe("BT22-089 Mirei Mikagura", () => {
       kind: "Draw",
       controller: "mine",
       amount: 2,
+      optional: true,
+      abortOnDecline: true,
       cost: {
         kind: "trash",
         target: {
@@ -92,6 +94,39 @@ describe("BT22-089 Mirei Mikagura", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
+  });
+
+  it("declines the optional 'by' cost by selecting no hand card and draws nothing", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT22-089", as: "mirei" },
+          { card: "BT22-054", as: "cost" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mirei").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.options?.min).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("returns itself and plays a qualifying Tamer through the production main-phase window", async () => {

@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
           abortOnDecline: true,
         },
         {
@@ -126,6 +127,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
           abortOnDecline: true,
         },
         {

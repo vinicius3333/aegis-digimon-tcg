@@ -219,7 +219,7 @@ describe("BT24-021 SnowGoblimon", () => {
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { declinePrompts: ["Digivolve", "By trashing"], autoSelectCards: true },
     );
     const discardedId = s.inst("discarded").instanceId;
     s.state.memory = 10;

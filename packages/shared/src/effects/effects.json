@@ -1825,7 +1825,9 @@
                 "count": 1
               },
               "raw": "By trashing your top or bottom security card"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -1846,7 +1848,9 @@
                 "count": 1
               },
               "raw": "By trashing your top or bottom security card"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -31326,7 +31330,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 Digimon card with [Avian]/[Bird]/[Beast]/[Animal]/[;Sovereign] in one of its traits other than [Sea Animal] in your hand"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -36796,7 +36802,8 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
-            "optional": false
+            "optional": true,
+            "abortOnDecline": true
           }
         ],
         "isInherited": true
@@ -36954,7 +36961,8 @@
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By deleting this Digimon"
             },
-            "optional": false
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -41455,6 +41463,7 @@
               "target": { "filter": { "zone": "trash", "controller": "mine", "kind": ["DigiEgg"] }, "count": 1 },
               "raw": "By returning 1 Digi-Egg card from your trash to the bottom of the Digi-Egg deck"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -42882,6 +42891,8 @@
               "count": 1
             },
             "cost": { "kind": "payMemory", "memory": 1, "raw": "By paying 1 cost" },
+            "optional": true,
+            "abortOnDecline": true,
             "condition": {
               "kind": "opponentHas",
               "filter": {
@@ -52451,7 +52462,9 @@
               "destination": "security",
               "position": "bottom",
               "faceDown": false
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -52568,7 +52581,9 @@
               "kind": "suspend",
               "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green"] }, "count": 1 },
               "raw": "By suspending 1 of your green Digimon"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -52582,7 +52597,9 @@
               "kind": "suspend",
               "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green"] }, "count": 1 },
               "raw": "By suspending 1 of your green Digimon"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -58632,6 +58649,7 @@
               "raw": "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards"
             },
             "cost": { "kind": "trashSecurityTop", "raw": "by trashing the top card of your security stack" },
+            "optional": true,
             "abortOnDecline": true,
             "raw": "trash the top card of your opponent's security stack"
           },
@@ -58670,6 +58688,7 @@
               "raw": "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards"
             },
             "cost": { "kind": "trashSecurityTop", "raw": "by trashing the top card of your security stack" },
+            "optional": true,
             "abortOnDecline": true,
             "raw": "trash the top card of your opponent's security stack"
           },
@@ -70491,6 +70510,7 @@
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By suspending this Tamer"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -84861,7 +84881,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 card with the [Holy Beast], [Angel], [Archangel], [Fallen Angel] or [CS] trait from your hand"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -94715,6 +94737,7 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -94755,6 +94778,7 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -94834,6 +94858,7 @@
             },
             "restriction": "beDeletedInBattle",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -94873,6 +94898,7 @@
             },
             "restriction": "beDeletedInBattle",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -94963,6 +94989,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "additionalEffect": {
               "kind": "GrantStatic",
@@ -94998,6 +95025,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "additionalEffect": {
               "kind": "GrantStatic",
@@ -95091,6 +95119,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -95123,6 +95152,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -154864,7 +154894,9 @@
               "host": "target",
               "underFilter": { "controller": "mine", "kind": ["Digimon"] },
               "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -154892,7 +154924,9 @@
               "host": "target",
               "underFilter": { "controller": "mine", "kind": ["Digimon"] },
               "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -166995,6 +167029,7 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 2 },
               "raw": "By trashing 2 cards in your hand"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -167039,7 +167074,9 @@
               "kind": "trash",
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "by trashing 1 card in your hand"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ],
         "isInherited": true,
@@ -167259,14 +167296,9 @@
               "to": "deckBottom",
               "bindResultAs": "returnedDigimon",
               "raw": "By returning 1 Digimon card from your trash to the bottom of the deck"
-            }
-          },
-          {
-            "kind": "Return",
-            "condition": { "kind": "ifThisEffectDidNotAct" },
-            "target": { "filter": { "zone": "trash", "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "to": "deckBottom",
-            "from": ["trash"]
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       }
@@ -167467,7 +167499,8 @@
               "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
               "raw": "By trashing the top card of your security stack"
             },
-            "optional": false
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -168384,7 +168417,8 @@
               },
               "raw": "By trashing 1 card with [Etemon]/[Sukamon] in its name in your hand"
             },
-            "optional": false
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -176996,6 +177030,8 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "attackPlayer": true,
             "withoutSuspending": true,
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "deleteOwn",
               "target": {
@@ -177186,6 +177222,8 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "attackPlayer": true,
             "withoutSuspending": true,
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "deleteOwn",
               "target": {
@@ -182531,6 +182569,7 @@
               },
               "raw": "By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -182559,6 +182598,7 @@
               },
               "raw": "By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -200282,7 +200322,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 [Mineral]/[Rock] trait from any of your Digimon's digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -200315,7 +200357,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 [Mineral]/[Rock] trait from any of your Digimon's digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -212287,7 +212331,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 card with the [Puppet] trait in your hand"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -212322,7 +212368,9 @@
                 "count": 1
               },
               "raw": "By trashing 1 card with the [Puppet] trait in your hand"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       }
@@ -212583,7 +212631,9 @@
               "destination": "digivolutionStack",
               "position": "bottom",
               "host": "self"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -212615,7 +212665,9 @@
               "destination": "digivolutionStack",
               "position": "bottom",
               "host": "self"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       }
@@ -236963,6 +237015,8 @@
               "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
               "raw": "By trashing your top security card"
             },
+            "optional": true,
+            "abortOnDecline": true,
             "raw": "By trashing your top security card, 1 of your opponent's Digimon gets -4000 DP for the turn"
           },
           {
@@ -237000,6 +237054,8 @@
               "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
               "raw": "By trashing your top security card"
             },
+            "optional": true,
+            "abortOnDecline": true,
             "raw": "By trashing your top security card, 1 of your opponent's Digimon gets -4000 DP for the turn"
           },
           {

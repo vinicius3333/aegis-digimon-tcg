@@ -29,7 +29,8 @@ describe("EX5-031 Chirinmon", () => {
         {
           kind: "Unsuspend",
           allowCostWithoutTarget: true,
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
           cost: { kind: "trash", target: { filter: { controller: "mine", zone: "security", position: "top" } } },
         },
       ],
@@ -52,7 +53,7 @@ describe("EX5-031 Chirinmon", () => {
     });
   });
 
-  it("publicly pays the mandatory security cost even when already unsuspended (Q3595)", async () => {
+  it("publicly pays the optional security cost even when already unsuspended (Q3595)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -79,7 +80,39 @@ describe("EX5-031 Chirinmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("paidSecurity").instanceId);
   });
 
-  it("does not unsuspend when the mandatory security cost is unavailable", async () => {
+  it("declines the optional 'by' cost and keeps both security and the suspension", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX5-029", as: "base", suspended: true }],
+        hand: [{ card: "EX5-031", as: "chirinmon" }],
+        security: [{ card: "BT1-009", as: "keptSecurity" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("chirinmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("base").topCard?.cardId).toBe("EX5-031");
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("keptSecurity").instanceId]);
+  });
+
+  it("does not unsuspend when the security cost is unavailable", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX5-029", as: "base", suspended: true }],

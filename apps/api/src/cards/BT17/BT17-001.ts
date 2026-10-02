@@ -24,6 +24,8 @@ const compiled: CompiledCard = {
             memory: 1,
             raw: "By paying 1 cost",
           },
+          optional: true,
+          abortOnDecline: true,
           condition: {
             kind: "opponentHas",
             filter: {

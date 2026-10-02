@@ -83,7 +83,7 @@ describe("EX13-029 FlameWizardmon", () => {
           condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
         },
       ]);
-      expect(effect?.actions[0]).not.toHaveProperty("optional");
+      expect(effect?.actions[0]).toMatchObject({ optional: true, abortOnDecline: true });
       expect(effect?.actions[1]).not.toHaveProperty("optional");
     }
 
@@ -313,6 +313,117 @@ describe("EX13-029 FlameWizardmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("victim").currentDP).toBe(6000);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Discord 1555472780571705354 lets the player decline the security cost, keeping the quota for [When Attacking]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_TEXT_SOURCE, as: "source" }],
+          hand: [{ card: CARD_ID, as: "flameWizardmon" }],
+          security: [
+            { card: "BT1-010", as: "top" },
+            { card: "BT1-011", as: "middle" },
+            { card: "BT1-012", as: "bottom" },
+          ],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [{ card: OPPONENT, as: "victim" }],
+          security: [INERT, INERT, INERT, INERT],
+          deck: DECK,
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 20;
+    const fullSecurity = s.state.players[0]!.security.map(({ instanceId }) => instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("flameWizardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const digivolveDecision = s.state.pendingDecision!;
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(fullSecurity);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: digivolveDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(fullSecurity);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("victim").currentDP).toBe(6000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const attackDecision = s.state.pendingDecision!;
+    expect(attackDecision.decisionId).not.toBe(digivolveDecision.decisionId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 3 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(fullSecurity.slice(1));
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(fullSecurity[0]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("Discord 1555472780571705354 lets the player decline the inherited security cost and leave", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: WITCHELNY_HOST, as: "host", under: [CARD_ID] }],
+          security: [{ card: "BT1-010", as: "top" }],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.state.players[0]!.security).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    expect(await deletion).toBe(1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("top").instanceId]);
   });
 
   it("spends one shared quota across both printed windows and resets next turn", async () => {

@@ -25,12 +25,12 @@ describe("BT16-083", () => {
           kind: "Delete",
           cost: { kind: "return", target: { count: 1 } },
           target: { filter: { superlative: "lowestLevel" } },
+          optional: true,
           abortOnDecline: true,
         },
         { kind: "PlayWithoutCost", from: ["hand"], payCost: false, breeding: true, optional: true },
       ],
     });
-    expect(compiled.effects?.[1]?.actions?.[0]).not.toHaveProperty("optional");
   });
 
   it("returns a Digi-Egg cost before deleting and hatching through public turn progression", async () => {
@@ -56,6 +56,43 @@ describe("BT16-083", () => {
     ).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("egg").instanceId)).toBe(false);
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-009");
+  });
+
+  it("declines the optional 'by' cost and skips the delete and the breeding play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT16-083", as: "bigUkko" }],
+        hand: [{ card: "BT1-009", as: "hatchling" }],
+        deck: ["BT1-001"],
+        trash: [{ card: "BT1-001", as: "egg" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    });
+    await s.ready();
+    s.state.turnSeat = 0;
+
+    let turnEnded = false;
+    const turn = advance(s.engine)
+      .runTurn(0)
+      .then(() => (turnEnded = true));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => turnEnded || s.state.pendingDecision !== undefined);
+    expect(s.state.pendingDecision).toBeUndefined();
+    await turn;
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("egg").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("target").permanentId,
+    ]);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hatchling").instanceId);
   });
 });
 
