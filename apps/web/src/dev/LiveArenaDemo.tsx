@@ -445,7 +445,10 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
   ["arena-bt20-omnimon-each-player-survivor", "BT20 Omnimon (X Antibody) · over Omekamon, one survivor per player"],
-  ["arena-bt20-ouryuken-reduction-resumes", "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy"],
+  [
+    "arena-bt20-ouryuken-reduction-resumes",
+    "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy",
+  ],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
   ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],
