@@ -44,6 +44,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Evolua BT11-083 para EX7-061 Lilithmon (X Antibody) e aceite devolver EX7-072 da lixeira ao fundo do deck. O Digimon do bot deve sobreviver ao fim do seu turno e só ser deletado no fim do turno dele.",
     en: "Digivolve BT11-083 into EX7-061 Lilithmon (X Antibody) and accept returning EX7-072 from trash to the deck bottom. The bot's Digimon should survive your turn end and be deleted only at the end of its own turn.",
   },
+  "arena-ex13-leopardmon-suspended-target": {
+    ptBR: 'Jogue EX13-043 Leopardmon da mão (custo 12) e aceite o [Ao Jogar]. A escolha de "suspender 1 Digimon" deve oferecer o Muchomon do bot, que já está suspenso, além do seu GrapLeomon e do Biyomon do bot. Escolha o Muchomon: ele continua suspenso e o seu GrapLeomon continua ativo. Depois aceite devolver o Digimon de menor DP do bot: o Biyomon vai para o fundo do deck.',
+    en: "Play EX13-043 Leopardmon from hand (cost 12) and accept its [On Play]. The \"suspend 1 Digimon\" choice must offer the bot's already suspended Muchomon, plus your GrapLeomon and the bot's Biyomon. Choose Muchomon: it stays suspended and your GrapLeomon stays unsuspended. Then accept returning the bot's lowest DP Digimon: Biyomon goes to the bottom of the deck.",
+  },
   "arena-bt14-chuumon-security-reveal": {
     ptBR: 'O oponente começa o turno com BT14-032 Chuumon na mão, 3 de memória e BT14-034 Sukamon no topo da segurança. Espere o bot jogar o Chuumon. O [Ao Jogar] adiciona o Sukamon à mão dele sem revelá-lo e depois o coloca de volta no topo da segurança. O seu log deve mostrar "O oponente revelou Sukamon com Chuumon" uma única vez, antes de o card ir virado para baixo para a segurança.',
     en: 'The opponent starts its turn with BT14-032 Chuumon in hand, 3 memory, and BT14-034 Sukamon on top of security. Wait for the bot to play Chuumon. Its [On Play] adds Sukamon to its hand without revealing it, then places it back on top of security. Your log must show "Opponent revealed Sukamon with Chuumon" exactly once, before the card goes face down into security.',
@@ -420,6 +424,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-proximamon-dual-siriusmon", "EX12 Proximamon · use DUAL Siriusmon from sources"],
   ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
+  ["arena-ex13-leopardmon-suspended-target", "EX13 Leopardmon · suspend an already suspended Digimon"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
