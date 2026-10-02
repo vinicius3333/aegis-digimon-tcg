@@ -70,6 +70,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
   "arena-ex13-breakdramon-zero-security-check",
+  "arena-decoy-protect-choice",
   "arena-p245-kakkinmon-full-hand-suspend",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
@@ -513,6 +514,38 @@ function layEx13BreakdramonZeroSecurityCheckScenario(state: GameState, decks: re
   if (bot !== undefined) {
     insertCard(bot, Zone.Security, faceDownCard("dev-zero-check-odins-breath", "BT13-106", 1));
     insertCard(bot, Zone.Security, faceDownCard("dev-zero-check-last-security", "BT1-009", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * Discord 1555594986756767896: the bot's BT8-097 Crimson Blaze [Security] deletes every human
+ * Digimon with 6000 DP or less at once. Three of them are Red or Black, so the Atho, René & Por
+ * token's ＜Decoy (Red/Black)＞ must let the human choose which one survives.
+ */
+function layDecoyProtectChoiceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    setSecurityStack(human);
+    placePermanent(human, establishedDigimon(0, ["BT1-080"], "-decoy-attacker"));
+    placePermanent(human, establishedDigimon(0, ["EX13-047"], "-decoy-gotsumon"));
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-decoy-monodramon"));
+    placePermanent(human, establishedDigimon(0, ["BT1-010"], "-decoy-agumon"));
+    placePermanent(human, establishedDigimon(0, ["TOKEN-AthoRenePor-Token"], "-decoy-token"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Security, faceDownCard("dev-decoy-crimson-blaze", "BT8-097", 1));
+    insertCard(bot, Zone.Security, faceDownCard("dev-decoy-last-security", "BT1-009", 1));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -4288,6 +4321,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
+  "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
