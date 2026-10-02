@@ -34,7 +34,7 @@ import {
   type DnaDigivolveDeps,
   type RespondCounterDeps,
 } from "../actions/index.js";
-import { linkRequirementSatisfied } from "./boardQueries.js";
+import { linkHostOf, linkRequirementSatisfied } from "./boardQueries.js";
 import { digivolvedFromTamerBase } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
 import { applyIntent, checkTurnEndAfterVerb, findInstance, findLooseInstance } from "./intents.js";
@@ -836,7 +836,10 @@ export function linkCardDeps(engine: GameEngine): LinkCardDeps {
   return {
     maxAffordable: mem.maxAffordable,
     payMemory: mem.payMemory,
-    linkRequirementSatisfied: (hostDefinition, linkedCard) => linkRequirementSatisfied(hostDefinition, linkedCard),
+    linkRequirementSatisfied: (host, linkedCard) => {
+      const linkHost = linkHostOf(engine.continuous, host);
+      return linkHost !== undefined && linkRequirementSatisfied(linkHost, linkedCard);
+    },
     linkCostReduction: (targetPermanentId, traits) =>
       engine.continuous.linkCostReductionGrant(
         targetPermanentId,

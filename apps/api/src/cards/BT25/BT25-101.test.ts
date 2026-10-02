@@ -405,3 +405,111 @@ describe("BT25-101 Divine Arms Version Ω — KB Q&A rulings", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(noLinkId);
   });
 });
+
+describe("BT25-101 Divine Arms Version Ω — Discord bug 1555375353977905269", () => {
+  const KING_SUKAMON = "EX13-031";
+  const CHUUMON = "BT3-061";
+  const IRON_SLASH = "BT25-100";
+
+  it("trashes this link card when KingSukamon renames its Vulcanusmon host, keeping the [TS] trait link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: KING_SUKAMON, as: "king" },
+            { card: CHUUMON, as: "fee" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT25-075",
+              as: "vulcanus",
+              linked: [
+                { card: CARD_ID, as: "divineArms" },
+                { card: IRON_SLASH, as: "ironSlash" },
+              ],
+            },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const vulcanus = s.perm("vulcanus");
+    const divineArmsId = s.inst("divineArms").instanceId;
+    const ironSlashId = s.inst("ironSlash").instanceId;
+    expect(vulcanus.linked.map((card) => card.instanceId)).toEqual([divineArmsId, ironSlashId]);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).effectiveNames(vulcanus).includes("sukamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    expect(vulcanus.linked.map((card) => card.instanceId)).toEqual([ironSlashId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(divineArmsId);
+    expect(observe(s.engine).hasKeyword(vulcanus, "Reboot")).toBe(false);
+    expect(observe(s.engine).hasPierce(vulcanus)).toBe(true);
+  });
+
+  it("refuses to link onto a Vulcanusmon renamed to Sukamon, but still links a [TS] trait card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: KING_SUKAMON, as: "king" },
+            { card: CHUUMON, as: "fee" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT25-075", as: "vulcanus" }],
+          hand: [
+            { card: CARD_ID, as: "divineArms" },
+            { card: IRON_SLASH, as: "ironSlash" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 7;
+    const vulcanus = s.perm("vulcanus");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).effectiveNames(vulcanus).includes("sukamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    s.state.memory = 0;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).effectiveNames(vulcanus)).toEqual(["sukamon"]);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "linkCard",
+        instanceId: s.inst("divineArms").instanceId,
+        targetPermanentId: vulcanus.permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "link-requirement-unmet" });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "linkCard",
+        instanceId: s.inst("ironSlash").instanceId,
+        targetPermanentId: vulcanus.permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => vulcanus.linked.some((card) => card.instanceId === s.inst("ironSlash").instanceId));
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
