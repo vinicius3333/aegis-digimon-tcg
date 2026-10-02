@@ -700,6 +700,18 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         ? action.cost.target.filter.boundTo
         : undefined;
     if (boundTo === action.target.bindAs && ctx.selections?.get(boundTo) === undefined) {
+      // The "you may" comes before choosing whose card pays (EX8-070); record the answer so
+      // the regular optional prompt below does not ask it a second time.
+      if (action.optional === true) {
+        const yes = ctx.predecidedOptionalActions?.get(action) ?? (await ctx.ask.optional(ctx, describeAction(action)));
+        if (!yes) {
+          ctx.lastEffectActed = false;
+          markActivationDeclined(ctx);
+          return action.abortOnDecline === true;
+        }
+        ctx.predecidedOptionalActions ??= new Map();
+        ctx.predecidedOptionalActions.set(action, true);
+      }
       const ids = await resolvePermanentTargets(ctx, action.target);
       if (ids.length === 0) return unavailableAction(ctx, action, action.abortOnDecline === true);
       ctx.selections?.set(boundTo, ids[0]!);
