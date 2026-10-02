@@ -58,6 +58,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-ex13-sampson-face-down-sources",
   "arena-p240-arcturusmon-vb-routes",
   "arena-p240-arcturusmon-ordered-placement",
   "arena-ex12-proximamon-dual-siriusmon",
@@ -396,6 +397,28 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/**
+ * Discord 1555516815226970172: both seats control EX13-071 Richard Sampson with a face-down card
+ * under it, and the human's Sampson adds the deck's top card at the start of the Main phase. The
+ * owner may look at the face-down cards under their own Tamer (§4-7-10); the bot's stay hidden.
+ */
+function layEx13SampsonFaceDownSourcesScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    const sampson = establishedDigimon(seat, ["EX13-071"], "-sampson");
+    pushOnStack(sampson, faceDownCard(`dev-sampson-source-${seat}`, "EX13-026", seat));
+    placePermanent(player, sampson);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /**
@@ -4114,6 +4137,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-p240-arcturusmon-ordered-placement": layP240ArcturusmonOrderedPlacementScenario,
   "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,

@@ -21,6 +21,7 @@ export const en = {
   "common.import": "Import",
   "common.export": "Export",
   "game.hiddenCard": "Face-down card",
+  "game.faceDownSource": "Face down",
   "game.debugId": "Match ID",
   "game.debugCopyFailed": "Copy failed; select the ID to copy.",
   "common.copy": "Copy",

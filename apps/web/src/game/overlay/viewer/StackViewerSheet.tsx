@@ -10,6 +10,7 @@ import { CardArt } from "../CardArt";
 import { ROLE_LABEL_KEYS } from "../constants";
 import { type StackCard } from "../types";
 import { CardZoomOverlay } from "./CardZoomOverlay";
+import { stackCardCaption } from "./stackCardCaption";
 
 /**
  * The phone reading of a field permanent: one sheet that runs top to bottom —
@@ -123,15 +124,13 @@ export function StackViewerSheet({
                     <button
                       type="button"
                       key={`${c.cardId}-${i}`}
-                      disabled={c.faceDown || !c.cardId}
+                      disabled={!c.cardId}
                       onClick={() => onZoom(c.cardId, c.artId)}
                     >
                       <CardArt cardId={c.cardId} artId={c.artId} width={72} />
                       <figcaption>
                         {role === "stack" ? <b>{i + 1}</b> : null}
-                        {c.faceDown || !c.cardId
-                          ? t("game.hiddenCard")
-                          : (getCardDefinition(c.cardId)?.nameEn ?? c.cardId)}
+                        {stackCardCaption(c, t)}
                       </figcaption>
                     </button>
                   ))}
