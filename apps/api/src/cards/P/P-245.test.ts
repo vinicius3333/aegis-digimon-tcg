@@ -3,6 +3,7 @@ import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../EX13/EX13-062.js";
 import { compiled } from "./P-245.js";
 
 describe("P-245 Kakkinmon", () => {
@@ -18,7 +19,7 @@ describe("P-245 Kakkinmon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("encodes the inherited once-per-turn end-of-all-turns draw behind the suspend cost", () => {
+  it("checks the hand size only after the suspend cost, gating just the draw", () => {
     expect(compiled.effects).toEqual([
       expect.objectContaining({
         trigger: "EndOfAllTurns",
@@ -26,12 +27,11 @@ describe("P-245 Kakkinmon", () => {
         frequency: "OncePerTurn",
         actions: [
           expect.objectContaining({
-            kind: "Draw",
-            controller: "mine",
-            amount: 1,
+            kind: "ConditionalBranch",
             optional: true,
             abortOnDecline: true,
             condition: expect.objectContaining({ kind: "handAtMost", value: 7 }),
+            ifTrue: [{ kind: "Draw", controller: "mine", amount: 1 }],
             cost: expect.objectContaining({
               kind: "suspend",
               target: expect.objectContaining({
@@ -272,7 +272,7 @@ describe("P-245 Kakkinmon", () => {
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("undrawn").instanceId)).toBe(true);
   });
 
-  it("draws at exactly seven cards in hand and declines the whole process at eight", async () => {
+  it("draws at exactly seven cards in hand and still pays the suspend without drawing at eight (Discord 1555485421750984765)", async () => {
     const sevenCardHand = Array.from({ length: 7 }, () => "BT3-059");
     const atBoundary = setupEngine(
       {
@@ -322,7 +322,43 @@ describe("P-245 Kakkinmon", () => {
     expect(
       overBoundary.state.players[0]!.deck.some((card) => card.instanceId === overBoundary.inst("undrawn").instanceId),
     ).toBe(true);
-    expect(overBoundary.perm("blocker").isSuspended).toBe(false);
+    expect(overBoundary.perm("blocker").isSuspended).toBe(true);
+  });
+
+  it("lets EX13 Craniamon pay the suspend with eight cards in hand to fire its suspend trigger (Discord 1555485421750984765)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-062", as: "craniamon", under: ["P-245"] }],
+          hand: Array.from({ length: 8 }, () => "BT3-059"),
+          deck: [{ card: "BT3-059", as: "undrawn" }, "BT3-059"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT3-059", as: "cheapest" },
+            { card: "BT5-061", as: "pricier" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const cheapestId = s.perm("cheapest").permanentId;
+
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cheapestId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("craniamon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cheapestId)).toBe(false);
+    expect(s.perm("pricier").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("undrawn").instanceId)).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("declines the optional cost without suspending or drawing", async () => {

@@ -230029,9 +230029,7 @@
         "trigger": "EndOfAllTurns",
         "actions": [
           {
-            "kind": "Draw",
-            "controller": "mine",
-            "amount": 1,
+            "kind": "ConditionalBranch",
             "condition": { "kind": "handAtMost", "value": 7, "raw": "if your hand has 7 or fewer cards" },
             "cost": {
               "kind": "suspend",
@@ -230042,7 +230040,8 @@
               "raw": "By suspending 1 of your black Digimon with ＜Blocker＞"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "ifTrue": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
         ],
         "isInherited": true,
