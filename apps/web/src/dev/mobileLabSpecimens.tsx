@@ -221,6 +221,7 @@ function DockSpecimen({
       <div className="mobile-lab-fill">{children}</div>
       <PlayerDock
         breedingDock={null}
+        pileDock={null}
         handDockRef={handDockRef}
         cardWidth={layout.handCardWidth}
         minExposure={layout.handMinExposure}
