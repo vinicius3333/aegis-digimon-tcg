@@ -847,6 +847,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.presetAsk": "Perguntar",
   "overlay.presetYes": "Sim",
   "overlay.presetNo": "Não",
+  "overlay.waitingEffects": "Resolvem depois destes",
+  "overlay.waitingEffectsHint": "Efeitos anteriores ainda pendentes. Eles resolvem quando os efeitos acima terminarem.",
   "overlay.presetMandatory": "Obrigatório",
   "overlay.presetLabel": "Resposta para as escolhas opcionais de {name}",
   "overlay.triggerSourceField": "Campo:{position}",

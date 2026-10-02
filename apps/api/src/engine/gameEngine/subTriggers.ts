@@ -507,15 +507,16 @@ export async function runSubTriggersInChosenOrder(
       // Drop watchers whose trigger condition lapsed while an earlier one resolved, so the
       // ordering prompt never offers an effect that can no longer activate (CR §15-4-4-5).
       for (let index = remaining.length - 1; index >= 0; index -= 1) {
-        if (!subTriggerStillActivatable(engine, remaining[index]!)) remaining.splice(index, 1);
+        if (!subTriggerStillPending(engine, remaining[index]!)) remaining.splice(index, 1);
       }
-      if (remaining.length === 0) break;
+      const activatable = remaining.filter(subTriggerHasLegalOutcome);
+      if (activatable.length === 0) break;
       const orderingSeatOfArmed = (item: ArmedSubTrigger): Seat =>
         item.sub.orderedByTurnPlayer === true ? engine.state.turnSeat : item.ctx.source.ownerSeat;
-      const prioritySeat = remaining.some((item) => orderingSeatOfArmed(item) === engine.state.turnSeat)
+      const prioritySeat = activatable.some((item) => orderingSeatOfArmed(item) === engine.state.turnSeat)
         ? engine.state.turnSeat
-        : orderingSeatOfArmed(remaining[0]!);
-      const sameController = remaining.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
+        : orderingSeatOfArmed(activatable[0]!);
+      const sameController = activatable.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
       const offered = sameController.map((item) => subTriggerAsCollected(engine, item));
       let chosenIndex = 0;
       if (sameController.length > 1) {
@@ -581,7 +582,9 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
         ...collected.effect,
         canActivate: () => {
           sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
-          return !sourceDeparted && !oncePerTurnSpentByAnotherOccurrence(engine, item);
+          return (
+            !sourceDeparted && !oncePerTurnSpentByAnotherOccurrence(engine, item) && subTriggerHasLegalOutcome(item)
+          );
         },
         resolve: async (resolverCtx: EffectContext) => {
           // Retire the pending trigger before its body can open another window, mirroring
@@ -662,7 +665,7 @@ export function parkedEntryCollected(engine: GameEngine): CollectedEffect[] {
         // intentionally retain their last-live source context after that source is deleted.
         (item.sub.sourcePermanentId === undefined ||
           engine.access.permanentById(item.sub.sourcePermanentId) !== undefined) &&
-        subTriggerStillActivatable(engine, item),
+        subTriggerStillPending(engine, item),
     ),
   );
 }
@@ -694,7 +697,7 @@ export function pendingWindowWatchersCollected(engine: GameEngine): CollectedEff
       engine.pendingWindowSubTriggers.filter(
         (item) =>
           !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
-          subTriggerStillActivatable(engine, item),
+          subTriggerStillPending(engine, item),
       ),
     ),
   );
@@ -838,12 +841,31 @@ export function parkArmedForEnclosingWindow(engine: GameEngine, armed: readonly 
  * resolutions — the SubTrigger bus gets engine for free by evaluating `matches` at fire time.
  */
 export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTrigger): boolean {
+  return subTriggerStillPending(engine, item) && subTriggerHasLegalOutcome(item);
+}
+
+/**
+ * Is the watcher's trigger still pending, regardless of whether its body could do anything right
+ * now? A pending pool keeps a watcher only while this holds, and the resolver retires for the
+ * rest of the window any effect that drops out of its pool once (CR §15-4-4-5).
+ */
+export function subTriggerStillPending(engine: GameEngine, item: ArmedSubTrigger): boolean {
   const ctx = item.contextAtFireTime();
   if (ctx === undefined) return false;
   if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
   if (oncePerTurnSpentByAnotherOccurrence(engine, item)) return false;
-  if (item.sub.hasLegalOutcome !== undefined && !item.sub.hasLegalOutcome(ctx)) return false;
   return item.sub.canFire === undefined || item.sub.canFire(ctx);
+}
+
+/**
+ * Lacking a legal outcome is not a lapsed trigger condition: another simultaneous effect that
+ * resolves first can still create one (Q2889). Two inherited "may digivolve into a [Titan] card
+ * in the trash" watchers trigger on one hand trash; the first digivolves into Plutomon, whose
+ * [When Digivolving] then trashes the only card the second watcher can digivolve into.
+ */
+function subTriggerHasLegalOutcome(item: ArmedSubTrigger): boolean {
+  const ctx = item.contextAtFireTime();
+  return ctx !== undefined && (item.sub.hasLegalOutcome === undefined || item.sub.hasLegalOutcome(ctx));
 }
 
 /**

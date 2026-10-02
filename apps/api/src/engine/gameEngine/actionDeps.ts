@@ -144,7 +144,8 @@ export function resolutionDeps(
       derivedPending.push(...(await collectRuleProcessPending(engine)));
     },
     isGameOver: () => engine.state.gameOver,
-    chooseOrder: (seat, active, timing, plan) => engine.resolverDecisions.chooseOrder(seat, active, timing, plan),
+    chooseOrder: (seat, active, timing, plan, waiting) =>
+      engine.resolverDecisions.chooseOrder(seat, active, timing, plan, waiting),
     askOptional: (seat, collected, plan) => engine.resolverDecisions.askOptional(seat, collected, plan),
     onResolving: (timing, collected) => {
       const reactionIndex = derivedPending.indexOf(collected);

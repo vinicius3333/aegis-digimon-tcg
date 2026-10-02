@@ -143,6 +143,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt13-king-drasil-source-count",
+  "arena-bt24-hyogamon-pending-trash-digivolve",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
   "arena-hellscythe-onplay-priority",
@@ -3394,6 +3395,29 @@ function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly 
 }
 
 /**
+ * Reproduce Discord bug 1555502942403043389: SnowGoblimon trashes Plutomon from the hand, so both
+ * inherited Titan digivolutions trigger. Salamon's digivolves into Plutomon, whose
+ * [When Digivolving] trashes ZombiePlutomon; Hyogamon's must still digivolve into it.
+ */
+function layBt24HyogamonPendingTrashDigivolveScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 1);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT26-066", "BT24-026", "BT26-074"], "-hyogamon-host"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-hyogamon-snowgoblimon", "BT24-021", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-hyogamon-fugamon-cost", "BT24-075", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-hyogamon-fugamon", "BT24-013", 0));
+  // Top to bottom: turn draw, SnowGoblimon's three reveals, then Plutomon's digivolution draw.
+  const deckTop = ["BT1-085", "BT26-059", "BT1-009", "BT1-010", "BT26-079"];
+  const deckIds = ["draw", "plutomon", "reveal-miss-1", "reveal-miss-2", "zombie-plutomon"];
+  for (let index = deckTop.length - 1; index >= 0; index -= 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-hyogamon-${deckIds[index]}`, deckTop[index]!, 0), "top");
+  }
+  placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-hyogamon-target"));
+}
+
+/**
  * Reproduce Discord bug 1555206206417674281: DarknessBagramon DigiXroses with DarkKnightmon from
  * the battle area. DarkKnightmon's "would leave" effect plays ChuuChuumon while DarknessBagramon
  * is only revealed; both [On Play] effects then wait for one ordering prompt.
@@ -4225,6 +4249,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
+  "arena-bt24-hyogamon-pending-trash-digivolve": layBt24HyogamonPendingTrashDigivolveScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,

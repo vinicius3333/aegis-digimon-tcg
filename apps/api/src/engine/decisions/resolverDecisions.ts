@@ -12,13 +12,14 @@ export interface ResolverDecisions {
    * the resolver calls this only when multiple effects need ordering. Resolves to
    * its index into `active`, or null only for the manager's timeout/cancellation
    * fallback. With a `plan`, the prompt accepts a full resolution plan and is skipped
-   * while the plan already orders every offered effect.
+   * while the plan already orders every offered effect. `waiting` is shown, never offered.
    */
   chooseOrder(
     seat: Seat,
     active: readonly CollectedEffect[],
     timing?: EffectTiming,
     plan?: ResolutionPlan,
+    waiting?: readonly CollectedEffect[],
   ): Promise<number | null>;
   /** Ask the controller whether to use an optional effect (true = use, false = skip), unless `plan` presets it. */
   askOptional(seat: Seat, collected: CollectedEffect, plan?: ResolutionPlan): Promise<boolean>;
@@ -29,7 +30,7 @@ export function createResolverDecisions(
   beforeRequest: () => Promise<void> = async () => {},
 ): ResolverDecisions {
   return {
-    async chooseOrder(seat, active, timing, plan) {
+    async chooseOrder(seat, active, timing, plan, waiting = []) {
       log(
         "[chooseOrder]",
         `seat=${seat} count=${active.length}`,
@@ -105,6 +106,13 @@ export function createResolverDecisions(
           ...(plan !== undefined ? { acceptsResolutionPlan: true, triggerIsOptional: active.map(mayAskYesNo) } : {}),
           ...(triggerTimings.some((entry) => entry !== "") ? { triggerTimings } : {}),
           ...(decisionTiming !== undefined ? { timing: decisionTiming } : {}),
+          ...(waiting.length > 0
+            ? {
+                waitingTriggerCardIds: waiting.map((c) => c.source.cardId),
+                waitingTriggerDescriptions: waiting.map((c) => c.effect.description ?? ""),
+                waitingTriggerIsInherited: waiting.map((c) => c.effect.isInherited),
+              }
+            : {}),
         },
       });
       if (response.kind !== "orderTriggers") return null;
