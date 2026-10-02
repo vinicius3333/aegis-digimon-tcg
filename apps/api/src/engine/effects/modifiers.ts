@@ -82,6 +82,12 @@ export interface PlayerDpModifier {
   sourceKinds?: string[];
   /** Ignore only the opponent-turn end already in progress. */
   skipsCurrentOpponentTurnEnd?: boolean;
+  /**
+   * Live target filter ("all of your opponent's suspended Digimon"): the delta applies only
+   * while a permanent matches, so later entrants and permanents that start or stop matching
+   * are re-read on every continuous recompute.
+   */
+  matches?: (permanentId: string) => boolean;
 }
 
 /**
@@ -404,6 +410,7 @@ export class ModifierLedger {
       sourceSeat?: Seat;
       sourceKinds?: string[];
       skipsCurrentOpponentTurnEnd?: boolean;
+      matches?: (permanentId: string) => boolean;
     },
   ): PlayerDpModifier {
     const modifier: PlayerDpModifier = {
@@ -414,10 +421,25 @@ export class ModifierLedger {
       sourceSeat: opts?.sourceSeat,
       sourceKinds: opts?.sourceKinds,
       skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
+      ...(opts?.matches === undefined ? {} : { matches: opts.matches }),
     };
     this.playerDpModifiers.push(modifier);
     for (const permanent of state.players[seat]!.battleArea) this.recomputeDP(state, permanent.permanentId);
     return modifier;
+  }
+
+  /**
+   * Re-read every filtered player-wide modifier against the live board. Its predicate can start
+   * or stop matching without any DP event (a Digimon suspends, gains a keyword, digivolves), so
+   * the continuous recompute calls this after the other tiers are rebuilt.
+   */
+  recomputeFilteredPlayerDp(state: GameState): void {
+    const seats = new Set(
+      this.playerDpModifiers.filter((modifier) => modifier.matches !== undefined).map(({ seat }) => seat),
+    );
+    for (const seat of seats) {
+      for (const permanent of state.players[seat]?.battleArea ?? []) this.recomputeDP(state, permanent.permanentId);
+    }
   }
 
   /** Active DP modifiers on a permanent (server-only; for tests/diagnostics). */
@@ -510,6 +532,7 @@ export class ModifierLedger {
     let sum = 0;
     for (const modifier of this.playerDpModifiers) {
       if (modifier.seat !== permanent.controllerSeat) continue;
+      if (modifier.matches !== undefined && !modifier.matches(permanent.permanentId)) continue;
       // `dpImmune` is a reduction-only rule and predates source provenance, so it must
       // continue to suppress every negative player-wide delta, including legacy callers.
       if (modifier.delta < 0 && this.continuous?.hasRestriction(permanent.permanentId, "dpImmune")) continue;

@@ -85,7 +85,10 @@ describe("BT26-032 compiled fidelity", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
 
     expect(s.perm("suspendCost").isSuspended).toBe(true);
-    expect(s.perm("penaltyTarget").currentDP).toBe(7000);
+    // The penalty target is suspended later in the same resolution, so it also starts matching
+    // the live "suspended Digimon get -5000 DP" filter on top of Succession's -3000.
+    expect(s.perm("penaltyTarget").isSuspended).toBe(true);
+    expect(s.perm("penaltyTarget").currentDP).toBe(2000);
   });
 
   it("uses the alternate cost only over a Ceresmon with printed play cost 12", async () => {
@@ -406,5 +409,37 @@ describe("BT26-032 compiled fidelity", () => {
         s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }
       ).continuous.hasRestriction(s.perm("lockOnly").permanentId, "unsuspend"),
     ).toBe(true);
+  });
+
+  it("follows opposing Digimon as they become suspended or unsuspended during the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-032", as: "ceresmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "suspendedAtResolution", suspended: true },
+            { card: "BT1-080", as: "suspendedLater" },
+          ],
+          hand: [{ card: "BT1-080", as: "playedLater" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
+    expect(s.perm("suspendedAtResolution").currentDP).toBe(7000);
+    expect(s.perm("suspendedLater").currentDP).toBe(12000);
+
+    await advance(s.engine).verb.suspend([s.perm("suspendedLater").permanentId]);
+    expect(s.perm("suspendedLater").currentDP).toBe(7000);
+
+    await advance(s.engine).verb.unsuspend([s.perm("suspendedAtResolution").permanentId]);
+    expect(s.perm("suspendedAtResolution").currentDP).toBe(12000);
+
+    await advance(s.engine).verb.playInstances([s.inst("playedLater").instanceId]);
+    expect(s.perm("playedLater").currentDP).toBe(12000);
+    await advance(s.engine).verb.suspend([s.perm("playedLater").permanentId]);
+    expect(s.perm("playedLater").currentDP).toBe(7000);
   });
 });

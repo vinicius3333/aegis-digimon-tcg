@@ -61,31 +61,31 @@ describe("EX12-076 Susanoomon", () => {
     ]);
   });
 
-  it("offers a later attack after refusal and consumes the turn limit only on acceptance", async () => {
-    const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
+  it("places an opposing Digimon without offering a refusal and resolves only once per turn", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: CARD_ID, as: "susanoo" }], deck: ["BT1-101"] },
-        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim" },
+            { card: "BT1-010", as: "survivor" },
+          ],
+        },
       },
-      options,
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
+    const victimId = s.perm("victim").topCard!.instanceId;
     await s.ready();
+
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("susanoo"));
-    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID)).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID)).toHaveLength(0);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([victimId]);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
 
-    options.autoDeclineOptional = false;
-    options.autoAcceptOptional = true;
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("susanoo"));
-    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID)).toHaveLength(2);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(1);
-
-    const decisionsAfterAcceptance = s.decisions.length;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("susanoo"));
-    expect(s.decisions).toHaveLength(decisionsAfterAcceptance);
   });
 
   it("keeps Rush, Raid, Blocker, and the Rule-granted Hybrid trait active", async () => {
@@ -150,6 +150,47 @@ describe("EX12-076 Susanoomon", () => {
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(2000);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("keeps the turn DP reduction on a Digimon played from security later that turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX12-019", as: "base", under: ["EX12-015", "EX12-020"] }],
+        hand: [{ card: CARD_ID, as: "susanoo" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        security: [{ card: "BT26-082", as: "ravemon", faceUp: true }],
+        deck: ["BT1-011", "BT1-012"],
+      },
+    });
+    const ravemonId = s.inst("ravemon").instanceId;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("susanoo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD_ID && s.state.pendingDecision === undefined);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT26-082") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(ravemonId);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("places the opponent's Digimon in security without the conditional trash or Recovery at three colors", async () => {

@@ -87,6 +87,7 @@ export interface AegisJoinOptions {
     | "arena-matt-repeated-effect-presets"
     | "arena-ex13-kings-opponent-sukamon"
     | "arena-ex13-kingsukamon-immunity-lapse"
+    | "arena-ex12-susanoomon-later-arrival-dp"
     | "arena-ex13-kingsukamon-machinedramon-dp"
     | "arena-ex13-examon"
     | "arena-ex13-examon-battle-win-timing"

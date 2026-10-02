@@ -135,7 +135,12 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
                 !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
               );
             },
-            locksTamersAsDigimon ? { matchesAsDigimon: matchesAsDigimon(seat, true) } : undefined,
+            {
+              ...(locksTamersAsDigimon ? { matchesAsDigimon: matchesAsDigimon(seat, true) } : {}),
+              fromSourceKind: action.fromSourceKind as string[] | undefined,
+              byOpponentEffectsOnly: action.byOpponentEffectsOnly === true ? true : undefined,
+              byEffectsOnly: action.byEffectsOnly === true ? true : undefined,
+            },
           );
         }
         return false;

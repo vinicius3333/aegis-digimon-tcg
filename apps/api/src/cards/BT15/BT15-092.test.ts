@@ -14,6 +14,7 @@ import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT15_092 } from "./BT15-092.js";
 import "../index.js";
@@ -262,5 +263,71 @@ describe("BT15-092 Revelation of Light — KB Q&A rulings", () => {
     await expect(bystanderDpAfterSecurityCheckReveal()).resolves.toBe(7000);
     await expect(bystanderDpAfterSecuritySearch()).resolves.toBe(12000);
     await expect(bystanderDpAfterEffectTrashesIt()).resolves.toBe(7000);
+  });
+});
+
+describe("BT15-092 Revelation of Light — later-played opposing Digimon", () => {
+  it("reduces an opposing Digimon played after the security effect for the same turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT15-092", as: "revealed" }, "BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT15-053", as: "attacker" }],
+          hand: [{ card: "BT1-024", as: "late" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const revealedId = s.inst("revealed").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((zoneCard) => zoneCard.instanceId === revealedId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("attacker").currentDP).toBe(7000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(5000);
+  });
+
+  it("ends the reduction at the end of the card owner's turn, not the affected player's (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT15-092", as: "option", faceUp: true }],
+          hand: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT15-053", as: "present" }],
+          hand: [{ card: "BT1-024", as: "late" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+    expect(s.perm("present").currentDP).toBe(7000);
+    expect(s.perm("late").currentDP).toBe(5000);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("present").currentDP).toBe(12000);
+    expect(s.perm("late").currentDP).toBe(10000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

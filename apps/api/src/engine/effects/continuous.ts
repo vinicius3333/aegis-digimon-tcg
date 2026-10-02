@@ -248,6 +248,9 @@ export class ContinuousEffectLedger {
     opts?: {
       continuous?: boolean;
       matchesAsDigimon?: PlayerRestrictionEntry["matchesAsDigimon"];
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
     },
   ): void {
     this.playerRestrictions.push(
@@ -259,6 +262,9 @@ export class ContinuousEffectLedger {
         matches,
         continuous: opts?.continuous,
         ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+        ...(opts?.fromSourceKind === undefined ? {} : { fromSourceKind: opts.fromSourceKind }),
+        ...(opts?.byOpponentEffectsOnly === true ? { byOpponentEffectsOnly: true } : {}),
+        ...(opts?.byEffectsOnly === true ? { byEffectsOnly: true } : {}),
       }),
     );
   }
@@ -315,15 +321,21 @@ export class ContinuousEffectLedger {
     const isSuspend = restriction === "suspend" || restriction === "beSuspended";
     const isEquivalent = (candidate: Restriction): boolean =>
       candidate === restriction || (isSuspend && (candidate === "suspend" || candidate === "beSuspended"));
+    const scopeBlocks = (entry: {
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+      fromSourceKind?: string[];
+    }): boolean => {
+      if (entry.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
+      if (entry.byEffectsOnly === true && opts?.byEffect === false) return false;
+      if (entry.fromSourceKind === undefined) return true;
+      // Qualified entry: block only when sourceKind is known and matches.
+      return sourceKind !== undefined && entry.fromSourceKind.includes(sourceKind);
+    };
     const individuallyRestricted = this.restrictions.some((r) => {
       if (r.permanentId !== permanentId || !isEquivalent(r.restriction)) return false;
-      if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
-      if (r.byEffectsOnly === true && opts?.byEffect === false) return false;
       if (this.suppressedByEffectImmunity(r)) return false;
-      if (r.fromSourceKind === undefined) return true;
-      // Qualified entry: block only when sourceKind is known and matches.
-      if (sourceKind === undefined || !r.fromSourceKind.includes(sourceKind)) return false;
-      return true;
+      return scopeBlocks(r);
     });
     if (individuallyRestricted) return true;
     // A player-scoped restriction can name ANY permanent kind ("none of your opponent's Tamers
@@ -333,8 +345,25 @@ export class ContinuousEffectLedger {
     if (this.playerRestrictions.length === 0) return false;
     const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
     return this.playerRestrictions.some(
-      (entry) => entry.seat === controllerSeat && isEquivalent(entry.restriction) && entry.matches(permanentId),
+      (entry) =>
+        entry.seat === controllerSeat &&
+        isEquivalent(entry.restriction) &&
+        scopeBlocks(entry) &&
+        this.playerRestrictionMatches(entry, permanentId),
     );
+  }
+
+  /** Entries whose live filter is being evaluated, so a filter that reads restrictions can't recurse into itself. */
+  private readonly evaluatingPlayerRestrictions = new Set<PlayerRestrictionEntry>();
+
+  private playerRestrictionMatches(entry: PlayerRestrictionEntry, permanentId: string): boolean {
+    if (this.evaluatingPlayerRestrictions.has(entry)) return false;
+    this.evaluatingPlayerRestrictions.add(entry);
+    try {
+      return entry.matches(permanentId);
+    } finally {
+      this.evaluatingPlayerRestrictions.delete(entry);
+    }
   }
 
   /** Effects this permanent cannot be affected by cannot keep their restrictions active. */
@@ -904,8 +933,23 @@ export class ContinuousEffectLedger {
   ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
-  addPlayerKeywordGrant(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void {
-    this.playerKeywordGrants.push(this.anchorDuration({ seat, keyword, amount, duration }));
+  addPlayerKeywordGrant(
+    seat: Seat,
+    keyword: string,
+    duration: EffectDuration,
+    amount?: number,
+    opts?: { ownerSeat?: Seat; matches?: (permanentId: string) => boolean },
+  ): void {
+    this.playerKeywordGrants.push(
+      this.anchorDuration({
+        seat,
+        keyword,
+        amount,
+        duration,
+        ...(opts?.ownerSeat === undefined ? {} : { ownerSeat: opts.ownerSeat }),
+        ...(opts?.matches === undefined ? {} : { matches: opts.matches }),
+      }),
+    );
   }
 
   /** Grant a named custom effect to every matching current/future permanent controlled by `seat`. */
@@ -938,9 +982,23 @@ export class ContinuousEffectLedger {
     if (seat === undefined) return direct;
     return direct.concat(
       this.playerKeywordGrants
-        .filter((grant) => grant.seat === seat)
+        .filter((grant) => grant.seat === seat && this.playerKeywordGrantMatches(grant, permanentId))
         .map(({ keyword, amount }) => ({ keyword, amount })),
     );
+  }
+
+  /** Grants whose live filter is being evaluated, so a filter that reads keywords can't recurse into itself. */
+  private readonly evaluatingPlayerKeywordGrants = new Set<PlayerKeywordGrant>();
+
+  private playerKeywordGrantMatches(grant: PlayerKeywordGrant, permanentId: string): boolean {
+    if (grant.matches === undefined) return true;
+    if (this.evaluatingPlayerKeywordGrants.has(grant)) return false;
+    this.evaluatingPlayerKeywordGrants.add(grant);
+    try {
+      return grant.matches(permanentId);
+    } finally {
+      this.evaluatingPlayerKeywordGrants.delete(grant);
+    }
   }
 
   /** Whether a permanent currently has a given keyword from any active grant. */
@@ -1398,7 +1456,8 @@ export class ContinuousEffectLedger {
       (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.playerKeywordGrants = this.playerKeywordGrants.filter(
-      (grant) => !this.expiresAt(grant, grant.duration, boundary, grant.seat, sweepSeat, battleScopeId),
+      (grant) =>
+        !this.expiresAt(grant, grant.duration, boundary, grant.ownerSeat ?? grant.seat, sweepSeat, battleScopeId),
     );
     this.playerCustomEffectGrants = this.playerCustomEffectGrants.filter(
       (grant) => !this.expiresAt(grant, grant.duration, boundary, grant.ownerSeat, sweepSeat, battleScopeId),

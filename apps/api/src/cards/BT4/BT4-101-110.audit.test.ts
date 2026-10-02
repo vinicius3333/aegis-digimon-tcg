@@ -140,6 +140,7 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
       {
         kind: "ModifyDP",
         target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+        playerWide: true,
         amount: -3000,
         duration: "forTheTurn",
       },

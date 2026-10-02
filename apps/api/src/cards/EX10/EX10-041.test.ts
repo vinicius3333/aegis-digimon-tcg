@@ -234,6 +234,33 @@ describe("EX10-041 Wizardmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("applies the -3000 DP to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "wizard" }],
+          security: [{ card: "BT1-010", as: "securityCost" }],
+          deck: ["BT1-009", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "current", dp: 9000 }],
+          hand: [{ card: "BT1-024", as: "late" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wizard").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("current").currentDP === 6000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(7000);
+  });
+
   it("declining the security cost aborts the whole block: no mill, no DP change", async () => {
     const s = setupEngine(
       {

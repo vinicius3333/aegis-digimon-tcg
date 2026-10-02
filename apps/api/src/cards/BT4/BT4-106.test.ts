@@ -26,6 +26,27 @@ describe("BT4-106 Purge Shine", () => {
     expect([s.perm("first").currentDP, s.perm("second").currentDP]).toEqual([4000, 11000]);
   });
 
+  it("reduces an opposing Digimon played later in the turn by 3000 DP (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT4-044"], hand: [{ card: "BT4-106", as: "option" }] },
+        1: {
+          battleArea: [{ card: "BT4-045", as: "current" }],
+          hand: [{ card: "BT1-024", as: "future" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("current").currentDP === 4000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+    expect(s.perm("future").currentDP).toBe(7000);
+  });
+
   it("activates the Main effect from security", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT4-106", as: "securityOption", faceUp: true }] },

@@ -43,7 +43,12 @@ export interface ContinuousPrimitives {
     restriction: EnforcedRestriction,
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
-    opts?: { matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean },
+    opts?: {
+      matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean;
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+    },
   ): void;
   /**
    * Prevent one attacker from declaring an attack against one exact opposing Digimon while
@@ -165,7 +170,13 @@ export interface ContinuousPrimitives {
     extraMaterialInstanceIds?: string[],
   ): boolean;
   /** Grant a keyword to all current and future Digimon permanents controlled by a player. */
-  grantPlayerKeyword(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void;
+  grantPlayerKeyword(
+    seat: Seat,
+    keyword: string,
+    duration: EffectDuration,
+    amount?: number,
+    opts?: { ownerSeat?: Seat; matches?: (permanentId: string) => boolean },
+  ): void;
   /**
    * Keywords currently GRANTED to a permanent (the consuming read of `grantKeyword`).
    * A filter's keyword-presence clause ("Digimon with ＜Security Attack＞") must see

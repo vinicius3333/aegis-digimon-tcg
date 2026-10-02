@@ -448,6 +448,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon.",
     en: "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon.",
   },
+  "arena-ex12-susanoomon-later-arrival-dp": {
+    ptBR: "Digievolua Susanoomon sobre Nezhamon com o custo alternativo 5: as 4 cores das fontes dão -12000 DP a todos os Digimon adversários no turno. Encerre o turno sem atacar. O Ravemon (BT26-082) com a face para cima na segurança adversária se joga no fim do seu turno e deve ser deletado com 0 DP.",
+    en: "Digivolve Susanoomon onto Nezhamon with the alternate cost 5: the 4 source colors give all opposing Digimon -12000 DP for the turn. End the turn without attacking. The face-up BT26-082 Ravemon in the opponent's security plays itself at the end of your turn and must be deleted at 0 DP.",
+  },
   "arena-ex13-kingsukamon-machinedramon-dp": {
     ptBR: "Jogue EX13-031 KingSukamon da mão (custo 7), aceite o [Ao Jogar], descarte o Chuumon e escolha o Machinedramon do bot (11000 DP). O efeito muda o DP original, o que não é redução de DP: o Machinedramon deve virar um [Sukamon] branco com 3000 DP.",
     en: "Play EX13-031 KingSukamon from hand (cost 7), accept its [On Play], trash Chuumon, and choose the bot's Machinedramon (11000 DP). The effect changes original DP, which is not a DP reduction: Machinedramon must become a white [Sukamon] with 3000 DP.",
@@ -545,6 +549,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-matt-repeated-effect-presets", "Optional effects · 5/5 Matt simultaneous discard"],
   ["arena-ex13-kings-opponent-sukamon", "EX13 Kings · opponent Sukamon"],
   ["arena-ex13-kingsukamon-immunity-lapse", "EX13 KingSukamon · 0 DP deletion"],
+  ["arena-ex12-susanoomon-later-arrival-dp", "EX12 Susanoomon · DP on later arrival"],
   ["arena-ex13-kingsukamon-machinedramon-dp", "EX13 KingSukamon · Machinedramon becomes 3000 DP"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
