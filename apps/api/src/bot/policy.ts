@@ -334,6 +334,10 @@ function pickInstances(view: BotView | undefined, request: DecisionRequest): str
 
   function rank(instanceId: string): number {
     const enemy = opponentUnits.get(instanceId);
+    // Suspending an already suspended Digimon is legal (Q1782) but changes nothing.
+    if (enemy !== undefined && enemy.suspended && request.options?.targetFate === "suspend") {
+      return 500 + bodyValue(enemy);
+    }
     if (enemy !== undefined) return 1_000 + bodyValue(enemy);
     const mine = ownUnits.get(instanceId);
     if (mine !== undefined) return -bodyValue(mine);

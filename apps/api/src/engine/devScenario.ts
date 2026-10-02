@@ -62,6 +62,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-proximamon-dual-siriusmon",
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
+  "arena-ex13-leopardmon-suspended-target",
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
@@ -376,6 +377,36 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/**
+ * Discord 1555185598694821928: EX13-043 Leopardmon's "suspend 1 Digimon" has no unsuspended
+ * gate, so the bot's already suspended Muchomon must be a legal target (Q1782).
+ */
+function layEx13LeopardmonSuspendedTargetScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-leopardmon-ex13", "EX13-043", 0));
+    placePermanent(human, establishedDigimon(0, ["BT4-057"], "-leopardmon-ally"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const restingTarget = establishedDigimon(1, ["BT1-013"], "-leopardmon-resting");
+    restingTarget.isSuspended = true;
+    placePermanent(bot, restingTarget);
+    placePermanent(bot, establishedDigimon(1, ["BT1-012"], "-leopardmon-lowest"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 12;
 }
 
 /**
@@ -3494,7 +3525,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
-  "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
+  "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
+  "arena-bt20-dragon-gene-skip-play":layBt20DragonGeneSkipPlayScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-bt22-palmon-cs-restack": layBt22PalmonCsRestackScenario,

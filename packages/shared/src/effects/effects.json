@@ -6840,7 +6840,7 @@
           {
             "effectTextPart": "[When Digivolving] You may suspend 1 of your Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "unsuspended": true }, "count": 1 },
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "optional": true
           },
           {
@@ -23488,10 +23488,7 @@
             "actions": [
               {
                 "kind": "Suspend",
-                "target": {
-                  "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"], "unsuspended": true },
-                  "count": 1
-                }
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 }
               }
             ]
           }
@@ -23507,10 +23504,7 @@
       {
         "trigger": "WhenDigivolving",
         "actions": [
-          {
-            "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true }, "count": 1 }
-          },
+          { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
@@ -33602,18 +33596,14 @@
           {
             "kind": "Suspend",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true },
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
               "count": 1,
               "bindAs": "digimonTarget"
             }
           },
           {
             "kind": "Suspend",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Tamer"], "unsuspended": true },
-              "count": 1,
-              "bindAs": "tamerTarget"
-            }
+            "target": { "filter": { "controller": "opponent", "kind": ["Tamer"] }, "count": 1, "bindAs": "tamerTarget" }
           },
           {
             "kind": "Restrict",
@@ -135155,10 +135145,7 @@
       {
         "trigger": "WhenAttacking",
         "actions": [
-          {
-            "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "unsuspended": true, "kind": ["Digimon"] }, "count": 1 }
-          }
+          { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } }
         ]
       }
     ],
@@ -174634,7 +174621,6 @@
               "target": {
                 "filter": {
                   "controller": "opponent",
-                  "unsuspended": true,
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 }
                 },
@@ -174676,7 +174662,6 @@
               "target": {
                 "filter": {
                   "controller": "opponent",
-                  "unsuspended": true,
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 }
                 },
@@ -206629,7 +206614,7 @@
           {
             "effectTextPart": "[When Digivolving][When Attacking] Suspend 1 of your opponent’s Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if your opponent has no unsuspended Digimon, gain 1 memory.",
@@ -206649,7 +206634,7 @@
           {
             "effectTextPart": "[When Digivolving][When Attacking] Suspend 1 of your opponent’s Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
           },
           {
             "effectTextPart": "Then, if your opponent has no unsuspended Digimon, gain 1 memory.",
@@ -233679,7 +233664,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] You may suspend 1 Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "any", "kind": ["Digimon"], "unsuspended": true }, "count": 1 },
+            "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
             "raw": "You may suspend 1 Digimon"
           },
@@ -233702,7 +233687,7 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] You may suspend 1 Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controller": "any", "kind": ["Digimon"], "unsuspended": true }, "count": 1 },
+            "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
             "optional": true,
             "raw": "You may suspend 1 Digimon"
           },

@@ -5,7 +5,7 @@ const suspendAndReward: Action[] = [
   {
     effectTextPart: "[When Digivolving][When Attacking] Suspend 1 of your opponent’s Digimon.",
     kind: "Suspend",
-    target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
+    target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
   },
   {
     effectTextPart: "Then, if your opponent has no unsuspended Digimon, gain 1 memory.",

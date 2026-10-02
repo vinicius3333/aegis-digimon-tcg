@@ -14,7 +14,7 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
       actions: [
         {
           kind: "Suspend",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
         },
         {
           kind: "Restrict",
@@ -102,6 +102,22 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendDecision = s.state.pendingDecision!;
+    expect(JSON.parse(suspendDecision.payloadJson).candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("suspendTarget").permanentId, s.perm("lockTarget").permanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
+    );
     const lockDecision = s.state.pendingDecision!;
     expect(JSON.parse(lockDecision.payloadJson).candidateInstanceIds).toContain(s.perm("lockTarget").permanentId);
     expect(

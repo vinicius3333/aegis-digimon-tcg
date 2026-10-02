@@ -8,7 +8,7 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-057 Rosemon", () => {
-  it("models the optional processing condition and unsuspended opponent targets", () => {
+  it("models the unsuspended cost target and the unrestricted triggered suspend target", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]).toMatchObject({
@@ -36,7 +36,7 @@ describe("BT13-057 Rosemon", () => {
           actions: [
             expect.objectContaining({
               kind: "Suspend",
-              target: expect.objectContaining({ filter: expect.objectContaining({ unsuspended: true }) }),
+              target: expect.objectContaining({ filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } }),
             }),
           ],
         }),
