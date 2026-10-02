@@ -37,7 +37,7 @@ import {
   runPlayAction,
 } from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
-import { runRemovalAction } from "./removal.js";
+import { returnableDigivolutionCards, runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
 import { runRestrictionAction } from "./restrictions.js";
 import { runRevealAction } from "./reveal.js";
@@ -953,6 +953,16 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         };
         if (!costCreatesRecoveryCandidate()) return unavailableAction(ctx, action);
       }
+    }
+    // A scaled ceiling is only known once the action resolves, so only a fixed filter preflights.
+    if (
+      action.kind === "Return" &&
+      (action.from ?? []).includes("digivolutionCards") &&
+      action.scaling === undefined &&
+      action.playCostCeiling === undefined &&
+      returnableDigivolutionCards(ctx, action.target).length === 0
+    ) {
+      return unavailableAction(ctx, action);
     }
     // A "may digivolve" prompt is meaningful only when at least one matching source and
     // destination form a legal digivolution. In particular, "without paying the cost" does

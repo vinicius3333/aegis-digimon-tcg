@@ -92,6 +92,13 @@ async function returnDigivolutionCardsFirst(
   }
 }
 
+/** The cards under the resolving Digimon that a "return from this Digimon's digivolution cards" may take. */
+export function returnableDigivolutionCards(ctx: EffectContext, target: Target): CardInstance[] {
+  return (
+    ctx.source.permanent()?.stack.filter((card) => definitionMatches(target.filter, ctx.game.definitionOf(card))) ?? []
+  );
+}
+
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
@@ -720,17 +727,8 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // as Return(isSelfRef). The source is a loose security card, so it has no
       // permanent for resolvePermanentTargets to find.
       if (action.from?.includes("digivolutionCards")) {
-        const self = ctx.source.permanent();
-        const candidates =
-          self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
+        const candidates = returnableDigivolutionCards(ctx, returnTarget);
         if (candidates.length === 0) {
-          ctx.lastEffectActed = false;
-          return false;
-        }
-        if (
-          action.optional === true &&
-          !(await ctx.ask.optional(ctx, "Return a level 6 digivolution card to your hand?"))
-        ) {
           ctx.lastEffectActed = false;
           return false;
         }
