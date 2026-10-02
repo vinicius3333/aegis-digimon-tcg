@@ -113,6 +113,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-merciful-mode-attack-order",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
+  "arena-ex10-blastmon-digixros",
   "arena-issue-4888-app-fusion",
   "arena-issue-4889-weregarurumon-dna",
   "arena-paildramon-dna-inheritance",
@@ -2581,6 +2582,22 @@ function layEx10MaloMyotismonTrashMainScenario(state: GameState, decks: readonly
   state.memory = 1;
 }
 
+/**
+ * Discord 1555207678542876682: EX10-034 Blastmon prints "[DigiXros -2] 3 Digimon cards w/[Bagra
+ * Army] trait". A fourth [Bagra Army] card in hand shows the cap stops at three, not two.
+ */
+function layEx10BlastmonDigiXrosScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 7);
+  const human = state.players[0];
+  if (human === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-blastmon", "EX10-034", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-blastmon-skullknightmon", "EX10-026", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-blastmon-deadlyaxemon", "EX10-027", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-blastmon-chuuchuumon", "EX10-039", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-blastmon-damemon", "EX10-044", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-blastmon-neutral-draw", "BT1-085", 0), "top");
+}
+
 function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Decklist], memory: number): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -3578,6 +3595,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
+  "arena-ex10-blastmon-digixros": layEx10BlastmonDigiXrosScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
   "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,
   "arena-paildramon-dna-inheritance": layPaildramonDnaInheritanceScenario,

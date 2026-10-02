@@ -94,6 +94,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-merciful-mode-attack-order"
     | "arena-ex10-god-grade-raising-color"
     | "arena-ex10-malomyotismon-trash-main"
+    | "arena-ex10-blastmon-digixros"
     | "arena-issue-4888-app-fusion"
     | "arena-issue-4889-weregarurumon-dna"
     | "arena-paildramon-dna-inheritance"
