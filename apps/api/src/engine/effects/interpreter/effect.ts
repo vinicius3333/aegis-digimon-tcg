@@ -1070,24 +1070,26 @@ export function canActivateEffect(
   // mechanically ungated because it consumes a binding produced by X; treating Y as an
   // independent processing path would allow the player to declare the effect when X's
   // condition/cost is impossible (BT10-025). Mirror runEffect's ordered abort semantics here.
+  // A ConditionalBranch condition is read after its cost is paid and only picks the branch
+  // ("By suspending ..., if your hand has 7 or fewer cards, ＜Draw 1＞", P-245), so it never
+  // blocks the declaration. runAction exempts it from the pre-cost gate the same way.
+  const conditionMet = (action: ParsedAction): boolean =>
+    action.kind === "ConditionalBranch" ||
+    action.condition === undefined ||
+    (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
   const leadingAction = relevantActions[0];
   if (leadingAction?.abortOnDecline === true && isGated(leadingAction)) {
     const actionPossible = intrinsicPossible(leadingAction);
-    const conditionMet =
-      leadingAction.condition === undefined ||
-      (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
     const costPayable = costsPayable(leadingAction);
-    return actionPossible && conditionMet && costPayable;
+    return actionPossible && conditionMet(leadingAction) && costPayable;
   }
   const gatedActions = relevantActions.filter(isGated);
   const ungatedCount = relevantActions.length - gatedActions.length;
   if (gatedActions.length === 0 || ungatedCount > 0) return true;
   return gatedActions.some((action) => {
     const actionPossible = intrinsicPossible(action);
-    const conditionMet =
-      action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = costsPayable(action);
-    return actionPossible && conditionMet && costPayable;
+    return actionPossible && conditionMet(action) && costPayable;
   });
 }
 

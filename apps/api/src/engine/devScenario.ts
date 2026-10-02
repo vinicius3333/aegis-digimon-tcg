@@ -69,6 +69,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
   "arena-ex13-breakdramon-zero-security-check",
+  "arena-p245-kakkinmon-full-hand-suspend",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt26-rosemon-option-digivolve-lock",
@@ -488,6 +489,39 @@ function layEx13BreakdramonZeroSecurityCheckScenario(state: GameState, decks: re
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * Discord 1555485421750984765: the human's EX13-062 Craniamon has P-245 Kakkinmon in its
+ * digivolution cards, and the turn draw brings the hand to 8. At the end of the turn,
+ * Kakkinmon's inherited "By suspending 1 of your black Digimon with ＜Blocker＞, if your hand has
+ * 7 or fewer cards, ＜Draw 1＞" can still suspend Craniamon without drawing, and that suspension
+ * fires Craniamon's sweep of the bot's lowest-play-cost Digimon.
+ */
+function layP245KakkinmonFullHandSuspendScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    for (let index = 0; index < 7; index += 1) {
+      insertCard(human, Zone.Hand, faceDownCard(`dev-kakkinmon-hand-${index}`, "BT1-009", 0));
+    }
+    placePermanent(human, establishedDigimon(0, ["P-245", "EX13-062"], "-kakkinmon-craniamon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-kakkinmon-cheapest"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-013"], "-kakkinmon-dearer"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /**
@@ -4092,6 +4126,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
+  "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
