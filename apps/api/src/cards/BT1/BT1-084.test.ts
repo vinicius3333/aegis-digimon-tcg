@@ -242,6 +242,30 @@ describe("BT1-084 Omnimon", () => {
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("different").permanentId);
   });
 
+  it("asks its When Attacking yes/no once, and not at all without a level 6 digivolution card", async () => {
+    async function optionalPromptsWhenAttacking(under: string[]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-084", as: "attacker", under }] },
+          1: { security: ["BT1-010"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+      return s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT1-084").length;
+    }
+
+    expect(await optionalPromptsWhenAttacking(["BT1-025"])).toBe(1);
+    expect(await optionalPromptsWhenAttacking(["BT1-010"])).toBe(0);
+  });
+
   it("may decline returning a level 6 card, remaining suspended (Q943)", async () => {
     const s = setupEngine(
       {

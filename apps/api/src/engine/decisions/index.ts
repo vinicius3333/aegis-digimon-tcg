@@ -46,6 +46,8 @@ interface OpenDecision {
   /** `min`/`candidateInstanceIds` offered, if any — see {@link satisfiesMin}. */
   min: number | undefined;
   candidateInstanceIds: readonly string[] | undefined;
+  /** The pick of an accepted "you may": empty backs out, so a non-empty answer must name an offered card. */
+  backsOutOnlyWhenEmpty: boolean;
   distinctCardIds: boolean;
   distinctNames: boolean;
   cardIdByInstance: ReadonlyMap<string, string>;
@@ -165,6 +167,7 @@ export class DecisionManager {
         kind: spec.kind,
         min: spec.options?.min,
         candidateInstanceIds: spec.options?.candidateInstanceIds,
+        backsOutOnlyWhenEmpty: spec.options?.purpose === "acceptedOptional",
         distinctCardIds: spec.options?.distinctCardIds === true,
         distinctNames: spec.options?.distinctNames === true,
         cardIdByInstance: new Map([
@@ -200,6 +203,7 @@ export class DecisionManager {
     if (open.decisionId !== decisionId) return false;
     if (!responseMatchesKind(open.kind, response)) return false;
     if (!satisfiesMin(open, response)) return false;
+    if (!namesAnOfferedCardUnlessEmpty(open, response)) return false;
     if (!satisfiesDistinctCardIds(open, response)) return false;
     if (!satisfiesDistinctNames(open, response)) return false;
     if (!choosesOfferedTriggers(open, response)) return false;
@@ -342,6 +346,19 @@ function responseMatchesKind(kind: DecisionRequest["kind"], response: DecisionRe
  * `respond` is handled (the existing per-decision timer is the stall backstop,
  * API-CONTRACT.md section 7).
  */
+/**
+ * An accepted "you may" pick takes an empty answer as a back-out. Without this check, an answer
+ * naming only cards that were not offered would be sanitized into that same back-out instead
+ * of being rejected so the seat can answer again.
+ */
+function namesAnOfferedCardUnlessEmpty(open: OpenDecision, response: DecisionResponse): boolean {
+  if (!open.backsOutOnlyWhenEmpty) return true;
+  if (response.kind !== "chooseTargets" && response.kind !== "selectCards") return true;
+  if (response.instanceIds.length === 0) return true;
+  const offered = new Set(open.candidateInstanceIds ?? []);
+  return response.instanceIds.some((instanceId) => offered.has(instanceId));
+}
+
 function satisfiesMin(open: OpenDecision, response: DecisionResponse): boolean {
   if (open.min === undefined) return true;
   const ids = response.kind === "chooseTargets" || response.kind === "selectCards" ? response.instanceIds : undefined;

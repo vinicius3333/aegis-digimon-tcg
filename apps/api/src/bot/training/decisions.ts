@@ -115,7 +115,10 @@ export function* decisionSteps(
         throw new Error("Training material recipes require a specialized selection validator");
       }
       const offered = [...new Set(options.candidateInstanceIds ?? [])];
-      const minimum = Math.min(options.min ?? 0, offered.length);
+      // An accepted "you may" pick already answered its yes/no; its floor of zero is a human
+      // back-out, not a second decline the policy should learn.
+      const floor = options.purpose === "acceptedOptional" ? Math.max(options.min ?? 0, 1) : (options.min ?? 0);
+      const minimum = Math.min(floor, offered.length);
       const maximum = Math.min(options.max ?? offered.length, offered.length);
       const valid = (ids: readonly string[]): boolean => {
         if (ids.length > maximum) return false;

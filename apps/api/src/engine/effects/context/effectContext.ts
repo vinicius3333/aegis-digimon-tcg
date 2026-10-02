@@ -90,6 +90,12 @@ export interface EffectContext {
    * entry and restores in a `finally`. Surfaced as `purpose: "cost"` on the request.
    */
   payingCostDepth?: number;
+  /**
+   * Set while an action whose "you may" the controller already accepted asks for its pick. The
+   * controller's single-card picks then accept zero cards as a back-out. Surfaced as
+   * `purpose: "acceptedOptional"`.
+   */
+  pickingAcceptedOptional?: boolean;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
   effectRestrictions?: Set<string>;
   game: GameAccess;
