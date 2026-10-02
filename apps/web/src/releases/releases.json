@@ -1,5 +1,38 @@
 [
   {
+    "version": "1.8.0-beta",
+    "releasedAt": "2026-10-02",
+    "summaryKey": "releases.1.8.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.8.0-beta.feature.costPrompt"
+      },
+      {
+        "textKey": "releases.1.8.0-beta.feature.trashedSources"
+      },
+      {
+        "textKey": "releases.1.8.0-beta.feature.attackTarget"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.0-beta.fix.laterArrivals"
+      },
+      {
+        "textKey": "releases.1.8.0-beta.fix.digixros"
+      },
+      {
+        "textKey": "releases.1.8.0-beta.fix.link"
+      },
+      {
+        "textKey": "releases.1.8.0-beta.fix.mainEnded"
+      },
+      {
+        "textKey": "releases.1.8.0-beta.fix.dpImmunity"
+      }
+    ]
+  },
+  {
     "version": "1.7.8-beta",
     "releasedAt": "2026-10-01",
     "summaryKey": "releases.1.7.8-beta.summary",

@@ -1,4 +1,40 @@
 {
+  "releases.1.8.0-beta.summary": {
+    "en": "This update redesigns the digivolution cost prompt, makes \"all Digimon\" effects reach Digimon that enter later, and fixes DigiXros, Link and end-of-turn attack timing.",
+    "pt-BR": "Esta atualização redesenha a escolha de custo de digievolução, faz efeitos de \"todos os Digimon\" alcançarem Digimon que entram depois e corrige o tempo de DigiXros, Link e ataques no fim do turno."
+  },
+  "releases.1.8.0-beta.feature.costPrompt": {
+    "en": "The digivolution cost prompt was redesigned: it shows the card, the Digimon it digivolves onto, and each cost option as one button.",
+    "pt-BR": "A escolha de custo de digievolução foi redesenhada: ela mostra a carta, o Digimon que vai receber a digievolução e cada opção de custo como um botão."
+  },
+  "releases.1.8.0-beta.feature.trashedSources": {
+    "en": "When an effect trashes digivolution cards, the game now names and shows the cards that were trashed.",
+    "pt-BR": "Quando um efeito descarta cartas de digievolução, o jogo agora mostra e nomeia as cartas descartadas."
+  },
+  "releases.1.8.0-beta.feature.attackTarget": {
+    "en": "End-of-turn attacks now ask for their target in a clear prompt.",
+    "pt-BR": "Ataques no fim do turno agora pedem o alvo numa escolha clara."
+  },
+  "releases.1.8.0-beta.fix.laterArrivals": {
+    "en": "Effects such as \"all of your opponent's Digimon get -X DP for the turn\" now also affect Digimon that enter play later in that duration, and conditions such as \"suspended\" are checked live. This fixes EX12-076 Susanoomon and 24 other cards.",
+    "pt-BR": "Efeitos como \"todos os Digimon do oponente recebem -X DP no turno\" agora também afetam Digimon que entram em jogo depois, durante a duração, e condições como \"suspenso\" são verificadas o tempo todo. Isso corrige EX12-076 Susanoomon e outras 24 cartas."
+  },
+  "releases.1.8.0-beta.fix.digixros": {
+    "en": "DigiXros now resolves material effects in the right order, treats materials as leaving by rule, and follows the printed material limits.",
+    "pt-BR": "O DigiXros agora resolve os efeitos dos materiais na ordem certa, trata os materiais como saindo por regra e segue os limites de materiais impressos."
+  },
+  "releases.1.8.0-beta.fix.link": {
+    "en": "Link requirements now check a Digimon's current name and traits, so a renamed Digimon can receive or keep a Link card correctly.",
+    "pt-BR": "Os requisitos de Link agora verificam o nome e os traços atuais do Digimon, então um Digimon renomeado recebe ou mantém uma carta de Link corretamente."
+  },
+  "releases.1.8.0-beta.fix.mainEnded": {
+    "en": "After your Main phase ends, cards in hand no longer look playable while end-of-turn effects resolve.",
+    "pt-BR": "Depois que sua fase principal termina, as cartas da mão não aparecem mais como jogáveis enquanto efeitos de fim de turno resolvem."
+  },
+  "releases.1.8.0-beta.fix.dpImmunity": {
+    "en": "DP reductions apply again when a Digimon loses its immunity, and changes to original DP apply even under DP-reduction immunity.",
+    "pt-BR": "Reduções de DP voltam a valer quando um Digimon perde a imunidade, e mudanças no DP original valem mesmo com imunidade a redução de DP."
+  },
   "releases.1.7.8-beta.summary": {
     "en": "This update makes Assembly follow each card's printed recipe, keeps trying to bring you back to a match after a connection drop, and shows only the printed card text in optional effect prompts.",
     "pt-BR": "Esta atualização faz o Assembly seguir a receita impressa de cada carta, continua tentando te devolver à partida após uma queda de conexão e mostra só o texto impresso da carta nos efeitos opcionais."
