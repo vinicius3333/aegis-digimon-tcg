@@ -108,6 +108,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-kingsukamon-machinedramon-dp",
+  "arena-ex13-kingsukamon-vulcanusmon-link",
   "arena-ex13-examon",
   "arena-ex13-examon-battle-win-timing",
   "arena-bt23-examon-opponent-turn-dna",
@@ -2485,6 +2486,41 @@ function layEx13KingSukamonMachinedramonDpScenario(state: GameState, decks: read
 }
 
 /**
+ * Discord 1555375353977905269: once EX13-031 KingSukamon rewrites Vulcanusmon's name to
+ * [Sukamon], BT25-101's "[Link] [Vulcanusmon]" requirement fails and the rule check trashes
+ * it. BT25-100's "[Link] [TS] trait" card stays, because the rewrite keeps the traits.
+ */
+function layEx13KingSukamonVulcanusmonLinkScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-kingsukamon-vulcanusmon-king", "EX13-031", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-kingsukamon-vulcanusmon-fee", "BT3-061", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const vulcanusmon = establishedDigimon(1, ["BT25-075"], "-kingsukamon-vulcanusmon");
+    vulcanusmon.permanentId = "kingsukamon-vulcanusmon-target";
+    linkEstablishedCard(vulcanusmon, faceUpCard("dev-kingsukamon-vulcanusmon-divine-arms", "BT25-101", 1));
+    linkEstablishedCard(vulcanusmon, faceUpCard("dev-kingsukamon-vulcanusmon-iron-slash", "BT25-100", 1));
+    placePermanent(bot, vulcanusmon);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 7;
+}
+
+/**
  * Reproduces the BT16-015 Phoenixmon (X Antibody) report. "[Phoenixmon] or [X Antibody]" names
  * cards, so only the Phoenixmon X with the BT9-109 X Antibody Option underneath attaches
  * [End of Attack] to its [On Deletion] effects. The other one has only WarGrowlmon (X Antibody),
@@ -3928,6 +3964,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-kingsukamon-machinedramon-dp": layEx13KingSukamonMachinedramonDpScenario,
+  "arena-ex13-kingsukamon-vulcanusmon-link": layEx13KingSukamonVulcanusmonLinkScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
   "arena-bt23-examon-opponent-turn-dna": layBt23ExamonOpponentTurnDnaScenario,

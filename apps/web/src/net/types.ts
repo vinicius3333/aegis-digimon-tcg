@@ -88,6 +88,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-kings-opponent-sukamon"
     | "arena-ex13-kingsukamon-immunity-lapse"
     | "arena-ex13-kingsukamon-machinedramon-dp"
+    | "arena-ex13-kingsukamon-vulcanusmon-link"
     | "arena-ex13-examon"
     | "arena-ex13-examon-battle-win-timing"
     | "arena-bt23-examon-opponent-turn-dna"
