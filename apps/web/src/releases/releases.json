@@ -1,5 +1,44 @@
 [
   {
+    "version": "1.8.1-beta",
+    "releasedAt": "2026-10-02",
+    "summaryKey": "releases.1.8.1-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.8.1-beta.feature.orderPrompt"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.feature.cantDigivolveChip"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.1-beta.fix.faceDownSources"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.fix.optionalCosts"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.fix.leaveReactions"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.fix.optionSources"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.fix.pendingEffects"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.fix.digivolveLocks"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.fix.attackEnd"
+      },
+      {
+        "textKey": "releases.1.8.1-beta.fix.stability"
+      }
+    ]
+  },
+  {
     "version": "1.8.0-beta",
     "releasedAt": "2026-10-02",
     "summaryKey": "releases.1.8.0-beta.summary",
