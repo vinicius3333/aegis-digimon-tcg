@@ -44,6 +44,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Evolua BT11-083 para EX7-061 Lilithmon (X Antibody) e aceite devolver EX7-072 da lixeira ao fundo do deck. O Digimon do bot deve sobreviver ao fim do seu turno e só ser deletado no fim do turno dele.",
     en: "Digivolve BT11-083 into EX7-061 Lilithmon (X Antibody) and accept returning EX7-072 from trash to the deck bottom. The bot's Digimon should survive your turn end and be deleted only at the end of its own turn.",
   },
+  "arena-bt26-rosemon-option-digivolve-lock": {
+    ptBR: "Discord 1555363063300096090. Encerre a criação. Use BT26-050 como Option (Aguichant Lèvres, 6 de memória) e suspenda Monodramon e Biyomon, não o Hyogamon. Encerre o turno. Monodramon e Biyomon não desuspendem. Hyogamon (com Shamanmon nas fontes) ataca e fica suspenso. Se o bot descartar um card da mão no Ao Atacar, o herdado de Shamanmon não pode evoluir Hyogamon para SkullBaluchimon da lixeira: nenhum Digimon suspenso do bot pode evoluir até o fim do turno dele.",
+    en: "Discord 1555363063300096090. End breeding. Use BT26-050 as an Option (Aguichant Lèvres, 6 memory) and suspend Monodramon and Biyomon, not Hyogamon. End your turn. Monodramon and Biyomon don't unsuspend. Hyogamon (with Shamanmon in its sources) attacks and becomes suspended. If the bot trashes a card from hand for its When Attacking, Shamanmon's inherited effect must not digivolve Hyogamon into SkullBaluchimon from the trash: none of the bot's suspended Digimon can digivolve until its turn ends.",
+  },
   "arena-bt14-chuumon-security-reveal": {
     ptBR: 'O oponente começa o turno com BT14-032 Chuumon na mão, 3 de memória e BT14-034 Sukamon no topo da segurança. Espere o bot jogar o Chuumon. O [Ao Jogar] adiciona o Sukamon à mão dele sem revelá-lo e depois o coloca de volta no topo da segurança. O seu log deve mostrar "O oponente revelou Sukamon com Chuumon" uma única vez, antes de o card ir virado para baixo para a segurança.',
     en: 'The opponent starts its turn with BT14-032 Chuumon in hand, 3 memory, and BT14-034 Sukamon on top of security. Wait for the bot to play Chuumon. Its [On Play] adds Sukamon to its hand without revealing it, then places it back on top of security. Your log must show "Opponent revealed Sukamon with Chuumon" exactly once, before the card goes face down into security.',
@@ -420,6 +424,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-proximamon-dual-siriusmon", "EX12 Proximamon · use DUAL Siriusmon from sources"],
   ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
+  ["arena-bt26-rosemon-option-digivolve-lock", "BT26 Rosemon Option · suspended Digimon can't digivolve"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
