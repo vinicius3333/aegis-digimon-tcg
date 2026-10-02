@@ -488,4 +488,46 @@ describe("BT24-026 Hyogamon", () => {
     expect(s.perm("tsBase").stack.map((card) => card.instanceId)).toEqual([s.inst("tsBase").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
+
+  it("Discord 1555502942403043389: keeps the inherited digivolve pending until Plutomon trashes its target", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT24-026"] }],
+          hand: [
+            { card: "BT24-021", as: "snowGoblimon" },
+            { card: "BT24-075", as: "fugamonCost" },
+          ],
+          deck: [
+            { card: "BT26-059", as: "plutomon" },
+            "BT1-009",
+            "BT1-010",
+            { card: "BT26-079", as: "zombiePlutomon" },
+            "BT1-011",
+            "BT1-012",
+          ],
+          trash: [{ card: "BT24-013", as: "fugamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(
+      s.inst("plutomon").instanceId,
+      s.inst("fugamon").instanceId,
+      s.inst("zombiePlutomon").instanceId,
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("snowGoblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("zombiePlutomon").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT26-066", "BT24-026", "BT26-074", "BT26-059"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT24-013");
+  });
 });
