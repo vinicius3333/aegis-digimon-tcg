@@ -23,11 +23,12 @@ describe("BT24-028 Divermon", () => {
     });
   });
 
-  it("requires the qualifying hand placement on entry", () => {
+  it("gates entry benefits on the optional qualifying hand placement", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as {
         kind: string;
         cost: { kind: string; destination: string; position: string; optional?: unknown; abortOnDecline?: unknown };
+        optional?: unknown;
         abortOnDecline?: unknown;
         additionalEffect?: unknown;
       };
@@ -35,6 +36,7 @@ describe("BT24-028 Divermon", () => {
       expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
       expect(action.cost.optional).toBeUndefined();
       expect(action.cost.abortOnDecline).toBeUndefined();
+      expect(action.optional).toBe(true);
       expect(action.abortOnDecline).toBe(true);
       expect(action.additionalEffect).toMatchObject({ kind: "GrantStatic", modifier: "cannotBeDeletedInBattle" });
     }
@@ -83,7 +85,7 @@ describe("BT24-028 Divermon", () => {
           hand: [{ card: "BT24-027", as: "placed" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
@@ -92,6 +94,43 @@ describe("BT24-028 Divermon", () => {
     expect(s.perm("divermon").stack[0]?.instanceId).toBe(s.inst("placed").instanceId);
     expect(observe(s.engine).hasKeyword(s.perm("divermon"), "Blocker")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("divermon"), "beDeletedInBattle")).toBe(true);
+  });
+
+  it("declines the optional 'by' placement and grants neither entry benefit", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT24-028", as: "divermon" },
+          { card: "BT24-027", as: "placed" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("divermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision !== undefined ||
+        s.perm("divermon").stack.some((card) => card.instanceId === s.inst("placed").instanceId),
+    );
+    const refusal = s.state.pendingDecision;
+    expect(refusal?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: refusal!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("placed").instanceId]);
+    expect(s.perm("divermon").stack).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("divermon"), "Blocker")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("divermon"), "beDeletedInBattle")).toBe(false);
   });
 
   it("grants neither entry benefit when the placement cost is unavailable", async () => {
@@ -218,15 +257,18 @@ describe("BT24-028 Divermon", () => {
   });
 
   it("uses the normal blue level-4 evolution route for cost 3", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-027", as: "base" }],
-        hand: [
-          { card: "BT24-028", as: "divermon" },
-          { card: "BT24-027", as: "placed" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-027", as: "base" }],
+          hand: [
+            { card: "BT24-028", as: "divermon" },
+            { card: "BT24-027", as: "placed" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 5;
     await s.ready();
     expect(

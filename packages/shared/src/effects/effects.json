@@ -94715,6 +94715,7 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -94755,6 +94756,7 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
@@ -94834,6 +94836,7 @@
             },
             "restriction": "beDeletedInBattle",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -94873,6 +94876,7 @@
             },
             "restriction": "beDeletedInBattle",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -94963,6 +94967,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "additionalEffect": {
               "kind": "GrantStatic",
@@ -94998,6 +95003,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "additionalEffect": {
               "kind": "GrantStatic",
@@ -95091,6 +95097,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -95123,6 +95130,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",

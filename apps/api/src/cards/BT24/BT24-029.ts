@@ -17,6 +17,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          optional: true,
           abortOnDecline: true,
           cost: {
             kind: "place",
@@ -61,6 +62,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          optional: true,
           abortOnDecline: true,
           cost: {
             kind: "place",
