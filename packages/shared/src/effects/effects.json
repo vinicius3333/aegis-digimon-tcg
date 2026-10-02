@@ -58635,6 +58635,7 @@
               "raw": "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards"
             },
             "cost": { "kind": "trashSecurityTop", "raw": "by trashing the top card of your security stack" },
+            "optional": true,
             "abortOnDecline": true,
             "raw": "trash the top card of your opponent's security stack"
           },
@@ -58673,6 +58674,7 @@
               "raw": "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards"
             },
             "cost": { "kind": "trashSecurityTop", "raw": "by trashing the top card of your security stack" },
+            "optional": true,
             "abortOnDecline": true,
             "raw": "trash the top card of your opponent's security stack"
           },
