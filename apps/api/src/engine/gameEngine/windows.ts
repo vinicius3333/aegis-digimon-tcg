@@ -150,6 +150,20 @@ export function parkDeferredSecurityRemovalTriggersForAttack(engine: GameEngine)
 }
 
 /**
+ * Fold the reactions the ordering effect's body deferred, such as the watchers of a Digimon it
+ * deleted before ordering the attack, into the attack's [When Attacking] pool. Both happened
+ * during that one effect, so they trigger simultaneously and the turn player orders them
+ * together (CR §15-4-3, KB Q2044, Q3399). Flushing them as their own window first would force
+ * them ahead of the [When Attacking] effects.
+ */
+export function parkDeferredTimingWindowsForAttack(engine: GameEngine): void {
+  for (const entry of collectDeferredTimingPending(engine)) {
+    engine.nestedTriggerSourceIdentity.set(entry, permanentIdentityOf(entry.source) ?? null);
+    engine.pendingNestedTimingEffects.push(entry);
+  }
+}
+
+/**
  * Everything that must happen between two effects of one resolution loop, after the rule
  * sweep: drain the windows a resolving effect deferred (an [On Deletion] caused mid-body) and
  * the deferred security-removal reactions. Both were parked precisely because an effect was

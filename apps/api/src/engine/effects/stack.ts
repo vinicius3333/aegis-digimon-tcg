@@ -216,7 +216,14 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // occurrence only retires that occurrence from this window.
   const declined = new Set<string>();
   const plan = new ResolutionPlan();
-  const declineKey = (c: CollectedEffect): string => `${plan.keyFor(c)} ${c.conferralGranterInstanceId ?? ""}`;
+  // An effect printed under two timings ("[When Digivolving] [When Attacking]") keeps one
+  // effectKey. When an effect-driven attack parks its [When Attacking] trigger in this
+  // [When Digivolving] window, that trigger is a separate pending activation: it must not
+  // inherit the older trigger's tier or be retired when the older one resolves (§15-4-5).
+  const foreignTimingOf = (c: CollectedEffect): string =>
+    c.timing === undefined || c.timing === timing ? "" : String(c.timing);
+  const declineKey = (c: CollectedEffect): string =>
+    `${plan.keyFor(c)} ${c.conferralGranterInstanceId ?? ""} ${foreignTimingOf(c)}`;
 
   // Effect keys retired by the §18-3-3 infinite-loop stop below. Keyed on the EFFECT, not on
   // (instance, effect) like `declined`: the loop the stop has to break is a repeating
