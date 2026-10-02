@@ -543,8 +543,6 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       if (action.grant === "immuneToOpponentDPReductionAndReturn") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
         if (action.playerWide === true && ctx.fx.restrictPlayer !== undefined) {
-          // Q1990: reductions already on a current recipient are restored as the immunity lands.
-          for (const id of ids) ctx.fx.restoreDpReductions(id);
           const filter = action.target.filter;
           const matches = (permanentId: string): boolean => {
             const permanent = ctx.game.permanentById(permanentId);
