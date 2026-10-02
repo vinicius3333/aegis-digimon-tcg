@@ -137,8 +137,10 @@ describe("Abbadomon Core mixed-zone payments through the asynchronous policy", (
       expect(setup.state.players[0]!.eggDeck.map((card) => card.instanceId).sort()).toEqual(
         move ? [...eggIds].sort() : [],
       );
+      const rankedPlaceIds = reverse ? [...placeIds].reverse() : placeIds;
+      // The order prompt ranks card 1 nearest the bottom, and the stack lists top to bottom.
       expect(setup.perm("core").stack.map((card) => card.instanceId)).toEqual(
-        move && place ? (reverse ? [...placeIds].reverse() : placeIds) : [],
+        move && place ? [...rankedPlaceIds].reverse() : [],
       );
       for (const hostIndex of [0, 1]) {
         expect(setup.perm(`host-${hostIndex}`).stack.map((card) => card.instanceId)).toEqual(
@@ -162,7 +164,7 @@ describe("Abbadomon Core mixed-zone payments through the asynchronous policy", (
       expect(windows.length).toBeGreaterThan(0);
       expect(triggerChoices.length > 0).toBe(trashCount < 4);
       expect(triggerChoices[0]?.startsWith(`${coreTopId}::`)).toBe(trashCount < 4 ? reverse : undefined);
-      expect(placementCandidates).toEqual(move && place ? [expect.arrayContaining(allPlaceIds)] : []);
+      expect(placementCandidates).toEqual(move && place ? [expect.arrayContaining(allPlaceIds), rankedPlaceIds] : []);
     },
   );
 });
