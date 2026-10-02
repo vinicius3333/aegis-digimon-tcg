@@ -185,6 +185,54 @@ describe("BT26-047 TyrantKabuterimon", () => {
     expect(continuous.hasRestriction(s.perm("eligible").permanentId, "beAffected", "Option")).toBe(true);
   });
 
+  it("CR 15-11-2-3-3: a matching Digimon that suspends after resolution also gets the DP and Option immunity", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-047", as: "tyrant" }],
+          battleArea: [{ card: "ST4-07", as: "later" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "battleTarget" },
+            { card: "BT1-009", as: "costTarget" },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("battleTarget").permanentId, s.perm("costTarget").permanentId);
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "BT26-047").length === 2 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("later").isSuspended).toBe(false);
+    expect(s.perm("later").currentDP).toBe(6000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("later").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+
+    expect(s.perm("later").isSuspended).toBe(true);
+    expect(s.perm("later").currentDP).toBe(9000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("later"), "beAffected", "Option")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("later"), "beAffected", "Tamer")).toBe(false);
+  });
+
   it("offers the two simultaneous On Play effects for ordering (Q7043)", async () => {
     const s = setupEngine(
       {

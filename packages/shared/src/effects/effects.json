@@ -224344,7 +224344,8 @@
                 "restriction": "beAffected",
                 "duration": "untilOpponentTurnEnd",
                 "fromSourceKind": ["Option"],
-                "byOpponentEffectsOnly": true
+                "byOpponentEffectsOnly": true,
+                "whileMatchesTargetFilter": true
               },
               {
                 "kind": "ModifyDP",
@@ -224361,7 +224362,8 @@
                   "count": "all"
                 },
                 "amount": 3000,
-                "duration": "untilOpponentTurnEnd"
+                "duration": "untilOpponentTurnEnd",
+                "playerWide": true
               }
             ]
           }
@@ -224396,7 +224398,8 @@
                 "restriction": "beAffected",
                 "duration": "untilOpponentTurnEnd",
                 "fromSourceKind": ["Option"],
-                "byOpponentEffectsOnly": true
+                "byOpponentEffectsOnly": true,
+                "whileMatchesTargetFilter": true
               },
               {
                 "kind": "ModifyDP",
@@ -224413,7 +224416,8 @@
                   "count": "all"
                 },
                 "amount": 3000,
-                "duration": "untilOpponentTurnEnd"
+                "duration": "untilOpponentTurnEnd",
+                "playerWide": true
               }
             ]
           }
@@ -224448,7 +224452,8 @@
                 "restriction": "beAffected",
                 "duration": "untilOpponentTurnEnd",
                 "fromSourceKind": ["Option"],
-                "byOpponentEffectsOnly": true
+                "byOpponentEffectsOnly": true,
+                "whileMatchesTargetFilter": true
               },
               {
                 "kind": "ModifyDP",
@@ -224465,7 +224470,8 @@
                   "count": "all"
                 },
                 "amount": 3000,
-                "duration": "untilOpponentTurnEnd"
+                "duration": "untilOpponentTurnEnd",
+                "playerWide": true
               }
             ]
           }
