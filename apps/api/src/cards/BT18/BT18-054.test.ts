@@ -37,6 +37,10 @@ describe("BT18-054 AncientKazemon", () => {
     expect(s.perm("highOpponent").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("lowOpponent"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("highOpponent"), "unsuspend")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters after the effect resolves is locked too.
+    expect(observe(s.engine).isRestricted(s.putOnBoard(1, { card: "BT1-012", suspended: true }), "unsuspend")).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 

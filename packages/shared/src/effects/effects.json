@@ -4630,7 +4630,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
-            "duration": "untilOpponentNextUnsuspendPhase"
+            "duration": "untilOpponentNextUnsuspendPhase",
+            "whileMatchesTargetFilter": true
           }
         ]
       }
@@ -18932,13 +18933,15 @@
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "includeLaterEntrants": true
               },
               {
                 "kind": "Restrict",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "restriction": "cannotReturnToHandOrDeck",
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "whileMatchesTargetFilter": true
               }
             ]
           }
@@ -18971,13 +18974,15 @@
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "includeLaterEntrants": true
               },
               {
                 "kind": "Restrict",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "restriction": "cannotReturnToHandOrDeck",
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "whileMatchesTargetFilter": true
               }
             ]
           }
@@ -23628,6 +23633,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -34379,6 +34385,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 5 }, "count": "all" },
             "restriction": "attackPlayers",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "place",
@@ -52936,6 +52943,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -52958,6 +52966,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -53084,6 +53093,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -53101,6 +53111,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -63691,6 +63702,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
             "duration": "untilOpponentNextUnsuspendPhase",
+            "whileMatchesTargetFilter": true,
             "raw": "During your opponent's next unsuspend phase, none of your opponent's Digimon can unsuspend."
           }
         ]
@@ -88942,6 +88954,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           },
           {
@@ -88965,6 +88978,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           },
           {
@@ -111647,7 +111661,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "beDeletedInBattle",
-            "duration": "forTheTurn"
+            "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -117641,7 +117656,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "attackPlayers",
-            "duration": "forTheTurn"
+            "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true
           },
           { "kind": "AddToHandSelf" }
         ],
@@ -118647,6 +118663,7 @@
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "cantBeBlocked",
             "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true,
             "cost": {
               "kind": "trash",
               "target": { "filter": { "isSelfRef": true, "zone": "digivolutionCards" }, "count": 2 },
@@ -133355,6 +133372,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": "all" },
             "restriction": "attackPlayers",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           },
           { "kind": "GlobalRestrict", "restriction": "opponentCannotAddToSecurity", "duration": "untilOpponentTurnEnd" }
@@ -167896,6 +167914,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -167932,6 +167951,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -217787,6 +217807,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
@@ -217816,6 +217837,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",

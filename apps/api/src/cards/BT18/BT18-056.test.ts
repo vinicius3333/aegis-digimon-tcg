@@ -54,6 +54,10 @@ describe("BT18-056 TigerVespamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponentOne"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponentTwo"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponentThree"), "unsuspend")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters after the effect resolves is locked too.
+    expect(observe(s.engine).isRestricted(s.putOnBoard(1, { card: "BT1-012", suspended: true }), "unsuspend")).toBe(
+      true,
+    );
     const source = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT18-056")!;
     expect(observe(s.engine).hasPierce(source)).toBe(true);
     expect(observe(s.engine).hasKeyword(source, "Reboot")).toBe(true);

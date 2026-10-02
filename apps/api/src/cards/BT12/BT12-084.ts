@@ -32,12 +32,14 @@ for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
           duration: "endOfOpponentTurn",
+          includeLaterEntrants: true,
         },
         {
           kind: "Restrict",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           restriction: "cannotReturnToHandOrDeck",
           duration: "endOfOpponentTurn",
+          whileMatchesTargetFilter: true,
         },
       ],
     };

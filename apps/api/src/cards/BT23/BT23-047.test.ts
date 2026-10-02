@@ -695,10 +695,14 @@ describe("BT23-047 Examon", () => {
     expect(s.state.memory).toBe(5);
     expect(s.perm("locked").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters after the effect resolves is locked too.
+    const late = s.putOnBoard(1, { card: "BT1-012", suspended: true });
+    expect(observe(s.engine).isRestricted(late, "unsuspend")).toBe(true);
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("locked").isSuspended).toBe(true);
+    expect(late.isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(false);
 
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });

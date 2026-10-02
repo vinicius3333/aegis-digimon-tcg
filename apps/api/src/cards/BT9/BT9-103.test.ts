@@ -53,6 +53,23 @@ describe("BT9-103 Kongou", () => {
     await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "BT9-103"));
     expect(s.state.players[0]!.trash.some((c) => c.cardId === "BT9-103")).toBe(true);
   });
+
+  it("CR 15-11-2-2: also restricts a play cost 7 or lower Digimon that entered after it resolved", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: ["BT9-029"], hand: [{ card: "BT9-103", as: "option" }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "BT9-103"));
+    const lowCost = s.putOnBoard(1, "BT1-010");
+    const highCost = s.putOnBoard(1, "BT1-083");
+
+    expect(observe(s.engine).isRestricted(lowCost, "attackPlayers")).toBe(true);
+    expect(observe(s.engine).isRestricted(highCost, "attackPlayers")).toBe(false);
+  });
 });
 
 type Setup = ReturnType<typeof setupEngine>;

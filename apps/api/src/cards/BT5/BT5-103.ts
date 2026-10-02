@@ -51,6 +51,7 @@ const compiled: CompiledCard = {
           },
           restriction: "attackPlayers",
           duration: "forTheTurn",
+          whileMatchesTargetFilter: true,
         },
         {
           kind: "AddToHandSelf",

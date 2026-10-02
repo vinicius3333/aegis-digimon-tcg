@@ -102,6 +102,27 @@ async function attackPastWoodmon(activateDigiBurst: boolean) {
   };
 }
 
+describe("BT6-028 Pukumon — overall processing", () => {
+  it("CR 15-11-2-2: also covers a Digimon that entered after Digi-Burst resolved", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-028", under: ["BT1-001", "BT1-002"], as: "pukumon" },
+            { card: "BT1-014", as: "attacker" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-072", as: "blocker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await activatePukumonDigiBurst(s);
+    const late = s.putOnBoard(0, "BT1-010");
+
+    expect(observe(s.engine).isRestricted(late, "cantBeBlocked")).toBe(true);
+  });
+});
+
 describe("BT6-028 Pukumon — KB Q&A rulings", () => {
   it("after Digi-Burst the opponent's Blocker can't redirect the attack, so it still checks security (Q1419)", async () => {
     expect(await attackPastWoodmon(false)).toEqual({

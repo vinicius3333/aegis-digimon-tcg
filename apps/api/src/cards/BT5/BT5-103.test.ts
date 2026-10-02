@@ -67,6 +67,31 @@ describe("BT5-103 A Blazing Storm of Metal!", () => {
   });
 });
 
+describe("BT5-103 A Blazing Storm of Metal! — overall processing", () => {
+  it("CR 15-11-2-2: Security also stops a Digimon that entered after the security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { security: [{ card: "BT5-103", as: "blazingStorm" }, "BT1-010"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("blazingStorm").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    const late = s.putOnBoard(0, "BT1-010");
+
+    expect(observe(s.engine).isRestricted(late, "attackPlayers")).toBe(true);
+  });
+});
+
 describe("BT5-103 A Blazing Storm of Metal! — KB Q&A rulings", () => {
   it("still lets a Piercing Digimon that deletes a Digimon in battle check security after the [Security] effect (Q1376)", async () => {
     const s = setupEngine({

@@ -12,6 +12,7 @@ export const compiled: CompiledCard = {
           kind: "Restrict",
           target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: "all" },
           restriction: "unsuspend",
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
         },
       ],

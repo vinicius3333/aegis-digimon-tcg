@@ -112,6 +112,10 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters after the effect resolves is locked too.
+    expect(observe(s.engine).isRestricted(s.putOnBoard(1, { card: "BT1-012", suspended: true }), "unsuspend")).toBe(
+      true,
+    );
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
