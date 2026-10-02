@@ -458,7 +458,9 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // effects, even though the enclosing card will resume after combat.
       const pausedDepth = engine.effectResolutionDepth;
       const pausedOptionDepth = engine.optionResolutionDepth;
+      const pausedOptionMainDepth = engine.optionMainDepth;
       engine.effectResolutionDepth = 0;
+      engine.optionMainDepth = 0;
       try {
         parkDeferredSecurityRemovalTriggersForAttack(engine);
         await flushDeferredTimingWindows(engine);
@@ -477,6 +479,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;
+        engine.optionMainDepth = pausedOptionMainDepth;
       }
     },
     // Called only from inside `runAttackSteps`, where the depth is already 0, so
@@ -493,8 +496,10 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // (a defender's Blast Digivolve [When Digivolving] resolving after combat).
       const pausedDepth = engine.effectResolutionDepth;
       const pausedOptionDepth = engine.optionResolutionDepth;
+      const pausedOptionMainDepth = engine.optionMainDepth;
       engine.effectResolutionDepth = 0;
       engine.optionResolutionDepth = 0;
+      engine.optionMainDepth = 0;
       try {
         await flushDeferredTimingWindows(engine);
         await body();
@@ -502,6 +507,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;
+        engine.optionMainDepth = pausedOptionMainDepth;
       }
     },
     baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>

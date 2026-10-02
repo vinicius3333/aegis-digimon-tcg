@@ -63,12 +63,13 @@ export async function withPendingPoolDrain(
 export function endResolvingWindow(engine: GameEngine, wasOutermost: boolean): void {
   if (!wasOutermost) return;
   // The entry effects of cards an Option played, printed [On Play] and parked watchers alike,
-  // wait for the Option's post-use routing boundary (Q2577).
+  // and the watchers its [Main] body armed wait for the Option's post-use routing boundary
+  // (Q2577, Q6215).
   if (engine.optionResolutionDepth === 0) {
     engine.pendingNestedTimingEffects = [];
     engine.parkedEntrySubTriggers = [];
+    engine.pendingWindowSubTriggers = [];
   }
-  engine.pendingWindowSubTriggers = [];
   // Claims outlive an inner window when parked watchers are still queued (see
   // `parkArmedForEnclosingWindow`); the queue itself ends here, so the claims do too — but only
   // once no timing window is still folding watchers, since such a window's trailing bus fire
