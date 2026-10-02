@@ -235,6 +235,12 @@ describe("AD1-008 Gallantmon", () => {
     );
     expect(deletionWatcherWindow).toBeDefined();
     expect(deletionWatcherWindow?.req.options?.triggerCardIds).toContain("AD1-008");
+    const budgetDeletionPrompt = s.decisions.find(({ req }) => req.options?.targetFate === "delete");
+    const attackPrompt = s.decisions.find(({ req }) => req.options?.selectionContext === "attackSource");
+    expect(budgetDeletionPrompt?.req.options?.effectTextPart).toBe(
+      "[When Digivolving] Delete up to 10000 DP total worth of your opponent's Digimon.",
+    );
+    expect(attackPrompt?.req.options?.effectTextPart).toBe("Then, this Digimon may attack.");
     const attackDeclared = s.events.findIndex((event) => event.kind === "attackDeclared");
     const whenAttackingResolved = s.events.findIndex(
       (event, index) =>
