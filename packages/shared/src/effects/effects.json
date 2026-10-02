@@ -70957,6 +70957,13 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
+            "turnScope": "yourTurn",
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "zone": "battleArea",
+              "nameOrTrait": [{ "tokens": ["Royal Knight"], "match": "trait" }]
+            },
             "actions": [
               {
                 "kind": "Draw",
@@ -70990,6 +70997,13 @@
           {
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
+            "turnScope": "yourTurn",
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "zone": "battleArea",
+              "nameOrTrait": [{ "tokens": ["Royal Knight"], "match": "trait" }]
+            },
             "actions": [
               {
                 "kind": "Draw",

@@ -21,9 +21,7 @@ describe("releaseHandMoves with a concealed hand", () => {
     const live = concealedState(seat);
     live.players[seat]!.handCount = 6;
     live.players[seat]!.deckCount = 39;
-    const moves: ServerEvent[] = [
-      { kind: "cardsMoved", seat, from: "deck", to: "hand", instanceIds: ["hidden-draw"] },
-    ];
+    const moves: ServerEvent[] = [{ kind: "cardsMoved", seat, from: "deck", to: "hand", instanceIds: ["hidden-draw"] }];
 
     const released = releaseHandMoves({ held, live, moves });
 
@@ -34,5 +32,39 @@ describe("releaseHandMoves with a concealed hand", () => {
     expect(held.players[seat]!.deckCount).toBe(40);
     expect(held.players[seat]!.hand).toBeUndefined();
     expect(live.players[seat]!.hand).toBeUndefined();
+  });
+});
+
+function heldHand(instanceIds: readonly string[]): GameState {
+  const state = new GameState();
+  state.players = new ArraySchema(new PlayerState(), new PlayerState());
+  const held = snapshotGameState(state);
+  held.players[0]!.hand = instanceIds.map((instanceId) => ({ instanceId, cardId: "BT20-083" })) as never;
+  held.players[0]!.handCount = instanceIds.length;
+  return held;
+}
+
+describe("releaseHandMoves with an effect play from hand", () => {
+  it("drops a held hand card an effect played to the field (Discord 1555487329328693248)", () => {
+    const moves: ServerEvent[] = ["first", "second"].map((instanceId) => ({
+      kind: "cardsMoved",
+      from: "various",
+      to: "battleArea",
+      instanceIds: [instanceId],
+    }));
+
+    const released = releaseHandMoves({ held: heldHand(["first", "second", "kept"]), live: undefined, moves });
+
+    expect(released.players[0]!.hand.map((card) => card.instanceId)).toEqual(["kept"]);
+    expect(released.players[0]!.handCount).toBe(1);
+  });
+
+  it("leaves the held hand alone for a move between two other zones", () => {
+    const moves: ServerEvent[] = [{ kind: "cardsMoved", from: "various", to: "trash", instanceIds: ["elsewhere"] }];
+
+    const released = releaseHandMoves({ held: heldHand(["kept"]), live: undefined, moves });
+
+    expect(released.players[0]!.hand.map((card) => card.instanceId)).toEqual(["kept"]);
+    expect(released.players[0]!.handCount).toBe(1);
   });
 });

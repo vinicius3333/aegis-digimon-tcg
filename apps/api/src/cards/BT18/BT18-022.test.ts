@@ -283,7 +283,8 @@ describe("BT18-022 Kumamon — KB Q&A rulings", () => {
     const orderRequest = s.decisions.find(({ seat, req }) => seat === 0 && req.kind === "orderTriggers");
     expect(orderRequest?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT1-035", "BT7-086"]));
     const resolvedOrder = s.events.flatMap((event) => (event.kind === "effectResolved" ? [event.sourceCardId] : []));
-    expect(resolvedOrder).toEqual(["BT1-035", "BT7-086"]);
+    // Kumamon's own leave reaction resolves first; it is what plays the Tamer.
+    expect(resolvedOrder).toEqual(["BT18-022", "BT1-035", "BT7-086"]);
   });
 
   it("performs the digivolution bonus draw when digivolving from a Tamer (Q2935)", async () => {

@@ -396,6 +396,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Discord 1555207697991864380. Encerre a criação. Digievolua WarGrowlmon (com Growlmon embaixo) em Gallantmon. Resolva primeiro o Ao Digievoluir que deleta até 10000 DP: delete 1 DarkTyrannomon e aceite o ataque ao jogador. Growlmon herdado (ganhar 1 memória) e o Ao Atacar de Gallantmon disparam juntos: escolha o Ao Atacar primeiro. Ele deleta o outro DarkTyrannomon, depois Growlmon dá +1 memória uma única vez. Ao Fim do Ataque, WarGrowlmon herdado dá +2 memória.",
     en: "Discord 1555207697991864380. End breeding. Digivolve WarGrowlmon (Growlmon underneath) into Gallantmon. Resolve the When Digivolving effect that deletes up to 10000 DP first: delete 1 DarkTyrannomon and accept the attack on the player. Inherited Growlmon (gain 1 memory) and Gallantmon's When Attacking trigger together: choose When Attacking first. It deletes the other DarkTyrannomon, then Growlmon gains 1 memory only once. At End of Attack, inherited WarGrowlmon gains 2 memory.",
   },
+  "arena-bt20-cool-boy-stacked-omekamon": {
+    ptBR: "Discord 1555487329328693248. É o turno do bot: o Omnimon dele (15000) ataca você. Bloqueie com o Craniamon (13000, [Royal Knight]). Quando ele for deletado na batalha, as duas Cool Boy abrem juntas o modal de múltiplos efeitos, cada uma com Perguntar/Sim/Não. Ordene as duas, marque Sim nas duas e resolva. Cada uma joga 1 Omekamon da mão sem outra pergunta de sim/não: os 2 Omekamon entram em campo e sua mão fica vazia. O [Seu Turno] da Cool Boy não deve aparecer depois.",
+    en: "Discord 1555487329328693248. It is the bot's turn: its Omnimon (15000) attacks you. Block with Craniamon (13000, [Royal Knight]). When it is deleted in battle, both Cool Boys open the multiple-effects modal together, each with Ask/Yes/No. Order both, set Yes on both, and resolve. Each one plays 1 Omekamon from hand with no further yes/no question: both Omekamon enter play and your hand ends empty. Cool Boy's [Your Turn] effect must not appear afterwards.",
+  },
   "arena-ex5-attack-priority": {
     ptBR: "O bot ataca com Shoutmon EX6. Os efeitos Ao Atacar e Alliance dele devem resolver antes das reações de MetalEtemon e da herança de Etemon.",
     en: "The bot attacks with Shoutmon EX6. Its When Attacking and Alliance effects must resolve before MetalEtemon and inherited Etemon react.",
@@ -608,6 +612,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-p206-digital-gate-breeding-color", "P-206 Digital Gate Open · breeding-area colour"],
   ["arena-ex13-merciful-mode-attack-order", "EX13 Merciful Mode · match f9505ba7 attack order"],
   ["arena-ad1-gallantmon-deletion-attack-order", "AD1 Gallantmon · deletion watcher vs When Attacking order"],
+  ["arena-bt20-cool-boy-stacked-omekamon", "BT20 Cool Boy · two copies play two Omekamon"],
   ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],
   ["arena-ex10-malomyotismon-trash-main", "EX10 MaloMyotismon · [Trash] [Main] activation"],
   ["arena-ex10-blastmon-digixros", "EX10 Blastmon · DigiXros with 3 materials"],

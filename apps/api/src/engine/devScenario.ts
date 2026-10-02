@@ -128,6 +128,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-p206-digital-gate-breeding-color",
   "arena-ex13-merciful-mode-attack-order",
   "arena-ad1-gallantmon-deletion-attack-order",
+  "arena-bt20-cool-boy-stacked-omekamon",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-ex10-blastmon-digixros",
@@ -2863,6 +2864,40 @@ function layAd1GallantmonDeletionAttackOrderScenario(state: GameState, decks: re
   state.memory = 5;
 }
 
+/**
+ * Discord bug 1555487329328693248: two BT20-091 Cool Boys watch one [Royal Knight] Craniamon.
+ * The bot's Omnimon attacks; blocking with Craniamon deletes it on the bot's turn, so each
+ * Cool Boy must play its own Omekamon from hand (Q5437, Q7374).
+ */
+function layBt20CoolBoyStackedOmekamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT13-077"], "-bt20-cool-boy-craniamon"));
+    placePermanent(human, establishedDigimon(0, ["BT20-091"], "-bt20-cool-boy-first"));
+    placePermanent(human, establishedDigimon(0, ["BT20-091"], "-bt20-cool-boy-second"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt20-cool-boy-omekamon-first", "BT20-083", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt20-cool-boy-omekamon-second", "BT20-083", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-084"], "-bt20-cool-boy-attacker"));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 /** Neutral opening shared by the optional-effect regression scenarios. */
 function prepareOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -4234,6 +4269,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
   "arena-ad1-gallantmon-deletion-attack-order": layAd1GallantmonDeletionAttackOrderScenario,
+  "arena-bt20-cool-boy-stacked-omekamon": layBt20CoolBoyStackedOmekamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-ex10-blastmon-digixros": layEx10BlastmonDigiXrosScenario,

@@ -163,7 +163,9 @@ export function createResolverDecisions(
  * (EX12-032), "1 of your Digimon may attack". Only "your opponent may" is theirs.
  */
 function mayAskYesNo(collected: CollectedEffect): boolean {
-  if (collected.effect.optional) return true;
-  const text = collected.effect.description ?? "";
+  return collected.effect.optional || effectTextMayAskYesNo(collected.effect.description ?? "");
+}
+
+export function effectTextMayAskYesNo(text: string): boolean {
   return /(?<!opponent )\bmay\b/i.test(text) || /\bby [a-z]+ing\b/i.test(text);
 }

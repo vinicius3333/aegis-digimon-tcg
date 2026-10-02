@@ -109,6 +109,7 @@ export interface AegisJoinOptions {
     | "arena-p206-digital-gate-breeding-color"
     | "arena-ex13-merciful-mode-attack-order"
     | "arena-ad1-gallantmon-deletion-attack-order"
+    | "arena-bt20-cool-boy-stacked-omekamon"
     | "arena-ex10-god-grade-raising-color"
     | "arena-ex10-malomyotismon-trash-main"
     | "arena-ex10-blastmon-digixros"

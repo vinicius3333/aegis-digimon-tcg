@@ -1,7 +1,8 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-091.js";
 import "./index.js";
 
@@ -17,8 +18,13 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Static",
       actions: [
-        { kind: "SubTrigger", event: "whenPlayed" },
-        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" },
+        { kind: "SubTrigger", event: "whenPlayed", turnScope: "yourTurn", sourceFilter: { kind: ["Digimon"] } },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          turnScope: "yourTurn",
+          sourceFilter: { kind: ["Digimon"] },
+        },
       ],
     });
     expect(compiled.effects[1]).toMatchObject({
@@ -226,6 +232,59 @@ describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal K
 
     expect(p0?.battleArea.some((p) => p.permanentId === royalKnightId)).toBe(false);
     expect(p0?.hand.some((c) => c.instanceId === omekamonInstanceId)).toBe(true);
+  });
+  it("lets each Cool Boy play its own Omekamon when an opponent's attack deletes a [Royal Knight] (Discord 1555487329328693248)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: ROYAL_KNIGHT_CARD, dp: 5000, as: "royalKnight" },
+            { card: COOL_BOY, dp: 0, as: "firstCoolBoy" },
+            { card: COOL_BOY, dp: 0, as: "secondCoolBoy" },
+          ],
+          hand: [
+            { card: OMEKAMON, as: "firstOmekamon" },
+            { card: OMEKAMON, as: "secondOmekamon" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 15000, as: "attacker" }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const royalKnightId = s.perm("royalKnight").permanentId;
+    const omekamonIds = [s.inst("firstOmekamon").instanceId, s.inst("secondOmekamon").instanceId];
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.perm("royalKnight").isSuspended = true;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: royalKnightId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const battleArea = s.state.players[0]!.battleArea;
+    expect(battleArea.some((permanent) => permanent.permanentId === royalKnightId)).toBe(false);
+    for (const omekamonId of omekamonIds) {
+      expect(battleArea.some((permanent) => permanent.topCard?.instanceId === omekamonId)).toBe(true);
+    }
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    // Omekamon is no [Royal Knight] and this is not Cool Boy's turn: its draw watcher stays silent.
+    const offeredKeys = s.decisions.flatMap(({ req }) => req.options?.triggerKeys ?? []);
+    expect(offeredKeys.filter((key) => key.includes("whenPlayed"))).toEqual([]);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
 

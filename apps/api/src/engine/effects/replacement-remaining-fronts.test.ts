@@ -43,7 +43,7 @@ function host(
     turnSeat: 0,
     orderReplacements: async (replacements) => {
       const rank = new Map(orderIds.map((id, index) => [id, index]));
-      return [...replacements].sort((a, b) => (rank.get(a.id) ?? 99) - (rank.get(b.id) ?? 99));
+      return { order: [...replacements].sort((a, b) => (rank.get(a.id) ?? 99) - (rank.get(b.id) ?? 99)) };
     },
   };
 }

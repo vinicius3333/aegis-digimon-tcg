@@ -68,7 +68,7 @@ export function releaseHandMoves({
   const liveSeats = live ? buildInstanceSeatIndex(live) : new Map<string, Seat>();
   const players = held.players.map((player) => ({ ...player, hand: [...(player.hand ?? [])] }));
   for (const move of moves) {
-    if (move.kind !== "cardsMoved" || (move.to === "hand") === (move.from === "hand")) continue;
+    if (move.kind !== "cardsMoved" || (move.to === "hand" && move.from === "hand")) continue;
     // A move the held revision already shows was rendered before the turn flipped.
     if ("stateVersion" in move && typeof move.stateVersion === "number" && move.stateVersion < held.stateVersion)
       continue;
@@ -86,6 +86,9 @@ export function releaseHandMoves({
         player.handCount += 1;
         if (move.from === "deck") player.deckCount = Math.max(0, player.deckCount - 1);
       } else {
+        // An effect play names no origin ("various"): only a card the held hand still shows
+        // left the hand. A named origin other than the hand never touches it.
+        if (move.from !== "hand" && (move.from !== "various" || !inHeldHand)) continue;
         if (!inHeldHand && handFullyVisible) continue;
         player.hand = player.hand.filter((card) => card.instanceId !== instanceId);
         player.handCount = Math.max(0, player.handCount - 1);

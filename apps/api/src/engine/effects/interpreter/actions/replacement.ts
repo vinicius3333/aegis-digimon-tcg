@@ -683,7 +683,6 @@ export async function runReplacement(
     sourceInstanceId: ctx.source.instanceId,
     activationIdentity,
     mode: "instead",
-    ...(isDecode ? { sharesLeaveEvent: true } : {}),
     exceptDigiXros: action.exceptDigiXros,
     description: action.raw ?? ctx.activeEffectText ?? event,
     digisorptionRedirect: action.digisorptionRedirect,
@@ -766,8 +765,7 @@ export async function runReplacement(
           (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
         );
         // A "would be deleted -> may DNA digivolve" reaction (BT20-016 Paildramon) that has no legal
-        // DNA to offer never replaces the event, so it must not claim the one replacement slot a
-        // leave event carries (KB Q5352) ahead of another card's reaction (BT17-084 Davis & Ken).
+        // DNA to offer never replaces the event, so it reports that it did not apply.
         const onlyDnaDigivolves = dnaDigivolveActions.length > 0 && dnaDigivolveActions.length === nestedActions.length;
         if (onlyDnaDigivolves && !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))) {
           return false;
