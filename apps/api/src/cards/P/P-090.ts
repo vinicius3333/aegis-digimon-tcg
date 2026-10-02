@@ -24,6 +24,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
           fireCondition: { kind: "triggerAttackerSurvivedBattle", raw: "and survives" },
           actions: [
             {
