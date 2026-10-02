@@ -73,6 +73,24 @@ describe("buildPermanentDetail", () => {
     ]);
   });
 
+  it("Discord 1555516815226970172: lets the owner read a face-down card under their Tamer", () => {
+    const tamer = permanent();
+    tamer.stack[0]!.faceUp = false;
+    expect(buildPermanentDetail(tamer, { viewerSeat: 0 }).cards[1]).toEqual({
+      cardId: "ST1-01",
+      faceDown: true,
+      role: "stack",
+    });
+  });
+
+  it("Discord 1555516815226970172: keeps a face-down card hidden from a viewer who does not own it", () => {
+    const tamer = permanent();
+    tamer.stack[0]!.faceUp = false;
+    const hidden = { cardId: "", faceDown: true, role: "stack" };
+    expect(buildPermanentDetail(tamer, { viewerSeat: 1 }).cards[1]).toEqual(hidden);
+    expect(buildPermanentDetail(tamer).cards[1]).toEqual(hidden);
+  });
+
   it("leaves the security-attack figure out at the default single check", () => {
     const perm = permanent();
     perm.securityAttack = 1;

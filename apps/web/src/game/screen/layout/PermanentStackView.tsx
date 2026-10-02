@@ -2,7 +2,7 @@
    The detail is read off the presented permanent, so what it prints matches the card
    the board is showing rather than a state the narration has not reached. */
 
-import { getCardDefinition, type Permanent } from "@aegis/shared";
+import { getCardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { StackViewerOverlay } from "../../overlay";
 import { canAttackWith, canVortexAttackWith } from "../../boardModel";
@@ -18,6 +18,7 @@ export function PermanentStackView({
   container,
   returnFocusTo,
   keywordLabels,
+  viewerSeat,
   cards,
   fate,
   onAttack,
@@ -32,6 +33,7 @@ export function PermanentStackView({
   container: HTMLElement | null;
   returnFocusTo: HTMLElement | null | undefined;
   keywordLabels?: Readonly<Record<string, string>>;
+  viewerSeat: Seat;
   cards: Parameters<typeof StackViewerOverlay>[0]["cards"];
   fate: PendingFateBadge | undefined;
   onAttack: () => void;
@@ -44,7 +46,7 @@ export function PermanentStackView({
       arenaInspection={{ side, container, returnFocusTo }}
       title={getCardDefinition(permanent.topCard?.cardId ?? "")?.nameEn ?? t("game.stack")}
       cards={cards}
-      detail={buildPermanentDetail(presentedPermanent, keywordLabels)}
+      detail={buildPermanentDetail(presentedPermanent, { keywordLabels, viewerSeat })}
       fate={fate}
       canAttack={mine && canAttackWith(permanent)}
       canVortex={mine && canVortexAttackWith(permanent)}

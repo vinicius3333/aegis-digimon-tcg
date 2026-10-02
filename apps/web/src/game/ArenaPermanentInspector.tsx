@@ -279,7 +279,7 @@ export function ArenaPermanentInspector({
                   ))
               : null}
             {supporting.map((card, index) => {
-              if (card.faceDown || !card.cardId)
+              if (!card.cardId)
                 return (
                   <div
                     key={`hidden-${index}`}
@@ -312,11 +312,15 @@ export function ArenaPermanentInspector({
                   <div>
                     <span className="arena-permanent-inspector__effect-label">
                       {definition?.nameEn ?? card.cardId} ·{" "}
-                      {t(card.role === "linked" ? "overlay.role.linked" : "overlay.role.inherited")}
+                      {card.faceDown
+                        ? t("game.faceDownSource")
+                        : t(card.role === "linked" ? "overlay.role.linked" : "overlay.role.inherited")}
                     </span>
-                    <p>
-                      <EffectText asciiBrackets text={effect || t("overlay.noPrintedEffect")} />
-                    </p>
+                    {card.faceDown ? null : (
+                      <p>
+                        <EffectText asciiBrackets text={effect || t("overlay.noPrintedEffect")} />
+                      </p>
+                    )}
                   </div>
                 </div>
               );

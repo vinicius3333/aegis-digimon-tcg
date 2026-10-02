@@ -23,6 +23,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "common.import": "Importar",
   "common.export": "Exportar",
   "game.hiddenCard": "Carta virada para baixo",
+  "game.faceDownSource": "Virada para baixo",
   "game.debugId": "ID da partida",
   "game.debugCopyFailed": "Falha ao copiar; selecione o ID para copiar.",
   "common.copy": "Copiar",

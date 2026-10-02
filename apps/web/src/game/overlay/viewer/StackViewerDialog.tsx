@@ -9,6 +9,7 @@ import { ROLE_LABEL_KEYS } from "../constants";
 import { Scrim } from "../Scrim";
 import { type StackCard } from "../types";
 import { groupStackCardsByRole } from "./groupStackCardsByRole";
+import { stackCardCaption } from "./stackCardCaption";
 import { StackViewerState } from "./StackViewerState";
 
 export function StackViewerDialog({
@@ -125,7 +126,7 @@ export function StackViewerDialog({
                             textOverflow: "ellipsis",
                           }}
                         >
-                          {c.faceDown || !c.cardId ? t("game.hiddenCard") : (def?.nameEn ?? c.cardId)}
+                          {stackCardCaption(c, t)}
                         </div>
                         <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10.5, color: "var(--ds-fg-muted)" }}>
                           {def?.dp ? `${def.dp.toLocaleString()} DP` : c.cardId}
