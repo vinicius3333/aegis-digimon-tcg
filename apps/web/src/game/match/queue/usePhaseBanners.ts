@@ -494,10 +494,24 @@ export function usePhaseBanners({
                   );
                 const version =
                   mainBatch?.stateVersion ?? (main && "stateVersion" in main ? main.stateVersion : undefined);
+                // Batches that arrive coalesced leave no revision between Breeding and Main;
+                // the newest older one can predate this Breeding phase, even the board before
+                // the match was laid out, and holding that emptied the raising area and egg
+                // deck until Main's ribbon ended. No revision in range means no hold.
+                const breedingOpenedAt =
+                  "stateVersion" in openedPhase && typeof openedPhase.stateVersion === "number"
+                    ? openedPhase.stateVersion
+                    : undefined;
                 const snapshot =
                   version === undefined
                     ? undefined
-                    : phaseStateRef.current.snapshots?.filter((candidate) => candidate.stateVersion <= version).at(-1);
+                    : phaseStateRef.current.snapshots
+                        ?.filter(
+                          (candidate) =>
+                            candidate.stateVersion <= version &&
+                            (breedingOpenedAt === undefined || candidate.stateVersion >= breedingOpenedAt),
+                        )
+                        .at(-1);
                 const player = snapshot?.state.players[openedPhase.turnSeat];
                 setHeldBreedingState(player ? { seat: openedPhase.turnSeat, player } : undefined);
               } else if (banner.phase === "Main") {
