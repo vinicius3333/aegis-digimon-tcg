@@ -68,8 +68,6 @@ export interface NarrationStreamDeps {
   collapseNarrationRef: MutableRefObject<boolean>;
   narrationLimitRef: MutableRefObject<number>;
   suppressedOwnEffectsRef: MutableRefObject<Map<string, OwnEffectDialog>>;
-  /** Items enqueued and not yet published, so a dialog opening can name the ones it silences. */
-  queuedNarrationRef: MutableRefObject<Map<string, NarrationItem>>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   /** Held items a cue has already read out, so a second cue promised the same item skips it. */
@@ -106,7 +104,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
     collapseNarrationRef,
     narrationLimitRef,
     suppressedOwnEffectsRef,
-    queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
     readOutHeldRef,
@@ -188,7 +185,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
     // Which phase raised the clause is what lets the ribbon that follows it wait for its
     // beat and then clear it (`waitForPhasePrerequisites`).
     narrationPhaseOrdersRef.current.set(item.id, origin.phaseOrder ?? completedPhaseOrderRef.current);
-    queuedNarrationRef.current.set(item.id, item);
     function reportShown(stepId: string, context: AnimationStepContext) {
       try {
         presentationReporterRef.current?.({
@@ -224,7 +220,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
         try {
           await runNarrationStep();
         } finally {
-          queuedNarrationRef.current.delete(item.id);
           announceGate?.release();
           if (activation && !linked) {
             const key = activation.key;

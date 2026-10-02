@@ -5033,88 +5033,88 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
   expect(result.current.notices).toHaveLength(0);
 });
 
-it("narrates a card's later clauses again once the dialog that silenced it has closed", async () => {
-  const board = {
-    players: [
-      {
-        battleArea: [
-          {
-            permanentId: "rina",
-            topCard: { cardId: "EX13-069", instanceId: "rina-card" },
-          },
-        ],
-        hand: [],
-        trash: [],
-      },
-      { battleArea: [], hand: [], trash: [] },
-    ],
-  } as unknown as GameState;
-  const { result, rerender } = renderCuesOverBoard(board);
+const RINA_BOARD = {
+  players: [
+    {
+      battleArea: [
+        {
+          permanentId: "rina",
+          topCard: { cardId: "EX13-069", instanceId: "rina-card" },
+        },
+      ],
+      hand: [],
+      trash: [],
+    },
+    { battleArea: [], hand: [], trash: [] },
+  ],
+} as unknown as GameState;
+
+const RINA_YOUR_TURN_PROMPT: ServerEvent = {
+  kind: "effectTriggered",
+  seat: 0,
+  sourceCardId: "EX13-069",
+  sourcePermanentId: "rina",
+  sourceInstanceId: "rina-card",
+  effectKey: "EX13-069/ir-2-0",
+  description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
+  timing: "YourTurn",
+};
+
+/** The held-back clause's own read-out: the return delay, then its source card's glow. */
+const HELD_CLAUSE_RETURN_MS = TIMINGS.ownEffectNoticeReturn + TIMINGS.effectSourceHold + NARRATION_TICK_MS;
+
+it("reads a card's clause out after the dialog that held it back is answered", async () => {
+  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
+  // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
+  // so the toast that would repeat it waits while the dialog is open.
+  rerender([RINA_YOUR_TURN_PROMPT]);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+  expect(result.current.notices).toHaveLength(0);
+
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
+  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
+  await advance(NOTICE_ITEM_MS);
+
+  // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
   const startOfMain: ServerEvent = {
-    kind: "effectTriggered",
-    seat: 0,
-    sourceCardId: "EX13-069",
-    sourcePermanentId: "rina",
-    sourceInstanceId: "rina-card",
+    ...RINA_YOUR_TURN_PROMPT,
     effectKey: "EX13-069/ir-1-0",
     description: "[StartOfYourMainPhase] Gain 1 memory",
     timing: "OnStartMainPhase",
   };
-  const yourTurnPrompt: ServerEvent = {
-    ...startOfMain,
-    effectKey: "EX13-069/ir-2-0",
-    description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
-    timing: "YourTurn",
-  };
-  // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
-  // so the toast that would repeat it is dropped while the dialog is open.
-  rerender([yourTurnPrompt]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  rerender([RINA_YOUR_TURN_PROMPT, startOfMain]);
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
-  expect(result.current.notices).toHaveLength(0);
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(NOTICE_ITEM_MS);
+  expect(result.current.notices).toMatchObject([
+    { body: { variant: "effect", cardId: "EX13-069", description: startOfMain.description } },
+  ]);
+});
 
-  // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
-  rerender([yourTurnPrompt, startOfMain]);
-  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+it("reads out a clause still queued when its dialog was answered", async () => {
+  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
+  rerender([RINA_YOUR_TURN_PROMPT]);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
   expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
 });
 
-it("keeps silencing the clauses a dialog found queued after it closes", async () => {
-  const board = {
-    players: [
-      {
-        battleArea: [
-          {
-            permanentId: "rina",
-            topCard: { cardId: "EX13-069", instanceId: "rina-card" },
-          },
-        ],
-        hand: [],
-        trash: [],
-      },
-      { battleArea: [], hand: [], trash: [] },
-    ],
-  } as unknown as GameState;
-  const { result, rerender } = renderCuesOverBoard(board);
-  rerender([
-    {
-      kind: "effectTriggered",
-      seat: 0,
-      sourceCardId: "EX13-069",
-      sourcePermanentId: "rina",
-      sourceInstanceId: "rina-card",
-      effectKey: "EX13-069/ir-2-0",
-      description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
-      timing: "YourTurn",
-    },
-  ]);
+it("keeps a clause held back across two dialogs the same effect opens in a row", async () => {
+  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
+  rerender([RINA_YOUR_TURN_PROMPT]);
   act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  // Answered before the queued clause reached the screen: it still must not read out.
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+  // "Use it?" answered; "which target?" opens a round trip later, inside the return delay.
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(TIMINGS.ownEffectNoticeReturn / 2);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
   expect(result.current.notices).toHaveLength(0);
+
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
+  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
 });
 
 it("highlights the opponent's Plutomon when its All Turns hand-trash effect activates", async () => {
