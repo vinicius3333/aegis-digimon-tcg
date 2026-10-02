@@ -211,6 +211,17 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     ]);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(OMNIMON_XA);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("AD1-004");
+    expect(s.events.flatMap((event) => (event.kind === "cardsMoved" ? (event.returnedPermanents ?? []) : []))).toEqual([
+      expect.objectContaining({ cardId: "AD1-004", seat: 1 }),
+    ]);
+    // The viewer's survivor reads as the wipe; the opponent's, which is the Digimon returned, as the "Then".
+    const survivorPrompts = s.decisions.filter(
+      ({ req }) => req.kind === "chooseTargets" && req.sourceCardId === OMNIMON_XA,
+    );
+    expect(survivorPrompts.map(({ req }) => req.options?.effectTextPart)).toEqual([
+      "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
+      "Then, return 1 of your opponent's Digimon to the bottom of the deck.",
+    ]);
   });
 
   it("keeps itself when Omekamon's On Play digivolves it as its controller's only Digimon (Discord 1555074299344191549)", async () => {
