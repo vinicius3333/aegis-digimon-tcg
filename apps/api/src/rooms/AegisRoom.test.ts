@@ -390,6 +390,35 @@ describe("AegisRoom sequenced event batches", () => {
     expect(closeOptions.every((afterNextPatch) => afterNextPatch === true)).toBe(true);
   });
 
+  it("sends each shared batch's state patch at its own revision, so no revision is skipped", () => {
+    const room = makeRoom({ botRoom: true, seed: 2 });
+    // eslint-disable-next-line no-new -- constructing the Encoder wires the state root
+    new Encoder(room.state);
+    const log = recordedBroadcasts(room);
+    const patchedVersions: number[] = [];
+    const broadcastPatch = room.broadcastPatch.bind(room);
+    room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => {
+      patchedVersions.push(room.state.stateVersion);
+      log.push(["@patch", room.state.stateVersion, undefined]);
+      return broadcastPatch();
+    });
+    const human = fakeClient("session-human-patches");
+    room.clients.push(human);
+    room.onJoin(human, { displayName: "Human", deck: RED_DECK });
+    room.addBot();
+
+    const closes = log.flatMap(([type, message], index) =>
+      type === EVENT_CHANNEL && (message as ServerEvent).kind === "batchClosed" ? [index] : [],
+    );
+    expect(closes.length).toBeGreaterThan(0);
+    for (const index of closes) {
+      const close = log[index]![1] as Extract<ServerEvent, { kind: "batchClosed" }>;
+      expect(log[index + 1]).toEqual(["@patch", close.stateVersion, undefined]);
+    }
+    const closedVersions = closes.map((index) => (log[index]![1] as { stateVersion: number }).stateVersion);
+    expect(closedVersions.every((version) => patchedVersions.includes(version))).toBe(true);
+  });
+
   it("names the last event of the batch in its close", () => {
     const { room } = startedBotRoom();
     const events = sequencedEvents(room);
