@@ -9,6 +9,7 @@ import { canAttackWith, canVortexAttackWith, parseActivatable } from "../../boar
 import { buildPermanentDetail } from "../../permanentDetail";
 import type { PendingFateBadge } from "../../pendingFate";
 import { Side } from "../../side";
+import { originalDP } from "../../transformation";
 
 export function FieldCardMenu({
   permanent,
@@ -73,7 +74,7 @@ export function FieldCardMenu({
       artId={permanent.topCard?.artId}
       sheet={sheet}
       dp={permanent.currentDP}
-      baseDP={permanent.baseDP}
+      baseDP={originalDP(permanent)}
       keywords={[...permanent.keywords]}
       stackCards={stackCards}
       suspended={permanent.isSuspended}

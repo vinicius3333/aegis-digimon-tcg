@@ -41,6 +41,18 @@ describe("buildPermanentDetail", () => {
     expect(detail.grantedEffectTexts).toEqual([]);
   });
 
+  it("Discord 1555271931203158056: measures DP against a rewritten original DP, not the printed one", () => {
+    const rewritten = permanent();
+    rewritten.originalNameOverride = "Sukamon";
+    rewritten.originalColorsOverride.push("White");
+    rewritten.originalDPOverride = 3000;
+    rewritten.currentDP = 3000;
+    expect(buildPermanentDetail(rewritten)).toMatchObject({ currentDP: 3000, baseDP: 3000, dpDelta: 0 });
+
+    rewritten.currentDP = 5000;
+    expect(buildPermanentDetail(rewritten)).toMatchObject({ baseDP: 3000, dpDelta: 2000 });
+  });
+
   it("reads only the recipient's active granted text", () => {
     const recipient = permanent();
     recipient.grantedEffectTexts.push("[End of Your Turn] Delete 1 of your Digimon.");

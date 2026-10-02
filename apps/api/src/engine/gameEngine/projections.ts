@@ -462,7 +462,7 @@ export class BoardProjection {
     const override = this.deps.continuous.originalCardInfoOverride(perm.permanentId);
     perm.originalNameOverride = override?.name ?? "";
     replaceIfChanged(perm.originalColorsOverride, override?.colors ?? []);
-    perm.originalDPOverride = override === undefined ? 0 : (this.deps.modifiers.baseDpOverrideOf(perm) ?? 0);
+    perm.originalDPOverride = this.deps.modifiers.baseDpOverrideOf(perm) ?? 0;
   }
 
   /**
