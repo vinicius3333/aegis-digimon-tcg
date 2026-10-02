@@ -161,4 +161,55 @@ describe("BT26-091 Yoshino Fujieda — KB Q&A rulings", () => {
       expect(s.state.memory).toBe(memoryAfter);
     },
   );
+
+  it("Q3999 waits for a Thomas-reduced digivolution to complete, then orders with its When Digivolving", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-072", as: "declaredBase" },
+            { card: "BT26-072", as: "otherPeckmon" },
+            { card: "BT26-091", as: "yoshino", under: [{ card: "ST24-10", faceUp: false }] },
+            "BT25-087",
+          ],
+          hand: [
+            { card: "BT26-076", as: "declaredCrowmon" },
+            { card: "BT26-076", as: "secondCrowmon" },
+          ],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { battleArea: ["BT1-009", "BT1-010"], security: ["BT1-012"], deck: ["BT1-013", "BT1-014"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        preferTriggerKeys: ["BT26-091"],
+        declinePrompts: ["Place 1 card(s) from hand"],
+      },
+    );
+    preferred.push(s.perm("otherPeckmon").permanentId, s.inst("secondCrowmon").instanceId);
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 8;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("declaredBase").permanentId,
+        instanceId: s.inst("declaredCrowmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("otherPeckmon").topCard.instanceId === s.inst("secondCrowmon").instanceId);
+
+    expect(s.perm("declaredBase").topCard.instanceId).toBe(s.inst("declaredCrowmon").instanceId);
+    expect(s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req.options?.triggerKeys).toEqual([
+      expect.stringMatching(new RegExp(`^${s.inst("declaredCrowmon").instanceId}::BT26-076/`)),
+      expect.stringMatching(new RegExp(`^${s.inst("yoshino").instanceId}::subtrigger/`)),
+    ]);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });
