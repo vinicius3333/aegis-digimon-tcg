@@ -28,10 +28,12 @@ export interface TrackingArrow {
 
 /**
  * Events that close an attack. A block redirects rather than ends it, so the arrow
- * survives one and is re-pointed by the `blocked` event itself.
+ * survives one and is re-pointed by the `blocked` event itself. `attackEnded` is the only
+ * close an attack with no battle and no checked card sends (＜Security Attack -1＞).
  */
 function closesAttack(event: ServerEvent): boolean {
   return (
+    event.kind === "attackEnded" ||
     event.kind === "combatResolved" ||
     event.kind === "securityChecked" ||
     event.kind === "turnEnded" ||

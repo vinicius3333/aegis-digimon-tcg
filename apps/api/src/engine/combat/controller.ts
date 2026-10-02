@@ -760,6 +760,10 @@ export class CombatController {
       this.cleanup();
       const completedCombat = this.takeCompletedCombat();
       if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
+      // `gameOver` stays the last event of a match; it already closes everything an attack opened.
+      if (!this.access.game.gameOver) {
+        this.hooks.emit({ kind: "attackEnded", seat: attackerSeat, attackerPermanentId: attacker.permanentId });
+      }
     }
   }
 
