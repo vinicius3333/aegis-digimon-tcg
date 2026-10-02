@@ -144,6 +144,13 @@ describe("BT26-076 Crowmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-011");
+    const thenClause =
+      "Then, by trashing the bottom face-down card from under any of your Tamers, they trash 1 card in their hand.";
+    const costDecisions = s.decisions.filter(
+      ({ req }) => req.sourceCardId === "BT26-076" && (req.kind === "optional" || req.options?.purpose === "cost"),
+    );
+    expect(costDecisions.length).toBeGreaterThan(0);
+    for (const { req } of costDecisions) expect(req.options?.effectTextPart).toBe(thenClause);
   });
 
   it("reacts to the opponent's hand being trashed and pays the reduced trash digivolution cost", async () => {

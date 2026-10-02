@@ -227172,13 +227172,13 @@
             }
           },
           {
+            "effectTextPart": "Then, by trashing the bottom face-down card from under any of your Tamers, they trash 1 card in their hand.",
             "kind": "CostGatedBlock",
             "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "count": 1 },
             "optional": true,
             "abortOnDecline": true,
             "actions": [
               {
-                "effectTextPart": "Then, by trashing the bottom face-down card from under any of your Tamers, they trash 1 card in their hand.",
                 "kind": "Trash",
                 "chooser": "opponent",
                 "target": { "filter": { "controllerDefault": "opponent", "zone": "hand" }, "count": 1 }
