@@ -87,7 +87,7 @@ it("displays signed numeric and textual parameters in the inspector with an expl
   // The chip prints the SIGNED modifier now, not the resolved number of security checks.
   expect(within(detail).getByRole("region", { name: "Active keywords" }).textContent).toContain("Security Attack +2");
   expect(detail.textContent).toContain("Succession ([Ceresmon])");
-  expect(ui.field().querySelector('[aria-label^="Active keywords:"]')?.textContent).toContain(
+  expect(ui.field().querySelector('[aria-label^="Active keywords:"]')?.getAttribute("aria-label")).toContain(
     "Succession ([Ceresmon])",
   );
 });
@@ -111,7 +111,7 @@ it("keeps more than ten grants summarized on the field and individually accessib
   ];
   for (const keyword of keywords) ui.grant(keyword);
   ui.close();
-  expect(ui.field().querySelector('[aria-label="9 more keywords"]')).toBeTruthy();
+  expect(ui.field().querySelector('[aria-label="11 more keywords"]')).toBeTruthy();
   expect(ui.field().querySelector('[aria-label^="Active keywords:"]')?.getAttribute("aria-label")).toContain(
     "Succession",
   );

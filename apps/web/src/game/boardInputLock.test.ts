@@ -26,9 +26,11 @@ describe("presentation cues and board actions", () => {
 
   it("keeps main actions behind live server state", () => {
     expect(gameScreenSource).toContain("decisionOpen: Boolean(decision || state.pendingDecision),");
-    expect(gameScreenSource).toContain("mainActionBlocked: turnActionBlocked || state.phase !== Phase.Main,");
+    expect(gameScreenSource).toContain(
+      "mainActionBlocked: turnActionBlocked || (state.phase !== Phase.Main && !blitzAttackPending),",
+    );
     for (const sender of ["playCard", "digivolve", "attack", "activateEffect"]) {
-      const start = gameScreenSource.indexOf(`  const ${sender} = `);
+      const start = gameScreenSource.indexOf(`  const ${sender} = (`);
       const end = gameScreenSource.indexOf("\n  };", start);
       expect(gameScreenSource.slice(start, end), `${sender} is unguarded`).toContain("if (mainActionBlocked) return;");
     }

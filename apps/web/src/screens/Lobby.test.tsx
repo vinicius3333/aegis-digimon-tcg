@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Lobby, deckHasBetaCards, randomDeckPool } from "./Lobby";
 import { DECKS, selectableDecks } from "../game/decks";
@@ -10,7 +10,12 @@ afterEach(() => {
   localStorage.removeItem("aegis:locale");
 });
 
+const BEFORE_EX13_RELEASE = new Date("2026-10-01T12:00:00.000Z");
+
 describe("famous deck selection", () => {
+  beforeEach(() => vi.setSystemTime(BEFORE_EX13_RELEASE));
+  afterEach(() => vi.useRealTimers());
+
   it("translates automatic beta confirmation into Portuguese and confirms the human queue", () => {
     localStorage.setItem("aegis:locale", "pt-BR");
     const onStart = vi.fn();
