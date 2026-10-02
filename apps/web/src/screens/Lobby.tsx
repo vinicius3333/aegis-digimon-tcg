@@ -269,7 +269,8 @@ export function Lobby({
         const drawn = pool.find((deck) => deck.id === drawnId);
         if (!drawn) return;
         const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn) ? true : requestedBetaBattleMode;
-        onStart(startMode, code, requestedBotDeckId, betaBattleMode, drawn.id);
+        const queueMode = betaBattleMode && startMode === "casual" ? "beta" : startMode;
+        onStart(queueMode, code, requestedBotDeckId, betaBattleMode, drawn.id);
         return;
       }
       const selectedDeckId = active?.id;

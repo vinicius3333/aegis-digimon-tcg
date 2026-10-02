@@ -1,12 +1,19 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Lobby, deckHasBetaCards, randomDeckPool } from "./Lobby";
 import { DECKS, selectableDecks } from "../game/decks";
 
+// EX13 is the beta fixture, so the clock stays before its 2026-10-02 release.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-09-15T12:00:00.000Z"));
+});
+
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   localStorage.removeItem("aegis:locale");
 });
 
@@ -119,10 +126,11 @@ describe("famous deck selection", () => {
 
     expect(onStart).toHaveBeenCalledTimes(1);
     const [startMode, code, botDeckId, betaBattleMode, deckId] = onStart.mock.calls[0]!;
-    expect([startMode, code, botDeckId]).toEqual(["casual", undefined, undefined]);
     const drawn = selectableDecks(DECKS).find((deck) => deck.id === deckId);
     expect(drawn).toBeDefined();
-    expect(betaBattleMode).toBe(deckHasBetaCards(drawn!) ? true : undefined);
+    const drawnBeta = deckHasBetaCards(drawn!);
+    expect([startMode, code, botDeckId]).toEqual([drawnBeta ? "beta" : "casual", undefined, undefined]);
+    expect(betaBattleMode).toBe(drawnBeta ? true : undefined);
   });
 
   it("builds mystery pools by source and excludes drafts and beta cards", () => {
@@ -162,7 +170,7 @@ describe("famous deck selection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
 
     expect(onStart).toHaveBeenCalledTimes(1);
-    expect(onStart.mock.calls[0]).toEqual(["casual", undefined, undefined, true, beta.id]);
+    expect(onStart.mock.calls[0]).toEqual(["beta", undefined, undefined, true, beta.id]);
   });
 
   it("automatically enables beta for an EX13 deck and still allows private matches", () => {
