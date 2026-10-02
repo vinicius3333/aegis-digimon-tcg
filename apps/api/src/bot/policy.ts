@@ -311,6 +311,9 @@ function pickInstances(view: BotView | undefined, request: DecisionRequest): str
   const ranked = [...candidates].sort((left, right) => rank(right) - rank(left));
 
   if (min > 0) return ranked.slice(0, min);
+  // The bot already accepted this "you may" clause; its pick floor of zero only exists so a
+  // human can back out.
+  if (request.options?.purpose === "acceptedOptional") return ranked.slice(0, 1);
   // A cost selection IS the payment: an empty answer declines the clause and, on a clause
   // whose whole body is gated behind it, throws the card away for nothing (P-193 played
   // its ＜Delay＞ body away by skipping the trash cost). Pay it in full, spending the

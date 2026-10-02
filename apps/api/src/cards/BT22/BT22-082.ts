@@ -23,10 +23,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              playCost: {
-                op: "lte",
-                value: 7,
-              },
+              playCostLte: 7,
             },
             count: 1,
           },
@@ -68,10 +65,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              playCost: {
-                op: "lte",
-                value: 7,
-              },
+              playCostLte: 7,
             },
             count: 1,
           },

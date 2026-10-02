@@ -98,6 +98,7 @@ export function resolutionDeps(
   // A card an Option plays waits with its [On Play] and the watchers its play event armed
   // until the Option finishes (Q2577); only the Option's other pending watchers resolve here.
   const pendingWhileOptionResolves = (): CollectedEffect[] => pendingWindowWatchersCollected(engine);
+  const unannounced = new Set<CollectedEffect>();
   return {
     // The outermost loop settles deferred queues between effects. A nested resolver normally
     // cannot reach into the enclosing pool while its card body is still running; a settlement
@@ -149,6 +150,10 @@ export function resolutionDeps(
       // A deferred trigger belongs to its original event, not every nested resolver that
       // can see engine pending pool. Retire it before its body can open another window.
       engine.pendingNestedTimingEffects = engine.pendingNestedTimingEffects.filter((pending) => pending !== collected);
+      if (collected.effect.announce?.() === false) {
+        unannounced.add(collected);
+        return;
+      }
       const stableOptWatcher = collected.effect.effectKey.startsWith("subtrigger/opt/");
       const announcementKey = `${engine.state.turnCount}:${collected.effect.effectKey}`;
       if (stableOptWatcher && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
@@ -172,6 +177,7 @@ export function resolutionDeps(
       });
     },
     onResolved: (timing, collected) => {
+      if (unannounced.delete(collected)) return;
       engine.hooks.emit({
         kind: "effectResolved",
         seat: collected.source.ownerSeat,

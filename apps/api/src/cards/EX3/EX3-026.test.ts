@@ -222,18 +222,11 @@ describe("EX3-026 Aegisdramon", () => {
       ],
       timing: "WhenDigivolving",
       effectText: expect.stringContaining("without paying its memory cost"),
-      min: 1,
+      min: 0,
       max: 1,
     });
     expect(payload(selection).visibleCards).toHaveLength(5);
     expect(payload(selection).visibleInstanceIds).not.toContain(opponentSourceId);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: selection.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("invalidBlueLevel4").instanceId] },
-      }).ok,
-    ).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

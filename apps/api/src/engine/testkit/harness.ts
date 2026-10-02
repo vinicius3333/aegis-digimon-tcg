@@ -372,7 +372,10 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         (promptRefused &&
           (req.kind === "optional" ||
             declineIndex !== undefined ||
-            ((req.kind === "selectCards" || req.kind === "chooseTargets") && (req.options?.min ?? 0) === 0))) ||
+            // An accepted "you may" pick already answered its question; its zero floor is no prompt.
+            ((req.kind === "selectCards" || req.kind === "chooseTargets") &&
+              (req.options?.min ?? 0) === 0 &&
+              req.options?.purpose !== "acceptedOptional"))) ||
         (opts?.autoDeclineOptional === true && declineIndex !== undefined);
       if (declined) {
         queueMicrotask(() =>

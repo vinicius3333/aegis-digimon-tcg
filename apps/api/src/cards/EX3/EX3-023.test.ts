@@ -167,7 +167,7 @@ describe("EX3-023 Plesiomon", () => {
     expect(playPayload.visibleInstanceIds).toContain(s.inst("invalidBlueUnderRed").instanceId);
     expect(s.decisions.at(-1)!.req).toMatchObject({
       sourceCardId: "EX3-023",
-      options: { min: 1, max: 1, timing: "WhenDigivolving", effectText: expect.stringContaining("play 1 blue") },
+      options: { min: 0, max: 1, timing: "WhenDigivolving", effectText: expect.stringContaining("play 1 blue") },
     });
     expect(
       s.engine.applyIntent(0, {
@@ -425,7 +425,7 @@ describe("EX3-023 Plesiomon", () => {
       seat: 0,
       sourceCardId: "EX3-023",
       options: {
-        min: 1,
+        min: 0,
         max: 1,
         effectText: expect.stringContaining("same level"),
         candidateInstanceIds: expect.arrayContaining([firstLevel3Id, secondLevel3Id]),

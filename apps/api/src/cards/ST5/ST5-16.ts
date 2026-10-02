@@ -9,7 +9,7 @@ const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: {
-            filter: { controller: "opponent", kind: ["Digimon"], playCost: { op: "lte", value: 7 } },
+            filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 7 },
             count: 1,
           },
         },

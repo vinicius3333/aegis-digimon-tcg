@@ -179,6 +179,38 @@ describe("EX8-070", () => {
     expect(s.perm("mineral").currentDP).toBe(s.perm("mineral").baseDP);
     expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Collision")).toBe(false);
   });
+  it("asks its yes/no before choosing between two Mineral hosts, and declining picks nothing", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX8-048", as: "firstMineral", under: ["EX8-047"] },
+          { card: "EX8-048", as: "secondMineral", under: ["EX8-047"] },
+        ],
+        hand: [{ card: "EX8-070", as: "option" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const first = s.decisions.find(({ req }) => req.sourceCardId === "EX8-070")!.req;
+    expect(first.kind).toBe("optional");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: first.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX8-070")).toHaveLength(1);
+    expect(s.perm("firstMineral").stack).toHaveLength(1);
+    expect(s.perm("secondMineral").stack).toHaveLength(1);
+  });
+
   it("blocks an opponent effect from returning the granted host to hand", async () => {
     const s = setupEngine(
       {

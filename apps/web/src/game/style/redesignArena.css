@@ -295,21 +295,6 @@
   );
 }
 
-/* ---- No looping icon motion on the board ----
-   The summoning stars hold still as a ring, the entrance sparkles are dropped,
-   and the hatchable egg keeps its amber ring without pulsing. */
-.aegis-arena .game-summoning-ring i {
-  animation: none;
-}
-
-.aegis-arena .game-card-sparkles {
-  display: none;
-}
-
-.aegis-arena .game-egg-deck--hatchable .game-pile__top {
-  animation: none;
-}
-
 /* ---- Counter descriptions (portalled to the page) ---- */
 .game-arena-counter-tooltip {
   color: var(--ds-brand-on-ink);

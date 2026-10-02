@@ -327,7 +327,7 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
           s.inst("otherFighterMode").instanceId,
           s.inst("wrongImperialdramon").instanceId,
         ],
-        min: 1,
+        min: 0,
         max: 1,
         timing: "WhenAttacking",
       },
