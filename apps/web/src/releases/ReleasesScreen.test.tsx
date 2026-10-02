@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.8.1-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.8.2-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -27,8 +27,6 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "O que há de novo" })).toBeTruthy();
-    expect(
-      screen.getByText(/Esta atualização permite ver as cartas viradas para baixo embaixo das suas cartas/),
-    ).toBeTruthy();
+    expect(screen.getByText(/Esta atualização faz os efeitos \[On Deletion\] ativarem na hora/)).toBeTruthy();
   });
 });

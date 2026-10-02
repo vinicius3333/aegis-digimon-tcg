@@ -1,4 +1,40 @@
 {
+  "releases.1.8.2-beta.summary": {
+    "en": "This update makes [On Deletion] effects activate right away after long digivolution chains, lets you choose which Digimon ＜Decoy＞ saves, and keeps the board in step with the effect notices.",
+    "pt-BR": "Esta atualização faz os efeitos [On Deletion] ativarem na hora depois de cadeias longas de digievolução, deixa você escolher qual Digimon o ＜Decoy＞ salva e mantém o campo no ritmo dos avisos de efeito."
+  },
+  "releases.1.8.2-beta.feature.delayBreak": {
+    "en": "A ＜Delay＞ Option now breaks on the field before its effect is read out, and cards that effects remove from the field now leave one at a time.",
+    "pt-BR": "Uma Option com ＜Delay＞ agora se quebra no campo antes de o efeito ser lido, e as cartas que efeitos removem do campo agora saem uma de cada vez."
+  },
+  "releases.1.8.2-beta.feature.effectToast": {
+    "en": "The notice for your own effect now appears after you answer its prompt, not on top of it.",
+    "pt-BR": "O aviso do seu próprio efeito agora aparece depois que você responde à escolha, e não por cima dela."
+  },
+  "releases.1.8.2-beta.fix.nestedOnDeletion": {
+    "en": "[On Deletion] effects now activate right away when BT25-087 Thomas H. Norstein reduces a Crowmon digivolution that ends with BT26-082 Ravemon deleting itself. BT26-091 Yoshino Fujieda now waits until that digivolution is complete, and Thomas's effect is no longer offered twice in one turn.",
+    "pt-BR": "Os efeitos [On Deletion] agora ativam na hora quando BT25-087 Thomas H. Norstein reduz uma digievolução para Crowmon que termina com BT26-082 Ravemon deletando a si mesmo. BT26-091 Yoshino Fujieda agora espera essa digievolução terminar, e o efeito do Thomas não é mais oferecido duas vezes no mesmo turno."
+  },
+  "releases.1.8.2-beta.fix.promptText": {
+    "en": "The prompts of BT26-076 Crowmon and BT20-102 Omnimon (X Antibody) now show only the sentence you are answering.",
+    "pt-BR": "As escolhas de BT26-076 Crowmon e BT20-102 Omnimon (X Antibody) agora mostram só a frase que você está respondendo."
+  },
+  "releases.1.8.2-beta.fix.decoy": {
+    "en": "When several Digimon that ＜Decoy＞ can protect are deleted at the same time, you now choose which one it saves.",
+    "pt-BR": "Quando vários Digimon que o ＜Decoy＞ pode proteger são deletados ao mesmo tempo, agora você escolhe qual deles ele salva."
+  },
+  "releases.1.8.2-beta.fix.delaySave": {
+    "en": "A ＜Delay＞ that can't activate yet, such as on the turn its Option was placed, no longer asks whether to stop a Digimon from leaving play.",
+    "pt-BR": "Um ＜Delay＞ que ainda não pode ativar, como no turno em que a Option foi colocada, não pergunta mais se deve impedir um Digimon de sair de jogo."
+  },
+  "releases.1.8.2-beta.fix.laterKeywords": {
+    "en": "BT3-106 Beast Cyclone and BT13-056 Leopardmon now also give their keyword to Digimon that enter play later in the turn, such as tokens.",
+    "pt-BR": "BT3-106 Beast Cyclone e BT13-056 Leopardmon agora também dão a palavra-chave aos Digimon que entram em jogo mais tarde no turno, como tokens."
+  },
+  "releases.1.8.2-beta.fix.boardSync": {
+    "en": "The board no longer jumps ahead of the effect notices when several effects resolve at once, and the breeding area no longer goes empty at the start of a turn.",
+    "pt-BR": "O campo não pula mais à frente dos avisos de efeito quando vários efeitos resolvem de uma vez, e a área de criação não fica mais vazia no início do turno."
+  },
   "releases.1.8.1-beta.summary": {
     "en": "This update lets you look at the face-down cards under your own cards, asks before you pay optional \"By ...\" costs, and lets every card that reacts to a Digimon leaving play activate.",
     "pt-BR": "Esta atualização permite ver as cartas viradas para baixo embaixo das suas cartas, pergunta antes de pagar custos opcionais \"By ...\" e faz todas as cartas que reagem à saída de um Digimon ativarem."

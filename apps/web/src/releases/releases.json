@@ -1,5 +1,38 @@
 [
   {
+    "version": "1.8.2-beta",
+    "releasedAt": "2026-10-02",
+    "summaryKey": "releases.1.8.2-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.8.2-beta.feature.delayBreak"
+      },
+      {
+        "textKey": "releases.1.8.2-beta.feature.effectToast"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.2-beta.fix.nestedOnDeletion"
+      },
+      {
+        "textKey": "releases.1.8.2-beta.fix.promptText"
+      },
+      {
+        "textKey": "releases.1.8.2-beta.fix.decoy"
+      },
+      {
+        "textKey": "releases.1.8.2-beta.fix.delaySave"
+      },
+      {
+        "textKey": "releases.1.8.2-beta.fix.laterKeywords"
+      },
+      {
+        "textKey": "releases.1.8.2-beta.fix.boardSync"
+      }
+    ]
+  },
+  {
     "version": "1.8.1-beta",
     "releasedAt": "2026-10-02",
     "summaryKey": "releases.1.8.1-beta.summary",
