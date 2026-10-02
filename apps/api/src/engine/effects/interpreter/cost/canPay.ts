@@ -17,6 +17,17 @@ import {
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Cost, Filter, Target, ZoneRef } from "@aegis/shared";
 
+/**
+ * An unsuspend cost is paid only by a permanent that actually turns. A suspended Digimon
+ * under "can't unsuspend" (EX13-040, EX13-044) can't pay it (Discord 1555307344550694942).
+ */
+export function canUnsuspendForCost(
+  ctx: EffectContext,
+  permanent: { permanentId: string; isSuspended: boolean },
+): boolean {
+  return permanent.isSuspended && ctx.fx.canUnsuspend?.(permanent.permanentId) !== false;
+}
+
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
   if (cost.kind === "digivolve") {
@@ -145,10 +156,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "unsuspend") {
     const candidates = cost.target
-      ? candidatePermanents(ctx, cost.target).filter((permanent) => permanent.isSuspended)
+      ? candidatePermanents(ctx, cost.target).filter((permanent) => canUnsuspendForCost(ctx, permanent))
       : (() => {
           const self = ctx.source.permanent();
-          return self?.isSuspended ? [self] : [];
+          return self !== undefined && canUnsuspendForCost(ctx, self) ? [self] : [];
         })();
     const required = cost.target?.count === "all" ? candidates.length : (cost.target?.count ?? 1);
     return required > 0 && candidates.length >= required;
@@ -598,7 +609,7 @@ function canPayUnsuspendNamedCost(ctx: EffectContext, cost: Cost): boolean {
   if (targets.some((target) => isUnboundSelectionRef(ctx, target.fromSelectionRef))) return true;
   const candidateIdsPerTarget = targets.map((target) =>
     candidatePermanents(ctx, target)
-      .filter((permanent) => permanent.isSuspended)
+      .filter((permanent) => canUnsuspendForCost(ctx, permanent))
       .map((permanent) => permanent.permanentId),
   );
   const assignDistinct = (index: number, used: ReadonlySet<string>): boolean =>

@@ -65,6 +65,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt15-leviamon-x-played-subject-left",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
+  "arena-ex13-leopardmon-unsuspend-lock",
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
@@ -415,6 +416,36 @@ function layEx13LeopardmonSuspendedTargetScenario(state: GameState, decks: reado
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 12;
+}
+
+/**
+ * Discord 1555307344550694942: EX13-043 Leopardmon's leave prevention costs "unsuspending 1 of
+ * your Digimon". After EX13-040 Mikemon locks the bot's lone suspended Leopardmon, no Digimon can
+ * pay, so Gryphonmon's attack deletes it.
+ */
+function layEx13LeopardmonUnsuspendLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-leopardmon-lock-mikemon", "EX13-040", 0));
+    placePermanent(human, establishedDigimon(0, ["BT10-055"], "-leopardmon-lock-attacker"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    const leopardmon = establishedDigimon(1, ["EX13-043"], "-leopardmon-lock-target");
+    leopardmon.isSuspended = true;
+    placePermanent(bot, leopardmon);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /**
@@ -3763,7 +3794,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
-  "arena-bt20-dragon-gene-skip-play":layBt20DragonGeneSkipPlayScenario,
+  "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
+  "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-bt22-palmon-cs-restack": layBt22PalmonCsRestackScenario,

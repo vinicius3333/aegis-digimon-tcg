@@ -46,6 +46,7 @@ export interface AegisJoinOptions {
     | "arena-ex12-virus-busters-effect-attack"
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-ex13-leopardmon-suspended-target"
+    | "arena-ex13-leopardmon-unsuspend-lock"
     | "arena-bt20-dragon-gene-skip-play"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
     | "arena-bt24-fugamon-self-trash"

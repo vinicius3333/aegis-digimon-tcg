@@ -48,6 +48,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: 'Jogue EX13-043 Leopardmon da mão (custo 12) e aceite o [Ao Jogar]. A escolha de "suspender 1 Digimon" deve oferecer o Muchomon do bot, que já está suspenso, além do seu GrapLeomon e do Biyomon do bot. Escolha o Muchomon: ele continua suspenso e o seu GrapLeomon continua ativo. Depois aceite devolver o Digimon de menor DP do bot: o Biyomon vai para o fundo do deck.',
     en: "Play EX13-043 Leopardmon from hand (cost 12) and accept its [On Play]. The \"suspend 1 Digimon\" choice must offer the bot's already suspended Muchomon, plus your GrapLeomon and the bot's Biyomon. Choose Muchomon: it stays suspended and your GrapLeomon stays unsuspended. Then accept returning the bot's lowest DP Digimon: Biyomon goes to the bottom of the deck.",
   },
+  "arena-ex13-leopardmon-unsuspend-lock": {
+    ptBR: "Jogue EX13-040 Mikemon da mão (custo 4). O [Ao Jogar] escolhe o EX13-043 Leopardmon suspenso do bot: ele não pode desuspender até o fim do turno dele. Depois ataque o Leopardmon com o seu BT10-055 Gryphonmon (13000 contra 12000). O Leopardmon não pode pagar a prevenção, porque nenhum Digimon do bot pode desuspender: ele é deletado e vai para a lixeira.",
+    en: "Play EX13-040 Mikemon from hand (cost 4). Its [On Play] picks the bot's suspended EX13-043 Leopardmon: it can't unsuspend until the end of the bot's turn. Then attack Leopardmon with your BT10-055 Gryphonmon (13000 vs 12000). Leopardmon can't pay its leave prevention, because no bot Digimon can unsuspend: it is deleted and goes to the trash.",
+  },
   "arena-bt20-dragon-gene-skip-play": {
     ptBR: "Use BT20-093 Unleash the Dragon Gene da mão e aceite o [Principal]. A seleção da mão deve oferecer BT20-023 Coredramon e EX3-074 Examon e também o botão Nenhuma seleção. Escolha Nenhuma seleção: nenhum Digimon é jogado, os dois continuam na mão, a Option vai para a área de batalha e a memória cai só 2.",
     en: "Use BT20-093 Unleash the Dragon Gene from hand and accept its [Main]. The hand selection must offer BT20-023 Coredramon and EX3-074 Examon and also the No Selection button. Choose No Selection: no Digimon is played, both stay in hand, the Option goes to the battle area, and memory drops by only 2.",
@@ -491,6 +495,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-ex13-leopardmon-suspended-target", "EX13 Leopardmon · suspend an already suspended Digimon"],
+  ["arena-ex13-leopardmon-unsuspend-lock", "EX13 Leopardmon · locked Digimon can't pay the unsuspend cost"],
   ["arena-bt20-dragon-gene-skip-play", "BT20 Unleash the Dragon Gene · skip the play"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],
