@@ -772,7 +772,9 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
     relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
       engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),
     interruptFieldMaterialLeave: async (fieldPermanentIds) => {
-      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byEffect", undefined, {
+      // A DigiXros from a main phase action is not an effect (Q2352, Q4184), so "by effects"
+      // clauses must not see these materials leave.
+      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byRule", undefined, {
         playerAction: true,
         isDigiXros: true,
         isBounce: true,
