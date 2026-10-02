@@ -147,6 +147,7 @@ export function BoardSelectionRail({
   max,
   pickCount,
   canConfirm,
+  confirmLabel,
   onConfirm,
   onNoSelection,
   onOpenDialog,
@@ -163,6 +164,8 @@ export function BoardSelectionRail({
   max: number;
   pickCount: number;
   canConfirm: boolean;
+  /** Names what confirming does, such as the attack it declares, in place of the generic confirm. */
+  confirmLabel?: string;
   onConfirm: () => void;
   onNoSelection: () => void;
   onOpenDialog?: () => void;
@@ -202,7 +205,7 @@ export function BoardSelectionRail({
           one (BT24-016 forcing the opponent to place a card as security) has no way out,
           so offering the button would promise an answer the server rejects. */}
       <Button full icon={Icons.Check} disabled={pickCount === 0 || !canConfirm} onClick={onConfirm}>
-        {t(fieldSelection || attackSelection ? "overlay.confirmTargets" : "overlay.endSelection")}
+        {confirmLabel ?? t(fieldSelection || attackSelection ? "overlay.confirmTargets" : "overlay.endSelection")}
       </Button>
       {min === 0 ? (
         <Button full variant="secondary" onClick={onNoSelection}>

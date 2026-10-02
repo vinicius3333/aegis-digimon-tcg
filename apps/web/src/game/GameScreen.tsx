@@ -40,6 +40,7 @@ import {
   dropIntentAttrs as modelDropIntentAttrs,
 } from "./screen/model/screenDragIntents";
 import { decisionAllowsPick as modelDecisionAllowsPick, nextDecisionPicks } from "./screen/model/decisionPicks";
+import { preselectedAttackTargets } from "./screen/model/attackTargetPrompt";
 import {
   gameOverReason as modelGameOverReason,
   gameOverResult as modelGameOverResult,
@@ -242,6 +243,12 @@ export function GameScreen({
     actionConfirm,
     setActionConfirm,
   } = overlayState;
+  useEffect(() => {
+    if (decision?.seat !== viewerSeat) return;
+    const preselected = preselectedAttackTargets(decision);
+    if (preselected.length > 0) setPicks(preselected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decision?.decisionId]);
   // A play leaves the hand visually at the same instant the intent is dispatched. The
   // synchronized state will confirm that departure; a rejection rolls it back.
   const [optimisticPlayedInstanceId, setOptimisticPlayedInstanceId] = useState<string>();
