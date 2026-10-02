@@ -740,3 +740,53 @@ describe("AegisRoom private room reopening", () => {
     live.onDispose();
   });
 });
+
+describe("AegisRoom full state sync guard", () => {
+  type FullState = (client?: Client) => Uint8Array;
+  const encoderFailure = () => new TypeError("Cannot read properties of undefined (reading 'Symbol($changes)')");
+
+  function joinedRoom(): {
+    room: AegisRoom;
+    client: Client;
+    sendFullState: (client: Client) => void;
+    serializer: { getFullState: FullState };
+  } {
+    const room = makeRoom();
+    const [client] = joinBothSeats(room);
+    client.raw = vi.fn<Client["raw"]>();
+    const sendFullState = (room as unknown as { sendFullState(client: Client): void }).sendFullState;
+    // Colyseus keeps the serializer private; the guard is exercised through its real call path.
+    const serializer = Reflect.get(room, "_serializer") as { getFullState: FullState };
+    return { room, client, sendFullState, serializer };
+  }
+
+  it("rebuilds the seat's view and retries once when the full state encode throws", () => {
+    const { client, sendFullState, serializer } = joinedRoom();
+    const viewBeforeFailure = client.view;
+    const fullState = new Uint8Array([1]);
+    serializer.getFullState = vi
+      .fn<FullState>()
+      .mockImplementationOnce(() => {
+        throw encoderFailure();
+      })
+      .mockReturnValue(fullState);
+
+    expect(() => sendFullState(client)).not.toThrow();
+
+    expect(client.view).not.toBe(viewBeforeFailure);
+    expect(client.raw).toHaveBeenCalledWith(fullState);
+  });
+
+  it("closes only this room when the retry fails too, instead of throwing out of the socket handler", () => {
+    const { room, client, sendFullState, serializer } = joinedRoom();
+    room.disconnect = vi.fn<AegisRoom["disconnect"]>(async () => {});
+    serializer.getFullState = vi.fn<FullState>(() => {
+      throw encoderFailure();
+    });
+
+    expect(() => sendFullState(client)).not.toThrow();
+
+    expect(client.raw).not.toHaveBeenCalled();
+    expect(room.disconnect).toHaveBeenCalledWith(CloseCode.WITH_ERROR);
+  });
+});

@@ -400,6 +400,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
 
   private initialize(options: RoomCreateOptions, reopenedCode?: string): void {
     this.setState(new GameState());
+    this.guardFullStateSync();
     if (!canCreateRoom()) throw new ServerError(503, "This game server is draining; retry on the active slot.");
     this.state.matchLogId = randomUUID();
     const seed = options.seed ?? Date.now() >>> 0;
@@ -1159,6 +1160,38 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.combatWindowTimeoutKey = undefined;
       this.withBatch(() => this.engine.expireCombatWindow());
     }, this.COMBAT_WINDOW_TIMEOUT_SECONDS * 1000);
+  }
+
+  /**
+   * Keep a full-state encode failure inside this room. Colyseus sends a joining or
+   * reconnecting client its full state from the raw socket message handler, so a throw there
+   * is an uncaughtException, and the process handler exits — dropping every room on it.
+   *
+   * `sendFullState` is private in the Colyseus typings, hence the instance-level wrap. The
+   * retry rebuilds the seat's view, which re-runs the detached-card repair; a state that still
+   * cannot be encoded closes this room only.
+   */
+  private guardFullStateSync(): void {
+    const room = this as unknown as { sendFullState(client: Client): void };
+    const sendFullState = room.sendFullState.bind(this);
+    room.sendFullState = (client) => {
+      try {
+        sendFullState(client);
+        return;
+      } catch (error) {
+        this.debugError(`[AegisRoom] full state sync failed sessionId=${client.sessionId}; rebuilding view`, error);
+      }
+      try {
+        const seat = this.seatByClient.get(client.sessionId);
+        if (seat !== undefined) client.view = this.engine.makeStateView(seat);
+        sendFullState(client);
+      } catch (error) {
+        this.debugError(`[AegisRoom] full state sync failed again sessionId=${client.sessionId}; closing room`, error);
+        void this.disconnect(CloseCode.WITH_ERROR).catch((disconnectError: unknown) =>
+          this.debugError("[AegisRoom] failed to close room after full state sync failure", disconnectError),
+        );
+      }
+    };
   }
 
   private debug(...data: unknown[]): void {
