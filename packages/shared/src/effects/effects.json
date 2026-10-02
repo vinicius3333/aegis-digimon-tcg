@@ -36790,7 +36790,8 @@
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
-            "optional": false
+            "optional": true,
+            "abortOnDecline": true
           }
         ],
         "isInherited": true
@@ -36948,7 +36949,8 @@
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By deleting this Digimon"
             },
-            "optional": false
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -41451,6 +41453,7 @@
               "target": { "filter": { "zone": "trash", "controller": "mine", "kind": ["DigiEgg"] }, "count": 1 },
               "raw": "By returning 1 Digi-Egg card from your trash to the bottom of the Digi-Egg deck"
             },
+            "optional": true,
             "abortOnDecline": true
           },
           {
