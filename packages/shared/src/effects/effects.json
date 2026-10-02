@@ -224798,7 +224798,8 @@
               "count": "all"
             },
             "restriction": "digivolve",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           },
           {
             "kind": "Restrict",
@@ -224807,7 +224808,8 @@
               "count": "all"
             },
             "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       }
