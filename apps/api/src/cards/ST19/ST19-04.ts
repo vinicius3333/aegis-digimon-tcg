@@ -27,6 +27,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with the [Puppet] trait in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
