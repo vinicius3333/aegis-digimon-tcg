@@ -48,6 +48,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
   },
+  "arena-ex13-sampson-face-down-sources": {
+    ptBR: "Você e o bot controlam EX13-071 Richard Sampson com 1 carta virada para baixo embaixo. No início da sua Fase Principal, aceite colocar a carta do topo do deck virada para baixo embaixo do seu Sampson. Abra a pilha do seu Sampson: as 2 cartas embaixo mostram o nome e a marca “Virada para baixo”, e tocar nelas amplia a carta. Abra a pilha do Sampson do bot: a carta embaixo continua como “Carta virada para baixo”, sem nome e sem ampliar.",
+    en: "You and the bot each control EX13-071 Richard Sampson with 1 face-down card under it. At the start of your Main phase, accept placing your deck's top card face down under your Sampson. Open your Sampson's stack: both cards under it show their name with a “Face down” mark, and tapping one enlarges it. Open the bot's Sampson stack: its card stays “Face-down card”, with no name and no enlarge.",
+  },
   "arena-ex7-seventh-fascination-trash-turn": {
     ptBR: "Evolua BT11-083 para EX7-061 Lilithmon (X Antibody) e aceite devolver EX7-072 da lixeira ao fundo do deck. O Digimon do bot deve sobreviver ao fim do seu turno e só ser deletado no fim do turno dele.",
     en: "Digivolve BT11-083 into EX7-061 Lilithmon (X Antibody) and accept returning EX7-072 from trash to the deck bottom. The bot's Digimon should survive your turn end and be deleted only at the end of its own turn.",
@@ -514,6 +518,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
   ["arena-p240-arcturusmon-ordered-placement", "P-240 Arcturusmon · order two bottom sources"],
   ["arena-ex12-proximamon-dual-siriusmon", "EX12 Proximamon · use DUAL Siriusmon from sources"],
