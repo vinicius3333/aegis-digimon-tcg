@@ -89,6 +89,7 @@ import {
   type SidePanelLookup,
 } from "./sidePanels";
 import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
+import { TIMINGS } from "./timings";
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
@@ -96,7 +97,7 @@ import type { RevealShowcase } from "./match/present/revealShowcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
 import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
-import type { DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
+import type { CostClause, DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
 import type { RemovalLink } from "./match/removalChain";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
@@ -430,7 +431,12 @@ export function useMatchCues({
   decisionPendingRef.current = decisionPending;
   /** Cards whose own decision dialog is open, so their clause is not read out twice. */
   const suppressedOwnEffectsRef = useRef(new Map<string, OwnEffectDialog>());
-  const queuedNarrationRef = useRef(new Map<string, NarrationItem>());
+  useEffect(
+    () => () => {
+      for (const dialog of suppressedOwnEffectsRef.current.values()) clearTimeout(dialog.releaseTimer);
+    },
+    [],
+  );
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
@@ -501,6 +507,7 @@ export function useMatchCues({
   const effectAnnounceGateRef = useRef<PresentationGate | null>(null);
   const causingEffectGateRef = useRef<PresentationGate | null>(null);
   const pendingAnnounceGateRef = useRef<PendingAnnounceGate | null>(null);
+  const costClauseRef = useRef<CostClause | null>(null);
   const deckRiffleKeyRef = useRef(0);
   // Where every card the viewer can see currently sits, so an activation can be
   // played at its source and a reshuffle at the pile it landed in.
@@ -616,12 +623,12 @@ export function useMatchCues({
     effectSourceKeyRef,
     effectAnnounceGateRef,
     pendingAnnounceGateRef,
+    costClauseRef,
     setEffectSources,
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
     suppressedOwnEffectsRef,
-    queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
     readOutHeldRef,
@@ -864,6 +871,7 @@ export function useMatchCues({
       causingEffectGateRef,
       effectAnnounceGateRef,
       pendingAnnounceGateRef,
+      costClauseRef,
       securityClashKeyRef,
       securityAttackerRef,
       pendingDestructionsRef,
@@ -1175,33 +1183,44 @@ export function useMatchCues({
     sidePanels,
     notices,
     dismissOwnEffectNotice: (cardId: string) => {
-      const queuedItemIds = new Set(
-        [...queuedNarrationRef.current.values()]
-          .filter((item) => item.notice !== undefined && isOwnEffectNotice(item.notice, cardId))
-          .map((item) => item.id),
-      );
-      suppressedOwnEffectsRef.current.set(cardId, { queuedItemIds, dialogOpen: true });
-      heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !isOwnEffectNotice(notice, cardId));
-      // Already on screen: the dialog is about to print the same clause, so the item
-      // either loses its notice or leaves with it.
+      const reopened = suppressedOwnEffectsRef.current.get(cardId);
+      if (reopened !== undefined) {
+        clearTimeout(reopened.releaseTimer);
+        delete reopened.releaseTimer;
+      }
+      const dialog = reopened ?? { deferred: [] };
+      suppressedOwnEffectsRef.current.set(cardId, dialog);
+      const held = heldNoticesRef.current.filter((notice) => isOwnEffectNotice(notice, cardId));
+      heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !held.includes(notice));
+      // Already on screen: the dialog is about to print the same clause, so the item gives
+      // its notice to the dialog and keeps only its panel, if it has one.
+      const shownIds = new Set<string>();
+      for (const item of narrationRef.current.values()) {
+        if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
+        shownIds.add(item.id);
+        dialog.deferred.push(item.notice);
+      }
+      dialog.deferred.push(...held);
+      if (shownIds.size === 0) return;
       setNarration((slots) => {
-        let changed = false;
         const next = new Map(slots);
         for (const [slot, item] of slots) {
-          if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
-          changed = true;
+          if (!shownIds.has(item.id)) continue;
           if (item.panel) next.set(slot, { ...item, notice: undefined });
           else next.delete(slot);
         }
-        return changed ? next : slots;
+        return next;
       });
     },
     releaseOwnEffectNotice: (cardId: string) => {
       const dialog = suppressedOwnEffectsRef.current.get(cardId);
       if (dialog === undefined) return;
-      const stillQueued = [...dialog.queuedItemIds].filter((itemId) => queuedNarrationRef.current.has(itemId));
-      if (stillQueued.length === 0) suppressedOwnEffectsRef.current.delete(cardId);
-      else suppressedOwnEffectsRef.current.set(cardId, { queuedItemIds: new Set(stillQueued), dialogOpen: false });
+      clearTimeout(dialog.releaseTimer);
+      dialog.releaseTimer = setTimeout(() => {
+        if (suppressedOwnEffectsRef.current.get(cardId) !== dialog) return;
+        suppressedOwnEffectsRef.current.delete(cardId);
+        narrate(dialog.deferred, [], lastBatchIdRef.current);
+      }, TIMINGS.ownEffectNoticeReturn);
     },
     raiseRejection: (reason: string) => {
       noticeSequenceRef.current += 1;

@@ -873,4 +873,70 @@ describe("EX13-014 Jesmon", () => {
     expect(opponent.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(mineId);
     expect(opponent.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === TOKEN_ID)).toBe(false);
   });
+
+  it("lets the controller choose which Digimon the token's Decoy saves from a board wipe (Discord 1555594986756767896)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-102", as: "omnimonX" }],
+          battleArea: [
+            { card: "BT5-086", as: "omnimon" },
+            { card: "AD1-011", as: "survivor" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-011", as: "opponentSurvivor" },
+            { card: "EX13-047", as: "gotsumon" },
+            { card: "BT13-019", as: "gankoomon" },
+            { card: TOKEN_ID, as: "token" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    const gotsumonId = s.perm("gotsumon").permanentId;
+    const gankoomonId = s.perm("gankoomon").permanentId;
+    // Omnimon (X Antibody) keeps 1 Digimon per player; the survivors come first so the
+    // wipe keeps them, leaving Gotsumon and Gankoomon (both Decoy-eligible) in danger.
+    preferInstanceIds.push(
+      s.perm("survivor").topCard.instanceId,
+      s.perm("opponentSurvivor").topCard.instanceId,
+      s.perm("token").topCard.instanceId,
+      s.perm("gankoomon").topCard.instanceId,
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimon").permanentId,
+        instanceId: s.inst("omnimonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-102") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.events.flatMap((event) => (event.kind === "deletionPrevented" ? [event.permanentId] : []))).toEqual([
+      gankoomonId,
+    ]);
+    const protectPrompts = s.decisions.filter(
+      ({ seat, req }) => seat === 1 && req.kind === "selectCards" && req.promptText?.includes("protect") === true,
+    );
+    expect(protectPrompts).toHaveLength(1);
+    expect([...(protectPrompts[0]!.req.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+      [s.inst("gotsumon").instanceId, s.inst("gankoomon").instanceId].sort(),
+    );
+    expect(
+      s.events.flatMap((event) =>
+        event.kind === "cardsMoved" ? (event.deletedPermanents ?? []).map(({ permanentId }) => permanentId) : [],
+      ),
+    ).toContain(gotsumonId);
+  });
 });

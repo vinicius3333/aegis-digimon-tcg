@@ -1201,6 +1201,50 @@ describe("match cues", () => {
     expect(result.current.heldPhaseState).toBeUndefined();
   });
 
+  it("never holds the raising area on a revision older than its Breeding phase", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    const drasil = new Permanent();
+    drasil.permanentId = "drasil";
+    drasil.topCard = new CardInstance();
+    drasil.topCard.cardId = "BT13-007";
+    state.players[VIEWER]!.breeding = drasil;
+    // The only revision recorded before the turn's batches arrived coalesced: the board as it
+    // stood before the match was laid out, with no raising area and an empty egg deck.
+    const beforeLayout = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 0, deckCount: 0, eggDeckCount: 0, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const snapshots: StateSnapshot[] = [{ stateVersion: 0, state: beforeLayout }];
+    const { result, rerender } = renderCuesOverBoard(state, snapshots);
+    await advance(0);
+    const phases = ["Active", "Draw", "Breeding", "Main"].map(
+      (phase, index) =>
+        ({ kind: "phaseChanged", phase, turnSeat: VIEWER, turnCount: 1, stateVersion: index }) as ServerEvent,
+    );
+    for (let index = 1; index <= phases.length; index++) rerender(phases.slice(0, index));
+    await advance(0);
+
+    const raisingArea = () => result.current.heldBreedingState?.player ?? state.players[VIEWER]!;
+    for (const phase of ["Active", "Draw", "Breeding", "Main"]) {
+      await vi.waitFor(() => expect(result.current.phaseBanner?.phase).toBe(phase));
+      expect(raisingArea().breeding?.topCard.cardId).toBe("BT13-007");
+      expect(raisingArea().eggDeckCount).toBe(4);
+      await advance(TIMINGS.phaseBanner);
+      expect(raisingArea().breeding?.topCard.cardId).toBe("BT13-007");
+      expect(raisingArea().eggDeckCount).toBe(4);
+      await advance(TIMINGS.phaseBannerGap);
+    }
+  });
+
   it("unsuspends a ＜Reboot＞ holder on the other board during the same unsuspend phase", async () => {
     const state = {
       phase: Phase.Main,
@@ -5033,88 +5077,88 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
   expect(result.current.notices).toHaveLength(0);
 });
 
-it("narrates a card's later clauses again once the dialog that silenced it has closed", async () => {
-  const board = {
-    players: [
-      {
-        battleArea: [
-          {
-            permanentId: "rina",
-            topCard: { cardId: "EX13-069", instanceId: "rina-card" },
-          },
-        ],
-        hand: [],
-        trash: [],
-      },
-      { battleArea: [], hand: [], trash: [] },
-    ],
-  } as unknown as GameState;
-  const { result, rerender } = renderCuesOverBoard(board);
+const RINA_BOARD = {
+  players: [
+    {
+      battleArea: [
+        {
+          permanentId: "rina",
+          topCard: { cardId: "EX13-069", instanceId: "rina-card" },
+        },
+      ],
+      hand: [],
+      trash: [],
+    },
+    { battleArea: [], hand: [], trash: [] },
+  ],
+} as unknown as GameState;
+
+const RINA_YOUR_TURN_PROMPT: ServerEvent = {
+  kind: "effectTriggered",
+  seat: 0,
+  sourceCardId: "EX13-069",
+  sourcePermanentId: "rina",
+  sourceInstanceId: "rina-card",
+  effectKey: "EX13-069/ir-2-0",
+  description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
+  timing: "YourTurn",
+};
+
+/** The held-back clause's own read-out: the return delay, then its source card's glow. */
+const HELD_CLAUSE_RETURN_MS = TIMINGS.ownEffectNoticeReturn + TIMINGS.effectSourceHold + NARRATION_TICK_MS;
+
+it("reads a card's clause out after the dialog that held it back is answered", async () => {
+  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
+  // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
+  // so the toast that would repeat it waits while the dialog is open.
+  rerender([RINA_YOUR_TURN_PROMPT]);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+  expect(result.current.notices).toHaveLength(0);
+
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
+  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
+  await advance(NOTICE_ITEM_MS);
+
+  // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
   const startOfMain: ServerEvent = {
-    kind: "effectTriggered",
-    seat: 0,
-    sourceCardId: "EX13-069",
-    sourcePermanentId: "rina",
-    sourceInstanceId: "rina-card",
+    ...RINA_YOUR_TURN_PROMPT,
     effectKey: "EX13-069/ir-1-0",
     description: "[StartOfYourMainPhase] Gain 1 memory",
     timing: "OnStartMainPhase",
   };
-  const yourTurnPrompt: ServerEvent = {
-    ...startOfMain,
-    effectKey: "EX13-069/ir-2-0",
-    description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
-    timing: "YourTurn",
-  };
-  // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
-  // so the toast that would repeat it is dropped while the dialog is open.
-  rerender([yourTurnPrompt]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  rerender([RINA_YOUR_TURN_PROMPT, startOfMain]);
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
-  expect(result.current.notices).toHaveLength(0);
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(NOTICE_ITEM_MS);
+  expect(result.current.notices).toMatchObject([
+    { body: { variant: "effect", cardId: "EX13-069", description: startOfMain.description } },
+  ]);
+});
 
-  // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
-  rerender([yourTurnPrompt, startOfMain]);
-  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+it("reads out a clause still queued when its dialog was answered", async () => {
+  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
+  rerender([RINA_YOUR_TURN_PROMPT]);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
   expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
 });
 
-it("keeps silencing the clauses a dialog found queued after it closes", async () => {
-  const board = {
-    players: [
-      {
-        battleArea: [
-          {
-            permanentId: "rina",
-            topCard: { cardId: "EX13-069", instanceId: "rina-card" },
-          },
-        ],
-        hand: [],
-        trash: [],
-      },
-      { battleArea: [], hand: [], trash: [] },
-    ],
-  } as unknown as GameState;
-  const { result, rerender } = renderCuesOverBoard(board);
-  rerender([
-    {
-      kind: "effectTriggered",
-      seat: 0,
-      sourceCardId: "EX13-069",
-      sourcePermanentId: "rina",
-      sourceInstanceId: "rina-card",
-      effectKey: "EX13-069/ir-2-0",
-      description: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
-      timing: "YourTurn",
-    },
-  ]);
+it("keeps a clause held back across two dialogs the same effect opens in a row", async () => {
+  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
+  rerender([RINA_YOUR_TURN_PROMPT]);
   act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  // Answered before the queued clause reached the screen: it still must not read out.
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+  // "Use it?" answered; "which target?" opens a round trip later, inside the return delay.
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(TIMINGS.ownEffectNoticeReturn / 2);
+  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
   expect(result.current.notices).toHaveLength(0);
+
+  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
+  await advance(HELD_CLAUSE_RETURN_MS);
+  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
 });
 
 it("highlights the opponent's Plutomon when its All Turns hand-trash effect activates", async () => {
@@ -5573,4 +5617,81 @@ describe("a permanent an opponent's clause deletes", () => {
     expect(result.current.deleteBursts).toHaveLength(1);
     expect(result.current.heldDeletions.size).toBe(0);
   });
+});
+
+// BT23-099's ＜Delay＞ pays by trashing the Option itself, and the server sends the trigger,
+// the trash and the card it plays as three batches. The Option is lit where it stands, it
+// breaks, its clause is read, and only then does the Sistermon it played arrive.
+it("plays a ＜Delay＞ Option's break, then its clause, then the card it played", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [{ permanentId: "perm-dead", topCard: { cardId: "BT23-099", instanceId: "gym-card" } }],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const { result, rerender } = renderCuesOverBoard(board);
+  const trigger: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "BT23-099",
+    sourcePermanentId: "perm-dead",
+    sourceInstanceId: "gym-card",
+    effectKey: "subtrigger/1/delay",
+    description:
+      "[Your Turn] When any of your Digimon digivolve into a Digimon with [Huckmon] or [Jesmon] in its name, ＜Delay＞ ・You may play 1 card with [Sistermon] in its name from your hand or trash without paying the cost.",
+    timing: "YourTurn",
+  };
+  const trash: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["gym-card"],
+    from: "various",
+    to: "trash",
+    trashedPermanents: [{ permanentId: "perm-dead", instanceId: "gym-card", cardId: "BT23-099", seat: 0 }],
+  };
+  const play: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT23-077", permanentId: "perm-ciel" };
+
+  rerender([trigger]);
+  rerender([trigger, trash]);
+  rerender([trigger, trash, play]);
+
+  const firstSeen: Partial<Record<"glow" | "break" | "clause" | "arrival", number>> = {};
+  for (let elapsed = 0; elapsed <= 6000; elapsed += 20) {
+    const seen = {
+      glow: result.current.effectSources.some(
+        (source) => source.site.zone === "field" && source.site.permanentId === "perm-dead",
+      ),
+      break: result.current.deleteBursts.some((burst) => burst.cardId === "BT23-099"),
+      clause: result.current.notices.some(
+        (notice) => notice.body.variant === "effect" && notice.body.cardId === "BT23-099",
+      ),
+      arrival: result.current.permanentBursts.has("perm-ciel"),
+    };
+    for (const [beat, shown] of Object.entries(seen) as [keyof typeof seen, boolean][])
+      if (shown && firstSeen[beat] === undefined) firstSeen[beat] = elapsed;
+    await advance(20);
+  }
+
+  expect(firstSeen.glow).toBeDefined();
+  expect(firstSeen.break).toBeGreaterThanOrEqual(firstSeen.glow! + TIMINGS.effectSourceHold - 20);
+  expect(firstSeen.clause).toBeGreaterThan(firstSeen.break!);
+  expect(firstSeen.arrival).toBeGreaterThanOrEqual(firstSeen.clause! + TIMINGS.effectAnnounce - 20);
+});
+
+it("does not name a ＜Delay＞ Option twice in a trashed-cards panel beside its break", async () => {
+  const { result, rerender } = renderCues();
+  rerender([
+    {
+      kind: "cardsMoved",
+      instanceIds: ["gym-card"],
+      from: "various",
+      to: "trash",
+      trashedPermanents: [{ permanentId: "perm-dead", instanceId: "gym-card", cardId: "BT23-099", seat: 0 }],
+    },
+  ]);
+  await advance(TIMINGS.cardBurst + TIMINGS.effectSourceHold);
+  expect(result.current.sidePanels).toEqual([]);
 });

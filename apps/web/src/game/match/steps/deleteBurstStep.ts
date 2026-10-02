@@ -43,7 +43,7 @@ export function deleteBurstStep({
   stateVersion,
   causedByOption = false,
   removal,
-  breaksWithClause = false,
+  readBeforeBreak = true,
 }: {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
@@ -71,8 +71,11 @@ export function deleteBurstStep({
    * The caller releases the link if the step never runs.
    */
   removal?: RemovalTurn;
-  /** A cost paid as its clause is read breaks at once, with no reading beat after the clause. */
-  breaksWithClause?: boolean;
+  /**
+   * Whether the causing clause gets its readable beat before the card breaks. A ＜Delay＞
+   * Option's gate opens on its own glow, before any clause is on screen, so it breaks at once.
+   */
+  readBeforeBreak?: boolean;
 }): AnimationStep | null {
   const center = anchors.permanentCenter?.(anchorId);
   if (!center) return null;
@@ -91,7 +94,6 @@ export function deleteBurstStep({
       readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
       stateVersion,
       causedByOption,
-      ...(breaksWithClause ? { paysOwnClause: true } : {}),
       instanceId: metadataInstanceId,
       started,
       shattered,
@@ -122,8 +124,8 @@ export function deleteBurstStep({
       // it gets one readable beat before the card it names breaks. A clause read out long
       // before this step began — the server took its time — has had its beat already.
       const clauseUnread =
+        readBeforeBreak &&
         effectDeletion &&
-        !breaksWithClause &&
         removal?.previous === undefined &&
         causingEffectGate !== null &&
         !causingEffectGate.open;

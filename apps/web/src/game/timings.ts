@@ -274,6 +274,19 @@ export const TIMINGS = {
    * and no longer.
    */
   effectAnnounce: 800,
+  /**
+   * How long the viewer's own effect notice, held back while its decision dialog was open,
+   * waits after the answer before it reads out. An effect that asks twice (use it? then
+   * which target?) closes one dialog and opens the next a round trip later; reading the
+   * notice out in that gap flashed it between the two.
+   */
+  ownEffectNoticeReturn: 400,
+  /**
+   * How long a ＜Delay＞ clause waits for the batch that trashes its Option. The server sends
+   * that batch right behind the trigger; one that never comes means the clause was declined,
+   * and the clause is read without a break to wait for.
+   */
+  costClauseDeparture: 1200,
   /** A card flying up out of the trash pile as its effect activates. */
   effectTrashRise: 620,
   /** An Option rising out of the hand fan as it activates. */

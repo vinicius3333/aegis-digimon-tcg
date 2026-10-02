@@ -323,8 +323,9 @@ export type ServerEvent =
         seat: Seat;
       }[];
       /**
-       * Option permanents trashed whole from the battle area (a ＜Delay＞ cost, or an effect that
-       * trashes them). Trashing is not deleting, so they never appear in `deletedPermanents`.
+       * Option permanents trashed from the battle area (a ＜Delay＞ paying its cost, an effect
+       * trashing an Option), captured before removal. Trashing is not deletion (CR 4-16-3), so
+       * they never appear in `deletedPermanents`; the client still shows them leaving the field.
        */
       trashedPermanents?: {
         permanentId: string;

@@ -75,6 +75,72 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
   const trashDigivolutionCards: Primitives["trashDigivolutionCards"] = (...args) =>
     pc.fx.trashDigivolutionCards(...args);
 
+  /**
+   * The first ＜Decoy＞ source that can still save one of `endangered`: its battle-area
+   * holders and the endangered Digimon its specifier accepts. Holders sharing a source
+   * (same card and clause) are offered together, as one choice.
+   */
+  const nextDecoyOffer = (endangered: readonly Permanent[], closedSources: ReadonlySet<string>) => {
+    const stillInPlay = endangered.filter(({ permanentId }) => access.permanentById(permanentId) !== undefined);
+    for (const seat of new Set(stillInPlay.map(({ controllerSeat }) => controllerSeat))) {
+      const targets = stillInPlay.filter(({ controllerSeat }) => controllerSeat === seat);
+      const holders = access
+        .battleAreaPermanents(seat)
+        .filter(
+          (holder) =>
+            holder.topCard !== undefined &&
+            access.isBattleAreaDigimon(holder) &&
+            continuous.hasKeyword(holder.permanentId, "Decoy"),
+        );
+      const offers = new Map<
+        string,
+        {
+          key: string;
+          seat: Seat;
+          sourceCardId: string;
+          effectText: string;
+          holders: Permanent[];
+          protectable: Permanent[];
+        }
+      >();
+      for (const holder of holders) {
+        const sources = continuous.keywordGrantSources(holder.permanentId, "Decoy");
+        const provenances =
+          sources.length > 0
+            ? sources
+            : [
+                {
+                  sourceCardId: holder.topCard.cardId,
+                  effectText: requireCardDefinition(holder.topCard.cardId).effectText,
+                  specifiers: continuous.keywordSpecifiers(holder.permanentId, "Decoy"),
+                },
+              ];
+        for (const source of provenances) {
+          const sourceCardId = source.sourceCardId ?? holder.topCard.cardId;
+          const effectText = source.effectText ?? requireCardDefinition(sourceCardId).effectText ?? "";
+          const key = `${seat}\u0000${sourceCardId}\u0000${effectText}`;
+          if (closedSources.has(key)) continue;
+          const specifiers = source.specifiers ?? decoySpecFromText(effectText);
+          const protectable = targets.filter(({ permanentId, topCard }) => {
+            if (permanentId === holder.permanentId) return false;
+            const targetDef = requireCardDefinition(topCard.cardId);
+            return specifiers !== undefined && specifiers.length > 0
+              ? decoySpecMatches(specifiers, targetDef)
+              : decoyMatches(sourceCardId, targetDef);
+          });
+          if (protectable.length === 0) continue;
+          const offer = offers.get(key) ?? { key, seat, sourceCardId, effectText, holders: [], protectable: [] };
+          if (!offer.holders.includes(holder)) offer.holders.push(holder);
+          for (const target of protectable) if (!offer.protectable.includes(target)) offer.protectable.push(target);
+          offers.set(key, offer);
+        }
+      }
+      const [first] = offers.values();
+      if (first !== undefined) return first;
+    }
+    return undefined;
+  };
+
   const deletePermanent = async (
     permanentIds: string[],
     cause: import("../EffectContext.js").RemovalCause = "byEffect",
@@ -256,86 +322,69 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // (self-protection), this protects a DIFFERENT permanent, so it is keyed off the
     // endangered permanent's controller/card, not its own keyword. Scoped to `cause ===
     // "byEffect"` and an opposing resolving seat (§16-18-1's "by an opponent's effect") — a
-    // battle death or the permanent's own controller's effect never activates it.
+    // battle death or the permanent's own controller's effect never activates it. One Decoy
+    // saves "1 of those Digimon" (rules manual), so when several matching Digimon would be
+    // deleted together, the controller picks which one (Discord 1555594986756767896).
     {
       const decoySaved = new Set<string>();
       if (cause === "byEffect") {
-        for (const permanentId of toDelete) {
-          if (decoyCostPermanentIds.has(permanentId)) continue;
-          const perm = access.permanentById(permanentId);
-          if (perm === undefined || perm.topCard === undefined) continue;
-          const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
-          if (resolvingSeat === perm.controllerSeat) continue; // must be an OPPONENT's effect
-          const targetDef = requireCardDefinition(perm.topCard.cardId);
-          const holders = access
-            .battleAreaPermanents(perm.controllerSeat)
-            .filter(
-              (h) =>
-                h.permanentId !== permanentId &&
-                h.topCard !== undefined &&
-                access.isBattleAreaDigimon(h) &&
-                continuous.hasKeyword(h.permanentId, "Decoy"),
-            );
-          if (holders.length === 0) continue;
-          const groups = new Map<string, { sourceCardId: string; effectText: string; holders: typeof holders }>();
-          for (const holder of holders) {
-            const sources = continuous.keywordGrantSources(holder.permanentId, "Decoy");
-            const provenances =
-              sources.length > 0
-                ? sources
-                : [
-                    {
-                      sourceCardId: holder.topCard.cardId,
-                      effectText: requireCardDefinition(holder.topCard.cardId).effectText,
-                      specifiers: continuous.keywordSpecifiers(holder.permanentId, "Decoy"),
-                    },
-                  ];
-            for (const source of provenances) {
-              const sourceCardId = source.sourceCardId ?? holder.topCard.cardId;
-              const effectText = source.effectText ?? requireCardDefinition(sourceCardId).effectText ?? "";
-              const specifiers = source.specifiers ?? decoySpecFromText(effectText);
-              const matches =
-                specifiers !== undefined && specifiers.length > 0
-                  ? decoySpecMatches(specifiers, targetDef)
-                  : decoyMatches(sourceCardId, targetDef);
-              if (!matches) continue;
-              const key = `${sourceCardId}\u0000${effectText}`;
-              const group = groups.get(key) ?? { sourceCardId, effectText, holders: [] as typeof holders };
-              if (!group.holders.some(({ permanentId: id }) => id === holder.permanentId)) group.holders.push(holder);
-              groups.set(key, group);
-            }
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        const endangered = toDelete
+          .filter((permanentId) => !decoyCostPermanentIds.has(permanentId))
+          .map((permanentId) => access.permanentById(permanentId))
+          .filter(
+            (perm): perm is Permanent =>
+              perm !== undefined && perm.topCard !== undefined && perm.controllerSeat !== resolvingSeat,
+          );
+        const closedSources = new Set<string>();
+        for (;;) {
+          const offer = nextDecoyOffer(
+            endangered.filter(({ permanentId }) => !decoySaved.has(permanentId)),
+            closedSources,
+          );
+          if (offer === undefined) break;
+          const provenance = { sourceCardId: offer.sourceCardId, timing: "Static", effectText: offer.effectText };
+          const chosenHolder = await engine.ask.selectInstances(
+            offer.seat,
+            offer.holders.map((holder) => holder.topCard.instanceId),
+            0,
+            1,
+            "＜Decoy＞: delete this Digimon to prevent the other Digimon's deletion?",
+            provenance,
+          );
+          const holder = offer.holders.find(({ topCard }) => topCard.instanceId === chosenHolder[0]);
+          const protectable = offer.protectable.filter(({ permanentId }) => permanentId !== holder?.permanentId);
+          if (holder === undefined || protectable.length === 0) {
+            closedSources.add(offer.key);
+            continue;
           }
-          for (const { sourceCardId, effectText, holders: matchingHolders } of groups.values()) {
-            const chosen = await engine.ask.selectInstances(
-              perm.controllerSeat,
-              matchingHolders.map((holder) => holder.topCard.instanceId),
-              0,
-              1,
-              "＜Decoy＞: delete this Digimon to prevent the other Digimon's deletion?",
-              {
-                sourceCardId,
-                timing: "Static",
-                effectText,
-              },
-            );
-            if (chosen.length === 0) continue;
-            const holder = matchingHolders.find(({ topCard }) => topCard.instanceId === chosen[0]);
-            if (holder === undefined) continue;
-            // Delete the Decoy holder as the cost — routed back through this same primitive so
-            // its own leave-prevention/Evade/Barrier/On-Deletion/Overflow all apply normally.
-            decoyCostPermanentIds.add(holder.permanentId);
-            let costDeleted = 0;
-            try {
-              costDeleted = await deletePermanent([holder.permanentId], "byEffect");
-            } finally {
-              decoyCostPermanentIds.delete(holder.permanentId);
-            }
-            if (costDeleted > 0) {
-              emitDeletionPrevented("Decoy", perm, holder.permanentId, holder.topCard?.cardId);
-              decoySaved.add(permanentId);
-            }
-            break;
+          const chosenProtected =
+            protectable.length === 1
+              ? [protectable[0]!.topCard.instanceId]
+              : await engine.ask.selectInstances(
+                  offer.seat,
+                  protectable.map(({ topCard }) => topCard.instanceId),
+                  1,
+                  1,
+                  "＜Decoy＞: choose 1 Digimon to protect from deletion",
+                  provenance,
+                );
+          const saved = protectable.find(({ topCard }) => topCard.instanceId === chosenProtected[0]) ?? protectable[0]!;
+          // Delete the Decoy holder as the cost — routed back through this same primitive so
+          // its own leave-prevention/Evade/Barrier/On-Deletion/Overflow all apply normally.
+          decoyCostPermanentIds.add(holder.permanentId);
+          let costDeleted = 0;
+          try {
+            costDeleted = await deletePermanent([holder.permanentId], "byEffect");
+          } finally {
+            decoyCostPermanentIds.delete(holder.permanentId);
           }
+          if (costDeleted === 0) {
+            closedSources.add(offer.key);
+            continue;
+          }
+          emitDeletionPrevented("Decoy", saved, holder.permanentId, holder.topCard?.cardId);
+          decoySaved.add(saved.permanentId);
         }
       }
       if (decoySaved.size > 0) toDelete = toDelete.filter((id) => !decoySaved.has(id));

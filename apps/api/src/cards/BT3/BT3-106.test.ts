@@ -32,6 +32,32 @@ describe("BT3-106 Beast Cyclone", () => {
     expect(observe(s.engine).keywordAmount(s.perm("reboot"), "SecurityAttack")).toBe(1);
   });
 
+  it("also gives Security Attack +1 to a Blocker Digimon played afterwards (CR 15-11-2-2)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT3-070", as: "blocker" }],
+        hand: [
+          { card: "BT3-106", as: "option" },
+          { card: "BT3-070", as: "lateBlocker" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT3-106"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lateBlocker").instanceId })).toEqual({
+      ok: true,
+    });
+    const lateBlocker = () =>
+      s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("lateBlocker").instanceId);
+    await settle(() => lateBlocker() !== undefined && s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).keywordAmount(lateBlocker()!, "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).keywordAmount(s.perm("blocker"), "SecurityAttack")).toBe(1);
+  });
+
   it("adds itself to its owner's hand from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT3-106", as: "securityOption", faceUp: true }] } });
     const id = s.inst("securityOption").instanceId;

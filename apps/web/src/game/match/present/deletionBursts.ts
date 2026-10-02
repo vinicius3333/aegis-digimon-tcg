@@ -1,10 +1,10 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
-import type { DeletionReadyAt, PresentationGate } from "../presentationGate";
+import type { CostClause, DeletionReadyAt, PresentationGate } from "../presentationGate";
 import { joinRemovalChain, type RemovalLink } from "../removalChain";
 import type { StateSnapshot } from "../../../net/presentedState";
-import { deletionAnchorIdsFromEvent, trashedPermanentAnchorIdsFromEvent } from "../../showcases";
+import { deletionAnchorIdsFromEvent, fieldDeparturesFromEvent } from "../../showcases";
 import { heldDeletionFrom } from "../heldDeletion";
 import { COMBAT_IMPACT_TOTAL_MS, FIELD_CLASH_TOTAL_MS, PLAY_LEAD_IN_BUDGET_MS } from "../../timings";
 import { deleteBurstStep } from "../steps/deleteBurstStep";
@@ -26,9 +26,8 @@ import type { DeleteBurst, HeldDeletion, MatchCueAnchors } from "../types";
  * board rendered, as soon as it is reached, which is before the clause explaining the
  * deletion has been read out.
  *
- * An Option permanent trashed whole from the battle area breaks the same way. Everything one
- * effect takes off the field leaves one card at a time (`removalChain.ts`): the ＜Delay＞ Option
- * paying its cost first, then each Digimon the wipe deletes.
+ * Everything one effect takes off the field leaves one card at a time (`removalChain.ts`): a
+ * ＜Delay＞ Option paying its cost first, then each Digimon the wipe deletes.
  */
 export function enqueueDeletionBursts({
   queue,
@@ -44,6 +43,7 @@ export function enqueueDeletionBursts({
   removalChainRef,
   securityBlowRef,
   causingEffectGate,
+  costClause,
   setDeleteBursts,
   setHeldDeletions,
   enqueue,
@@ -66,6 +66,11 @@ export function enqueueDeletionBursts({
   removalChainRef: MutableRefObject<RemovalLink | null>;
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
   causingEffectGate: PresentationGate | null;
+  /**
+   * A ＜Delay＞ Option paying its own cost breaks once it has been lit, not after its clause:
+   * the clause waits for the break instead, so waiting on it here would hold both.
+   */
+  costClause: CostClause | null;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
   enqueue: (step: AnimationStep) => void;
@@ -83,17 +88,14 @@ export function enqueueDeletionBursts({
   const deletionBurstAnchors = new Set<string>();
   const deletionMetadata = new Map(
     fresh.flatMap((event) =>
-      event.kind === "cardsMoved"
-        ? [...(event.deletedPermanents ?? []), ...(event.trashedPermanents ?? [])].map(
-            (left) => [left.permanentId, left] as const,
-          )
-        : [],
+      fieldDeparturesFromEvent(event).map((departed) => [departed.permanentId, departed] as const),
     ),
   );
 
   for (const event of fresh) {
-    const trashedOptionIds = trashedPermanentAnchorIdsFromEvent(event);
-    for (const anchorId of [...trashedOptionIds, ...deletionAnchorIdsFromEvent(event)]) {
+    const trashedOptionIds =
+      event.kind === "cardsMoved" ? (event.trashedPermanents ?? []).map((trashed) => trashed.permanentId) : [];
+    for (const anchorId of deletionAnchorIdsFromEvent(event)) {
       if (deletionBurstAnchors.has(anchorId) || deletionBurstPresentedRef.current.has(anchorId)) continue;
       deletionBurstAnchors.add(anchorId);
       // A check whose battle has not been drawn yet owns every deletion in this batch:
@@ -130,14 +132,15 @@ export function enqueueDeletionBursts({
         effectDeletion,
         blowKey,
         securityBlowRef,
-        causingEffectGate,
+        causingEffectGate: anchorId === costClause?.permanentId ? costClause.focused : causingEffectGate,
+        readBeforeBreak: anchorId !== costClause?.permanentId,
         stateVersion,
         causedByOption,
         ...(removal ? { removal } : {}),
-        ...(trashedOption ? { breaksWithClause: true } : {}),
       });
       if (!step) {
         removal?.link.started.release();
+        if (anchorId === costClause?.permanentId) costClause.departing.release();
         continue;
       }
       deletionBurstPresentedRef.current.add(anchorId);
@@ -145,6 +148,7 @@ export function enqueueDeletionBursts({
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
       enqueue(step);
       if (removal) void queue.idle().then(() => removal.link.started.release());
+      if (anchorId === costClause?.permanentId) costClause.departing.release();
       // A step a later `replace` drops never runs, so the card would stand there for the
       // rest of the match. Registered after the enqueue: on an idle queue the promise
       // settles at once and the hold would be given back before it began.
