@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "GrantAuraToOpponents",
+          includeLaterEntrants: true,
           target: {
             filter: {
               controller: "mine",

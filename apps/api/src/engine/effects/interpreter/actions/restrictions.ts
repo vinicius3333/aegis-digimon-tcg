@@ -18,6 +18,7 @@ import { unsupported } from "../errors.js";
 import { extractCardById, insertCard } from "../../../state/access.js";
 import { Zone } from "@aegis/shared";
 import type { Action, CardDefinition, Seat } from "@aegis/shared";
+import { subscribeLaterEntrants } from "./laterEntrants.js";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   switch (action.kind) {
@@ -225,7 +226,17 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       // consulted at the digivolution-card trash sites. Re-derived each continuous pass (CR-01).
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
-      for (const id of ids) ctx.fx.stackTrashLock?.(id, duration);
+      const lock = (id: string): void => ctx.fx.stackTrashLock?.(id, duration);
+      for (const id of ids) lock(id);
+      if (action.includeLaterEntrants === true) {
+        subscribeLaterEntrants(ctx, {
+          filter: action.target.filter,
+          duration: action.duration,
+          label: "StackTrashLock",
+          alreadyGranted: ids,
+          grant: lock,
+        });
+      }
       return false;
     }
     case "RestrictMemoryGain": {

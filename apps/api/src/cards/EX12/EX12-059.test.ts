@@ -87,6 +87,33 @@ describe("EX12-059 Machinedramon ACE", () => {
     expect(s.perm("source").stack).not.toContainEqual(protectedCard);
   });
 
+  it("CR 15-11-2-2: also locks the stacked cards of a Digimon that enters afterwards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          hand: [
+            { card: "EX12-055", as: "handMaterial" },
+            { card: "BT1-010", as: "late" },
+          ],
+          trash: [{ card: "EX12-055", as: "trashMaterial" }],
+        },
+        1: { battleArea: [{ card: "EX12-058", as: "opponent", under: ["EX12-055"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.perm("source").stack.length === 2);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+    await settle();
+    const late = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("late").instanceId,
+    )!;
+
+    expect(advance(s.engine).ledgers.continuous.stackTrashLocked(late.permanentId)).toBe(true);
+  });
+
   it("uses Blast Digivolve from hand through a public Counter window without paying memory", async () => {
     const s = setupEngine(
       {

@@ -70,11 +70,11 @@ const compiled: CompiledCard = {
             { kind: "TrashTopDeck", controller: "mine", amount: 2 },
             {
               kind: "ModifyDP",
+              playerWide: true,
               target: {
                 filter: { controller: "opponent", kind: ["Digimon"] },
                 count: "all",
               },
-              playerWide: true,
               amount: -3000,
               duration: "forTheTurn",
             },
@@ -98,11 +98,11 @@ const compiled: CompiledCard = {
             { kind: "TrashTopDeck", controller: "mine", amount: 2 },
             {
               kind: "ModifyDP",
+              playerWide: true,
               target: {
                 filter: { controller: "opponent", kind: ["Digimon"] },
                 count: "all",
               },
-              playerWide: true,
               amount: -3000,
               duration: "forTheTurn",
             },

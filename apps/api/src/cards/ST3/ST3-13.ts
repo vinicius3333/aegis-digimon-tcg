@@ -19,8 +19,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
-          target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: "all" },
           playerWide: true,
+          target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: "all" },
           amount: 5000,
           duration: "forTheTurn",
         },

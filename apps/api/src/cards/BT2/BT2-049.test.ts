@@ -68,6 +68,30 @@ describe("BT2-049 Puppetmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(false);
   });
 
+  it("CR 15-11-2-2: also keeps an opposing Digimon that entered after On Play suspended", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT2-049", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-070", as: "chosen" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 11;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("chosen").isSuspended && s.state.pendingDecision === undefined);
+    const late = s.putOnBoard(1, { card: "BT2-044", suspended: true });
+
+    const unsuspend = (
+      s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
+    ).unsuspendForActivePhase.bind(s.engine);
+    await unsuspend(1);
+
+    expect(late.isSuspended).toBe(true);
+  });
+
   it("gains 1 memory when attacking", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-049", as: "puppetmon" }] },

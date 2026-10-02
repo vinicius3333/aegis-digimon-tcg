@@ -429,14 +429,13 @@ export class ModifierLedger {
   }
 
   /**
-   * Re-read every filtered player-wide modifier against the live board. Its predicate can start
-   * or stop matching without any DP event (a Digimon suspends, gains a keyword, digivolves), so
-   * the continuous recompute calls this after the other tiers are rebuilt.
+   * Re-read every player-wide modifier against the live board. A filter can start or stop
+   * matching without any DP event (a Digimon suspends, gains a keyword, digivolves), and a
+   * Digimon that enters later is affected too (Comprehensive Rules 15-11-2-2), so the continuous
+   * recompute calls this after the other tiers are rebuilt.
    */
   recomputeFilteredPlayerDp(state: GameState): void {
-    const seats = new Set(
-      this.playerDpModifiers.filter((modifier) => modifier.matches !== undefined).map(({ seat }) => seat),
-    );
+    const seats = new Set(this.playerDpModifiers.map(({ seat }) => seat));
     for (const seat of seats) {
       for (const permanent of state.players[seat]?.battleArea ?? []) this.recomputeDP(state, permanent.permanentId);
     }

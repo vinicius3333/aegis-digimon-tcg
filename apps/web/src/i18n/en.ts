@@ -636,6 +636,7 @@ export const en = {
   "game.restriction.cannotBlock": "Can't block",
   "game.restriction.cannotSuspend": "Can't suspend",
   "game.restriction.cannotUnsuspend": "Won't unsuspend",
+  "game.restriction.cannotDigivolve": "Can't digivolve",
   "game.restriction.cannotActivateWhenDigivolving": "No [When Digivolving]",
   "game.digivolutionSources": "{count} digivolution cards",
   "game.phaseBanner.active": "Unsuspend Phase",

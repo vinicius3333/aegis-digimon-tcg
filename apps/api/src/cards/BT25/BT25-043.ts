@@ -129,6 +129,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -136,7 +137,6 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: -5000,
           duration: "forTheTurn",
           cost: {

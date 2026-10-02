@@ -1813,8 +1813,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -6000,
             "duration": "forTheTurn",
             "cost": {
@@ -1834,8 +1834,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -6000,
             "duration": "forTheTurn",
             "cost": {
@@ -4634,7 +4634,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
-            "duration": "untilOpponentNextUnsuspendPhase"
+            "duration": "untilOpponentNextUnsuspendPhase",
+            "whileMatchesTargetFilter": true
           }
         ]
       }
@@ -6442,6 +6443,7 @@
         "actions": [
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "untilOpponentTurnEnd"
@@ -14734,6 +14736,7 @@
         "actions": [
           {
             "kind": "GrantAuraToOpponents",
+            "includeLaterEntrants": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "event": "whenSuspended",
             "actions": [{ "kind": "GainMemory", "amount": -1 }],
@@ -18970,13 +18973,15 @@
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "includeLaterEntrants": true
               },
               {
                 "kind": "Restrict",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "restriction": "cannotReturnToHandOrDeck",
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "whileMatchesTargetFilter": true
               }
             ]
           }
@@ -19009,13 +19014,15 @@
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "includeLaterEntrants": true
               },
               {
                 "kind": "Restrict",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                 "restriction": "cannotReturnToHandOrDeck",
-                "duration": "endOfOpponentTurn"
+                "duration": "endOfOpponentTurn",
+                "whileMatchesTargetFilter": true
               }
             ]
           }
@@ -23659,6 +23666,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -26255,6 +26263,7 @@
           {
             "effectTextPart": "Then, if there're 6 or fewer total cards in both players' security stacks, all of your opponent's Digimon gain ＜Security Attack -1＞ until the end of your opponent's turn.",
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "untilOpponentTurnEnd",
@@ -26633,6 +26642,7 @@
                 },
                 {
                   "kind": "GainKeyword",
+                  "playerWide": true,
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                   "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
                   "duration": "forTheTurn",
@@ -26682,6 +26692,7 @@
                 },
                 {
                   "kind": "GainKeyword",
+                  "playerWide": true,
                   "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
                   "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
                   "duration": "forTheTurn",
@@ -34405,6 +34416,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 5 }, "count": "all" },
             "restriction": "attackPlayers",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "place",
@@ -35998,8 +36010,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -5000,
             "duration": "untilYourTurnEnd"
           },
@@ -36048,8 +36060,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -5000,
             "duration": "untilYourTurnEnd"
           },
@@ -37149,8 +37161,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -5000,
             "duration": "forTheTurn"
           }
@@ -37161,8 +37173,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -5000,
             "duration": "forTheTurn"
           }
@@ -37928,12 +37940,10 @@
           },
           {
             "kind": "Restrict",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCardsAtMost": 1 },
-              "count": "all"
-            },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true,
             "condition": { "kind": "isDnaDigivolving", "raw": "DNA digivolving" }
           }
         ]
@@ -42382,8 +42392,8 @@
           {
             "effectTextPart": "Then, return all of your opponent's suspended Digimon with the lowest DP to the bottom of the deck. All of your Digimon get +3000 DP until the end of your opponent's turn.",
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "amount": 3000,
             "duration": "untilOpponentTurnEnd"
           }
@@ -52976,6 +52986,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -52998,6 +53009,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -53124,6 +53136,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -53141,6 +53154,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -56804,8 +56818,8 @@
           {
             "effectTextPart": "[On Play] For each color in this Digimon's digivolution cards, all of your opponent's Digimon get -1000 DP for the turn.",
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -1000,
             "duration": "forTheTurn",
             "scaling": {
@@ -63733,6 +63747,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
             "duration": "untilOpponentNextUnsuspendPhase",
+            "whileMatchesTargetFilter": true,
             "raw": "During your opponent's next unsuspend phase, none of your opponent's Digimon can unsuspend."
           }
         ]
@@ -68719,9 +68734,12 @@
             "amount": 2
           },
           {
-            "kind": "GrantStatic",
+            "kind": "Restrict",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
-            "grant": "immuneToOpponentDigimonEffects",
+            "restriction": "beAffected",
+            "fromSourceKind": ["Digimon"],
+            "byOpponentEffectsOnly": true,
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd",
             "condition": {
               "kind": "selfDigivolutionStackMatchesFilter",
@@ -82167,6 +82185,7 @@
           {
             "effectTextPart": "Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends.",
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "levelComparison": { "op": "gte", "value": 3 } },
               "count": "all"
@@ -82193,6 +82212,7 @@
           {
             "effectTextPart": "Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends.",
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "levelComparison": { "op": "gte", "value": 3 } },
               "count": "all"
@@ -89040,6 +89060,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           },
           {
@@ -89063,6 +89084,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           },
           {
@@ -101914,8 +101936,8 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon.",
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -2000,
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
@@ -101940,8 +101962,8 @@
           {
             "effectTextPart": "[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon.",
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -2000,
             "duration": "forTheTurn",
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
@@ -104176,8 +104198,8 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -5000,
             "duration": "forTheTurn",
             "cost": {
@@ -105498,13 +105520,15 @@
             "optional": true
           },
           {
-            "kind": "GrantStatic",
+            "kind": "Restrict",
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "trait": ["Vegetation", "TS"], "suspended": true },
               "count": "all"
             },
-            "grant": "immuneToOpponentDigimonEffects",
-            "tokens": [],
+            "restriction": "beAffected",
+            "fromSourceKind": ["Digimon"],
+            "byOpponentEffectsOnly": true,
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -105519,13 +105543,15 @@
             "optional": true
           },
           {
-            "kind": "GrantStatic",
+            "kind": "Restrict",
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "trait": ["Vegetation", "TS"], "suspended": true },
               "count": "all"
             },
-            "grant": "immuneToOpponentDigimonEffects",
-            "tokens": [],
+            "restriction": "beAffected",
+            "fromSourceKind": ["Digimon"],
+            "byOpponentEffectsOnly": true,
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -111750,7 +111776,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "beDeletedInBattle",
-            "duration": "forTheTurn"
+            "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -113196,8 +113223,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -4000,
             "duration": "forTheTurn",
             "cost": {
@@ -114414,6 +114441,7 @@
         "actions": [
           {
             "kind": "GrantAuraToOpponents",
+            "includeLaterEntrants": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "effectText": "[Your Turn] When attacking an opponent's Digimon with no digivolution cards, delete that Digimon",
             "duration": "forTheTurn"
@@ -114572,8 +114600,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -3000,
             "duration": "forTheTurn"
           }
@@ -116149,8 +116177,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "amount": 2000,
             "duration": "forTheTurn",
             "cost": {
@@ -116193,6 +116221,7 @@
         "actions": [
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "keywords": ["DigiBurst"] },
               "count": "all"
@@ -117722,21 +117751,21 @@
         "actions": [
           {
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "keywords": ["Reboot"] },
               "count": "all"
             },
-            "playerWide": true,
             "amount": 1000,
             "duration": "untilOpponentTurnEnd"
           },
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "mine", "kind": ["Digimon"], "keywords": ["Reboot"] },
               "count": "all"
             },
-            "playerWide": true,
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd"
           }
@@ -117749,7 +117778,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "attackPlayers",
-            "duration": "forTheTurn"
+            "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true
           },
           { "kind": "AddToHandSelf" }
         ],
@@ -118755,6 +118785,7 @@
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "cantBeBlocked",
             "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true,
             "cost": {
               "kind": "trash",
               "target": { "filter": { "isSelfRef": true, "zone": "digivolutionCards" }, "count": 2 },
@@ -128974,8 +129005,8 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -1000,
             "duration": "forTheTurn",
             "scaling": {
@@ -130721,8 +130752,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -1000,
             "duration": "forTheTurn",
             "condition": {
@@ -133468,6 +133499,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "playCostLte": 7 }, "count": "all" },
             "restriction": "attackPlayers",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd"
           },
           { "kind": "GlobalRestrict", "restriction": "opponentCannotAddToSecurity", "duration": "untilOpponentTurnEnd" }
@@ -139278,8 +139310,8 @@
               { "kind": "TrashTopDeck", "controller": "mine", "amount": 2 },
               {
                 "kind": "ModifyDP",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
                 "playerWide": true,
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
                 "amount": -3000,
                 "duration": "forTheTurn"
               }
@@ -139303,8 +139335,8 @@
               { "kind": "TrashTopDeck", "controller": "mine", "amount": 2 },
               {
                 "kind": "ModifyDP",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
                 "playerWide": true,
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
                 "amount": -3000,
                 "duration": "forTheTurn"
               }
@@ -141178,6 +141210,7 @@
           {
             "effectTextPart": "Then, all of your [Dark Masters] trait Digimon gain ＜Rush＞ for the turn. At turn end, delete the Digimon this effect played.",
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -141214,6 +141247,7 @@
           {
             "effectTextPart": "Then, all of your [Dark Masters] trait Digimon gain ＜Rush＞ for the turn. At turn end, delete the Digimon this effect played.",
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -153177,6 +153211,7 @@
           },
           {
             "kind": "StackTrashLock",
+            "includeLaterEntrants": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "duration": "untilOpponentTurnEnd",
             "cost": {
@@ -153211,6 +153246,7 @@
           },
           {
             "kind": "StackTrashLock",
+            "includeLaterEntrants": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "duration": "untilOpponentTurnEnd",
             "cost": {
@@ -153245,6 +153281,7 @@
           },
           {
             "kind": "StackTrashLock",
+            "includeLaterEntrants": true,
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "duration": "untilOpponentTurnEnd",
             "cost": {
@@ -154710,8 +154747,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -3000,
             "duration": "forTheTurn",
             "scaling": {
@@ -154727,8 +154764,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -3000,
             "duration": "forTheTurn",
             "scaling": {
@@ -159970,6 +160007,7 @@
         "actions": [
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "untilOpponentTurnEnd",
@@ -159980,6 +160018,7 @@
           },
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": -2, "raw": "＜Security Attack -2＞" },
             "duration": "untilOpponentTurnEnd",
@@ -168014,6 +168053,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -168050,6 +168090,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -172428,6 +172469,7 @@
         "actions": [
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "untilOpponentTurnEnd"
@@ -172439,6 +172481,7 @@
         "actions": [
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "untilOpponentTurnEnd"
@@ -179546,6 +179589,7 @@
         "actions": [
           {
             "kind": "GainTriggeredEffect",
+            "includeLaterEntrants": true,
             "once": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "gainedTrigger": "EndOfYourTurn",
@@ -183114,8 +183158,8 @@
           {
             "effectTextPart": "[When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon and, for the turn, all of their Digimon get -6000 DP.",
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -6000,
             "duration": "forTheTurn"
           },
@@ -206400,6 +206444,7 @@
           {
             "effectTextPart": "Then, all of your opponent’s level 4 or higher Digimon get -3000 DP and gain ＜Security Attack -1＞ until the end of their turn.",
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": {
               "filter": {
                 "controller": "opponent",
@@ -206408,13 +206453,13 @@
               },
               "count": "all"
             },
-            "playerWide": true,
             "amount": -3000,
             "duration": "untilOpponentTurnEnd"
           },
           {
             "effectTextPart": "Then, all of your opponent’s level 4 or higher Digimon get -3000 DP and gain ＜Security Attack -1＞ until the end of their turn.",
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": {
                 "controller": "opponent",
@@ -206423,7 +206468,6 @@
               },
               "count": "all"
             },
-            "playerWide": true,
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "untilOpponentTurnEnd"
           }
@@ -217911,6 +217955,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
@@ -217940,6 +217985,7 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "unsuspend",
+            "whileMatchesTargetFilter": true,
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trashBottomFaceDownUnderTamer",
@@ -218481,8 +218527,8 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": "all" },
             "playerWide": true,
+            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": "all" },
             "amount": 5000,
             "duration": "forTheTurn"
           },
@@ -222940,11 +222986,11 @@
           {
             "effectTextPart": "[When Digivolving] All of your opponent's suspended Digimon get -5000 DP until their turn ends.",
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "suspended": true },
               "count": "all"
             },
-            "playerWide": true,
             "amount": -5000,
             "duration": "untilOpponentTurnEnd"
           },
@@ -224925,7 +224971,8 @@
               "count": "all"
             },
             "restriction": "digivolve",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           },
           {
             "kind": "Restrict",
@@ -224934,7 +224981,8 @@
               "count": "all"
             },
             "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       }
@@ -228065,6 +228113,7 @@
         "actions": [
           {
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": -1 },
             "duration": "untilOpponentTurnEnd"
@@ -229661,6 +229710,7 @@
           {
             "effectTextPart": "[Main] If you have a Tamer with [Dan Yuki] or [Kanan Yuki] in its name, all of your [TS] trait Digimon gain ＜Blocker＞ and +3000 DP until your opponent's turn ends.",
             "kind": "GainKeyword",
+            "playerWide": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -229669,7 +229719,6 @@
               },
               "count": "all"
             },
-            "playerWide": true,
             "keyword": { "keyword": "Blocker" },
             "duration": "untilOpponentTurnEnd",
             "condition": {
@@ -229684,6 +229733,7 @@
           {
             "effectTextPart": "[Main] If you have a Tamer with [Dan Yuki] or [Kanan Yuki] in its name, all of your [TS] trait Digimon gain ＜Blocker＞ and +3000 DP until your opponent's turn ends.",
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -229692,7 +229742,6 @@
               },
               "count": "all"
             },
-            "playerWide": true,
             "amount": 3000,
             "duration": "untilOpponentTurnEnd",
             "condition": {
@@ -233203,11 +233252,11 @@
           },
           {
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" },
               "count": "all"
             },
-            "playerWide": true,
             "amount": -7000,
             "duration": "forTheTurn",
             "condition": {
@@ -233238,11 +233287,11 @@
           },
           {
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" },
               "count": "all"
             },
-            "playerWide": true,
             "amount": -7000,
             "duration": "forTheTurn",
             "condition": {

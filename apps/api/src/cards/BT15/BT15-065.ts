@@ -91,6 +91,7 @@ const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "attackPlayers",
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
           cost: {
             kind: "place",

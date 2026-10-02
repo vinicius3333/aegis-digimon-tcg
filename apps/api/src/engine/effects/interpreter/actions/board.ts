@@ -5,24 +5,17 @@ import type { EffectContext } from "../../EffectContext.js";
 import { type ActionScope, runAction } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
-import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
-import type { Action, EffectDurationRef, Seat, Target, ZoneRef } from "@aegis/shared";
+import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
 import { processBlitzGrant } from "./combat.js";
 import { playEffectInstances } from "./effectPlayAssembly.js";
 
 /** Filter keys every permanent a player-wide effect reaches already satisfies. */
 const PLAYER_WIDE_SCOPE_KEYS: ReadonlySet<string> = new Set(["controller", "controllerDefault", "kind", "zone"]);
-
-function playerWideSeat(ctx: EffectContext, filter: Target["filter"]): Seat | undefined {
-  const controller = filter.controller ?? filter.controllerDefault;
-  if (controller === "mine") return ctx.source.ownerSeat;
-  if (controller === "opponent") return ctx.game.opponentOf(ctx.source.ownerSeat);
-  return undefined;
-}
 
 /**
  * A narrowed "all" target ("all of your opponent's suspended Digimon") is a live condition, not a
@@ -37,6 +30,23 @@ function playerWideMatcher(
   return (permanentId) => {
     const permanent = ctx.game.permanentById(permanentId);
     return permanent !== undefined && permanentMatchesFilter(ctx, permanent, filter, ctx.source);
+  };
+}
+
+/**
+ * A keyword grant has no source provenance in the keyword ledger, so the live filter also drops
+ * a Digimon that can't be affected by this effect (BT13-108 Waltz's End, Q2361).
+ */
+function playerWideKeywordMatcher(ctx: EffectContext, filter: Target["filter"]): (permanentId: string) => boolean {
+  const narrowed = playerWideMatcher(ctx, filter);
+  const sourceKinds = [...(ctx.effectSourceKinds ?? ctx.source.definition.kinds)];
+  return (permanentId) => {
+    const permanent = ctx.game.permanentById(permanentId);
+    return (
+      permanent !== undefined &&
+      (narrowed === undefined || narrowed(permanentId)) &&
+      !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
+    );
   };
 }
 
@@ -217,9 +227,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       if (action.playerWide === true) {
-        const seat = playerWideSeat(ctx, action.target.filter);
-        if (seat === undefined) return false;
+        const seats = seatsForController(ctx, action.target.filter);
         const matches = playerWideMatcher(ctx, action.target.filter);
+        const keywordMatches = playerWideKeywordMatcher(ctx, action.target.filter);
         const amount = scale === undefined ? action.amount : action.amount * scale;
         const effectSourceKinds = ctx.effectSourceKinds ?? ctx.source.definition.kinds;
         const sourceProvenance =
@@ -230,21 +240,23 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
               }
             : {};
         const duration = nextOpponentTurnDuration ? toDuration("untilOpponentTurnEnd") : toDuration(action.duration);
-        if (amount !== 0) {
-          // "Your"/"their" turn ends are relative to the effect's controller, not to the
-          // affected player, so the owner seat is always the source's.
-          ctx.fx.modifyPlayerDP(seat, amount, duration, {
-            ownerSeat: ctx.source.ownerSeat,
-            ...sourceProvenance,
-            ...(nextOpponentTurnDuration ? { skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn() } : {}),
-            ...(matches === undefined ? {} : { matches }),
-          });
-        }
-        for (const keyword of action.alsoGainKeywords ?? []) {
-          ctx.fx.grantPlayerKeyword(seat, keyword.keyword, duration, keyword.amount, {
-            ownerSeat: ctx.source.ownerSeat,
-            ...(matches === undefined ? {} : { matches }),
-          });
+        for (const seat of seats) {
+          if (amount !== 0) {
+            // "Your"/"their" turn ends are relative to the effect's controller, not to the
+            // affected player, so the owner seat is always the source's.
+            ctx.fx.modifyPlayerDP(seat, amount, duration, {
+              ownerSeat: ctx.source.ownerSeat,
+              ...sourceProvenance,
+              ...(nextOpponentTurnDuration ? { skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn() } : {}),
+              ...(matches === undefined ? {} : { matches }),
+            });
+          }
+          for (const keyword of action.alsoGainKeywords ?? []) {
+            ctx.fx.grantPlayerKeyword(seat, keyword.keyword, duration, keyword.amount, {
+              ownerSeat: ctx.source.ownerSeat,
+              matches: keywordMatches,
+            });
+          }
         }
         return false;
       }
@@ -372,12 +384,17 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       if (action.playerWide === true) {
-        const seat = playerWideSeat(ctx, action.target.filter) ?? ctx.source.ownerSeat;
-        const matches = playerWideMatcher(ctx, action.target.filter);
-        ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount, {
-          ownerSeat: ctx.source.ownerSeat,
-          ...(matches === undefined ? {} : { matches }),
-        });
+        const filter = action.target.filter;
+        // A grant with no controller ("all of your Digimon" spelled without one) stays on the
+        // source's side; "all Digimon" (`any`) reaches both players (EX6-031 Shakamon).
+        const seats =
+          (filter.controller ?? filter.controllerDefault) === undefined
+            ? [ctx.source.ownerSeat]
+            : seatsForController(ctx, filter);
+        const matches = playerWideKeywordMatcher(ctx, filter);
+        for (const seat of seats) {
+          ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount, { ownerSeat: ctx.source.ownerSeat, matches });
+        }
         // A player-wide grant is an activated effect even when no matching permanent is
         // currently present; its ledger entry applies to qualifying permanents entering later.
         // Preserve that result for a following "if you did" clause (BT9-102).

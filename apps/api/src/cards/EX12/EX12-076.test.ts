@@ -149,6 +149,10 @@ describe("EX12-076 Susanoomon", () => {
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX12-015", "EX12-020", "EX12-019"]);
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
     expect(s.state.memory).toBe(0);
   });
 

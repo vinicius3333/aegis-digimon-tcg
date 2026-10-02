@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
-          kind: "GrantStatic",
+          kind: "Restrict",
           target: {
             filter: {
               controller: "mine",
@@ -27,7 +27,10 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "immuneToOpponentDigimonEffects",
+          restriction: "beAffected",
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "selfDigivolutionStackMatchesFilter",

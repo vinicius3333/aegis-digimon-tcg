@@ -137,6 +137,10 @@ describe("BT19-014 Shoutmon EX6", () => {
 
       expect(s.perm("small").currentDP).toBe(1000);
       expect(s.perm("big").currentDP).toBe(5000);
+      // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+      const lateEntrant = s.putOnBoard(1, "BT10-086");
+      await advance(s.engine).recompute();
+      expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("big").currentDP - s.perm("big").baseDP);
       expect(s.state.memory).toBe(3);
       expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT19-020"]);
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-035"]);

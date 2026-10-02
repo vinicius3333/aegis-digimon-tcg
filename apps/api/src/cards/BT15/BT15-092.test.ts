@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import {
   GameState,
   PlayerState,
@@ -14,7 +15,6 @@ import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT15_092 } from "./BT15-092.js";
 import "../index.js";
@@ -177,6 +177,10 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
     await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.perm("attacker").currentDP).toBe(7000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("attacker").currentDP - s.perm("attacker").baseDP);
   });
 });
 

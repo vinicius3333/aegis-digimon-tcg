@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -26,7 +27,6 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: -5000,
           duration: "forTheTurn",
         },
@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -44,7 +45,6 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: -5000,
           duration: "forTheTurn",
         },

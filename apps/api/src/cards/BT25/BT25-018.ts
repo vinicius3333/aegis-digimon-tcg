@@ -43,6 +43,7 @@ export const compiled: CompiledCard = {
           effectTextPart:
             "[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon.",
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -50,7 +51,6 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: -2000,
           duration: "forTheTurn",
           scaling: {
@@ -86,6 +86,7 @@ export const compiled: CompiledCard = {
           effectTextPart:
             "[On Play] [When Digivolving] For the turn, all of your opponent's Digimon get -2000 DP for each of your Digimon.",
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -93,7 +94,6 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: -2000,
           duration: "forTheTurn",
           scaling: {

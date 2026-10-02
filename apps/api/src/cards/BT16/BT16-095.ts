@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
           effectTextPart:
             "Then, return all of your opponent's suspended Digimon with the lowest DP to the bottom of the deck. All of your Digimon get +3000 DP until the end of your opponent's turn.",
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -43,7 +44,6 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: 3000,
           duration: "untilOpponentTurnEnd",
         },

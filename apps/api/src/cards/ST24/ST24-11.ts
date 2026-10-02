@@ -12,6 +12,7 @@ const suspendAndRestrict: { actions: Action[] } = {
       kind: "Restrict",
       target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
       restriction: "unsuspend",
+      whileMatchesTargetFilter: true,
       duration: "untilOpponentTurnEnd",
       cost: {
         kind: "trashBottomFaceDownUnderTamer",

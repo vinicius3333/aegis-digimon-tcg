@@ -54,5 +54,9 @@ describe("BT4-106 Purge Shine", () => {
     });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.perm("target").currentDP).toBe(4000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("target").currentDP - s.perm("target").baseDP);
   });
 });

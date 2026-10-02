@@ -8,11 +8,11 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: { controller: "opponent", kind: ["Digimon"] },
             count: "all",
           },
-          playerWide: true,
           amount: -5000,
           duration: "untilYourTurnEnd",
         },
@@ -79,6 +79,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -86,7 +87,6 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: -5000,
           duration: "untilYourTurnEnd",
         },

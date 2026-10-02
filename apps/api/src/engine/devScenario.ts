@@ -71,6 +71,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-breakdramon-zero-security-check",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
+  "arena-bt26-rosemon-option-digivolve-lock",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
   "arena-ex12-metalgarurumon-trash-then-return",
@@ -549,6 +550,38 @@ function layBt20DragonGeneSkipPlayScenario(state: GameState, decks: readonly [De
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/**
+ * Discord 1555363063300096090 (match 175caa69): after BT26-050's Option side resolves, the bot's
+ * Hyogamon attacks, becomes suspended, and pays its hand-trash cost. Shamanmon's inherited
+ * digivolve into SkullBaluchimon from the trash must stay locked until the bot's turn ends.
+ */
+function layBt26RosemonOptionDigivolveLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT25-021"], "-rosemon-data-squad"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rosemon-option", "BT26-050", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-rosemon-lock-first"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-012"], "-rosemon-lock-second"));
+    placePermanent(bot, establishedDigimon(1, ["BT24-009", "BT24-026"], "-rosemon-hyogamon"));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-rosemon-trash-cost", "BT1-083", 1));
+    insertCard(bot, Zone.Trash, faceUpCard("dev-rosemon-skullbaluchimon", "BT24-075", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
 }
 
 /**
@@ -4027,6 +4060,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
+  "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,

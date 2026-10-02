@@ -88,6 +88,10 @@ describe("EX5-041 Ebonwumon", () => {
     expect(s.perm("opponentTwo").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponentOne"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponentTwo"), "unsuspend")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters after the effect resolves is locked too.
+    expect(observe(s.engine).isRestricted(s.putOnBoard(1, { card: "BT1-012", suspended: true }), "unsuspend")).toBe(
+      true,
+    );
   });
 
   it("publicly suspends two opponents through legal digivolution scaling", async () => {

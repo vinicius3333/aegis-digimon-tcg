@@ -1424,9 +1424,16 @@ export class ContinuousEffectLedger {
       if (r.restriction === "beAffected") this.expiredAffectationRecipients.add(r.permanentId);
       return false;
     });
-    this.playerRestrictions = this.playerRestrictions.filter(
-      (entry) => !this.expiresAt(entry, entry.duration, boundary, entry.ownerSeat, sweepSeat, battleScopeId),
-    );
+    this.playerRestrictions = this.playerRestrictions.filter((entry) => {
+      if (!this.expiresAt(entry, entry.duration, boundary, entry.ownerSeat, sweepSeat, battleScopeId)) return true;
+      // KB Q5328, as for a per-permanent immunity above.
+      if (entry.restriction === "beAffected") {
+        for (const { permanentId } of state.players[entry.seat]?.battleArea ?? []) {
+          this.expiredAffectationRecipients.add(permanentId);
+        }
+      }
+      return false;
+    });
     this.attackTargetRestrictions = this.attackTargetRestrictions.filter(
       (entry) =>
         !this.expiresAt(entry, entry.duration, boundary, ownerOf(entry.attackerPermanentId), sweepSeat, battleScopeId),

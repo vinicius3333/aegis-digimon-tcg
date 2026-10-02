@@ -28,6 +28,8 @@ export interface GainTriggeredEffectAction extends ActionBase {
    * granted trigger fires for the target itself.
    */
   sourceFilter?: Filter;
+  /** Arm the same timed trigger on matching permanents that enter after resolution. */
+  includeLaterEntrants?: boolean;
 }
 
 /** Legacy compiler spelling for a timed trigger grant (EX5-048). */

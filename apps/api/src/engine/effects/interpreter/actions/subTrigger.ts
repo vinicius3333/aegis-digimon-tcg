@@ -19,6 +19,7 @@ import { canAttemptLink } from "./link.js";
 import { mayDeclareAttack } from "./meta.js";
 import { isDetachTopAction, onlyInfeasibleDetachTop } from "../targeting/detachTop.js";
 import { canActivateEffect } from "../effect.js";
+import { subscribeLaterEntrants } from "./laterEntrants.js";
 
 /** Does this cost suspend the effect's OWN source ("by suspending this Tamer")? */
 function suspendsSelf(cost: Cost | undefined): boolean {
@@ -1429,10 +1430,10 @@ export async function runGainTriggeredEffect(
     action.gainedTrigger === "StartOfYourMainPhase" && action.gainedActions.some((gained) => gained.kind === "Attack");
   const grantingSeat = ctx.source.ownerSeat;
   const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
-  for (const targetPermanentId of targetIds) {
+  const arm = (targetPermanentId: string): void => {
     const anchorPermanentId = targetPermanentId;
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
-    if (grantedPerm === undefined) continue;
+    if (grantedPerm === undefined) return;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
     if (action.duration === "forTheTurn") expiresOnTurnEndOf = ctx.game.state.turnSeat;
     if (action.duration === "untilYourTurnEnd") expiresOnTurnEndOf = ctx.source.ownerSeat;
@@ -1529,6 +1530,16 @@ export async function runGainTriggeredEffect(
           if (abort) break;
         }
       },
+    });
+  };
+  for (const targetPermanentId of targetIds) arm(targetPermanentId);
+  if (action.includeLaterEntrants === true) {
+    subscribeLaterEntrants(ctx, {
+      filter: action.target.filter,
+      duration: action.duration,
+      label: "GainTriggeredEffect",
+      alreadyGranted: targetIds,
+      grant: arm,
     });
   }
 }

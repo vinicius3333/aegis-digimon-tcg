@@ -80,6 +80,26 @@ it("applies both Blocker and return restriction when Sparrowmon is in its stack"
   expect(observe(s.engine).isRestricted(s.perm("ally"), "beReturned")).toBe(true);
 });
 
+it("CR 15-11-2-2: also covers a Digimon that entered after the effect resolved", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT12-084", as: "jet", under: ["BT10-060"] }],
+        hand: [{ card: "BT1-010", as: "late" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("jet"));
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("late").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision === undefined);
+  const late = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === s.inst("late").instanceId)!;
+
+  expect(observe(s.engine).hasKeyword(late, "Blocker")).toBe(true);
+  expect(observe(s.engine).isRestricted(late, "beReturned")).toBe(true);
+});
+
 it("places a hand Xros Heart Digimon under JetMervamon itself", async () => {
   const s = setupEngine(
     {

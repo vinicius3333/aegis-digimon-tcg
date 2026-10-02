@@ -32,8 +32,14 @@ describe("BT10-068 Gankoomon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("base"), "dpImmune"));
     expect(s.perm("base").currentDP).toBe(14000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT1-010");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("base").currentDP - s.perm("base").baseDP);
     expect(observe(s.engine).isRestricted(s.perm("base"), "dpImmune")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("base"), "beReturned")).toBe(true);
+    expect(observe(s.engine).isRestricted(lateEntrant, "dpImmune")).toBe(true);
+    expect(observe(s.engine).isRestricted(lateEntrant, "beReturned")).toBe(true);
   });
 
   it("gives later-played Digimon +2000 DP and immunity to opposing DP reduction and bounce (Discord 1555352172206493706)", async () => {

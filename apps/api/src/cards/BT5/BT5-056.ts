@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -15,7 +16,6 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: 2000,
           duration: "forTheTurn",
           cost: {

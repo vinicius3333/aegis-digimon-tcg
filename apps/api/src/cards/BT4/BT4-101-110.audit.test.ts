@@ -42,6 +42,7 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
     expect(effect("BT4-101", "Main").actions).toEqual([
       {
         kind: "GrantAuraToOpponents",
+        includeLaterEntrants: true,
         target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
         effectText: "[Your Turn] When attacking an opponent's Digimon with no digivolution cards, delete that Digimon",
         duration: "forTheTurn",
@@ -139,8 +140,8 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
     expect(effect("BT4-106", "Main").actions).toEqual([
       {
         kind: "ModifyDP",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
         playerWide: true,
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
         amount: -3000,
         duration: "forTheTurn",
       },

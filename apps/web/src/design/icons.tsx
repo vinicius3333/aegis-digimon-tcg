@@ -80,6 +80,11 @@ const UnsuspendOff = (p: IconProps) => (
     <path d="M4 10a8 8 0 0 1 13-4l2 2M20 14a8 8 0 0 1-13 4l-2-2M19 4v4h-4M5 20v-4h4M3 3l18 18" />
   </Svg>
 );
+const DigivolveOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m5 15 7-4 7 4M5 19l7-4 7 4M12 3v6m-3-3 3-3 3 3M3 3l18 18" />
+  </Svg>
+);
 const EffectOff = (p: IconProps) => (
   <Svg {...p}>
     <path d="m12 3-1.5 4.5L6 9l4.5 1.5L12 15l1.5-4.5L18 9l-4.5-1.5L12 3ZM4 4l16 16" />
@@ -538,6 +543,7 @@ export const Icons = {
   BlockOff,
   SuspendOff,
   UnsuspendOff,
+  DigivolveOff,
   EffectOff,
   DpShield,
   DeDigivolveShield,

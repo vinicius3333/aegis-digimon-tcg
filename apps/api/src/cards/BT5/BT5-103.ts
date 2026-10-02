@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -16,12 +17,12 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: 1000,
           duration: "untilOpponentTurnEnd",
         },
         {
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -30,7 +31,6 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           keyword: {
             keyword: "Blocker",
             raw: "＜Blocker＞",
@@ -53,6 +53,7 @@ const compiled: CompiledCard = {
           },
           restriction: "attackPlayers",
           duration: "forTheTurn",
+          whileMatchesTargetFilter: true,
         },
         {
           kind: "AddToHandSelf",

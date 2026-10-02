@@ -50,6 +50,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -57,7 +58,6 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          playerWide: true,
           amount: -1000,
           duration: "forTheTurn",
           scaling: {

@@ -292,6 +292,70 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     }
   });
 
+  it("Discord 1555363063300096090: the Option lock also covers Digimon that suspend after it resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-050", as: "option" }],
+          battleArea: [{ card: "BT25-021", as: "dataSquad" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-012", as: "second" },
+            { card: "BT1-013", as: "attacker" },
+          ],
+          hand: [{ card: "BT1-014", as: "digivolution" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId));
+    expect(s.perm("attacker").isSuspended).toBe(false);
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && s.state.pendingDecision === undefined);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("attacker").permanentId,
+        instanceId: s.inst("digivolution").instanceId,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.perm("attacker").topCard.cardId).toBe("BT1-013");
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("Q7054: Burst Digivolve returns Yoshino and trashes the former top card at turn end", async () => {
     const s = setupEngine(
       {

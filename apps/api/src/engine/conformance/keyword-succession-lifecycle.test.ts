@@ -451,6 +451,9 @@ describe("Succession committed consumer evolution", () => {
       const paidRedirect = mode === "copied" || mode === "printed";
       expect(s.state.memory).toBe((copied ? 8 : 10) - (paidRedirect ? 2 : 5));
       expect(s.perm("payment").isSuspended).toBe(paidRedirect);
+      // Copied Ceresmon's "all of your opponent's suspended Digimon get -5000 DP" also reaches a
+      // Digimon suspended after it resolved (Comprehensive Rules 15-11-2-3-3).
+      expect(s.perm("payment").currentDP).toBe(copied && paidRedirect ? 3000 : 8000);
       expect(s.perm("payment").topCard.instanceId).toBe(paymentId);
       expect(s.perm("payment").controllerSeat).toBe(1);
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);

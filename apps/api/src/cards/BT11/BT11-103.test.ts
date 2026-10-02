@@ -40,4 +40,27 @@ describe("BT11-103 Poison Powder", () => {
     await advance(s.engine).verb.suspend([s.perm("b").permanentId]);
     expect(s.state.memory).toBe(2);
   });
+
+  it("CR 15-11-2-2: also makes an opposing Digimon that enters afterwards lose 1 memory when it suspends", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["BT1-088"], hand: [{ card: "BT11-103", as: "option" }] },
+      1: { battleArea: [{ card: "BT1-010", as: "a" }], hand: [{ card: "BT1-015", as: "late" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+    await settle();
+    const late = s.state.players[1]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("late").instanceId,
+    )!;
+    s.state.memory = 0;
+
+    await advance(s.engine).verb.suspend([late.permanentId]);
+
+    expect(s.state.memory).toBe(1);
+  });
 });

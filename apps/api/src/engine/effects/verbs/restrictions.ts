@@ -59,7 +59,12 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     matches,
     opts,
   ): void => {
-    const ownerSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+    const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+    // Unsuspend-phase durations are framed from the restricted player, exactly as a
+    // per-permanent restriction keys them on the recipient's seat.
+    const recipientFramed =
+      duration === EffectDuration.UntilNextUntap || duration === EffectDuration.UntilOwnerActivePhase;
+    const ownerSeat = recipientFramed ? seat : resolvingSeat;
     continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, {
       ...continuousOpt(),
       ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
@@ -67,6 +72,9 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
       byEffectsOnly: opts?.byEffectsOnly,
     });
+    if (restriction === "beAffected") {
+      for (const permanent of state.players[seat]?.battleArea ?? []) ledger.recomputeDP(state, permanent.permanentId);
+    }
   };
 
   const restrictAttackTarget = (

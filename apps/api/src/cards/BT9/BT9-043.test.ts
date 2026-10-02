@@ -58,6 +58,10 @@ describe("BT9-043 Magnadramon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 3000 && observe(s.engine).securityDp(1) === -3000);
     expect(s.perm("target").currentDP).toBe(3000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("target").currentDP - s.perm("target").baseDP);
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
   });
 

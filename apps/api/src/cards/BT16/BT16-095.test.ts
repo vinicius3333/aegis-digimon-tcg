@@ -56,6 +56,10 @@ describe("BT16-095", () => {
     await settle(() => s.perm("ally").currentDP === 6000);
     expect(s.state.players[1]?.deck).toHaveLength(2);
     expect(s.perm("ally").currentDP).toBe(6000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT1-010");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("ally").currentDP - s.perm("ally").baseDP);
     expect(s.state.players[1]?.battleArea).toHaveLength(1);
   });
 

@@ -46,6 +46,10 @@ describe("AD1-017 Dynasmon", () => {
     await settle(() => s.perm("target").currentDP === 2000);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("target").currentDP).toBe(2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("target").currentDP - s.perm("target").baseDP);
   });
 
   it("applies -6000 DP to an opposing Digimon played later in the turn (Discord 1555352172206493706)", async () => {

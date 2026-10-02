@@ -62,6 +62,10 @@ describe("BT16-013", () => {
 
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
   });
 
   it("reduces a Digimon played later in the turn by 5000 (Discord 1555352172206493706)", async () => {

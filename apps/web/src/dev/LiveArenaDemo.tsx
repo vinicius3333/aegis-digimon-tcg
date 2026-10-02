@@ -80,6 +80,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: 'O oponente começa o turno com BT14-032 Chuumon na mão, 3 de memória e BT14-034 Sukamon no topo da segurança. Espere o bot jogar o Chuumon. O [Ao Jogar] adiciona o Sukamon à mão dele sem revelá-lo e depois o coloca de volta no topo da segurança. O seu log deve mostrar "O oponente revelou Sukamon com Chuumon" uma única vez, antes de o card ir virado para baixo para a segurança.',
     en: 'The opponent starts its turn with BT14-032 Chuumon in hand, 3 memory, and BT14-034 Sukamon on top of security. Wait for the bot to play Chuumon. Its [On Play] adds Sukamon to its hand without revealing it, then places it back on top of security. Your log must show "Opponent revealed Sukamon with Chuumon" exactly once, before the card goes face down into security.',
   },
+  "arena-bt26-rosemon-option-digivolve-lock": {
+    ptBR: "Discord 1555363063300096090. Encerre a criação. Use BT26-050 como Option (Aguichant Lèvres, 6 de memória) e suspenda Monodramon e Biyomon, não o Hyogamon. Encerre o turno. Monodramon e Biyomon não desuspendem. Hyogamon (com Shamanmon nas fontes) ataca e fica suspenso. Se o bot descartar um card da mão no Ao Atacar, o herdado de Shamanmon não pode evoluir Hyogamon para SkullBaluchimon da lixeira: nenhum Digimon suspenso do bot pode evoluir até o fim do turno dele.",
+    en: "Discord 1555363063300096090. End breeding. Use BT26-050 as an Option (Aguichant Lèvres, 6 memory) and suspend Monodramon and Biyomon, not Hyogamon. End your turn. Monodramon and Biyomon don't unsuspend. Hyogamon (with Shamanmon in its sources) attacks and becomes suspended. If the bot trashes a card from hand for its When Attacking, Shamanmon's inherited effect must not digivolve Hyogamon into SkullBaluchimon from the trash: none of the bot's suspended Digimon can digivolve until its turn ends.",
+  },
   "arena-bt22-rie-kishibe-delete-without-digivolve": {
     ptBR: "Você tem 5 cards de segurança, BT22-090 Rie Kishibe e EX13-074 Rie Kishibe ([CS]) em campo, e BT19-073 e EX13-064 LordKnightmon na mão. Encerre seu turno. O [Fim do Seu Turno] da BT22-090 deve oferecer deletar a EX13-074: aceite. A EX13-074 vai para a lixeira, mas a BT22-090 não evolui, porque nenhuma LordKnightmon cumpre o requisito com mais de 3 cards de segurança. As duas LordKnightmon ficam na mão.",
     en: "You have 5 security cards, BT22-090 Rie Kishibe and EX13-074 Rie Kishibe ([CS]) in play, and BT19-073 and EX13-064 LordKnightmon in hand. End your turn. BT22-090's [End of Your Turn] must offer to delete EX13-074: accept. EX13-074 goes to the trash, but BT22-090 does not digivolve, because no LordKnightmon meets its requirement with more than 3 security cards. Both LordKnightmon stay in hand.",
@@ -529,6 +533,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-breakdramon-zero-security-check", "EX13 Breakdramon · Security Attack -1 attack checks no card"],
   ["arena-ex13-alphamon-end-turn-attack", "EX13 Alphamon · end-of-turn Rush attack on security"],
   ["arena-bt20-dragon-gene-skip-play", "BT20 Unleash the Dragon Gene · skip the play"],
+  ["arena-bt26-rosemon-option-digivolve-lock", "BT26 Rosemon Option · suspended Digimon can't digivolve"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],
   ["arena-ex12-metalgarurumon-trash-then-return", "EX12 MetalGarurumon · trash sources, then choose the return"],

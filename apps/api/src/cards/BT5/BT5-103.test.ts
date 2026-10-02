@@ -35,8 +35,15 @@ describe("BT5-103 A Blazing Storm of Metal!", () => {
     expect(s.perm("second").currentDP).toBe(s.perm("second").baseDP + 1000);
     expect(s.perm("normal").currentDP).toBe(s.perm("normal").baseDP);
     expect(s.perm("opponent").currentDP).toBe(s.perm("opponent").baseDP);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT5-068");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
     expect(observe(s.engine).hasKeyword(s.perm("normal"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(false);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT5-068");
+    expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Blocker")).toBe(true);
     advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 0);
     advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
     await advance(s.engine).recompute();
@@ -92,6 +99,31 @@ describe("BT5-103 A Blazing Storm of Metal!", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
     advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 1);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(false);
+  });
+});
+
+describe("BT5-103 A Blazing Storm of Metal! — overall processing", () => {
+  it("CR 15-11-2-2: Security also stops a Digimon that entered after the security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { security: [{ card: "BT5-103", as: "blazingStorm" }, "BT1-010"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("blazingStorm").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    const late = s.putOnBoard(0, "BT1-010");
+
+    expect(observe(s.engine).isRestricted(late, "attackPlayers")).toBe(true);
   });
 });
 

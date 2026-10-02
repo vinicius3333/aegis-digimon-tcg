@@ -46,6 +46,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "StackTrashLock",
+          includeLaterEntrants: true,
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           duration: "untilOpponentTurnEnd",
           cost: placeTwoMaterials,

@@ -140,6 +140,8 @@ export interface StackTrashLockAction extends ActionBase {
   /** The host of an inherited effect. */
   target: Target;
   duration: EffectDurationRef;
+  /** Apply the same timed lock to matching permanents that enter after resolution. */
+  includeLaterEntrants?: boolean;
 }
 
 /** Seat-level lock: the affected seat may not gain memory from non-Tamer effects. */

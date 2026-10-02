@@ -26,6 +26,14 @@ export function createTrashVerbs(pc: PrimitivesContext) {
   const permanentByTopInstance: PrimitivesContext["helpers"]["permanentByTopInstance"] = (...args) =>
     pc.helpers.permanentByTopInstance(...args);
 
+  // Trash is public and face up (§3-6-3), whatever zone the card left. Flip it before `insertCard`, which
+  // tells the visibility port immediately: a card hidden in hand or face down under a stack
+  // would otherwise reach the opponent without its identity.
+  const insertFaceUpIntoTrash = (card: CardInstance): void => {
+    card.faceUp = true;
+    insertCard(player(card.ownerSeat), Zone.Trash, card);
+  };
+
   const trash = async (
     instanceIds: string[],
     opts?: { byEffectSeat?: Seat; byRule?: boolean; trashedSources?: TrashedSources },
@@ -134,17 +142,13 @@ export function createTrashVerbs(pc: PrimitivesContext) {
           const extracted = extractPermanentAt(owner, index)!;
           dropPermanentLedgers(extracted.permanentId);
           removedOptionPermanent = extracted.topCard;
-          for (const card of [...extracted.stack, ...extracted.linked]) {
-            card.faceUp = false;
-            insertCard(player(card.ownerSeat), Zone.Trash, card);
-          }
+          for (const card of [...extracted.stack, ...extracted.linked]) insertFaceUpIntoTrash(card);
           optionBattleAreaTrashed.push({ instanceId, permanentId: extracted.permanentId });
           break;
         }
       }
       if (removedOptionPermanent !== undefined) {
-        removedOptionPermanent.faceUp = false;
-        insertCard(player(removedOptionPermanent.ownerSeat), Zone.Trash, removedOptionPermanent);
+        insertFaceUpIntoTrash(removedOptionPermanent);
         moved.push(removedOptionPermanent);
         continue;
       }
@@ -152,7 +156,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
       // re-pushed (this verb moves cards INTO trash, never out of it).
       const removed = removeLooseInstance(state, instanceId, false);
       if (removed === undefined) continue;
-      insertCard(player(removed.ownerSeat), Zone.Trash, removed);
+      insertFaceUpIntoTrash(removed);
       moved.push(removed);
     }
     applyOverflow(
@@ -255,10 +259,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     setBreeding(owner, undefined);
     dropPermanentLedgers(permanent.permanentId);
     const moved = [permanent.topCard, ...permanent.stack, ...permanent.linked];
-    for (const card of moved) {
-      card.faceUp = true;
-      insertCard(player(card.ownerSeat), Zone.Trash, card);
-    }
+    for (const card of moved) insertFaceUpIntoTrash(card);
     applyOverflow(engine.memory, moved, state.turnSeat);
     engine.emit({
       kind: "cardsMoved",
@@ -305,6 +306,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
       hostBeforeTrash?.stack.filter((card) => !card.faceUp).map((card) => card.instanceId) ?? [],
     );
     const trashableInstanceIds = instanceIds.filter((instanceId) => !continuous.stackCardTrashLocked(instanceId));
+    // `trash` turns every card face up (BT26-094 Q7159; BT26-095 Q7163).
     const moved = await trash(
       trashableInstanceIds,
       hostBeforeTrash === undefined
@@ -317,11 +319,6 @@ export function createTrashVerbs(pc: PrimitivesContext) {
             },
           },
     );
-    // Cards in trash are public and face up, including cards that were face down under
-    // Tamers/Digimon (BT26-094 Q7159; BT26-095 Q7163). `trash` preserves an instance's
-    // face state because it also serves loose face-up zones, so normalize this specific
-    // stack-to-trash route before publishing its watcher events.
-    for (const card of moved) card.faceUp = true;
     if (moved.length > 0 && engine.fireSubTrigger) {
       // Digi-Burst trashes all chosen sources simultaneously. Notify its self-card watchers in
       // one batch before any per-card fire can trigger a continuous recompute and tear down the

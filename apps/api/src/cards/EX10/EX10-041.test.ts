@@ -227,6 +227,10 @@ describe("EX10-041 Wizardmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.perm("first").currentDP).toBe(6000);
     expect(s.perm("second").currentDP).toBe(4000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
     const granted = p1.battleArea.filter(
       (permanent) => observe(s.engine).keywordAmount(permanent, "SecurityAttack") === -1,
     );

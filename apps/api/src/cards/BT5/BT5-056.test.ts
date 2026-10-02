@@ -51,6 +51,10 @@ describe("BT5-056 Rafflesimon", () => {
     expect(s.perm("raffle").stack).toHaveLength(0);
     expect(s.perm("ally").currentDP).toBe(before + 2000);
     expect(s.perm("raffle").currentDP).toBe(raffleBefore + 2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT1-010");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("ally").currentDP - s.perm("ally").baseDP);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "block")).toBe(true);
   });

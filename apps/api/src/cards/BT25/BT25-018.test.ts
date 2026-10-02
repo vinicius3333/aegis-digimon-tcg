@@ -102,6 +102,12 @@ describe("BT25-018 Apollomon", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === atBoundaryId));
     expect(s.perm("aboveBoundary").currentDP).toBe(13000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(
+      s.perm("aboveBoundary").currentDP - s.perm("aboveBoundary").baseDP,
+    );
   });
 
   it("applies the DP reduction scaled at resolution to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
