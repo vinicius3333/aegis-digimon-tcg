@@ -176,6 +176,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e jogue uma BT6-112 BeelStarmon da mão. Há outra cópia na mão e sete redutores no lixo (uma BeelStarmon e seis Options de custo 7). O custo impresso 12 deve cair para 5 apenas uma vez: a memória vai de 6 para 1, não para 6. Depois, resolva o Ao Jogar escolhendo uma Option do lixo.",
     en: "End breeding and play one BT6-112 BeelStarmon from hand. Another copy is in hand and seven reducers are in trash (one BeelStarmon and six cost-7 Options). Its printed cost 12 must fall to 5 only once: memory goes from 6 to 1, not stay at 6. Then resolve On Play by choosing an Option from trash.",
   },
+  "arena-bt20-saviorhuckmon-end-turn-sistermon": {
+    ptBR: "Encerre a criação. Evolua a BaoHuckmon para BT20-014 SaviorHuckmon da mão: custo 3, a memória vai de 5 para 2. Aceite o ＜Delay＞ de The Sistermon Sisters Training Gym e jogue a BT23-077 Sistermon Ciel da mão. Os efeitos de SaviorHuckmon e da Sistermon Ciel deletam os dois Monodramon do bot. Encerre o turno: no [Fim do Seu Turno], SaviorHuckmon oferece suspender a Sistermon Ciel e evoluir para BT13-017 Jesmon da mão sem pagar o custo. Aceite: a Sistermon Ciel fica suspensa e SaviorHuckmon vira Jesmon.",
+    en: "End breeding. Digivolve BaoHuckmon into BT20-014 SaviorHuckmon from hand: cost 3, memory goes from 5 to 2. Accept The Sistermon Sisters Training Gym's ＜Delay＞ and play BT23-077 Sistermon Ciel from hand. SaviorHuckmon's and Sistermon Ciel's effects delete the bot's two Monodramon. End the turn: on [End of Your Turn], SaviorHuckmon offers to suspend Sistermon Ciel and digivolve into BT13-017 Jesmon from hand without paying the cost. Accept: Sistermon Ciel is suspended and SaviorHuckmon becomes Jesmon.",
+  },
   "arena-bt25-beelstarmon-option-trash-trigger": {
     ptBR: "Encerre a criação. Ataque o Monodramon suspenso do bot com a sua BT25-085 BeelStarmon (EX7-071 Hurricane Screw Shot está nas fontes dela). No [Ao Atacar], resolva primeiro o efeito que desuspende; aceite e pague descartando Hurricane Screw Shot das fontes. BeelStarmon desuspende e o efeito de Hurricane Screw Shot ativa: a memória vai de 5 para 6. Depois recuse usar uma Option. A batalha deleta o Monodramon.",
     en: "End breeding. Attack the bot's suspended Monodramon with your BT25-085 BeelStarmon (EX7-071 Hurricane Screw Shot is in its sources). On [When Attacking], resolve the unsuspend effect first; accept it and pay by trashing Hurricane Screw Shot from the sources. BeelStarmon unsuspends and Hurricane Screw Shot's effect activates: memory goes from 5 to 6. Then decline using an Option. The battle deletes Monodramon.",
@@ -637,6 +641,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],
+  ["arena-bt20-saviorhuckmon-end-turn-sistermon", "BT20 SaviorHuckmon · end of turn with an Option-played Sistermon"],
   ["arena-bt25-beelstarmon-option-trash-trigger", "BT25 BeelStarmon · unsuspend cost fires the Option's trash effect"],
   ["arena-ex7-deputymon-option-trash-trigger", "EX7 Deputymon · trashed Option source fires its effect"],
   ["arena-bt13-king-drasil-source-count", "BT13 King Drasil · source count after an earlier play"],
