@@ -1201,6 +1201,50 @@ describe("match cues", () => {
     expect(result.current.heldPhaseState).toBeUndefined();
   });
 
+  it("never holds the raising area on a revision older than its Breeding phase", async () => {
+    const state = {
+      phase: Phase.Main,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    const drasil = new Permanent();
+    drasil.permanentId = "drasil";
+    drasil.topCard = new CardInstance();
+    drasil.topCard.cardId = "BT13-007";
+    state.players[VIEWER]!.breeding = drasil;
+    // The only revision recorded before the turn's batches arrived coalesced: the board as it
+    // stood before the match was laid out, with no raising area and an empty egg deck.
+    const beforeLayout = {
+      players: [0, 1].map(() => ({ hand: [], handCount: 0, deckCount: 0, eggDeckCount: 0, battleArea: [], trash: [] })),
+    } as unknown as GameState;
+    const snapshots: StateSnapshot[] = [{ stateVersion: 0, state: beforeLayout }];
+    const { result, rerender } = renderCuesOverBoard(state, snapshots);
+    await advance(0);
+    const phases = ["Active", "Draw", "Breeding", "Main"].map(
+      (phase, index) =>
+        ({ kind: "phaseChanged", phase, turnSeat: VIEWER, turnCount: 1, stateVersion: index }) as ServerEvent,
+    );
+    for (let index = 1; index <= phases.length; index++) rerender(phases.slice(0, index));
+    await advance(0);
+
+    const raisingArea = () => result.current.heldBreedingState?.player ?? state.players[VIEWER]!;
+    for (const phase of ["Active", "Draw", "Breeding", "Main"]) {
+      await vi.waitFor(() => expect(result.current.phaseBanner?.phase).toBe(phase));
+      expect(raisingArea().breeding?.topCard.cardId).toBe("BT13-007");
+      expect(raisingArea().eggDeckCount).toBe(4);
+      await advance(TIMINGS.phaseBanner);
+      expect(raisingArea().breeding?.topCard.cardId).toBe("BT13-007");
+      expect(raisingArea().eggDeckCount).toBe(4);
+      await advance(TIMINGS.phaseBannerGap);
+    }
+  });
+
   it("unsuspends a ＜Reboot＞ holder on the other board during the same unsuspend phase", async () => {
     const state = {
       phase: Phase.Main,

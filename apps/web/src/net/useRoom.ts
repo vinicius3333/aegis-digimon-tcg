@@ -170,6 +170,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
   );
   const [patchVersion, setVersion] = useState(0);
   const [snapshots, setSnapshots] = useState<readonly StateSnapshot[]>([]);
+  const snapshotsRef = useRef<readonly StateSnapshot[]>([]);
   const [events, setEvents] = useState<SequencedServerEvent[]>([]);
   const [inbox, setInbox] = useState<BatchInbox>(emptyBatchInbox);
   const [decision, setDecision] = useState<DecisionRequest>();
@@ -241,7 +242,11 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
           return reconciled.decision;
         });
         setVersion((v) => v + 1);
-        setSnapshots((previous) => recordSnapshot(previous, next));
+        // Copied here, once per patch: `next` is the one live schema object, so an updater
+        // left for React's render would only see it after every queued patch had landed,
+        // and the revisions in between would never be recorded.
+        snapshotsRef.current = recordSnapshot(snapshotsRef.current, next);
+        setSnapshots(snapshotsRef.current);
       });
       room.onMessage<SequencedServerEvent>(EVENT_CHANNEL, (event) => {
         if (event.kind === "actionRejected" && event.decisionId) {

@@ -8,6 +8,7 @@ import { compiled } from "./BT13-112.js";
 import "./BT13-007.js";
 import "./BT13-040.js";
 import "./BT13-111.js";
+import "../EX13/EX13-014.js";
 
 describe("BT13-112 Omnimon", () => {
   it("has complete compiled coverage and no residual gaps", () => {
@@ -91,6 +92,40 @@ describe("BT13-112 Omnimon", () => {
     // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
     const lateKeywordEntrant0 = s.putOnBoard(0, "BT1-083");
     expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Rush")).toBe(true);
+  });
+
+  it("gives <Rush> to a token another effect plays afterwards (Discord bug 1555593718147448942)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-112", as: "omnimon" }],
+          breeding: { card: "BT13-007", as: "drasil", under: [{ card: "EX13-014", as: "jesmon" }] },
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    const token = () => s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "TOKEN-AthoRenePor-Token");
+    await settle(() => token() !== undefined && s.state.pendingDecision === undefined);
+
+    const tokenPlayed = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.to === "battleArea" &&
+        event.instanceIds.includes(token()!.topCard.instanceId),
+    );
+    const omnimonResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT13-112",
+    );
+    expect(tokenPlayed).toBeGreaterThan(omnimonResolved);
+    expect(observe(s.engine).hasKeyword(token()!, "Rush")).toBe(true);
+    expect(token()!.grantedKeywords).toContain("Rush");
   });
 
   it("plays every playable distinct Royal Knight, then cleans up blocked stack cards (Q2367)", async () => {

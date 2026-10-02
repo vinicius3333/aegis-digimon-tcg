@@ -147,6 +147,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt25-beelstarmon-option-trash-trigger",
   "arena-ex7-deputymon-option-trash-trigger",
   "arena-bt13-king-drasil-source-count",
+  "arena-bt13-omnimon-later-token-rush",
   "arena-bt24-hyogamon-pending-trash-digivolve",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
@@ -3489,6 +3490,25 @@ function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly 
 }
 
 /**
+ * Reproduce Discord bug 1555593718147448942: Omnimon plays Jesmon from under the breeding King
+ * Drasil_7D6, and Jesmon's trigger plays an [Atho, René & Por] Token after Omnimon's effect has
+ * resolved. "All of your Digimon gain <Rush> for the turn" must reach that later token too.
+ */
+function layBt13OmnimonLaterTokenRushScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  const drasil = establishedDigimon(0, ["EX13-014", "BT13-007"], "-omnimon-rush-drasil");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-omnimon-rush-egg", "BT13-007", 0), "top");
+  insertCard(human, Zone.Hand, faceDownCard("dev-omnimon-rush-omnimon", "BT13-112", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-omnimon-rush-neutral-draw", "BT1-085", 0), "top");
+  placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-omnimon-rush-target"));
+}
+
+/**
  * Reproduce Discord bug 1555502942403043389: SnowGoblimon trashes Plutomon from the hand, so both
  * inherited Titan digivolutions trigger. Salamon's digivolves into Plutomon, whose
  * [When Digivolving] trashes ZombiePlutomon; Hyogamon's must still digivolve into it.
@@ -4347,6 +4367,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt25-beelstarmon-option-trash-trigger": layBt25BeelStarmonOptionTrashTriggerScenario,
   "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
+  "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
   "arena-bt24-hyogamon-pending-trash-digivolve": layBt24HyogamonPendingTrashDigivolveScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,

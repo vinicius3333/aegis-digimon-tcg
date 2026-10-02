@@ -128,6 +128,7 @@ export interface AegisJoinOptions {
     | "arena-bt25-beelstarmon-option-trash-trigger"
     | "arena-ex7-deputymon-option-trash-trigger"
     | "arena-bt13-king-drasil-source-count"
+    | "arena-bt13-omnimon-later-token-rush"
     | "arena-bt24-hyogamon-pending-trash-digivolve"
     | "arena-ex10-darkness-bagramon-digixros-interrupt"
     | "arena-ex10-tactimon-digixros-material"
