@@ -35,11 +35,15 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
+          turnScope: "yourTurn",
+          sourceFilter: royalKnight,
           actions: paidDrawAndMemory,
         },
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
+          turnScope: "yourTurn",
+          sourceFilter: royalKnight,
           actions: paidDrawAndMemory,
         },
       ],
