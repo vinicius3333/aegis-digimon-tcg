@@ -47,7 +47,7 @@ export async function paySecurityToHandCost(ctx: EffectContext, cost: Cost): Pro
   // defaulting to the top end.
   const isChoice = /\btop\s+or\s+bottom\b|\bbottom\s+or\s+top\b/i.test(cost.raw ?? "");
   if (isChoice) {
-    const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
+    const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "security" });
     await ctx.fx.securityToHand(seat, 1, { fromTop: idx === 0 });
     return true;
   }

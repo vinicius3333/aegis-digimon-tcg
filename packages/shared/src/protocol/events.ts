@@ -526,8 +526,10 @@ export interface DecisionRequest {
     distinctNames?: boolean; // prevent selecting cards sharing a name, including exact-name aliases
     /** Lets the client use a dedicated in-board interaction without inferring semantics from prompt text. */
     selectionContext?: "attackSource" | "attackTarget";
-    orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination
+    orderDestination?: "deckTop" | "deckBottom" | "stackTop" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
+    /** `chooseOption` only: the zone whose ends the "top" and "bottom" choices name. */
+    topBottomZone?: "digivolutionCards" | "security" | "deck";
     /**
      * `chooseOption` only: the choice is which digivolution requirement an effect-driven
      * digivolution uses. `costs` aligns with `choices`; `costDelta` is the effect's own

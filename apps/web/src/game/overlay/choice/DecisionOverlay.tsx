@@ -164,7 +164,9 @@ export function DecisionOverlay({
       ? "overlay.useEffectPrompt"
       : isChoose
         ? "overlay.chooseEffectPrompt"
-        : "overlay.resolveEffect",
+        : isOrderCards
+          ? "overlay.chooseCardOrderPrompt"
+          : "overlay.resolveEffect",
   );
   // The eyebrow above already names the source card; repeating it as the title says nothing twice.
   const specificPrompt = playerFacingPromptText(request.promptText, request.kind);
@@ -310,6 +312,7 @@ export function DecisionOverlay({
         <DecisionChooseFooter
           choices={choices}
           declineIndex={declineIndex}
+          topBottomZone={request.options?.topBottomZone}
           onRespond={onRespond}
           onOpenBoard={() => setIsViewingBoard(true)}
         />

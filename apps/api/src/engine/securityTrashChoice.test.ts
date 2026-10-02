@@ -38,7 +38,7 @@ describe("BT15-003 security-trash cost offers a top/bottom choice", () => {
   async function attackAndChoose(
     s: EngineSetup,
     chooseIndex: 0 | 1,
-  ): Promise<{ chooseOptionSeen: boolean; choices: string[] | undefined }> {
+  ): Promise<{ chooseOptionSeen: boolean; choices: string[] | undefined; topBottomZone: string | undefined }> {
     s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("host").permanentId,
@@ -59,6 +59,7 @@ describe("BT15-003 security-trash cost offers a top/bottom choice", () => {
     return {
       chooseOptionSeen: chooseReq !== undefined,
       choices: chooseReq?.req.options?.choices,
+      topBottomZone: chooseReq?.req.options?.topBottomZone,
     };
   }
 
@@ -73,6 +74,7 @@ describe("BT15-003 security-trash cost offers a top/bottom choice", () => {
 
     expect(r.chooseOptionSeen).toBe(true);
     expect(r.choices).toEqual(["top", "bottom"]);
+    expect(r.topBottomZone).toBe("security");
     expect(p0.trash[0]?.instanceId).toBe(topId);
     expect(s.state.memory - memoryBefore).toBe(1);
     expect(p0.security.length).toBe(1);

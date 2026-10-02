@@ -60,7 +60,7 @@ export type NoticeBody =
   | { variant: "keyword"; keyword: NoticeKeyword; cardId: string; materialCardIds?: readonly string[] };
 
 /** Why a permanent lost its top card without leaving the field. */
-export type StackStripReason = "deDigivolve" | "trashTop";
+export type StackStripReason = "trashTop";
 
 /** The named mechanics the board calls out by name as they happen. */
 export type NoticeKeyword =
@@ -197,10 +197,10 @@ export function deletionNoticesFromEvent(
 }
 
 /**
- * The call-out for a permanent that lost its top card but stayed on the field
- * (＜De-Digivolve＞, or an effect trashing stack tops). It is not a deletion, so it earns
- * no deletion notice; without this the board only swapped the top card in the next patch.
- * Drawn on the side of the player who owns the stripped permanent.
+ * The call-out for a permanent whose stack tops an effect trashed while it stayed on the
+ * field. It is not a deletion, so it earns no deletion notice; without this the board only
+ * swapped the top card in the next patch. Drawn on the side of the player who owns the
+ * stripped permanent. A ＜De-Digivolve＞ strip gets no notice.
  */
 export function stackStripNoticeFromEvent(
   event: ServerEvent,
@@ -213,6 +213,7 @@ export function stackStripNoticeFromEvent(
   if (cardId === undefined) return null;
   const artId = event.artIds?.[0];
   const { reason, sourceCardId } = event.strippedStackTops;
+  if (reason !== "trashTop") return null;
   return {
     id,
     side: sideOf(event.seat, viewerSeat),

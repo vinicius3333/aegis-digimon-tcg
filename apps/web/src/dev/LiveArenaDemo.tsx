@@ -28,9 +28,17 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue uma P-240 Arcturusmon da mão com Assembly -6, escolhendo os três cards da lixeira (nível 5, 4 e 3): custo 7. Depois evolua sua Canoweissmon EX12-014 (Vermelha/Amarela, nível 5, [VB]) para a outra Arcturusmon pela evolução alternativa: custo 4. As duas rotas devem estar disponíveis e a memória termina em 0.",
     en: "Play one P-240 Arcturusmon from hand with Assembly -6, choosing the three trash cards (levels 5, 4, and 3): cost 7. Then digivolve your EX12-014 Canoweissmon (Red/Yellow, level 5, [VB]) into the other Arcturusmon with the alternate route: cost 4. Both routes must be offered, and memory ends at 0.",
   },
+  "arena-p240-arcturusmon-ordered-placement": {
+    ptBR: "Evolua sua EX12-014 Canoweissmon (sobre Gammamon) para a P-240 Arcturusmon da mão pela evolução alternativa: custo 4. No [Quando Evolui], o Digimon do bot perde suas fontes pelo ＜De-Digivolve 3＞. Aceite o efeito e escolha os dois cards da lixeira: Gammamon e BetelGammamon. O jogo deve pedir a ordem deles, com o título em português. A carta 1 vira a fonte do fundo, e as duas ficam abaixo de Gammamon e Canoweissmon.",
+    en: "Digivolve your EX12-014 Canoweissmon (over Gammamon) into P-240 Arcturusmon from hand with the alternate route: cost 4. On [When Digivolving], ＜De-Digivolve 3＞ strips the bot Digimon's sources. Accept the effect and choose both trash cards: Gammamon and BetelGammamon. The game must ask for their order. Card 1 becomes the bottom source, and both sit below Gammamon and Canoweissmon.",
+  },
   "arena-ex12-proximamon-dual-siriusmon": {
     ptBR: "Você tem dois Digimon com a linha do Gammamon nas fontes: Siriusmon (sobre Gammamon, BetelGammamon e Canoweissmon) e Canoweissmon (sobre Gammamon e BetelGammamon). Evolua a EX12-018 Siriusmon para EX12-077 Proximamon pela rota alternativa (custo 5). No efeito de Quando Evolui que joga ou usa um card das fontes, a lista deve mostrar os cards das fontes dos dois Digimon, incluindo Siriusmon. Escolha Siriusmon: ela é usada como Option (Planet Punch) e deleta o Groundramon do bot (maior DP). Depois você pode recusar ou aceitar a Arts Digivolve da Canoweissmon para Siriusmon; recusando, Siriusmon vai para a lixeira.",
     en: "You have two Digimon with the Gammamon line in their sources: Siriusmon (over Gammamon, BetelGammamon, and Canoweissmon) and Canoweissmon (over Gammamon and BetelGammamon). Digivolve EX12-018 Siriusmon into EX12-077 Proximamon with the alternate route (cost 5). In the When Digivolving play-or-use effect, the list must show the source cards of both Digimon, including Siriusmon. Choose Siriusmon: it is used as an Option (Planet Punch) and deletes the bot's Groundramon (highest DP). Then you may decline or accept Arts Digivolve from Canoweissmon into Siriusmon; if you decline, Siriusmon goes to trash.",
+  },
+  "arena-ex12-siriusmon-group-placement": {
+    ptBR: "Evolua sua EX12-014 Canoweissmon (sobre Gammamon) para a EX12-018 Siriusmon da mão. Aceite o [Quando Evolui] e escolha os dois cards: BetelGammamon da mão e WezenGammamon da lixeira. O jogo deve perguntar topo ou fundo uma única vez para os dois cards e depois pedir a ordem deles. Os dois entram juntos na mesma ponta das fontes, na ordem escolhida. Siriusmon fica com 4 cards de evolução e a Siriusmon do bot cai de 12000 para 4000 DP.",
+    en: "Digivolve your EX12-014 Canoweissmon (over Gammamon) into EX12-018 Siriusmon from hand. Accept its [When Digivolving] and choose both cards: BetelGammamon from hand and WezenGammamon from trash. The game must ask top or bottom only once for both cards, then ask for their order. Both cards enter the same end of the sources together, in the chosen order. Siriusmon ends with 4 digivolution cards, and the bot's Siriusmon drops from 12000 to 4000 DP.",
   },
   "arena-ex12-virus-busters-effect-attack": {
     ptBR: "Encerre seu turno. A fonte EX12-001 Nyaromon oferece a DNA: aceite e junte BetelGammamon com Garurumon em EX12-032 WereGarurumon, depois aceite atacar. A escolha de ordem deve listar juntos o Virus Busters EX12-069 da segurança, o [Quando Evolui] e o [Ao Atacar] de WereGarurumon e o [Ao Atacar] herdado de Garurumon. Resolva o Virus Busters por último: ele ainda deve oferecer jogar um Digimon [VB] do mesmo nível.",
@@ -491,7 +499,9 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
+  ["arena-p240-arcturusmon-ordered-placement", "P-240 Arcturusmon · order two bottom sources"],
   ["arena-ex12-proximamon-dual-siriusmon", "EX12 Proximamon · use DUAL Siriusmon from sources"],
+  ["arena-ex12-siriusmon-group-placement", "EX12 Siriusmon · place two cards at one end"],
   ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-ex13-leopardmon-suspended-target", "EX13 Leopardmon · suspend an already suspended Digimon"],

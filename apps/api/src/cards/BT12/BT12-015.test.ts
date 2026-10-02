@@ -87,6 +87,8 @@ describe("BT12-015 Aldamon", () => {
     const order = s.state.pendingDecision!;
     const requestedOrder = [s.inst("burning").instanceId, s.inst("agunimon").instanceId];
     expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT12-015");
+    // The cards go directly under the top card, so order 1 lands there.
+    expect(s.decisions.at(-1)!.req.options?.orderDestination).toBe("stackTop");
     expect(JSON.parse(order.payloadJson)).toMatchObject({
       candidateInstanceIds: expect.arrayContaining(requestedOrder),
       visibleInstanceIds: expect.arrayContaining(requestedOrder),
@@ -104,7 +106,10 @@ describe("BT12-015 Aldamon", () => {
     await settle(() => s.perm("takuya").topCard.instanceId === aldamon.instanceId);
 
     expect(s.perm("takuya").topCard.cardId).toBe("BT12-015");
-    expect(s.perm("takuya").stack.map(({ instanceId }) => instanceId)).toEqual([...requestedOrder, takuyaInstanceId]);
+    expect(s.perm("takuya").stack.map(({ instanceId }) => instanceId)).toEqual([
+      ...[...requestedOrder].reverse(),
+      takuyaInstanceId,
+    ]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toEqual(
       expect.arrayContaining(requestedOrder),
     );
@@ -167,7 +172,10 @@ describe("BT12-015 Aldamon", () => {
     await settle(() => s.perm("second").topCard.instanceId === aldamon.instanceId);
     expect(s.perm("first").topCard.cardId).toBe("BT12-088");
     expect(s.perm("first").stack).toHaveLength(0);
-    expect(s.perm("second").stack.map(({ instanceId }) => instanceId)).toEqual([...requestedOrder, secondInstanceId]);
+    expect(s.perm("second").stack.map(({ instanceId }) => instanceId)).toEqual([
+      ...[...requestedOrder].reverse(),
+      secondInstanceId,
+    ]);
     expect(s.perm("second").topCard.cardId).toBe("BT12-015");
     expect(s.state.memory).toBe(0);
   });

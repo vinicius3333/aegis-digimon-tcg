@@ -59,7 +59,9 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
   "arena-p240-arcturusmon-vb-routes",
+  "arena-p240-arcturusmon-ordered-placement",
   "arena-ex12-proximamon-dual-siriusmon",
+  "arena-ex12-siriusmon-group-placement",
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex12-diarbbitmon-option-trigger-timing",
   "arena-bt15-leviamon-x-played-subject-left",
@@ -727,6 +729,35 @@ function layP240ArcturusmonVbRoutesScenario(state: GameState, decks: readonly [D
   state.memory = 11;
 }
 
+/**
+ * P-240 Arcturusmon places 2 different trash cards as its bottom digivolution cards, and the
+ * player orders them (Discord 1555224478416633927, CR 3-1-3-4).
+ */
+function layP240ArcturusmonOrderedPlacementScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-007", "EX12-014"], "-arcturusmon-ordered-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-arcturusmon-ordered", "P-240", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-ordered-gammamon", "EX12-007", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-ordered-betelgammamon", "EX12-013", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-020"], "-arcturusmon-ordered-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /** EX12-077 Proximamon uses the DUAL EX12-018 Siriusmon it digivolved from as an Option. */
 function layEx12ProximamonDualSiriusmonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -749,6 +780,35 @@ function layEx12ProximamonDualSiriusmonScenario(state: GameState, decks: readonl
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-proximamon-highest"));
     placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-proximamon-lower"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
+/**
+ * EX12-018 Siriusmon places a hand card and a trash card as one group: one top-or-bottom
+ * choice, one order choice, and one placement (Discord 1555224478416633927).
+ */
+function layEx12SiriusmonGroupPlacementScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-007", "EX12-014"], "-siriusmon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-siriusmon", "EX12-018", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-siriusmon-hand-material", "EX12-013", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-siriusmon-trash-material", "BT10-050", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["AD1-007"], "-siriusmon-target"));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -3787,7 +3847,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
+  "arena-p240-arcturusmon-ordered-placement": layP240ArcturusmonOrderedPlacementScenario,
   "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,
+  "arena-ex12-siriusmon-group-placement": layEx12SiriusmonGroupPlacementScenario,
   "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex12-diarbbitmon-option-trigger-timing": layEx12DiarbbitmonOptionTriggerTimingScenario,
   "arena-bt15-leviamon-x-played-subject-left": layBt15LeviamonXPlayedSubjectLeftScenario,
