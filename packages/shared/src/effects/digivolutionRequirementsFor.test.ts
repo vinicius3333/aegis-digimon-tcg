@@ -123,7 +123,8 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
 
   it("keeps BT18-041's catalog header and all four Q2965 DNA color pairs in persisted data", () => {
     const card = cards.find(({ cardId }) => cardId === "BT18-041");
-    expect(card?.effectText).toContain("[DNA Digivolution] Blue/Yellow Lv.5 + Green/Black Lv.5: Cost 0");
+    expect(card?.effectText).toContain("[Digivolve] Lv.5 w/[NSp] trait: Cost 3");
+    expect(card?.effectText).toContain("[DNA Digivolve] Blue/Yellow Lv.5 + Green/Black Lv.5 : Cost 0");
     expect(dnaDigivolutionRequirementsFor("BT18-041")).toEqual([
       {
         cost: 0,
