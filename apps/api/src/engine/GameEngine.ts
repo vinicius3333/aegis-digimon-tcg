@@ -479,6 +479,7 @@ export class GameEngine {
       tracker: this.tracker,
       continuousDpSeedState: this.continuousDpSeedState,
       pendingBlitzAttack: () => this.pendingBlitzAttack,
+      hasMainPhaseEnded: () => this.mainPhase.hasEnded,
       effectEnvironment: (trigger) => effectEnvironment(this, trigger),
       buildEffectContext: (source, trigger) => buildEffectContext(this, source, trigger),
       isNewlyPlayedRushAttacker: (permanentId) => isNewlyPlayedRushAttacker(this, permanentId),
