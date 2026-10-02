@@ -310,7 +310,7 @@ export async function runSubTrigger(
     event === "onDigiBurstCardDiscarded" ||
     (event === "whenUnsuspended" && subjectFilter.isSelfRef === true && anchorPermanentId !== undefined)
       ? undefined
-      : subjectMatchSettledAtEvent(subjectFilter);
+      : subjectMatchSettledAtEvent(subjectFilter, bodyRefersToTriggerSubject(action.actions));
   const digivolutionTrashByEffectGate =
     event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
       ? (subCtx: EffectContext): boolean =>
@@ -1533,19 +1533,33 @@ export async function runGainTriggeredEffect(
 }
 
 /**
+ * Deliberately broad: any trigger, attacker, leaving-Digimon, battle-opponent or same-target
+ * reference in the body counts, so only bodies that cannot see the event subject relax.
+ */
+const TRIGGER_SUBJECT_REFERENCE = /trigger|attacker|leaving|battleOpponent|sameTarget/i;
+
+function bodyRefersToTriggerSubject(actions: readonly Action[]): boolean {
+  return TRIGGER_SUBJECT_REFERENCE.test(JSON.stringify(actions));
+}
+
+/**
  * A watcher's subject filter is judged when the event happens. While the subject is still on
  * the field, a later change to it does not undo the trigger: a suspended Veedramon that
  * digivolves into a non-Veedramon still lets Rina activate (Q2143). A subject that left the
- * field is re-read, because "that Digimon" is gone (Q3430).
+ * field is re-read only when the body acts on "that Digimon" (Q3430); otherwise only the
+ * watcher's own source leaving cancels it (Q4735).
  */
-function subjectMatchSettledAtEvent(subjectFilter: Filter): (subCtx: EffectContext) => boolean {
+function subjectMatchSettledAtEvent(
+  subjectFilter: Filter,
+  bodyRefersToSubject: boolean,
+): (subCtx: EffectContext) => boolean {
   const matchedEvents = new WeakSet<TriggerInfo>();
   return (subCtx) => {
     const { subjectPermanentId, subjectPermanentIds } = subCtx.trigger;
     const subjectIds = subjectPermanentIds ?? (subjectPermanentId === undefined ? [] : [subjectPermanentId]);
     const subjectsOnField =
       subjectIds.length > 0 && subjectIds.every((id) => subCtx.game.permanentById(id) !== undefined);
-    if (subjectsOnField && matchedEvents.has(subCtx.trigger)) return true;
+    if ((subjectsOnField || !bodyRefersToSubject) && matchedEvents.has(subCtx.trigger)) return true;
     const matched = subjectMatchesFilter(subCtx, subjectFilter);
     if (matched && subjectsOnField) matchedEvents.add(subCtx.trigger);
     return matched;
