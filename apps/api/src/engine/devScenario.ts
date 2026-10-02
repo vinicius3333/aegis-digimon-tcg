@@ -137,6 +137,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-mirage-hidden-hand",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
+  "arena-bt25-beelstarmon-option-trash-trigger",
+  "arena-ex7-deputymon-option-trash-trigger",
   "arena-bt13-king-drasil-source-count",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
@@ -3217,6 +3219,39 @@ function layBt6BeelStarmonDuplicateCostScenario(state: GameState, decks: readonl
 }
 
 /**
+ * Reproduce Discord bug 1555578375677018193: BT25-085 BeelStarmon's [When Attacking] unsuspend
+ * cost trashes EX7-071 Hurricane Screw Shot from digivolution cards, which must fire its
+ * "gain 1 memory".
+ */
+function layBt25BeelStarmonOptionTrashTriggerScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 5);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX7-071", "BT10-012", "BT25-085"], "-beelstarmon-bt25"));
+  insertCard(human, Zone.Deck, faceDownCard("dev-beelstarmon-bt25-neutral-draw", "BT1-085", 0), "top");
+  const target = establishedDigimon(1, ["BT1-009"], "-beelstarmon-bt25-target");
+  target.isSuspended = true;
+  placePermanent(opponent, target);
+}
+
+/**
+ * Discord bug 1555578375677018193, effect path: EX7-010 Deputymon's [When Digivolving] trashes
+ * P-180 Bind Red Trigger from digivolution cards, which must delete a 7000 DP or lower Digimon.
+ */
+function layEx7DeputymonOptionTrashTriggerScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 5);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["ST1-03"], "-deputymon-base"));
+  placePermanent(human, establishedDigimon(0, ["P-180", "BT1-009"], "-deputymon-host"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-deputymon", "EX7-010", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-deputymon-neutral-draw", "BT1-085", 0), "top");
+  placePermanent(opponent, establishedDigimon(1, ["BT1-013"], "-deputymon-target"));
+}
+
+/**
  * Reproduce Discord bug 1554297556551340062: Omekamon's play registers King Drasil's reducer,
  * then its On Play adds a source. Jesmon must count all four sources (cost 4), not the three
  * seen by the earlier payment window (cost 5).
@@ -4061,6 +4096,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
+  "arena-bt25-beelstarmon-option-trash-trigger": layBt25BeelStarmonOptionTrashTriggerScenario,
+  "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
