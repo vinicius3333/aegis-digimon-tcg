@@ -586,6 +586,14 @@ export interface DecisionRequest {
      */
     triggerIsOptional?: boolean[];
     /**
+     * `orderTriggers` only: the controller's older pending effects. They triggered earlier and
+     * resolve after every offered entry (CR §15-4-5-2/3), so the prompt lists them without
+     * letting the player pick them. Aligned with each other, not with `triggerKeys`.
+     */
+    waitingTriggerCardIds?: string[];
+    waitingTriggerDescriptions?: string[];
+    waitingTriggerIsInherited?: boolean[];
+    /**
      * `orderTriggers` only: the engine accepts a resolution plan — the full order for the
      * offered entries plus preset yes/no answers — instead of exactly one key. Absent on
      * prompts that only read the first key (simultaneous would-leave replacements).

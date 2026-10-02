@@ -825,6 +825,8 @@ export const en = {
   "overlay.presetAsk": "Ask",
   "overlay.presetYes": "Yes",
   "overlay.presetNo": "No",
+  "overlay.waitingEffects": "Resolve after these",
+  "overlay.waitingEffectsHint": "Earlier effects still pending. They resolve once the effects above are done.",
   "overlay.presetMandatory": "Mandatory",
   "overlay.presetLabel": "Answer for {name}'s optional choices",
   "overlay.triggerSourceField": "Field:{position}",

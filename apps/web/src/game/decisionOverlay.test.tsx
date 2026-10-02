@@ -276,6 +276,31 @@ describe("resolution plan chooser", () => {
 
     expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys.creepymon] });
   });
+
+  it("Discord 1555502942403043389: lists earlier pending effects without offering them", () => {
+    const { onRespond } = renderDecision({
+      ...planRequest,
+      options: {
+        ...planRequest.options,
+        waitingTriggerCardIds: ["BT24-026"],
+        waitingTriggerDescriptions: [
+          "[Your Turn] [Once Per Turn] When your hand is trashed from, this [Demon] or [Titan] trait Digimon may digivolve into [Titamon] or a [Titan] trait Digimon card in the trash with the digivolution cost reduced by 1.",
+        ],
+        waitingTriggerIsInherited: [true],
+      },
+    });
+    const waiting = screen.getByRole("region", { name: "Resolve after these" });
+    expect(within(waiting).getByText("Hyogamon")).toBeTruthy();
+    expect(within(waiting).queryByRole("button")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Hyogamon/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all, top to bottom" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resolve in this order" }));
+    expect(onRespond).toHaveBeenCalledWith({
+      kind: "orderTriggers",
+      order: [keys.beelzemon, keys.creepymon, keys.sukamon],
+    });
+  });
 });
 
 it("uses authoritative trigger card ids for order-trigger labels and art", () => {
@@ -2500,7 +2525,8 @@ describe("digivolution cost choice", () => {
     expect(tiles.map((tile) => tile.textContent)).toEqual(["3memory3 → 0", "4memory3 → -1"]);
     expect(tiles.map((tile) => tile.dataset.recommended)).toEqual(["true", undefined]);
     // Paying past 0 hands memory to the opponent, which ends the turn.
-    expect(tiles.map((tile) => tile.dataset.passesTurn)).toEqual([undefined, "true"]);  });
+    expect(tiles.map((tile) => tile.dataset.passesTurn)).toEqual([undefined, "true"]);
+  });
 
   it("sends the chosen path, keeping the route in each tile's accessible name", () => {
     const onConfirm = renderCostChoice();
