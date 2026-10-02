@@ -293,6 +293,8 @@ export type ServerEvent =
       kind: "cardsMoved";
       /** Identity-free movement of face-down deck cards under a field permanent. */
       deckToUnder?: { seat: Seat; permanentId: string; count: number };
+      /** The field permanent whose digivolution cards received these cards. */
+      placedUnder?: { permanentId: string };
       /** Actual deleted field cards, captured before removal; excludes their supporting cards. */
       deletedPermanents?: {
         permanentId: string;
