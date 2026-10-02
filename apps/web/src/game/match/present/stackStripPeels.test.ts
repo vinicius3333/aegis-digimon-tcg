@@ -73,6 +73,37 @@ describe("enqueueStackStripPeels", () => {
     expect(bursts()).toEqual([]);
   });
 
+  it("peels each trashed digivolution card off its Digimon, one after another", async () => {
+    const trashedSources: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["s1-19", "s1-20"],
+      cardIds: ["BT16-024", "BT16-025"],
+      artIds: ["BT16-024", "BT16-025_P1"],
+      seat: 1,
+      from: "various",
+      to: "trash",
+      trashedSources: { permanentId: "perm-1", hostCardId: "EX6-035", sourceCardId: "EX12-035" },
+    };
+    const { steps, bursts } = collect([trashedSources]);
+    expect(steps.map(({ id, track }) => ({ id, track }))).toEqual([
+      { id: "stack-strip-peel-1", track: "stackStripPeel-perm-1" },
+    ]);
+    const drawn: (readonly DeleteBurst[])[] = [];
+    await steps[0]!.run({
+      mode: "live",
+      cancelled: false,
+      skipping: false,
+      wait: async () => {
+        drawn.push(bursts());
+      },
+    });
+    expect(drawn).toEqual([
+      [{ key: 1, x: 164, y: 250, cardId: "BT16-024", stackStrip: true }],
+      [{ key: 2, x: 164, y: 250, cardId: "BT16-025", artId: "BT16-025_P1", stackStrip: true }],
+    ]);
+    expect(bursts()).toEqual([]);
+  });
+
   it.each([
     ["a replay", { mode: "replay", skipping: false }],
     ["a fast-forward", { mode: "live", skipping: true }],

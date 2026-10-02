@@ -410,6 +410,20 @@ describe("stackStripNoticeFromEvent", () => {
     const { strippedStackTops: _stripped, ...plain } = trashedTop as Extract<ServerEvent, { kind: "cardsMoved" }>;
     expect(stackStripNoticeFromEvent(plain, VIEWER, "n", 0)).toBeNull();
   });
+
+  it("leaves trashed digivolution cards to their side panel (Discord 1555176240359415878)", () => {
+    const trashedSources: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["s1-19"],
+      cardIds: ["BT16-024"],
+      artIds: ["BT16-024"],
+      seat: 1,
+      from: "various",
+      to: "trash",
+      trashedSources: { permanentId: "perm-5", hostCardId: "EX6-035", sourceCardId: "EX12-035" },
+    };
+    expect(stackStripNoticeFromEvent(trashedSources, VIEWER, "n", 5)).toBeNull();
+  });
 });
 
 describe("inherited effect source", () => {

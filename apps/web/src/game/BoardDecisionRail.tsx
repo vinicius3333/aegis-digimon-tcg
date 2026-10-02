@@ -314,7 +314,7 @@ function EffectToggleButton({ expanded, onToggle }: { expanded: boolean; onToggl
   );
 }
 
-function ViewBoardButton({ onClick }: { onClick: () => void }) {
+export function ViewBoardButton({ onClick }: { onClick: () => void }) {
   const { t } = useTranslation();
   return (
     <Button full variant="secondary" icon={Icons.Map} onClick={onClick}>

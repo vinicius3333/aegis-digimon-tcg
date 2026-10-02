@@ -312,6 +312,17 @@ export type ServerEvent =
         /** The card whose effect stripped the stack, when an effect did. */
         sourceCardId?: string;
       };
+      /**
+       * Digivolution cards an effect trashed from under a permanent that stays on the field.
+       * `hostCardId` is the permanent's top card, so the client can name the Digimon that lost
+       * them; `cardIds` and `seat` name the trashed cards and their owner.
+       */
+      trashedSources?: {
+        permanentId: string;
+        hostCardId: string;
+        /** The card whose effect trashed them, when an effect did. */
+        sourceCardId?: string;
+      };
       /** A scheduled turn-end deletion, attributed to the card that installed it. */
       turnEndDeletion?: { sourceCardId: string; deletedCardId: string };
       /**

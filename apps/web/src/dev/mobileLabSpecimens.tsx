@@ -373,7 +373,8 @@ export const SPECIMENS: readonly Specimen[] = [
   decision("decision-evo-cost", "Digivolution cost choice", () => (
     <EvoCostChoiceOverlay
       evolvingCardId={CARDS.ultimate}
-      baseName={printedCardName(CARDS.champion)}
+      baseCardId={CARDS.champion}
+      memory={3}
       options={[
         { type: "normal", label: "Digivolve from a level 4 red Digimon", cost: 3 },
         { type: "alternate", label: "Digivolve from a Digimon with [Greymon] in its name", cost: 2 },

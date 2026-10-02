@@ -52,6 +52,7 @@ export interface AegisJoinOptions {
     | "arena-bt20-dragon-gene-skip-play"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
     | "arena-bt24-fugamon-self-trash"
+    | "arena-ex12-metalgarurumon-trash-then-return"
     | "arena-bt22-palmon-cs-restack"
     | "arena-bt22-mirei-play-cost-floor"
     | "arena-bt12-mikemon-own-battle-only"
