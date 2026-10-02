@@ -72,6 +72,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você tem dois Digimon com BT22-044 Palmon como card de evolução: EX13-077 Omnimon: Merciful Mode (sem o traço [CS]) e BT22-031 GoldNumemon ([CS]). Avance até sua Fase Principal. 1) O Omnimon: Merciful Mode não deve oferecer o [Principal] herdado da Palmon. 2) Ative o [Principal] herdado da Palmon no GoldNumemon e aceite. O GoldNumemon vai para o fundo da pilha, a Palmon fica no topo, você compra 1 card, e o [Seu Turno] da Palmon dá +1 de memória.",
     en: "You have two Digimon with BT22-044 Palmon as a digivolution card: EX13-077 Omnimon: Merciful Mode (no [CS] trait) and BT22-031 GoldNumemon ([CS]). Advance to your main phase. 1) Omnimon: Merciful Mode must not offer Palmon's inherited [Main]. 2) Activate Palmon's inherited [Main] on GoldNumemon and accept. GoldNumemon moves to the bottom of the stack, Palmon becomes the top card, you draw 1 card, and Palmon's [Your Turn] gives +1 memory.",
   },
+  "arena-bt12-mikemon-own-battle-only": {
+    ptBR: "Você tem 0 de memória, uma GeoGreymon com BT12-036 Mikemon nas fontes e outra GeoGreymon sem fontes. O bot tem dois Monodramon suspensos. Ataque um Monodramon com a GeoGreymon sem fontes: ele é deletado e a memória fica em 0. Depois ataque o outro Monodramon com a GeoGreymon que tem Mikemon: a memória sobe para 1.",
+    en: "You have 0 memory, one GeoGreymon with BT12-036 Mikemon in its sources, and another GeoGreymon with no sources. The bot has two suspended Monodramon. Attack one Monodramon with the GeoGreymon that has no sources: it is deleted and memory stays at 0. Then attack the other Monodramon with the GeoGreymon that has Mikemon: memory rises to 1.",
+  },
   "arena-bt22-mirei-play-cost-floor": {
     ptBR: "Você tem BT22-089 Mirei Mikagura em campo, e outra BT22-089 (custo 3) e BT22-093 Ami Aiba (custo 4, [CS]) na mão. Avance para a fase principal e aceite o [Início da Sua Fase Principal]: a Mirei volta ao fundo do deck. A escolha deve oferecer só a Ami Aiba; a Mirei de custo 3 fica na mão.",
     en: "You have BT22-089 Mirei Mikagura in play, plus another BT22-089 (cost 3) and BT22-093 Ami Aiba (cost 4, [CS]) in hand. Advance to the main phase and accept [Start of Your Main Phase]: Mirei returns to the deck bottom. The choice must offer only Ami Aiba; the cost 3 Mirei stays in hand.",
@@ -453,6 +457,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],
   ["arena-bt22-palmon-cs-restack", "BT22 Palmon · [CS] restack only on a [CS] host"],
   ["arena-bt22-mirei-play-cost-floor", "BT22 Mirei Mikagura · play cost 4 or higher only"],
+  ["arena-bt12-mikemon-own-battle-only", "BT12 Mikemon · memory only for its own host's battle"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
   ["arena-bt20-omnimon-each-player-survivor", "BT20 Omnimon (X Antibody) · over Omekamon, one survivor per player"],
   ["arena-bt20-ouryuken-reduction-resumes", "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy"],

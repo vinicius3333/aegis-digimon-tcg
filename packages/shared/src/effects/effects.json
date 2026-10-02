@@ -16853,7 +16853,12 @@
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenDeletesInBattle", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
@@ -36705,6 +36710,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "GainMemory",
@@ -45600,6 +45606,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Unsuspend",
@@ -52806,6 +52813,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -59251,6 +59259,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -111555,6 +111564,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green", "Blue"] },
             "actions": [
               {
@@ -123188,6 +123198,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -132595,6 +132606,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green", "Blue"] },
             "actions": [
               {
@@ -135107,6 +135119,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -135162,6 +135175,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -160314,6 +160328,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "raw": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "effectTextPart": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "sourceFilter": {
@@ -160335,6 +160350,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "raw": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "effectTextPart": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "sourceFilter": {
@@ -167778,6 +167794,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
@@ -196062,6 +196079,8 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "fireCondition": { "kind": "triggerAttackerSurvivedBattle", "raw": "and survives" },
             "actions": [
               {
                 "kind": "Unsuspend",
@@ -206590,6 +206609,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -211130,6 +211150,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
