@@ -346,13 +346,14 @@ export async function engineConsultLeavePrevention(
       markOncePerTurnFired: (key) => engine.tracker.register(key, "replacement"),
       // ＜Guard＞ is the one prevention keyword that resolves as a replacement subscription
       // rather than inline in the deletion paths, so its announcement is wired here.
-      keywordPrevented: (activationIdentity, sourcePermanentId, sourceCardId, savedPermanentId) => {
-        if (activationIdentity !== "keyword-guard") return;
+      keywordPrevented: (activationIdentity, sourcePermanentId, sourceCardId, savedPermanentId, preventionKeyword) => {
+        const keyword = preventionKeyword ?? (activationIdentity === "keyword-guard" ? "Guard" : undefined);
+        if (keyword === undefined) return;
         const saved = engine.access.permanentById(savedPermanentId);
         if (saved === undefined) return;
         engine.hooks.emit({
           kind: "deletionPrevented",
-          keyword: "Guard",
+          keyword,
           seat: saved.controllerSeat,
           permanentId: saved.permanentId,
           ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),

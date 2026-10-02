@@ -63,7 +63,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     // separately so refreshing those values does not depend on emitting a subtrigger.
     const linkedHostsToRefresh = new Set<string>();
     const linkedHostByInstance = new Map<string, string>();
-    const optionBattleAreaTrashed: { instanceId: string; permanentId: string }[] = [];
+    const optionBattleAreaTrashed: NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["trashedPermanents"]> = [];
     // CR 4-9-5's over-limit sweep is rule processing, not an effect: a watcher reading "when
     // effects trash any of this Digimon's link cards" must not see it (Q5088, Q5172, Q5188).
     for (const instanceId of instanceIds) {
@@ -143,7 +143,13 @@ export function createTrashVerbs(pc: PrimitivesContext) {
           dropPermanentLedgers(extracted.permanentId);
           removedOptionPermanent = extracted.topCard;
           for (const card of [...extracted.stack, ...extracted.linked]) insertFaceUpIntoTrash(card);
-          optionBattleAreaTrashed.push({ instanceId, permanentId: extracted.permanentId });
+          optionBattleAreaTrashed.push({
+            instanceId,
+            permanentId: extracted.permanentId,
+            cardId: extracted.topCard.cardId,
+            artId: extracted.topCard.artId || extracted.topCard.cardId,
+            seat: owner.seat,
+          });
           break;
         }
       }
@@ -178,6 +184,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
               trashedSources: opts.trashedSources,
             }
           : {}),
+        ...(optionBattleAreaTrashed.length > 0 ? { trashedPermanents: optionBattleAreaTrashed } : {}),
       });
     }
     // Identify only linked instances that actually moved; restricted or missing ids must not

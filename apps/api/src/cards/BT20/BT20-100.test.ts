@@ -262,4 +262,101 @@ describe("BT20-100 The Last Guardian", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-100")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-093")).toBe(false);
   });
+
+  const isDelayPrompt = ({ req }: { req: { kind: string; promptText?: string } }) =>
+    req.kind === "optional" && req.promptText === "Prevent leaving the battle area?";
+
+  it("does not offer Delay on the turn it was placed when Omnimon (X Antibody) deletes Omnimon (Discord 1555673696960774224)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT20-100", as: "option" },
+            { card: "BT20-102", as: "omnimonX" },
+          ],
+          battleArea: [
+            { card: "BT5-086", as: "omnimon" },
+            { card: "AD1-011", as: "survivor" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    preferInstanceIds.push(s.perm("survivor").topCard.instanceId);
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-100"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimon").permanentId,
+        instanceId: s.inst("omnimonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.filter(isDelayPrompt)).toEqual([]);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-102")).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "AD1-011",
+      "BT20-100",
+    ]);
+  });
+
+  it("saves Omnimon (X Antibody) from its own board wipe once placed on an earlier turn (Discord 1555673696960774224)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-102", as: "omnimonX" }],
+          battleArea: [
+            { card: "BT20-100", as: "guardian" },
+            { card: "BT5-086", as: "omnimon" },
+            { card: "AD1-011", as: "survivor" },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    preferInstanceIds.push(s.perm("survivor").topCard.instanceId);
+    const guardianId = s.perm("guardian").permanentId;
+    const omnimonId = s.perm("omnimon").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimon").permanentId,
+        instanceId: s.inst("omnimonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.filter(isDelayPrompt)).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-100")).toBe(true);
+    expect(s.events.flatMap((event) => (event.kind === "cardsMoved" ? (event.trashedPermanents ?? []) : []))).toEqual([
+      expect.objectContaining({ permanentId: guardianId, cardId: "BT20-100", seat: 0 }),
+    ]);
+    const delayBeats = s.events.flatMap((event) =>
+      (event.kind === "effectTriggered" || event.kind === "effectResolved") && event.sourceCardId === "BT20-100"
+        ? [event.kind]
+        : event.kind === "cardsMoved" && event.trashedPermanents !== undefined
+          ? ["trashed"]
+          : event.kind === "deletionPrevented"
+            ? [`prevented:${event.keyword}:${event.permanentId}`]
+            : [],
+    );
+    expect(delayBeats).toEqual(["effectTriggered", "trashed", "effectResolved", `prevented:Delay:${omnimonId}`]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "AD1-011",
+      "BT20-102",
+    ]);
+  });
 });
