@@ -171,7 +171,14 @@ describe("BT26-101 compiled fidelity", () => {
     expect(observe(s.engine).hasKeyword(s.perm("tsDigimon"), "Blocker")).toBe(true);
     expect(s.perm("tsDigimon").currentDP).toBe(5000);
     expect(observe(s.engine).hasKeyword(s.perm("nonTs"), "Blocker")).toBe(false);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT26-009");
+    expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Blocker")).toBe(true);
     expect(s.perm("nonTs").currentDP).toBe(3000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT26-009");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("tsDigimon").currentDP - s.perm("tsDigimon").baseDP);
   });
 
   it("can choose the unsuspend mode without the named Tamer (Q7182)", async () => {

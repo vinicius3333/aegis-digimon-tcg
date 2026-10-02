@@ -67,6 +67,11 @@ describe("BT5-057 Rosemon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("nonBurst"), "SecurityAttack")).toBe(0);
     expect(observe(s.engine).keywordAmount(s.perm("opponentBurst"), "SecurityAttack")).toBe(0);
     expect(observe(s.engine).keywordAmount(s.perm("opponentNonBurst"), "SecurityAttack")).toBe(0);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT5-046");
+    expect(observe(s.engine).keywordAmount(lateKeywordEntrant0, "SecurityAttack")).toBe(
+      observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack"),
+    );
 
     advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
     expect(observe(s.engine).keywordAmount(s.perm("rose"), "SecurityAttack")).toBe(0);

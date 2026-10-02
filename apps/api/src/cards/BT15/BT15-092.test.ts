@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import {
   GameState,
   PlayerState,
@@ -176,6 +177,10 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
     await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.perm("attacker").currentDP).toBe(7000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("attacker").currentDP - s.perm("attacker").baseDP);
   });
 });
 

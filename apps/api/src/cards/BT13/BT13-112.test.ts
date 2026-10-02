@@ -88,6 +88,9 @@ describe("BT13-112 Omnimon", () => {
       expect(observe(s.engine).hasKeyword(permanent, "Rush")).toBe(true);
     }
     expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT1-083");
+    expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Rush")).toBe(true);
   });
 
   it("plays every playable distinct Royal Knight, then cleans up blocked stack cards (Q2367)", async () => {

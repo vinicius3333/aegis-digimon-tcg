@@ -76,6 +76,7 @@ const compiled: CompiledCard = {
           effectTextPart:
             "Then, all of your [Dark Masters] trait Digimon gain ＜Rush＞ for the turn. At turn end, delete the Digimon this effect played.",
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -130,6 +131,7 @@ const compiled: CompiledCard = {
           effectTextPart:
             "Then, all of your [Dark Masters] trait Digimon gain ＜Rush＞ for the turn. At turn end, delete the Digimon this effect played.",
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",

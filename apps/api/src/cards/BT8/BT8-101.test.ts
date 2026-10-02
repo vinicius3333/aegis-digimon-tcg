@@ -42,6 +42,10 @@ describe("BT8-101 Plasma Shot", () => {
 
     expect(s.perm("chosen").currentDP).toBe(4_000);
     expect(s.perm("other").currentDP).toBe(8_000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("other").currentDP - s.perm("other").baseDP);
     expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-101")).toBe(true);
   });

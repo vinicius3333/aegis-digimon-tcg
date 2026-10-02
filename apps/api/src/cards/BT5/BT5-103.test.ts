@@ -35,8 +35,15 @@ describe("BT5-103 A Blazing Storm of Metal!", () => {
     expect(s.perm("second").currentDP).toBe(s.perm("second").baseDP + 1000);
     expect(s.perm("normal").currentDP).toBe(s.perm("normal").baseDP);
     expect(s.perm("opponent").currentDP).toBe(s.perm("opponent").baseDP);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT5-068");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
     expect(observe(s.engine).hasKeyword(s.perm("normal"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(false);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT5-068");
+    expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Blocker")).toBe(true);
     advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 0);
     advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
     await advance(s.engine).recompute();

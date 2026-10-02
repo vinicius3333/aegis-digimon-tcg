@@ -253,6 +253,12 @@ describe("BT25-043 Habakirimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("optionCost").instanceId);
     expect(s.perm("firstTarget").currentDP).toBe(7000);
     expect(s.perm("secondTarget").currentDP).toBe(15000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(
+      s.perm("secondTarget").currentDP - s.perm("secondTarget").baseDP,
+    );
   });
 
   it("decides the later security cost before reducing DP, then deletes at zero DP", async () => {

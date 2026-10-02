@@ -85,7 +85,9 @@ describe("BT26-032 compiled fidelity", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
 
     expect(s.perm("suspendCost").isSuspended).toBe(true);
-    expect(s.perm("penaltyTarget").currentDP).toBe(7000);
+    // The Succession suspension lands after this card's -5000 resolved; "all of your opponent's
+    // suspended Digimon" still covers it (CR 15-11-2-3-3), on top of the -3000 [All Turns] hit.
+    expect(s.perm("penaltyTarget").currentDP).toBe(2000);
   });
 
   it("uses the alternate cost only over a Ceresmon with printed play cost 12", async () => {

@@ -65,6 +65,11 @@ describe("BT13-106 Odin's Breath", () => {
     expect(s.perm("second").currentDP).toBe(13000);
     expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(-1);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant1 = s.putOnBoard(1, "BT1-083");
+    expect(observe(s.engine).keywordAmount(lateKeywordEntrant1, "SecurityAttack")).toBe(
+      observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack"),
+    );
   });
 
   it("activates Main when an effect directly trashes it from security", async () => {

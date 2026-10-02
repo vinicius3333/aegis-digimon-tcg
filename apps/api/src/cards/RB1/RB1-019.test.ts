@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -41,7 +42,18 @@ describe("RB1-019 ShinMonzaemon", () => {
     expect(s.state.players[0]!.security.at(0)).toMatchObject({ instanceId: ownLevel3, faceUp: false });
     expect(s.state.players[1]!.security.at(0)).toMatchObject({ instanceId: opposingLevel3, faceUp: false });
     expect(s.perm("opposingLevel5").currentDP).toBe(5000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(
+      s.perm("opposingLevel5").currentDP - s.perm("opposingLevel5").baseDP,
+    );
     expect(observe(s.engine).keywordAmount(s.perm("opposingLevel5"), "SecurityAttack")).toBe(-1);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant1 = s.putOnBoard(1, "BT1-083");
+    expect(observe(s.engine).keywordAmount(lateKeywordEntrant1, "SecurityAttack")).toBe(
+      observe(s.engine).keywordAmount(s.perm("opposingLevel5"), "SecurityAttack"),
+    );
     expect(s.state.memory).toBe(5);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(oldTopId);
   });

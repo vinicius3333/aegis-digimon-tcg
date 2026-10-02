@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -112,6 +113,12 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
     await settle(() => s.perm("oppDigimon").currentDP <= 10000 - 8000);
 
     expect(s.perm("oppDigimon").currentDP).toBe(2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(
+      s.perm("oppDigimon").currentDP - s.perm("oppDigimon").baseDP,
+    );
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashDeva").instanceId)).toBe(false);
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashFourSovs").instanceId)).toBe(false);
   });

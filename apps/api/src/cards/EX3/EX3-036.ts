@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
+          playerWide: true,
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
           keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
           duration: "untilOpponentTurnEnd",
@@ -20,6 +21,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
+          playerWide: true,
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
           keyword: { keyword: "SecurityAttack", amount: -2, raw: "＜Security Attack -2＞" },
           duration: "untilOpponentTurnEnd",

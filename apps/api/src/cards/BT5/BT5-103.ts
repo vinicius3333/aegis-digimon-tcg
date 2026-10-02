@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -21,6 +22,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",

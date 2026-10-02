@@ -39,6 +39,7 @@ const compiled: CompiledCard = {
           effectTextPart:
             "Then, if [Gankoomon] is in this Digimon's digivolution cards or you have a Digimon with [Sistermon] in its name in play, until the end of your opponent's turn, all of your Digimon get +2000 DP and your opponent's effects can't return them to hands or decks or reduce their DP.",
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -83,7 +84,7 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "GrantStatic",
+          kind: "Restrict",
           target: {
             filter: {
               controller: "mine",
@@ -91,8 +92,9 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "immuneToOpponentDPReductionAndReturn",
-          tokens: [],
+          restriction: "dpImmune",
+          byOpponentEffectsOnly: true,
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "anyOf",
@@ -141,5 +143,15 @@ const compiled: CompiledCard = {
     },
   ],
 };
+
+// "Your opponent's effects can't return them to hands or decks" shares the DP lock's targets,
+// condition and duration.
+for (const effect of compiled.effects) {
+  const index = effect.actions.findIndex((action) => action.kind === "Restrict" && action.restriction === "dpImmune");
+  const dpLock = effect.actions[index];
+  if (dpLock?.kind === "Restrict") {
+    effect.actions.splice(index + 1, 0, { ...dpLock, restriction: "cannotReturnToHandOrDeck" });
+  }
+}
 
 registerIrCard("BT10-068", compiled);

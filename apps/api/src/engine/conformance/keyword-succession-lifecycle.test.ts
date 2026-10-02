@@ -409,7 +409,7 @@ describe("Succession committed consumer evolution", () => {
             security: [NEUTRAL],
           },
           1: {
-            battleArea: [{ card: mode.startsWith("blocked") ? "BT19-101" : NEUTRAL, as: "payment" }],
+            battleArea: [{ card: mode.startsWith("blocked") ? "BT19-101" : NEUTRAL, as: "payment", dp: 20000 }],
             deck: [NEUTRAL],
             security: ["BT1-028"],
           },
@@ -451,6 +451,9 @@ describe("Succession committed consumer evolution", () => {
       const paidRedirect = mode === "copied" || mode === "printed";
       expect(s.state.memory).toBe((copied ? 8 : 10) - (paidRedirect ? 2 : 5));
       expect(s.perm("payment").isSuspended).toBe(paidRedirect);
+      // Copied Ceresmon's "all of your opponent's suspended Digimon get -5000 DP" also reaches a
+      // Digimon suspended after it resolved (Comprehensive Rules 15-11-2-3-3).
+      expect(s.perm("payment").currentDP).toBe(copied && paidRedirect ? 15000 : 20000);
       expect(s.perm("payment").topCard.instanceId).toBe(paymentId);
       expect(s.perm("payment").controllerSeat).toBe(1);
       expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
@@ -492,8 +495,8 @@ describe("Succession committed consumer evolution", () => {
         },
         1: {
           battleArea: [
-            { card: NEUTRAL, as: "firstPayment" },
-            { card: NEUTRAL, as: "secondPayment" },
+            { card: NEUTRAL, as: "firstPayment", dp: 20000 },
+            { card: NEUTRAL, as: "secondPayment", dp: 20000 },
           ],
           deck: [NEUTRAL],
           security: ["BT1-028"],
@@ -693,7 +696,7 @@ describe("Succession committed consumer evolution", () => {
           deck: [NEUTRAL, NEUTRAL, NEUTRAL, "BT1-028"],
           security: ["BT1-028"],
         },
-        1: { battleArea: [{ card: NEUTRAL, as: "payment" }], deck: [NEUTRAL], security: ["BT1-028"] },
+        1: { battleArea: [{ card: NEUTRAL, as: "payment", dp: 20000 }], deck: [NEUTRAL], security: ["BT1-028"] },
       },
       options,
     );
@@ -772,7 +775,7 @@ describe("Succession committed consumer evolution", () => {
         },
         1: {
           battleArea: [
-            { card: NEUTRAL, as: "payment" },
+            { card: NEUTRAL, as: "payment", dp: 20000 },
             { card: "BT6-063", as: "reactionTarget", suspended: true },
           ],
           deck: [NEUTRAL],

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -39,6 +40,10 @@ describe("BT4-049 Varodurumon", () => {
     expect(s.perm("varo").stack).toHaveLength(0);
     expect(s.perm("a").currentDP).toBe(8000);
     expect(s.perm("b").currentDP).toBe(8000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("a").currentDP - s.perm("a").baseDP);
     expect(s.perm("ally").stack).toHaveLength(1);
     expect(s.perm("ally").stack[0]!.instanceId).toBe(s.inst("allySource").instanceId);
   });
