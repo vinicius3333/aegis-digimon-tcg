@@ -25,6 +25,7 @@ const SENTINEL = "BT1-009";
 const NEUTRAL_LV3 = "BT1-013";
 const SPARE = "BT1-014";
 const OPPONENT_BODY = "ST15-11";
+const MACHINEDRAMON = "EX1-073";
 const GEREMON = "BT15-035";
 const TYRANNOMON = "EX1-005";
 const RED_LV5 = "AD1-002";
@@ -1411,6 +1412,43 @@ describe("EX13-031 KingSukamon — KB Q&A rulings", () => {
 
     expect(victim.currentDP).toBe(5000);
     expect(observe(s.engine).effectiveNames(victim)).toEqual(["sukamon"]);
+  });
+
+  it("Discord 1555271931203158056: rewrites Machinedramon's original DP to 3000 although its DP can't be reduced", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "king" },
+            { card: CHUUMON_COST_3, as: "fee" },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: MACHINEDRAMON, as: "victim" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const victim = s.perm("victim");
+    expect(victim.currentDP).toBe(getCardDefinition(MACHINEDRAMON)!.dp);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision === undefined && observe(s.engine).effectiveNames(victim).includes("sukamon"),
+    );
+
+    expect(observe(s.engine).effectiveColors(victim)).toEqual(["White"]);
+    expect(victim.currentDP).toBe(3000);
+
+    await advance(s.engine).verb.modifyDP(victim.permanentId, -2000, EffectDuration.UntilEachTurnEnd);
+    expect(victim.currentDP).toBe(3000);
+    assertNoLoudGap(s);
   });
 
   it("triggers the inherited watcher when the opponent's [Sukamon]-named Digimon is deleted (Q7299)", async () => {

@@ -17,17 +17,8 @@ function isNativeDigimon(permanent: Permanent): boolean {
 }
 
 export function createStatsVerbs(pc: PrimitivesContext) {
-  const {
-    engine,
-    access,
-    continuous,
-    continuousOpt,
-    durationForTarget,
-    effectSeatStack,
-    effectSourceKindsStack,
-    ledger,
-    state,
-  } = pc;
+  const { engine, access, continuousOpt, durationForTarget, effectSeatStack, effectSourceKindsStack, ledger, state } =
+    pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const effectDrivenPlayCost: PrimitivesContext["helpers"]["effectDrivenPlayCost"] = (...args) =>
@@ -70,12 +61,8 @@ export function createStatsVerbs(pc: PrimitivesContext) {
   const setBaseDP = (permanentId: string, value: number, duration: EffectDuration): void => {
     const before = access.permanentById(permanentId);
     if (before === undefined) return; // no such battle-area permanent; nothing to override
-    // A "this Digimon's DP becomes N" override that LOWERS the DP is a DP reduction, so the same
-    // `dpImmune` protection applies. An override that raises it is not, and lands normally.
-    const resolvingSeat = effectSeatStack.at(-1);
-    const byOpponentEffect = resolvingSeat !== undefined && resolvingSeat !== before.controllerSeat;
-    if (value < before.currentDP && continuous.hasRestriction(permanentId, "dpImmune", undefined, { byOpponentEffect }))
-      return;
+    // Changing original DP is an effect that changes information (§15-12-2-1), not a -N DP
+    // reduction (§2-5-3), so "DP can't be reduced" (`dpImmune`) does not block it.
     ledger.addBaseDpOverride(state, permanentId, value, durationForTarget(permanentId, duration), {
       ...continuousOpt(),
       ...(effectSeatStack.at(-1) === undefined ? {} : { sourceSeat: effectSeatStack.at(-1) }),
