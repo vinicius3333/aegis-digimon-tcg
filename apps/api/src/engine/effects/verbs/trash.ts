@@ -1,4 +1,4 @@
-import { Permanent, Zone, EffectTiming, CardInstance, type Seat } from "@aegis/shared";
+import { Permanent, Zone, EffectTiming, CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import {
   applyOverflow,
   extractPermanentAt,
@@ -16,6 +16,8 @@ import { fireSecurityTrashedEvents } from "./securityTrashedEvents.js";
  * Trashing loose cards and a permanent's digivolution cards.
  */
 
+type TrashedSources = NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["trashedSources"]>;
+
 export function createTrashVerbs(pc: PrimitivesContext) {
   const { engine, access, continuous, dropPermanentLedgers, ledger, player, state } = pc;
   // Reached through the context because these are built in sibling modules: the
@@ -26,7 +28,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
 
   const trash = async (
     instanceIds: string[],
-    opts?: { byEffectSeat?: Seat; byRule?: boolean },
+    opts?: { byEffectSeat?: Seat; byRule?: boolean; trashedSources?: TrashedSources },
   ): Promise<CardInstance[]> => {
     // "Effects can't trash it" (§15-1-3, EX9-005). The restriction is keyed by permanent, so it
     // covers every card that permanent owns — its top card, digivolution stack, and link cards.
@@ -150,6 +152,14 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         instanceIds: moved.map((c) => c.instanceId),
         from: "various",
         to: Zone.Trash,
+        ...(opts?.trashedSources !== undefined
+          ? {
+              cardIds: moved.map((c) => c.cardId),
+              artIds: moved.map((c) => c.artId || c.cardId),
+              seat: moved[0]!.ownerSeat,
+              trashedSources: opts.trashedSources,
+            }
+          : {}),
       });
     }
     // Identify only linked instances that actually moved; restricted or missing ids must not
@@ -281,7 +291,18 @@ export function createTrashVerbs(pc: PrimitivesContext) {
       hostBeforeTrash?.stack.filter((card) => !card.faceUp).map((card) => card.instanceId) ?? [],
     );
     const trashableInstanceIds = instanceIds.filter((instanceId) => !continuous.stackCardTrashLocked(instanceId));
-    const moved = await trash(trashableInstanceIds);
+    const moved = await trash(
+      trashableInstanceIds,
+      hostBeforeTrash === undefined
+        ? undefined
+        : {
+            trashedSources: {
+              permanentId: hostPermanentId,
+              hostCardId: hostBeforeTrash.topCard.cardId,
+              ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
+            },
+          },
+    );
     // Cards in trash are public and face up, including cards that were face down under
     // Tamers/Digimon (BT26-094 Q7159; BT26-095 Q7163). `trash` preserves an instance's
     // face state because it also serves loose face-up zones, so normalize this specific
