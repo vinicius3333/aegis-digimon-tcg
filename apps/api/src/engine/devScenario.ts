@@ -120,6 +120,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt13-king-drasil-source-count",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
+  "arena-ex10-tactimon-digixros-material",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
   "arena-rizegreymon-derived-priority",
@@ -2710,6 +2711,21 @@ function layEx10DarknessBagramonDigiXrosInterruptScenario(
   insertCard(opponent, Zone.Hand, faceDownCard("dev-darkness-bagramon-opponent-hand", "BT1-009", 1));
 }
 
+/**
+ * Follow-up to Discord bug 1555206206417674281: Bagramon DigiXroses with SkullKnightmon from the
+ * battle area. A DigiXros is not an effect (Q2352), so Tactimon's "would leave by effects"
+ * prevention must not be offered.
+ */
+function layEx10TactimonDigiXrosMaterialScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 12);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT1-009", "BT1-013", "EX10-055"], "-tactimon"));
+  placePermanent(human, establishedDigimon(0, ["EX10-026"], "-skull-knightmon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-tactimon-bagramon", "EX10-056", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-tactimon-draw", "BT1-085", 0), "top");
+}
+
 function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 4);
   const human = state.players[0];
@@ -3442,6 +3458,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
+  "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,
