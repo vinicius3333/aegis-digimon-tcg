@@ -29,6 +29,7 @@ import { detachLeaveReplacements, detachTraitTokens } from "../effects/detach.js
 import { guardLeaveReplacements } from "../effects/guard.js";
 import { definitionOf } from "../cards/cardData.js";
 import { consultLeavePrevention } from "../effects/leavePrevention.js";
+import { effectTextMayAskYesNo } from "../decisions/resolverDecisions.js";
 import { evadeLeaveReplacements } from "../effects/evade.js";
 import { canPaySuspendCost } from "../combat/legality.js";
 import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
@@ -264,7 +265,29 @@ export async function engineConsultLeavePrevention(
   const prevented = await consultLeavePrevention(
     {
       subTriggers: engine.subTriggers,
-      resolveInsteadBody: (body) => resolveLeaveReplacementBody(engine, body),
+      resolveInsteadBody: async (replacement, ctx, body) => {
+        const host = ctx.source.permanent();
+        const announced = {
+          seat: ctx.source.ownerSeat,
+          sourceCardId: ctx.source.cardId,
+          sourceInstanceId: ctx.source.instanceId,
+          sourcePermanentId: host?.permanentId,
+          effectKey: `replacement/${replacement.id}`,
+          description: replacement.description,
+          timing: replacement.event,
+          ...(host !== undefined && host.topCard?.instanceId !== ctx.source.instanceId ? { isInherited: true } : {}),
+        };
+        engine.hooks.emit({
+          kind: "effectTriggered",
+          ...announced,
+          ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+        });
+        try {
+          return await resolveLeaveReplacementBody(engine, body);
+        } finally {
+          engine.hooks.emit({ kind: "effectResolved", ...announced });
+        }
+      },
       keywordReplacements: (ids) => [
         ...detachLeaveReplacements(ids, {
           permanentById: (id) => engine.access.permanentById(id),
@@ -377,13 +400,23 @@ export async function engineConsultLeavePrevention(
             triggerCardIds: keyed.map(({ cardId }) => cardId),
             triggerDescriptions: keyed.map(({ replacement }) => replacement.description),
             triggerIsInherited: keyed.map(({ isInherited }) => isInherited),
+            acceptsResolutionPlan: true,
+            triggerIsOptional: keyed.map(({ replacement }) => effectTextMayAskYesNo(replacement.description)),
           },
         });
-        if (response.kind !== "orderTriggers" || response.order.length === 0) return replacements;
-        const selected = keyed.find(({ key }) => key === response.order[0]);
-        return selected === undefined
-          ? replacements
-          : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+        if (response.kind !== "orderTriggers" || response.order.length === 0) return { order: replacements };
+        const byKey = new Map(keyed.map((entry) => [entry.key, entry.replacement]));
+        const chosen = response.order.flatMap((key) => byKey.get(key) ?? []);
+        const presetAnswers = new Map(
+          Object.entries(response.optionalAnswers ?? {}).flatMap(([key, accept]) => {
+            const replacement = byKey.get(key);
+            return replacement === undefined ? [] : [[replacement.id, accept] as const];
+          }),
+        );
+        return {
+          order: [...chosen, ...replacements.filter((replacement) => !chosen.includes(replacement))],
+          presetAnswers,
+        };
       },
     },
     permanentIds,

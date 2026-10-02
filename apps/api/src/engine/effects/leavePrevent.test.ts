@@ -129,11 +129,13 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
     turnSeat: state.turnSeat,
     orderReplacements: async (replacements) => {
       offeredReplacementIds.push(replacements.map(({ id }) => id));
-      if (replacementOrder.length === 0) return replacements;
+      if (replacementOrder.length === 0) return { order: replacements };
       const rank = new Map(replacementOrder.map((id, index) => [id, index]));
-      return [...replacements].sort(
-        (a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER),
-      );
+      return {
+        order: [...replacements].sort(
+          (a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+        ),
+      };
     },
     oncePerTurnFired: (key) => replacementFiredKeys.has(key),
     markOncePerTurnFired: (key) => replacementFiredKeys.add(key),
@@ -469,10 +471,9 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
     expect(log).toEqual(["declined", "accepted"]);
   });
 
-  // KB Q5352: exactly one replacement applies to one leave event, and the affected player picks
-  // WHICH — the ruling names no survivor. The chooser is therefore consulted for ANY multi-
-  // eligible set, not only one that happens to mix "instead" with "prevent".
-  it("lets the affected player pick between two competing instead replacements (Q5352)", async () => {
+  // KB Q5437/Q7374: simultaneous "would leave" reactions from different sources all activate,
+  // in the affected player's order. Only a reaction that relocates the permanent ends the event.
+  it("resolves every source's instead reaction in the affected player's order (Q5437, Q7374)", async () => {
     const h = harness();
     const source = putPermanent(h.state, 0, "source");
     const peer = putPermanent(h.state, 0, "peer");
@@ -496,8 +497,42 @@ describe("leave-area simultaneous mixed-mode ordering", () => {
     await h.consult([source.permanentId]);
 
     expect(h.offeredReplacementIds).toEqual([[own, other]]);
-    // Only the chosen one applies: the loser has no leave event left to replace.
-    expect(log).toEqual(["other"]);
+    expect(log).toEqual(["other", "own"]);
+  });
+
+  it("stops at an instead reaction that relocates the leaving permanent (Q5352)", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const peer = putPermanent(h.state, 0, "peer");
+    const log: string[] = [];
+    const relocate = h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      sourcePermanentId: peer.permanentId,
+      sourceInstanceId: peer.topCard!.instanceId,
+      mode: "instead",
+      description: "relocate",
+      appliesTo: () => true,
+      apply: async () => {
+        log.push("relocate");
+        const battleArea = h.state.players[0]!.battleArea;
+        battleArea.splice(battleArea.indexOf(source), 1);
+      },
+    });
+    const sideEffect = h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      mode: "instead",
+      description: "side effect",
+      appliesTo: () => true,
+      apply: async () => {
+        log.push("side effect");
+      },
+    });
+
+    h.replacementOrder.push(relocate, sideEffect);
+    expect(await h.consult([source.permanentId])).toEqual(new Set([source.permanentId]));
+    expect(log).toEqual(["relocate"]);
   });
 
   it("does not offer inapplicable reactions for ordering", async () => {

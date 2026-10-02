@@ -283,10 +283,12 @@ describe("BT18-048 Kazemon — KB Q&A rulings", () => {
       );
     };
 
+    // Kazemon's own leave reaction resolves first; it is what plays Koichi.
+    const kazemonReaction = "BT18-048:wouldLeavePlay";
     const meramonOnDeletion = "ST16-07:OnDestroyedAnyone";
     const koichiOnPlay = "BT7-091:OnPlay";
-    expect(await resolveOrderWhenChoosingFirst("ST16-07")).toEqual([meramonOnDeletion, koichiOnPlay]);
-    expect(await resolveOrderWhenChoosingFirst("BT7-091")).toEqual([koichiOnPlay, meramonOnDeletion]);
+    expect(await resolveOrderWhenChoosingFirst("ST16-07")).toEqual([kazemonReaction, meramonOnDeletion, koichiOnPlay]);
+    expect(await resolveOrderWhenChoosingFirst("BT7-091")).toEqual([kazemonReaction, koichiOnPlay, meramonOnDeletion]);
   });
 
   it("performs the digivolution bonus draw when Zoe digivolves into it (Q2978)", async () => {
