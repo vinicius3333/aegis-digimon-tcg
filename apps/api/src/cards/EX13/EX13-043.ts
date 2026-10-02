@@ -6,7 +6,7 @@ const ownDigimon = { controller: "mine", kind: ["Digimon"] } satisfies Filter;
 const suspendAnyDigimon: Action = {
   effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
   kind: "Suspend",
-  target: { filter: { controller: "any", kind: ["Digimon"], unsuspended: true }, count: 1 },
+  target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 },
   optional: true,
   raw: "You may suspend 1 Digimon",
 };

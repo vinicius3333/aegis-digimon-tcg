@@ -17,7 +17,7 @@ const compiled: CompiledCard = {
         {
           effectTextPart: "[When Digivolving] You may suspend 1 of your Digimon.",
           kind: "Suspend",
-          target: { filter: { controller: "mine", kind: ["Digimon"], unsuspended: true }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           optional: true,
         },
         {

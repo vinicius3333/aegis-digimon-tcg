@@ -75,7 +75,7 @@ describe("EX13-043 Leopardmon", () => {
     const suspendAndBounce = [
       {
         kind: "Suspend",
-        target: { count: 1, filter: { controller: "any", kind: ["Digimon"], unsuspended: true } },
+        target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } },
         optional: true,
       },
       {
@@ -253,6 +253,49 @@ describe("EX13-043 Leopardmon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("ally").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("Discord 1555185598694821928 / Q1782: may choose an already suspended Digimon, because the text has no unsuspended gate", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GREEN_BEASTKIN_LV5, as: "ally" }],
+          hand: [
+            { card: cardId, as: "leopardmon" },
+            { card: "BT1-010", as: "spare" },
+          ],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-012", dp: 10_000, as: "restingRival", suspended: true },
+            { card: "BT1-013", dp: 3000, as: "weakest" },
+          ],
+          deck: DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("restingRival").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("leopardmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const suspendChoice = s.decisions.find(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.targetFate === "suspend",
+    );
+    expect(suspendChoice?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("restingRival").permanentId, s.perm("ally").permanentId]),
+    );
+    expect(s.perm("ally").isSuspended).toBe(false);
+    expect(s.perm("restingRival").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 
