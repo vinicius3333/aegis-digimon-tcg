@@ -52452,7 +52452,9 @@
               "destination": "security",
               "position": "bottom",
               "faceDown": false
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -52569,7 +52571,9 @@
               "kind": "suspend",
               "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green"] }, "count": 1 },
               "raw": "By suspending 1 of your green Digimon"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -52583,7 +52587,9 @@
               "kind": "suspend",
               "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Green"] }, "count": 1 },
               "raw": "By suspending 1 of your green Digimon"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
