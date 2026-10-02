@@ -164,6 +164,8 @@ export class GameEngine {
   counterResolutionInFlight = false;
   /** Nesting guard that defers state-based actions until a used Option finishes routing. */
   optionResolutionDepth = 0;
+  /** Used Options whose [Main] body is still running; its triggers wait for the post-use routing. */
+  optionMainDepth = 0;
   /** Nesting guard that keeps rule checks outside an effect body's atomic resolution. */
   effectResolutionDepth = 0;
   /**
