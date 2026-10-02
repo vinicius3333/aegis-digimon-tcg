@@ -310,6 +310,24 @@ function markActivationDeclined(ctx: EffectContext): void {
   if (ctx.oncePerTurnActivationChosen !== true) ctx.oncePerTurnActivationDeclined = true;
 }
 
+/**
+ * CR 11-1-2: only the turn player can attack. A cost-free optional "may attack" whose every
+ * possible attacker belongs to the non-turn player is never offered (KB Q2891). Other
+ * unattackable cases keep their existing confirmation, so a paid "By suspending ..." clause
+ * can still be activated for its cost.
+ */
+function onlyNonTurnPlayerAttackers(ctx: EffectContext, action: Extract<Action, { kind: "Attack" }>): boolean {
+  if (action.cost !== undefined) return false;
+  const attackSubject = action.attacker ?? action.subject ?? action.target;
+  if (attackSubject === undefined) return false;
+  const turnSeat = ctx.game.state.turnSeat;
+  const attackers =
+    attackSubject.isSelf || attackSubject.filter?.isSelfRef
+      ? [ctx.source.permanent()].filter((permanent) => permanent !== undefined)
+      : candidatePermanents(ctx, attackSubject, { includeUnaffectable: true });
+  return attackers.length > 0 && attackers.every((permanent) => permanent.controllerSeat !== turnSeat);
+}
+
 function unavailableAction(ctx: EffectContext, action: Action, abort = false): boolean {
   const priorActionActed = ctx.lastEffectActed === true;
   ctx.lastEffectActed = false;
@@ -797,6 +815,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
       return unavailableAction(ctx, action, action.abortOnDecline === true);
+    }
+    if (action.kind === "Attack" && onlyNonTurnPlayerAttackers(ctx, action)) {
+      return unavailableAction(ctx, action);
     }
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI

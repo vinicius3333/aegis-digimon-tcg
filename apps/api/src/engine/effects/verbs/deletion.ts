@@ -640,8 +640,8 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     }
     opts?.afterMovement?.(movedPermanentIds);
     // An Option in the battle area is never deleted, only trashed (CR 4-28, 17-1-3-2-2), so an
-    // Option permanent that leaves here, such as a ＜Delay＞ source paying its own cost
-    // (CR 16-17-1), is an Option trashed from the battle area (BT23-059, P-203 Q5198).
+    // Option permanent that leaves here is an Option trashed from the battle area (BT23-059,
+    // P-203 Q5198). ＜Delay＞ costs bypass this path through `trashDelaySource`.
     for (let i = 0; i < toDelete.length; i++) {
       const optionInstanceId = topInstanceIdsByPermanent[i];
       if (optionInstanceId === undefined || !wasOptionPermanent[i]) continue;

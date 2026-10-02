@@ -106,6 +106,20 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         }
       }
     }
+    // "When an effect trashes this card in your battle area" (BT19-093, BT19-098, P-159) reads
+    // the live permanent, so it fires before the move, as in the deletion path.
+    if (opts?.byEffectSeat !== undefined && opts.byRule !== true) {
+      for (const owner of state.players) {
+        for (const permanent of [...owner.battleArea]) {
+          if (permanent.topCard === undefined || !instanceIds.includes(permanent.topCard.instanceId)) continue;
+          if (!isOptionPermanent(permanent)) continue;
+          await engine.fireSubTrigger?.("whenTrashedByEffect", {
+            trashedByEffectPermanentId: permanent.permanentId,
+            byEffectSeat: opts.byEffectSeat,
+          });
+        }
+      }
+    }
     for (const instanceId of instanceIds) {
       // Options placed in the battle area are permanents, but their printed
       // trash cost names the Option card itself. Remove that permanent as a
