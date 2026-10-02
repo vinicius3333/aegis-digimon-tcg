@@ -15,6 +15,7 @@ function BadgeIcon({ restriction }: { restriction: RestrictionBadge }) {
   if (restriction.icon === "blockOff") return <Icons.BlockOff size={12} />;
   if (restriction.icon === "suspendOff") return <Icons.SuspendOff size={12} />;
   if (restriction.icon === "unsuspendOff") return <Icons.UnsuspendOff size={12} />;
+  if (restriction.icon === "digivolveOff") return <Icons.DigivolveOff size={12} />;
   if (restriction.icon === "effectOff") return <Icons.EffectOff size={12} />;
   if (restriction.icon === "dpShield") return <Icons.DpShield size={12} />;
   if (restriction.icon === "deDigivolveShield") return <Icons.DeDigivolveShield size={12} />;

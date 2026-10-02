@@ -616,6 +616,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.restriction.cannotBlock": "Não pode bloquear",
   "game.restriction.cannotSuspend": "Não pode suspender",
   "game.restriction.cannotUnsuspend": "Não reativa",
+  "game.restriction.cannotDigivolve": "Não digivolve",
   "game.restriction.cannotActivateWhenDigivolving": "Sem [When Digivolving]",
   "game.restriction.immuneToOpponentDigimonEffects": "Protegido contra efeitos de Digimon adversários",
   "game.protectionBadge.immuneToOpponentDigimonEffects": "Prot. Digimon",
