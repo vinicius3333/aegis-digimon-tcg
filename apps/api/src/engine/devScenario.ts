@@ -68,6 +68,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
+  "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
@@ -448,6 +449,40 @@ function layEx13LeopardmonUnsuspendLockScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 4;
+}
+
+/**
+ * Discord 1555307552223264829: the human plays EX13-060 Alphamon from hand, which passes memory to
+ * the bot, then its [End of Your Turn] plays EX13-057 Grademon with Rush, and its [Your Turn] lets
+ * a Digimon attack. The bot's only Digimon is unsuspended, so the attack target
+ * prompt offers just the security stack, while the human's hand must not still read as playable
+ * from the closed Main phase. The bot holds 10 cards, as in the reported match.
+ */
+function layEx13AlphamonEndTurnAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-alphamon-rush-alphamon", "EX13-060", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-alphamon-rush-grademon", "EX13-057", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT10-055"], "-alphamon-rush-blocker"));
+    for (let index = 0; index < 10; index += 1) {
+      const card = extractCardAt(bot, Zone.Deck, 0);
+      if (card !== undefined) insertCard(bot, Zone.Hand, card);
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /**
@@ -3857,6 +3892,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
+  "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,

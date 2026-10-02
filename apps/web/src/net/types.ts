@@ -49,6 +49,7 @@ export interface AegisJoinOptions {
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-ex13-leopardmon-suspended-target"
     | "arena-ex13-leopardmon-unsuspend-lock"
+    | "arena-ex13-alphamon-end-turn-attack"
     | "arena-bt20-dragon-gene-skip-play"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
     | "arena-bt24-fugamon-self-trash"
