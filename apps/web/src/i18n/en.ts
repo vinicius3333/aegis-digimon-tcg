@@ -738,7 +738,6 @@ export const en = {
   "overlay.noKeywords": "No active keywords",
   "overlay.securityAttackValue": "Security Attack {value}",
   "overlay.transformedBadge": "Counts as {name}",
-  "game.transformedInto": "Transformed into {name}, {dp} DP",
   "overlay.printedEffect": "Printed effect",
   "overlay.grantedEffects": "Granted effects",
   "library.optionEffect": "Option effect",

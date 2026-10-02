@@ -37,7 +37,7 @@ export function PermanentRestrictionBadges({
 }: {
   restrictions: readonly RestrictionBadge[];
   dpDelta?: number;
-  /** The printed DP, which the DP badge's explanation compares the change against. */
+  /** The original DP (printed, or rewritten by an effect) the DP badge's explanation compares the change against. */
   baseDp?: number;
 }) {
   const { t } = useTranslation();
