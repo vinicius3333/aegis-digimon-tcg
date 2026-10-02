@@ -24,6 +24,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          fireCondition: { kind: "triggerAttackerSurvivedBattle", raw: "and survives" },
           actions: [
             {
               kind: "Unsuspend",
