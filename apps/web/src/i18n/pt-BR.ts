@@ -54,8 +54,13 @@ export const ptBR: Record<keyof typeof en, string> = {
     "Cartas beta podem ser usadas em Partida rápida, Treino contra a IA ou sala privada. Escolha um desses modos para usar este deck.",
   "lobby.betaConfirmTitle": "Jogar com cartas beta?",
   "lobby.betaConfirmHint":
-    "{deck} usa cartas de um set que ainda não foi lançado. O texto e o comportamento delas ainda podem mudar. Partidas com esse deck entram em uma fila beta separada, então você só enfrenta outros decks beta. Continuar?",
+    "{deck} usa cartas de um set que ainda não foi lançado. O texto e o comportamento delas ainda podem mudar. Partidas com esse deck entram em uma fila beta separada, onde seu oponente também pode usar cartas beta. Continuar?",
   "lobby.enterBetaQueue": "Entrar na fila beta",
+  "lobby.betaQueueOption": "Jogar na fila beta",
+  "lobby.betaQueueOptionHint":
+    "Enfrente jogadores que testam cartas de sets que ainda não foram lançados. Essas cartas ainda podem mudar.",
+  "lobby.betaQueueOptionBotHint":
+    "A IA pode usar decks com cartas de sets que ainda não foram lançados. Essas cartas ainda podem mudar.",
   "beta.message": "O Aegis ainda está em beta. Coisas podem quebrar e os dados podem ser reiniciados.",
   "beta.reportLink": "Relate um bug no Discord",
   "beta.dismiss": "Entendi",

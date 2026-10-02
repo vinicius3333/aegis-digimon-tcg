@@ -175,6 +175,7 @@ export function Lobby({
   const [randomSelected, setRandomSelected] = useState(false);
   const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
   const [viewedDeck, setViewedDeck] = useState<DeckListing | null>(null);
+  const [betaQueueChosen, setBetaQueueChosen] = useState(false);
   // Which modes route an unreleased-card deck into the separate beta queue.
   const betaQueueMode = mode === "casual" || mode === "practice";
   // A private room is invite-only and both seats opt in by sharing the code, so it takes
@@ -238,6 +239,9 @@ export function Lobby({
     [active],
   );
   const betaEnabled = !randomSelected && betaQueueMode && betaCards.length > 0;
+  // A deck without beta cards may still join the beta queue when the player asks for it.
+  const betaOptional = betaQueueMode && (randomSelected || betaCards.length === 0);
+  const betaOptedIn = betaOptional && betaQueueChosen;
   const deckLegal =
     !!active &&
     active.mainDeck.length === 50 &&
@@ -319,16 +323,19 @@ export function Lobby({
                 icon: Icons.Bot,
                 disabled: !selectionLegal,
                 onClick: () =>
-                  betaEnabled ? setBetaConfirmation("bot") : start("bot", undefined, botDeckId || undefined, false),
+                  betaEnabled
+                    ? setBetaConfirmation("bot")
+                    : start("bot", undefined, botDeckId || undefined, betaOptedIn),
               }
-            : betaEnabled
+            : betaEnabled || betaOptedIn
               ? {
                   label: t("lobby.enterQueue"),
                   shortLabel: t("redesign.play.short.queue"),
                   beta: true,
                   icon: Icons.Swords,
                   disabled: !selectionLegal,
-                  onClick: () => setBetaConfirmation("beta"),
+                  onClick: () =>
+                    betaEnabled ? setBetaConfirmation("beta") : start("beta", undefined, undefined, true),
                 }
               : RANKED_ENABLED
                 ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
@@ -567,6 +574,21 @@ export function Lobby({
             </div>
 
             <div className="lobby-setup__column">
+              {betaOptional ? (
+                <label className="lobby-beta-option">
+                  <input
+                    type="checkbox"
+                    checked={betaQueueChosen}
+                    onChange={(event) => setBetaQueueChosen(event.target.checked)}
+                  />
+                  <span>
+                    <strong>{t("lobby.betaQueueOption")}</strong>
+                    <span className="lobby-beta-option__description">
+                      {t(vsBot ? "lobby.betaQueueOptionBotHint" : "lobby.betaQueueOptionHint")}
+                    </span>
+                  </span>
+                </label>
+              ) : null}
               {randomSelected ? (
                 <div className="lobby-random-pool">
                   <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
@@ -616,7 +638,7 @@ export function Lobby({
                     ))}
                   </select>
                 </div>
-              ) : !betaEnabled && RANKED_ENABLED ? (
+              ) : !betaEnabled && !betaOptedIn && RANKED_ENABLED ? (
                 <RankedStart
                   disabled={!selectionLegal}
                   actionClassName="lobby-setup__launch"
