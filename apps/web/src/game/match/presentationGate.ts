@@ -91,6 +91,10 @@ export async function waitForGate(
 /** The deletion beat a card is waiting on, and the gate that says its shards have played. */
 export interface DeletionReadyAt {
   readyAt: number;
+  /** The server state version of the batch that deleted the card. */
+  stateVersion?: number;
+  /** A resolving Option deleted it, so its shatter waits on the dock rather than on a clause. */
+  causedByOption?: boolean;
   instanceId?: string;
   started?: PresentationGate;
   shattered?: PresentationGate;

@@ -588,6 +588,7 @@ export function GameScreen({
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
     heldDeletions: cues.heldDeletions,
+    heldTrashArrivals: cues.heldTrashArrivals,
     optimisticPlayedInstanceId,
   });
   // What the ribbons have announced, for the readouts only: the live turn is what every

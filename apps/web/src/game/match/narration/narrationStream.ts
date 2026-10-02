@@ -8,6 +8,7 @@ import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
+import type { OptionDockHold } from "../present/optionDock";
 import { presentableNarration, type OwnEffectDialog } from "./presentableNarration";
 import {
   CONSEQUENCE_GATE_MAX_MS,
@@ -53,6 +54,10 @@ export interface NarrationStreamDeps {
   presentationReporterRef: MutableRefObject<((report: PresentationReport) => void) | undefined>;
   narrationSkipRef: MutableRefObject<boolean>;
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
+  /** The Option on screen; what the server did after routing it waits for the card to leave. */
+  optionDockRef: MutableRefObject<OptionDockHold | null>;
+  /** Lets the trash show the cards up to this batch, now that its moment is on screen. */
+  releaseTrashArrivalsThrough: (stateVersion: number) => void;
   effectSourceKeyRef: MutableRefObject<number>;
   /** The announcement this batch is still holding its consequences behind. */
   effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
@@ -91,6 +96,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
     presentationReporterRef,
     narrationSkipRef,
     deletionReadyAtRef,
+    optionDockRef,
+    releaseTrashArrivalsThrough,
     effectSourceKeyRef,
     effectAnnounceGateRef,
     pendingAnnounceGateRef,
@@ -229,6 +236,29 @@ export function narrationStream(deps: NarrationStreamDeps) {
           if (context.mode === "replay" || narrationSkipRef.current) return;
           await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "narration/causingEffect");
           if (context.cancelled || narrationSkipRef.current) return;
+          // What an earlier batch deleted breaks before this moment is read: an Option's
+          // deletion before the [When Attacking] clause that follows it. The deleting batch's
+          // own items are left alone, since its shatter may be waiting on one of them — except
+          // when a docked Option, not a clause, explains the deletion: then its "Deleted"
+          // panel waits for the shatter too.
+          if (context.mode === "live" && itemVersion !== undefined) {
+            await Promise.resolve();
+            for (const deletion of [...deletionReadyAtRef.current.values()]) {
+              const version = deletion.stateVersion;
+              const waits =
+                version !== undefined &&
+                (version < itemVersion ||
+                  (version === itemVersion && deletion.causedByOption === true && body?.variant !== "effect"));
+              if (waits)
+                await waitForGate(deletion.started, context, TIMINGS.securityDockMax, "narration/earlierDeletion");
+            }
+            // The server moved on after routing the Option (BeelStarmon trashing it from the
+            // sources it just went under), so that waits for the card to get there first.
+            const option = optionDockRef.current;
+            if (option?.routedAtVersion !== undefined && itemVersion > option.routedAtVersion)
+              await waitForGate(option.settled, context, TIMINGS.securityDockMax, "narration/optionSettled");
+            if (context.cancelled || narrationSkipRef.current) return;
+          }
           if (onPlay && initialSite?.zone === "field") {
             while (
               queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
@@ -253,10 +283,18 @@ export function narrationStream(deps: NarrationStreamDeps) {
             );
             // A granted clause resolves on its recipient before that recipient is deleted.
             // Waiting for its own shatter would cycle with the deletion waiting for this toast.
+            // So does any clause whose card a later batch deleted: BeelStarmon's [When
+            // Attacking] reads before the security check that deletes it.
+            const ownDeletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+            const deletedLater =
+              ownDeletion?.stateVersion !== undefined &&
+              itemVersion !== undefined &&
+              ownDeletion.stateVersion > itemVersion;
             const shatter =
-              body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")
+              deletedLater ||
+              (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? ""))
                 ? undefined
-                : deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+                : ownDeletion;
             if (shatter) {
               await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax, "narration/shattered");
               await context.wait(Math.max(0, shatter.readyAt - Date.now()));
@@ -308,6 +346,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
             if (context.cancelled || narrationSkipRef.current) return;
           }
           push(shown);
+          if (itemVersion !== undefined) releaseTrashArrivalsThrough(itemVersion);
           if (activation) {
             const key = activation.key;
             linked = true;

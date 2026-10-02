@@ -240,8 +240,13 @@ mobileScenario("reconnect-decision", () => {
 
       expect(protagonist.trash.length).toBe(trashBeforePlay.length + 1);
       expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(protagonist.handCount);
-      expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
-        String(protagonist.trash.length),
+      // The pile follows the narration: the paid card lands once its batch is on screen.
+      await vi.waitFor(
+        () =>
+          expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
+            String(protagonist.trash.length),
+          ),
+        { timeout: 10_000 },
       );
       expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 

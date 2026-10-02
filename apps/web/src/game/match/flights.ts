@@ -1,6 +1,6 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat } from "@aegis/shared";
-import type { AnimationQueue } from "../animationQueue";
+import type { AnimationQueue, AnimationStepContext } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
 import { TIMINGS } from "../timings";
@@ -230,7 +230,38 @@ export function cueFlights(deps: CueFlightsDeps) {
     });
   }
 
+  /**
+   * A face-up card leaving a board element (a docked Option) for a permanent's digivolution
+   * cards. Runs inside the caller's step so whatever follows waits for the landing; false
+   * when there is no geometry to fly between.
+   */
+  async function flyCardUnder(
+    card: DrawFlightCard,
+    from: Element,
+    permanentId: string,
+    context: AnimationStepContext,
+  ): Promise<boolean> {
+    const board = anchors.board.current;
+    const target = anchors.permanentCenter?.(permanentId);
+    if (!board || !target || context.mode !== "live") return false;
+    const boardRect = board.getBoundingClientRect();
+    const sourceRect = from.getBoundingClientRect();
+    if (!sourceRect.width) return false;
+    const x = sourceRect.left + sourceRect.width / 2 - boardRect.left;
+    const y = sourceRect.top + sourceRect.height / 2 - boardRect.top;
+    const key = ++drawFlightKeyRef.current;
+    const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
+    setDrawFlights((flights) => [...flights, { key, x, y, dx: target.x - x, dy: target.y - y, duration, card }]);
+    try {
+      await context.wait(duration);
+    } finally {
+      setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+    }
+    return true;
+  }
+
   return {
+    flyCardUnder,
     launchSecurityGainFlight,
     launchOpeningSecurityDeal,
     launchDrawFlight,

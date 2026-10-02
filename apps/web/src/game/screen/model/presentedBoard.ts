@@ -1,5 +1,5 @@
 import type { Permanent, PlayerState } from "@aegis/shared";
-import type { HeldDeletion } from "../../match/types";
+import type { HeldDeletion, HeldTrashArrival } from "../../match/types";
 
 /**
  * Keep transient server-resolved abilities current while the presentation queue is still
@@ -102,6 +102,15 @@ export function securityEffectField(input: { player: PlayerState; held: PlayerSt
  * is held: a card the board has already dropped is put back in its slot, and the trash stays
  * as it was before the oldest of them reached it. Everything else keeps following the board.
  */
+/** The trash without the cards whose move there the screen has not reached yet. */
+export function trashArrivalField(input: { player: PlayerState; held: readonly HeldTrashArrival[] }): PlayerState {
+  const { player, held } = input;
+  if (held.length === 0) return player;
+  const pending = new Set(held.flatMap((arrival) => arrival.instanceIds));
+  const trash = player.trash.filter((card) => !pending.has(card.instanceId));
+  return trash.length === player.trash.length ? player : ({ ...player, trash } as PlayerState);
+}
+
 export function deletionField(input: { player: PlayerState; held: readonly HeldDeletion[] }): PlayerState {
   const { player, held } = input;
   if (held.length === 0) return player;

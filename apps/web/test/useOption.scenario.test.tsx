@@ -133,8 +133,13 @@ scenario("use-option", () => {
       },
       { timeout: 10_000 },
     );
-    expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
-      String(opponent.room.state.players[0]!.trash.length),
+    // The card reaches the pile as its Option dock closes, not while it is still docked.
+    await vi.waitFor(
+      () =>
+        expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
+          String(opponent.room.state.players[0]!.trash.length),
+        ),
+      { timeout: 10_000 },
     );
 
     // Gravity Crush's end-of-turn loss is pending processing: pass through the real
