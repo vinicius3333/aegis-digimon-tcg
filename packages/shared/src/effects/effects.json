@@ -154857,7 +154857,9 @@
               "host": "target",
               "underFilter": { "controller": "mine", "kind": ["Digimon"] },
               "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -154885,7 +154887,9 @@
               "host": "target",
               "underFilter": { "controller": "mine", "kind": ["Digimon"] },
               "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
