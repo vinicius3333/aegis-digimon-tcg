@@ -5,7 +5,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import { type ActionScope, runAction } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
-import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
@@ -191,33 +191,34 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       if (action.playerWide === true) {
-        const controller = action.target.filter.controller;
-        if (controller !== "mine" && controller !== "opponent") return false;
-        const seat = controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+        if ((action.alsoGainKeywords?.length ?? 0) > 0) {
+          unsupported(ctx, action, "player-wide DP carries no keywords; use a separate GainKeyword action");
+          return false;
+        }
         const amount = scale === undefined ? action.amount : action.amount * scale;
         const effectSourceKinds = ctx.effectSourceKinds ?? ctx.source.definition.kinds;
         const filter = action.target.filter;
         const playerDpOptions = {
+          // Printed durations are framed from the resolving effect's controller, also when the
+          // delta lands on the opponent's Digimon ("until the end of their turn").
+          ownerSeat: ctx.source.ownerSeat,
           ...(effectSourceKinds.length > 0
             ? { sourceSeat: ctx.source.ownerSeat, sourceKinds: [...effectSourceKinds] }
             : {}),
           // Overall processing with conditions affects whoever matches at each moment
           // (Comprehensive Rules 15-11-2-3), so re-check the full filter on every DP read.
           matches: (permanent: Permanent) => permanentMatchesFilter(ctx, permanent, filter, ctx.source),
+          ...(nextOpponentTurnDuration ? { skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn() } : {}),
         };
         if (amount !== 0) {
-          ctx.fx.modifyPlayerDP(
-            seat,
-            amount,
-            nextOpponentTurnDuration ? toDuration("untilOpponentTurnEnd") : toDuration(action.duration),
-            nextOpponentTurnDuration
-              ? {
-                  ownerSeat: ctx.source.ownerSeat,
-                  ...playerDpOptions,
-                  skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn(),
-                }
-              : playerDpOptions,
-          );
+          for (const seat of seatsForController(ctx, filter)) {
+            ctx.fx.modifyPlayerDP(
+              seat,
+              amount,
+              nextOpponentTurnDuration ? toDuration("untilOpponentTurnEnd") : toDuration(action.duration),
+              playerDpOptions,
+            );
+          }
         }
         return false;
       }
@@ -345,11 +346,25 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       if (action.playerWide === true) {
-        const seat =
-          action.target.filter.controller === "opponent"
-            ? ctx.game.opponentOf(ctx.source.ownerSeat)
-            : ctx.source.ownerSeat;
-        ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount);
+        const filter = action.target.filter;
+        const sourceKinds = [...(ctx.effectSourceKinds ?? ctx.source.definition.kinds)];
+        const controllerScope = filter.controller ?? filter.controllerDefault;
+        const seats = controllerScope === undefined ? [ctx.source.ownerSeat] : seatsForController(ctx, filter);
+        for (const seat of seats) {
+          ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount, {
+            // Printed durations are framed from the resolving effect's controller.
+            ownerSeat: ctx.source.ownerSeat,
+            // Overall processing with conditions follows whoever matches (CR 15-11-2-3).
+            matches: (permanentId) => {
+              const permanent = ctx.game.permanentById(permanentId);
+              return (
+                permanent !== undefined &&
+                permanentMatchesFilter(ctx, permanent, filter, ctx.source) &&
+                !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
+              );
+            },
+          });
+        }
         // A player-wide grant is an activated effect even when no matching permanent is
         // currently present; its ledger entry applies to qualifying permanents entering later.
         // Preserve that result for a following "if you did" clause (BT9-102).

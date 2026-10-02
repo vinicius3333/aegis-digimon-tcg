@@ -170,7 +170,18 @@ export interface ContinuousPrimitives {
     extraMaterialInstanceIds?: string[],
   ): boolean;
   /** Grant a keyword to all current and future Digimon permanents controlled by a player. */
-  grantPlayerKeyword(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void;
+  grantPlayerKeyword(
+    seat: Seat,
+    keyword: string,
+    duration: EffectDuration,
+    amount?: number,
+    opts?: {
+      /** Seat the printed duration is framed from; defaults to the receiving seat. */
+      ownerSeat?: Seat;
+      /** Live target condition; a permanent has the keyword only while it matches. */
+      matches?: (permanentId: string) => boolean;
+    },
+  ): void;
   /**
    * Keywords currently GRANTED to a permanent (the consuming read of `grantKeyword`).
    * A filter's keyword-presence clause ("Digimon with ＜Security Attack＞") must see

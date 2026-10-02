@@ -114,6 +114,8 @@ export class ContinuousEffectLedger {
   private playerCustomEffectGrants: PlayerCustomEffectGrant[] = [];
   /** Break dependency cycles while a conditional grant asks about other live keywords. */
   private evaluatingKeywordGrants = new Set<KeywordGrant>();
+  private readonly evaluatingPlayerKeywordGrants = new Set<PlayerKeywordGrant>();
+  private readonly evaluatingPlayerRestrictions = new Set<PlayerRestrictionEntry>();
   private linkMaxGrants: LinkMaxGrant[] = [];
   private linkCostReductionGrants: LinkCostReductionGrant[] = [];
   private kindGrants: KindGrant[] = [];
@@ -351,8 +353,19 @@ export class ContinuousEffectLedger {
         entry.seat === controllerSeat &&
         isEquivalent(entry.restriction) &&
         qualifiersApply(entry) &&
-        entry.matches(permanentId),
+        this.playerRestrictionMatches(entry, permanentId),
     );
+  }
+
+  /** A live filter that reads restrictions (immunity) must not re-enter its own entry. */
+  private playerRestrictionMatches(entry: PlayerRestrictionEntry, permanentId: string): boolean {
+    if (this.evaluatingPlayerRestrictions.has(entry)) return false;
+    this.evaluatingPlayerRestrictions.add(entry);
+    try {
+      return entry.matches(permanentId);
+    } finally {
+      this.evaluatingPlayerRestrictions.delete(entry);
+    }
   }
 
   /** Effects this permanent cannot be affected by cannot keep their restrictions active. */
@@ -922,8 +935,14 @@ export class ContinuousEffectLedger {
   ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
-  addPlayerKeywordGrant(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void {
-    this.playerKeywordGrants.push(this.anchorDuration({ seat, keyword, amount, duration }));
+  addPlayerKeywordGrant(
+    seat: Seat,
+    keyword: string,
+    duration: EffectDuration,
+    amount?: number,
+    opts?: Pick<PlayerKeywordGrant, "ownerSeat" | "matches">,
+  ): void {
+    this.playerKeywordGrants.push(this.anchorDuration({ seat, keyword, amount, duration, ...opts }));
   }
 
   /** Grant a named custom effect to every matching current/future permanent controlled by `seat`. */
@@ -956,9 +975,24 @@ export class ContinuousEffectLedger {
     if (seat === undefined) return direct;
     return direct.concat(
       this.playerKeywordGrants
-        .filter((grant) => grant.seat === seat)
+        .filter((grant) => grant.seat === seat && this.playerKeywordGrantMatches(grant, permanentId))
         .map(({ keyword, amount }) => ({ keyword, amount })),
     );
+  }
+
+  /**
+   * A live filter can itself ask about keywords ("all of your Digimon with ＜Digi-Burst＞"), which
+   * re-enters this grant. Treat the re-entrant read as not matching, like `keywordGrantIsActive`.
+   */
+  private playerKeywordGrantMatches(grant: PlayerKeywordGrant, permanentId: string): boolean {
+    if (grant.matches === undefined) return true;
+    if (this.evaluatingPlayerKeywordGrants.has(grant)) return false;
+    this.evaluatingPlayerKeywordGrants.add(grant);
+    try {
+      return grant.matches(permanentId);
+    } finally {
+      this.evaluatingPlayerKeywordGrants.delete(grant);
+    }
   }
 
   /** Whether a permanent currently has a given keyword from any active grant. */
@@ -1384,9 +1418,16 @@ export class ContinuousEffectLedger {
       if (r.restriction === "beAffected") this.expiredAffectationRecipients.add(r.permanentId);
       return false;
     });
-    this.playerRestrictions = this.playerRestrictions.filter(
-      (entry) => !this.expiresAt(entry, entry.duration, boundary, entry.ownerSeat, sweepSeat, battleScopeId),
-    );
+    this.playerRestrictions = this.playerRestrictions.filter((entry) => {
+      if (!this.expiresAt(entry, entry.duration, boundary, entry.ownerSeat, sweepSeat, battleScopeId)) return true;
+      // KB Q5328, as for a per-permanent immunity above.
+      if (entry.restriction === "beAffected") {
+        for (const { permanentId } of state.players[entry.seat]?.battleArea ?? []) {
+          this.expiredAffectationRecipients.add(permanentId);
+        }
+      }
+      return false;
+    });
     this.attackTargetRestrictions = this.attackTargetRestrictions.filter(
       (entry) =>
         !this.expiresAt(entry, entry.duration, boundary, ownerOf(entry.attackerPermanentId), sweepSeat, battleScopeId),
@@ -1416,7 +1457,8 @@ export class ContinuousEffectLedger {
       (g) => !this.expiresAt(g, g.duration, boundary, ownerOf(g.permanentId), sweepSeat, battleScopeId),
     );
     this.playerKeywordGrants = this.playerKeywordGrants.filter(
-      (grant) => !this.expiresAt(grant, grant.duration, boundary, grant.seat, sweepSeat, battleScopeId),
+      (grant) =>
+        !this.expiresAt(grant, grant.duration, boundary, grant.ownerSeat ?? grant.seat, sweepSeat, battleScopeId),
     );
     this.playerCustomEffectGrants = this.playerCustomEffectGrants.filter(
       (grant) => !this.expiresAt(grant, grant.duration, boundary, grant.ownerSeat, sweepSeat, battleScopeId),

@@ -121,8 +121,8 @@ export function createGrantsVerbs(pc: PrimitivesContext) {
   const grantedKeywords = (permanentId: string): { keyword: string; amount?: number }[] =>
     continuous.grantedKeywords(permanentId);
 
-  const grantPlayerKeyword: Primitives["grantPlayerKeyword"] = (seat, keyword, duration, amount): void => {
-    continuous.addPlayerKeywordGrant(seat, keyword, duration, amount);
+  const grantPlayerKeyword: Primitives["grantPlayerKeyword"] = (seat, keyword, duration, amount, opts): void => {
+    continuous.addPlayerKeywordGrant(seat, keyword, duration, amount, opts);
   };
 
   const revokeKeyword = (permanentId: string, keyword: string): void => {

@@ -6,6 +6,7 @@ import { toDuration } from "../duration.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import type { Action } from "@aegis/shared";
 import type { ForceAttackOptions } from "../../context/primitives/index.js";
+import { subscribeLaterEntrants } from "./laterEntrants.js";
 
 /**
  * Run an effect-directed attack with the resolving effect's attack plumbing: the attack
@@ -248,11 +249,21 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const noDigivolutionCards = action.noDigivolutionCards === true;
-      for (const id of ids)
+      const grant = (id: string): void =>
         ctx.fx.grantCanAttackUnsuspended(id, duration, {
           noDigivolutionCards,
           defenderLevelMax: action.defenderLevelMax,
         });
+      for (const id of ids) grant(id);
+      if (action.includeLaterEntrants === true) {
+        subscribeLaterEntrants(ctx, {
+          filter: action.target.filter,
+          duration: action.duration,
+          label: "GrantCanAttackUnsuspended",
+          alreadyGranted: ids,
+          grant,
+        });
+      }
       return false;
     }
     case "GrantVortexCanAttackPlayers": {

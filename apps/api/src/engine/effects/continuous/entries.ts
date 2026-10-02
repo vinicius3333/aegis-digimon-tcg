@@ -93,6 +93,10 @@ export interface PlayerKeywordGrant {
   keyword: string;
   amount?: number;
   duration: EffectDuration;
+  /** Seat the printed duration is framed from; defaults to the receiving seat. */
+  ownerSeat?: Seat;
+  /** Live target condition; a permanent has the keyword only while it matches. */
+  matches?: (permanentId: string) => boolean;
 }
 
 export interface PlayerCustomEffectGrant {

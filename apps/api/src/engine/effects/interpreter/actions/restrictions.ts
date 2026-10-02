@@ -18,6 +18,7 @@ import { unsupported } from "../errors.js";
 import { extractCardById, insertCard } from "../../../state/access.js";
 import { Zone } from "@aegis/shared";
 import type { Action, CardDefinition, Seat } from "@aegis/shared";
+import { subscribeLaterEntrants } from "./laterEntrants.js";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   switch (action.kind) {
@@ -123,25 +124,26 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
         filter !== undefined
       ) {
         for (const seat of seatsForController(ctx, filter)) {
-          ctx.fx.restrictPlayer(
-            seat,
-            restriction,
-            duration,
-            (permanentId) => {
-              const permanent = ctx.game.permanentById(permanentId);
-              return (
-                permanent !== undefined &&
-                permanentMatchesFilter(ctx, permanent, filter, ctx.source) &&
-                !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
-              );
-            },
-            {
-              ...(locksTamersAsDigimon ? { matchesAsDigimon: matchesAsDigimon(seat, true) } : {}),
-              ...(action.fromSourceKind === undefined ? {} : { fromSourceKind: action.fromSourceKind as string[] }),
-              ...(action.byOpponentEffectsOnly === true ? { byOpponentEffectsOnly: true } : {}),
-              ...(action.byEffectsOnly === true ? { byEffectsOnly: true } : {}),
-            },
-          );
+          const matches = (permanentId: string): boolean => {
+            const permanent = ctx.game.permanentById(permanentId);
+            return (
+              permanent !== undefined &&
+              permanentMatchesFilter(ctx, permanent, filter, ctx.source) &&
+              !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
+            );
+          };
+          // Q1990: gaining DP-reduction immunity also restores reductions already applied.
+          if (restriction === "dpImmune") {
+            for (const { permanentId } of ctx.game.player(seat).battleArea) {
+              if (matches(permanentId)) ctx.fx.restoreDpReductions(permanentId);
+            }
+          }
+          ctx.fx.restrictPlayer(seat, restriction, duration, matches, {
+            ...(locksTamersAsDigimon ? { matchesAsDigimon: matchesAsDigimon(seat, true) } : {}),
+            ...(action.fromSourceKind === undefined ? {} : { fromSourceKind: action.fromSourceKind as string[] }),
+            ...(action.byOpponentEffectsOnly === true ? { byOpponentEffectsOnly: true } : {}),
+            ...(action.byEffectsOnly === true ? { byEffectsOnly: true } : {}),
+          });
         }
         return false;
       }
@@ -225,7 +227,17 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       // consulted at the digivolution-card trash sites. Re-derived each continuous pass (CR-01).
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
-      for (const id of ids) ctx.fx.stackTrashLock?.(id, duration);
+      const lock = (id: string): void => ctx.fx.stackTrashLock?.(id, duration);
+      for (const id of ids) lock(id);
+      if (action.includeLaterEntrants === true) {
+        subscribeLaterEntrants(ctx, {
+          filter: action.target.filter,
+          duration: action.duration,
+          label: "StackTrashLock",
+          alreadyGranted: ids,
+          grant: lock,
+        });
+      }
       return false;
     }
     case "RestrictMemoryGain": {
