@@ -123,19 +123,26 @@ export async function fireSubTrigger(
     });
     return;
   }
-  // A would-be-returned reaction interrupts the causing effect before its target moves
-  // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
-  if (event !== "wouldBeReturned" && shouldDeferNestedTiming(engine) && !engine.resolvingBarrierSecurityCost) {
-    // The event subject can leave the board before the causing effect finishes. Bind each
-    // context now, at trigger time, so the pending activation keeps the subject snapshot
-    // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
+  // The event subject can leave the board before a pending watcher activates. Bind each
+  // context now, at trigger time, so the pending activation keeps the subject snapshot
+  // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
+  const armWithTriggerTimeContexts = (): ArmedSubTrigger[] => {
     const subscriptions = subscriptionsFor();
     const contexts = new Map<number, EffectContext>();
     for (const sub of subscriptions) {
       const ctx = buildSubTriggerContext(engine, sub, payload);
       if (ctx !== undefined) contexts.set(sub.id, ctx);
     }
-    engine.pendingWindowSubTriggers.push(...armedSubTriggers(engine, subscriptions, payload, contexts));
+    return armedSubTriggers(engine, subscriptions, payload, contexts);
+  };
+  if (engine.digivolveCostSubTriggers !== undefined && event !== "wouldBeReturned" && event !== "onDeletionOf") {
+    engine.digivolveCostSubTriggers.push(...armWithTriggerTimeContexts());
+    return;
+  }
+  // A would-be-returned reaction interrupts the causing effect before its target moves
+  // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
+  if (event !== "wouldBeReturned" && shouldDeferNestedTiming(engine) && !engine.resolvingBarrierSecurityCost) {
+    engine.pendingWindowSubTriggers.push(...armWithTriggerTimeContexts());
     return;
   }
   // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
@@ -737,13 +744,17 @@ export async function withPendingSubTriggers(
      * parked next to them rather than fired on the trailing bus, which would run them first.
      */
     parkArmedToEnclosingWindow?: () => boolean;
+    /** Watchers armed by an earlier event of the same batch, such as a digivolution's costs. */
+    alsoArmed?: readonly ArmedSubTrigger[];
   } = {},
 ): Promise<void> {
   // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
-  const armed =
-    engine.ruleProcessing || payload === undefined
+  const armed = [
+    ...(engine.ruleProcessing || payload === undefined
       ? []
-      : events.flatMap((event) => armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload));
+      : events.flatMap((event) => armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload))),
+    ...(opts.alsoArmed ?? []),
+  ];
   // An anchor-less delayed one-shot (BT1-021's end-of-turn memory loss) has no context, so
   // `armedSubTriggers` cannot snapshot it. It still belongs to the event it was set up before.
   const initialContextless =
@@ -772,6 +783,11 @@ export async function withPendingSubTriggers(
       });
       return;
     }
+    const alsoRemaining = (opts.alsoArmed ?? []).filter(
+      (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
+    );
+    if (alsoRemaining.length > 0)
+      await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, alsoRemaining));
     const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
     if (trigger === undefined) return;
     for (const event of events) await engine.fireSubTrigger(event, trigger);

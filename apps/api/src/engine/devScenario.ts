@@ -75,6 +75,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt26-rosemon-option-digivolve-lock",
+  "arena-bt26-ravemon-nested-on-deletion",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
   "arena-ex12-metalgarurumon-trash-then-return",
@@ -427,6 +428,48 @@ function layEx13SampsonFaceDownSourcesScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/**
+ * Discord 1555674174369042583: Thomas H. Norstein's cost reduction trashes the card under Yoshino
+ * Fujieda while Peckmon digivolves into Crowmon. Crowmon's own Tamer-stack cost then wakes its
+ * reaction into the trash Ravemon, which deletes itself to delete the bot's highest-DP Digimon.
+ */
+function layBt26RavemonNestedOnDeletionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-072"], "-ravemon-declared-peckmon"));
+    placePermanent(human, establishedDigimon(0, ["BT26-072"], "-ravemon-other-peckmon"));
+    const yoshino = establishedDigimon(0, ["BT26-091"], "-ravemon-yoshino");
+    pushOnStack(yoshino, faceDownCard("dev-ravemon-yoshino-source", "ST24-10", 0));
+    placePermanent(human, yoshino);
+    const thomas = establishedDigimon(0, ["BT25-087"], "-ravemon-thomas");
+    pushOnStack(thomas, faceDownCard("dev-ravemon-thomas-source-1", "BT26-049", 0));
+    pushOnStack(thomas, faceDownCard("dev-ravemon-thomas-source-2", "ST24-02", 0));
+    placePermanent(human, thomas);
+    insertCard(human, Zone.Hand, faceDownCard("dev-ravemon-crowmon", "BT26-076", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ravemon-trash", "BT26-082", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-ravemon-level-3"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-084"], "-ravemon-highest-dp"));
+    for (let n = 0; n < 4; n += 1) {
+      const card = takeTop(bot, Zone.Deck);
+      if (card !== undefined) insertCard(bot, Zone.Hand, card);
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
 }
 
 /**
@@ -4353,6 +4396,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
+  "arena-bt26-ravemon-nested-on-deletion": layBt26RavemonNestedOnDeletionScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,

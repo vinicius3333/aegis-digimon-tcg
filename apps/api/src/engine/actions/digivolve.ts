@@ -322,6 +322,12 @@ export interface DigivolveDeps {
    * pre-digivolution permanent, so self-anchored reactions can inspect their printed source.
    */
   fireWouldDigivolve?(state: GameState, seat: Seat, permanent: Permanent, into: CardDefinition): Promise<void>;
+  /**
+   * Hold the watchers triggered while the declared digivolution is paid for (interrupt, placement
+   * and ＜Digisorption＞ costs). They activate once it completes, in one batch with its
+   * [When Digivolving] effects (KB Q3999), or right after an attempt that fails.
+   */
+  holdCostTriggers?(): DigivolveCostTriggers;
   /** Draw `n` cards for `seat` (source rule implementation(owner, n).Draw()). */
   draw(state: GameState, seat: Seat, n: number): Promise<CardInstance[]>;
   /** Reapply duration-scoped DP modifiers after the evolving top changes its printed base DP. */
@@ -342,6 +348,13 @@ export interface DigivolveDeps {
   ): Promise<void>;
   /** Optional narration hook (server -> client event log). */
   emit?: (event: DigivolveEvent) => void;
+}
+
+export interface DigivolveCostTriggers {
+  /** Stop holding; watchers triggered from now on activate as usual. */
+  stopHolding(): void;
+  /** Activate the held watchers once, folded into `window`'s own triggers when one is given. */
+  activate(window?: () => Promise<void>): Promise<void>;
 }
 
 /** Events this action narrates (subset of @aegis/shared ServerEvent). */
@@ -786,7 +799,23 @@ export async function applyDigivolve(
 ): Promise<{ ok: false; reason: DigivolveRejection } | { ok: true; outcome: DigivolveOutcome }> {
   const check = validateDigivolve(state, seat, intent, deps, { deferAffordability: true });
   if (!check.ok) return check;
+  const costTriggers = deps.holdCostTriggers?.();
+  try {
+    return await digivolveDeclared(state, seat, intent, deps, check, costTriggers);
+  } finally {
+    costTriggers?.stopHolding();
+    await costTriggers?.activate();
+  }
+}
 
+async function digivolveDeclared(
+  state: GameState,
+  seat: Seat,
+  intent: DigivolveIntent,
+  deps: DigivolveDeps,
+  check: Extract<DigivolveCheck, { ok: true }>,
+  costTriggers: DigivolveCostTriggers | undefined,
+): Promise<{ ok: false; reason: DigivolveRejection } | { ok: true; outcome: DigivolveOutcome }> {
   const { permanent, definition } = check;
   await deps.prepareDigivolveCost?.(state, seat, permanent, check.evolving, definition);
   // A ＜Blast Digivolve＞ waiver skips every other cost modifier (including consumeOnce-marked
@@ -860,6 +889,8 @@ export async function applyDigivolve(
   const digisorptionReduction = offersDigisorption
     ? await deps.payDigisorption!(state, seat, check.evolving, permanent)
     : 0;
+
+  costTriggers?.stopHolding();
 
   // (1) Capture suspended state of the base before any mutation.
   const carriedSuspended = permanent.isSuspended;
@@ -957,7 +988,8 @@ export async function applyDigivolve(
 
   // (7) Fire When Digivolving (and the inherited-stack ESS markers) through the
   //     effect stack. Anything optional pauses for a decision inside resolution.
-  await deps.fireWhenDigivolving(state, seat, permanent, previousLevel, baseWasDigimon);
+  const fireWhenDigivolving = () => deps.fireWhenDigivolving(state, seat, permanent, previousLevel, baseWasDigimon);
+  await (costTriggers === undefined ? fireWhenDigivolving() : costTriggers.activate(fireWhenDigivolving));
 
   return {
     ok: true,
