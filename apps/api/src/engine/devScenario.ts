@@ -115,6 +115,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-examon-battle-win-timing",
   "arena-bt23-examon-opponent-turn-dna",
   "arena-ex13-chirinmon-cost-choice",
+  "arena-ex13-flamewizardmon-optional-cost",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
   "arena-p108-training-delay-no-target",
@@ -1802,6 +1803,39 @@ function layEx13ChirinmonCostChoiceScenario(state: GameState, decks: readonly [D
   }
   const opponent = state.players[1];
   if (opponent !== undefined) placePermanent(opponent, establishedDigimon(1, ["BT20-031"], "-chirinmon-victim"));
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * EX13-029 FlameWizardmon's "By trashing your top security card" is optional (Discord
+ * 1555472780571705354, KB Q7291). Declining on digivolve must keep the security stack and the
+ * [Once Per Turn] use, so the same choice comes back when it attacks. Four plain security cards
+ * make the "After" deletion fire once the cost is paid.
+ */
+function layEx13FlameWizardmonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    while (human.security.length > 0) takeTop(human, Zone.Security);
+    ["BT1-010", "BT1-011", "BT1-012", "BT1-013"].forEach((cardId, index) =>
+      insertCard(human, Zone.Security, faceDownCard(`dev-flamewizardmon-security-${index}`, cardId, 0)),
+    );
+    placePermanent(human, establishedDigimon(0, ["BT18-030"], "-flamewizardmon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-flamewizardmon", "EX13-029", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) placePermanent(opponent, establishedDigimon(1, ["BT1-037"], "-flamewizardmon-victim"));
 
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -4039,6 +4073,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
   "arena-bt23-examon-opponent-turn-dna": layBt23ExamonOpponentTurnDnaScenario,
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
+  "arena-ex13-flamewizardmon-optional-cost": layEx13FlameWizardmonOptionalCostScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
