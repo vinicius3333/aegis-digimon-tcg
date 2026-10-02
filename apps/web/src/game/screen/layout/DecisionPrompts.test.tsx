@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import type { DecisionResponse } from "@aegis/shared";
+import { CardInstance, Permanent, type DecisionResponse } from "@aegis/shared";
 import { I18nProvider } from "../../../i18n";
 import { DecisionPrompts } from "./DecisionPrompts";
 
@@ -36,6 +36,7 @@ it("reuses the Assembly material overlay for an effect-driven play", () => {
         max={1}
         triggerDetails={[]}
         opponentSelecting={false}
+        opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={onRespond}
         onOpenDialog={() => {}}
@@ -79,6 +80,7 @@ it("reuses the DigiXros material overlay for an effect-driven play", () => {
         max={1}
         triggerDetails={[]}
         opponentSelecting={false}
+        opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={onRespond}
         onOpenDialog={() => {}}
@@ -119,6 +121,7 @@ it("labels a player-only attack target as an attack target instead of a hand sel
         max={1}
         triggerDetails={[]}
         opponentSelecting={false}
+        opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={() => {}}
         onOpenDialog={() => {}}
@@ -128,6 +131,48 @@ it("labels a player-only attack target as an attack target instead of a hand sel
 
   expect(screen.getByRole("region", { name: "Attack target" })).toBeTruthy();
   expect(screen.queryByRole("region", { name: "Hand selection" })).toBeNull();
+});
+
+it("Discord 1555307552223264829: names the attacker and its only target, and confirms as a Security Attack", () => {
+  const grademon = new Permanent();
+  grademon.permanentId = "perm-16";
+  const top = new CardInstance();
+  top.cardId = "EX13-057";
+  grademon.topCard = top;
+  const onRespond = vi.fn<(response: DecisionResponse) => void>();
+  render(
+    <I18nProvider>
+      <DecisionPrompts
+        decision={{
+          decisionId: "dec-52",
+          seat: 0,
+          kind: "selectCards",
+          promptText: "Choose the attack target for the forced attack.",
+          sourceCardId: "EX13-060",
+          sourcePermanentId: "perm-16",
+          options: { candidateInstanceIds: ["player"], selectionContext: "attackTarget", min: 1, max: 1 },
+        }}
+        answerOnBoard
+        permanents={[grademon]}
+        sourceCardId="EX13-060"
+        candidates={[{ instanceId: "player" }]}
+        allowsPick={() => true}
+        picks={["player"]}
+        min={1}
+        max={1}
+        triggerDetails={[]}
+        opponentSelecting={false}
+        opponentSecurityCount={5}
+        onTogglePick={() => {}}
+        onRespond={onRespond}
+        onOpenDialog={() => {}}
+      />
+    </I18nProvider>,
+  );
+
+  expect(screen.getByText("Grademon attacks. The only target is your opponent's security.")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Security Attack" }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["player"] });
 });
 
 it("shows Taiki and the DigiXros instruction when selecting a material-zone Tamer", () => {
@@ -153,6 +198,7 @@ it("shows Taiki and the DigiXros instruction when selecting a material-zone Tame
         max={1}
         triggerDetails={[]}
         opponentSelecting={false}
+        opponentSecurityCount={5}
         onTogglePick={() => {}}
         onRespond={() => {}}
         onOpenDialog={() => {}}

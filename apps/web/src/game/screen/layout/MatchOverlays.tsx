@@ -265,6 +265,7 @@ export function MatchOverlays({
           !scenes.zoneShowcase &&
           !scenes.revealShowcase
         }
+        opponentSecurityCount={opponent.securityCount}
         onTogglePick={onTogglePick}
         onRespond={intents.respondDecision}
         onOpenDialog={() => overlays.setDecisionAsDialog(true)}

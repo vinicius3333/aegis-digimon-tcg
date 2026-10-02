@@ -962,9 +962,12 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
     runMainPhase: async (seat) => {
       engine.mainEntryPending = true;
       try {
-        return await engine.mainPhase.run(seat);
+        const ending = engine.mainPhase.run(seat);
+        engine.projection.syncMainPhaseAffordances();
+        return await ending;
       } finally {
         engine.mainEntryPending = false;
+        engine.projection.syncMainPhaseAffordances();
       }
     },
     finalizeMainPhaseEntry: () => {

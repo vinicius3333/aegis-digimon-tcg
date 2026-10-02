@@ -34,6 +34,8 @@ export class MainPhaseController {
   /** Resolver for the in-flight Main phase, set while a turn's Main phase is open. */
   private end: ((how: MainPhaseEnd) => void) | undefined;
   private activeSeat: Seat | undefined;
+  /** The turn whose Main phase closed, so a later turn never reads as ended. */
+  private endedTurn: { seat: Seat; turnCount: number } | undefined;
 
   constructor(
     private readonly state: GameState,
@@ -49,6 +51,15 @@ export class MainPhaseController {
   /** Is the Main phase currently open (awaiting turn-player verbs)? */
   get isOpen(): boolean {
     return this.end !== undefined;
+  }
+
+  /**
+   * Has this turn's Main phase already ended? True from the moment it closes (memory crossed or
+   * the player passed) for the rest of that turn, which covers the end-of-turn timings that
+   * still run while `state.phase` reads Main. A §6-6-4 resumed Main phase clears it.
+   */
+  get hasEnded(): boolean {
+    return this.endedTurn?.seat === this.state.turnSeat && this.endedTurn.turnCount === this.state.turnCount;
   }
 
   /** The seat whose Main phase is open, if any. */
@@ -70,8 +81,10 @@ export class MainPhaseController {
 
     if (this.hasCrossedToOpponent()) {
       this.activeSeat = undefined;
+      this.markEnded();
       return Promise.resolve("crossed");
     }
+    this.endedTurn = undefined;
 
     return new Promise<MainPhaseEnd>((resolve) => {
       this.end = resolve;
@@ -127,6 +140,11 @@ export class MainPhaseController {
     const resolve = this.end;
     this.end = undefined;
     this.activeSeat = undefined;
+    this.markEnded();
     resolve?.(how);
+  }
+
+  private markEnded(): void {
+    this.endedTurn = { seat: this.state.turnSeat, turnCount: this.state.turnCount };
   }
 }
