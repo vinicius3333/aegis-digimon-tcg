@@ -5,7 +5,7 @@ import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "../maps.js";
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
-import { permanentMatchesFilter } from "../matching/permanent.js";
+import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { affectabilityBySource, resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardColor, CardKind, effectiveStaticNames } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
@@ -542,6 +542,20 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // both scoped to the opponent.
       if (action.grant === "immuneToOpponentDPReductionAndReturn") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
+        if (action.playerWide === true && ctx.fx.restrictPlayer !== undefined) {
+          // Q1990: reductions already on a current recipient are restored as the immunity lands.
+          for (const id of ids) ctx.fx.restoreDpReductions(id);
+          const filter = action.target.filter;
+          const matches = (permanentId: string): boolean => {
+            const permanent = ctx.game.permanentById(permanentId);
+            return permanent !== undefined && permanentMatchesFilter(ctx, permanent, filter, ctx.source);
+          };
+          for (const seat of seatsForController(ctx, filter)) {
+            ctx.fx.restrictPlayer(seat, "dpImmune", grantDuration, matches, { byOpponentEffectsOnly: true });
+            ctx.fx.restrictPlayer(seat, "beReturned", grantDuration, matches, { byOpponentEffectsOnly: true });
+          }
+          return false;
+        }
         for (const id of ids) {
           ctx.fx.restoreDpReductions(id);
           ctx.fx.restrict(id, "dpImmune", grantDuration, { byOpponentEffectsOnly: true });

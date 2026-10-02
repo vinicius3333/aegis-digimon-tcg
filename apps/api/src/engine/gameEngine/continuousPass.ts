@@ -258,6 +258,7 @@ async function derivePass(
   // example, a suspended Digimon unsuspended), not only because a duration was swept. Re-read
   // stored opponent-effect DP modifiers after every such immunity has been re-derived.
   engine.projection.recomputeExpiredAffectationRecipients();
+  engine.modifiers.recomputeFilteredPlayerDp(engine.state);
 
   // A seed is only an input to engine pass. Recompute every seeded permanent from the rebuilt
   // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.

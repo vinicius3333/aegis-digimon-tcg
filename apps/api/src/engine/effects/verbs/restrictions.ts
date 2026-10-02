@@ -63,6 +63,9 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, {
       ...continuousOpt(),
       ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+      fromSourceKind: opts?.fromSourceKind,
+      byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
+      byEffectsOnly: opts?.byEffectsOnly,
     });
   };
 
