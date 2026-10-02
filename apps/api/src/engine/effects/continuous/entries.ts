@@ -49,6 +49,10 @@ export interface PlayerRestrictionEntry {
    */
   matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean;
   continuous?: boolean;
+  /** Same qualifiers as a per-permanent restriction; see {@link RestrictionEntry}. */
+  fromSourceKind?: string[];
+  byOpponentEffectsOnly?: boolean;
+  byEffectsOnly?: boolean;
 }
 
 export interface AttackTargetRestriction {

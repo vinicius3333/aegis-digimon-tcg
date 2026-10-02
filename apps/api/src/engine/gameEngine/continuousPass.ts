@@ -262,4 +262,5 @@ async function derivePass(
   // A seed is only an input to engine pass. Recompute every seeded permanent from the rebuilt
   // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
   for (const permanentId of seed.keys()) engine.modifiers.recomputeDP(engine.state, permanentId);
+  engine.modifiers.recomputeFilteredPlayerDp(engine.state);
 }

@@ -248,6 +248,9 @@ export class ContinuousEffectLedger {
     opts?: {
       continuous?: boolean;
       matchesAsDigimon?: PlayerRestrictionEntry["matchesAsDigimon"];
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
     },
   ): void {
     this.playerRestrictions.push(
@@ -259,6 +262,9 @@ export class ContinuousEffectLedger {
         matches,
         continuous: opts?.continuous,
         ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+        ...(opts?.fromSourceKind === undefined ? {} : { fromSourceKind: opts.fromSourceKind }),
+        ...(opts?.byOpponentEffectsOnly === true ? { byOpponentEffectsOnly: true } : {}),
+        ...(opts?.byEffectsOnly === true ? { byEffectsOnly: true } : {}),
       }),
     );
   }
@@ -315,16 +321,24 @@ export class ContinuousEffectLedger {
     const isSuspend = restriction === "suspend" || restriction === "beSuspended";
     const isEquivalent = (candidate: Restriction): boolean =>
       candidate === restriction || (isSuspend && (candidate === "suspend" || candidate === "beSuspended"));
-    const individuallyRestricted = this.restrictions.some((r) => {
-      if (r.permanentId !== permanentId || !isEquivalent(r.restriction)) return false;
-      if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
-      if (r.byEffectsOnly === true && opts?.byEffect === false) return false;
-      if (this.suppressedByEffectImmunity(r)) return false;
-      if (r.fromSourceKind === undefined) return true;
+    const qualifiersApply = (entry: {
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+      fromSourceKind?: string[];
+    }): boolean => {
+      if (entry.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
+      if (entry.byEffectsOnly === true && opts?.byEffect === false) return false;
+      if (entry.fromSourceKind === undefined) return true;
       // Qualified entry: block only when sourceKind is known and matches.
-      if (sourceKind === undefined || !r.fromSourceKind.includes(sourceKind)) return false;
-      return true;
-    });
+      return sourceKind !== undefined && entry.fromSourceKind.includes(sourceKind);
+    };
+    const individuallyRestricted = this.restrictions.some(
+      (r) =>
+        r.permanentId === permanentId &&
+        isEquivalent(r.restriction) &&
+        !this.suppressedByEffectImmunity(r) &&
+        qualifiersApply(r),
+    );
     if (individuallyRestricted) return true;
     // A player-scoped restriction can name ANY permanent kind ("none of your opponent's Tamers
     // can unsuspend" — LM-010), so it resolves the controller through the kind-agnostic lookup.
@@ -333,7 +347,11 @@ export class ContinuousEffectLedger {
     if (this.playerRestrictions.length === 0) return false;
     const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
     return this.playerRestrictions.some(
-      (entry) => entry.seat === controllerSeat && isEquivalent(entry.restriction) && entry.matches(permanentId),
+      (entry) =>
+        entry.seat === controllerSeat &&
+        isEquivalent(entry.restriction) &&
+        qualifiersApply(entry) &&
+        entry.matches(permanentId),
     );
   }
 

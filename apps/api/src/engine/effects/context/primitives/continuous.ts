@@ -43,7 +43,12 @@ export interface ContinuousPrimitives {
     restriction: EnforcedRestriction,
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
-    opts?: { matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean },
+    opts?: {
+      matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean;
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+    },
   ): void;
   /**
    * Prevent one attacker from declaring an attack against one exact opposing Digimon while

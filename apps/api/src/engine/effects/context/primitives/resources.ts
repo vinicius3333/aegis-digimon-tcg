@@ -1,4 +1,4 @@
-import type { CardInstance, DisableTiming, EffectDuration, Seat, ZoneRef } from "@aegis/shared";
+import type { CardInstance, DisableTiming, EffectDuration, Permanent, Seat, ZoneRef } from "@aegis/shared";
 import type { PlayMatch } from "../../continuous.js";
 
 /**
@@ -97,6 +97,8 @@ export interface ResourcePrimitives {
       sourceSeat?: Seat;
       sourceKinds?: string[];
       skipsCurrentOpponentTurnEnd?: boolean;
+      /** Live target condition; a Digimon gains the delta only while it matches. */
+      matches?: (permanent: Permanent) => boolean;
     },
   ): void;
   /** Restore DP already reduced before a newly gained reduction immunity takes effect (Q1990). */

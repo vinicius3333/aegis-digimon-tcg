@@ -67,8 +67,11 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     const ownerSeat = recipientFramed ? seat : resolvingSeat;
     continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, {
       ...continuousOpt(),
-      ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+      ...opts,
     });
+    if (restriction === "beAffected") {
+      for (const permanent of state.players[seat]?.battleArea ?? []) ledger.recomputeDP(state, permanent.permanentId);
+    }
   };
 
   const restrictAttackTarget = (

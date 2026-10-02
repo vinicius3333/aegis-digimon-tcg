@@ -10,7 +10,7 @@ import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
-import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
+import type { Action, EffectDurationRef, Permanent, Target, ZoneRef } from "@aegis/shared";
 import { processBlitzGrant } from "./combat.js";
 import { playEffectInstances } from "./effectPlayAssembly.js";
 
@@ -196,13 +196,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         const seat = controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
         const amount = scale === undefined ? action.amount : action.amount * scale;
         const effectSourceKinds = ctx.effectSourceKinds ?? ctx.source.definition.kinds;
-        const sourceProvenance =
-          effectSourceKinds.length > 0
-            ? {
-                sourceSeat: ctx.source.ownerSeat,
-                sourceKinds: [...effectSourceKinds],
-              }
-            : {};
+        const filter = action.target.filter;
+        const playerDpOptions = {
+          ...(effectSourceKinds.length > 0
+            ? { sourceSeat: ctx.source.ownerSeat, sourceKinds: [...effectSourceKinds] }
+            : {}),
+          // Overall processing with conditions affects whoever matches at each moment
+          // (Comprehensive Rules 15-11-2-3), so re-check the full filter on every DP read.
+          matches: (permanent: Permanent) => permanentMatchesFilter(ctx, permanent, filter, ctx.source),
+        };
         if (amount !== 0) {
           ctx.fx.modifyPlayerDP(
             seat,
@@ -211,10 +213,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             nextOpponentTurnDuration
               ? {
                   ownerSeat: ctx.source.ownerSeat,
-                  ...sourceProvenance,
+                  ...playerDpOptions,
                   skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn(),
                 }
-              : sourceProvenance,
+              : playerDpOptions,
           );
         }
         return false;
