@@ -312,6 +312,18 @@ export type ServerEvent =
         seat: Seat;
       }[];
       /**
+       * Option permanents trashed from the battle area (a ＜Delay＞ paying its cost, an effect
+       * trashing an Option), captured before removal. Trashing is not deletion (CR 4-16-3), so
+       * they never appear in `deletedPermanents`; the client still shows them leaving the field.
+       */
+      trashedPermanents?: {
+        permanentId: string;
+        instanceId: string;
+        cardId: string;
+        artId?: string;
+        seat: Seat;
+      }[];
+      /**
        * Top cards stripped off a permanent that stays on the field (＜De-Digivolve＞, or an
        * effect that trashes stack tops). The permanent was not deleted, so it gets no
        * `deletedPermanents` entry; `cardIds` and `seat` name the stripped cards and their owner.
