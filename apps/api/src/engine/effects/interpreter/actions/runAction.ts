@@ -292,6 +292,15 @@ const PICK_DECLINABLE_AFTER_YES: ReadonlySet<Action["kind"]> = new Set([
   "Link",
 ]);
 
+/**
+ * A larger or named set ("1 [Kinkakumon] and 1 [Ginkakumon]", Q1465) is picked one card at a
+ * time, and an accepted set must not stop halfway.
+ */
+function targetsOneCard(action: Action): boolean {
+  const target = "target" in action ? (action.target as Target | undefined) : undefined;
+  return target?.count === undefined || target.count === 1;
+}
+
 function markActivationChosen(ctx: EffectContext): void {
   ctx.oncePerTurnActivationChosen = true;
   ctx.oncePerTurnActivationDeclined = false;
@@ -992,7 +1001,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       }
       // A cost paid between this answer and the pick must not be stranded by backing out.
       acceptedBeforeItsPick =
-        chooser === ctx.ask && payableActionCost === undefined && additionalCost === undefined && additionalCosts.length === 0;
+        chooser === ctx.ask &&
+        payableActionCost === undefined &&
+        additionalCost === undefined &&
+        additionalCosts.length === 0;
       markActivationChosen(ctx);
     }
   }
@@ -1221,7 +1233,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     markActivationChosen(ctx);
   }
 
-  ctx.pickingAcceptedOptional = acceptedBeforeItsPick && PICK_DECLINABLE_AFTER_YES.has(action.kind);
+  ctx.pickingAcceptedOptional =
+    acceptedBeforeItsPick && PICK_DECLINABLE_AFTER_YES.has(action.kind) && targetsOneCard(action);
 
   // Everything the prologue worked out that a case body still needs.
   const scope: ActionScope = { scale, deferredCostSuspensions };

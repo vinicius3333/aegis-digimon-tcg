@@ -94,12 +94,12 @@ function buildSeatScopedApi(
     ...(ctx.affectedPermanentIds !== undefined ? { affectedPermanentIds: [...ctx.affectedPermanentIds] } : {}),
     // Raised by `payCost` for as long as a cost payment is on the stack. Without it a
     // cost selection and a target selection reach the deciding seat as the same request.
-    ...((ctx.payingCostDepth ?? 0) > 0
-      ? { purpose: "cost" as const }
-      : backsOutOfAcceptedOptional(ctx)
-        ? { purpose: "acceptedOptional" as const }
-        : {}),
+    ...((ctx.payingCostDepth ?? 0) > 0 ? { purpose: "cost" as const } : {}),
   });
+  // Only a pick whose floor was lowered here is the back-out of an accepted "you may"; a pick
+  // the action already allowed to be empty keeps its own meaning (DigiXros materials).
+  const backOutPurpose = (min: number, printedMin: number) =>
+    min < printedMin ? { purpose: "acceptedOptional" as const } : {};
   // The controller already accepted this action's "you may"; a single-card pick may still
   // answer nothing to back out. Cost payments keep their printed minimum.
   const backsOutOfAcceptedOptional = (ctx: EffectContext): boolean =>
@@ -158,6 +158,7 @@ function buildSeatScopedApi(
           // can badge a chosen target rather than parse the prompt's English.
           ...(ctx.activeTargetFate !== undefined ? { targetFate: ctx.activeTargetFate } : {}),
           ...provenance(ctx),
+          ...backOutPurpose(min, opts.min),
         },
       });
       const selected = clampSelection(
@@ -206,6 +207,7 @@ function buildSeatScopedApi(
           assemblyCardId: opts.assemblyCardId,
           digiXrosCardId: opts.digiXrosCardId,
           ...provenance(ctx),
+          ...backOutPurpose(min, opts.min),
         },
       });
       const selected = clampSelection(
@@ -235,6 +237,7 @@ function buildSeatScopedApi(
           max: opts.max,
           ...(opts.maxTotalPlayCost !== undefined ? { maxTotalPlayCost: opts.maxTotalPlayCost } : {}),
           ...provenance(ctx),
+          ...backOutPurpose(min, opts.min),
         },
       });
       const selected = clampSelection(
