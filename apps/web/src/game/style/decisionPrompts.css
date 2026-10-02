@@ -764,6 +764,95 @@
   gap: var(--ds-space-2);
   margin-top: var(--ds-space-2);
 }
+/* --- Digivolution cost chooser -------------------------------------------- */
+
+/* The navy panel the other match dialogs use (the dark tokens come from the shared list
+   in dialogsAndNarration.css), a little wider than the rail so two cost tiles and the
+   two footer buttons sit side by side. */
+.board-prompt.evo-cost-prompt {
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel, #101b30) 30%, #0c1526 100%);
+}
+@media (width >= 768px) {
+  .board-prompt.evo-cost-prompt {
+    width: min(22rem, 46vw);
+  }
+}
+/* Each block takes a full row, even where the phone sheet lays its actions side by side. */
+.evo-cost-prompt__route,
+.evo-cost-prompt__options,
+.evo-cost-prompt__footer {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+.evo-cost-prompt__route {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-3);
+}
+.evo-cost-prompt__route-arrow {
+  flex: none;
+  color: var(--ds-accent);
+}
+.evo-cost-prompt__options {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--ds-space-2);
+}
+.evo-cost-prompt__option.aegis-button {
+  height: auto;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-3) var(--ds-space-2) var(--ds-space-2);
+  color: var(--ds-fg);
+  border-color: var(--ds-border-strong);
+  background: var(--ds-surface-raised);
+}
+/* The cheapest path is the usual pick, so it reads as the selected tile. */
+.evo-cost-prompt__option.aegis-button[data-recommended] {
+  color: var(--ds-accent);
+  border-color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+  box-shadow: 0 0 18px rgb(96 165 250 / 35%);
+}
+.evo-cost-prompt__cost {
+  font-size: var(--ds-text-xl);
+  line-height: 1;
+}
+.evo-cost-prompt__unit {
+  font-size: var(--ds-text-sm);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.evo-cost-prompt__outcome {
+  align-self: stretch;
+  padding: var(--ds-space-1) var(--ds-space-2);
+  color: var(--ds-fg-secondary);
+  border-radius: var(--ds-radius-sm);
+  background: rgb(4 10 22 / 55%);
+  font-size: var(--ds-text-sm);
+  letter-spacing: 0;
+}
+/* Below 0 the memory goes to the opponent and the turn ends: worth a second look. */
+.evo-cost-prompt__option[data-passes-turn] .evo-cost-prompt__outcome {
+  color: var(--ds-warning);
+}
+.evo-cost-prompt__footer {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: var(--ds-space-2);
+}
+.evo-cost-prompt__footer > .aegis-button {
+  min-width: 0;
+  padding-inline: var(--ds-space-3);
+  border: 1px solid var(--ds-border-strong);
+  line-height: 1.15;
+  white-space: normal;
+}
+.evo-cost-prompt__footer > .aegis-button--secondary {
+  border-color: var(--ds-accent);
+}
 /* The affirmative is amber and the refusal blue, matching the reference client's
    Use / Not use pair, which players read by color before they read the words. */
 .board-prompt__use.aegis-button {

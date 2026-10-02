@@ -2433,52 +2433,53 @@ describe("EX3-053 Metallicdramon decisions", () => {
 });
 
 describe("digivolution cost choice", () => {
-  it("shows Dracomon's two friendly routes and sends the selected alternate action", () => {
-    const onConfirm = vi.fn<(option: EvoCostOption) => void>();
+  function renderCostChoice(onConfirm = vi.fn<(option: EvoCostOption) => void>()) {
     render(
       <I18nProvider>
         <EvoCostChoiceOverlay
-          evolvingCardId="EX3-037"
-          baseName="Bebydomon"
+          evolvingCardId="EX12-035"
+          baseCardId="EX12-032"
+          memory={3}
           options={[
-            { type: "normal", label: "Blue Lv.2", cost: 1 },
-            { type: "alternate", label: "Bebydomon", cost: 0, alternateRequirementIndex: 1 },
+            { type: "normal", label: "Blue Lv.5", cost: 4 },
+            { type: "alternate", label: "Garurumon / [ME/VB] trait Lv.5", cost: 3, alternateRequirementIndex: 0 },
           ]}
           onConfirm={onConfirm}
           onCancel={vi.fn<() => void>()}
         />
       </I18nProvider>,
     );
+    return onConfirm;
+  }
 
+  it("names the digivolution from the base to the new card, in the board prompt rail", () => {
+    renderCostChoice();
+    const rail = screen.getByTestId("board-prompt");
+    expect(rail.classList.contains("evo-cost-prompt")).toBe(true);
+    expect(rail.dataset.variant).toBe("prompt");
     expect(screen.getByText("Digivolve cost")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Blue Lv.2 · 1 memory" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Bebydomon · 0 memory" }));
-    expect(onConfirm).toHaveBeenCalledWith({
-      type: "alternate",
-      label: "Bebydomon",
-      cost: 0,
-      alternateRequirementIndex: 1,
-    });
-    expect(document.querySelector(".evo-cost-prompt__footer")?.children).toHaveLength(2);
+    expect(screen.getByText("WereGarurumon → MetalGarurumon")).toBeTruthy();
   });
 
-  it("shows the digivolving card's art beside the title instead of a bare sigil", () => {
-    const { container } = render(
-      <I18nProvider>
-        <EvoCostChoiceOverlay
-          evolvingCardId="EX3-037"
-          baseName="Bebydomon"
-          options={[{ type: "normal", label: "Blue Lv.2", cost: 1 }]}
-          onConfirm={vi.fn<(option: EvoCostOption) => void>()}
-          onCancel={vi.fn<() => void>()}
-        />
-      </I18nProvider>,
-    );
+  it("shows each cost and where memory lands, cheapest first and recommended", () => {
+    renderCostChoice();
+    const tiles = [...document.querySelectorAll<HTMLElement>(".evo-cost-prompt__option")];
+    expect(tiles.map((tile) => tile.textContent)).toEqual(["3memory3 → 0", "4memory3 → -1"]);
+    expect(tiles.map((tile) => tile.dataset.recommended)).toEqual(["true", undefined]);
+    // Paying past 0 hands memory to the opponent, which ends the turn.
+    expect(tiles.map((tile) => tile.dataset.passesTurn)).toEqual([undefined, "true"]);  });
 
-    // Either the art or its sigil fallback, but always at a size a thumb can read.
-    const art = container.querySelector<HTMLElement>(".evo-cost-prompt > div > :first-child");
-    expect(art).not.toBeNull();
-    expect(art?.style.width).toBe("56px");
+  it("sends the chosen path, keeping the route in each tile's accessible name", () => {
+    const onConfirm = renderCostChoice();
+    fireEvent.click(screen.getByRole("button", { name: "Garurumon / [ME/VB] trait Lv.5 · 3 memory, from 3 to 0" }));
+    expect(onConfirm).toHaveBeenCalledWith({
+      type: "alternate",
+      label: "Garurumon / [ME/VB] trait Lv.5",
+      cost: 3,
+      alternateRequirementIndex: 0,
+    });
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "View board" })).toBeTruthy();
   });
 });
 
