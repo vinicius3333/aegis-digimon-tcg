@@ -175,6 +175,7 @@ export function hasOpenCombatPrompt(events: readonly ServerEvent[]): boolean {
       open = true;
     }
     if (
+      event.kind === "attackEnded" ||
       event.kind === "combatResolved" ||
       event.kind === "blockDeclined" ||
       event.kind === "counterResolved" ||

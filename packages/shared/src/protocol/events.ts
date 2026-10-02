@@ -156,6 +156,14 @@ export type ServerEvent =
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
   /**
+   * The attack `attackDeclared` opened is over, after End of Attack and after any
+   * `combatResolved`. Sent once for every attack, including one that ends with no battle and
+   * no security card checked: an attacker with ＜Security Attack -1＞, an attack ended by an
+   * effect, or a target that left the field. Close anything kept open for the attack here.
+   * Not sent when the attack ended the game: `gameOver` is then the last event.
+   */
+  | { kind: "attackEnded"; seat: Seat; attackerPermanentId: string }
+  /**
    * A deletion (or leave) that a keyword paid to prevent: ＜Scapegoat＞, ＜Decoy＞, ＜Guard＞,
    * ＜Fragment＞ and ＜Armor Purge＞. Unlike ＜Evade＞ and ＜Barrier＞, these have no prompt
    * event of their own — without this, the client sees only the cost card leaving and a
@@ -434,6 +442,7 @@ export const SERVER_EVENT_KINDS = [
   "barrierPrompt",
   "barrierResolved",
   "combatResolved",
+  "attackEnded",
   "deletionPrevented",
   "securityRevealed",
   "securityChecked",
