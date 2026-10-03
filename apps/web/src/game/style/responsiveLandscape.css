@@ -552,13 +552,16 @@
     grid-area: 4 / 2;
     align-self: end;
     padding: 0 var(--ds-space-1) !important;
+    overflow: visible;
     border: 0 !important;
     background: transparent !important;
   }
+  /* The cards sit 4px below the hand's top edge, so the hand is that much taller
+     than a card or its last pixels fall off the bottom of the board. */
   .game-player-dock > .game-hand-dock {
     grid-area: 5 / 1 / 6 / 4;
-    min-height: var(--game-hand-h);
-    padding-block: 0 !important;
+    min-height: calc(var(--game-hand-h) + var(--ds-space-1));
+    padding-block: 0 var(--ds-space-1) !important;
   }
   .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
     grid-area: 5 / 4;
