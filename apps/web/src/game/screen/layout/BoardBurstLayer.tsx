@@ -8,6 +8,7 @@ import { CardFull } from "../../../design/cards";
 import { CardBurst } from "../../CardBurst";
 import { CardShatter } from "../../CardShatterView";
 import type { DeleteBurst, DrawBurst, DrawFlight } from "../../match/types";
+import "../../style/playFlight.css";
 
 /** Matches `--draw-flight-w` on `.game-draw-flight--face`; the stylesheet has the final say. */
 const DRAW_FLIGHT_FACE_WIDTH = 60;
@@ -61,7 +62,10 @@ export function BoardBurstLayer({
         <div
           key={flight.key}
           aria-hidden="true"
-          className={`game-draw-flight${flight.card ? " game-draw-flight--face" : ""}`}
+          data-testid={flight.kind === "play" ? "confirmed-play-flight" : undefined}
+          data-card-id={flight.kind === "play" ? flight.card?.cardId : undefined}
+          data-permanent-id={flight.targetPermanentId}
+          className={`game-draw-flight${flight.card ? " game-draw-flight--face" : ""}${flight.kind === "play" ? " game-play-flight" : ""}`}
           style={
             {
               left: flight.x,
@@ -71,6 +75,12 @@ export function BoardBurstLayer({
               "--t-draw-flight": `${flight.duration}ms`,
               "--battle-flight-dx": `${flight.dx}px`,
               "--battle-flight-dy": `${flight.dy}px`,
+              ...(flight.kind === "play"
+                ? {
+                    "--play-from-width": `${flight.fromWidth}px`,
+                    "--play-to-scale": (flight.toWidth ?? 88) / (flight.fromWidth ?? 100),
+                  }
+                : {}),
             } as CSSProperties
           }
         >
@@ -78,7 +88,7 @@ export function BoardBurstLayer({
             <CardFull
               cardId={flight.card.cardId}
               artId={flight.card.artId}
-              width={DRAW_FLIGHT_FACE_WIDTH}
+              width={flight.kind === "play" ? flight.fromWidth : DRAW_FLIGHT_FACE_WIDTH}
               zoomOnHover={false}
             />
           ) : null}

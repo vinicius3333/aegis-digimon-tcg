@@ -235,7 +235,8 @@ describe("EX3-010 Paildramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-010"));
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-010"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX3-010")).toBe(false);
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("dinobeemon").instanceId)).toBe(
       true,
@@ -289,7 +290,8 @@ describe("EX3-010 Paildramon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("paildramon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-010"));
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-010"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX3-010")).toBe(false);
 
     expect(s.decisions.some(({ req }) => req.sourceCardId === "EX3-010" && req.kind === "optional")).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("veemon").instanceId)).toBe(true);

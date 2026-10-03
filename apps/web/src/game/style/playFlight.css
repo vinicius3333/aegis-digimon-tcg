@@ -1,0 +1,44 @@
+/* A server-confirmed play travels into its measured field slot before the field
+   reveals it. The cue queue and CSS share the per-flight duration. */
+.game-draw-flight.game-play-flight {
+  z-index: calc(var(--ds-z-dialog) - 2);
+  width: var(--play-from-width);
+  height: auto;
+  aspect-ratio: 5 / 7;
+  margin-left: calc(var(--play-from-width) / -2);
+  margin-top: calc(var(--play-from-width) * -0.7);
+  overflow: visible;
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 55%));
+  animation-name: battle-play-flight;
+  transform-origin: center;
+}
+
+.game-play-flight > div {
+  width: 100% !important;
+}
+
+@keyframes battle-play-flight {
+  0% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    rotate: -6deg;
+  }
+  55% {
+    opacity: 1;
+    translate: calc(var(--battle-flight-dx) * 0.68) calc(var(--battle-flight-dy) * 0.68 - 18px);
+    rotate: 3deg;
+  }
+  100% {
+    opacity: 1;
+    translate: var(--battle-flight-dx) var(--battle-flight-dy);
+    scale: var(--play-to-scale);
+    rotate: 0deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-play-flight {
+    display: none;
+  }
+}

@@ -87,7 +87,15 @@ export type PlayCardCheck =
 
 /** Events this action narrates (subset of @aegis/shared ServerEvent). */
 export type PlayCardEvent =
-  | { kind: "cardPlayed"; seat: Seat; cardId: string; artId?: string; permanentId?: string }
+  | {
+      kind: "cardPlayed";
+      seat: Seat;
+      cardId: string;
+      instanceId?: string;
+      fromZone?: string;
+      artId?: string;
+      permanentId?: string;
+    }
   | { kind: "memoryChanged"; from: number; to: number; reason: string }
   | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string; optionUsed?: true };
 
@@ -406,6 +414,8 @@ export async function applyPlayCard(
     permanent.enterFieldTurnCount = state.turnCount;
     deps.emit?.({
       kind: "cardPlayed",
+      instanceId: instance.instanceId,
+      fromZone: "hand",
       seat,
       cardId: instance.cardId,
       ...(instance.artId ? { artId: instance.artId } : {}),
@@ -444,6 +454,8 @@ export async function applyPlayCard(
   //      ＜Delay＞ keyword → face-down in delay zone (KB §16-17); otherwise → trash.
   deps.emit?.({
     kind: "cardPlayed",
+    instanceId: instance.instanceId,
+    fromZone: "hand",
     seat,
     cardId: instance.cardId,
     ...(instance.artId ? { artId: instance.artId } : {}),

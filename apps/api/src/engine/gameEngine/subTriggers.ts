@@ -1,3 +1,4 @@
+import { observeEffectActivation } from "../effects/activationPresentation.js";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { rootZoneOfLooseInstance } from "../effects/primitives.js";
 import { type SubTriggerSubscription, type SubTriggerTurnLedger } from "../effects/subtriggers.js";
@@ -18,6 +19,7 @@ import {
   type ArmedSubTrigger,
 } from "./subTriggerIdentity.js";
 import { findLooseInstance } from "./intents.js";
+import { isInternalDescription, soleWatcherLine, triggerLabel } from "../effects/interpreter/describe.js";
 import { trashArrivalOf } from "../state/access.js";
 import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
@@ -600,6 +602,8 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
             announce: false,
             presetOptionalAnswer: resolverCtx.presetOptionalAnswer,
             drainCurrentTimingWindow: resolverCtx.drainCurrentTimingWindow,
+            onActivationChosen: resolverCtx.onActivationChosen,
+            isActivationPending: resolverCtx.isActivationPending,
           });
         },
       },
@@ -909,6 +913,20 @@ function triggerReasonOf(sub: SubTriggerSubscription): { triggerReason?: string 
   return condition === undefined ? {} : { triggerReason: condition };
 }
 
+/**
+ * What players read for a watcher: its printed clause, else its description unless that is
+ * engine bookkeeping ("whenPlayed"), in which case the card's one watcher line or a sentence
+ * naming the trigger and the card.
+ */
+export function playerFacingWatcherClause(sub: SubTriggerSubscription, ctx: EffectContext): string {
+  if (sub.printedClause !== undefined) return sub.printedClause;
+  const description = subTriggerDescriptionFor(sub, ctx);
+  if (!isInternalDescription(description)) return description;
+  const definition = ctx.source.definition;
+  const box = sub.isInheritedSource === true ? definition.inheritedEffectText : definition.effectText;
+  return soleWatcherLine(box) ?? `${triggerLabel(sub.event)}: ${definition.nameEn}`;
+}
+
 /** Present a watcher to the ordering prompt as an ordinary collected effect. */
 export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence }: ArmedSubTrigger): CollectedEffect {
   return {
@@ -928,7 +946,8 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence
     ...triggerReasonOf(sub),
     effect: {
       effectKey: subTriggerEffectKey(sub),
-      description: sub.printedClause ?? sub.description,
+      activationDeferred: sub.activationDeferred,
+      description: playerFacingWatcherClause(sub, ctx),
       optional: false,
       isInherited: sub.isInheritedSource === true,
       isSecurity: false,
@@ -957,26 +976,34 @@ export function announceSubTrigger(
 ): void | (() => void) {
   if (ctx === undefined) return;
   const effectKey = subTriggerEffectKey(sub);
-  const announcementKey = `${engine.state.turnCount}:${effectKey}`;
-  if (sub.oncePerTurnKey !== undefined && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
-  if (sub.oncePerTurnKey !== undefined) engine.announcedSubTriggerEffectKeys.add(announcementKey);
-  const description = sub.printedClause ?? subTriggerDescriptionFor(sub, ctx);
-  engine.hooks.emit({
-    kind: "effectTriggered",
-    seat: ctx.source.ownerSeat,
-    sourceCardId: ctx.source.cardId,
-    sourceInstanceId: ctx.source.instanceId,
-    sourcePermanentId: ctx.source.permanent()?.permanentId,
-    effectKey,
-    description,
-    timing: sub.event,
-    ...(sub.printedTiming !== undefined ? { printedTiming: sub.printedTiming } : {}),
-    ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
-    // `securityChecked` closes the check AFTER these bodies have run, so the client needs
-    // engine to hold the announcement until the checked card's reveal has been shown.
-    ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+  ctx.activeEffectKey = effectKey;
+  let announced = false;
+  const presentation = observeEffectActivation(ctx, sub.activationDeferred === true, () => {
+    const announcementKey = `${engine.state.turnCount}:${effectKey}`;
+    if (sub.oncePerTurnKey !== undefined && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
+    if (sub.oncePerTurnKey !== undefined) engine.announcedSubTriggerEffectKeys.add(announcementKey);
+    announced = true;
+    const description = playerFacingWatcherClause(sub, ctx);
+    engine.hooks.emit({
+      kind: "effectTriggered",
+      seat: ctx.source.ownerSeat,
+      sourceCardId: ctx.source.cardId,
+      sourceInstanceId: ctx.source.instanceId,
+      sourcePermanentId: ctx.source.permanent()?.permanentId,
+      effectKey,
+      description,
+      timing: sub.event,
+      ...(sub.printedTiming !== undefined ? { printedTiming: sub.printedTiming } : {}),
+      ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
+      // `securityChecked` closes the check AFTER these bodies have run, so the client needs
+      // engine to hold the announcement until the checked card's reveal has been shown.
+      ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+    });
   });
-  return () =>
+  return () => {
+    presentation.restore();
+    if (!announced) return;
+    const description = playerFacingWatcherClause(sub, ctx);
     engine.hooks.emit({
       kind: "effectResolved",
       seat: ctx.source.ownerSeat,
@@ -988,6 +1015,7 @@ export function announceSubTrigger(
       timing: sub.event,
       ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
     });
+  };
 }
 
 /**
@@ -1013,6 +1041,8 @@ export async function fireOneSubTrigger(
     announce?: boolean;
     drainCurrentTimingWindow?: () => Promise<void>;
     presetOptionalAnswer?: boolean;
+    onActivationChosen?: () => void;
+    isActivationPending?: () => boolean;
   } = {},
 ): Promise<void> {
   if (engine.subTriggerWindowDepth > 0)
@@ -1022,8 +1052,13 @@ export async function fireOneSubTrigger(
     [sub],
     () => {
       const ctx = contextAtFireTime();
+      if (ctx !== undefined) ctx.activeEffectKey = subTriggerEffectKey(sub);
       if (ctx !== undefined && drainCurrentTimingWindow !== undefined) {
         ctx.drainCurrentTimingWindow = drainCurrentTimingWindow;
+      }
+      if (ctx !== undefined && opts.onActivationChosen !== undefined) {
+        ctx.onActivationChosen = opts.onActivationChosen;
+        ctx.isActivationPending = opts.isActivationPending;
       }
       if (ctx !== undefined && opts.presetOptionalAnswer !== undefined) {
         ctx.presetOptionalAnswer = opts.presetOptionalAnswer;

@@ -15,6 +15,8 @@ export interface AegisJoinOptions {
   ranked?: boolean;
   betaBattleMode?: boolean;
   authTicket?: string;
+  /** How this client paces a chain of triggered effects; a bot opponent follows `sequential` pacing. */
+  presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
     | "battle"
@@ -183,5 +185,16 @@ export interface AegisJoinOptions {
     | "card-bugs"
     | "counter-blast-dna"
     | "security-battle"
+    | "effects-lab-own-chain"
+    | "effects-lab-opponent-chain"
+    | "effects-lab-opponent-play"
+    | "effects-lab-nested"
+    | "effects-lab-prod-royal-knights"
+    | "effects-lab-prod-ghost"
+    | "effects-lab-prod-ghost-execute"
+    | "effects-lab-prod-ghost-execute-security"
+    | "effects-lab-prod-attack-stack"
+    | "effects-lab-prod-security-removed"
+    | "effects-lab-prod-titan-cascade"
     | "security-chain";
 }

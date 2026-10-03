@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CardDefinition } from "@aegis/shared";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -218,7 +218,8 @@ describe("BT19-101 ZeedMillenniummon", () => {
     s.state.memory = 16;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zeed").instanceId })).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT19-101")).toBe(false);
 
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);

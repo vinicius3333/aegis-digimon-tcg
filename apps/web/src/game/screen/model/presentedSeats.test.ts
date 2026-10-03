@@ -28,6 +28,53 @@ function player(seat: 0 | 1, battleArea: Permanent[] = []): PlayerState {
 }
 
 describe("presentedSeats live projection", () => {
+  it("keeps future DP and granted abilities on the narrated snapshot while paced, then shows them at the decision horizon", () => {
+    const viewer = player(0, [permanent({ rush: true, duringAttack: true })]);
+    viewer.battleArea[0]!.securityAttackModifier = 1;
+    const opponent = player(1);
+    const before = new GameState();
+    before.stateVersion = 1;
+    before.players.push(player(0, [permanent({ rush: false })]), player(1));
+    const after = new GameState();
+    after.stateVersion = 2;
+    after.players.push(viewer, opponent);
+    const show = (shownState: GameState) =>
+      presentedSeats({
+        shownState,
+        viewer,
+        opponent,
+        viewerSeat: 0,
+        heldPhaseState: undefined,
+        heldBlowState: undefined,
+        heldSecurityEffectState: undefined,
+        heldDrawState: undefined,
+        heldBreedingState: undefined,
+        heldDeletions: new Map(),
+        heldTrashArrivals: new Map(),
+        optimisticPlayedInstanceId: undefined,
+        presentationPacing: "sequential",
+      }).shownViewer.battleArea[0]!;
+
+    const held = show(before);
+    expect([...held.keywords]).toEqual([]);
+    expect([...held.grantedKeywords]).toEqual([]);
+    expect(held).toMatchObject({
+      currentDP: 7000,
+      summoningSick: true,
+      securityAttackModifier: 0,
+      immuneToOpponentDigimonEffects: false,
+    });
+    const released = show(after);
+    expect([...released.keywords]).toEqual(["Rush"]);
+    expect([...released.grantedKeywords]).toEqual(["Rush"]);
+    expect(released).toMatchObject({
+      currentDP: 12_000,
+      summoningSick: false,
+      securityAttackModifier: 1,
+      immuneToOpponentDigimonEffects: true,
+    });
+  });
+
   it("shows Grademon's live Rush and attack rider while an older arrival snapshot is still presented", () => {
     const viewer = player(0, [permanent({ rush: true, duringAttack: true })]);
     const opponent = player(1);

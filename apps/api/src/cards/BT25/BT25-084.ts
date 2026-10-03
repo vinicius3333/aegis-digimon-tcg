@@ -85,7 +85,7 @@ export const compiled: CompiledCard = {
               },
             },
           ],
-          raw: "[All Turns] When your hand is trashed from, delete 1 of your opponent's Digimon with the lowest DP.",
+          raw: "[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon.",
         },
       ],
     },

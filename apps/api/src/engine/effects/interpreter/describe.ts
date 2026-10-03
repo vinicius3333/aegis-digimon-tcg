@@ -1,6 +1,13 @@
 // Human-readable summaries of an action or effect, for decisions and logs.
 
-import { PRINTED_TIMING_LABELS, type Action, type CardEffect, type Cost } from "@aegis/shared";
+import {
+  PRINTED_TIMING_LABELS,
+  type Action,
+  type CardDefinition,
+  type CardEffect,
+  type Cost,
+  type EffectTrigger,
+} from "@aegis/shared";
 
 /**
  * Turn an IR identifier into a readable phrase ("payMemory" -> "Pay memory").
@@ -26,6 +33,70 @@ export function printedClause(raw: string | undefined): string | undefined {
   const text = raw?.trim();
   if (text === undefined || text === "") return undefined;
   return /^[a-z][A-Za-z0-9]*$/.test(text) ? undefined : text;
+}
+
+/**
+ * Whether a description is engine bookkeeping rather than card text: a bare event or IR name
+ * ("whenPlayed"), an IR call ("GainTriggeredEffect(whenSuspended)"), a runtime id ("perm-4"),
+ * or one of the engine's own watcher labels. Players must never read one.
+ */
+export function isInternalDescription(text: string): boolean {
+  return (
+    /^[a-z][A-Za-z0-9]*$/.test(text.trim()) ||
+    /\b[A-Z][A-Za-z]+\(/.test(text) ||
+    /\b(?:perm|ir)-\d+\b/.test(text) ||
+    /\blater entrant\b|\bentrant granted effect\b/.test(text)
+  );
+}
+
+/** A trigger or watcher event as players read it: "On Deletion", "When suspended". */
+export function triggerLabel(trigger: string): string {
+  return PRINTED_TIMING_LABELS[trigger as EffectTrigger] ?? humanizeIdentifier(trigger);
+}
+
+/**
+ * What players read for a watcher that carries a grant on to permanents entering later: the
+ * granting clause as printed, else a sentence naming the card.
+ */
+export function laterEntrantGrantClause(activeEffectText: string | undefined, definition: CardDefinition): string {
+  return (
+    printedOnCard(activeEffectText, definition) ??
+    `${definition.nameEn}: its effect also applies to a Digimon that entered later`
+  );
+}
+
+/** The clause a granting text quotes ("gain “[On Deletion] ...”"), when it quotes exactly one. */
+export function quotedGrantedClause(text: string | undefined): string | undefined {
+  const quoted = [...(text ?? "").matchAll(/[“"]([^“”"]+)[”"]/g)]
+    .map((match) => match[1]!.trim())
+    .filter((clause) => clause !== "");
+  return quoted.length === 1 ? quoted[0] : undefined;
+}
+
+type PrintedBoxes = Pick<CardDefinition, "effectText" | "inheritedEffectText" | "securityEffectText">;
+
+const normalizeText = (text: string) => text.replace(/\s+/g, " ").trim();
+
+/** `text` when it is a verbatim part of the card's printed boxes, not an engine summary of it. */
+export function printedOnCard(text: string | undefined, definition: PrintedBoxes): string | undefined {
+  const clause = printedClause(text);
+  if (clause === undefined) return undefined;
+  const boxes = [definition.effectText, definition.inheritedEffectText, definition.securityEffectText];
+  return boxes.some((box) => box !== undefined && normalizeText(box).includes(normalizeText(clause)))
+    ? clause
+    : undefined;
+}
+
+/**
+ * The one printed line of a box that reads as a watcher ("When this card is trashed from the
+ * hand, ..."), possibly behind timing brackets. Undefined when the box has none or several.
+ */
+export function soleWatcherLine(box: string | undefined): string | undefined {
+  const lines = (box ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => /^(?:\[[^\]]+\]\s*)*When\b/i.test(line));
+  return lines.length === 1 ? lines[0] : undefined;
 }
 
 const costVerbByKind: Partial<Record<Cost["kind"], string>> = {

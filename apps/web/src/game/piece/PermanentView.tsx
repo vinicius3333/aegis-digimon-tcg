@@ -213,6 +213,9 @@ export function PermanentView({
       <div
         key={`${entranceKey ?? perm.permanentId}:${perm.stack.length}:${pending ? "held" : "shown"}`}
         className={`game-card-enter${quietEntrance ? " game-card-enter--quiet" : ""}${burst ? " game-card-landing" : ""}`}
+        data-testid={burst?.variant === "play" ? "confirmed-play-landing" : undefined}
+        data-card-id={burst?.variant === "play" ? topId : undefined}
+        data-permanent-id={burst?.variant === "play" ? perm.permanentId : undefined}
         style={{ position: "relative", zIndex: 1 }}
       >
         {burst ? <CardBurst key={burst.key} variant={burst.variant} color={burst.color} /> : null}

@@ -8,14 +8,14 @@ import type { AegisJoinOptions } from "../net/types";
 import "./arenaDemo.css";
 
 type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
-type ScenarioCopy = { en: string; ptBR: string };
+export type ScenarioCopy = { en: string; ptBR: string };
 
 const DEFAULT_NOTE: ScenarioCopy = {
   ptBR: "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente.",
   en: "End breeding, select a Digimon, choose Attack and click the opponent's security.",
 };
 
-const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt24-sonic-shot-decline-link": {
     ptBR: "Encerre a fase de criação e depois o turno sem usar Sonic Shot da mão. No [Fim do Seu Turno] de Dan Yuki & Kanan Yuki, aceite suspender o Tamer e escolha BT24-095 Sonic Shot para usar sem pagar o custo. O bot não tem Digimon nem Tamer em campo. Na escolha do destinatário do Link, clique em Nenhuma seleção. Sonic Shot deve ir para o lixo, nenhum dos seus dois Digimon recebe o Link e o efeito de Dan & Kanan continua para a escolha do atacante.",
     en: "End the breeding phase, then end your turn without using Sonic Shot from hand. On Dan Yuki & Kanan Yuki's [End of Your Turn], accept suspending the Tamer and choose BT24-095 Sonic Shot to use without paying its cost. The bot has no Digimon or Tamers in play. At the Link recipient selection, choose No Selection. Sonic Shot must go to the trash, neither of your two Digimon receives the Link, and Dan & Kanan's effect continues to the attacker selection.",

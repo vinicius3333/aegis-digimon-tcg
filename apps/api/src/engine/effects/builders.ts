@@ -98,7 +98,7 @@ function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
   const extra = opts.when;
   const activate = opts.canActivate;
   return {
-    ...(opts.irTrigger !== undefined ? { irTrigger: opts.irTrigger } : {}),
+    ...(opts.irTrigger !== undefined ? { irTrigger: opts.irTrigger, activationDeferred: true } : {}),
     effectKey: opts.effectKey,
     description: opts.description,
     ...(opts.timingOverride !== undefined ? { timingOverride: opts.timingOverride } : {}),

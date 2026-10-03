@@ -44,7 +44,7 @@ it("animates a hidden suspended copy on its group while leaving the third copy a
   const burst = {
     permanentId: "second",
     key: 2,
-    variant: "play" as const,
+    variant: "evolve" as const,
     color: "Green" as const,
     inBreeding: false,
   };
@@ -58,6 +58,26 @@ it("animates a hidden suspended copy on its group while leaving the third copy a
   expect(suspended.members.map((p) => p.permanentId)).toEqual(["first", "second"]);
   expect(groupChrome(suspended.members, cues)).toMatchObject({ effectSource: true, effectLinked: true, burst });
   expect(groupChrome([cards[2]!], cues)).toMatchObject({ effectSource: false, effectLinked: false, burst: undefined });
+});
+
+it("keeps a played copy in its flight destination through landing, then joins its existing group", () => {
+  const cards = [tamer("first", false), tamer("second", false), tamer("arriving", false)];
+  const cues = chrome();
+  const groups = () =>
+    arrangeField(cards, {
+      isSuspended: (p) => p.isSuspended,
+      isSingledOut: (p) => isSingledOut(p, cues),
+    }).support.map((group) => group.members.map((p) => p.permanentId));
+  cues.pendingPermanentIds = new Set(["arriving"]);
+  expect(groups()).toEqual([["first", "second"], ["arriving"]]);
+  cues.pendingPermanentIds = new Set();
+  cues.permanentBursts = new Map([
+    ["arriving", { permanentId: "arriving", key: 1, variant: "play", color: "Green", inBreeding: false }],
+  ]);
+  expect(groups()).toEqual([["first", "second"], ["arriving"]]);
+  expect(groupChrome([cards[2]!], cues).burst?.permanentId).toBe("arriving");
+  cues.permanentBursts = new Map();
+  expect(groups()).toEqual([["first", "second", "arriving"]]);
 });
 
 it("restarts the group pulse when a different copy gets a newer cue", () => {

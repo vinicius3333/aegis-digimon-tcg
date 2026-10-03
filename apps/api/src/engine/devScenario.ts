@@ -204,6 +204,17 @@ export const DEV_SCENARIO_IDS = [
   "arena-vortexdramon",
   "card-bugs",
   "counter-blast-dna",
+  "effects-lab-own-chain",
+  "effects-lab-opponent-chain",
+  "effects-lab-opponent-play",
+  "effects-lab-nested",
+  "effects-lab-prod-royal-knights",
+  "effects-lab-prod-ghost",
+  "effects-lab-prod-ghost-execute",
+  "effects-lab-prod-ghost-execute-security",
+  "effects-lab-prod-attack-stack",
+  "effects-lab-prod-security-removed",
+  "effects-lab-prod-titan-cascade",
   "security-battle",
   "security-chain",
 ] as const;
@@ -4994,6 +5005,282 @@ function layCounterBlastDnaScenario(state: GameState, decks: readonly [Decklist,
   state.memory = 0;
 }
 
+/** Shuffled decks and a full security stack for both seats, the base every Effects Lab board starts from. */
+function prepareEffectsLabDecks(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+}
+
+/** Replaces the top of a seat's security stack with known cards, listed top first, keeping its size. */
+function stackEffectsLabSecurity(state: GameState, seat: Seat, cardIds: readonly string[]): void {
+  const player = state.players[seat];
+  if (player === undefined) return;
+  [...cardIds].reverse().forEach((cardId, index) => {
+    insertCard(player, Zone.Security, faceDownCard(`dev-lab-security-${seat}-${index}`, cardId, seat), "top");
+    takeBottom(player, Zone.Security);
+  });
+}
+
+function startEffectsLabTurn(state: GameState, memory: number): void {
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = memory;
+}
+
+/**
+ * Digivolving Golemon into Megadramon fires six of the human's effects at once: Megadramon's
+ * [When Digivolving] deletion, three inherited "other Digimon digivolves" watchers (Tsunomon,
+ * Agumon, Gabumon) and two Tamers that pay by suspending (Takumi Aiba, Cody Hida & T.K.).
+ */
+function layEffectsLabOwnChainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT10-062"], "-lab-own-golemon"));
+    placePermanent(human, establishedDigimon(0, ["EX4-003", "EX4-038", "BT3-067"], "-lab-own-tankmon"));
+    placePermanent(human, establishedDigimon(0, ["EX4-039", "BT9-060"], "-lab-own-grizzlymon"));
+    placePermanent(human, establishedDigimon(0, ["BT5-091"], "-lab-own-takumi"));
+    placePermanent(human, establishedDigimon(0, ["BT16-088"], "-lab-own-cody"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-own-megadramon", "BT9-065", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-own-target"));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * The bot's [Start of Your Main Phase] effects all fire together once the human ends the
+ * turn: Jellymon draws, Tyrannomon gains DP, Kanan Yuki suspends the human's Digimon, Dan
+ * Yuki boosts a bot Digimon, and Kunlun gains memory.
+ */
+function layEffectsLabOpponentChainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-lab-opponent-target"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["LM-002"], "-lab-opponent-jellymon"));
+    placePermanent(bot, establishedDigimon(1, ["EX8-011"], "-lab-opponent-tyrannomon"));
+    placePermanent(bot, establishedDigimon(1, ["P-200"], "-lab-opponent-kanan"));
+    placePermanent(bot, establishedDigimon(1, ["P-199"], "-lab-opponent-dan"));
+    placePermanent(bot, establishedDigimon(1, ["BT26-104"], "-lab-opponent-kunlun"));
+  }
+  startEffectsLabTurn(state, 0);
+}
+
+/**
+ * One attack nests three trigger batches across both players: Gallantmon's [When Attacking]
+ * deletion and Jellymon's inherited draw, then the deleted Tapirmon's [On Deletion] beside
+ * WarGrowlmon's inherited Security Attack watcher, then a security-played Thomas H. Norstein's
+ * [On Play] draw during the check.
+ */
+function layEffectsLabNestedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT4-093", "BT1-009", "BT1-009", "BT1-009", "BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["LM-002", "ST7-08", "ST7-09"], "-lab-nested-gallantmon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT2-070"], "-lab-nested-tapirmon"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain approximation: digivolving into the [Royal Knight] UlforceVeedramon fires
+ * three Cool Boy (BT20-091) watchers beside its [When Digivolving]; attacking afterwards
+ * checks The Last Guardian (BT20-100), whose [Security] plays the bot's Cool Boy from trash.
+ */
+function layEffectsLabProdRoyalKnightsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT20-100"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT2-027"], "-lab-royal-zudomon"));
+    for (const slot of ["first", "second", "third"] as const) {
+      placePermanent(human, establishedDigimon(0, ["BT20-091"], `-lab-royal-cool-boy-${slot}`));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-royal-ulforce", "ST8-10", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-royal-target"));
+    insertCard(bot, Zone.Trash, faceUpCard("dev-lab-royal-bot-cool-boy", "BT20-091", 1));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * Production chain: Phantomon's ＜Execute＞ attack at end of turn fires Violet Inboots
+ * (EX11-068), whose suspension fires Soul Banquet's ＜Delay＞ (BT23-098); the check plays the
+ * bot's Kunlun (BT26-104) and its [On Play]; the end of the attack deletes Phantomon, whose
+ * [On Deletion] replays Bakemon from trash.
+ */
+function layEffectsLabProdGhostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT26-104"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-072"], "-lab-ghost-phantomon"));
+    placePermanent(human, establishedDigimon(0, ["EX11-068"], "-lab-ghost-violet-inboots"));
+    const banquet = establishedDigimon(0, ["BT23-098"], "-lab-ghost-soul-banquet");
+    banquet.placedByEffect = true;
+    placePermanent(human, banquet);
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-ghost-bakemon", "BT20-068", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-ghost-necromon", "BT20-079", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-ghost-discard", "BT20-063", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-lab-ghost-bot-kakamon", "EX12-006", 1));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain (order prompt of 8): Ghoulmon's ＜Execute＞ attack at end of turn, then its
+ * deletion fires eight [On Deletion] effects at once — its own two, five inherited from its
+ * digivolution cards and a Tamer's watcher. One of them plays a Ghost from trash, whose
+ * [On Play] resolves inside the chain. The `-security` variant checks Our Courage United
+ * (ST20-14) on the way, as a second production match did, so the bot's [Security] lands
+ * between the attack and the deletion.
+ */
+function layEffectsLabProdGhostExecuteScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  securityCardId = "BT1-009",
+): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, [securityCardId]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(
+        0,
+        ["BT20-006", "BT20-063", "BT20-068", "BT23-065", "BT20-006", "EX11-051"],
+        "-lab-execute-ghoulmon",
+      ),
+    );
+    placePermanent(human, establishedDigimon(0, ["EX11-068"], "-lab-execute-violet-inboots"));
+    placePermanent(human, establishedDigimon(0, ["BT20-088"], "-lab-execute-tamer"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-execute-ghostmon", "BT20-063", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-execute-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain that runs straight into an attack: digivolving Omnimon into Merciful Mode
+ * lets it attack at once, and four inherited [When Attacking] effects from its digivolution
+ * cards trigger together. The 16000 DP attack wakes the bot's GrapLeomon watcher (BT25-016), whose
+ * digivolution into Callismon fires Callismon's own watcher; a Tamer waits in security.
+ */
+function layEffectsLabProdAttackStackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT26-090"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(0, ["EX9-019", "AD1-014", "ST21-05", "AD1-004", "AD1-025"], "-lab-attack-omnimon"),
+    );
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-attack-zwart", "EX13-077", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // Merciful Mode finishes three follow-up battles before the parked attack window.
+    // Two further targets pay the inherited De-Digivolve/-DP and deletion outcomes,
+    // leaving GrapLeomon alive to react to the declaration.
+    for (const slot of ["first", "second", "third", "fourth", "fifth"] as const) {
+      placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-011"], `-lab-attack-target-${slot}`));
+    }
+    placePermanent(bot, establishedDigimon(1, ["BT25-016"], "-lab-attack-watcher"));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-lab-attack-callismon", "BT25-058", 1));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/** One opponent play with a mandatory draw, isolating the public arrival and On Play focus. */
+function layEffectsLabOpponentPlayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const bot = state.players[1];
+  if (bot !== undefined) insertCard(bot, Zone.Hand, faceDownCard("dev-lab-opponent-gabumon", "BT1-029", 1));
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * Production chain: an attacking Jupitermon: Wrath Mode adds its own top security card to the
+ * hand ([When Attacking] inherited from Blue Elecmon), which wakes three "security removed"
+ * watchers at once — two Jupitermon and Inori Misono. Inori's digivolves Aegiomon into
+ * Aegiochusmon: Blue, whose [When Digivolving] resolves before the attack goes on.
+ */
+function layEffectsLabProdSecurityRemovedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT24-031", "BT26-103"], "-lab-security-wrath"));
+    placePermanent(human, establishedDigimon(0, ["BT24-101"], "-lab-security-jupitermon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-034"], "-lab-security-aegiomon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-084"], "-lab-security-inori"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-security-aegiochusmon", "BT25-025", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-010"], "-lab-security-target"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-security-second-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain: Plutomon's [When Attacking] trashes a card from the hand and plays Witchmon
+ * from the trash, which wakes Witchmon's [On Play], two ＜Delay＞ Invasion of the Titans and
+ * Plutomon's own hand-trash watcher at once. The logged chain also woke two Cherubimon in the
+ * trash, which need the opponent at 5 or more memory; this board keeps the turn's memory
+ * positive, so they stay quiet and the prompt holds 5 effects, not 8.
+ */
+function layEffectsLabProdTitanCascadeScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-059"], "-lab-titan-plutomon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-021", "BT26-069"], "-lab-titan-dobermon"));
+    for (const slot of ["first", "second"] as const) {
+      const invasion = establishedDigimon(0, ["BT24-098"], `-lab-titan-invasion-${slot}`);
+      invasion.placedByEffect = true;
+      placePermanent(human, invasion);
+      insertCard(human, Zone.Trash, faceUpCard(`dev-lab-titan-cherubimon-${slot}`, "BT26-078", 0));
+    }
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-titan-witchmon", "BT25-080", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-titan-discard", "BT26-069", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-titan-titamon", "BT25-084", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-titan-target"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-titan-second-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
 /**
  * Discord 1555244967428100348: during the bot's turn, BT20-093's ＜Delay＞ DNA digivolves
  * Breakdramon and the suspended Slayerdramon into BT23-047 Examon. Only the turn player can
@@ -5206,6 +5493,18 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,
   "counter-blast-dna": layCounterBlastDnaScenario,
+  "effects-lab-own-chain": layEffectsLabOwnChainScenario,
+  "effects-lab-opponent-chain": layEffectsLabOpponentChainScenario,
+  "effects-lab-opponent-play": layEffectsLabOpponentPlayScenario,
+  "effects-lab-nested": layEffectsLabNestedScenario,
+  "effects-lab-prod-royal-knights": layEffectsLabProdRoyalKnightsScenario,
+  "effects-lab-prod-ghost": layEffectsLabProdGhostScenario,
+  "effects-lab-prod-ghost-execute": (state, decks) => layEffectsLabProdGhostExecuteScenario(state, decks),
+  "effects-lab-prod-ghost-execute-security": (state, decks) =>
+    layEffectsLabProdGhostExecuteScenario(state, decks, "ST20-14"),
+  "effects-lab-prod-attack-stack": layEffectsLabProdAttackStackScenario,
+  "effects-lab-prod-security-removed": layEffectsLabProdSecurityRemovedScenario,
+  "effects-lab-prod-titan-cascade": layEffectsLabProdTitanCascadeScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
 };

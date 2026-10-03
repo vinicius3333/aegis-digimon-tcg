@@ -484,10 +484,7 @@ describe("EX11-074 Vortexdramon", () => {
     await settle(
       () =>
         s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("flowerCannon").instanceId) &&
-        s.events.some(
-          (event) =>
-            event.kind === "effectTriggered" && event.sourceCardId === "EX11-074" && event.timing === "whenSuspended",
-        ),
+        s.state.pendingDecision === undefined,
     );
     const optionTargets = s.decisions.filter(
       ({ seat, req }) =>

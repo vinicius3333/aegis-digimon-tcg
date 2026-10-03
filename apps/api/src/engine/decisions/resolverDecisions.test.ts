@@ -6,10 +6,12 @@ import {
   type DecisionRequest,
   type DecisionResponse,
   type Seat,
+  type ServerEvent,
 } from "@aegis/shared";
 import { buildTriggerKey } from "@aegis/shared";
 import { DecisionManager, type DecisionTransport } from "./index.js";
 import { createResolverDecisions } from "./resolverDecisions.js";
+import { ResolutionPlan } from "./resolutionPlan.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { CardSource } from "../effects/CardSource.js";
 import type { Effect } from "../effects/Effect.js";
@@ -259,6 +261,91 @@ describe("createResolverDecisions.chooseOrder", () => {
     expect(triggerKeys).toEqual([keyA, keyB]);
     // The controller chose permanent B (index 1), not A.
     expect(index).toBe(1);
+  });
+});
+
+describe("createResolverDecisions.chooseOrder announces the chosen order", () => {
+  function hiddenCollected(effectKey: string, cardId: string): CollectedEffect {
+    const collected = fakeCollected(effectKey, false, `hidden-s0-${effectKey}`, cardId);
+    return { ...collected, source: { ...collected.source, isOnBattleArea: () => false, isInHand: () => true } };
+  }
+
+  async function answer(
+    active: CollectedEffect[],
+    pick: (keys: string[]) => string[],
+    plan?: ResolutionPlan,
+  ): Promise<ServerEvent[]> {
+    const game = gameWithSeats();
+    const { transport, bind } = autoTransport((req) => ({
+      kind: "orderTriggers",
+      order: pick(req.options?.triggerKeys ?? []),
+    }));
+    const manager = new DecisionManager(game, transport);
+    bind(manager);
+    const emitted: ServerEvent[] = [];
+    const decisions = createResolverDecisions(
+      manager,
+      async () => {},
+      (event) => emitted.push(event),
+    );
+    await decisions.chooseOrder(0, active, EffectTiming.OnPlay, plan);
+    return emitted;
+  }
+
+  it("publishes a whole resolution plan in the order it will resolve", async () => {
+    const emitted = await answer(
+      [
+        fakeCollected("a", false, "a", "BT1-001"),
+        fakeCollected("b", false, "b", "BT1-002"),
+        fakeCollected("c", false, "c", "BT1-003"),
+      ],
+      (keys) => [keys[2]!, keys[0]!, keys[1]!],
+      new ResolutionPlan(),
+    );
+
+    expect(emitted).toEqual([
+      {
+        kind: "resolutionOrderChosen",
+        seat: 0,
+        entries: [
+          { sourceCardId: "BT1-003", timing: "OnPlay", description: "desc:c" },
+          { sourceCardId: "BT1-001", timing: "OnPlay", description: "desc:a" },
+          { sourceCardId: "BT1-002", timing: "OnPlay", description: "desc:b" },
+        ],
+      },
+    ]);
+  });
+
+  it("publishes only the picked effect when the prompt takes a single pick", async () => {
+    const emitted = await answer(
+      [fakeCollected("a", false, "a", "BT1-001"), fakeCollected("b", false, "b", "BT1-002")],
+      (keys) => keys.slice(1),
+    );
+
+    expect(emitted).toEqual([
+      {
+        kind: "resolutionOrderChosen",
+        seat: 0,
+        entries: [{ sourceCardId: "BT1-002", timing: "OnPlay", description: "desc:b" }],
+      },
+    ]);
+  });
+
+  it("names no card and no clause for a source the opponent cannot see", async () => {
+    const emitted = await answer(
+      [hiddenCollected("secret", "BT9-099"), fakeCollected("open", false, "open", "BT1-001")],
+      (keys) => keys,
+      new ResolutionPlan(),
+    );
+
+    expect(emitted).toEqual([
+      {
+        kind: "resolutionOrderChosen",
+        seat: 0,
+        entries: [{ timing: "OnPlay" }, { sourceCardId: "BT1-001", timing: "OnPlay", description: "desc:open" }],
+      },
+    ]);
+    expect(JSON.stringify(emitted)).not.toContain("BT9-099");
   });
 });
 

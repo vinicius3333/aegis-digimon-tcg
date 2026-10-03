@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX3-013.js";
 import "../BT11/BT11-072.js";
@@ -265,7 +265,8 @@ describe("EX3-013 Chaosdramon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-013"));
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-013"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX3-013")).toBe(false);
 
     expect(s.perm("target").topCard.cardId).toBe("BT1-024");
     expect(s.inst("cyborg").cardId).toBe("BT1-021");

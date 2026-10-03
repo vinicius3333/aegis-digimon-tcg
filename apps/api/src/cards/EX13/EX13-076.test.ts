@@ -687,6 +687,15 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
         (event) =>
           event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
       ),
+    ).toBe(false);
+    expect(
+      s.decisions.some(
+        ({ req }) =>
+          req.sourceCardId === cardId &&
+          req.kind === "optional" &&
+          req.options?.activationConfirmation === true &&
+          req.options?.effectText?.includes("wins a battle"),
+      ),
     ).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);

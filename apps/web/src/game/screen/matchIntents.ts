@@ -49,6 +49,7 @@ export function matchIntents({
   setOptimisticPlayedInstanceId,
   selection,
   overlays,
+  onDecisionAnswered,
 }: {
   room: Room | undefined;
   /** A fabricated connection stands in for the room and may answer its own decisions. */
@@ -68,6 +69,8 @@ export function matchIntents({
   setOptimisticPlayedInstanceId: (instanceId: string | undefined) => void;
   selection: SelectionControls;
   overlays: OverlayControls;
+  /** Told about every answer this seat sends, after it is sent. */
+  onDecisionAnswered?: (decision: DecisionRequest, response: DecisionResponse) => void;
 }) {
   const { clearSel, setHandSel, setHandPreview, setSelPerm, setVortexMode, setLinkSel } = selection;
 
@@ -184,6 +187,7 @@ export function matchIntents({
       if (room) intents.respondDecision(room, decision.decisionId, response);
       else localConnection?.respondDecision?.(response);
       acknowledgeDecision?.(decision.decisionId);
+      onDecisionAnswered?.(decision, response);
     }
     overlays.setPicks([]);
   };

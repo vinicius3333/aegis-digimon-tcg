@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
 import { NarrationStack } from "./NarrationStack";
-import type { NarrationItem } from "./narration";
+import { narrationReadingTime, type NarrationItem } from "./narration";
 import type { MatchNotice } from "./notices";
 import { Side } from "./side";
 import { TIMINGS } from "./timings";
@@ -62,6 +62,32 @@ function item(id: string): NarrationItem {
     notice: { id, side: Side.Viewer, fromSecurity: false, createdAt: 0, body: { variant: "recovery", amount: 1 } },
   };
 }
+
+it("gives notices opened during a long decision their remaining reading time after resuming", () => {
+  const original = item("paused-effect");
+  const paused = { ...original, pausedAt: 1000 };
+  const view = (entry: NarrationItem, nowMs: number) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([[entry.id, entry]])}
+        compact
+        nowMs={nowMs}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(view(paused, 12_000));
+  const expected = `${narrationReadingTime(original) - 1000}ms`;
+  expect(container.querySelector<HTMLElement>(".narration-peek__life")!.style.animationDuration).toBe(expected);
+  fireEvent.click(container.querySelector(".narration-peek")!);
+  expect(container.querySelector<HTMLElement>(".match-notice__erode")!.style.animationDuration).toBe(expected);
+  expect(container.querySelector("[data-reading-paused]")).not.toBeNull();
+  rerender(view({ ...original, createdAt: 11_000 }, 12_000));
+  expect(container.querySelector<HTMLElement>(".match-notice__erode")!.style.animationDuration).toBe(expected);
+  expect(container.querySelector("[data-reading-paused]")).toBeNull();
+});
 
 it("shows Wizardmon's End of Your Turn clause in the effect toast", () => {
   const endTurn: NarrationItem = {
@@ -247,6 +273,55 @@ it("replaces the folded band per moment and runs its clock from that moment", ()
   expect(container.querySelector(".narration-peek__more")?.textContent).toBe("+1");
 });
 
+it("keeps the folded band naming accepted effects and counting the whole stack during a decision", () => {
+  const clause = (id: string, cardId: string): NarrationItem => ({
+    id,
+    side: Side.Viewer,
+    batchId: "b1",
+    createdAt: 0,
+    notice: {
+      id,
+      side: Side.Viewer,
+      fromSecurity: false,
+      createdAt: 0,
+      body: { variant: "effect", cardId, timing: "YourTurn", description: `[Your Turn] clause of ${cardId}.` },
+    },
+  });
+  const view = (items: NarrationItem[], promptSourceCardId: string | undefined) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map(items.map((entry) => [entry.id, entry]))}
+        compact
+        promptSourceCardId={promptSourceCardId}
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const band = () => document.querySelector(".narration-peek");
+  const named = () => band()?.querySelector(".narration-peek__name")?.textContent;
+  const clauseLine = () => band()?.querySelector(".narration-peek__clause");
+  const earlier = clause("earlier", "BT1-029");
+
+  const { rerender } = render(view([earlier], undefined));
+  const earlierName = named();
+  expect(clauseLine()).not.toBeNull();
+
+  rerender(view([earlier], "BT20-091"));
+  expect(named()).toBe(earlierName);
+  expect(clauseLine()).not.toBeNull();
+  expect(band()?.querySelector(".narration-peek__more")).toBeNull();
+  expect(band()?.querySelector(".narration-peek__art")).not.toBeNull();
+  const promptName = named();
+
+  rerender(view([earlier, clause("prompt", "BT20-091")], "BT20-091"));
+  expect(named()).not.toBe(promptName);
+  expect(clauseLine()).not.toBeNull();
+  expect(band()?.querySelector(".narration-peek__more")?.textContent).toBe("+1");
+});
+
 /* The band is a glance before it is a sentence: its accent says what kind of moment it is
    without the viewer reading a word of it. */
 it("draws the folded band in the tone its newest moment earns", () => {
@@ -361,4 +436,49 @@ it("swipes the folded band sideways to dismiss every moment it stands for, witho
   } finally {
     vi.useRealTimers();
   }
+});
+
+it("marks the prompt's own clause while retaining other accepted effects", () => {
+  const clause = (id: string, cardId: string): NarrationItem => ({
+    id,
+    side: Side.Viewer,
+    batchId: "b1",
+    createdAt: 0,
+    notice: {
+      id,
+      side: Side.Viewer,
+      fromSecurity: false,
+      createdAt: 0,
+      body: { variant: "effect", cardId, timing: "YourTurn", description: "[Your Turn] Gain 1 memory." },
+    },
+  });
+  const previous = { ...clause("previous", "EX4-039"), superseded: true };
+  const current = clause("current", "BT20-091");
+  const view = (promptSourceCardId: string | undefined) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={
+          new Map([
+            [previous.id, previous],
+            [current.id, current],
+          ])
+        }
+        promptSourceCardId={promptSourceCardId}
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const marked = () =>
+    [...document.querySelectorAll("[data-prompt-effect]")].map((element) => element.getAttribute("data-narration-id"));
+
+  const { rerender } = render(view("BT20-091"));
+  expect(marked()).toEqual(["current"]);
+  rerender(view("ST8-10"));
+  expect(marked()).toEqual([]);
+  rerender(view(undefined));
+  expect(marked()).toEqual([]);
+  expect(document.querySelectorAll(".narration-item")).toHaveLength(2);
 });

@@ -3,11 +3,11 @@
    client owns zero rules: every action is an intent the server validates, and the
    board is a pure render of what the server sends back (ARCHITECTURE.md §4). */
 
+import { isFieldTargetDecision } from "./decisionPresentation";
 import { DragKind } from "./screen/enums";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { useFittedCardWidths } from "./screen/hooks/useFittedCardWidths";
 import { combatWindowsFor } from "./screen/model/combatWindows";
-import { ownAlliancePromptCardId } from "./combatWindowModel";
 import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
@@ -37,6 +37,7 @@ import {
 import {
   baseDropIntentAttrs as modelBaseDropIntentAttrs,
   dragIntentAt as modelDragIntentAt,
+  canDragCard,
   dropIntentAttrs as modelDropIntentAttrs,
 } from "./screen/model/screenDragIntents";
 import { decisionAllowsPick as modelDecisionAllowsPick, nextDecisionPicks } from "./screen/model/decisionPicks";
@@ -47,9 +48,9 @@ import {
   viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
 import { actionGuards } from "./screen/model/actionGuards";
-import { dialogRepeatsEffectNotice } from "./notices";
 import { handEntriesOf } from "./screen/model/handEntries";
 import { presentedSeats } from "./screen/model/presentedSeats";
+import { visibleBoard } from "./screen/model/visibleBoard";
 import { appFusionLive } from "./screen/model/appFusionLive";
 import { memoryPreviewInputs } from "./screen/model/memoryPreviewInputs";
 import { spotlightRequest } from "./screen/model/spotlightRequest";
@@ -99,6 +100,7 @@ import { buildInstanceIndex, instancePermanentId } from "./decisionModel";
 import { digivolveBasePermanentIds } from "./digivolveModel";
 import { buildMatchLog, type LogLine } from "./matchLog";
 import { useMatchCues } from "./useMatchCues";
+import type { PresentationPacing, PresentationProbe } from "./presentationProbe";
 import { TIMINGS } from "./timings";
 import { pendingFateBadges } from "./pendingFate";
 
@@ -114,6 +116,8 @@ export function GameScreen({
   onResetScenario,
   signedIn = false,
   demoConnection,
+  devProbe,
+  presentationPacing,
 }: {
   joinOptions: AegisJoinOptions;
   identityColor: ColorName;
@@ -146,6 +150,9 @@ export function GameScreen({
     /** No snapshots either, so the board it shows is always its live state. */
     snapshots?: readonly StateSnapshot[];
   };
+  /** Dev inspector hooks (the effects lab): queue controls, step events, batches, decisions. */
+  devProbe?: PresentationProbe;
+  presentationPacing?: PresentationPacing;
 }) {
   const { t } = useTranslation();
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
@@ -161,8 +168,9 @@ export function GameScreen({
       ...joinOptions,
       ranked: startMode === "ranked",
       betaBattleMode: startMode === "beta" || (startMode === "bot" && betaBattleMode === true),
+      presentationPacing,
     }),
-    [joinOptions, startMode, betaBattleMode],
+    [joinOptions, startMode, betaBattleMode, presentationPacing],
   );
   const liveConnection = useRoom(roomOptions, matchConfig, demoConnection !== undefined);
   const {
@@ -266,7 +274,8 @@ export function GameScreen({
   }>();
   const allianceConfirmationSubmittedRef = useRef(false);
 
-  const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
+  const { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag } = useDragPlumbing();
+  canDragRef.current = null;
 
   const boardRef = useRef<HTMLDivElement | null>(null);
   const fieldRef = useRef<HTMLDivElement | null>(null);
@@ -382,6 +391,15 @@ export function GameScreen({
     decisionStateVersion: decisionPendingForViewer
       ? decision.stateVersion
       : (openCombatWindowForBarrier?.stateVersion ?? undefined),
+    ...(decisionPendingForViewer && decision.sourceCardId ? { decisionSourceCardId: decision.sourceCardId } : {}),
+    targetDecision:
+      decisionPendingForViewer &&
+      isFieldTargetDecision(
+        decision,
+        [...(state?.players ?? [])].flatMap((player) => [...player.battleArea]),
+      )
+        ? decision
+        : undefined,
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
@@ -397,20 +415,33 @@ export function GameScreen({
     onPresentationReport: (report) => {
       room?.send(PRESENTATION_CHANNEL, report);
     },
+    devProbe,
+    presentationPacing,
   });
-  // The decision panel repeats the source card and its clause, field selections included, so
-  // the matching toast waits until the viewer has answered.
-  const alliancePromptCardId = state ? ownAlliancePromptCardId(state, viewerSeat) : undefined;
-  const promptedOwnEffectCardId =
-    alliancePromptCardId ??
-    (decision?.seat === viewerSeat && dialogRepeatsEffectNotice(decision.options) ? decision.sourceCardId : undefined);
-  const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
-  ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
+  const devProbeRef = useRef(devProbe);
+  devProbeRef.current = devProbe;
   useEffect(() => {
-    if (promptedOwnEffectCardId === undefined) return;
-    ownEffectNoticeRef.current.dismiss(promptedOwnEffectCardId);
-    return () => ownEffectNoticeRef.current.release(promptedOwnEffectCardId);
-  }, [promptedOwnEffectCardId]);
+    devProbeRef.current?.onDecision?.(decision);
+  }, [decision]);
+  useEffect(() => {
+    const onBoard = devProbeRef.current?.onBoard;
+    if (!state || !onBoard) return;
+    const displayed =
+      selectPresentedState({
+        live: state,
+        snapshots: snapshots ?? [],
+        presentedStateVersion: cues.presentedStateVersion,
+      }) ?? state;
+    const visible = visibleBoard({
+      live: state,
+      displayed,
+      viewerSeat,
+      cues,
+      optimisticPlayedInstanceId,
+      presentationPacing,
+    });
+    if (visible) onBoard({ live: state, displayed, visible, viewerSeat });
+  }, [state, state?.stateVersion, snapshots, cues, viewerSeat, optimisticPlayedInstanceId, presentationPacing]);
   const {
     attackLunge,
     combatImpactIds,
@@ -494,6 +525,21 @@ export function GameScreen({
     if (!optimisticPlayedInstanceId) return;
     const stillInHand = you?.hand.some((card) => card.instanceId === optimisticPlayedInstanceId) ?? false;
     if (!stillInHand) {
+      const presented =
+        presentationPacing === "sequential"
+          ? selectPresentedState({
+              live: state,
+              snapshots: snapshots ?? [],
+              presentedStateVersion: cues.presentedStateVersion,
+            })
+          : state;
+      const shownHand =
+        cues.heldDrawState?.seat === viewerSeat
+          ? cues.heldDrawState.state.players[viewerSeat]?.hand
+          : presented?.players[viewerSeat]?.hand;
+      // A confirmed play may already be absent live while its flight still holds an older
+      // hand snapshot. Keep the existing hide until that snapshot also releases the card.
+      if (shownHand?.some((card) => card.instanceId === optimisticPlayedInstanceId)) return;
       setOptimisticPlayedInstanceId(undefined);
       return;
     }
@@ -504,7 +550,17 @@ export function GameScreen({
         (event.seq ?? index) > playAttemptEventSeqRef.current,
     );
     if (rejected) setOptimisticPlayedInstanceId(undefined);
-  }, [events, optimisticPlayedInstanceId, you]);
+  }, [
+    events,
+    optimisticPlayedInstanceId,
+    you,
+    state,
+    snapshots,
+    cues.presentedStateVersion,
+    cues.heldDrawState,
+    viewerSeat,
+    presentationPacing,
+  ]);
 
   const { spotlightRequestRef, spotlightSubjects, boardSize } = useBoardMeasurements({
     viewer: you,
@@ -572,6 +628,7 @@ export function GameScreen({
     heldDeletions: cues.heldDeletions,
     heldTrashArrivals: cues.heldTrashArrivals,
     optimisticPlayedInstanceId,
+    presentationPacing,
   });
   // What the ribbons have announced, for the readouts only: the live turn is what every
   // guard below reads, and what `isMyTurn` must keep meaning.
@@ -775,6 +832,10 @@ export function GameScreen({
   const { findPermanent, handleTap, handleDrop, onYourPerm, onBreeding } = actions;
   handleTapRef.current = handleTap;
   handleDropRef.current = handleDrop;
+  canDragRef.current = (candidate) =>
+    !mainActionBlocked &&
+    (candidate.kind !== DragKind.Attack || (!handSel && !linkSel)) &&
+    canDragCard({ drag: candidate, you, handEntries });
   const combatWindowAnswers = combatAnswers({
     room,
     acknowledgeBlockWindowLocally: demoConnection?.acknowledgeBlockWindow,
@@ -1110,6 +1171,7 @@ export function GameScreen({
       viewer={you}
       opponent={opp}
       viewerSeat={viewerSeat}
+      promptSourceCardId={decision?.seat === viewerSeat ? decision.sourceCardId : undefined}
       room={room}
       look={arenaLook}
       layout={layout}

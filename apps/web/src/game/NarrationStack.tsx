@@ -17,6 +17,7 @@ import {
   deletionPanel,
   isCardListNotice,
   narrationRemaining,
+  narrationReadingTime,
   type NarrationItem,
   type NarrationSlot,
 } from "./narration";
@@ -49,8 +50,8 @@ function NarrationItemView({
   onAdvance: () => void;
 }) {
   // Keep the running CSS duration stable when neighboring records change.
-  const [mountedAt] = useState(nowMs);
-  const remainingMs = narrationRemaining(item, mountedAt);
+  const [readingElapsedMs] = useState(() => Math.max(0, Math.min(nowMs, item.pausedAt ?? nowMs) - item.createdAt));
+  const remainingMs = Math.max(0, narrationReadingTime(item) - readingElapsedMs);
   const notice = item.notice && (half === "cards") === isCardListNotice(item.notice) ? item.notice : undefined;
   // A deletion is a titled list of cards, so it is one (`deletionPanel`) rather than a
   // second component drawing the same thing in a frame of its own.
@@ -68,8 +69,8 @@ function NarrationItemView({
 
 /**
  * A slot capped in height scrolls rather than dropping what it cannot show: the newest
- * moment is kept in view at the bottom, and older ones stay one scroll up. A chevron from
- * the shared icon set rides the top edge while there is something above it.
+ * moment stays in view until the viewer scrolls up to read. Buttons at either edge point
+ * to the notices outside the viewport and move through them one page at a time.
  */
 function Slot({
   slot,
@@ -102,28 +103,31 @@ function Slot({
   anchor?: "top" | "bottom";
 }) {
   const column = useRef<HTMLDivElement>(null);
-  const [more, setMore] = useState(false);
+  const followsNewest = useRef(true);
+  const leavingBottom = useRef(false);
+  const [more, setMore] = useState({ above: false, below: false });
   // Before paint, so a moment arriving never shows the column scrolled to the old one.
   useLayoutEffect(() => {
     const element = column.current;
     if (!element) return;
-    element.scrollTop = anchor === "top" ? 0 : element.scrollHeight;
-  }, [count, anchor]);
+    if (anchor === "bottom" && followsNewest.current) element.scrollTop = element.scrollHeight;
+  }, [count, anchor, children]);
   useEffect(() => {
     const element = column.current;
     if (!element) return;
-    // The chevron points at what is out of sight, which is the end the column is not
-    // anchored to: below a top-anchored column, above a bottom-anchored one. A remainder
-    // smaller than a line of text is not content, it is rounding and the gap under the
-    // last moment, so it does not earn a chevron promising something below.
-    const update = () =>
-      setMore(
-        anchor === "top"
-          ? element.scrollTop + element.clientHeight < element.scrollHeight - MORE_CHEVRON_SLACK_PX
-          : element.scrollTop > MORE_CHEVRON_SLACK_PX,
-      );
+    const update = () => {
+      const above = element.scrollTop > MORE_CHEVRON_SLACK_PX;
+      const below = element.scrollTop + element.clientHeight < element.scrollHeight - MORE_CHEVRON_SLACK_PX;
+      setMore((current) => (current.above === above && current.below === below ? current : { above, below }));
+    };
+    const onScroll = () => {
+      const atBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - MORE_CHEVRON_SLACK_PX;
+      if (!atBottom) leavingBottom.current = false;
+      followsNewest.current = atBottom && !leavingBottom.current;
+      update();
+    };
     update();
-    element.addEventListener("scroll", update, { passive: true });
+    element.addEventListener("scroll", onScroll, { passive: true });
     /* The column also grows and shrinks without scrolling and without a new moment: a
        card's art arrives late, a clause rewraps. Watching the box and its moments keeps
        the chevron honest about what is actually out of sight. */
@@ -133,16 +137,28 @@ function Slot({
     observer?.observe(element);
     for (const child of element.children) observer?.observe(child);
     return () => {
-      element.removeEventListener("scroll", update);
+      element.removeEventListener("scroll", onScroll);
       observer?.disconnect();
     };
-  }, [count, anchor]);
+  }, [count, anchor, children]);
+  const { t } = useTranslation();
+
+  function scrollPage(direction: -1 | 1) {
+    const element = column.current;
+    if (!element) return;
+    followsNewest.current = false;
+    leavingBottom.current = direction === -1;
+    element.scrollBy({
+      top: direction * Math.max(48, element.clientHeight * 0.8),
+      behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }
   return (
     <div
       className="narration-slot"
       data-slot={slot}
       data-security-dock={securityDockActive || undefined}
-      data-more={more || undefined}
+      data-more={more.above || more.below || undefined}
       data-anchor={anchor}
       ref={column}
       style={{ "--narration-count": count } as CSSProperties}
@@ -165,16 +181,29 @@ function Slot({
           <span className="narration-slot__peek-label">{closeLabel}</span>
         </button>
       ) : null}
-      {more && anchor === "bottom" ? (
-        <span className="narration-slot__more" aria-hidden="true">
-          <Icons.ChevronUp size={26} />
-        </span>
+      {more.above ? (
+        <button
+          className="narration-slot__more"
+          type="button"
+          onClick={() => scrollPage(-1)}
+          aria-label={t("notice.moreAbove")}
+        >
+          <Icons.ChevronUp size={20} />
+          <span>{t("notice.above")}</span>
+        </button>
       ) : null}
       {children}
-      {more && anchor === "top" ? (
-        <span className="narration-slot__more" data-below="true" aria-hidden="true">
-          <Icons.ChevronDown size={26} />
-        </span>
+      {more.below ? (
+        <button
+          className="narration-slot__more"
+          data-below="true"
+          type="button"
+          onClick={() => scrollPage(1)}
+          aria-label={t("notice.moreBelow")}
+        >
+          <Icons.ChevronDown size={20} />
+          <span>{t("notice.below")}</span>
+        </button>
       ) : null}
     </div>
   );
@@ -207,7 +236,7 @@ function peekSummary(
     });
     return {
       label: (body.timing ? TIMING_LABELS[body.timing] : undefined) ?? t("overlay.effect"),
-      name: cardDisplayName(body.cardId, t),
+      name: `${cardDisplayName(body.cardId, t)}${body.count !== undefined && body.count > 1 ? ` ×${body.count}` : ""}`,
       tone: "effect",
       cardId: body.cardId,
       ...(body.artId ? { artId: body.artId } : {}),
@@ -264,6 +293,10 @@ function peekSummary(
  * is two toasts on the board. The band counts what the viewer would see, so a moment with
  * both halves is not reported as one.
  */
+function isEffectOf(item: NarrationItem, cardId: string | undefined): boolean {
+  return cardId !== undefined && item.notice?.body.variant === "effect" && item.notice.body.cardId === cardId;
+}
+
 function toastCount(items: readonly NarrationItem[]): number {
   return items.reduce((total, item) => total + (item.notice ? 1 : 0) + (item.panel ? 1 : 0), 0);
 }
@@ -284,11 +317,14 @@ function PeekLine({
 }) {
   const { t } = useTranslation();
   // Frozen at arrival so the running bar keeps its duration when a neighbour expires.
-  const [mountedAt] = useState(nowMs);
+  const [remainingMs] = useState(() => {
+    const newest = items.at(-1);
+    return newest ? narrationRemaining(newest, nowMs) : 0;
+  });
   const swipe = useSwipeToDismiss(onDismiss);
   const newest = items.at(-1);
-  if (!newest) return null;
-  const summary = peekSummary(newest, t);
+  const summary = newest ? peekSummary(newest, t) : undefined;
+  if (!summary) return null;
   // The band already names one of them, so the badge counts the rest.
   const queued = toastCount(items) - 1;
   return (
@@ -296,6 +332,7 @@ function PeekLine({
       className="narration-peek"
       type="button"
       data-tone={summary.tone}
+      data-reading-paused={newest?.pausedAt !== undefined || undefined}
       data-swipe={swipe.phase}
       style={{ "--swipe-offset": `${swipe.offset}px`, "--swipe-fade": swipe.fade } as CSSProperties}
       {...swipe.handlers}
@@ -313,8 +350,12 @@ function PeekLine({
           <span className="narration-peek__label">{summary.label}</span>
           {summary.name ? <span className="narration-peek__name">{summary.name}</span> : null}
         </span>
-        {/* One line of the clause: enough to know whether this is worth opening. */}
-        {summary.clause ? <span className="narration-peek__clause">{summary.clause}</span> : null}
+        {summary.clause ? (
+          <span className="narration-peek__detail">
+            {/* One line of the clause: enough to know whether this is worth opening. */}
+            <span className="narration-peek__clause">{summary.clause}</span>
+          </span>
+        ) : null}
       </span>
       {/* Keyed on the count so the badge replays its pop when a moment queues behind this
           one without replacing it: the band would otherwise change a digit in silence. */}
@@ -329,11 +370,9 @@ function PeekLine({
       {/* The folded band is the only thing a moment gets on this layout, so it carries the
           same running clock the opened notices draw — a band with nothing running on it
           reads as a fixture of the board rather than as something that just happened. */}
-      <span
-        className="narration-peek__life"
-        style={{ animationDuration: `${narrationRemaining(newest, mountedAt)}ms` }}
-        aria-hidden="true"
-      />
+      {newest ? (
+        <span className="narration-peek__life" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
+      ) : null}
     </button>
   );
 }
@@ -348,6 +387,7 @@ export function NarrationStack({
   rejection,
   nowMs,
   compact = false,
+  promptSourceCardId,
   securityDockActive = false,
   onAdvance,
   onDismissRejection,
@@ -360,6 +400,11 @@ export function NarrationStack({
   nowMs?: number;
   /** The portrait phone folds both sides into one centred slot. */
   compact?: boolean;
+  /**
+   * The card whose effect the viewer's open decision is about. Marks its notices while
+   * keeping all previously accepted effects in the stack.
+   */
+  promptSourceCardId?: string | undefined;
   securityDockActive?: boolean;
   /** Dismiss only the named record. */
   onAdvance: (id: string) => void;
@@ -383,8 +428,16 @@ export function NarrationStack({
     if (textItems.length === 0) setExpanded(false);
   }, [textItems.length]);
   const cardItems = compact ? [] : items.filter(hasCards);
+  const isPromptEffect = (item: NarrationItem) => isEffectOf(item, promptSourceCardId);
   const body = (half: "text" | "cards") => (shown: NarrationItem) => (
-    <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
+    <div
+      className="narration-item"
+      key={shown.id}
+      data-narration-id={shown.id}
+      data-reading-paused={shown.pausedAt !== undefined || undefined}
+      data-superseded={shown.superseded || undefined}
+      data-prompt-effect={isPromptEffect(shown) || undefined}
+    >
       <NarrationItemView item={shown} half={half} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>
   );
@@ -396,7 +449,14 @@ export function NarrationStack({
    * before the cause and the reader had to work backwards.
    */
   const compactBody = (shown: NarrationItem) => (
-    <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
+    <div
+      className="narration-item"
+      key={shown.id}
+      data-narration-id={shown.id}
+      data-reading-paused={shown.pausedAt !== undefined || undefined}
+      data-superseded={shown.superseded || undefined}
+      data-prompt-effect={isPromptEffect(shown) || undefined}
+    >
       <NarrationItemView item={shown} half="text" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
       <NarrationItemView item={shown} half="cards" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>

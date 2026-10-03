@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
+    "pacing:measure": "PACING_MEASURE=1 vitest run test/pacing/pacing.measure.test.ts",
+    "pacing:baseline": "PACING_MEASURE=1 PACING_UPDATE_BASELINE=1 vitest run test/pacing/pacing.measure.test.ts",
     "test:browser": "NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/shared build && NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec tsc -p tsconfig.dev.json --noCheck && NODE_OPTIONS=--max-old-space-size=2048 playwright test"
   },
   "dependencies": {

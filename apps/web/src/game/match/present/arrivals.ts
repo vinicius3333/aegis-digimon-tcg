@@ -15,6 +15,7 @@ import { TIMINGS } from "../../timings";
 import { zoneChangeStep } from "../steps/zoneChangeStep";
 import type { RevealOnStage } from "../types";
 import type { CostClause } from "../presentationGate";
+import type { FlyPlayedCard } from "../flights";
 
 /** What the batch's arrivals leave for the narration routing below them to decide. */
 export type BatchArrivals = {
@@ -62,7 +63,9 @@ export function enqueueArrivals({
   releaseArrivalHoldsWhenIdle,
   narrate,
   enqueue,
+  effectResults,
   costClause,
+  flyPlayedCard,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
@@ -86,8 +89,14 @@ export function enqueueArrivals({
   releaseArrivalHoldsWhenIdle: () => void;
   narrate: (notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) => void;
   enqueue: (step: AnimationStep) => void;
+  /**
+   * Sequential pacing: the arrivals from `fromEventIndex` on are what an effect unit did, and
+   * `afterAnnounced` holds each until that unit's clause has been read.
+   */
+  effectResults?: { fromEventIndex: number; afterAnnounced: (step: AnimationStep) => AnimationStep };
   /** A ＜Delay＞ clause not read yet: what its controller puts on the field waits for it. */
   costClause?: CostClause;
+  flyPlayedCard?: FlyPlayedCard;
 }): BatchArrivals {
   let arriving = false;
   let showcased = false;
@@ -148,6 +157,11 @@ export function enqueueArrivals({
      * centre-stage one, waiting for the clause would hold the toast itself behind it.
      */
     const isTokenArrival = event.kind === "cardPlayed" && event.cardId.startsWith(TOKEN_ID_PREFIX);
+    /* An effect's own arrival (a card it played or digivolved) is its result, so it waits for
+       the clause the same way. It takes its own track: waiting on the serial centre-stage one
+       would hold an earlier effect's results behind it, and that effect has to settle before
+       this one can be announced. */
+    const effectResult = effectResults !== undefined && !securityReveal && eventIndex >= effectResults.fromEventIndex;
     /**
      * A card an Option's ＜Delay＞ played is that clause's consequence, the same way: the Option
      * breaks, its clause is read, and the card arrives after it. It waits on its permanent's
@@ -165,8 +179,15 @@ export function enqueueArrivals({
       key,
       showcase: blocked ? null : showcase,
       burst,
+      ...(event.kind === "cardPlayed" && event.permanentId && flyPlayedCard
+        ? { play: { event, fly: flyPlayedCard } }
+        : {}),
       leadInMs: isTokenArrival || awaitsCostClause ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
-      ...(isTokenArrival ? { track: `${CueTrack.CenterStage}-token-${key}` } : {}),
+      ...(isTokenArrival
+        ? { track: `${CueTrack.CenterStage}-token-${key}` }
+        : effectResult
+          ? { track: `${CueTrack.CenterStage}-effect-${key}` }
+          : {}),
       ...(awaitsCostClause
         ? {
             track: burst ? `burst-${burst.permanentId}` : `${CueTrack.CenterStage}-cost-clause-${key}`,
@@ -190,6 +211,7 @@ export function enqueueArrivals({
     if (
       burst &&
       (showcase ||
+        (event.kind === "cardPlayed" && event.permanentId && flyPlayedCard !== undefined) ||
         opponentsFieldArrival ||
         tokenFieldArrival ||
         securityReveal !== undefined ||
@@ -203,7 +225,7 @@ export function enqueueArrivals({
     // synchronously. Queued first, that release ran before the hold above was applied, and
     // the card stayed hidden until the whole queue ran dry.
     if (securityReveal) zoneChanges.push(step);
-    else enqueue(step);
+    else enqueue(effectResult ? effectResults.afterAnnounced(step) : step);
   }
   // A step a later `replace` drops never runs its own release, and a permanent hidden for
   // good is far worse than one that arrives without its cue, so the board takes every held

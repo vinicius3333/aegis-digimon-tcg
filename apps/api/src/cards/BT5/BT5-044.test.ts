@@ -124,7 +124,12 @@ describe("BT5-044 Sakuyamon — KB Q&A rulings", () => {
       expect.objectContaining({ kind: "securityRevealed", revealedCardId: "EX13-054", securityCardDP: 0 }),
     );
     expect(s.events).toContainEqual(
-      expect.objectContaining({ kind: "effectTriggered", sourceCardId: "EX13-054", timing: "Security" }),
+      expect.objectContaining({
+        kind: "effectTriggered",
+        sourceCardId: "EX13-054",
+        timing: "whenSecurityBattleEnded",
+        printedTiming: "SecuritySkill",
+      }),
     );
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === nanimonId)).toBe(true);
   });

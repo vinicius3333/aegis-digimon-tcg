@@ -1,5 +1,5 @@
 import type { EffectContext } from "../../EffectContext.js";
-import { canPayCost } from "./canPay.js";
+import { canPayCost, costIsAskedAsSelection } from "./canPay.js";
 import { payCompoundCost } from "./compound.js";
 import { payPlaceCost } from "./place.js";
 import {
@@ -75,6 +75,7 @@ export async function payCost(
   ctx.payingCostDepth = (ctx.payingCostDepth ?? 0) + 1;
   try {
     const payer = PAYERS[cost.kind];
+    if (payer !== undefined && !costIsAskedAsSelection(cost) && canPayCost(ctx, cost)) ctx.onActivationChosen?.();
     return payer === undefined ? false : await payer(ctx, cost, out, opts);
   } finally {
     ctx.payingCostDepth -= 1;

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import { GameScreen } from "../src/game/GameScreen";
+import { SEQUENTIAL_PACING_ENABLED } from "../src/features";
 import { I18nProvider } from "../src/i18n";
 import type { AegisJoinOptions } from "../src/net/types";
 import "../src/design/tokens.css";
@@ -35,6 +36,7 @@ createRoot(document.getElementById("root")!).render(
       identityColor="Red"
       startMode={window.browserTestMode ?? (window.browserTestOptions.devScenario ? "bot" : "casual")}
       botDeckId={window.browserTestBotDeckId}
+      presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
       onExit={() => {}}
     />
   </I18nProvider>,

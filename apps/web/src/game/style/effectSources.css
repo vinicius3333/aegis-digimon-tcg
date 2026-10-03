@@ -12,6 +12,37 @@
 /* --- Per-zone effect activation (`Effects.cs:204-460`) -------------------- */
 
 /* A permanent's own effect: it glows where it stands and throws a halo of sparks. */
+.game-effect-focus {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: battle-effect-focus-in var(--t-spotlight-in) ease-out both;
+}
+
+.game-effect-focus__source {
+  fill: none;
+  stroke: var(--battle-arrow-effect);
+  stroke-width: 2;
+}
+
+@keyframes battle-effect-focus-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-effect-focus {
+    animation: none;
+  }
+}
+
 .game-permanent--effect-source {
   animation: battle-effect-source-glow var(--t-effect-source-hold, 720ms) ease-out both;
 }

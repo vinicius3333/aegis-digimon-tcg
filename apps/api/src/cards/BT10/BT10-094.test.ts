@@ -12,7 +12,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-094.js";
 
 const CARD_ID = "BT10-094";
@@ -301,7 +301,8 @@ describe("BT10-094 (Breaclaw)", () => {
 
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID)).toBe(false);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gammamonId)).toBe(
       false,

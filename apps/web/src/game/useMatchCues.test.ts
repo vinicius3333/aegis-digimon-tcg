@@ -545,10 +545,12 @@ function renderCuesAwaitingAnswer() {
       batches,
       decisionPending,
       decisionStateVersion,
+      decisionSourceCardId,
     }: {
       batches: readonly ServerBatch[];
       decisionPending: boolean;
       decisionStateVersion?: number;
+      decisionSourceCardId?: string;
     }) =>
       useMatchCues({
         narrationLimit: 3,
@@ -558,6 +560,7 @@ function renderCuesAwaitingAnswer() {
         mulliganOpen: false,
         decisionPending,
         decisionStateVersion,
+        decisionSourceCardId,
         anchors,
         onActionRejected: vi.fn<(reason: string) => void>(),
       }),
@@ -566,6 +569,7 @@ function renderCuesAwaitingAnswer() {
         batches: [] as readonly ServerBatch[],
         decisionPending: false,
         decisionStateVersion: undefined as number | undefined,
+        decisionSourceCardId: undefined as string | undefined,
       },
     },
   );
@@ -575,15 +579,18 @@ function renderCuesAwaitingAnswer() {
       events,
       decisionPending,
       decisionStateVersion,
+      decisionSourceCardId,
     }: {
       events: readonly ServerEvent[];
       decisionPending: boolean;
       decisionStateVersion?: number;
+      decisionSourceCardId?: string;
     }) =>
       view.rerender({
         batches: feed(events),
         decisionPending,
         decisionStateVersion,
+        decisionSourceCardId,
       }),
   };
 }
@@ -2113,7 +2120,7 @@ describe("match cues", () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
-    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true });
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId: "BT1-090" });
     await advance(0);
     expect(result.current.optionBranch?.state).toBe("docked");
 
@@ -2125,6 +2132,14 @@ describe("match cues", () => {
     await advance(TIMINGS.securityDockPoll * 2);
     expect(result.current.optionBranch?.state).toBe("closing");
     await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.optionBranch).toBeNull();
+  });
+
+  it("closes a routed Option while a different effect is asking its question", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId: "EX13-028" });
+    await advance(TIMINGS.optionDockHold + TIMINGS.securityDockPoll + SECURITY_DOCK_CLOSE_MS);
     expect(result.current.optionBranch).toBeNull();
   });
 
@@ -3317,7 +3332,7 @@ describe("notices", () => {
     });
   });
 
-  it("reads a notice out on its own clock while the viewer's decision waits", async () => {
+  it("pauses an accepted notice's reading clock while the viewer decides", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
@@ -3325,16 +3340,19 @@ describe("notices", () => {
     await advance(0);
     expect(result.current.notices).toHaveLength(1);
 
-    // The question arrives half way through the reading. Phase 3: it no longer stops the
-    // clock — the barrier has already caught the presentation up, so an item on screen
-    // beside a prompt is one the viewer has been given the time to read.
+    // A question halfway through reading preserves the remaining half until answered.
     await advance(TIMINGS.noticeLifetime / 2);
     rerender({
       events: [EFFECT],
       decisionPending: true,
       decisionStateVersion: 1,
     });
-    await advance(TIMINGS.noticeLifetime / 2 + NARRATION_TICK_MS);
+    await advance(TIMINGS.noticeLifetime * 2);
+    expect(result.current.notices).toHaveLength(1);
+    rerender({ events: [EFFECT], decisionPending: false });
+    await advance(TIMINGS.noticeLifetime / 2 - 1);
+    expect(result.current.notices).toHaveLength(1);
+    await advance(1);
     expect(result.current.notices).toEqual([]);
   });
 
@@ -4264,11 +4282,10 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     await advance(0);
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword"]);
 
-    // A pending decision no longer stops the reading clock: the call-out is read, it
-    // leaves, and the clause behind it takes the corner — all while the question is open.
+    // Presentation continues during a question, keeping every accepted announcement.
     await advance(NOTICE_ITEM_MS + 1);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect", "deletion"]);
-    expect(result.current.notices[0]?.body).toMatchObject({
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword", "effect", "deletion"]);
+    expect(result.current.notices[1]?.body).toMatchObject({
       cardId: KIMERAMON,
       timing: "On Play",
     });
@@ -4375,38 +4392,32 @@ describe("the narration feed", () => {
     expect(result.current.narration.size).toBe(0);
   });
 
-  // Each corner is a FIFO of its own, so a moment only ever displaces an earlier moment of
-  // the same side. Folded into the phone's single slot, the two sides share that one queue.
-  it.each([true, false])(
-    "keeps only the newest record per slot, which the phone folds into one (portrait=%s)",
-    async (portrait) => {
-      const feed = batchFeed();
-      const view = renderHook(
-        (batches: readonly ServerBatch[]) =>
-          useMatchCues({
-            batches,
-            state: undefined,
-            viewerSeat: VIEWER,
-            mulliganOpen: false,
-            collapseNarration: portrait,
-            anchors,
-            onActionRejected: vi.fn<(reason: string) => void>(),
-          }),
-        { initialProps: feed([]) },
-      );
-      await advance(0);
-      view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
-      await advance(0);
-      // All three are clauses, so they all read out of the one text column. It holds two, so
-      // the oldest falls off; the phone's folded slot queues them instead of dropping any.
-      const expected = portrait ? ["BT1-001", "BT1-002", "BT1-009"] : ["BT1-002", "BT1-009"];
-      expect(cards(view.result.current.narration)).toEqual(expected);
-      await advance(TIMINGS.effectAnnounce);
-      expect(cards(view.result.current.narration)).toEqual(expected);
-      expect(view.result.current.narrationLock).toBe(false);
-      expect(view.result.current.presenting).toBe(false);
-    },
-  );
+  // Both layouts retain the recent effects from both players in activation order.
+  it.each([true, false])("stacks recent effects from both players (portrait=%s)", async (portrait) => {
+    const feed = batchFeed();
+    const view = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          batches,
+          state: undefined,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          collapseNarration: portrait,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: feed([]) },
+    );
+    await advance(0);
+    view.rerender(feed([yourEffect("BT1-001"), yourEffect("BT1-002"), theirEffect("BT1-009")]));
+    await advance(0);
+    const expected = ["BT1-001", "BT1-002", "BT1-009"];
+    expect(cards(view.result.current.narration)).toEqual(expected);
+    await advance(TIMINGS.effectAnnounce);
+    expect(cards(view.result.current.narration)).toEqual(expected);
+    expect(view.result.current.narrationLock).toBe(false);
+    expect(view.result.current.presenting).toBe(false);
+  });
 
   it("dismisses the selected record without dismissing its neighbors or changing their clocks", async () => {
     const { result, rerender } = renderCues();
@@ -4422,6 +4433,29 @@ describe("the narration feed", () => {
     expect(result.current.advanceNarration(middle)).toBe(false);
     await advance(TIMINGS.noticeLifetime - 1000);
     expect(result.current.narration.size).toBe(0);
+  });
+
+  it("keeps a paused occurrence's clock when its cards half arrives during a decision", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    const events: ServerEvent[] = [
+      theirEffect("BT1-001"),
+      { kind: "cardRevealed", seat: 1, cardId: "BT1-001", sourceCardId: "BT1-001" },
+    ];
+    rerender({ events, decisionPending: false });
+    await advance(0);
+    const original = [...result.current.narration.values()][0]!;
+    expect(original.notice).toBeDefined();
+    expect(original.panel).toBeUndefined();
+    await advance(TIMINGS.narrationCardsLag / 2);
+    rerender({ events, decisionPending: true, decisionStateVersion: 1 });
+    await advance(TIMINGS.narrationCardsLag / 2 + 12_000);
+    const withCards = result.current.narration.get(original.id)!;
+    expect(withCards.panel).toBeDefined();
+    expect(withCards.pausedAt).toBeDefined();
+    expect(withCards.createdAt).toBe(original.createdAt);
+    rerender({ events, decisionPending: false });
+    await advance(100);
+    expect(result.current.narration.has(original.id)).toBe(true);
   });
 
   it("keeps repeated activations of the same card independently dismissible", async () => {
@@ -4449,7 +4483,7 @@ describe("the narration feed", () => {
     expect(cards(result.current.narration)).toEqual(["BT1-002"]);
   });
 
-  it("does not wait for reading timers to open a decision, and keeps expiring records", async () => {
+  it("opens a decision without waiting for reading timers and preserves the accepted stack", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
     rerender({
@@ -4465,6 +4499,9 @@ describe("the narration feed", () => {
     });
     await advance(0);
     expect(result.current.decisionBarrierPending).toBe(false);
+    await advance(TIMINGS.noticeLifetime);
+    expect(result.current.narration.size).toBe(2);
+    rerender({ events: [yourEffect("BT1-001"), yourEffect("BT1-002")], decisionPending: false });
     await advance(TIMINGS.noticeLifetime);
     expect(result.current.narration.size).toBe(0);
   });
@@ -5041,7 +5078,7 @@ it("highlights each physical Digimon when identical cards resolve their start-of
   expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second-hyokomon" } }]);
 });
 
-it("keeps the activation glow when a decision suppresses its duplicate toast", async () => {
+it("keeps the activation glow and clause together when an effect asks for a decision", async () => {
   const board = {
     players: [
       {
@@ -5058,7 +5095,6 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
     ],
   } as unknown as GameState;
   const { result, rerender } = renderCuesOverBoard(board);
-  act(() => result.current.dismissOwnEffectNotice("BT26-009"));
   rerender([
     {
       kind: "effectTriggered",
@@ -5074,7 +5110,7 @@ it("keeps the activation glow when a decision suppresses its duplicate toast", a
   await advance(0);
   expect(result.current.effectSources).toMatchObject([{ site: { zone: "field", permanentId: "second" } }]);
   await advance(TIMINGS.effectSourceHold);
-  expect(result.current.notices).toHaveLength(0);
+  expect(result.current.notices).toHaveLength(1);
 });
 
 const RINA_BOARD = {
@@ -5104,24 +5140,14 @@ const RINA_YOUR_TURN_PROMPT: ServerEvent = {
   timing: "YourTurn",
 };
 
-/** The held-back clause's own read-out: the return delay, then its source card's glow. */
-const HELD_CLAUSE_RETURN_MS = TIMINGS.ownEffectNoticeReturn + TIMINGS.effectSourceHold + NARRATION_TICK_MS;
-
-it("reads a card's clause out after the dialog that held it back is answered", async () => {
+it("reads an accepted clause once without a decision-return delay", async () => {
   const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
-  // The [Your Turn] clause asks whether to suspend the Tamer: its dialog prints the clause,
-  // so the toast that would repeat it waits while the dialog is open.
   rerender([RINA_YOUR_TURN_PROMPT]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
-  expect(result.current.notices).toHaveLength(0);
-
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
   expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
   await advance(NOTICE_ITEM_MS);
+  expect(result.current.notices).toHaveLength(0);
 
-  // Next turn, the same Tamer's [Start of Your Main Phase] clause asks nothing and reads out.
   const startOfMain: ServerEvent = {
     ...RINA_YOUR_TURN_PROMPT,
     effectKey: "EX13-069/ir-1-0",
@@ -5135,33 +5161,7 @@ it("reads a card's clause out after the dialog that held it back is answered", a
   ]);
 });
 
-it("reads out a clause still queued when its dialog was answered", async () => {
-  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
-  rerender([RINA_YOUR_TURN_PROMPT]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
-  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
-});
-
-it("keeps a clause held back across two dialogs the same effect opens in a row", async () => {
-  const { result, rerender } = renderCuesOverBoard(RINA_BOARD);
-  rerender([RINA_YOUR_TURN_PROMPT]);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
-  // "Use it?" answered; "which target?" opens a round trip later, inside the return delay.
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(TIMINGS.ownEffectNoticeReturn / 2);
-  act(() => result.current.dismissOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
-  expect(result.current.notices).toHaveLength(0);
-
-  act(() => result.current.releaseOwnEffectNotice("EX13-069"));
-  await advance(HELD_CLAUSE_RETURN_MS);
-  expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
-});
-
-it("Discord 1555741214014447737: reads a held clause before the next copy's clause", async () => {
+it("Discord 1555741214014447737: stacks accepted clauses from two copies in their activation order", async () => {
   const board = {
     players: [
       {
@@ -5189,13 +5189,11 @@ it("Discord 1555741214014447737: reads a held clause before the next copy's clau
   const { result, rerender } = renderCuesOverBoard(board);
   const first = startOfMain("first", "copy-1");
   rerender([first]);
-  act(() => result.current.dismissOwnEffectNotice("BT26-091"));
   await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
 
   // The answer resolves the first copy, and the server announces the second in the same tick.
-  act(() => result.current.releaseOwnEffectNotice("BT26-091"));
   rerender([first, startOfMain("second", "copy-2")]);
-  await advance(HELD_CLAUSE_RETURN_MS + TIMINGS.effectSourceHold);
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
 
   expect(
     result.current.notices.map((notice) => notice.body.variant === "effect" && notice.body.sourcePermanentId),

@@ -1,4 +1,4 @@
-import type { Seat } from "@aegis/shared";
+import type { ResolutionOrderEntry, Seat, ServerEvent } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { DecisionManager } from "./index.js";
@@ -28,6 +28,7 @@ export interface ResolverDecisions {
 export function createResolverDecisions(
   manager: DecisionManager,
   beforeRequest: () => Promise<void> = async () => {},
+  emit: (event: ServerEvent) => void = () => {},
 ): ResolverDecisions {
   return {
     async chooseOrder(seat, active, timing, plan, waiting = []) {
@@ -123,7 +124,16 @@ export function createResolverDecisions(
       const first = response.order[0];
       if (first === undefined) return null; // declined / empty
       const index = triggerKeys.indexOf(first);
-      return index >= 0 ? index : null;
+      if (index < 0) return null;
+      // Only a plan fixes the order of the rest; a single pick says nothing about it.
+      const chosenKeys = plan !== undefined ? response.order : [first];
+      const entries = chosenKeys.flatMap((key) => {
+        const position = triggerKeys.indexOf(key);
+        const chosen = position >= 0 ? active[position] : undefined;
+        return chosen === undefined ? [] : [publicOrderEntry(chosen, triggerTimings[position] ?? "")];
+      });
+      emit({ kind: "resolutionOrderChosen", seat, entries });
+      return index;
     },
 
     async askOptional(seat, collected, plan) {
@@ -143,6 +153,8 @@ export function createResolverDecisions(
         sourcePermanentId: collected.conferredToPermanentId ?? collected.source.permanent()?.permanentId,
         options: {
           effectText: collected.effect.description,
+          effectKey: collected.effect.effectKey,
+          activationConfirmation: true,
           ...(collected.effect.timingOverride !== undefined
             ? { timing: collected.effect.timingOverride }
             : collected.timing !== undefined
@@ -152,6 +164,29 @@ export function createResolverDecisions(
       });
       return response.kind === "optional" ? response.accept : false;
     },
+  };
+}
+
+/**
+ * What the opponent may learn about one pending effect. Its source is named only while that
+ * card sits face-up where both players can see it; a card in the hand, the deck or face-down
+ * security stays anonymous, down to its clause, which would name it just as well.
+ */
+function publicOrderEntry(collected: CollectedEffect, timing: string): ResolutionOrderEntry {
+  const { source } = collected;
+  const visible =
+    source.isOnBattleArea() ||
+    source.isOnBreedingArea?.() === true ||
+    source.isInTrash?.() === true ||
+    source.isInSecurity?.() === true;
+  return {
+    ...(timing !== "" ? { timing } : {}),
+    ...(visible
+      ? {
+          sourceCardId: source.cardId,
+          ...(collected.effect.description ? { description: collected.effect.description } : {}),
+        }
+      : {}),
   };
 }
 

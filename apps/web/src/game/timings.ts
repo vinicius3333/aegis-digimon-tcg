@@ -22,6 +22,10 @@ export const TIMINGS = {
   handDrawRing: 900,
   /** A card arriving in the battle area. */
   cardEnter: 320,
+  /** A confirmed card moving from its source zone or reveal to its field slot. */
+  playFlight: 460,
+  /** Touch layouts keep the same move readable at smaller card sizes. */
+  playFlightTouch: 540,
   /** The stars that pop over a card that just landed. */
   cardSparkle: 900,
   /** The memory marker landing on its new chip. */
@@ -274,13 +278,6 @@ export const TIMINGS = {
    * and no longer.
    */
   effectAnnounce: 800,
-  /**
-   * How long the viewer's own effect notice, held back while its decision dialog was open,
-   * waits after the answer before it reads out. An effect that asks twice (use it? then
-   * which target?) closes one dialog and opens the next a round trip later; reading the
-   * notice out in that gap flashed it between the two.
-   */
-  ownEffectNoticeReturn: 400,
   /**
    * How long a ＜Delay＞ clause waits for the batch that trashes its Option. The server sends
    * that batch right behind the trigger; one that never comes means the clause was declined,

@@ -14,6 +14,7 @@
    of the hand, so the readout matches the cards on screen. */
 
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
+import type { PresentationPacing } from "../../presentationProbe";
 import { otherSeat } from "../../boardModel";
 import {
   blowField,
@@ -39,6 +40,7 @@ export function presentedSeats({
   heldDeletions,
   heldTrashArrivals,
   optimisticPlayedInstanceId,
+  presentationPacing = "current",
 }: {
   shownState: GameState;
   viewer: PlayerState;
@@ -53,22 +55,40 @@ export function presentedSeats({
   heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
   /** A card a play has already taken out of the hand, pending the server's word. */
   optimisticPlayedInstanceId: string | undefined;
+  /** Paced effect results follow the narrated revision; live legality remains separate. */
+  presentationPacing?: PresentationPacing;
 }) {
+  const paced = presentationPacing === "sequential";
+  function fullStateHold(state: GameState | undefined) {
+    // Coalesced server patches can enqueue a later scene while an earlier effect is
+    // still being narrated. Its hold may delay that scene, but must not import its
+    // future field, rotation or draw into the earlier presented revision.
+    return paced && state !== undefined && state.stateVersion > shownState.stateVersion ? undefined : state;
+  }
+  const phaseHold = fullStateHold(heldPhaseState);
+  const blowHold = fullStateHold(heldBlowState);
+  const securityEffectHold = fullStateHold(heldSecurityEffectState);
+  const drawHold = fullStateHold(heldDrawState?.state);
+  function projectionFields(input: { player: PlayerState; live: PlayerState }) {
+    // Future DP and abilities are effect results too. Live legality is read separately;
+    // a paced decision opens only after its own public board revision has been reached.
+    return paced ? input.player : liveProjectionFields(input);
+  }
   const heldDeletionsOf = (seat: Seat) => [...heldDeletions.values()].filter((deletion) => deletion.seat === seat);
   const heldTrashArrivalsOf = (seat: Seat) =>
     [...heldTrashArrivals.values()].filter((arrival) => arrival.seat === seat);
-  const presentedViewer = liveProjectionFields({
+  const presentedViewer = projectionFields({
     player: trashArrivalField({
       player: deletionField({
         player: blowField({
           player: securityEffectField({
             player: phaseField({
               player: shownState.players[viewerSeat] ?? viewer,
-              held: heldPhaseState?.players[viewerSeat],
+              held: phaseHold?.players[viewerSeat],
             }),
-            held: heldSecurityEffectState?.players[viewerSeat],
+            held: securityEffectHold?.players[viewerSeat],
           }),
-          held: heldBlowState?.players[viewerSeat],
+          held: blowHold?.players[viewerSeat],
         }),
         held: heldDeletionsOf(viewerSeat),
       }),
@@ -76,18 +96,18 @@ export function presentedSeats({
     }),
     live: viewer,
   });
-  const presentedOpponent = liveProjectionFields({
+  const presentedOpponent = projectionFields({
     player: trashArrivalField({
       player: deletionField({
         player: blowField({
           player: securityEffectField({
             player: phaseField({
               player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
-              held: heldPhaseState?.players[otherSeat(viewerSeat)],
+              held: phaseHold?.players[otherSeat(viewerSeat)],
             }),
-            held: heldSecurityEffectState?.players[otherSeat(viewerSeat)],
+            held: securityEffectHold?.players[otherSeat(viewerSeat)],
           }),
-          held: heldBlowState?.players[otherSeat(viewerSeat)],
+          held: blowHold?.players[otherSeat(viewerSeat)],
         }),
         held: heldDeletionsOf(otherSeat(viewerSeat)),
       }),
@@ -95,9 +115,11 @@ export function presentedSeats({
     }),
     live: opponent,
   });
-  const heldViewer = heldDrawState?.seat === viewerSeat ? heldDrawState.state.players[viewerSeat] : undefined;
+  const heldViewer = heldDrawState?.seat === viewerSeat ? drawHold?.players[viewerSeat] : undefined;
   const heldOpponent =
-    heldDrawState?.seat === otherSeat(viewerSeat) ? heldDrawState.state.players[otherSeat(viewerSeat)] : undefined;
+    heldDrawState?.seat === otherSeat(viewerSeat) ? drawHold?.players[otherSeat(viewerSeat)] : undefined;
+  const handViewer = heldViewer ?? (paced ? (shownState.players[viewerSeat] ?? viewer) : viewer);
+  const handOpponent = heldOpponent ?? (paced ? (shownState.players[otherSeat(viewerSeat)] ?? opponent) : opponent);
   const shownViewer: PresentedPlayer = heldViewer
     ? { ...presentedViewer, hand: heldViewer.hand, handCount: heldViewer.handCount, deckCount: heldViewer.deckCount }
     : presentedViewer;
@@ -110,16 +132,16 @@ export function presentedSeats({
     breedingViewer: heldBreedingState?.seat === viewerSeat ? heldBreedingState.player : shownViewer,
     breedingOpponent: heldBreedingState?.seat === otherSeat(viewerSeat) ? heldBreedingState.player : shownOpponent,
     /** The hand the viewer can see, which a draw hold may keep behind the server's. */
-    shownHand: heldViewer?.hand ?? viewer.hand,
+    shownHand: handViewer.hand,
     shownHandCount: Math.max(
       0,
-      (heldViewer?.handCount ?? viewer.handCount) -
-        (optimisticPlayedInstanceId && viewer.hand.some((card) => card.instanceId === optimisticPlayedInstanceId)
+      handViewer.handCount -
+        (optimisticPlayedInstanceId && handViewer.hand?.some((card) => card.instanceId === optimisticPlayedInstanceId)
           ? 1
           : 0),
     ),
-    shownOpponentHandCount: heldOpponent?.handCount ?? opponent.handCount,
-    /** True while a draw hold is keeping the viewer's hand behind the server's. */
-    handHeld: heldViewer !== undefined,
+    shownOpponentHandCount: handOpponent.handCount,
+    /** Draw ribbons and paced snapshot membership both render the shown hand. */
+    handHeld: heldViewer !== undefined || paced,
   };
 }

@@ -695,10 +695,9 @@ button.game-player-line__name {
     max-height: calc(100% - 15.375rem - var(--ds-space-4));
   }
 
+  /* Where the rail sits on this board is set with the clause column it shares the left
+     edge with (desktopNotices.css). */
   .aegis-stage .board-prompt {
-    top: 15.375rem;
-    bottom: auto;
-    max-height: calc(100% - 15.375rem - var(--ds-space-4));
     translate: none;
     animation-name: board-prompt-rail-in;
   }
@@ -721,7 +720,6 @@ button.game-player-line__name {
     right: auto;
     margin-inline: 0;
     width: min(19rem, 42vw);
-    max-height: calc(100% - 15.375rem - var(--ds-space-4));
   }
 }
 

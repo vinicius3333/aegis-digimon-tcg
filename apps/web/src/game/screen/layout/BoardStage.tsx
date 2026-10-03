@@ -18,6 +18,7 @@ import { CardOpenerProvider } from "../../cardLinks";
 import { NarrationStack } from "../../NarrationStack";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
 import { TargetingSpotlight } from "../../TargetingSpotlight";
+import { EffectFocus } from "../../EffectFocus";
 import { BATTLE_TIMING_STYLE } from "../../timings";
 import { shieldSecurityCount } from "../../securityClash";
 import { turnControlState } from "../../turnControl";
@@ -155,6 +156,7 @@ export function BoardStage({
   onStartPermanentDrag,
   onInspectPermanent,
   onOpenCard,
+  promptSourceCardId,
   onResetScenario,
 }: {
   state: GameState;
@@ -162,6 +164,8 @@ export function BoardStage({
   viewer: PlayerState;
   opponent: PlayerState;
   viewerSeat: Seat;
+  /** The card whose effect the viewer's open decision is about. */
+  promptSourceCardId?: string | undefined;
   room: Parameters<typeof intents.surrender>[0] | undefined;
   look: ArenaBoardLook;
   layout: ReturnType<typeof useArenaLayout>;
@@ -282,6 +286,7 @@ export function BoardStage({
               narration={cues.narration}
               rejection={cues.rejection}
               compact={layout.collapseNotices}
+              promptSourceCardId={promptSourceCardId}
               securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
               onAdvance={cues.advanceNarration}
               onDismissRejection={cues.dismissRejection}
@@ -311,6 +316,12 @@ export function BoardStage({
             ref={anchors.field}
             style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
           >
+            <EffectFocus
+              sources={cues.effectSources}
+              field={anchors.field}
+              permanents={anchors.permanents}
+              choosingTargets={targeting.spotlight.open}
+            />
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}

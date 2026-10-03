@@ -10,6 +10,7 @@ export async function payMemoryCost(ctx: EffectContext, cost: Cost): Promise<boo
   // turn-passing). A free effect would not carry this cost at all.
   const n = cost.memory ?? 0;
   if (n <= 0) return true;
+  ctx.onActivationChosen?.();
   ctx.fx.gainMemory(-n);
   return true;
 }
@@ -28,6 +29,7 @@ export async function payRevealCost(ctx: EffectContext, cost: Cost): Promise<boo
   // remain available to a following "that revealed card" disposition (EX4-023).
   // Keep the binding on the effect context instead of resolving the follow-up target
   // independently, which could choose a different same-level hand card.
+  ctx.onActivationChosen?.();
   ctx.lastRevealedCards = chosen.flatMap((instanceId) => {
     const card = candidates.find((candidate) => candidate.instanceId === instanceId);
     if (card === undefined) return [];

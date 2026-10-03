@@ -14,6 +14,21 @@ function triggeredEvents(s: ReturnType<typeof setupEngine>, cardIds?: readonly s
   );
 }
 
+function activationQuestions(s: ReturnType<typeof setupEngine>, cardId: string) {
+  const questions = s.decisions
+    .map(({ req }) => req)
+    .filter(
+      (req) => req.sourceCardId === cardId && req.kind === "optional" && req.options?.activationConfirmation === true,
+    );
+  return questions.filter(
+    (req, index) => questions.findIndex((other) => other.options?.effectKey === req.options?.effectKey) === index,
+  );
+}
+
+function vortexQuestionTiming(effectKey: string): string {
+  return effectKey.includes("ir-12-0") ? "OnUseAttack" : "whenSuspended";
+}
+
 describe("attack declaration suspension trigger ordering", () => {
   it.each(["OnUseAttack", "whenSuspended"] as const)(
     "lets the turn player resolve %s first between self-suspension and When Attacking",
@@ -58,15 +73,15 @@ describe("attack declaration suspension trigger ordering", () => {
           response: { kind: "orderTriggers", order: [triggerKeys[firstIndex]!] },
         }),
       ).toEqual({ ok: true });
-      await settle(() => triggeredEvents(s, ["EX11-074"]).length === 2);
-      const triggered = triggeredEvents(s, ["EX11-074"]);
-      expect(triggered.map((event) => event.timing)).toEqual(
+      await settle(() => activationQuestions(s, "EX11-074").length === 2);
+      expect(activationQuestions(s, "EX11-074").map((req) => vortexQuestionTiming(req.options!.effectKey!))).toEqual(
         firstTiming === "OnUseAttack" ? ["OnUseAttack", "whenSuspended"] : ["whenSuspended", "OnUseAttack"],
       );
+      expect(triggeredEvents(s, ["EX11-074"])).toEqual([]);
     },
   );
 
-  it("keeps turn-player attack effects ahead of the non-turn player's suspension watcher", async () => {
+  it("omits declined attack effects and still offers the non-turn player's suspension watcher", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX10-009", as: "attacker" }], security: ["BT1-009"] },
@@ -87,10 +102,11 @@ describe("attack declaration suspension trigger ordering", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => triggeredEvents(s, ["EX11-074"]).length > 0);
+    await settle(() => activationQuestions(s, "EX11-074").length > 0);
 
     const triggered = triggeredEvents(s, ["EX10-009", "EX11-074"]);
-    expect(triggered.map((event) => event.sourceCardId)).toEqual(["EX10-009", "EX11-074"]);
+    expect(triggered).toEqual([]);
+    expect(activationQuestions(s, "EX11-074")).toHaveLength(1);
   });
 
   it("folds watchers on other permanents into a normal attack's suspension window", async () => {
@@ -196,7 +212,10 @@ describe("attack declaration suspension trigger ordering", () => {
 
     expect(s.perm("vortexdramon").isSuspended).toBe(true);
     expect(triggeredEvents(s, ["EX11-074"]).some((event) => event.timing === "whenSuspended")).toBe(false);
-    expect(triggeredEvents(s).some((event) => event.timing === "OnUseAttack")).toBe(true);
+    expect(activationQuestions(s, "EX11-074").map((req) => vortexQuestionTiming(req.options!.effectKey!))).toEqual([
+      "OnUseAttack",
+    ]);
+    expect(triggeredEvents(s, ["EX11-074"])).toEqual([]);
   });
 
   it.each([
@@ -237,7 +256,10 @@ describe("attack declaration suspension trigger ordering", () => {
         (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT23-003",
       );
       expect(motimonTriggered).toBeGreaterThan(placed);
-      expect(triggeredEvents(s, ["EX11-074"]).map((event) => event.timing)).toEqual(expectedOrder);
+      expect(activationQuestions(s, "EX11-074").map((req) => vortexQuestionTiming(req.options!.effectKey!))).toEqual(
+        expectedOrder,
+      );
+      expect(triggeredEvents(s, ["EX11-074"])).toEqual([]);
     },
   );
 });

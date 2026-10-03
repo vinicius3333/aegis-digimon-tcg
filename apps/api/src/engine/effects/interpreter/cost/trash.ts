@@ -292,6 +292,9 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
         })
       : await pickLoose(ctx, { ...handTarget, count: want }, candidates);
     if (chosen.length < want) return false;
+    // This pick can replace the optional activation question. Its transport minimum
+    // is zero to allow refusal, so only the fully validated payment accepts the effect.
+    ctx.onActivationChosen?.();
     const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
     ctx.lastTrashedCards = moved.map((card) => ({
       instanceId: card.instanceId,

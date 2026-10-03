@@ -10,6 +10,7 @@ import {
 import { applyOverflow, insertCard, setResolvingOption } from "../../state/access.js";
 import type { EffectContext } from "../EffectContext.js";
 import { getEffectModule } from "../registry.js";
+import { observeEffectActivation } from "../activationPresentation.js";
 import {
   hostOfLinkedInstance,
   hostOfStackInstance,
@@ -111,11 +112,17 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
         description: effect.description,
         timing: EffectTiming[EffectTiming.OnUseOption],
       };
-      engine.emit({ kind: "effectTriggered", ...announced, printedTiming: "Main" });
+      const outerEffectKey = ctx.activeEffectKey;
+      ctx.activeEffectKey = effect.effectKey;
+      const presentation = observeEffectActivation(ctx, effect.activationDeferred === true, () => {
+        engine.emit({ kind: "effectTriggered", ...announced, printedTiming: "Main" });
+      });
       try {
         await effect.resolve(ctx);
       } finally {
-        engine.emit({ kind: "effectResolved", ...announced });
+        presentation.restore();
+        ctx.activeEffectKey = outerEffectKey;
+        if (presentation.accepted()) engine.emit({ kind: "effectResolved", ...announced });
       }
     }
   };
@@ -192,6 +199,8 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
       // before its [Main] resolves instead of the board changing with nothing on screen.
       engine.emit({
         kind: "cardPlayed",
+        instanceId: resolvingCard.instanceId,
+        fromZone: usedOriginZone,
         seat: ctx.source.ownerSeat,
         cardId: resolvingCard.cardId,
         ...(resolvingCard.artId ? { artId: resolvingCard.artId } : {}),

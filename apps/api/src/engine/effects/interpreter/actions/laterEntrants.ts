@@ -30,6 +30,7 @@ export function subscribeLaterEntrants(
     filter: Filter;
     duration: EffectDurationRef | undefined;
     label: string;
+    printedClause?: string;
     alreadyGranted: Iterable<string>;
     grant: (permanentId: string) => void | Promise<void>;
   },
@@ -45,6 +46,7 @@ export function subscribeLaterEntrants(
     continuous: false,
     ...(expiresOnTurnEndOf === undefined ? {} : { expiresOnTurnEndOf }),
     description: `${options.label} later entrant from ${ctx.source.cardId}`,
+    ...(options.printedClause === undefined ? {} : { printedClause: options.printedClause }),
     matches: (subCtx) => {
       const id = subCtx.trigger.subjectPermanentId;
       const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);

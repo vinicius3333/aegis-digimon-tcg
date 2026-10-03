@@ -11,12 +11,22 @@ export interface PresentationGate {
   open: boolean;
   opened: Promise<void>;
   release(): void;
+  /**
+   * A gate that cannot open before this one does. A waiter's ceiling only starts once it has,
+   * so a consequence queued behind a long line of effects is not cut loose while the effects
+   * ahead of its own are still playing. That line has a ceiling of its own,
+   * {@link QUEUED_GATE_MAX_MS}.
+   */
+  after?: PresentationGate;
 }
 
 const GATE_POLL_MS = 16;
 
 /** How long anything queued behind an effect's announcement will wait for it. */
 export const CONSEQUENCE_GATE_MAX_MS = 5_000;
+
+/** How long a gate's `after` may hold its waiters before their own ceiling starts. */
+export const QUEUED_GATE_MAX_MS = 20_000;
 
 export function createPresentationGate(): PresentationGate {
   let openGate = () => {};
@@ -66,6 +76,11 @@ export async function waitForGate(
 ): Promise<GateWaitOutcome> {
   if (!gate || gate.open) return "open";
   if (context.mode === "replay" || context.skipping) return "skipped";
+  if (gate.after && !gate.after.open) {
+    const queued = await waitForGate(gate.after, context, QUEUED_GATE_MAX_MS, `${label}/queued`);
+    if (queued === "cancelled" || queued === "skipped") return queued;
+    if (gate.open) return "released";
+  }
   const deadline = Date.now() + ceilingMs;
   // A fast-forward is the viewer asking for the rest of it now. A gate is the one wait
   // that has no clock of its own, so it is also the one a skip has to break out of —

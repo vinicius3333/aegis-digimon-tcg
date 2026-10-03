@@ -422,6 +422,8 @@ export async function applyDigiXros(
   // that heuristic said "this card CAN be DigiXros'd", not "this play WAS one".
   deps.emit?.({
     kind: "cardPlayed",
+    instanceId: instance.instanceId,
+    fromZone: "hand",
     seat,
     cardId: instance.cardId,
     ...(instance.artId ? { artId: instance.artId } : {}),

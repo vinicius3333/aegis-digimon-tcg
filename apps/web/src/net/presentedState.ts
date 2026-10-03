@@ -21,12 +21,14 @@ export interface StateSnapshot {
 
 /**
  * How many revisions are kept. The queue only ever looks back as far as the batches it has
- * not presented yet, which is a handful even on a slow phone; anything older is history no
- * screen will render again. Smaller than `MAX_TRACKED_BATCHES` (50) on purpose — a batch
- * whose snapshot has been evicted presents over the live board instead, which is exactly
- * what a client that has fallen this far behind should do.
+ * not presented yet. The server patches once per batch, so one chain of triggered effects
+ * can land 20 or more revisions in a single burst, and each of them is a board some effect
+ * will be narrated over. Smaller than `MAX_TRACKED_BATCHES` (50) on purpose — a batch whose
+ * snapshot has been evicted presents over the live board instead, which is exactly what a
+ * client that has fallen this far behind should do. At about 53 KB a snapshot (measured
+ * below), the full ring stays near 2 MB.
  */
-export const MAX_TRACKED_SNAPSHOTS = 16;
+export const MAX_TRACKED_SNAPSHOTS = 40;
 
 type PlainRecord = Record<string, unknown>;
 
@@ -55,7 +57,7 @@ function clonePlain(value: unknown): unknown {
  *
  * Measured on a full board (both seats: five permanents with three-card stacks, breeding,
  * ten cards in hand, five security, twenty trash, forty deck): 0.31 ms and 53 KB of JSON
- * per snapshot on a development machine, so the whole ring buffer stays under a megabyte
+ * per snapshot on a development machine, so the whole ring buffer stays near 2 MB
  * and one patch costs a fraction of a frame even several times slower on a phone.
  */
 export function snapshotGameState(state: GameState): GameState {

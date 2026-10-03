@@ -17,6 +17,8 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import { eventChangesPresentedBoard } from "../../animationCatalog";
+import type { FlyPlayedCard } from "../flights";
 import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import type { FieldClashScene, OpenAttack } from "../../fieldClash";
 import type { MatchNotice } from "../../notices";
@@ -43,6 +45,8 @@ import { costClauseFromEvent } from "./costClause";
 import { TIMINGS } from "../../timings";
 import { otherSeat } from "../../boardModel";
 import { CueTrack } from "../enums";
+import { activePacing } from "../../pacing";
+import type { PresentationPacing } from "../../presentationProbe";
 import { withoutId } from "../eventLookup";
 import { batchFacts } from "./batchFacts";
 import { combatScenes } from "./combat";
@@ -69,8 +73,10 @@ import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
 import { refreshSecurityAttacker } from "./securityAttackerRefresh";
+import { effectUnitSteps, resumedUnitSteps, type EffectSequence, type ObservedBatch } from "../effectSequence";
 import {
   createPresentationGate,
+  waitForGate,
   type DeletionReadyAt,
   type PendingAnnounceGate,
   type CostClause,
@@ -86,6 +92,25 @@ export type PresentSegment = (
   continuingBatch?: boolean,
 ) => void;
 
+/**
+ * The board a batch that announces an effect is narrated over. The server can emit an
+ * effect's first results in the same batch as its `effectTriggered`, and that batch's board
+ * already shows them: the clause would be read over its own outcome. Such a batch is held at
+ * the board before it, and the outcome reaches the board once the batch's beats are done.
+ */
+export function announcedBoardVersion(
+  events: readonly ServerEvent[],
+  sequenced: ObservedBatch,
+  stateVersion: number,
+): number {
+  const opensAt = sequenced.opened[0]?.eventIndex;
+  if (opensAt === undefined) return stateVersion;
+  const changesBoard = eventChangesPresentedBoard;
+  const resultsBefore = events.slice(0, opensAt).some(changesBoard);
+  const resultsAfter = events.slice(opensAt + 1).some(changesBoard);
+  return resultsAfter && !resultsBefore ? stateVersion - 1 : stateVersion;
+}
+
 export function presentServerBatch({
   batchId,
   stateVersion,
@@ -93,6 +118,9 @@ export function presentServerBatch({
   replayingHistory,
   continuingBatch,
   present,
+  presentationPacingRef,
+  effectSequence,
+  batchOf,
   viewerSeat,
   state,
   snapshots,
@@ -109,6 +137,7 @@ export function presentServerBatch({
   launchDeckToUnderFlight,
   flyDockedOptionUnder,
   flyCardToDeck,
+  flyPlayedCard,
   releaseTrashArrivalsThrough,
   launchSecurityGainFlight,
   securityCountOf,
@@ -145,6 +174,7 @@ export function presentServerBatch({
   optionDockKeyRef,
   optionDockRef,
   decisionPendingRef,
+  decisionSourceCardIdRef,
   heldNoticesRef,
   heldPanelsRef,
   queuedSecurityKeyRef,
@@ -196,6 +226,12 @@ export function presentServerBatch({
   /** True for every segment after the first of a batch this pass had to split. */
   continuingBatch: boolean;
   present: PresentSegment;
+  /** How simultaneous effects are paced. */
+  presentationPacingRef: MutableRefObject<PresentationPacing>;
+  /** The effect units sequential pacing plays one at a time. */
+  effectSequence: EffectSequence;
+  /** The server batch a queued step belongs to, however it was enqueued. */
+  batchOf: (step: AnimationStep) => string | undefined;
   viewerSeat: Seat;
   state: GameState | undefined;
   /** The boards the presentation has passed through, newest last. */
@@ -213,6 +249,7 @@ export function presentServerBatch({
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   flyDockedOptionUnder: FlyDockedOptionUnder;
   flyCardToDeck: FlyCardToDeck;
+  flyPlayedCard?: FlyPlayedCard;
   releaseTrashArrivalsThrough: (stateVersion: number) => void;
   launchSecurityGainFlight: (seat: Seat) => void;
   securityCountOf: (seat: Seat) => number | undefined;
@@ -254,6 +291,7 @@ export function presentServerBatch({
   optionDockKeyRef: MutableRefObject<number>;
   optionDockRef: MutableRefObject<OptionDockHold | null>;
   decisionPendingRef: MutableRefObject<boolean>;
+  decisionSourceCardIdRef?: MutableRefObject<string | undefined>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   queuedSecurityKeyRef: MutableRefObject<number | null>;
@@ -315,12 +353,18 @@ export function presentServerBatch({
     return;
   }
   enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
+  // Sequential pacing: which effect unit this batch announces or carries the results of.
+  const sequential = presentationPacingRef.current === "sequential" && !replayingHistory;
+  const earlierUnitsSettled = sequential ? effectSequence.unsettled() : null;
+  const sequenced = sequential ? effectSequence.observeBatch(batchId, stateVersion, fresh) : undefined;
+  const unitGate = sequenced?.owner?.announced ?? null;
   // Whatever this batch queues waits on the announcement the batch before it is still
   // reading out, so a consequence never overtakes the clause that caused it.
-  causingEffectGateRef.current = effectAnnounceGateRef.current;
+  causingEffectGateRef.current = unitGate ?? effectAnnounceGateRef.current;
   // A security card still on its way to the dock caused whatever this batch does, and its
   // clause has not been read out yet.
-  if (securityClauseGateRef.current?.gate.open === false)
+  // Under sequential pacing the effect that owns this batch already names its cause.
+  if (!unitGate && securityClauseGateRef.current?.gate.open === false)
     causingEffectGateRef.current = securityClauseGateRef.current.gate;
   lastBatchIdRef.current = batchId;
   // Everything enqueued from here belongs to this batch, and the board it is narrated
@@ -329,7 +373,16 @@ export function presentServerBatch({
   batchVersionsRef.current.set(batchId, stateVersion);
   if (batchVersionsRef.current.size > 120)
     batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
-  if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
+  if (!replayingHistory && !continuingBatch)
+    progress.present(
+      batchId,
+      // A resumed unit's first results batch waits out the fresh beat over the board before it.
+      sequenced?.resumed
+        ? stateVersion - 1
+        : sequenced
+          ? announcedBoardVersion(fresh, sequenced, stateVersion)
+          : stateVersion,
+    );
   if (!replayingHistory) traceCueBatch(`${batchId} ${fresh.map((event) => event.kind).join(",")}`);
   const {
     refusal,
@@ -354,9 +407,23 @@ export function presentServerBatch({
   // Replayed steps still run, so their state lands in the right place — they
   // just run with every wait collapsed, which is no animation at all.
   const batchPhaseOrder = enqueuePhaseOrderRef.current;
+  /* Sequential pacing: a batch that no open effect carries is what the server did after the
+     effects still playing, a security check or the play that raised a new trigger. The centre
+     stage takes it only once those effects have settled. A batch an open effect carries, or
+     one that repeats a trigger waiting to be announced, belongs to that effect's own beats.
+     Each centre-stage step waits inside its own run: a security break replaces whatever its
+     track holds, so a separate waiting step ahead of it would be dropped. */
+  const unsettled =
+    sequenced && !sequenced.carriedBy && sequenced.grouped.length === 0 && !sequenced.resumed
+      ? earlierUnitsSettled
+      : null;
+  const afterEarlierUnits = (step: AnimationStep): AnimationStep =>
+    unsettled && step.track === CueTrack.CenterStage
+      ? afterGate(step, unsettled, activePacing().budgetCeilingMs, "centerStage/effectUnitsSettled")
+      : step;
   const enqueue = (step: AnimationStep) =>
     queue.enqueue({
-      ...step,
+      ...afterEarlierUnits(step),
       origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
       ...(replayingHistory ? { mode: "replay" as const } : {}),
     });
@@ -447,7 +514,18 @@ export function presentServerBatch({
   }
 
   if (!replayingHistory) {
-    enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
+    if (unitGate) {
+      // What came before the batch's first announcement caused it; what came after is its result.
+      const firstAnnounced = sequenced?.opened[0]?.eventIndex ?? 0;
+      enqueueBatchSounds({ fresh: fresh.slice(0, firstAnnounced), viewerSeat, batchId, enqueue, playCue });
+      enqueueBatchSounds({
+        fresh: fresh.slice(firstAnnounced),
+        viewerSeat,
+        batchId,
+        enqueue: (step) => enqueue(afterGate(step, unitGate)),
+        playCue,
+      });
+    } else enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
     const now = Date.now();
     const deletedThisBatch = new Set(
       fresh.flatMap((event) =>
@@ -463,7 +541,7 @@ export function presentServerBatch({
     const batchAnnounceGate = announcesEffect ? createPresentationGate() : null;
     if (batchAnnounceGate) {
       pendingAnnounceGateRef.current = { batchId, gate: batchAnnounceGate, deleted: deletedThisBatch };
-      causingEffectGateRef.current = batchAnnounceGate;
+      causingEffectGateRef.current = unitGate ?? batchAnnounceGate;
     }
     for (const event of fresh) {
       const clause = costClauseFromEvent(event);
@@ -478,7 +556,7 @@ export function presentServerBatch({
       showcasePlays && !securityReveal && revealOnStageRef.current === null
         ? revealShowcasesFromEvents(fresh, viewerSeat, () => (revealShowcaseKeyRef.current += 1))
         : [];
-    const { announcement, opened, raised, panelAt, noticeAt } = collectBatchAnnouncements({
+    const collected = collectBatchAnnouncements({
       fresh,
       viewerSeat,
       state,
@@ -499,6 +577,32 @@ export function presentServerBatch({
       launchDeckToUnderFlight,
       setHeldDrawState,
     });
+    // A trigger that joined an earlier unit shares its "×N" clause. Each accepted physical
+    // source still focuses, so the viewer can see which copies paid their activation cost.
+    const groupedAt = new Set(sequenced?.grouped.map(({ eventIndex }) => eventIndex));
+    const { announcement, opened, panelAt } = collected;
+    const kept = collected.raised.flatMap((notice, index) =>
+      groupedAt.has(collected.noticeAt[index]!) ? [] : [{ notice, at: collected.noticeAt[index]! }],
+    );
+    const raised = kept.map(({ notice }) => notice);
+    const noticeAt = kept.map(({ at }) => at);
+    const resumed = sequenced?.resumed;
+    // A resumed effect lights its source again for its fresh beat: the prompt that covered
+    // the board is gone, and this is the card whose answer now plays out.
+    const relit: ServerEvent[] = resumed
+      ? [
+          {
+            kind: "effectTriggered",
+            seat: resumed.seat,
+            sourceCardId: resumed.sourceCardId,
+            effectKey: resumed.effectKey,
+            description: resumed.description,
+            ...(resumed.sourceInstanceId !== undefined ? { sourceInstanceId: resumed.sourceInstanceId } : {}),
+            ...(resumed.timing !== undefined ? { timing: resumed.timing } : {}),
+          },
+        ]
+      : [];
+    const lit = [...relit, ...fresh];
     const { arriving, showcased, zoneChanges, firstArrivalIndex, afterShowcaseNotices } = enqueueArrivals({
       fresh,
       viewerSeat,
@@ -516,13 +620,24 @@ export function presentServerBatch({
       setZoneShowcase,
       setPermanentBursts,
       arrivalHoldIds,
+      flyPlayedCard,
       releaseArrivalHoldsWhenIdle,
       narrate,
       enqueue,
+      ...(unitGate
+        ? {
+            effectResults: {
+              fromEventIndex: sequenced?.opened[0]?.eventIndex ?? 0,
+              afterAnnounced: (step: AnimationStep) =>
+                afterGate(step, unitGate, activePacing().announceMaxMs, "arrival/effectUnit"),
+            },
+          }
+        : {}),
       ...(pendingCostClause ? { costClause: pendingCostClause } : {}),
     });
     enqueueEffectSources({
-      fresh,
+      fresh: lit,
+      groupedTriggers: sequenced?.grouped.map(({ eventIndex }) => fresh[eventIndex]!) ?? [],
       usedOption,
       combatLeadInMs,
       cardSiteRef,
@@ -547,14 +662,17 @@ export function presentServerBatch({
       if (event.kind === "turnEnded") presentedTurnSeatRef.current = event.nextSeat;
       if (event.kind === "phaseChanged") presentedTurnSeatRef.current = event.turnSeat;
     }
-    enqueueMemoryHold({
-      fresh,
-      announceGate: batchAnnounceGate,
-      turnSeat: turnSeatBeforeBatch,
-      memoryHoldKeyRef,
-      setHeldMemory,
-      enqueue,
-    });
+    // A paced unit pins the complete snapshot through its announcement. A legacy gauge
+    // hold from a later queued unit would replace that snapshot's earlier memory value.
+    if (!unitGate)
+      enqueueMemoryHold({
+        fresh,
+        announceGate: batchAnnounceGate,
+        turnSeat: turnSeatBeforeBatch,
+        memoryHoldKeyRef,
+        setHeldMemory,
+        enqueue,
+      });
     if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
     if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
     // An On Play / When Digivolving notice reads as the consequence of the card
@@ -563,6 +681,24 @@ export function presentServerBatch({
     // the same events opened carry the other half of that consequence — the cards an
     // [On Play] reveal turned up — so they travel with the notices rather than
     // printing the result before the card that caused it has been seen.
+    if (sequenced) {
+      for (const [index, notice] of raised.entries()) {
+        const opener = sequenced.opened.find(({ eventIndex }) => eventIndex === noticeAt[index]);
+        if (opener && notice.body.variant === "effect") effectSequence.bindNotice(notice, opener.unit);
+      }
+      for (const { unit } of sequenced.grouped) {
+        const notice = effectSequence.noticeOf(unit) as MatchNotice | undefined;
+        if (notice?.body.variant === "effect") notice.body = { ...notice.body, count: unit.count };
+      }
+      const unitDeps = {
+        sequence: effectSequence,
+        queue,
+        batchOf,
+        decisionPending: () => decisionPendingRef.current,
+      };
+      if (sequenced.resumed) for (const step of resumedUnitSteps(sequenced.resumed, unitDeps)) enqueue(step);
+      for (const { unit } of sequenced.opened) for (const step of effectUnitSteps(unit, unitDeps)) enqueue(step);
+    }
     for (const item of [...raised, ...opened])
       heldOriginsRef.current.set(item, {
         batchId,
@@ -595,6 +731,7 @@ export function presentServerBatch({
       optionDockKeyRef,
       optionDockRef,
       decisionPendingRef,
+      decisionSourceCardIdRef,
       setOptionBranch,
       flyDockedOptionUnder,
       releaseTrashArrivalsThrough,
@@ -763,7 +900,7 @@ export function presentServerBatch({
     // Notice routing has now enqueued this batch's effect clauses. Wait for its
     // latest announcement: the first gate may open on a preceding granted effect
     // before EX7-061's reaction names the security loss.
-    causingEffectGate: effectAnnounceGateRef.current ?? causingEffectGateRef.current,
+    causingEffectGate: unitGate ?? effectAnnounceGateRef.current ?? causingEffectGateRef.current,
     enqueue,
   });
   const optionResolving = optionDockRef.current !== null && !optionDockRef.current.closed;
@@ -851,4 +988,21 @@ export function presentServerBatch({
       setPendingRevealKey(null);
     }
   }
+}
+
+/** Waiters use the announcement owner's ceiling, including a security reveal before the clause. */
+function afterGate(
+  step: AnimationStep,
+  gate: PresentationGate,
+  ceilingMs = activePacing().announceMaxMs,
+  label = "sound/effectUnit",
+): AnimationStep {
+  return {
+    ...step,
+    async run(context) {
+      await waitForGate(gate, context, ceilingMs, label);
+      if (context.cancelled) return;
+      await step.run(context);
+    },
+  };
 }

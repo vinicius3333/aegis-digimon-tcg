@@ -29,6 +29,7 @@ import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
 import { isUiPreviewPath } from "./prototype/routes";
+import { SEQUENTIAL_PACING_ENABLED } from "./features";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
@@ -42,6 +43,7 @@ const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => (
 const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
 const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m.BattleLab })));
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
+const EffectsLab = lazy(() => import("./dev/EffectsLab").then((m) => ({ default: m.EffectsLab })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
 const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
 const UiPreview = lazy(() => import("./prototype/UiPreview").then((m) => ({ default: m.UiPreview })));
@@ -51,6 +53,10 @@ const MobileComponentsLab = lazy(() =>
 
 export function isBoardShowcasePath(pathname: string): boolean {
   return /^\/dev\/board\/?$/i.test(pathname);
+}
+
+export function isEffectsLabPath(pathname: string): boolean {
+  return /^\/dev\/effects-lab\/?$/i.test(pathname);
 }
 
 export function isMobileComponentsLabPath(pathname: string): boolean {
@@ -118,6 +124,10 @@ export function App() {
         ) : /^\/dev\/arena\/?$/i.test(pathname) ? (
           <Stage>
             {new URLSearchParams(window.location.search).get("mode") === "visual" ? <ArenaDemo /> : <LiveArenaDemo />}
+          </Stage>
+        ) : isEffectsLabPath(pathname) ? (
+          <Stage>
+            <EffectsLab />
           </Stage>
         ) : isBoardShowcasePath(pathname) ? (
           <BoardShowcase />
@@ -466,6 +476,7 @@ export function AegisClient({
               waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
               botDeckId={botDeckId}
               betaBattleMode={betaBattleMode}
+              presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
               signedIn={!!account}
               onExit={navigateScreen}
               onRematch={(privateRoomCode) => {

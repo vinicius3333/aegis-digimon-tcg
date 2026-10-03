@@ -128,6 +128,7 @@ export function handleActivateEffect(engine: GameEngine, seat: Seat, intent: Act
       if (outcome.ok) {
         engine.hooks.emit({
           kind: "effectActivated",
+          receiptOnly: true,
           seat,
           sourceCardId: outcome.outcome.sourceCardId,
           effectKey: outcome.outcome.effectKey,

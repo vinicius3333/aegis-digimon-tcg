@@ -63,7 +63,8 @@ describe("EX1-047 Guardromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-047"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-047")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(false);

@@ -130,8 +130,14 @@ describe("<Retaliation> (Comprehensive Rules §16-13)", () => {
       const resolved = s.events.filter(
         (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT10-078",
       );
-      expect(resolved).toHaveLength(2);
-      expect(resolved[retaliationFirst ? 0 : 1]).toMatchObject({ effectKey: "keyword/retaliation" });
+      expect(resolved).toHaveLength(1);
+      expect(resolved[0]).toMatchObject({ effectKey: "keyword/retaliation" });
+      expect(
+        s.decisions.some(
+          ({ req }) =>
+            req.kind === "optional" && req.sourceCardId === "BT10-078" && req.options?.activationConfirmation === true,
+        ),
+      ).toBe(true);
       expect(s.state.players[0]!.battleArea).toHaveLength(0);
       expect(s.state.pendingDecision).toBeUndefined();
     },

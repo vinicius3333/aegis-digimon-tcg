@@ -5,6 +5,23 @@ import { dragIntentFor, type DragIntent, type DropTarget } from "../../dragInten
 import { DragKind } from "../enums";
 import type { DragState, DropZoneHit } from "../types";
 import { digivolveTargetsOf } from "./eligibility";
+import { canAttackWith } from "../../boardModel";
+
+/** A card can leave its slot only when at least one projected drop action is available. */
+export function canDragCard(input: { drag: DragState; you: PlayerState; handEntries: readonly HandEntry[] }): boolean {
+  const { drag, you, handEntries } = input;
+  if (drag.kind === DragKind.Attack) {
+    const attacker = you.battleArea.find((permanent) => permanent.permanentId === drag.permanentId);
+    return attacker?.topCard.cardId === drag.cardId && canAttackWith(attacker);
+  }
+  const held = { ...drag, started: true };
+  const targets: DropZoneHit[] = [
+    { target: "battle-you" },
+    { target: "breeding-you" },
+    ...you.battleArea.map((permanent) => ({ target: "perm-you" as const, id: permanent.permanentId })),
+  ];
+  return targets.some((hit) => dragIntentAt({ hit, drag: held, you, handEntries }) !== null);
+}
 
 /**
  * What releasing here would do, or null where the drop would be refused. Every
@@ -28,11 +45,14 @@ export function dragIntentAt(input: {
       attackable: hit.id !== undefined && attacker?.attackablePermanentIds.includes(hit.id) === true,
     });
   }
-  const definition = getCardDefinition(drag.cardId);
+  const entry = handEntries.find((card) => card.instanceId === drag.instanceId);
+  if (!entry || entry.cardId !== drag.cardId) return null;
+  const definition = getCardDefinition(entry.cardId);
   const held = {
     kind: DragKind.Play as const,
     isOption: definition?.kinds.includes(CardKind.Option) ?? false,
     isDigiEgg: definition?.kinds.includes(CardKind.DigiEgg) ?? false,
+    playable: entry.playableFromHand,
   };
   const base = hit.target === "perm-you" ? you.battleArea.find((p) => p.permanentId === hit.id) : undefined;
   const route = base
@@ -40,15 +60,10 @@ export function dragIntentAt(input: {
         drag.cardId,
         you.battleArea,
         digivolveTargetsOf({ handEntries, instanceId: drag.instanceId }).includes(hit.id ?? ""),
-        handEntries.find((entry) => entry.instanceId === drag.instanceId)?.dnaDigivolveRoutes,
+        entry.dnaDigivolveRoutes,
       )
     : undefined;
-  const appFusion = base
-    ? appFusionRoutesForHost(
-        handEntries.find((entry) => entry.instanceId === drag.instanceId)?.appFusionRoutes ?? [],
-        base,
-      ).length > 0
-    : false;
+  const appFusion = base ? appFusionRoutesForHost(entry.appFusionRoutes ?? [], base).length > 0 : false;
   return dragIntentFor({
     drag: held,
     target: hit.target,

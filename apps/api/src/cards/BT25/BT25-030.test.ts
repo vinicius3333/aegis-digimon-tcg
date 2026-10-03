@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_030 } from "./BT25-030.js";
 import "../index.js";
@@ -210,7 +210,8 @@ describe("BT25-030 Elecmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-030"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-030")).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);

@@ -1,17 +1,32 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
-import type { PresentationReport, Seat } from "@aegis/shared";
+import type { DecisionRequest, PresentationReport, Seat } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
-import { buildNarrationItems, COLLAPSED_NARRATION_LIMIT, pushNarrationItem, type NarrationItem } from "../../narration";
+import {
+  buildNarrationItems,
+  NARRATION_QUEUE_LIMIT,
+  isCardListNotice,
+  pushNarrationItem,
+  supersedeEffectClauses,
+  pauseNarration,
+  resumeNarration,
+  type NarrationItem,
+} from "../../narration";
 import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
 import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
+import type { PresentationPacing } from "../../presentationProbe";
+import { activePacing } from "../../pacing";
+import { announceMsFor, sequentialSourceHoldMs, type EffectSequence } from "../effectSequence";
 import type { OptionDockHold } from "../present/optionDock";
-import { presentableNarration, type OwnEffectDialog } from "./presentableNarration";
+import { presentableNarration } from "./presentableNarration";
+import { hasEarlierClauseResults } from "./targetClause";
+import type { ServerBatch } from "../../../net/serverBatches";
 import {
   CONSEQUENCE_GATE_MAX_MS,
+  QUEUED_GATE_MAX_MS,
   createPresentationGate,
   waitForGate,
   type DeletionReadyAt,
@@ -53,6 +68,10 @@ export interface NarrationStreamDeps {
   narrationPhaseOrdersRef: MutableRefObject<Map<string, number>>;
   completedPhaseOrderRef: MutableRefObject<number>;
   presentationReporterRef: MutableRefObject<((report: PresentationReport) => void) | undefined>;
+  /** How simultaneous effects are paced. */
+  presentationPacingRef: MutableRefObject<PresentationPacing>;
+  /** The effect units sequential pacing plays one at a time. */
+  effectSequence: EffectSequence;
   narrationSkipRef: MutableRefObject<boolean>;
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   /** The Option on screen; what the server did after routing it waits for the card to leave. */
@@ -70,7 +89,10 @@ export interface NarrationStreamDeps {
   setNarration: Dispatch<SetStateAction<ReadonlyMap<string, NarrationItem>>>;
   collapseNarrationRef: MutableRefObject<boolean>;
   narrationLimitRef: MutableRefObject<number>;
-  suppressedOwnEffectsRef: MutableRefObject<Map<string, OwnEffectDialog>>;
+  decisionPendingRef: MutableRefObject<boolean>;
+  targetDecisionRef: MutableRefObject<DecisionRequest | undefined>;
+  targetClausesRef: MutableRefObject<Map<string, () => void>>;
+  batchesRef: MutableRefObject<readonly ServerBatch[]>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   /** Held items a cue has already read out, so a second cue promised the same item skips it. */
@@ -97,6 +119,21 @@ function pendingStepIds(queue: AnimationQueue, predicate: (step: AnimationStep) 
 /** The revision of the batch whose clause armed each announcement gate. */
 const announceGateVersions = new WeakMap<PresentationGate, number>();
 
+/** A decision identifies the physical source and exact clause, never every copy of its card. */
+function waitsForTargets(
+  notice: MatchNotice | undefined,
+  decision: DecisionRequest | undefined,
+  viewerSeat: Seat,
+): boolean {
+  const body = notice?.body;
+  if (!decision || decision.seat !== viewerSeat || notice?.side !== "you" || body?.variant !== "effect") return false;
+  if (body.cardId !== decision.sourceCardId) return false;
+  if (decision.options?.effectKey && body.effectKey && body.effectKey !== decision.options.effectKey) return false;
+  if (decision.sourceInstanceId && body.sourceInstanceId !== decision.sourceInstanceId) return false;
+  if (decision.sourcePermanentId && body.sourcePermanentId !== decision.sourcePermanentId) return false;
+  return true;
+}
+
 export function narrationStream(deps: NarrationStreamDeps) {
   const {
     viewerSeat,
@@ -109,6 +146,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
     narrationPhaseOrdersRef,
     completedPhaseOrderRef,
     presentationReporterRef,
+    presentationPacingRef,
+    effectSequence,
     narrationSkipRef,
     deletionReadyAtRef,
     optionDockRef,
@@ -121,7 +160,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
-    suppressedOwnEffectsRef,
+    decisionPendingRef,
+    targetDecisionRef,
+    targetClausesRef,
+    batchesRef,
     heldNoticesRef,
     heldPanelsRef,
     readOutHeldRef,
@@ -184,23 +226,56 @@ export function narrationStream(deps: NarrationStreamDeps) {
     // clause out ahead of the [On Play] the next batch raised — so waiting on it deadlocks
     // until the ceiling.
     const latestAnnounceVersion = latestAnnounceGate ? announceGateVersions.get(latestAnnounceGate) : undefined;
+    // Sequential pacing: this clause is its unit's announcement, and the unit ahead of it has
+    // to settle before it is read. That order supersedes the latest-announcement wait.
+    const unit = presentationPacingRef.current === "sequential" ? effectSequence.unitOf(item.notice) : undefined;
+    // A later answer may replace the unit's announcement gate while this step is
+    // still finishing. This clause can release only the gate it was raised for.
+    const unitAnnouncement = unit?.announced;
     const causingEffectGate =
-      itemVersion !== undefined && latestAnnounceVersion !== undefined && latestAnnounceVersion > itemVersion
+      unit || (itemVersion !== undefined && latestAnnounceVersion !== undefined && latestAnnounceVersion > itemVersion)
         ? null
         : latestAnnounceGate;
     if (announceGate) {
       effectAnnounceGateRef.current = announceGate;
       if (itemVersion !== undefined) announceGateVersions.set(announceGate, itemVersion);
+      // What waits on this clause waits behind the effects ahead of its unit, so its ceiling
+      // only starts once the unit has started.
+      if (unit && !announceGate.after) announceGate.after = unit.started;
     }
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
-    const track =
+    const sharedTrack =
       opts?.beside || reactsToDeletion
         ? "narration"
         : (arrivalTrack ??
           (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack)
             ? precedingTrack
             : "narration"));
+    /* Sequential pacing: a unit's clause gets a track of its own. On a shared track it
+       would wait behind whatever queued there first, and under sequential pacing what
+       queued first is often a later effect: its clause, or a result waiting for that clause.
+       A security dock reads its card's clause only when it docks, after the server's later
+       batches have queued, so the earlier clause sat behind a later one that sat waiting on
+       the earlier effect, until a ceiling broke the cycle. The unit order already keeps
+       clauses in turn; the wait below keeps one behind its card's arrival. */
+    const ownTrack = unit !== undefined;
+    const track = ownTrack ? `effectClause-${unit.id}` : sharedTrack;
+    // The same permanent may evolve because of this very On Play. That future arrival
+    // waits for this clause, so waiting on its id alone creates a cycle. An originless
+    // physical arrival remains supported for legacy recipes; generic tracks need proof.
+    const noLaterThanClause = (step: AnimationStep) =>
+      step.origin?.stateVersion === undefined || itemVersion === undefined || step.origin.stateVersion <= itemVersion;
+    const arrivalAhead = (step: AnimationStep) =>
+      (initialSite?.zone === "field" &&
+        step.arrivingPermanentId === initialSite.permanentId &&
+        noLaterThanClause(step)) ||
+      (step.track === arrivalTrack &&
+        step.origin?.stateVersion !== undefined &&
+        // A generic centre-track item in the clause's own batch may be a result
+        // panel waiting for this announcement. Only an earlier batch proves a
+        // generic arrival; a same-batch physical landing names its permanent.
+        step.origin.stateVersion < (itemVersion ?? 0));
     const origin = {
       phaseOrder: heldOrigin?.phaseOrder ?? enqueuePhaseOrderRef.current,
       batchId: item.batchId,
@@ -228,10 +303,18 @@ export function narrationStream(deps: NarrationStreamDeps) {
         // Diagnostic transport must never interrupt the presentation.
       }
     }
+    if (unit) effectSequence.markClauseStep(`narration-step-${item.id}`);
     // A clause is read once the board shows what the clauses before it did. Without this, the
     // next Yoshino's clause lit up while the previous one's draw was still in the air.
     const earlierDrawFlights =
-      body?.variant === "effect" ? pendingStepIds(queue, isEffectDrawFlight) : new Set<string>();
+      body?.variant === "effect"
+        ? pendingStepIds(
+            queue,
+            (step) =>
+              isEffectDrawFlight(step) &&
+              (!unit || (step.origin?.stateVersion !== undefined && step.origin.stateVersion < (itemVersion ?? 0))),
+          )
+        : new Set<string>();
     queue.enqueue({
       id: `narration-step-${item.id}`,
       origin,
@@ -250,6 +333,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
           await runNarrationStep();
         } finally {
           announceGate?.release();
+          unitAnnouncement?.release();
           costClause?.focused.release();
           costClause?.read.release();
           if (activation && !linked) {
@@ -261,7 +345,16 @@ export function narrationStream(deps: NarrationStreamDeps) {
         async function runNarrationStep() {
           if (context.mode === "replay" || narrationSkipRef.current) return;
           await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "narration/causingEffect");
+          if (unit) await waitForGate(unit.started, context, QUEUED_GATE_MAX_MS, "narration/effectUnit");
           if (context.cancelled || narrationSkipRef.current) return;
+          if (ownTrack && arrivalTrack === sharedTrack)
+            while (
+              queue.hasPendingStep(arrivalAhead) &&
+              context.mode === "live" &&
+              !context.cancelled &&
+              !context.skipping
+            )
+              await context.wait(16);
           // What an earlier batch deleted breaks before this moment is read: an Option's
           // deletion before the [When Attacking] clause that follows it. The deleting batch's
           // own items are left alone, since its shatter may be waiting on one of them — except
@@ -287,7 +380,12 @@ export function narrationStream(deps: NarrationStreamDeps) {
           }
           if (onPlay && initialSite?.zone === "field") {
             while (
-              queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
+              queue.hasPendingStep(
+                (step) =>
+                  noLaterThanClause(step) &&
+                  (step.track === `burst-${initialSite.permanentId}` ||
+                    step.arrivingPermanentId === initialSite.permanentId),
+              ) &&
               context.mode === "live" &&
               !context.cancelled &&
               !context.skipping
@@ -316,7 +414,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
           } else if (context.mode === "live" && body?.variant === "effect") {
             // Let this batch register its deletion beats before locating the source.
             await Promise.resolve();
-            await waitForEarlierBeats(body.cardId, seat, earlierDrawFlights, context);
+            await waitForEarlierBeats(earlierDrawFlights, context);
             if (context.cancelled || narrationSkipRef.current) return;
             for (const deleted of item.notice?.afterDeletions ?? []) {
               const burst = deletionReadyAtRef.current.get(`${deleted.seat}:${deleted.cardId}`);
@@ -330,6 +428,9 @@ export function narrationStream(deps: NarrationStreamDeps) {
             );
             // A granted clause resolves on its recipient before that recipient is deleted.
             // Waiting for its own shatter would cycle with the deletion waiting for this toast.
+            // Under sequential pacing the same holds for any effect its card's deletion does not
+            // answer: that deletion is the effect's own result (an <Execute>), waiting on it.
+            const deletionIsCause = reactsToDeletion || /on.?deletion/i.test(body.timing ?? "");
             // So does any clause whose card a later batch deleted: BeelStarmon's [When
             // Attacking] reads before the security check that deletes it.
             const ownDeletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
@@ -339,7 +440,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
               ownDeletion.stateVersion > itemVersion;
             const shatter =
               deletedLater ||
-              (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? ""))
+              (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")) ||
+              (unit && !deletionIsCause)
                 ? undefined
                 : ownDeletion;
             if (shatter) {
@@ -364,37 +466,101 @@ export function narrationStream(deps: NarrationStreamDeps) {
               setEffectSources((sources) => [...sources, activation as EffectActivation]);
               reportShown(`effect-source-${activation.key}`, context);
               // The punch this card earns on its own, ahead of the clause it raised.
-              await context.wait(effectSourceHoldMs);
+              await context.wait(unit ? sequentialSourceHoldMs(effectSourceHoldMs, unit) : effectSourceHoldMs);
             }
           }
           if (context.cancelled || narrationSkipRef.current) return;
-          const shown = presentableNarration(item, {
-            collapseNarration: collapseNarrationRef.current,
-            suppressedOwnEffects: suppressedOwnEffectsRef.current,
-          });
-          if (!shown) return;
+          const shown = item;
+          /* Paced effects show one active clause at a time. A clause no unit owns (a resumed
+             effect's later choices, "activate 1 effect below") takes the screen the same way. */
+          const takesTheScreen = (published: NarrationItem) =>
+            unit !== undefined ||
+            (presentationPacingRef.current === "sequential" && published.notice?.body.variant === "effect");
+          const publishClause = (published: NarrationItem) => {
+            // A clause with an earlier draw, cost, or other result must still explain
+            // that result before a later target question in the same effect.
+            const question = targetDecisionRef.current;
+            if (
+              question &&
+              waitsForTargets(published.notice, question, viewerSeat) &&
+              !hasEarlierClauseResults(published, question, batchesRef.current)
+            ) {
+              effectSequence.deferClause(published.notice!);
+              targetClausesRef.current.set(published.id, () => {
+                if (publishClause(published)) {
+                  if (activation) {
+                    const source = { ...activation, linked: true };
+                    setEffectSources((sources) => [...sources.filter((active) => active.key !== source.key), source]);
+                  }
+                  reportShown(`narration-step-${item.id}`, context);
+                }
+              });
+              return false;
+            }
+            targetClausesRef.current.delete(published.id);
+            const now = Date.now();
+            const paused = decisionPendingRef.current;
+            const collapseNarration = collapseNarrationRef.current;
+            const fresh = presentableNarration(published, { collapseNarration, paused });
+            setNarration((items) => {
+              const current = paused ? pauseNarration(items, now) : resumeNarration(items, now);
+              const existing = current.get(published.id);
+              // Adding the cards half keeps the clock already earned by this occurrence.
+              const visible = existing
+                ? { ...fresh, createdAt: existing.createdAt, pausedAt: existing.pausedAt }
+                : fresh;
+              return pushNarrationItem(
+                takesTheScreen(published)
+                  ? supersedeEffectClauses(current, now, activePacing().clauseStackMs)
+                  : current,
+                visible,
+                collapseNarrationRef.current ? NARRATION_QUEUE_LIMIT : narrationLimitRef.current,
+                collapseNarrationRef.current,
+              );
+            });
+            effectSequence.showClause(published.notice);
+            return true;
+          };
           // Left, then right. A moment carrying both halves is a sentence and its result, so
           // the clause takes the screen first and the cards it moved follow a beat later.
           // The folded phone slot draws both halves in one item, so it is published whole.
+          const takesColumnSlot = shown.notice !== undefined && !isCardListNotice(shown.notice);
+          if (unit || (takesColumnSlot && effectSequence.pendingCount() > 0)) {
+            // A full column pushes its oldest clause out: not before that clause could be read.
+            const { clauseReadableMs, clauseStackMs } = activePacing();
+            const columnLimit = clauseStackMs > 0 ? narrationLimitRef.current : 1;
+            const floorWaitMs =
+              clauseReadableMs > 0 ? effectSequence.readableFloorWaitMs(Date.now(), columnLimit, clauseReadableMs) : 0;
+            if (floorWaitMs > 0) await context.wait(floorWaitMs);
+            if (context.cancelled || narrationSkipRef.current) return;
+            effectSequence.noteClauseShown(Date.now(), body?.variant === "effect" ? body.cardId : undefined);
+          }
           const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
           if (staggered) {
             const { panel: _panel, ...clauseOnly } = shown;
-            push(clauseOnly);
+            publishClause(clauseOnly);
             await context.wait(TIMINGS.narrationCardsLag);
             if (context.cancelled || narrationSkipRef.current) return;
           }
-          push(shown);
+          const published = publishClause(shown);
           if (itemVersion !== undefined) releaseTrashArrivalsThrough(itemVersion);
-          if (activation) {
+          if (activation && published) {
             const key = activation.key;
             linked = true;
             setEffectSources((sources) =>
               sources.map((source) => (source.key === key ? { ...source, linked: true } : source)),
             );
           }
-          announceGate?.release();
-          costClause?.read.release();
-          reportShown(`narration-step-${item.id}`, context);
+          if (!unit) announceGate?.release();
+          if (!unit) costClause?.read.release();
+          if (published) reportShown(`narration-step-${item.id}`, context);
+          if (unit) {
+            // Sequential pacing: nothing the effect did plays until its clause has been read.
+            await context.wait(announceMsFor(unit));
+            announceGate?.release();
+            unitAnnouncement?.release();
+            costClause?.read.release();
+          }
           // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
           // single moment, give every clause one readable beat before the next server event
           // can replace it; a column with room shows a batch together instead.
@@ -405,61 +571,21 @@ export function narrationStream(deps: NarrationStreamDeps) {
     if (announceGate) void queue.idle().then(() => announceGate.release());
   }
 
-  function push(published: NarrationItem) {
-    setNarration((items) =>
-      pushNarrationItem(
-        items,
-        published,
-        collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
-        collapseNarrationRef.current,
-      ),
-    );
+  /** Only newly raised clauses wait; an earlier occurrence is never removed for a question. */
+  function flushTargetClauses() {
+    for (const publish of [...targetClausesRef.current.values()]) publish();
   }
 
-  /**
-   * Waits until the board has caught up with the clauses before this one: the effect draws
-   * already in the air when it was raised, and the viewer's own clause for the same card that
-   * an answered dialog is about to hand back. That clause came first, so it reads first.
-   */
-  async function waitForEarlierBeats(
-    cardId: string,
-    seat: Seat,
-    earlierDrawFlights: ReadonlySet<string>,
-    context: AnimationStepContext,
-  ) {
-    const deadline = Date.now() + TIMINGS.ownEffectNoticeReturn + CONSEQUENCE_GATE_MAX_MS;
-    const answeredDialogPending = () =>
-      seat === viewerSeat && suppressedOwnEffectsRef.current.get(cardId)?.releaseTimer !== undefined;
+  /** A later clause waits for draws that were already in flight when it was raised. */
+  async function waitForEarlierBeats(earlierDrawFlights: ReadonlySet<string>, context: AnimationStepContext) {
+    const deadline = Date.now() + CONSEQUENCE_GATE_MAX_MS;
     while (
-      (queue.hasPendingStep((step) => earlierDrawFlights.has(step.id)) || answeredDialogPending()) &&
+      queue.hasPendingStep((step) => earlierDrawFlights.has(step.id)) &&
       Date.now() < deadline &&
       !context.cancelled &&
       !context.skipping
     )
       await context.wait(16);
-  }
-
-  /**
-   * Publishes notices at once, outside the queue. For a clause the viewer's own dialog
-   * already printed: its card was lit and read while the dialog was open, so it only needs
-   * its place in the column, ahead of anything raised after it.
-   */
-  function publishNow(notices: readonly MatchNotice[], batchId: string) {
-    if (notices.length === 0) return;
-    const items = buildNarrationItems({
-      batchId,
-      notices,
-      panels: [],
-      nowMs: Date.now(),
-      nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
-    });
-    for (const item of items) {
-      const shown = presentableNarration(item, {
-        collapseNarration: collapseNarrationRef.current,
-        suppressedOwnEffects: suppressedOwnEffectsRef.current,
-      });
-      if (shown) push(shown);
-    }
   }
 
   /**
@@ -535,8 +661,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
 
   return {
     enqueueNarrationItem,
+    flushTargetClauses,
     narrate,
-    publishNow,
     flushHeldNotices,
     openHeld,
     narrationBefore,

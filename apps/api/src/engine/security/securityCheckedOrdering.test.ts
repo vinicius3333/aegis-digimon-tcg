@@ -3,7 +3,7 @@ import { settle, setupEngine } from "../testkit/harness.js";
 import "../../cards/index.js";
 
 describe("securityChecked ordering around an attacker deleted by a Security Digimon", () => {
-  it("closes the check before the deleted attacker's [On Deletion] effect announces itself", async () => {
+  it("closes the check before asking to activate the deleted attacker's [On Deletion] effect", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "AD1-002", as: "attacker" }],
@@ -36,7 +36,17 @@ describe("securityChecked ordering around an attacker deleted by a Security Digi
 
     expect(movedIndex).toBeGreaterThanOrEqual(0);
     expect(checkedIndex).toBeGreaterThan(movedIndex);
-    expect(triggeredIndex).toBeGreaterThan(checkedIndex);
+    expect(triggeredIndex).toBe(-1);
+    const request = s.decisions.find(({ req }) => req.sourceCardId === "AD1-002")!.req;
+    expect(request.options).toMatchObject({ activationConfirmation: true, effectKey: expect.any(String) });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
 
     const checked = s.events[checkedIndex];
     expect(checked && checked.kind === "securityChecked" ? checked : undefined).toMatchObject({

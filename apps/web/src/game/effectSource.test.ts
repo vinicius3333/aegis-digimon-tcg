@@ -27,6 +27,10 @@ describe("effectActivationFromEvent", () => {
     expect(effectActivationFromEvent(activated, 1, nowhere)).toBeNull();
   });
 
+  it("does not focus a direct Main completion receipt after declining processing", () => {
+    expect(effectActivationFromEvent({ ...activated, receiptOnly: true }, 1, onField)).toBeNull();
+  });
+
   it("ignores every other event", () => {
     const resolved: ServerEvent = {
       kind: "effectResolved",
