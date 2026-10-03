@@ -301,6 +301,28 @@ describe("resolution plan chooser", () => {
       order: [keys.beelzemon, keys.creepymon, keys.sukamon],
     });
   });
+
+  it("Discord 1555741214014447737: counts identical earlier effects in one row", () => {
+    const yoshino =
+      "[Your Turn] When any of your opponent's Digimon or Tamers suspend, or effects trash cards from under this Tamer, by suspending this Tamer, 1 of your Digimon may digivolve into a [Vegetation], [Fairy] or [DATA SQUAD] trait Digimon card in the hand with the cost reduced by 1.";
+    const ravemon =
+      "[On Deletion] Your opponent trashes 1 card in their hand. Then, if their hand has 7 or fewer cards, you may place this card face up as the bottom security card.";
+    renderDecision({
+      ...planRequest,
+      options: {
+        ...planRequest.options,
+        waitingTriggerCardIds: ["BT26-091", "BT26-091", "BT26-091", "BT26-091", "BT26-091", "BT26-082"],
+        waitingTriggerDescriptions: [yoshino, yoshino, yoshino, yoshino, yoshino, ravemon],
+        waitingTriggerIsInherited: [false, false, false, false, false, false],
+      },
+    });
+
+    const waiting = screen.getByRole("region", { name: "Resolve after these" });
+    expect(within(waiting).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(waiting).getByText("×5")).toBeTruthy();
+    expect(within(waiting).getByText("Ravemon")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Resolve next effect" })).toBeTruthy();
+  });
 });
 
 it("uses authoritative trigger card ids for order-trigger labels and art", () => {

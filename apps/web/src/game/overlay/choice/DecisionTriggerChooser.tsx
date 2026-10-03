@@ -322,40 +322,58 @@ function onceActivatableIndexes(triggerKeys: readonly string[], clauses: readonl
 /**
  * Effects that triggered before the offered ones. The rules resolve every newer effect first
  * (CR §15-4-5-2/3), so without this list a player sees their earlier effects vanish from the
- * prompt and may think the game dropped them.
+ * prompt and may think the game dropped them. Identical entries collapse into one counted row:
+ * three Tamers watching the same event would otherwise repeat one long clause until the list
+ * crowds out the effects the player can actually choose.
  */
 function WaitingTriggerList({ entries, timing }: { entries: readonly WaitingTrigger[]; timing: string | undefined }) {
   const { t } = useTranslation();
+  const groups = groupWaitingTriggers(entries, timing);
   return (
     <section className="trigger-chooser__waiting" aria-label={t("overlay.waitingEffects")}>
       <div className="trigger-chooser__waiting-title">{t("overlay.waitingEffects")}</div>
       <p className="trigger-chooser__waiting-hint">{t("overlay.waitingEffectsHint")}</p>
       <ul className="trigger-chooser__waiting-list">
-        {entries.map((entry, index) => {
-          const clause =
-            playerFacingEffectClause({
-              cardId: entry.cardId,
-              timing,
-              description: entry.description,
-              isInherited: entry.isInherited,
-            }) ?? entry.description;
-          return (
-            <li key={`${entry.cardId}-${index}`} className="trigger-chooser__waiting-entry">
-              <CardFull cardId={entry.cardId} width={40} zoomOnHover={false} />
-              <span className="trigger-chooser__meta">
-                <span className="trigger-chooser__name">{getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId}</span>
-                {clause ? (
-                  <span className="trigger-chooser__effect-text">
-                    <EffectText text={clause} />
-                  </span>
-                ) : null}
+        {groups.map(({ cardId, clause, count }, index) => (
+          <li key={`${cardId}-${index}`} className="trigger-chooser__waiting-entry">
+            <CardFull cardId={cardId} width={40} zoomOnHover={false} />
+            <span className="trigger-chooser__meta">
+              <span className="trigger-chooser__name">
+                {getCardDefinition(cardId)?.nameEn ?? cardId}
+                {count > 1 ? <span className="trigger-chooser__waiting-count">×{count}</span> : null}
               </span>
-            </li>
-          );
-        })}
+              {clause ? (
+                <span className="trigger-chooser__effect-text">
+                  <EffectText text={clause} />
+                </span>
+              ) : null}
+            </span>
+          </li>
+        ))}
       </ul>
     </section>
   );
+}
+
+function groupWaitingTriggers(
+  entries: readonly WaitingTrigger[],
+  timing: string | undefined,
+): { cardId: string; clause: string | undefined; count: number }[] {
+  const groups = new Map<string, { cardId: string; clause: string | undefined; count: number }>();
+  for (const entry of entries) {
+    const clause =
+      playerFacingEffectClause({
+        cardId: entry.cardId,
+        timing,
+        description: entry.description,
+        isInherited: entry.isInherited,
+      }) ?? entry.description;
+    const key = `${entry.cardId}\u0000${clause ?? ""}`;
+    const group = groups.get(key);
+    if (group) group.count += 1;
+    else groups.set(key, { cardId: entry.cardId, clause, count: 1 });
+  }
+  return [...groups.values()];
 }
 
 /** Ask / Yes / No for the yes/no questions one pending effect will ask. */
