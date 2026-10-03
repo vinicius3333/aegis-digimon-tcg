@@ -613,27 +613,6 @@ describe("one narration band on a phone in portrait", () => {
   });
 });
 
-describe("the resolution strip on a phone in portrait", () => {
-  const stripCss = readFileSync(new URL("./resolutionStrip.css", import.meta.url), "utf8");
-  const stripSource = readFileSync(new URL("./ResolutionStrip.tsx", import.meta.url), "utf8");
-  const noticesCss = readFileSync(new URL("./style/desktopNotices.css", import.meta.url), "utf8");
-
-  it("folds into the narration band instead of covering it and the header", () => {
-    // The folded layout keeps only the spoken status, out of the layout.
-    expect(gameScreenSource).toMatch(/<ResolutionStrip[\s\S]*?folded=\{collapseNotices\}/);
-    expect(stripSource).toMatch(/if \(folded\)[\s\S]*?className="resolution-strip--folded"[\s\S]*?\{status\}/);
-    expect(stripSource).toMatch(/const status = \([\s\S]*?role="status" aria-live="polite"/);
-    expect(stripCss).toMatch(
-      /\.resolution-strip--folded \{[^}]*position:\s*fixed[^}]*width:\s*1px[^}]*height:\s*1px[^}]*clip:/,
-    );
-    // The count rides the band itself, which the phone already pins to the top.
-    expect(gameScreenSource).toMatch(
-      /chainProgress=\{\s*layout\.collapseNotices \? resolvingProgress\(cues\.resolutionStrip\.entries, promptSourceCardId\) : null\s*\}/,
-    );
-    expect(noticesCss).toMatch(/\.narration-peek__chain \{[^}]*flex:\s*none/);
-  });
-});
-
 describe("the board-mode rail becomes a bottom sheet on a phone in portrait", () => {
   it("anchors the prompt above the hand instead of over the field", () => {
     expect(phonePortraitRules).toMatch(

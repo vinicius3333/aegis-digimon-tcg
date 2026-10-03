@@ -100,8 +100,6 @@ import { buildInstanceIndex, instancePermanentId } from "./decisionModel";
 import { digivolveBasePermanentIds } from "./digivolveModel";
 import { buildMatchLog, type LogLine } from "./matchLog";
 import { useMatchCues } from "./useMatchCues";
-import { ResolutionStrip } from "./ResolutionStrip";
-import { ownPlanEntries } from "./resolutionChain";
 import type { PresentationPacing, PresentationProbe } from "./presentationProbe";
 import { TIMINGS } from "./timings";
 import { pendingFateBadges } from "./pendingFate";
@@ -700,10 +698,6 @@ export function GameScreen({
     setOptimisticPlayedInstanceId,
     selection,
     overlays: overlayControls,
-    onDecisionAnswered: (answered, response) => {
-      if (answered.kind === "orderTriggers" && response.kind === "orderTriggers")
-        cues.recordOwnResolutionPlan(ownPlanEntries(answered.options, response.order));
-    },
   });
   const { dispatchPlayCard, playCard, linkCard, attack, digivolveWithChoice } = matchSenders;
 
@@ -1330,16 +1324,7 @@ export function GameScreen({
       senders={matchSenders}
       drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}
       breedingDock={yourBreedingDock}
-      overlayStack={
-        presentationPacing === "sequential" ? (
-          <>
-            {overlays}
-            <ResolutionStrip entries={cues.resolutionStrip.entries} folded={collapseNotices} />
-          </>
-        ) : (
-          overlays
-        )
-      }
+      overlayStack={overlays}
       stageEl={stageEl}
       onStartHandDrag={(index, event) => startHandDrag(index, shownHandEntries[index], event)}
       onStartPermanentDrag={startPermDrag}

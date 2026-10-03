@@ -24,7 +24,6 @@ describe("pacing config", () => {
     for (const knob of SPEED_SCALED_KNOBS) expect(fast[knob]).toBe(Math.round(DEFAULT_PACING[knob] * 0.5));
     expect(fast.announceMaxMs).toBe(DEFAULT_PACING.announceMaxMs);
     expect(fast.budgetCeilingMs).toBe(DEFAULT_PACING.budgetCeilingMs);
-    expect(fast.minChainLength).toBe(DEFAULT_PACING.minChainLength);
   });
 
   it("applies the Effect speed on top of the base config and remembers it", () => {

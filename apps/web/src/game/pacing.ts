@@ -27,11 +27,9 @@ export interface PacingConfig {
   unitBudgetMs: number;
   /** The most any stretched budget may grow to (ms). */
   budgetCeilingMs: number;
-  /** The fewest effects a chain needs before the resolution strip shows (count). */
-  minChainLength: number;
   /**
    * How long an effect's clause stays on screen, counted from when it appeared, once the next
-   * effect's clause takes its place: it stays dimmed under the new one (ms). 0 takes it off
+   * effect's clause takes its place: it stays in the recent stack (ms). 0 takes it off
    * at once.
    */
   clauseStackMs: number;
@@ -63,7 +61,7 @@ export type PacingKnob = keyof PacingConfig;
  * How the clauses of a chain share the screen.
  *
  * - `sequential`: one clause at a time, each read alone for a long beat.
- * - `stacked`: a short beat per effect, and the recent clauses stay visible, dimmed, in a
+ * - `stacked`: a short beat per effect, and the recent clauses stay visible in a
  *   compact stack under the one resolving now, so a clause can still be read after its beat.
  */
 export type PacingStyle = "sequential" | "stacked";
@@ -80,7 +78,6 @@ const SEQUENTIAL_PACING: PacingConfig = {
   resultsMaxMs: 6000,
   unitBudgetMs: 2500,
   budgetCeilingMs: 20000,
-  minChainLength: 2,
   clauseStackMs: 0,
   shortSourceHoldMs: 720,
   repeatShortBeats: 0,

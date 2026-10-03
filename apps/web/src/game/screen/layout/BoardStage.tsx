@@ -16,7 +16,6 @@ import { SurrenderDialog } from "./SurrenderDialog";
 import { useTranslation } from "../../../i18n";
 import { CardOpenerProvider } from "../../cardLinks";
 import { NarrationStack } from "../../NarrationStack";
-import { resolvingProgress } from "../../resolutionChain";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
 import { TargetingSpotlight } from "../../TargetingSpotlight";
 import { EffectFocus } from "../../EffectFocus";
@@ -280,9 +279,6 @@ export function BoardStage({
               narration={cues.narration}
               rejection={cues.rejection}
               compact={layout.collapseNotices}
-              chainProgress={
-                layout.collapseNotices ? resolvingProgress(cues.resolutionStrip.entries, promptSourceCardId) : null
-              }
               promptSourceCardId={promptSourceCardId}
               securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
               onAdvance={cues.advanceNarration}

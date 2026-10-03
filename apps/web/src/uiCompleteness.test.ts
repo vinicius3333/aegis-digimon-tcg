@@ -86,9 +86,8 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
   // resolving; the log narrates the same effect once it resolves (effectResolved).
   effectTriggered: "shown as the effect notice; the log line belongs to effectResolved",
   effectOptionChosen: "shown as the effect notice naming the chosen bullet; the log records effectResolved",
-  // Orders effects that each narrate themselves as they resolve; the order itself feeds the
-  // resolution strip (ResolutionStrip.tsx) and would only restate those lines in advance.
-  resolutionOrderChosen: "feeds the resolution strip; every effect it orders is narrated as it resolves",
+  // Every accepted effect is narrated when it resolves; the chosen order adds no separate notice.
+  resolutionOrderChosen: "every effect it orders is narrated as it resolves",
   // Opens the centre-stage check: the shield breaks and the card is turned face up. The
   // log line belongs to `securityChecked`, which names the same card AND what it did.
   securityRevealed: "played as the shield break and the reveal; the log line is securityChecked",

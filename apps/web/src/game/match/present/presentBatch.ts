@@ -73,13 +73,7 @@ import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
 import { refreshSecurityAttacker } from "./securityAttackerRefresh";
-import {
-  effectUnitSteps,
-  resumedUnitSteps,
-  type EffectSequence,
-  type EffectUnitStepsDeps,
-  type ObservedBatch,
-} from "../effectSequence";
+import { effectUnitSteps, resumedUnitSteps, type EffectSequence, type ObservedBatch } from "../effectSequence";
 import {
   createPresentationGate,
   waitForGate,
@@ -127,7 +121,6 @@ export function presentServerBatch({
   presentationPacingRef,
   effectSequence,
   batchOf,
-  effectUnitHooks,
   viewerSeat,
   state,
   snapshots,
@@ -239,7 +232,6 @@ export function presentServerBatch({
   effectSequence: EffectSequence;
   /** The server batch a queued step belongs to, however it was enqueued. */
   batchOf: (step: AnimationStep) => string | undefined;
-  effectUnitHooks: Pick<EffectUnitStepsDeps, "onStarted" | "onSettled">;
   viewerSeat: Seat;
   state: GameState | undefined;
   /** The boards the presentation has passed through, newest last. */
@@ -703,7 +695,6 @@ export function presentServerBatch({
         queue,
         batchOf,
         decisionPending: () => decisionPendingRef.current,
-        ...effectUnitHooks,
       };
       if (sequenced.resumed) for (const step of resumedUnitSteps(sequenced.resumed, unitDeps)) enqueue(step);
       for (const { unit } of sequenced.opened) for (const step of effectUnitSteps(unit, unitDeps)) enqueue(step);

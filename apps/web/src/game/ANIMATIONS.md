@@ -40,11 +40,12 @@ physical source and resolving effect key, so another copy's question does not re
 earlier toast. Returning a clause preserves its occurrence ID. Desktop decision rails and
 side dialogs reserve a separate lane for the stack; the mobile band counts all retained
 effects and keeps their remaining reading time when opened during a long decision.
+Tall pointer layouts reserve space for two complete notices above an open decision.
 The effects lab always uses the match's stacked timing. It ignores obsolete saved tuning;
 its speed controls scale playback or Effect speed without switching the pacing style.
 Recent toast columns retain up to six moments and scroll within their bounded height.
 The edge buttons reveal notices above or below; arriving effects follow the newest only
-while the viewer stays at the bottom. The resolution strip leaves when a chain settles.
+while the viewer stays at the bottom. Toasts retain full opacity throughout the chain. Resolution progress strips and counters are omitted.
 At Normal, stacked effects keep the 720 ms source focus, announce for 200 ms before results,
 and rest for 100 ms afterwards. This brings a common field effect's lead-in near DCGO's
 0.9 s while leaving card travel, particles, Security scenes and toast lifetimes intact.

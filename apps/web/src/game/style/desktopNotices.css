@@ -339,15 +339,35 @@
     max-height: min(24rem, calc(100dvh - 26rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
   }
 
-  .aegis-stage:has(.board-prompt, .decision-overlay--side) .narration-slot[data-slot="narration-text"] {
-    top: calc(15rem + env(safe-area-inset-top, 0px));
-    max-height: 10.25rem;
-  }
-
   .aegis-stage .decision-overlay.decision-overlay--side {
     top: auto;
     bottom: calc(11.75rem + env(safe-area-inset-bottom, 0px));
     max-height: calc(100% - 37.5rem);
+  }
+}
+
+/* A tall board keeps room for two complete effect notices beside an open decision.
+   The column starts below the header; the decision stays below that reading lane. */
+@media (width >= 768px) and (height >= 760px) {
+  .aegis-stage:has(.board-prompt, .decision-overlay--side) .narration-slot[data-slot="narration-text"] {
+    top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    max-height: 24rem;
+  }
+
+  .aegis-stage .board-prompt,
+  .aegis-stage .decision-overlay.decision-overlay--side {
+    --decision-dock-clearance: 8rem;
+
+    bottom: calc(var(--decision-dock-clearance) + env(safe-area-inset-bottom, 0px));
+    max-height: calc(
+      100% - 29.5rem - var(--decision-dock-clearance) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    );
+  }
+
+  /* Hand picks keep the entire tray available, including its inspection controls.
+     Portalled rails do not inherit the board's portrait hand-height variable. */
+  .aegis-stage .board-prompt[data-variant="selection"] {
+    --decision-dock-clearance: max(12.5rem, var(--arena-hand-height, 0px));
   }
 }
 
@@ -589,9 +609,7 @@
   color: rgb(232 219 202);
 }
 
-/* Which effect of a paced chain is resolving, "3/6", ahead of the clause line: the phone's
-   stand-in for the resolution strip, which has no free spot on that board. Outlined, so it
-   does not read as the queued count. */
+/* The compact band's clause line keeps the effect preview within the available width. */
 .narration-peek__detail {
   display: flex;
   min-width: 0;
@@ -602,18 +620,6 @@
 .narration-peek__detail > .narration-peek__clause {
   min-width: 0;
   flex: 1 1 auto;
-}
-
-.narration-peek__chain {
-  flex: none;
-  padding: 0 0.35rem;
-  line-height: 1.25;
-  border: 1px solid rgb(var(--narration-peek-rgb) / 60%);
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--narration-peek-ink);
 }
 
 /* How much is queued behind this one, so a folded band never hides that more is running.

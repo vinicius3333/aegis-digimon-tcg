@@ -29,7 +29,7 @@ export interface NarrationItem {
   pausedAt?: number;
   /** Overrides the reading time the item's halves would earn. Set where the layout reads slower. */
   lifetimeMs?: number;
-  /** A later effect's clause has taken the screen: this one stays, dimmed, until its clock ends. */
+  /** A later effect's clause has taken the screen: this one stays in the recent stack until its clock ends. */
   superseded?: boolean;
   panel?: SidePanel;
   notice?: MatchNotice;
@@ -217,7 +217,7 @@ export const STACKED_CLAUSE_LIMIT = NARRATION_QUEUE_LIMIT - 1;
 /**
  * The presented items once a new effect clause is about to take the screen. Paced effects
  * show one clause at a time, so every earlier clause steps aside: with no `stackMs` it goes
- * at once; otherwise it stays, dimmed, until `stackMs` after it appeared, and only the newest
+ * at once; otherwise it stays in the recent stack until `stackMs` after it appeared, and only the newest
  * {@link STACKED_CLAUSE_LIMIT} stay.
  */
 export function supersedeEffectClauses(

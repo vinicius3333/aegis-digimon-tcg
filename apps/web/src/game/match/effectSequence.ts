@@ -87,7 +87,7 @@ export interface UnitBeats {
  * The beats one effect gets. A minor effect, and an opponent's effect repeating card text the
  * chain already showed, take the short beats. Late effects shorten clause and settle beats
  * at `chainTailPercent`, preserving the time to find their physical source. Their clauses
- * stay readable after their beats in the dimmed stack.
+ * stay readable after their beats in the recent stack.
  */
 export function unitBeats(unit: BeatFacts, pacing = activePacing()): UnitBeats {
   const minor = isMinorEffect(unit);

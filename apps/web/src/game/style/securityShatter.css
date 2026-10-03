@@ -297,16 +297,6 @@
   overflow-y: visible;
 }
 
-/* A clause a later effect's clause has replaced stays readable, a step back, so the one
-   resolving now is the one that stands out. */
-.narration-item[data-superseded] {
-  opacity: 0.5;
-  filter: saturate(0.6);
-  transition:
-    opacity 200ms ease-out,
-    filter 200ms ease-out;
-}
-
 .narration-item > .side-panel-stack,
 .narration-item > .match-notice-stack {
   flex-shrink: 0;

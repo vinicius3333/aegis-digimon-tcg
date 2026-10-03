@@ -143,10 +143,12 @@ function NarrationSpecimen({
   items,
   rejection = null,
   expand = false,
+  decision,
 }: {
   items: NarrationItem[];
   rejection?: MatchNotice | null;
   expand?: boolean;
+  decision?: DecisionRequest;
 }) {
   const layout = useArenaLayout();
   const root = useRef<HTMLDivElement>(null);
@@ -156,7 +158,7 @@ function NarrationSpecimen({
     if (expand) root.current?.querySelector<HTMLButtonElement>(".narration-peek")?.click();
   }, [expand]);
   return (
-    <div ref={root} className="mobile-lab-fill">
+    <div ref={root} className={`mobile-lab-fill${decision ? " aegis-stage" : ""}`}>
       <NarrationStack
         narration={narration}
         rejection={rejection}
@@ -164,6 +166,15 @@ function NarrationSpecimen({
         onAdvance={noop}
         onDismissRejection={noop}
       />
+      {decision ? (
+        <BoardOptionalPrompt
+          sourceCardId={decision.sourceCardId}
+          clause={decision.options?.effectText}
+          onUse={noop}
+          onDecline={noop}
+          onOpenDialog={noop}
+        />
+      ) : null}
     </div>
   );
 }
@@ -210,7 +221,12 @@ function DockSpecimen({
 }: {
   cards: HandEntry[];
   selectedInstanceId?: string;
-  selection?: { selectable: readonly string[]; picked: readonly string[] };
+  selection?: {
+    selectable: readonly string[];
+    picked: readonly string[];
+    onToggle?: (instanceId: string) => void;
+    onInspect?: (instanceId: string) => void;
+  };
   children?: ReactNode;
 }) {
   const layout = useArenaLayout();
@@ -232,8 +248,8 @@ function DockSpecimen({
             ? {
                 selectableInstanceIds: selection.selectable,
                 pickedInstanceIds: selection.picked,
-                onToggle: noop,
-                onInspect: noop,
+                onToggle: selection.onToggle ?? noop,
+                onInspect: selection.onInspect ?? noop,
               }
             : undefined
         }
@@ -246,6 +262,45 @@ function DockSpecimen({
         selectCard={noop}
         onHoverChange={noop}
       />
+    </>
+  );
+}
+
+function NarrationHandSelectionSpecimen({ locale }: { locale: Locale }) {
+  const request = selectDecision(locale);
+  const [picks, setPicks] = useState<string[]>([]);
+  const [inspectedCard, setInspectedCard] = useState<string>();
+  return (
+    <>
+      <div className="game-opponent-bar" aria-hidden />
+      <DockSpecimen
+        cards={FULL_HAND}
+        selection={{
+          selectable: FULL_HAND.map((card) => card.instanceId),
+          picked: picks,
+          onToggle: (instanceId) =>
+            setPicks((current) =>
+              current.includes(instanceId)
+                ? current.filter((id) => id !== instanceId)
+                : [...current, instanceId].slice(-2),
+            ),
+          onInspect: (instanceId) => setInspectedCard(FULL_HAND.find((card) => card.instanceId === instanceId)?.cardId),
+        }}
+      >
+        <NarrationSpecimen items={queuedNarration()} />
+        <BoardSelectionRail
+          sourceCardId={request.sourceCardId}
+          prompt={request.promptText}
+          min={0}
+          max={2}
+          pickCount={picks.length}
+          canConfirm={picks.length > 0}
+          onConfirm={noop}
+          onNoSelection={noop}
+          onOpenDialog={noop}
+        />
+      </DockSpecimen>
+      {inspectedCard ? <CardZoomOverlay cardId={inspectedCard} onClose={() => setInspectedCard(undefined)} /> : null}
     </>
   );
 }
@@ -408,6 +463,20 @@ export const SPECIMENS: readonly Specimen[] = [
     title: "Narration column, expanded",
     surface: "board",
     render: () => <NarrationSpecimen items={queuedNarration()} expand />,
+  },
+  {
+    id: "narration-decision",
+    group: "Narration",
+    title: "Two complete toasts beside a decision",
+    surface: "board",
+    render: (locale) => <NarrationSpecimen items={queuedNarration()} decision={optionalDecision(locale)} />,
+  },
+  {
+    id: "narration-hand-selection",
+    group: "Narration",
+    title: "Two complete toasts above a selectable hand",
+    surface: "board",
+    render: (locale) => <NarrationHandSelectionSpecimen locale={locale} />,
   },
   {
     id: "narration-rejection",
@@ -681,27 +750,25 @@ export const SPECIMENS: readonly Specimen[] = [
     surface: "board",
     render: () => <BoardAlliancePrompt attackerCardId="BT22-052" onPass={noop} />,
   },
-  ...(["BT22-052", "EX5-030"] as const).map(
-    (cardId): Specimen => ({
-      id: `hand-inspector-${cardId}`,
-      group: "Overlays",
-      title: `Hand card inspector: ${cardId}`,
-      surface: "board",
-      render: () => (
-        <HandCardPreview
-          arenaInspection={{ side: Side.Viewer, container: null }}
-          cardId={cardId}
-          activatableEffects={[]}
-          canPlay
-          canDigivolve
-          onPlay={noop}
-          onActivateEffect={noop}
-          onChooseBase={noop}
-          onCancel={noop}
-        />
-      ),
-    }),
-  ),
+  ...(["BT22-052", "EX5-030"] as const).map((cardId): Specimen => ({
+    id: `hand-inspector-${cardId}`,
+    group: "Overlays",
+    title: `Hand card inspector: ${cardId}`,
+    surface: "board",
+    render: () => (
+      <HandCardPreview
+        arenaInspection={{ side: Side.Viewer, container: null }}
+        cardId={cardId}
+        activatableEffects={[]}
+        canPlay
+        canDigivolve
+        onPlay={noop}
+        onActivateEffect={noop}
+        onChooseBase={noop}
+        onCancel={noop}
+      />
+    ),
+  })),
   {
     id: "alliance-flow",
     group: "Overlays",

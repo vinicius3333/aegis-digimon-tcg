@@ -38,8 +38,7 @@ import { useDrawWatcher } from "./match/watchers/useDrawWatcher";
 import { useRestrictionPulses } from "./match/watchers/useRestrictionPulses";
 import { useSecurityCountWatcher } from "./match/watchers/useSecurityCountWatcher";
 import { narrationStream } from "./match/narration/narrationStream";
-import { createEffectSequence, type EffectUnit } from "./match/effectSequence";
-import { emptyResolutionStrip, resolutionStripReducer } from "./resolutionChain";
+import { createEffectSequence } from "./match/effectSequence";
 import type {
   AttackLunge,
   DeleteBurst,
@@ -68,7 +67,7 @@ export type {
 } from "./match/types";
 export { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import {
   type GameState,
@@ -76,7 +75,6 @@ import {
   type SequencedServerEvent,
   type ServerEvent,
   type PresentationReport,
-  type ResolutionOrderEntry,
   type DecisionRequest,
 } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
@@ -260,7 +258,6 @@ export function useMatchCues({
   const viewerSeatRef = useRef(viewerSeat);
   viewerSeatRef.current = viewerSeat;
   const effectSequence = useMemo(() => createEffectSequence({ viewerSeat: () => viewerSeatRef.current }), []);
-  const [resolutionStrip, dispatchResolutionStrip] = useReducer(resolutionStripReducer, emptyResolutionStrip);
   const batchOf = (step: AnimationStep) => step.origin?.batchId ?? stepBatchesRef.current.get(step)?.batchId;
   const queue = useMemo(() => {
     const inner = createAnimationQueue({
@@ -868,30 +865,6 @@ export function useMatchCues({
   }
 
   /**
-   * The chain ends once the screen has caught up with no effect left to play and no question
-   * holding the server: the strip leaves then.
-   */
-  function endChainWhenSettled() {
-    if (effectSequence.pendingCount() > 0) return;
-    void queue.idle().then(() => {
-      if (effectSequence.pendingCount() > 0 || decisionPendingRef.current) return;
-      dispatchResolutionStrip({ type: "settled" });
-    });
-  }
-  const effectUnitHooks = {
-    onStarted: (unit: EffectUnit) =>
-      dispatchResolutionStrip({
-        type: "announced",
-        seat: unit.seat,
-        sourceCardId: unit.sourceCardId,
-        ...(unit.timing !== undefined ? { timing: unit.timing } : {}),
-        description: unit.description,
-        ...(unit.count > 1 ? { count: unit.count } : {}),
-      }),
-    onSettled: endChainWhenSettled,
-  };
-
-  /**
    * Present one server batch. The pass itself lives in `match/present/presentBatch.ts`;
    * this wrapper is where the refs, setters and collaborators it reads are named. They are
    * gathered at call time rather than at render time, because the flight launchers below
@@ -916,7 +889,6 @@ export function useMatchCues({
       presentationPacingRef,
       effectSequence,
       batchOf,
-      effectUnitHooks,
       viewerSeat,
       state,
       snapshots: snapshots ?? [],
@@ -1072,10 +1044,6 @@ export function useMatchCues({
         // Diagnostic transport must never interrupt the presentation.
       }
       enqueuePhaseOrderRef.current = phaseOrderFor(batch.events);
-      if (presentationPacingRef.current === "sequential" && !replayingHistory)
-        for (const event of batch.events)
-          if (event.kind === "resolutionOrderChosen")
-            dispatchResolutionStrip({ type: "planned", seat: event.seat, source: "server", entries: event.entries });
       presentBatch(batch.id, batch.stateVersion, batch.events, replayingHistory);
       effectSequence.noteVersion(batch.stateVersion);
       if (!replayingHistory) {
@@ -1148,12 +1116,6 @@ export function useMatchCues({
   useEffect(() => {
     if (presentationPacingRef.current === "sequential") effectSequence.noteQuestion(askingCardId);
   }, [askingCardId, effectSequence]);
-
-  // A question that held a chain open lets it end once answered and played out.
-  useEffect(() => {
-    if (!decisionPending && resolutionStrip.entries !== null) endChainWhenSettled();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [decisionPending, resolutionStrip.entries === null]);
 
   useDecisionBarrier({
     pendingEffectUnits: () => effectSequence.pendingCount(),
@@ -1379,14 +1341,6 @@ export function useMatchCues({
   }
   fastForwardRef.current = fastForward;
 
-  const recordOwnResolutionPlan = useCallback(
-    (entries: readonly ResolutionOrderEntry[]) => {
-      if (presentationPacingRef.current !== "sequential" || entries.length === 0) return;
-      dispatchResolutionStrip({ type: "planned", seat: viewerSeat, source: "own", entries });
-    },
-    [viewerSeat],
-  );
-
   // Refusals expire independently of the recent effect records.
   useEffect(() => {
     if (!rejection) return;
@@ -1453,7 +1407,5 @@ export function useMatchCues({
     drawBursts,
     playCue,
     skipAnimations: fastForward,
-    resolutionStrip,
-    recordOwnResolutionPlan,
   };
 }

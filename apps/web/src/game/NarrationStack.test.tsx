@@ -273,29 +273,6 @@ it("replaces the folded band per moment and runs its clock from that moment", ()
   expect(container.querySelector(".narration-peek__more")?.textContent).toBe("+1");
 });
 
-/* A phone has no free spot for the resolution strip, so the folded band carries its count. */
-it("puts the chain's position on the folded band's clause line", () => {
-  const view = (chainProgress: { position: number; total: number } | null) => (
-    <I18nProvider>
-      <NarrationStack
-        narration={new Map([["one", item("one")]])}
-        compact
-        chainProgress={chainProgress}
-        nowMs={0}
-        rejection={null}
-        onAdvance={() => {}}
-        onDismissRejection={() => {}}
-      />
-    </I18nProvider>
-  );
-  const { container, rerender } = render(view({ position: 3, total: 6 }));
-  const counter = container.querySelector(".narration-peek__detail > .narration-peek__chain");
-  expect(counter?.textContent).toBe("3/6");
-  expect(counter?.getAttribute("aria-hidden")).toBe("true");
-  rerender(view(null));
-  expect(container.querySelector(".narration-peek__chain")).toBeNull();
-});
-
 it("keeps the folded band naming accepted effects and counting the whole stack during a decision", () => {
   const clause = (id: string, cardId: string): NarrationItem => ({
     id,
@@ -315,7 +292,6 @@ it("keeps the folded band naming accepted effects and counting the whole stack d
       <NarrationStack
         narration={new Map(items.map((entry) => [entry.id, entry]))}
         compact
-        chainProgress={{ position: 6, total: 6 }}
         promptSourceCardId={promptSourceCardId}
         nowMs={0}
         rejection={null}
@@ -336,7 +312,6 @@ it("keeps the folded band naming accepted effects and counting the whole stack d
   rerender(view([earlier], "BT20-091"));
   expect(named()).toBe(earlierName);
   expect(clauseLine()).not.toBeNull();
-  expect(band()?.querySelector(".narration-peek__chain")?.textContent).toBe("6/6");
   expect(band()?.querySelector(".narration-peek__more")).toBeNull();
   expect(band()?.querySelector(".narration-peek__art")).not.toBeNull();
   const promptName = named();

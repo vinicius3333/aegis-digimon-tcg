@@ -22,7 +22,6 @@ import {
   type NarrationSlot,
 } from "./narration";
 import { noticeRemaining, type MatchNotice } from "./notices";
-import type { ChainProgress } from "./resolutionChain";
 
 /** The art on the folded band: enough to recognise the card, not enough to read it. */
 const PEEK_ART_WIDTH = 34;
@@ -306,14 +305,12 @@ function PeekLine({
   items,
   label,
   nowMs,
-  chainProgress,
   onOpen,
   onDismiss,
 }: {
   items: readonly NarrationItem[];
   label: string;
   nowMs: number;
-  chainProgress: ChainProgress | null;
   onOpen: () => void;
   /** Swiping the band sideways clears every moment it stands for, like a phone notification. */
   onDismiss: () => void;
@@ -353,18 +350,10 @@ function PeekLine({
           <span className="narration-peek__label">{summary.label}</span>
           {summary.name ? <span className="narration-peek__name">{summary.name}</span> : null}
         </span>
-        {summary.clause || chainProgress ? (
+        {summary.clause ? (
           <span className="narration-peek__detail">
-            {/* The phone has no room for the resolution strip, so the band carries its count,
-                on this line so the card name above keeps its width. The strip still speaks the
-                full position for screen readers. */}
-            {chainProgress ? (
-              <span className="narration-peek__chain" aria-hidden="true">
-                {chainProgress.position}/{chainProgress.total}
-              </span>
-            ) : null}
             {/* One line of the clause: enough to know whether this is worth opening. */}
-            {summary.clause ? <span className="narration-peek__clause">{summary.clause}</span> : null}
+            <span className="narration-peek__clause">{summary.clause}</span>
           </span>
         ) : null}
       </span>
@@ -398,7 +387,6 @@ export function NarrationStack({
   rejection,
   nowMs,
   compact = false,
-  chainProgress = null,
   promptSourceCardId,
   securityDockActive = false,
   onAdvance,
@@ -412,8 +400,6 @@ export function NarrationStack({
   nowMs?: number;
   /** The portrait phone folds both sides into one centred slot. */
   compact?: boolean;
-  /** Which effect of a paced chain is resolving; the folded band shows it in place of the strip. */
-  chainProgress?: ChainProgress | null;
   /**
    * The card whose effect the viewer's open decision is about. Marks its notices while
    * keeping all previously accepted effects in the stack.
@@ -493,7 +479,6 @@ export function NarrationStack({
             items={textItems}
             label={t("notice.expand")}
             nowMs={now}
-            chainProgress={chainProgress}
             onOpen={() => setExpanded(true)}
             onDismiss={() => textItems.forEach((item) => onAdvance(item.id))}
           />

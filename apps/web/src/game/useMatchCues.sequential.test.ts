@@ -298,17 +298,6 @@ describe("sequential pacing plays one effect at a time", () => {
     await advance(3000);
     expect(view.result.current.decisionAnimationsPending).toBe(false);
   });
-
-  it("clears the chain once both effects have played", async () => {
-    const view = renderChain("sequential");
-    await advance(0);
-    view.feedChain();
-    await advance(1500);
-    expect(view.result.current.resolutionStrip.entries?.map((entry) => entry.status)).toEqual(["current"]);
-    await advance(8000);
-
-    expect(view.result.current.resolutionStrip.entries).toBeNull();
-  });
 });
 
 describe("resumed effect results", () => {
@@ -777,6 +766,5 @@ describe("current pacing keeps its own order", () => {
     expect(timeline.sourceLitB).toBeDefined();
     expect(timeline.firstFlight! - timeline.firstClauseA!).toBeLessThan(activePacing().announceMs);
     expect(timeline.sourceLitB! - (timeline.flightsDoneAfterA ?? Infinity)).toBeLessThan(activePacing().settleMs);
-    expect(view.result.current.resolutionStrip.entries).toBeNull();
   });
 });

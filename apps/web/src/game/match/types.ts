@@ -1,6 +1,5 @@
 import type { RefObject } from "react";
-import type { CardInstance, GameState, Permanent, ResolutionOrderEntry, Seat } from "@aegis/shared";
-import type { ResolutionStripState } from "../resolutionChain";
+import type { CardInstance, GameState, Permanent, Seat } from "@aegis/shared";
 import type { MemoryHold } from "./present/memoryHold";
 import type { AttackAnnouncement, SidePanel } from "../sidePanels";
 import type { MatchNotice } from "../notices";
@@ -293,8 +292,4 @@ export interface MatchCues {
   playCue: (kind: SoundKind) => void;
   /** Fast-forward the decorative cues currently in flight. */
   skipAnimations: () => void;
-  /** The chain the resolution strip shows. Sequential pacing only; empty under `current`. */
-  resolutionStrip: ResolutionStripState;
-  /** The viewer answered an `orderTriggers` prompt: these effects resolve next, in this order. */
-  recordOwnResolutionPlan: (entries: readonly ResolutionOrderEntry[]) => void;
 }
