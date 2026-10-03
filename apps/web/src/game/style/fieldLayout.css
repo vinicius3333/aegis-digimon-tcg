@@ -61,6 +61,16 @@
   margin-top: calc(-1 * var(--field-lane-overlap, 0px));
 }
 
+/* Stacked lanes anchor the Digimon to the edge facing the centre line, so playing or
+   losing a Tamer or Option only changes the support lane behind them. */
+.game-board .game-field .game-battle-zones > .game-battle-row--you[data-lanes="stacked"] {
+  justify-content: flex-start !important;
+}
+
+.game-board .game-field .game-battle-zones > .game-battle-row--opp[data-lanes="stacked"] {
+  justify-content: flex-end !important;
+}
+
 /* A row too short for two lanes, like a phone on its side, lays them side by side. */
 .game-board .game-field .game-battle-zones > .game-battle-row[data-lanes="side-by-side"] {
   flex-direction: row;
