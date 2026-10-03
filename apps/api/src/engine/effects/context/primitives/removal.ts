@@ -17,7 +17,7 @@ export interface RemovalPrimitives {
   trashBreedingPermanent?(seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /**
    * Trash digivolution-stack cards (`instanceIds`) of `hostPermanentId` BY AN EFFECT, firing the
-   * whenDigivolutionTrashed SubTrigger once per card actually trashed (carrying the host as the
+   * whenDigivolutionTrashed SubTrigger once for the cards actually trashed (carrying the host as the
    * subject so a watcher can gate on "an opponent's Digimon"). This is the genuine effect-trash
    * site (KB P-004 Q4113); a return-to-hand bounce that clears digivolution cards uses a separate
    * path and does NOT fire this. Returns the instances trashed.
