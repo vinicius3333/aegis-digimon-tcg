@@ -25,6 +25,7 @@ export function ArenaDemoTools({
   securityFaceUpCount,
   onSuspendTamer,
   onReadyTamers,
+  onToggleDeepStack,
   disabled = false,
 }: {
   portuguese: boolean;
@@ -59,6 +60,8 @@ export function ArenaDemoTools({
   onSuspendTamer?: () => void;
   /** Crowded field: ready every Tamer, so turned copies rejoin their groups. */
   onReadyTamers?: () => void;
+  /** Rotate the twelve-source, two-link fixture while its neighbours regroup. */
+  onToggleDeepStack?: () => void;
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -332,6 +335,18 @@ export function ArenaDemoTools({
               }}
             >
               {portuguese ? "Suspender uma Ami Aiba" : "Suspend one Ami Aiba"}
+            </button>
+          ) : null}
+          {onToggleDeepStack ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onToggleDeepStack();
+              }}
+            >
+              {portuguese ? "Alternar suspensão da pilha profunda" : "Toggle deep stack suspension"}
             </button>
           ) : null}
           {onReadyTamers ? (

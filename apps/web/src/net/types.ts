@@ -19,6 +19,7 @@ export interface AegisJoinOptions {
   devScenario?:
     | "battle"
     | "field-grouping"
+    | "arena-field-grouping-dense"
     | "arena"
     | "arena-aegiochus-dark-assembly"
     | "arena-mervamon-effect-assembly"

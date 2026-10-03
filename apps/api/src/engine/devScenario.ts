@@ -38,6 +38,7 @@ import {
 export const DEV_SCENARIO_IDS = [
   "battle",
   "field-grouping",
+  "arena-field-grouping-dense",
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
@@ -349,6 +350,63 @@ function layFieldGroupingScenario(state: GameState, decks: readonly [Decklist, D
   }
   state.turnSeat = 0;
   state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
+}
+
+/** Late-game density with a conserved 50-card main deck on each side. */
+function layDenseFieldGroupingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  const deepSources = ["BT1-010", "ST1-07", "BT1-074", "BT1-077"].flatMap((id) => Array<string>(3).fill(id));
+  const savedSources = ["BT12-008", "BT12-077"].flatMap((id) => Array<string>(4).fill(id));
+  const stacks = [
+    [...deepSources, "BT25-075"],
+    [...savedSources, "BT12-098"],
+    ...Array.from({ length: 3 }, () => ["BT1-088"]),
+    ...["P-035", "P-038"].flatMap((id) => [[id], [id]]),
+    ["BT12-098"],
+    ["BT1-089"],
+    ...Array.from({ length: 4 }, () => ["BT1-067"]),
+    ...Array.from({ length: 4 }, () => ["BT1-009"]),
+    ["BT1-011"],
+    ["BT1-011"],
+  ];
+  const links = ["BT25-101", "BT25-100"];
+  // Field 43 + security 2 + hand 1 + draw pile 4 = 50. No synthetic extra cards.
+  const remainder = ["BT1-014", "BT1-014", "P-035", "BT1-015", "BT1-015", "BT1-016", "BT1-016"];
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (!player) continue;
+    loadDeckInto(player, seat, { mainDeck: [...stacks.flat(), ...links, ...remainder], eggDeck: decks[seat].eggDeck });
+    const take = (id: string) => {
+      const card = extractCardAt(
+        player,
+        Zone.Deck,
+        player.deck.findIndex((candidate) => candidate.cardId === id),
+      );
+      if (!card) throw new Error(`Dense arena fixture is missing ${id}`);
+      card.faceUp = true;
+      return card;
+    };
+    stacks.forEach((stack, index) => {
+      const permanent = new Permanent();
+      permanent.permanentId = `dense-${seat}-${index}`;
+      permanent.controllerSeat = seat;
+      const topId = stack.at(-1)!;
+      setTopCard(permanent, take(topId));
+      for (const id of stack.slice(0, -1)) pushOnStack(permanent, take(id));
+      permanent.baseDP = getCardDefinition(topId)?.dp ?? 0;
+      permanent.currentDP = permanent.baseDP;
+      permanent.enterFieldTurnCount = ESTABLISHED_TURN;
+      permanent.isSuspended = seat === 1 && index % 3 === 0;
+      permanent.placedByEffect = getCardDefinition(topId)?.kinds.includes(CardKind.Option) ?? false;
+      if (index === 0) for (const id of links) linkEstablishedCard(permanent, take(id));
+      placePermanent(player, permanent);
+    });
+    for (let index = 0; index < 2; index++) insertCard(player, Zone.Security, takeTop(player, Zone.Deck)!);
+    insertCard(player, Zone.Hand, takeTop(player, Zone.Deck)!);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 18;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 8;
 }
@@ -4609,6 +4667,7 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
+  "arena-field-grouping-dense": layDenseFieldGroupingScenario,
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,

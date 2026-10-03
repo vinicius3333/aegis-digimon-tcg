@@ -1,13 +1,49 @@
-import { Phase } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { expect, it } from "vitest";
 import "../cards/BT1/BT1-088.js";
 import "../cards/BT1/BT1-089.js";
 import "../cards/P/P-035.js";
 import "../cards/P/P-038.js";
+import "../cards/BT25/BT25-075.js";
+import "../cards/BT25/BT25-100.js";
+import "../cards/BT25/BT25-101.js";
 import { layDevScenario } from "./devScenario.js";
 import { BLUE_DECK, RED_DECK } from "./testDecks.js";
 import { advance } from "./testkit/advance.js";
 import { setupEngine, settle } from "./testkit/harness.js";
+import { checkStateInvariants } from "./testkit/stateInvariants.js";
+
+it("keeps late-game density within a real 50-card deck with distinct instances and legal link capacity", async () => {
+  const s = setupEngine({ 0: {}, 1: {} });
+  layDevScenario("arena-field-grouping-dense", s.state, [RED_DECK, BLUE_DECK]);
+  await s.ready();
+  expect(checkStateInvariants(s.state)).toEqual([]);
+  for (const player of s.state.players) {
+    const cards = [
+      ...player.deck,
+      ...player.hand,
+      ...player.security,
+      ...player.trash,
+      ...Array.from(player.battleArea).flatMap((permanent) => [
+        permanent.topCard,
+        ...permanent.stack,
+        ...permanent.linked,
+      ]),
+    ];
+    expect(cards).toHaveLength(50);
+    const counts = new Map<string, number>();
+    for (const card of cards) {
+      expect(getCardDefinition(card.cardId)).toBeDefined();
+      counts.set(card.cardId, (counts.get(card.cardId) ?? 0) + 1);
+    }
+    expect(Math.max(...counts.values())).toBeLessThanOrEqual(4);
+    expect(player.battleArea).toHaveLength(21);
+    const linked = player.battleArea.find((permanent) => permanent.topCard.cardId === "BT25-075")!;
+    expect(linked.stack).toHaveLength(12);
+    expect(linked.linked.map((card) => card.cardId)).toEqual(["BT25-101", "BT25-100"]);
+    expect(player.battleArea.find((permanent) => permanent.stack.length === 8)?.topCard.cardId).toBe("BT12-098");
+  }
+});
 
 it("suspends individual repeated Tamers and consumes exactly one Delay Option through real intents", async () => {
   const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });

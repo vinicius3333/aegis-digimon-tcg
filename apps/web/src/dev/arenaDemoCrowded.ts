@@ -1,6 +1,12 @@
 import { CardInstance, GameState, Permanent, Phase, PlayerState, getCardDefinition, type Seat } from "@aegis/shared";
 
-type CrowdedPiece = { cardId: string; sources?: readonly string[]; suspended?: boolean; activatable?: boolean };
+type CrowdedPiece = {
+  cardId: string;
+  sources?: readonly string[];
+  linked?: readonly string[];
+  suspended?: boolean;
+  activatable?: boolean;
+};
 
 /* Play order on purpose: Tamers, Options and Digimon interleave, with copies far apart,
    the way a long game leaves the field. The organized layout should sort and group it. */
@@ -8,7 +14,24 @@ const CROWDED_FIELDS: Record<Seat, readonly CrowdedPiece[]> = {
   0: [
     { cardId: "BT22-093", activatable: true },
     { cardId: "BT22-101" },
-    { cardId: "BT22-063", sources: ["BT22-056", "EX13-057", "BT12-077", "BT1-067", "BT12-008", "BT1-010"] },
+    {
+      cardId: "BT25-075",
+      sources: [
+        "BT1-010",
+        "BT1-010",
+        "BT1-010",
+        "ST1-07",
+        "ST1-07",
+        "ST1-07",
+        "BT1-074",
+        "BT1-074",
+        "BT1-074",
+        "BT1-077",
+        "BT1-077",
+        "BT1-077",
+      ],
+      linked: ["BT25-101", "BT25-100"],
+    },
     { cardId: "BT22-099" },
     { cardId: "BT22-091", suspended: true },
     { cardId: "BT22-083" },
@@ -65,6 +88,7 @@ export function createArenaCrowdedDemoState(
     result.controllerSeat = seat;
     result.topCard = card(piece.cardId, `${id}-top`, seat);
     result.stack.push(...(piece.sources ?? []).map((source, index) => card(source, `${id}-source-${index}`, seat)));
+    result.linked.push(...(piece.linked ?? []).map((source, index) => card(source, `${id}-link-${index}`, seat)));
     result.baseDP = getCardDefinition(piece.cardId)?.dp ?? 0;
     result.currentDP = result.baseDP;
     result.isSuspended = piece.suspended ?? false;

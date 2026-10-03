@@ -352,8 +352,13 @@ export function ArenaDemo() {
   const events = useMemo(() => batches.flatMap((batch) => batch.events), [batches]);
   const crowdedScenario = new URLSearchParams(window.location.search).get("scenario") === "crowded";
   const [crowdedTamers, setCrowdedTamers] = useState<CrowdedTamers>({ turnedAmiAiba: 0, allReady: false });
+  const [deepStackSuspended, setDeepStackSuspended] = useState(false);
   const state = useMemo(() => {
     const next = createArenaDemoState(drawCounts, crowdedTamers);
+    if (crowdedScenario) {
+      const deepStack = next.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT25-075");
+      if (deepStack) deepStack.isSuspended = deepStackSuspended;
+    }
     next.phase = phase;
     if (imperialStep !== 0) {
       const imperial = fighter("AD1-024", "demo-imperial", 0);
@@ -414,6 +419,8 @@ export function ArenaDemo() {
     keywordGrants,
     drawCounts,
     crowdedTamers,
+    crowdedScenario,
+    deepStackSuspended,
     turnStartStep,
     securityScenario,
     securityFaceDownCount,
@@ -1024,6 +1031,7 @@ export function ArenaDemo() {
               : undefined
           }
           onReadyTamers={crowdedScenario ? () => setCrowdedTamers({ turnedAmiAiba: 0, allReady: true }) : undefined}
+          onToggleDeepStack={crowdedScenario ? () => setDeepStackSuspended((current) => !current) : undefined}
           onDraw={drawCard}
           onVisualPlayback={playback.controller.controls.start}
           onSecurityBattle={playback.controller.controls.startSecurityBattle}
