@@ -486,17 +486,20 @@ describe("BT7-112 Susanoomon — KB Q&A rulings", () => {
     });
     preferInstanceIds.push(s.perm("warGreymon").permanentId, s.perm("warGreymon").topCard.instanceId);
     const takuyaCard = s.perm("base").topCard.instanceId;
+    const takuyaPermanentId = s.perm("base").permanentId;
     await playLord(s);
-    await settle(() => s.perm("warGreymon").topCard.cardId === "BT7-112");
+    await settle(() => s.perm("warGreymon").topCard.cardId === "BT7-112" && s.state.pendingDecision === undefined);
 
     const targetPrompt = s.decisions.find((d) => d.req.kind === "chooseTargets" && d.req.sourceCardId === "BT18-096");
     expect(targetPrompt?.req.options?.candidateInstanceIds).toEqual(
-      expect.arrayContaining([s.perm("base").permanentId, s.perm("warGreymon").permanentId]),
+      expect.arrayContaining([takuyaPermanentId, s.perm("warGreymon").permanentId]),
     );
     expect(s.perm("warGreymon").topCard.cardId).toBe("BT7-112");
     expect(s.perm("warGreymon").stack.map((c) => c.cardId)).toContain(RED_LEVEL_6);
-    expect(s.perm("base").topCard.instanceId).toBe(takuyaCard);
-    expect(s.perm("base").stack).toHaveLength(0);
+    // The "Then, by placing" clause is asked after Susanoomon exists, so the accepted
+    // placement puts the untouched Tamer under it as the bottom card for +1 memory.
+    expect(s.perm("warGreymon").stack[0]!.instanceId).toBe(takuyaCard);
+    expect(s.state.memory).toBe(5);
   });
 
   function winRateBoard(base: string) {
