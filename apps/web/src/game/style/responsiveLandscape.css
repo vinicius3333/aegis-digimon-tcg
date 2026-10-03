@@ -518,9 +518,22 @@
     align-self: center;
     margin-inline: var(--ds-space-2);
   }
+  /* The row fills its cell and keeps the top strip for the stack and keyword pills,
+     which sit over a card's top edge: the row scrolls sideways, so it clips them. */
   .game-battle-row {
-    align-self: center;
-    padding-block: 0 !important;
+    align-self: stretch;
+    align-items: center;
+    padding-block: 12px 0 !important;
+  }
+  /* The digivolution count tucks onto the card's top edge instead of floating 7px
+     above it, so it fits in the strip the row keeps for it. */
+  .game-battle-row .game-permanent .game-source-badge {
+    top: 0;
+    left: -4px;
+  }
+  .game-battle-row .game-permanent:has([data-state="suspended"]) .game-source-badge {
+    top: calc(var(--permanent-width) * 0.2);
+    left: calc(var(--permanent-width) * -0.2 - 4px);
   }
   .game-battle-row--opp {
     grid-area: 1 / 3;
