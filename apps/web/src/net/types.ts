@@ -23,6 +23,7 @@ export interface AegisJoinOptions {
     | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"
     | "arena-marcus-alliance"
+    | "arena-bt26-monimon-optional-cost"
     | "arena-bt11-analogman-redirect-timing"
     | "arena-bt11-rina-ulforce-immunity"
     | "arena-bt11-rina-ulforce-effect-choice"

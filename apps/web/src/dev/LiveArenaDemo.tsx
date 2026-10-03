@@ -436,6 +436,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Digivolva o Lv.4 [DATA SQUAD] em Chirinmon. O efeito deve perguntar uma vez se você quer usá-lo e, depois, qual custo pagar: a carta do topo da segurança ou a carta virada para baixo sob o Tamer. Nenhum botão deve repetir o texto do efeito.",
     en: "Digivolve the [DATA SQUAD] Lv.4 into Chirinmon. The effect must ask once whether to use it, then which cost to pay: the top security card or the face-down card under the Tamer. No button should repeat the effect text.",
   },
+  "arena-bt26-monimon-optional-cost": {
+    ptBR: "Ataque um Agumon suspenso com DarkKnightmon (EX10-031), que tem Monimon BT26-006 nas fontes. Recuse o custo: nenhuma das 3 fontes deve ir para a lixeira, a mão e a memória ficam iguais e o ataque continua. Reinicie o cenário e aceite: descarte Monimon e SkullKnightmon P-115. Depois você pode recusar jogar, mantendo as 2 fontes na lixeira, ou jogar Yuu Amano por 1 de memória / ChuuChuumon BT14-057 por 1. O custo exige exatamente 2 fontes; pagar consome o [Uma Vez Por Turno], mesmo sem jogar.",
+    en: "Attack a suspended Agumon with DarkKnightmon (EX10-031), which has BT26-006 Monimon in its sources. Decline the cost: none of its 3 sources should enter the trash, hand and memory stay unchanged, and the attack continues. Restart and accept: trash Monimon and P-115 SkullKnightmon. You may then decline to play, leaving both sources in the trash, or play Yuu Amano for 1 memory / BT14-057 ChuuChuumon for 1. The cost requires exactly 2 sources; paying spends [Once Per Turn] even without playing.",
+  },
   "arena-ex13-flamewizardmon-optional-cost": {
     ptBR: "Evolua o BT18-030 em EX13-029 FlameWizardmon (custo 2). O [Quando Evolui] deve perguntar se você quer descartar a carta do topo da segurança: recuse. Sua segurança continua com 4 cartas e o Digimon do bot continua com 6000 DP. Depois ataque o bot com o FlameWizardmon: a mesma pergunta volta, porque a recusa não gastou o [Uma Vez Por Turno]. Aceite: o topo da segurança vai para a lixeira, o Digimon do bot cai para 2000 DP e, com 3 cartas na segurança, é deletado.",
     en: "Digivolve BT18-030 into EX13-029 FlameWizardmon (cost 2). Its [When Digivolving] must ask whether to trash your top security card: decline. Your security stays at 4 cards and the bot's Digimon stays at 6000 DP. Then attack the bot with FlameWizardmon: the same question comes back, because declining did not spend the [Once Per Turn]. Accept: the top security card goes to the trash, the bot's Digimon drops to 2000 DP and, with 3 security cards left, it is deleted.",
@@ -709,6 +713,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt23-examon-opponent-turn-dna", "BT23 Examon · Delay DNA in opponent's turn, no attack"],
   ["arena-ex13-chirinmon-cost-choice", "EX13 Chirinmon · either-or cost choice"],
   ["arena-ex13-wisemon-witchelny-cost", "EX13 Wisemon · Witchelny cost 3 / 4"],
+  ["arena-bt26-monimon-optional-cost", "BT26 Monimon · optional source-trash cost"],
   ["arena-ex13-flamewizardmon-optional-cost", "EX13 FlameWizardmon · optional security cost"],
   ["arena-sukamon-transform-digivolve", "EX13 KingSukamon · white Sukamon can't take green digivolve"],
   ["arena-sukamon-transform-digivolve-viewer", "Sukamon rewrite · your Blossomon refused"],
