@@ -22,6 +22,10 @@ describe("match timer readouts", () => {
       rerender(view());
       expect(screen.getAllByRole("timer")).toHaveLength(2);
       expect(document.querySelectorAll("[data-active=true]")).toHaveLength(seat === -1 ? 0 : 1);
+      if (seat === -1)
+        expect(
+          screen.getAllByRole("timer").every((clock) => clock.getAttribute("aria-label")?.endsWith("Paused")),
+        ).toBe(true);
     }
     state.gameOver = true;
     rerender(view());

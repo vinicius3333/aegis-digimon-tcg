@@ -24,7 +24,7 @@ export function MatchTimer({ state, seat, opponent = false }: { state: GameState
       data-side={opponent ? "opponent" : "player"}
       data-testid={opponent ? "opponent-match-timer" : "viewer-match-timer"}
       role="timer"
-      aria-label={`${label}: ${formatMatchTime(remaining)}`}
+      aria-label={`${label}: ${formatMatchTime(remaining)}. ${t(active ? "game.playing" : "game.timer.paused")}`}
     >
       <svg
         className="match-timer__icon"
