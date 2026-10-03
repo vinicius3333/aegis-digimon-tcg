@@ -589,6 +589,36 @@ describe("AegisRoom combat windows", () => {
     expect(b.send).not.toHaveBeenCalled();
   });
 
+  it("re-sends the pending decision to the reconnected client (Discord 1555741214014447737)", async () => {
+    const room = makeRoom();
+    const [a] = joinBothSeats(room);
+    room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => false);
+    const request: DecisionRequest = {
+      decisionId: "dec-refresh",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: { triggerKeys: ["first", "second"], triggerCardIds: ["BT26-072", "BT26-082"] },
+    };
+    const pending = new PendingDecision();
+    Object.assign(pending, { ...request, payloadJson: JSON.stringify(request.options) });
+    room.state.pendingDecision = pending;
+    (room as unknown as { requestDecision: (seat: number, req: DecisionRequest) => void }).requestDecision(0, request);
+    vi.mocked(a.send).mockClear();
+    const reconnected = fakeClient("session-a");
+    room.allowReconnection = vi.fn(async () => reconnected) as unknown as AegisRoom["allowReconnection"];
+    room.lock = vi.fn(async () => undefined) as AegisRoom["lock"];
+    room.unlock = vi.fn(async () => undefined) as AegisRoom["unlock"];
+
+    await room.onLeave(a, CloseCode.ABNORMAL_CLOSURE);
+
+    expect(reconnected.send).toHaveBeenCalledWith(
+      DECISION_CHANNEL,
+      expect.objectContaining({ decisionId: "dec-refresh" }),
+    );
+    expect(a.send).not.toHaveBeenCalledWith(DECISION_CHANNEL, expect.anything());
+  });
+
   it("re-sends the open combat window to a seat that reconnects into it", () => {
     const room = makeRoom();
     const [a] = joinBothSeats(room);
