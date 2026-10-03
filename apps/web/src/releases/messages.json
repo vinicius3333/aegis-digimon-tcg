@@ -1,4 +1,32 @@
 {
+  "releases.1.8.4-beta.summary": {
+    "en": "This update asks optional \"by …\" costs when their part of the effect comes up, shows only the relevant text in each choice, and explains why each pending effect triggered.",
+    "pt-BR": "Esta atualização pergunta os custos opcionais \"by …\" quando a parte deles no efeito chega, mostra só o texto relevante em cada escolha e explica por que cada efeito pendente foi ativado."
+  },
+  "releases.1.8.4-beta.feature.triggerReason": {
+    "en": "The pending-effects list now shows why each effect triggered, so a card listed twice for two different events is easy to tell apart.",
+    "pt-BR": "A lista de efeitos pendentes agora mostra por que cada efeito foi ativado, então uma carta que aparece duas vezes por dois eventos diferentes fica fácil de distinguir."
+  },
+  "releases.1.8.4-beta.fix.byOrder": {
+    "en": "In effects like \"Do X. Then, by paying Y, do Z\", X now resolves first and you're asked about Y afterwards, as printed. Declining a \"by\" cost no longer pays it, and a cost you can't pay in full is no longer offered.",
+    "pt-BR": "Em efeitos como \"Faça X. Then, by pagando Y, faça Z\", X agora resolve primeiro e a pergunta sobre Y vem depois, como no texto da carta. Recusar um custo \"by\" não o paga mais, e um custo que não pode ser pago por completo não é mais oferecido."
+  },
+  "releases.1.8.4-beta.fix.thenText": {
+    "en": "Choices for effects with a \"Then,\" clause now show only the part you're answering, such as on ST24-10 Lilamon.",
+    "pt-BR": "As escolhas de efeitos com uma parte \"Then,\" agora mostram só a parte que você está respondendo, como em ST24-10 Lilamon."
+  },
+  "releases.1.8.4-beta.fix.pendingOnce": {
+    "en": "An inherited [On Deletion] effect, such as BT26-005 Pinamon's under BT26-082 Ravemon, is no longer listed twice in the order prompt.",
+    "pt-BR": "Um efeito [On Deletion] herdado, como o de BT26-005 Pinamon embaixo de BT26-082 Ravemon, não aparece mais duas vezes na escolha de ordem."
+  },
+  "releases.1.8.4-beta.fix.ravemonRecycled": {
+    "en": "BT26-082 Ravemon's effects now activate correctly when the same card digivolves again during a chain of pending effects.",
+    "pt-BR": "Os efeitos de BT26-082 Ravemon agora ativam corretamente quando a mesma carta digievolui de novo durante uma cadeia de efeitos pendentes."
+  },
+  "releases.1.8.4-beta.fix.borrowedText": {
+    "en": "The effect choice for cards that use another card's effect, such as Rina Shinomiya with Ulforce, no longer repeats the same text or shows an extra timing badge.",
+    "pt-BR": "A escolha de efeito de cartas que usam o efeito de outra carta, como Rina Shinomiya com Ulforce, não repete mais o mesmo texto nem mostra um selo de timing a mais."
+  },
   "releases.1.8.3-beta.summary": {
     "en": "This update brings back the effect menu after a page refresh, keeps the resolve button in view when many effects are pending, and makes BT26-091 Yoshino Fujieda trigger once per event.",
     "pt-BR": "Esta atualização traz de volta o menu de efeitos depois de recarregar a página, mantém o botão de resolver visível quando há muitos efeitos pendentes e faz BT26-091 Yoshino Fujieda ativar uma vez por evento."
