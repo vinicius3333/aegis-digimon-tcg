@@ -645,6 +645,7 @@ async function decideProcessingConditionAtClause(ctx: EffectContext, action: Act
   if (costChoice) ctx.predecidedOptionalCosts?.set(action, chosen);
   else ctx.predecidedOptionalActions?.set(action, chosen);
   if (chosen) {
+    ctx.onActivationChosen?.();
     ctx.oncePerTurnActivationChosen = true;
     ctx.oncePerTurnActivationDeclined = false;
   }
@@ -704,12 +705,15 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       ctxWithSelections.effectRestrictions = outerRestrictions;
       return;
     }
-    const paid = canPayCost(ctxWithSelections, effect.cost) && (await payCost(ctxWithSelections, effect.cost));
+    const canPay = canPayCost(ctxWithSelections, effect.cost);
+    if (canPay && !costIsAskedAsSelection(effect.cost)) ctxWithSelections.onActivationChosen?.();
+    const paid = canPay && (await payCost(ctxWithSelections, effect.cost));
     ctxWithSelections.costIsTheQuestion = undefined;
     if (!paid) {
       ctxWithSelections.effectRestrictions = outerRestrictions;
       return;
     }
+    ctxWithSelections.onActivationChosen?.();
     ctxWithSelections.oncePerTurnActivationChosen = true;
     ctxWithSelections.oncePerTurnActivationDeclined = false;
   }

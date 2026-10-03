@@ -100,7 +100,7 @@ export function resolutionDeps(
   // turn player resolves first; without Arts they drain when the Option finishes.
   const pendingWhileOptionResolves = (): CollectedEffect[] =>
     engine.optionMainDepth > 0 ? [] : pendingWindowWatchersCollected(engine);
-  const unannounced = new Set<CollectedEffect>();
+  const announced = new Set<CollectedEffect>();
   return {
     // The outermost loop settles deferred queues between effects. A nested resolver normally
     // cannot reach into the enclosing pool while its card body is still running; a settlement
@@ -147,20 +147,20 @@ export function resolutionDeps(
     chooseOrder: (seat, active, timing, plan, waiting) =>
       engine.resolverDecisions.chooseOrder(seat, active, timing, plan, waiting),
     askOptional: (seat, collected, plan) => engine.resolverDecisions.askOptional(seat, collected, plan),
-    onResolving: (timing, collected) => {
+    onResolving: (_timing, collected) => {
       const reactionIndex = derivedPending.indexOf(collected);
       if (reactionIndex >= 0) derivedPending.splice(reactionIndex, 1);
       // A deferred trigger belongs to its original event, not every nested resolver that
       // can see engine pending pool. Retire it before its body can open another window.
       engine.pendingNestedTimingEffects = engine.pendingNestedTimingEffects.filter((pending) => pending !== collected);
-      if (collected.effect.announce?.() === false) {
-        unannounced.add(collected);
-        return;
-      }
+    },
+    onActivating: (timing, collected) => {
+      if (collected.effect.announce?.() === false) return;
       const stableOptWatcher = collected.effect.effectKey.startsWith("subtrigger/opt/");
       const announcementKey = `${engine.state.turnCount}:${collected.effect.effectKey}`;
       if (stableOptWatcher && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
       if (stableOptWatcher) engine.announcedSubTriggerEffectKeys.add(announcementKey);
+      announced.add(collected);
       engine.hooks.emit({
         kind: "effectTriggered",
         seat: collected.source.ownerSeat,
@@ -180,7 +180,7 @@ export function resolutionDeps(
       });
     },
     onResolved: (timing, collected) => {
-      if (unannounced.delete(collected)) return;
+      if (!announced.delete(collected)) return;
       engine.hooks.emit({
         kind: "effectResolved",
         seat: collected.source.ownerSeat,
@@ -748,6 +748,20 @@ export function activateEffectDeps(engine: GameEngine): ActivateEffectDeps {
         ...(conferralGranterInstanceId === undefined ? {} : { conferralGranterInstanceId }),
       }),
     tracker: engine.tracker,
+    announceActivation: (source, effect, ctx) => {
+      const announced = {
+        seat: source.ownerSeat,
+        sourceCardId: source.cardId,
+        sourceInstanceId: source.instanceId,
+        sourcePermanentId: ctx.conferredToPermanentId ?? source.permanent()?.permanentId,
+        effectKey: effect.effectKey,
+        description: effect.description,
+        timing: effect.irTrigger ?? "Main",
+        ...(effect.isInherited ? { isInherited: true } : {}),
+      };
+      engine.hooks.emit({ kind: "effectTriggered", ...announced });
+      return () => engine.hooks.emit({ kind: "effectResolved", ...announced });
+    },
     enterEffectResolution: (seat, sourceKinds, sourcePermanentId) =>
       engine.primitives.enterEffectResolution?.(seat, sourceKinds, sourcePermanentId),
     leaveEffectResolution: () => engine.primitives.leaveEffectResolution?.(),

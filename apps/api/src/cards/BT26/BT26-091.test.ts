@@ -166,6 +166,7 @@ describe("BT26-091 Yoshino Fujieda — KB Q&A rulings", () => {
     const s = setupEngine(
       {
         0: {
+          hand: ["BT26-044"],
           battleArea: [
             {
               card: "BT26-091",

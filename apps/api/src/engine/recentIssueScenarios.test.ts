@@ -250,7 +250,9 @@ describe("recent player-report arena scenarios", () => {
       const piedmonAnnouncements = s.events.filter(
         (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX8-062",
       );
-      expect(piedmonAnnouncements).toHaveLength(piedmonFirst ? 1 : 0);
+      // Piedmon's pending slot may be ordered first, but its optional play has no
+      // legal candidate and never activates. Reina's DNA also retires it if ordered later.
+      expect(piedmonAnnouncements).toHaveLength(0);
     },
   );
 

@@ -57,8 +57,8 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
       }),
     ).toEqual({ ok: true });
     await drainMicrotasks();
-    // The End of Attack effect triggers, but has no legal Rasenmon card to evolve into.
-    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT8-081")).toBe(true);
+    // The optional evolution has no legal Rasenmon card, so the effect never activates.
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT8-081")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("illegal").instanceId)).toBe(true);
     expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
   });

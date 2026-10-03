@@ -1,7 +1,7 @@
 import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX3-025.js";
 import "./EX3-069.js";
 
@@ -472,8 +472,9 @@ describe("EX3-025 Azulongmon", () => {
     await deletion.ready();
 
     await advance(deletion.engine).verb.deletePermanent([deletion.perm("azulongmon").permanentId]);
-    await settle(() =>
-      deletion.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-025"),
+    await drainMicrotasks();
+    expect(deletion.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX3-025")).toBe(
+      false,
     );
 
     expect(deletion.state.pendingDecision).toBeUndefined();

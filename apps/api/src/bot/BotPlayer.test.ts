@@ -6,6 +6,8 @@ import {
   SECURITY_CHECK_NARRATION_MS,
   SECURITY_DESTRUCTION_NARRATION_MS,
   EFFECT_CHOICE_NARRATION_MS,
+  CHAIN_EFFECT_NARRATION_MS,
+  SECURITY_EFFECT_NARRATION_MS,
   Zone,
   type DecisionRequest,
   type GameState,
@@ -92,7 +94,69 @@ function deferredIntent() {
 }
 
 describe("BotPlayer action pacing and player attacks", () => {
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("coalesces a sequential client's chain into one handover beat and extends it for a new scene", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      {
+        ...FIXED_THINK,
+        clientPacesChains: true,
+      },
+    );
+    for (let index = 0; index < 20; index++) {
+      bot.onEvent({ kind: "effectTriggered", timing: "WhenDigivolving" } as ServerEvent);
+    }
+    state.turnSeat = 1;
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(1_000);
+    bot.onEvent({ kind: "securityChecked", resolution: "effect" } as ServerEvent);
+    await advance(CHAIN_EFFECT_NARRATION_MS - 1_000);
+    expect(intents).toEqual([]);
+    await advance(1_000 + SECURITY_EFFECT_NARRATION_MS - CHAIN_EFFECT_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("retains additive arrival-effect narration for clients that do not pace chains", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+    for (let index = 0; index < 3; index++) {
+      bot.onEvent({ kind: "effectTriggered", timing: "WhenDigivolving" } as ServerEvent);
+    }
+    state.turnSeat = 1;
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(3 * EFFECT_CHOICE_NARRATION_MS + PHASE_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
 
   it("waits for an asynchronous Main decision before applying it", async () => {
     vi.useFakeTimers();

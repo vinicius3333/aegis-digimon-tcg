@@ -10,6 +10,8 @@ import type { Permanent } from "@aegis/shared";
 export interface Effect {
   /** Original declarative trigger, retained for selective stack-effect conferrals. */
   irTrigger?: string;
+  /** The compiled body reports acceptance through EffectContext.onActivationChosen. */
+  activationDeferred?: boolean;
   /** Semantic keyword implemented by this whole effect, retained for selective copying. */
   keywordEffect?: Keyword;
   /** Stable id within the card (analogue of HashString); e.g. "BT7-089/pierce". */

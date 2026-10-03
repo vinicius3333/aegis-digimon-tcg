@@ -88,6 +88,10 @@ export type ServerEvent =
       artId?: string;
       seat: Seat;
       cardId: string;
+      /** Exact public played instance and its origin, captured before entering the field. */
+      instanceId?: string;
+      fromZone?: string;
+      fromPermanentId?: string;
       permanentId?: string;
       /** Present when this play IS a digivolution mechanic that the engine models as a play
        * rather than as a `digivolved` event: DNA digivolve (§8-2-2) consumes two permanents,
@@ -247,11 +251,19 @@ export type ServerEvent =
   // forbids reordering a deck otherwise. Carries no card identity, so it reveals nothing.
   | { kind: "deckShuffled"; seat: Seat; deck: "deck" | "eggDeck" }
   | { kind: "cardRevealed"; seat: Seat; cardId: string; artId?: string; sourceCardId?: string }
-  | { kind: "effectActivated"; seat: Seat; sourceCardId: string; effectKey: string; description: string }
   | {
-      // A triggered effect (On Play / When Digivolving / ...) STARTED resolving. Emitted
-      // before the effect's optional prompt and any in-body decisions, so the client can
-      // announce the effect ahead of the "opponent is selecting" wait it may open.
+      kind: "effectActivated";
+      seat: Seat;
+      sourceCardId: string;
+      effectKey: string;
+      description: string;
+      /** Main action completed; accepted activation is narrated by its effectTriggered lifecycle. */
+      receiptOnly?: true;
+    }
+  | {
+      // An effect accepted its processing. Emitted before its first cost/result mutation,
+      // after any initial optional activation question. Pending questions explain their
+      // own source/clause; declining them never opens a public effect lifecycle.
       kind: "effectTriggered";
       seat: Seat;
       sourceCardId: string;
@@ -669,6 +681,10 @@ export interface DecisionRequest {
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause
     /** Exact clause that raised this decision, preserving main/inherited provenance without client-side guessing. */
     effectText?: string;
+    /** Exact resolving clause identity, including installed reactive effects. */
+    effectKey?: string;
+    /** Optional question accepts this effect's activation; false for choices inside an active effect. */
+    activationConfirmation?: boolean;
     /** Verbatim printed passage associated with this decision. */
     effectTextPart?: string;
     isInherited?: boolean;

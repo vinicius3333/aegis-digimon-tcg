@@ -321,9 +321,10 @@ describe("EX11-034 QueenBeemon — KB Q&A rulings", () => {
       const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("queen"));
       await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
       const decision = s.state.pendingDecision!;
-      const { triggerKeys, triggerCardIds } = JSON.parse(decision.payloadJson) as {
+      const { triggerKeys, triggerCardIds, triggerDescriptions } = JSON.parse(decision.payloadJson) as {
         triggerKeys: string[];
         triggerCardIds: string[];
+        triggerDescriptions: string[];
       };
       expect(triggerCardIds).toEqual([cardId, cardId]);
       expect(
@@ -340,7 +341,10 @@ describe("EX11-034 QueenBeemon — KB Q&A rulings", () => {
         event.kind === "effectTriggered" && event.sourceCardId === cardId ? [event.effectKey] : [],
       );
       const effectKeyOf = (triggerKey: string) => triggerKey.split("::").at(-1);
-      expect(triggered).toEqual([effectKeyOf(triggerKeys[first]!), effectKeyOf(triggerKeys[1 - first]!)]);
+      expect(triggered).toEqual([effectKeyOf(triggerKeys[0]!)]);
+      expect(s.events.find((event) => event.kind === "resolutionOrderChosen")).toMatchObject({
+        entries: [{ description: triggerDescriptions[first] }],
+      });
     },
   );
 

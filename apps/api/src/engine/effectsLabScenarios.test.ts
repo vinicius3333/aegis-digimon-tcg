@@ -323,7 +323,9 @@ describe("Effects Lab dev scenarios", () => {
     it("effects-lab-prod-attack-stack: a digivolution attacks at once into four [When Attacking] effects and the bot's watchers", async () => {
       const s = await startScenario("effects-lab-prod-attack-stack", {
         autoChooseOption: true,
-        preferInstanceIds: ["first", "second", "third"].map((slot) => `dev-perm-1-lab-attack-target-${slot}`),
+        preferInstanceIds: ["first", "second", "third", "fourth", "fifth"].map(
+          (slot) => `dev-perm-1-lab-attack-target-${slot}`,
+        ),
       });
       try {
         const firstEvent = s.events.length;

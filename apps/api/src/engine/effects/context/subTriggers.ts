@@ -78,6 +78,8 @@ export interface SubTriggerInstall {
   event: SubTriggerEventName;
   /** See `SubTriggerSubscription.printedClause`. */
   printedClause?: string;
+  /** The watcher body reports an accepted processing choice before its first result. */
+  activationDeferred?: boolean;
   /**
    * Pending processing left over from an effect that already resolved (a delayed deletion, a
    * delayed memory change, a delayed body) rather than an effect activating now. The turn

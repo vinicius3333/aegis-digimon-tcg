@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT14-030.js";
 
@@ -262,7 +262,8 @@ describe("BT14-030", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marine").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT14-030")).toBe(false);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
       "BT14-028",
       "BT14-030",

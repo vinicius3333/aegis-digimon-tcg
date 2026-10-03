@@ -302,6 +302,7 @@ function targetsOneCard(action: Action): boolean {
 }
 
 function markActivationChosen(ctx: EffectContext): void {
+  ctx.onActivationChosen?.();
   ctx.oncePerTurnActivationChosen = true;
   ctx.oncePerTurnActivationDeclined = false;
 }

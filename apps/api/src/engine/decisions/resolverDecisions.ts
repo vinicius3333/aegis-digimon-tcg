@@ -153,6 +153,8 @@ export function createResolverDecisions(
         sourcePermanentId: collected.conferredToPermanentId ?? collected.source.permanent()?.permanentId,
         options: {
           effectText: collected.effect.description,
+          effectKey: collected.effect.effectKey,
+          activationConfirmation: true,
           ...(collected.effect.timingOverride !== undefined
             ? { timing: collected.effect.timingOverride }
             : collected.timing !== undefined

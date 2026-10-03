@@ -2,7 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
-import { type SeatSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, type SeatSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-083.js";
 import "../BT1/BT1-085.js";
@@ -128,7 +128,8 @@ describe("BT20-083 Omekamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omekamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-083"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-083")).toBe(false);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-083");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("omnimon").instanceId);
   });

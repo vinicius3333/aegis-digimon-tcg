@@ -85,11 +85,7 @@ describe("EX12-001 Nyaromon", () => {
       s.events.flatMap((event) =>
         event.kind === "effectResolved" && event.sourceCardId === "EX12-044" ? [event.timing] : [],
       ),
-    ).toEqual(
-      chosenIndex === 0
-        ? ["WhenDigivolving", "OnUseAttack", "OnUseAttack"]
-        : ["OnUseAttack", "WhenDigivolving", "OnUseAttack"],
-    );
+    ).toEqual(chosenIndex === 0 ? ["WhenDigivolving", "OnUseAttack"] : ["OnUseAttack", "WhenDigivolving"]);
     expect(s.perm("target").currentDP).toBe(9000);
   });
 

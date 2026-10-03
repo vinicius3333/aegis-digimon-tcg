@@ -57,7 +57,7 @@ describe("BT21-046 compiled implementation", () => {
       );
       expect(
         s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT21-046"),
-      ).toHaveLength(1);
+      ).toHaveLength(evolves ? 1 : 0);
       expect(s.state.memory).toBe(4);
       expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX13-008")).toBe(true);
       expect(s.decisions.some(({ req }) => req.sourceCardId === "BT21-046")).toBe(evolves);

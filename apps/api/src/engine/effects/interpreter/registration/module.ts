@@ -368,6 +368,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
                 delayArmedConsumed = true;
               }
+              ctx.onActivationChosen?.();
               const trashed = await trashDelaySource(ctx, self);
               // A prevented/failed trash does not pay ＜Delay＞'s activation cost, so its
               // payload cannot resolve. A replacement may move the source before reporting

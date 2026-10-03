@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_048 } from "./BT24-048.js";
 import "../index.js";
@@ -182,8 +182,8 @@ describe("BT24-048 Deramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deramon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-048"));
-    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT24-048")).toBe(true);
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT24-048")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
     expect(s.state.memory).toBe(4);
     expect(s.perm("nonAvian").topCard.instanceId).toBe(baseId);

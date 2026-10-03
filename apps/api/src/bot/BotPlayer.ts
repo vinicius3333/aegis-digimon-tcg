@@ -261,27 +261,27 @@ export class BotPlayer {
         break;
       case "phaseChanged":
         if (event.phase !== Phase.None) {
-          this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + PHASE_NARRATION_MS;
+          this.deferForNarration(PHASE_NARRATION_MS);
         }
         if (event.turnSeat === this.seat) this.onOwnPhase(event.phase as Phase, event.turnCount);
         break;
       case "turnEnded":
-        this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + TURN_NARRATION_MS;
+        this.deferForNarration(TURN_NARRATION_MS);
         break;
       case "attackDeclared":
         this.pendingAttackTargetsPlayer = event.target.kind === "player";
         this.pendingAttackTargetPermanentId = event.target.kind === "permanent" ? event.target.permanentId : undefined;
         break;
       case "cardPlayed":
-        this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + CARD_ARRIVAL_NARRATION_MS;
+        this.deferForNarration(CARD_ARRIVAL_NARRATION_MS);
         break;
       case "effectTriggered":
-        // A client that paces chains plays every effect as its own beat, so each one is owed;
-        // otherwise only the arrival clauses a choice follows hold the next action back.
+        // Sequential clients already queue each effect's actual playback. The server owes
+        // one bounded handover beat, rather than a second estimate of the whole chain.
         if (this.clientPacesChains) {
-          this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + CHAIN_EFFECT_NARRATION_MS;
+          this.deferForNarration(CHAIN_EFFECT_NARRATION_MS);
         } else if (/on.?play|when.?digivolving/i.test(event.timing ?? "")) {
-          this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + EFFECT_CHOICE_NARRATION_MS;
+          this.deferForNarration(EFFECT_CHOICE_NARRATION_MS);
         }
         break;
       case "securityRevealed":
@@ -291,16 +291,18 @@ export class BotPlayer {
         this.resolvingSecurityCheck = false;
         // Each check is its own centre-stage scene, and the client plays them one
         // after another, so a multi-check attack owes the sum of them.
-        this.narrationUntil =
-          Math.max(Date.now(), this.narrationUntil) +
-          (event.resolution === "effect" ? SECURITY_EFFECT_NARRATION_MS : SECURITY_CHECK_NARRATION_MS);
+        this.deferForNarration(
+          event.resolution === "effect" ? SECURITY_EFFECT_NARRATION_MS : SECURITY_CHECK_NARRATION_MS,
+        );
         break;
       case "cardsMoved":
         // An effect that spends a security stack is narrated card by card, so a bot that
         // empties one owes the whole sequence before it may act again.
         if (event.from === Zone.Security && event.to === Zone.Trash) {
-          this.narrationUntil =
-            Math.max(Date.now(), this.narrationUntil) + event.instanceIds.length * SECURITY_DESTRUCTION_NARRATION_MS;
+          this.deferForNarration(
+            (this.clientPacesChains ? Math.min(1, event.instanceIds.length) : event.instanceIds.length) *
+              SECURITY_DESTRUCTION_NARRATION_MS,
+          );
         }
         break;
       case "blockWindowOpened":
@@ -642,6 +644,13 @@ export class BotPlayer {
 
   private reflex(): Promise<void> {
     return this.pause(COMBAT_REFLEX_MIN_MS, COMBAT_REFLEX_MAX_MS);
+  }
+
+  private deferForNarration(duration: number): void {
+    const now = Date.now();
+    this.narrationUntil = this.clientPacesChains
+      ? Math.max(this.narrationUntil, now + duration)
+      : Math.max(now, this.narrationUntil) + duration;
   }
 
   /**

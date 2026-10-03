@@ -42,7 +42,8 @@ describe("EX1-045 Hagurumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hagurumon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-045"));
+    await drainMicrotasks();
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX1-045")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(false);

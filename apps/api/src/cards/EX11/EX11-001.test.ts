@@ -280,7 +280,8 @@ describe("EX11-001 Koromon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "EX11-010");
-    await settle(() => s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX11-010"));
+    await settle(() => s.decisions.some(({ req }) => req.sourceCardId === "EX11-010" && req.kind === "optional"));
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX11-010")).toBe(false);
     expect(s.state.pendingDecision?.kind).toBe("optional");
     expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({ timing: "WhenDigivolving" });
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX11-001", "EX11-007", "EX11-009", "BT22-070"]);

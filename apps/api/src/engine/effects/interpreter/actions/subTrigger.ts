@@ -1166,6 +1166,7 @@ export async function runSubTrigger(
   ];
   ctx.fx.subscribeSubTrigger({
     event,
+    activationDeferred: true,
     ...(ctx.activeEffectKey !== undefined || ctx.activeActionPath !== undefined
       ? { dedupeKey: `${ctx.source.instanceId}/${ctx.activeEffectKey ?? "effect"}/${ctx.activeActionPath ?? "0"}` }
       : {}),
@@ -1508,6 +1509,7 @@ export async function runGainTriggeredEffect(
       quotedGrantedClause(ctx.source.definition.inheritedEffectText);
     ctx.fx.subscribeSubTrigger({
       event,
+      activationDeferred: true,
       sourcePermanentId: targetPermanentId,
       once: action.once === true,
       // A gained trigger is armed by a resolved effect and lasts for its printed duration;

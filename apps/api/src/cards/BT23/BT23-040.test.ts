@@ -341,7 +341,7 @@ describe("BT23-040 Wormmon", () => {
     await raiseWormmonToOwnMain(s);
     const erikaPermanentId = s.perm("erika").permanentId;
     const startOfMainTriggers = (): number =>
-      s.events.filter((event) => event.kind === "effectTriggered" && event.effectKey === "BT23-040/ir-1-0").length;
+      s.decisions.filter(({ req }) => req.kind === "optional" && req.options?.effectKey === "BT23-040/ir-1-0").length;
 
     expect(s.state.turnSeat).toBe(0);
     expect(startOfMainTriggers()).toBe(1);

@@ -188,6 +188,7 @@ export const DEV_SCENARIO_IDS = [
   "counter-blast-dna",
   "effects-lab-own-chain",
   "effects-lab-opponent-chain",
+  "effects-lab-opponent-play",
   "effects-lab-nested",
   "effects-lab-prod-royal-knights",
   "effects-lab-prod-ghost",
@@ -4705,9 +4706,9 @@ function layEffectsLabProdGhostExecuteScenario(
 }
 
 /**
- * Production chain that runs straight into an attack: digivolving Omnimon into Omnimon Zwart
+ * Production chain that runs straight into an attack: digivolving Omnimon into Merciful Mode
  * lets it attack at once, and four inherited [When Attacking] effects from its digivolution
- * cards trigger together. The 16000 DP attack wakes the bot's Marsmon watcher (BT25-016), whose
+ * cards trigger together. The 16000 DP attack wakes the bot's GrapLeomon watcher (BT25-016), whose
  * digivolution into Callismon fires Callismon's own watcher; a Tamer waits in security.
  */
 function layEffectsLabProdAttackStackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
@@ -4723,12 +4724,23 @@ function layEffectsLabProdAttackStackScenario(state: GameState, decks: readonly 
   }
   const bot = state.players[1];
   if (bot !== undefined) {
-    placePermanent(bot, establishedDigimon(1, ["BT25-016"], "-lab-attack-watcher"));
-    for (const slot of ["first", "second", "third"] as const) {
-      placePermanent(bot, establishedDigimon(1, ["BT1-009"], `-lab-attack-target-${slot}`));
+    // Merciful Mode finishes three follow-up battles before the parked attack window.
+    // Two further targets pay the inherited De-Digivolve/-DP and deletion outcomes,
+    // leaving GrapLeomon alive to react to the declaration.
+    for (const slot of ["first", "second", "third", "fourth", "fifth"] as const) {
+      placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-011"], `-lab-attack-target-${slot}`));
     }
+    placePermanent(bot, establishedDigimon(1, ["BT25-016"], "-lab-attack-watcher"));
     insertCard(bot, Zone.Hand, faceDownCard("dev-lab-attack-callismon", "BT25-058", 1));
   }
+  startEffectsLabTurn(state, 5);
+}
+
+/** One opponent play with a mandatory draw, isolating the public arrival and On Play focus. */
+function layEffectsLabOpponentPlayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const bot = state.players[1];
+  if (bot !== undefined) insertCard(bot, Zone.Hand, faceDownCard("dev-lab-opponent-gabumon", "BT1-029", 1));
   startEffectsLabTurn(state, 5);
 }
 
@@ -4986,6 +4998,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "counter-blast-dna": layCounterBlastDnaScenario,
   "effects-lab-own-chain": layEffectsLabOwnChainScenario,
   "effects-lab-opponent-chain": layEffectsLabOpponentChainScenario,
+  "effects-lab-opponent-play": layEffectsLabOpponentPlayScenario,
   "effects-lab-nested": layEffectsLabNestedScenario,
   "effects-lab-prod-royal-knights": layEffectsLabProdRoyalKnightsScenario,
   "effects-lab-prod-ghost": layEffectsLabProdGhostScenario,
