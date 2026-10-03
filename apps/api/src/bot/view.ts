@@ -52,6 +52,8 @@ export interface BotHandCard {
   cardId: string;
   definition?: CardDefinition;
   activatableEffects: readonly ActivatableEffect[];
+  /** Authoritative Main-phase paths; an empty projection means no legal evolution. */
+  digivolveRoutes?: readonly { permanentId: string; alternateRequirementIndex: number; projectedCost: number }[];
 }
 
 export interface BotView {
@@ -165,6 +167,15 @@ export function buildBotView(state: GameState, seat: Seat): BotView | undefined 
     cardId: card.cardId,
     definition: getCardDefinition(card.cardId),
     activatableEffects: parseActivatable(card.activatableEffectsJson),
+    ...(card.digivolveRoutes === undefined
+      ? {}
+      : {
+          digivolveRoutes: toArray(card.digivolveRoutes).map((route) => ({
+            permanentId: route.permanentId,
+            alternateRequirementIndex: route.alternateRequirementIndex,
+            projectedCost: route.projectedCost,
+          })),
+        }),
   }));
 
   return {
@@ -231,6 +242,7 @@ interface HandCardLike {
   instanceId: string;
   cardId: string;
   activatableEffectsJson?: string;
+  digivolveRoutes?: ArrayLike<{ permanentId: string; alternateRequirementIndex: number; projectedCost: number }>;
 }
 
 interface PlayerLike {

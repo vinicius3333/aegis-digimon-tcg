@@ -90,6 +90,28 @@ function digivolveCandidates(view: BotView): Candidate[] {
   const candidates: Candidate[] = [];
   for (const card of view.hand) {
     if (!isDigimonCard(card.definition)) continue;
+    if (card.digivolveRoutes !== undefined) {
+      for (const route of card.digivolveRoutes) {
+        const base = bases.find((unit) => unit.permanentId === route.permanentId);
+        if (base === undefined) continue;
+        candidates.push({
+          kind: "digivolve",
+          key: `digivolve:${card.instanceId}:${base.permanentId}`,
+          intent: {
+            type: "digivolve",
+            permanentId: base.permanentId,
+            instanceId: card.instanceId,
+            ...(route.alternateRequirementIndex < 0
+              ? {}
+              : { alternateRequirementIndex: route.alternateRequirementIndex }),
+          },
+          cost: route.projectedCost,
+          base,
+          definition: card.definition,
+        });
+      }
+      continue;
+    }
     for (const base of bases) {
       if (base.cardId === undefined || base.cannotDigivolve) continue;
       const cost = digivolveCost(card.cardId, base.cardId, {
