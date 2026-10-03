@@ -624,7 +624,9 @@ function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTri
     const arrival = trashArrivalOf(engine.state, selfTrashedInstanceId);
     return arrival !== undefined && arrival === item.sourceTrashArrival;
   }
-  if (sub.event !== "onDeletionOf" && sub.event !== "whenHandTrashed") return true;
+  // Every pending field watcher loses activation when its exact source leaves or
+  // loses its placement, including nested play/digivolution snapshots (CR 15-4-4-3/4).
+  // The event subject snapshot remains valid; it does not preserve the watcher source.
   const live = buildSubTriggerSourceContext(engine, sub, item.ctx.trigger);
   if (live === undefined) return false;
   // The discard event explicitly authorizes this exact inherited source after it moved.

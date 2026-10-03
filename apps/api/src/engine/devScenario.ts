@@ -157,6 +157,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt13-king-drasil-source-count",
   "arena-bt13-omnimon-later-token-rush",
   "arena-st12-blanc-rush-second-attack",
+  "arena-bt26-zombie-plutomon-removed-trigger",
   "arena-bt24-hyogamon-pending-trash-digivolve",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
@@ -3861,6 +3862,26 @@ function layBt13OmnimonLaterTokenRushScenario(state: GameState, decks: readonly 
   placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-omnimon-rush-target"));
 }
 
+/** Discord 1555883726292914187: a nested evolution removes a pending field watcher. */
+function layZombiePlutomonRemovedTriggerScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT22-004", "BT22-044", "BT22-044"], "-zombie-repro-host"));
+  placePermanent(opponent, establishedDigimon(1, ["BT26-059", "BT26-079"], "-zombie-repro-target"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-zombie-repro-evolution", "BT22-056", 0));
+  for (let index = 0; index < 5; index += 1) {
+    insertCard(human, Zone.Hand, faceDownCard(`dev-zombie-repro-hand-${index}`, "BT1-009", 0));
+  }
+  for (let index = 0; index < 6; index += 1) {
+    insertCard(opponent, Zone.Hand, faceDownCard(`dev-zombie-repro-opponent-hand-${index}`, "BT1-009", 1));
+  }
+  for (let index = 0; index < 3; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-zombie-repro-draw-${index}`, "BT1-009", 0), "top");
+  }
+}
+
 /**
  * Reproduce Discord bug 1555502942403043389: SnowGoblimon trashes Plutomon from the hand, so both
  * inherited Titan digivolutions trigger. Salamon's digivolves into Plutomon, whose
@@ -4730,6 +4751,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
   "arena-st12-blanc-rush-second-attack": laySt12BlancRushSecondAttackScenario,
+  "arena-bt26-zombie-plutomon-removed-trigger": layZombiePlutomonRemovedTriggerScenario,
   "arena-bt24-hyogamon-pending-trash-digivolve": layBt24HyogamonPendingTrashDigivolveScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
