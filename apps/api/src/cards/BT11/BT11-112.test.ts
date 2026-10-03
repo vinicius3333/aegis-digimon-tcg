@@ -3,7 +3,7 @@ import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import type { CompiledCard } from "@aegis/shared";
+import { getCardDefinition, printedClausesForTrigger, type CompiledCard } from "@aegis/shared";
 import "../index.js";
 
 describe("BT11-112 [On Play] grant Blocker + Evade to a [Veemon]/[Veedramon] Digimon", () => {
@@ -347,5 +347,61 @@ describe("BT11-112 Rina Shinomiya — KB Q&A rulings", () => {
     const control = await attackThenDigivolveThroughXAntibody(true);
     expect(control.perm("veedramon").topCard?.cardId).toBe(DIGIVOLVED_CARD);
     expect(control.state.memory).toBe(2);
+  });
+});
+
+describe("Discord 1555770458866065499: Rina chooses between Ulforce's printed effects", () => {
+  it("offers distinct complete printed clauses and executes the second effect through public intents", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", as: "rina" },
+            { card: "EX13-023", as: "ulforce" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target" }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT11-112"] },
+    );
+    await s.ready();
+    const targetId = s.perm("target").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ulforce").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const request = s.decisions.find(({ req }) => req.kind === "chooseOption" && req.sourceCardId === "BT11-112")!.req;
+    const printed = printedClausesForTrigger({
+      definition: getCardDefinition("EX13-023")!,
+      trigger: "WhenDigivolving",
+      inherited: false,
+    });
+    expect(request.options?.choices).toEqual(printed);
+    expect(request.options?.choiceEffects).toEqual([
+      { cardId: "EX13-023", timing: "WhenDigivolving" },
+      { cardId: "EX13-023", timing: "WhenDigivolving" },
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === targetId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("rina").isSuspended).toBe(true);
+    const notice = s.events.find(
+      (e) =>
+        e.kind === "effectTriggered" &&
+        e.sourceCardId === "EX13-023" &&
+        e.description.includes("fewest digivolution cards"),
+    );
+    expect(notice).toMatchObject({ description: printed[1], timing: "WhenDigivolving" });
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
   });
 });

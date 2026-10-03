@@ -18,6 +18,7 @@ export function shieldBreakStep({
   scene,
   replace = true,
   clausesBefore,
+  afterClauses,
   causingEffectGate,
 }: {
   queue: AnimationQueue;
@@ -25,7 +26,10 @@ export function shieldBreakStep({
   setSecurityHitSeat: Dispatch<SetStateAction<number | null>>;
   scene: SecurityBreakScene;
   replace?: boolean;
-  clausesBefore?: string;
+  /** The state version of the check's batch; clauses from earlier batches read first. */
+  clausesBefore?: number;
+  /** Runs once those clauses have been read, before the shield breaks. */
+  afterClauses?: () => void;
   /** Effect clause whose announcement must precede this effect-caused shield break. */
   causingEffectGate?: PresentationGate | null;
 }): AnimationStep {
@@ -39,7 +43,10 @@ export function shieldBreakStep({
     // the card before it.
     replace,
     async run(context) {
-      if (context.mode !== "live") return;
+      if (context.mode !== "live") {
+        afterClauses?.();
+        return;
+      }
       await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "securityDestruction/causingEffect");
       if (context.cancelled) return;
       // Raid can redirect an attack into a field battle and Piercing can then continue that
@@ -52,19 +59,33 @@ export function shieldBreakStep({
       // resolves a [When Attacking] effect ahead of the reveal, but its toast glows the
       // source card first, so without this wait the check opened over a clause that had
       // not arrived yet and looked like it had fired afterwards.
+      // Only earlier batches count, so the set is finite. A chain of clauses (BeelStarmon's
+      // unsuspend, then the Option it trashed) outlasts one lead, so each clause that
+      // finishes buys the next its own lead; a stalled clause still lets the check go.
       if (clausesBefore !== undefined) {
-        const deadline = Date.now() + TIMINGS.securityClauseLead;
-        while (
-          !context.cancelled &&
-          !context.skipping &&
-          Date.now() < deadline &&
-          queue.hasPendingStep(
-            (step) => step.id.startsWith("narration-step-") && step.origin?.batchId !== clausesBefore,
-          )
-        )
+        // A docked Option those clauses are waiting on is part of the same earlier beat.
+        const earlierClauses = () =>
+          queue.countPendingSteps(
+            (step) =>
+              (step.id.startsWith("narration-step-") || step.id.startsWith("option-dock-hold-")) &&
+              step.origin !== undefined &&
+              step.origin.stateVersion < clausesBefore,
+          );
+        let remaining = earlierClauses();
+        const clausesWereQueued = remaining > 0;
+        let deadline = Date.now() + TIMINGS.securityClauseLead;
+        while (!context.cancelled && !context.skipping && remaining > 0 && Date.now() < deadline) {
           await context.wait(16);
+          const now = earlierClauses();
+          if (now < remaining) deadline = Date.now() + TIMINGS.securityClauseLead;
+          remaining = now;
+        }
+        if (context.cancelled) return;
+        // The last clause has only just appeared; it gets its read before the shield breaks.
+        if (clausesWereQueued) await context.wait(TIMINGS.effectAnnounce);
         if (context.cancelled) return;
       }
+      afterClauses?.();
       try {
         setSecurityBreak({ ...scene, phase: SecurityBreakPhase.Arm });
         await context.wait(SECURITY_BREAK_TIMINGS.armMs);

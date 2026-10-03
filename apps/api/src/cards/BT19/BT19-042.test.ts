@@ -60,6 +60,8 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
         kind: "trashSecurityTop",
         controller: "opponent",
         cost: { kind: "trashSecurityTop" },
+        optional: true,
+        abortOnDecline: true,
         condition: {
           kind: "selfHasInDigivolutionCards",
           nameOrTrait: [
@@ -73,24 +75,27 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
   });
 
   it("digivolves for 1 memory from a printed [Dynasmon] and fires the clause on the real stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT19-041", as: "base", under: ["BT1-057"] }],
-        hand: [{ card: "BT19-042", as: "dynasX" }, "BT1-009"],
-        deck: ["BT1-009", "BT1-009"],
-        security: [
-          { card: "BT1-009", as: "mineTop" },
-          { card: "BT1-013", as: "mineSecond" },
-          { card: "BT1-014", as: "mineThird" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-041", as: "base", under: ["BT1-057"] }],
+          hand: [{ card: "BT19-042", as: "dynasX" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+          security: [
+            { card: "BT1-009", as: "mineTop" },
+            { card: "BT1-013", as: "mineSecond" },
+            { card: "BT1-014", as: "mineThird" },
+          ],
+        },
+        1: {
+          security: [
+            { card: "BT1-009", as: "oppTop" },
+            { card: "BT1-013", as: "oppSecond" },
+          ],
+        },
       },
-      1: {
-        security: [
-          { card: "BT1-009", as: "oppTop" },
-          { card: "BT1-013", as: "oppSecond" },
-        ],
-      },
-    });
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 3;
     await s.ready();
 
@@ -116,6 +121,69 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("mineTop").instanceId);
       expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("oppTop").instanceId);
       expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+    });
+  });
+
+  it("declines the optional 'by' cost on [When Digivolving] and keeps the shared use for [When Attacking]", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT19-041", as: "base", under: ["BT1-057"] }],
+        hand: [{ card: "BT19-042", as: "dynasX" }, "BT1-009"],
+        deck: ["BT1-009", "BT1-009"],
+        security: [
+          { card: "BT1-009", as: "mineTop" },
+          { card: "BT1-013", as: "mineSecond" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-020", as: "prey", suspended: true }],
+        security: [
+          { card: "BT1-009", as: "oppTop" },
+          { card: "BT1-013", as: "oppSecond" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const respondOptional = (accept: boolean) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept },
+      });
+
+    await runTurnWith(s, 0, async () => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("dynasX").instanceId,
+          useAlternateCost: true,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(respondOptional(false)).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(securityIds(s, 0)).toEqual([s.inst("mineTop").instanceId, s.inst("mineSecond").instanceId]);
+      expect(securityIds(s, 1)).toEqual([s.inst("oppTop").instanceId, s.inst("oppSecond").instanceId]);
+      expect(s.perm("base").currentDP).toBe(12000);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("base").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("prey").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(respondOptional(true)).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+
+      expect(securityIds(s, 0)).toEqual([s.inst("mineSecond").instanceId]);
+      expect(securityIds(s, 1)).toEqual([s.inst("oppSecond").instanceId]);
+      expect(s.perm("base").currentDP).toBe(18000);
     });
   });
 
@@ -180,18 +248,21 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
   });
 
   it("accepts an [X Antibody] digivolution card as the other arm of the gate", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT9-109"] }],
-        hand: ["BT1-009"],
-        deck: ["BT1-009", "BT1-009"],
-        security: [{ card: "BT1-009", as: "mineTop" }, "BT1-013"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT9-109"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+          security: [{ card: "BT1-009", as: "mineTop" }, "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "prey", suspended: true }],
+          security: [{ card: "BT1-009", as: "oppTop" }, "BT1-013"],
+        },
       },
-      1: {
-        battleArea: [{ card: "BT1-020", as: "prey", suspended: true }],
-        security: [{ card: "BT1-009", as: "oppTop" }, "BT1-013"],
-      },
-    });
+      { autoAcceptOptional: true },
+    );
     await s.ready();
 
     await runTurnWith(s, 0, async () => {
@@ -211,15 +282,18 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
   });
 
   it("still pays and boosts when the opponent's security stack is empty", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT19-041"] }],
-        hand: ["BT1-009"],
-        deck: ["BT1-009", "BT1-009"],
-        security: [{ card: "BT1-009", as: "mineTop" }, "BT1-013"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT19-041"] }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+          security: [{ card: "BT1-009", as: "mineTop" }, "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "prey", suspended: true }], security: [] },
       },
-      1: { battleArea: [{ card: "BT1-020", as: "prey", suspended: true }], security: [] },
-    });
+      { autoAcceptOptional: true },
+    );
     await s.ready();
 
     await runTurnWith(s, 0, async () => {
@@ -286,7 +360,7 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
           security: inert(4),
         },
       },
-      { autoDeclineOptional: true },
+      { autoAcceptOptional: true },
     );
     s.state.memory = 3;
     await s.ready();

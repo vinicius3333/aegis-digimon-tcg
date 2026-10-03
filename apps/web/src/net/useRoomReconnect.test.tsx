@@ -36,6 +36,8 @@ const OPTIONS = { displayName: "Tamer", deck: { mainDeck: [], eggDeck: [] } };
 interface FakeRoom {
   room: AegisRoom;
   emitState: (state: Partial<GameState>) => void;
+  /** Several patches decoded back to back, before React renders, into one live state object. */
+  emitPatchesTogether: (state: Partial<GameState>, patches: readonly (() => void)[]) => void;
   emitLeave: (code: number) => void;
   emitDecision: (decision: DecisionRequest) => void;
   emitEvent: (event: SequencedServerEvent) => void;
@@ -66,6 +68,13 @@ function fakeRoom(roomId: string): FakeRoom {
   return {
     room,
     emitState: (state) => act(() => onState?.(state as GameState)),
+    emitPatchesTogether: (state, patches) =>
+      act(() => {
+        for (const patch of patches) {
+          patch();
+          onState?.(state as GameState);
+        }
+      }),
     emitLeave: (code) => act(() => onLeave?.(code)),
     emitDecision: (decision) => act(() => messages.get(DECISION_CHANNEL)?.(decision)),
     emitEvent: (event) => act(() => messages.get(EVENT_CHANNEL)?.(event)),
@@ -81,6 +90,32 @@ describe("useRoom reconnection token persistence", () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  it("keeps a snapshot of every revision even when several patches land before a render", async () => {
+    const joined = fakeRoom("room-1");
+    joinOrCreate.mockResolvedValue(joined.room);
+    const { result } = renderHook(() => useRoom(OPTIONS));
+    await waitFor(() => expect(result.current.status).toBe("connected"));
+
+    const live = { stateVersion: 1, memory: 0 } as Partial<GameState>;
+    joined.emitPatchesTogether(live, [
+      () => undefined,
+      () => {
+        live.stateVersion = 2;
+        live.memory = 3;
+      },
+      () => {
+        live.stateVersion = 3;
+        live.memory = 6;
+      },
+    ]);
+
+    expect(result.current.snapshots.map(({ stateVersion, state }) => [stateVersion, state.memory])).toEqual([
+      [1, 0],
+      [2, 3],
+      [3, 6],
+    ]);
   });
 
   it("persists the reconnection token once a fresh join binds", async () => {
@@ -144,6 +179,36 @@ describe("useRoom reconnection token persistence", () => {
     expect(joinOrCreate).not.toHaveBeenCalled();
     expect(loadReconnectSession()).toMatchObject({ roomId: "room-1" });
   }, 3_000);
+
+  it("keeps the persisted session fresh so a reload late in a long match still resumes", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "Date"], shouldAdvanceTime: true });
+    try {
+      const joined = fakeRoom("long-match");
+      joinOrCreate.mockResolvedValue(joined.room);
+      const { result } = renderHook(() => useRoom(OPTIONS));
+      await waitFor(() => expect(result.current.status).toBe("connected"));
+
+      vi.advanceTimersByTime(4 * 60_000);
+      expect(loadReconnectSession()).toMatchObject({ roomId: "long-match" });
+      expect(Date.now() - loadReconnectSession()!.savedAt).toBeLessThanOrEqual(5_000);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops retrying at once when the server says the room is gone", async () => {
+    const joined = fakeRoom("gone");
+    joinOrCreate.mockResolvedValue(joined.room);
+    reconnect.mockRejectedValue(Object.assign(new Error("room not found"), { code: 522 }));
+    const { result } = renderHook(() => useRoom(OPTIONS));
+    await waitFor(() => expect(result.current.status).toBe("connected"));
+
+    joined.emitLeave(1006);
+
+    await waitFor(() => expect(result.current.status).toBe("closed"));
+    expect(reconnect).toHaveBeenCalledOnce();
+    expect(loadReconnectSession()).toBeUndefined();
+  });
 
   it("forgets the session once the match is over", async () => {
     const joined = fakeRoom("room-1");

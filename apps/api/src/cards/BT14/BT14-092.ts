@@ -40,6 +40,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] 1 of your opponent's Digimon can't attack for the turn.",
           kind: "Restrict",
           target: {
             filter: {
@@ -52,6 +53,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, add this card to the hand.",
           kind: "AddToHandSelf",
         },
       ],

@@ -97,10 +97,10 @@ export interface ResourcePrimitives {
       sourceSeat?: Seat;
       sourceKinds?: string[];
       skipsCurrentOpponentTurnEnd?: boolean;
+      /** Live target filter; omit to affect every Digimon the seat controls. */
+      matches?: (permanentId: string) => boolean;
     },
   ): void;
-  /** Restore DP already reduced before a newly gained reduction immunity takes effect (Q1990). */
-  restoreDpReductions(permanentId: string): void;
   /**
    * Override a permanent's ORIGINAL/base DP to an absolute value for `duration`
    * (the "treated as having N DP" family). Replaces the base DP that signed

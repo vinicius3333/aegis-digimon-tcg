@@ -11,7 +11,11 @@ describe("BT15-007", () => {
       trigger: "StartOfYourMainPhase",
       actions: [{ kind: "RevealAdd", revealCount: 4, rest: "deckBottom" }],
     });
-    expect(compiled.effects?.[0]?.actions[0]).toMatchObject({ cost: { kind: "trash", target: { count: 1 } } });
+    expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
+      cost: { kind: "trash", target: { count: 1 } },
+      optional: true,
+      abortOnDecline: true,
+    });
   });
   it("gains 1 memory once per turn when an opponent's security is removed", () =>
     expect(compiled.effects?.[1]).toMatchObject({
@@ -54,6 +58,32 @@ describe("BT15-007", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("birdCost").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("seaAnimal").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it("declines the optional 'by' cost by selecting no hand card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT15-007", as: "biyomon" }],
+        hand: [{ card: "BT1-012", as: "birdCost" }],
+        deck: [{ card: "BT1-009", as: "redHit" }, "BT1-045", "BT1-055", "BT1-069"],
+      },
+    });
+
+    const firing = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("biyomon"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("birdCost").instanceId]);
+    expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("redHit").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
   });
 
   it("counts a card whose trait only contains [Beast] (e.g. [Holy Beast])", async () => {

@@ -12,7 +12,9 @@ describe("BT12-075 Psychemon", () => {
       cost: 0,
       isAlternate: true,
     });
-    expect(digiXrosRequirementFor("BT12-075")).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    expect(digiXrosRequirementFor("BT12-075")).toEqual([
+      { materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 },
+    ]);
     const evolution = setupEngine({
       0: {
         battleArea: [{ card: "BT12-005", as: "base" }],

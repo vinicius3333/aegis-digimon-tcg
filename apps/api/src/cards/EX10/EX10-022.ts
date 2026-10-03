@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart: "[Start of Your Main Phase] Suspend all of your opponent's level 5 or lower Digimon.",
           kind: "Suspend",
           target: {
             filter: {
@@ -31,6 +32,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you have 6 or fewer cards in your hand, this Digimon gains ＜Piercing＞ , ＜Security A. +2＞ and +3000 DP for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

@@ -12,6 +12,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-077.js";
 import "../BT1/BT1-101.js";
+import "../BT4/BT4-057.js";
 import "../BT9/BT9-050.js";
 import "../AD1/AD1-025.js";
 
@@ -438,12 +439,72 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
   });
 
-  it("Q7477: Battle can target a Leomon played by an opponent immediate battle replacement", async () => {
+  it("resolves Battle and Recovery before the attacker's When Attacking effect (Discord bug 1554922883652784198)", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           hand: [{ card: CARD_ID, as: "merciful" }],
-          battleArea: [{ card: "AD1-025", as: "attacker" }],
+          battleArea: [
+            { card: "BT4-057", as: "attacker" },
+            { card: "AD1-020", as: "colorTamer" },
+          ],
+          deck: ["BT1-012", "BT1-013"],
+          security: ["BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "defender" }],
+          trash: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          deck: ["BT1-015"],
+          security: ["BT1-016"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoSelectCards: true,
+        preferOptionIndex: 0,
+        preferInstanceIds,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const attacker = s.perm("attacker");
+    preferInstanceIds.push(attacker.permanentId, attacker.topCard.instanceId);
+    const defenderId = s.inst("defender").instanceId;
+    const returnedIds = s.state.players[1]!.trash.map(({ instanceId }) => instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "securityRevealed"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const defenderDeleted = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(defenderId),
+    );
+    const trashReturned = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" && event.to === "deckBottom" && event.instanceIds.includes(returnedIds[0]!),
+    );
+    const whenAttackingResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT4-057",
+    );
+    const securityChecked = s.events.findIndex((event) => event.kind === "securityRevealed");
+    expect(whenAttackingResolved).toBeGreaterThanOrEqual(0);
+    expect(defenderDeleted).toBeGreaterThanOrEqual(0);
+    expect(defenderDeleted).toBeLessThan(whenAttackingResolved);
+    expect(trashReturned).toBeGreaterThan(defenderDeleted);
+    expect(whenAttackingResolved).toBeGreaterThan(trashReturned);
+    expect(securityChecked).toBeGreaterThan(whenAttackingResolved);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(returnedIds));
+  });
+
+  it("Q7477: a later Battle can target a Leomon played by an opponent immediate battle replacement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [{ card: "AD1-020", as: "colorTamer" }],
           deck: ["BT1-012", "BT1-013"],
           security: ["BT1-090"],
         },
@@ -452,103 +513,58 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
           security: ["BT1-015"],
         },
       },
-      { autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        declinePrompts: ["Attack"],
+        autoChooseOption: true,
+        autoSelectCards: true,
+        preferOptionIndex: 0,
+      },
     );
     s.state.memory = 10;
     await s.ready();
+    const hostId = s.inst("host").instanceId;
     const newLeomonId = s.inst("newLeomon").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    let req = s.state.pendingDecision!;
-    if (req.kind !== "optional") throw new Error("Expected Merciful Mode's optional attack");
-    expect(JSON.parse(req.payloadJson).effectTextPart).toContain("may attack without suspending");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: req.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-
-    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
-    req = s.state.pendingDecision!;
-    if (req.kind !== "chooseOption") throw new Error("Expected the color-scaled Battle choice");
-    expect(JSON.parse(req.payloadJson).choices).toContain("Battle");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: req.decisionId,
-        response: { kind: "chooseOption", optionIndex: 0 },
-      }),
-    ).toEqual({ ok: true });
-
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    req = s.state.pendingDecision!;
-    if (req.kind !== "optional") throw new Error("Expected the opponent's immediate effect");
-    expect(req.seat).toBe(1);
-    expect(req.promptText).toBe("Play without paying the cost");
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: req.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    req = s.state.pendingDecision!;
-    if (req.kind !== "optional") throw new Error("Expected the selected Battle branch");
-    expect(req.promptText).toBe("Battle");
-    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === newLeomonId)).toBe(true);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: req.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-
-    await settle(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === newLeomonId));
-    // Q7477's relevant interleave is the opponent-owned immediate replacement:
-    // BT9-050 plays its Leomon source when the first public attack would delete it.
-    // The later Battle must include that newly played Digimon in its defender scan.
     await settle(() =>
       s.events.some(
         (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "OnPlay",
       ),
     );
-    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(newLeomonId);
-    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === newLeomonId)).toBe(false);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    // The first Battle would delete BT9-050, whose immediate replacement plays its Leomon
+    // source. The second color-scaled Battle then scans the live board and finds it.
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([hostId, newLeomonId]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
     const sourcePlayedIndex = s.events.findIndex(
       (event) => event.kind === "cardPlayed" && event.seat === 1 && event.cardId === "BT1-035",
     );
-    const attackResolvedIndex = s.events.findIndex((event) => event.kind === "combatResolved");
-    const sourceBattleDeletionIndex = s.events.findIndex(
+    const sourceDeletedIndex = s.events.findIndex(
       (event, index) =>
-        index > attackResolvedIndex && event.kind === "cardsMoved" && event.instanceIds.includes(newLeomonId),
+        index > sourcePlayedIndex && event.kind === "cardsMoved" && event.instanceIds.includes(newLeomonId),
+    );
+    const effectResolvedIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID,
     );
     expect(sourcePlayedIndex).toBeGreaterThanOrEqual(0);
-    expect(attackResolvedIndex).toBeGreaterThan(sourcePlayedIndex);
-    expect(sourceBattleDeletionIndex).toBeGreaterThan(attackResolvedIndex);
-    const battleChoiceIndex = s.decisions.findIndex(
-      ({ req: decision }) => decision.kind === "chooseOption" && decision.promptText === "Omnimon: Merciful Mode",
+    expect(sourceDeletedIndex).toBeGreaterThan(sourcePlayedIndex);
+    expect(effectResolvedIndex).toBeGreaterThan(sourceDeletedIndex);
+    const choiceIndices = s.decisions.flatMap(({ req: decision }, index) =>
+      decision.kind === "chooseOption" && decision.promptText === "Omnimon: Merciful Mode" ? [index] : [],
     );
     const opponentReplacementIndex = s.decisions.findIndex(
       ({ seat, req: decision }) =>
         seat === 1 && decision.kind === "optional" && decision.promptText === "Play without paying the cost",
     );
-    const battleActivationIndex = s.decisions.findIndex(
-      ({ req: decision }) => decision.kind === "optional" && decision.promptText === "Battle",
-    );
-    expect(battleChoiceIndex).toBeGreaterThanOrEqual(0);
-    expect(opponentReplacementIndex).toBeGreaterThanOrEqual(0);
-    expect(battleActivationIndex).toBeGreaterThanOrEqual(0);
-    expect(opponentReplacementIndex).toBeGreaterThan(battleChoiceIndex);
-    expect(battleActivationIndex).toBeGreaterThan(opponentReplacementIndex);
-    expect(s.state.pendingDecision).toBeUndefined();
+    expect(choiceIndices).toHaveLength(2);
+    expect(opponentReplacementIndex).toBeGreaterThan(choiceIndices[0]!);
+    expect(choiceIndices[1]!).toBeGreaterThan(opponentReplacementIndex);
   });
 
   it("Q7469: the Battle branch can choose and battle a Digimon unaffected by effects", async () => {

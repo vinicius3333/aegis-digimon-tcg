@@ -407,6 +407,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
 
   private initialize(options: RoomCreateOptions, reopenedCode?: string): void {
     this.setState(new GameState());
+    this.guardFullStateSync();
     if (!canCreateRoom()) throw new ServerError(503, "This game server is draining; retry on the active slot.");
     this.state.matchLogId = randomUUID();
     const seed = options.seed ?? Date.now() >>> 0;
@@ -884,7 +885,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // missed every card that reached the hand while the seat was offline, so the fresh view
       // must go on the new Client; assigning it to `client` left the socket on the stale one.
       reconnectedClient.view = this.engine.makeStateView(seat);
-      this.resendOpenPrompts(client, seat);
+      this.resendOpenPrompts(reconnectedClient, seat);
     } catch {
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
       // departure — the opponent wins an in-progress match.
@@ -1107,15 +1108,12 @@ export class AegisRoom extends Room<{ state: GameState }> {
    *
    * The close is broadcast with `afterNextPatch`, so it reaches clients only after the state
    * patch carrying the batch's mutations — the client narrating the batch then knows which
-   * board it is narrating over. A batch belonging to one client is sent directly: it changed
-   * no shared state, so there is no patch to wait for.
-   *
-   * A seated client that paces chains itself (`presentationPacing: "sequential"`) gets the
-   * patch now rather than on the next tick. A chain resolves a dozen batches in a few
-   * milliseconds, all inside one tick, and one patch for all of them left that client with
-   * only the chain's final board: every effect was then narrated over a board that already
-   * showed the effects after it. A patch per batch gives it each effect's own board. Other
-   * rooms keep one patch per tick.
+   * board it is narrating over. That patch is sent right here rather than on the next tick:
+   * batches resolved within one tick (a whole turn start, an effect's chain) would otherwise
+   * share one patch, the client would never see their revisions, and the board could only
+   * jump to the last one while the narration was still reading out the first. A batch
+   * belonging to one client is sent directly: it changed no shared state, so there is no
+   * patch to wait for.
    */
   private closeBatch(): void {
     const batch = this.currentBatch;
@@ -1133,13 +1131,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       return;
     }
     this.broadcast(EVENT_CHANNEL, this.stampClose(closed, batch), { afterNextPatch: true });
-    if (this.hasChainPacingSeat()) this.broadcastPatch();
-  }
-
-  private hasChainPacingSeat(): boolean {
-    return this.clients.some(
-      (client) => this.chainPacingClients.has(client.sessionId) && this.seatByClient.has(client.sessionId),
-    );
+    this.broadcastPatch();
   }
 
   /** The close is part of the batch it ends, so it takes the next `seq` and that batch's id. */
@@ -1189,6 +1181,38 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.combatWindowTimeoutKey = undefined;
       this.withBatch(() => this.engine.expireCombatWindow());
     }, this.COMBAT_WINDOW_TIMEOUT_SECONDS * 1000);
+  }
+
+  /**
+   * Keep a full-state encode failure inside this room. Colyseus sends a joining or
+   * reconnecting client its full state from the raw socket message handler, so a throw there
+   * is an uncaughtException, and the process handler exits — dropping every room on it.
+   *
+   * `sendFullState` is private in the Colyseus typings, hence the instance-level wrap. The
+   * retry rebuilds the seat's view, which re-runs the detached-card repair; a state that still
+   * cannot be encoded closes this room only.
+   */
+  private guardFullStateSync(): void {
+    const room = this as unknown as { sendFullState(client: Client): void };
+    const sendFullState = room.sendFullState.bind(this);
+    room.sendFullState = (client) => {
+      try {
+        sendFullState(client);
+        return;
+      } catch (error) {
+        this.debugError(`[AegisRoom] full state sync failed sessionId=${client.sessionId}; rebuilding view`, error);
+      }
+      try {
+        const seat = this.seatByClient.get(client.sessionId);
+        if (seat !== undefined) client.view = this.engine.makeStateView(seat);
+        sendFullState(client);
+      } catch (error) {
+        this.debugError(`[AegisRoom] full state sync failed again sessionId=${client.sessionId}; closing room`, error);
+        void this.disconnect(CloseCode.WITH_ERROR).catch((disconnectError: unknown) =>
+          this.debugError("[AegisRoom] failed to close room after full state sync failure", disconnectError),
+        );
+      }
+    };
   }
 
   private debug(...data: unknown[]): void {

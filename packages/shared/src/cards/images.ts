@@ -2,7 +2,6 @@ import { resolveCardArt } from "./arts.js";
 import { TOKEN_ID_PREFIX } from "./tokens.js";
 
 const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
-const LOCAL_PREVIEW_IDS = new Set([...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`)]);
 
 /**
  * Printings the upstream set has no English image for, bundled as official "SAMPLE" scans.
@@ -67,10 +66,8 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
   const base = imageCandidates(resolveCardArt(cardId).imageId);
   const ids = [...new Set([...selected, ...base])];
   return ids.flatMap((id) => {
-    const local = LOCAL_PREVIEW_IDS.has(id) ? `/cards/preview/${id}.webp` : undefined;
     const unpublished = UNPUBLISHED_IMAGE_IDS.has(id) ? `/cards/unpublished/${id}.webp` : undefined;
     return [
-      ...(local ? [local] : []),
       `${GITHUB_BASE}/${id}.webp`,
       ...(unpublished ? [unpublished] : []),
       `${GITHUB_BASE}/${id}-Sample.webp`,

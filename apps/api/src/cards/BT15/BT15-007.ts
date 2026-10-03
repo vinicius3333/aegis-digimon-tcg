@@ -44,6 +44,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing 1 Digimon card with [Avian]/[Bird]/[Beast]/[Animal]/[;Sovereign] in one of its traits other than [Sea Animal] in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

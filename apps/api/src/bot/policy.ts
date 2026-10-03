@@ -311,6 +311,9 @@ function pickInstances(view: BotView | undefined, request: DecisionRequest): str
   const ranked = [...candidates].sort((left, right) => rank(right) - rank(left));
 
   if (min > 0) return ranked.slice(0, min);
+  // The bot already accepted this "you may" clause; its pick floor of zero only exists so a
+  // human can back out.
+  if (request.options?.purpose === "acceptedOptional") return ranked.slice(0, 1);
   // A cost selection IS the payment: an empty answer declines the clause and, on a clause
   // whose whole body is gated behind it, throws the card away for nothing (P-193 played
   // its ＜Delay＞ body away by skipping the trash cost). Pay it in full, spending the
@@ -331,6 +334,10 @@ function pickInstances(view: BotView | undefined, request: DecisionRequest): str
 
   function rank(instanceId: string): number {
     const enemy = opponentUnits.get(instanceId);
+    // Suspending an already suspended Digimon is legal (Q1782) but changes nothing.
+    if (enemy !== undefined && enemy.suspended && request.options?.targetFate === "suspend") {
+      return 500 + bodyValue(enemy);
+    }
     if (enemy !== undefined) return 1_000 + bodyValue(enemy);
     const mine = ownUnits.get(instanceId);
     if (mine !== undefined) return -bodyValue(mine);

@@ -111,6 +111,8 @@ export interface GrantCanAttackUnsuspendedAction extends ActionBase {
    */
   noDigivolutionCards?: boolean;
   defenderLevelMax?: number;
+  /** Apply the same timed grant to matching permanents that enter after resolution. */
+  includeLaterEntrants?: boolean;
 }
 
 export interface GrantVortexCanAttackPlayersAction extends ActionBase {

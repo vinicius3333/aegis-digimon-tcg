@@ -28,8 +28,9 @@ const suspendBuff: Action = {
       duration: "untilOpponentTurnEnd",
       fromSourceKind: ["Option"],
       byOpponentEffectsOnly: true,
+      whileMatchesTargetFilter: true,
     },
-    { kind: "ModifyDP", target: suspendedTraits, amount: 3000, duration: "untilOpponentTurnEnd" },
+    { kind: "ModifyDP", target: suspendedTraits, playerWide: true, amount: 3000, duration: "untilOpponentTurnEnd" },
   ],
 };
 const battle: Action = {

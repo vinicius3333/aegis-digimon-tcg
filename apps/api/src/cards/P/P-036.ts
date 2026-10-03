@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "RevealAdd",
+          effectTextPart:
+            "[Main] Reveal the top 4 cards of your deck. Add 1 blue Digimon card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
           revealCount: 4,
           add: [
             {
@@ -24,6 +26,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in your battle area.",
         },
       ],
     },

@@ -43,8 +43,11 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
       actions: [
         { kind: "DeDigivolve", amount: 2, target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
         {
-          kind: "GrantStatic",
-          grant: "immuneToOpponentDigimonEffects",
+          kind: "Restrict",
+          restriction: "beAffected",
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           condition: {
@@ -279,6 +282,10 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT20-059");
     expect(observe(s.engine).isRestrictedByEffect(s.perm("base"), "beAffected", "Digimon")).toBe(true);
+    // CR 15-11-2-2: "none of your Digimon" also covers a Digimon that enters afterwards.
+    const late = s.putOnBoard(0, "BT1-083");
+    expect(observe(s.engine).isRestrictedByEffect(late, "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(late, "beAffected", "Option")).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Reboot"));

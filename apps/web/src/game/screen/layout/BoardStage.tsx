@@ -49,6 +49,7 @@ import { RightPileColumn } from "./RightPileColumn";
 import { Sidebar } from "./Sidebar";
 import { TurnBanner } from "./TurnBanner";
 import { ViewerBattleRow } from "./ViewerBattleRow";
+import { ViewerPiles } from "./ViewerPiles";
 
 export interface BoardAnchors {
   board: RefObject<HTMLDivElement | null>;
@@ -208,6 +209,18 @@ export function BoardStage({
       onClose={() => overlays.setSurrenderConfirmOpen(false)}
     />
   ) : null;
+  const viewerPiles = (
+    <ViewerPiles
+      viewer={shownViewer}
+      docked={layout.dockViewerPiles}
+      pileWidth={layout.arenaPileWidth}
+      compactPiles={layout.compactPiles}
+      viewerDeckRef={anchors.viewerDeck}
+      viewerDeckRiffling={cues.deckRiffles.has(`${viewerSeat}:deck`)}
+      viewerTrashClassName={chrome.trashEffectSource(viewerSeat) ?? ""}
+      onOpenViewerTrash={shownViewer.trash.length ? () => overlays.setTrashView(Side.Viewer) : undefined}
+    />
+  );
 
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
@@ -385,16 +398,25 @@ export function BoardStage({
             <RightPileColumn
               opponent={shownOpponent}
               opponentBreeding={breedingOpponent}
-              viewer={shownViewer}
+              viewerPiles={layout.dockViewerPiles ? null : viewerPiles}
               pileWidth={layout.arenaPileWidth}
               compactPiles={layout.compactPiles}
-              viewerDeckRef={anchors.viewerDeck}
               opponentSecurityRef={anchors.opponentSecurity}
               opponentEggDeckRiffling={cues.deckRiffles.has(`${other}:eggDeck`)}
-              viewerDeckRiffling={cues.deckRiffles.has(`${viewerSeat}:deck`)}
-              viewerTrashClassName={chrome.trashEffectSource(viewerSeat) ?? ""}
               breedingBurst={
                 breedingOpponent.breeding ? cues.permanentBursts.get(breedingOpponent.breeding.permanentId) : undefined
+              }
+              breedingEffectSource={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.effectSourcePermanentIds.has(breedingOpponent.breeding.permanentId)
+              }
+              breedingEffectLinked={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.effectLinkedPermanentIds.has(breedingOpponent.breeding.permanentId)
+              }
+              breedingHighlight={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.decisionHighlightPermanentId === breedingOpponent.breeding.permanentId
               }
               securityCount={
                 cues.securityDealCounts.get(other) ??
@@ -426,7 +448,6 @@ export function BoardStage({
               onOpenOpponentSecurity={
                 shownOpponent.securityCount ? () => overlays.setSecurityView(Side.Opponent) : undefined
               }
-              onOpenViewerTrash={shownViewer.trash.length ? () => overlays.setTrashView(Side.Viewer) : undefined}
             />
           </div>
 
@@ -434,6 +455,7 @@ export function BoardStage({
             playerName={viewer.displayName || t("game.you")}
             playerAvatarId={viewer.avatarId}
             breedingDock={!layout.portraitArena ? breedingDock : null}
+            pileDock={layout.dockViewerPiles ? viewerPiles : null}
             handDockRef={anchors.viewerHandDock}
             cardWidth={layout.handCardWidth}
             minExposure={layout.handMinExposure}

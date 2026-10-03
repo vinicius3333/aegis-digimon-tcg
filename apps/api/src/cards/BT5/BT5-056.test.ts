@@ -51,8 +51,42 @@ describe("BT5-056 Rafflesimon", () => {
     expect(s.perm("raffle").stack).toHaveLength(0);
     expect(s.perm("ally").currentDP).toBe(before + 2000);
     expect(s.perm("raffle").currentDP).toBe(raffleBefore + 2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT1-010");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("ally").currentDP - s.perm("ally").baseDP);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "block")).toBe(true);
+  });
+
+  it("gives +2000 DP to an own Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-056", as: "raffle", under: ["BT5-051", "BT5-052"] }],
+          hand: [{ card: "BT4-043", as: "future" }],
+        },
+        1: { battleArea: [{ card: "BT4-073", as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.engine.recomputeContinuousEffects();
+    const raffleBefore = s.perm("raffle").currentDP;
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("raffle").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT5-056/"),
+    )!.effectKey;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("raffle").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("raffle").currentDP === raffleBefore + 2000 && s.state.pendingDecision === undefined);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+    expect(s.perm("future").currentDP).toBe(10000);
   });
 
   it("reacts to another own Digi-Burst once, then expires at the opponent's turn end", async () => {

@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "RevealAdd",
+          effectTextPart:
+            "[Main] Reveal the top 3 cards of your deck. Add 1 [Evil], [Dark Dragon] or [Evil Dragon]\u00a0trait Digimon card and 1 [LIBERATOR]\u00a0trait card among them to the hand. Return the rest to the bottom of the deck.",
           revealCount: 3,
           add: [
             {
@@ -41,6 +43,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in the battle area.",
         },
       ],
     },

@@ -32,8 +32,16 @@ const playFromTrash: Action[] = [
 ];
 
 const trashTwoThenActivateOptionSide: Action[] = [
-  { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 2 } },
-  { kind: "ActivateMain", optional: true },
+  {
+    kind: "Trash",
+    effectTextPart: "[When Digivolving] [On Deletion] Trash 2 cards in your hand.",
+    target: { filter: { controller: "mine", zone: "hand" }, count: 2 },
+  },
+  {
+    kind: "ActivateMain",
+    effectTextPart: "Then, you may activate 1 [Main] effect on this card's Option side.",
+    optional: true,
+  },
 ];
 
 export const compiled: CompiledCard = {

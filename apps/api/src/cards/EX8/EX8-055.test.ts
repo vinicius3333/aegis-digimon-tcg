@@ -35,6 +35,7 @@ describe("EX8-055", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       {
         kind: "Unsuspend",
+        optional: true,
         abortOnDecline: true,
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         cost: {
@@ -53,6 +54,8 @@ describe("EX8-055", () => {
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
       kind: "Unsuspend",
+      optional: true,
+      abortOnDecline: true,
       cost: {
         kind: "trash",
         target: {
@@ -170,6 +173,48 @@ describe("EX8-055", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").isSuspended).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
+  });
+
+  it("declines the optional 'by' cost when digivolving and keeps all sources and the suspension", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX8-051",
+              as: "base",
+              suspended: true,
+              under: ["BT2-005", "EX8-046", "EX8-048"],
+            },
+          ],
+          hand: [{ card: "EX8-055", as: "pyramid" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("pyramid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-005", "EX8-046", "EX8-048", "EX8-051"]);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(0);
   });
 
   it("trashes three sources during a real attack, checks twice, and expires the bonus", async () => {

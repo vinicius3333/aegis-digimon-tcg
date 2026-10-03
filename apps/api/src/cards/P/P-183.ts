@@ -27,6 +27,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "GrantAuraToOpponents",
+          effectTextPart:
+            "[When Digivolving] Until your opponent's turn ends, 1 of your opponent's Digimon gains \"[Start of Your Main Phase] This Digimon attacks.\"",
           target: {
             filter: {
               controller: "opponent",
@@ -39,6 +41,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Attack",
+          effectTextPart: "Then, this Digimon may attack.",
           target: {
             filter: { isSelfRef: true },
             count: 1,

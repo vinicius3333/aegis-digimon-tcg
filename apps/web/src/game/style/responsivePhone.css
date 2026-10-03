@@ -72,33 +72,6 @@
     overflow-y: auto;
     transform: none !important;
   }
-  /* The digivolve cost chooser keeps the inline `top: 120px` it needs on a
-     pointer screen, and with the rule above also pinning `bottom` the panel was
-     stretched from under the opponent bar to the floor, leaving a dark gap below
-     the last button. Releasing the top edge lets it hug its content, and the
-     rest turns it into the same bottom sheet as `.card-action-sheet__panel`. */
-  .evo-cost-prompt {
-    top: auto !important;
-    right: 0 !important;
-    left: 0 !important;
-    bottom: 0 !important;
-    height: auto !important;
-    max-height: 82dvh !important;
-    padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom)) !important;
-    border: 0 !important;
-    border-top: 1px solid var(--ds-border-strong) !important;
-    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0 !important;
-    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%) !important;
-  }
-  .evo-cost-prompt::before {
-    content: "";
-    display: block;
-    width: 2.25rem;
-    height: 4px;
-    margin: 0 auto var(--ds-space-3);
-    border-radius: 999px;
-    background: var(--ds-border-strong);
-  }
   .game-over-dialog {
     max-height: calc(100dvh - var(--ds-space-6));
     padding: var(--ds-space-6) var(--ds-space-4) !important;

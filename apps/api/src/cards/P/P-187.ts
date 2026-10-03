@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "addTop",
+          effectTextPart: "[When Digivolving] ＜Recovery +1 (Deck)＞.",
           controller: "mine",
           source: "deck",
           amount: 1,
@@ -25,6 +26,8 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "trashTop",
+          effectTextPart:
+            "Then, if DNA digivolving, by placing 1 other Digimon or Tamer as the top or bottom security card, trash your opponent's top security card.",
           controller: "opponent",
           amount: 1,
           cost: {

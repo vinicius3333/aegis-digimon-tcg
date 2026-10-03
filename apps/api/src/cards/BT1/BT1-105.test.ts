@@ -65,6 +65,8 @@ describe("BT1-105 Blast Fire", () => {
     await settle(() => s.perm("target").currentDP === 3000);
 
     expect(s.perm("target").currentDP).toBe(3000);
+    // The client measures DP badges against this, so a DP-only change must publish it too.
+    expect(s.perm("target").originalDPOverride).toBe(3000);
   });
 
   it("Q974/Q975 adds later DP modifiers, survives digivolution, then expires after the opponent's turn", async () => {

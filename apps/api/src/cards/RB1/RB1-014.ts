@@ -39,6 +39,8 @@ const compiled: CompiledCard = {
           abortOnDecline: false,
         },
         {
+          effectTextPart:
+            "Then, until the end of your opponent's turn, 1 of their Digimon or Tamers without cards under it can't suspend.",
           kind: "Restrict",
           target: {
             filter: {

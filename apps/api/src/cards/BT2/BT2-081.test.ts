@@ -71,7 +71,7 @@ describe("BT2-081 MetalGarurumon", () => {
       expect.arrayContaining([s.inst("eligible").instanceId, s.inst("eligibleOnPlay").instanceId]),
     );
     expect(request.options!.candidateInstanceIds).toHaveLength(2);
-    expect(request.options).toMatchObject({ min: 1, max: 1 });
+    expect(request.options).toMatchObject({ min: 0, max: 1 });
   });
 
   it("suppresses the revived Digimon's On Play effect", async () => {

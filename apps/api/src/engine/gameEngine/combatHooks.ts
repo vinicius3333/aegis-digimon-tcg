@@ -151,6 +151,7 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
                   maxPerTurn: -1,
                   canTrigger: () => true,
                   canActivate: () => engine.combat.canResolveRaid(attacker.permanentId),
+                  announce: () => engine.combat.hasRaidTarget(attacker.permanentId),
                   resolve: async () => engine.combat.resolveRaidEffect(attacker.permanentId),
                 },
               },

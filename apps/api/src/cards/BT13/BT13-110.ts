@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] ＜Draw 1＞. You may place 1 Digimon card from your hand as the bottom digivolution card of 1 of your [King Drasil_7D6] in the breeding area.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -34,6 +36,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

@@ -406,34 +406,14 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
     expect(overlaysSource).toMatch(/className="card-action-sheet stack-sheet"/);
   });
 
-  it("makes the digivolve cost chooser hug its content as a bottom sheet", () => {
-    // Its inline `top: 120px` survived the switch to a fixed panel, so with
-    // `bottom` also pinned the sheet stretched to the floor with a dark gap
-    // below the buttons. The top edge has to be released.
-    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*top:\s*auto !important/);
-    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*height:\s*auto !important/);
-    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*bottom:\s*0 !important/);
-    // Bottom-sheet dressing, matching `.card-action-sheet__panel`.
-    expect(portraitRules).toMatch(/\.evo-cost-prompt \{[^}]*padding:[^;]*env\(safe-area-inset-bottom\)[^;]*;/);
-    expect(portraitRules).toMatch(
-      /\.evo-cost-prompt \{[^}]*border-radius:\s*var\(--ds-radius-lg\) var\(--ds-radius-lg\) 0 0 !important/,
-    );
-    expect(portraitRules).toMatch(/\.evo-cost-prompt::before \{[^}]*height:\s*4px[^}]*border-radius:\s*999px/);
-    expect(gameCss).toMatch(
-      /\.evo-cost-prompt__footer \{[^}]*display:\s*grid[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)[^}]*gap:\s*var\(--ds-space-3\)/,
-    );
-  });
-
-  it("wraps long digivolve routes inside the responsive cost chooser", () => {
-    expect(gameCss).toMatch(
-      /\.evo-cost-prompt \{[^}]*box-sizing:\s*border-box[^}]*width:\s*min\(26\.25rem, calc\(100% - var\(--ds-space-6\)\)\)/,
-    );
-    expect(gameCss).toMatch(/\.evo-cost-prompt__title \{[^}]*min-width:\s*0/);
-    // Scoped under the prompt: `.aegis-button` weighs the same, loads later, and
-    // its `nowrap` otherwise wins.
-    expect(gameCss).toMatch(
-      /\.evo-cost-prompt \.evo-cost-prompt__option \{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/,
-    );
+  it("leaves the digivolve cost chooser's placement to the board prompt rail", () => {
+    // It renders as a `.board-prompt`, so the rail's rules dock it: the left rail on a
+    // desktop and the bottom sheet on a phone. Geometry of its own would fight them.
+    const placement = /\.evo-cost-prompt\s*\{[^}]*\b(position|top|bottom|left|right|transform|translate)\s*:/;
+    expect(gameCss).not.toMatch(placement);
+    expect(portraitRules).not.toMatch(placement);
+    // The costs keep a full row of their own where the sheet lays its actions side by side.
+    expect(gameCss).toMatch(/\.evo-cost-prompt__options,[^{]*\{[^}]*flex:\s*1 1 100%/);
   });
 
   it("spans the reveal panel across the screen", () => {

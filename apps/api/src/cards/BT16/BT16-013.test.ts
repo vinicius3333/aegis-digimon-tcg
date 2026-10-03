@@ -62,6 +62,30 @@ describe("BT16-013", () => {
 
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
+  });
+
+  it("reduces a Digimon played later in the turn by 5000 (Discord 1555352172206493706)", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT16-013", as: "valkyrimon" }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "current", dp: 9000 }],
+        hand: [{ card: "BT1-019", as: "future" }],
+      },
+    });
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("valkyrimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("current").currentDP === 4000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+
+    expect(s.perm("future").currentDP).toBe(1000);
   });
 
   it("reduces opposing Digimon by 5000 when naturally digivolving", async () => {

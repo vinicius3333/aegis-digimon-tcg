@@ -1,5 +1,32 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Condition } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const omnimonInDigivolutionCards: Condition = {
+  kind: "selfDigivolutionStackMatchesFilter",
+  filter: {
+    nameOrTrait: [
+      { tokens: ["Omnimon"], match: "nameExact" },
+      { tokens: ["X Antibody"], match: "nameExact" },
+    ],
+  },
+  raw: "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards",
+};
+
+const wipeClause =
+  "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.";
+const returnClause = "Then, return 1 of your opponent's Digimon to the bottom of the deck.";
+
+/**
+ * The printed 「お互いのデジモン1体ずつ」: each player keeps 1 survivor, chosen by this effect's
+ * controller. The opponent's survivor is the Digimon the "Then" sentence returns, since it is
+ * the only one the wipe leaves them, so that prompt reads as the return.
+ */
+const chooseSurvivor = (controller: "mine" | "opponent", bindAs: string): Action => ({
+  effectTextPart: controller === "mine" ? wipeClause : returnClause,
+  kind: "SelectBind",
+  target: { filter: { controller, kind: ["Digimon"] }, count: 1, bindAs },
+  condition: omnimonInDigivolutionCards,
+});
 
 export const compiled: CompiledCard = {
   effects: [
@@ -36,6 +63,8 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [
+        chooseSurvivor("mine", "survivorMine"),
+        chooseSurvivor("opponent", "survivorOpponent"),
         {
           effectTextPart:
             "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
@@ -43,32 +72,11 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               kind: ["Digimon"],
+              excludeSelectionRef: ["survivorMine", "survivorOpponent"],
             },
             count: "all",
-            except: {
-              filter: {
-                kind: ["Digimon"],
-              },
-              count: 1,
-              selector: "any",
-            },
           },
-          condition: {
-            kind: "selfDigivolutionStackMatchesFilter",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Omnimon"],
-                  match: "nameExact",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "nameExact",
-                },
-              ],
-            },
-            raw: "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards",
-          },
+          condition: omnimonInDigivolutionCards,
         },
         {
           effectTextPart: "Then, return 1 of your opponent's Digimon to the bottom of the deck.",
@@ -87,6 +95,8 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
+        chooseSurvivor("mine", "survivorMine"),
+        chooseSurvivor("opponent", "survivorOpponent"),
         {
           effectTextPart:
             "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
@@ -94,32 +104,11 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               kind: ["Digimon"],
+              excludeSelectionRef: ["survivorMine", "survivorOpponent"],
             },
             count: "all",
-            except: {
-              filter: {
-                kind: ["Digimon"],
-              },
-              count: 1,
-              selector: "any",
-            },
           },
-          condition: {
-            kind: "selfDigivolutionStackMatchesFilter",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Omnimon"],
-                  match: "nameExact",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "nameExact",
-                },
-              ],
-            },
-            raw: "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards",
-          },
+          condition: omnimonInDigivolutionCards,
         },
         {
           effectTextPart: "Then, return 1 of your opponent's Digimon to the bottom of the deck.",

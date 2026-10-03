@@ -4,6 +4,7 @@
    than on a duration. The gate opens once, never closes, and every waiter is capped by a
    ceiling so a beat that never arrives cannot wedge the queue for good. */
 
+import type { Seat } from "@aegis/shared";
 import type { AnimationStepContext } from "../animationQueue";
 
 export interface PresentationGate {
@@ -106,9 +107,33 @@ export async function waitForGate(
 /** The deletion beat a card is waiting on, and the gate that says its shards have played. */
 export interface DeletionReadyAt {
   readyAt: number;
+  /** The server state version of the batch that deleted the card. */
+  stateVersion?: number;
+  /** A resolving Option deleted it, so its shatter waits on the dock rather than on a clause. */
+  causedByOption?: boolean;
   instanceId?: string;
   started?: PresentationGate;
   shattered?: PresentationGate;
+}
+
+/**
+ * A ＜Delay＞ clause of an Option on the field, whose cost is trashing that Option.
+ *
+ * The server sends the trigger, the trash and what the clause played as separate batches, so
+ * the order they are shown in is kept here, across them: the Option is lit where it stands,
+ * it breaks, its clause is read, and only then does the card it played arrive.
+ */
+export interface CostClause {
+  /** `${seat}:${cardId}` of the Option. */
+  sourceKey: string;
+  seat: Seat;
+  permanentId: string;
+  /** Released once the Option has been lit on the field; its break waits for this. */
+  focused: PresentationGate;
+  /** Released once a later batch has queued the Option's break. */
+  departing: PresentationGate;
+  /** Released once the clause is on screen; what it played waits for this. */
+  read: PresentationGate;
 }
 
 /** The announcement gate a batch armed, and the cards it deleted before it could be raised. */

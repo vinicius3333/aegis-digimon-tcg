@@ -40,6 +40,7 @@ import {
   dropIntentAttrs as modelDropIntentAttrs,
 } from "./screen/model/screenDragIntents";
 import { decisionAllowsPick as modelDecisionAllowsPick, nextDecisionPicks } from "./screen/model/decisionPicks";
+import { preselectedAttackTargets } from "./screen/model/attackTargetPrompt";
 import {
   gameOverReason as modelGameOverReason,
   gameOverResult as modelGameOverResult,
@@ -251,6 +252,12 @@ export function GameScreen({
     actionConfirm,
     setActionConfirm,
   } = overlayState;
+  useEffect(() => {
+    if (decision?.seat !== viewerSeat) return;
+    const preselected = preselectedAttackTargets(decision);
+    if (preselected.length > 0) setPicks(preselected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decision?.decisionId]);
   // A play leaves the hand visually at the same instant the intent is dispatched. The
   // synchronized state will confirm that departure; a rejection rolls it back.
   const [optimisticPlayedInstanceId, setOptimisticPlayedInstanceId] = useState<string>();
@@ -404,34 +411,12 @@ export function GameScreen({
   useEffect(() => {
     devProbeRef.current?.onDecision?.(decision);
   }, [decision]);
-  const fieldDecisionCandidateIds = new Set<string>();
-  if (state) {
-    for (const player of state.players) {
-      for (const permanent of player.battleArea) {
-        fieldDecisionCandidateIds.add(permanent.permanentId);
-        fieldDecisionCandidateIds.add(permanent.topCard.instanceId);
-      }
-    }
-  }
-  const decisionCandidateIds = decision?.options?.candidateInstanceIds ?? [];
-  const fieldEffectDecision =
-    decision?.seat === viewerSeat &&
-    (decision.kind === "selectCards" || decision.kind === "chooseTargets") &&
-    decisionCandidateIds.length > 0 &&
-    [...decisionCandidateIds, ...(decision.options?.visibleInstanceIds ?? [])].every((id) =>
-      fieldDecisionCandidateIds.has(id),
-    );
-  // A modal already repeats the source card and its clause, so its matching toast is redundant.
-  // A field selection leaves the board visible and is part of the effect's action, so preserve
-  // the effect toast there (notably BlackWarGreymon's Blast Digivolve deletion).
+  // The decision panel repeats the source card and its clause, field selections included, so
+  // the matching toast waits until the viewer has answered.
   const alliancePromptCardId = state ? ownAlliancePromptCardId(state, viewerSeat) : undefined;
   const promptedOwnEffectCardId =
     alliancePromptCardId ??
-    (decision?.seat === viewerSeat &&
-    (!fieldEffectDecision || decision.options?.selectionContext === "attackTarget") &&
-    dialogRepeatsEffectNotice(decision.options)
-      ? decision.sourceCardId
-      : undefined);
+    (decision?.seat === viewerSeat && dialogRepeatsEffectNotice(decision.options) ? decision.sourceCardId : undefined);
   const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
   ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {
@@ -598,6 +583,7 @@ export function GameScreen({
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
     heldDeletions: cues.heldDeletions,
+    heldTrashArrivals: cues.heldTrashArrivals,
     optimisticPlayedInstanceId,
   });
   // What the ribbons have announced, for the readouts only: the live turn is what every
@@ -845,6 +831,7 @@ export function GameScreen({
     state,
     instanceIndex,
     permanents: allPermanents,
+    breedingPermanents: [you.breeding, opp.breeding].filter((permanent) => permanent !== undefined),
     handInstanceIds,
   });
   const fieldDecision =
@@ -859,6 +846,7 @@ export function GameScreen({
   const {
     viewerDecision,
     decisionHighlightPermanentId,
+    decisionBreedingSourcePermanentId,
     decisionSelectable,
     decisionVisibleCardIds,
     decisionInstanceColors,
@@ -997,6 +985,9 @@ export function GameScreen({
       pileWidth={arenaPileWidth}
       compactPiles={compactPiles}
       burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
+      effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
+      effectLinked={!!breedingYou.breeding && effectLinkedPermanentIds.has(breedingYou.breeding.permanentId)}
+      highlight={!!breedingYou.breeding && decisionBreedingSourcePermanentId === breedingYou.breeding.permanentId}
       eggDeckRiffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
       actionsOpen={breedingActionsOpen}
       canHatchEgg={canHatchEgg}

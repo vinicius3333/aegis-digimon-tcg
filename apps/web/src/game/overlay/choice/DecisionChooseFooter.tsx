@@ -1,4 +1,4 @@
-import type { DecisionResponse } from "@aegis/shared";
+import type { DecisionRequest, DecisionResponse } from "@aegis/shared";
 import { Button } from "../../../design/primitives";
 import { useTranslation } from "../../../i18n";
 import { choiceLabel } from "./decisionChoiceLabels";
@@ -7,12 +7,14 @@ import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
 export function DecisionChooseFooter({
   choices,
   declineIndex,
+  topBottomZone,
   onRespond,
   onOpenBoard,
 }: {
   choices: readonly string[];
   /** The entry that declines the optional effect; it renders last, apart from the options. */
   declineIndex?: number;
+  topBottomZone?: NonNullable<DecisionRequest["options"]>["topBottomZone"];
   onRespond: (response: DecisionResponse) => void;
   onOpenBoard: () => void;
 }) {
@@ -29,7 +31,7 @@ export function DecisionChooseFooter({
             variant={i === 0 ? "primary" : "secondary"}
             onClick={() => onRespond({ kind: "chooseOption", optionIndex: i })}
           >
-            {choiceLabel({ choice: label, t })}
+            {choiceLabel({ choice: label, t, topBottomZone })}
           </Button>
         ),
       )}

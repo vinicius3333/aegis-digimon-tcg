@@ -58,7 +58,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              sharesColorWithControllersBattleAreaDigimon: true,
+              sharesColorWithControllersFieldDigimon: true,
             },
             count: 1,
           },

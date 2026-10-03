@@ -17,6 +17,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [On Deletion] If your opponent has 10 or fewer cards in their trash, trash the top 3 cards of both players' decks.",
           kind: "TrashTopDeck",
           controller: "both",
           amount: 3,
@@ -30,6 +32,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's level 3 or lower Digimon. If your opponent has 10 or more cards in their trash, add 2 to this effect's level maximum.",
           kind: "ConditionalBranch",
           condition: { kind: "zoneCount", seat: "opponent", zone: "trash", op: "gte", value: 10 },
           ifTrue: [
@@ -57,6 +61,8 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [On Deletion] If your opponent has 10 or fewer cards in their trash, trash the top 3 cards of both players' decks.",
           kind: "TrashTopDeck",
           controller: "both",
           amount: 3,
@@ -70,6 +76,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's level 3 or lower Digimon. If your opponent has 10 or more cards in their trash, add 2 to this effect's level maximum.",
           kind: "ConditionalBranch",
           condition: { kind: "zoneCount", seat: "opponent", zone: "trash", op: "gte", value: 10 },
           ifTrue: [

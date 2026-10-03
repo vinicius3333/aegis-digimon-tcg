@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
           kind: "ActivateMain",
         },
         {
+          effectTextPart: "Then, add this card to the hand.",
           kind: "AddToHandSelf",
         },
       ],

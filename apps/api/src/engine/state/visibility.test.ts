@@ -428,6 +428,31 @@ describe("buildStateView", () => {
     expect(Array.from(clientCard!.digivolveTargetPermanentIds)).toEqual(["perm-a"]);
   });
 
+  it("re-roots a card a slot overwrite left untracked, so a reconnect's full sync succeeds", () => {
+    const connectedView = buildStateView(state, 0);
+    const connectedClient = new Decoder(new GameState());
+    encodeAllForView(state, connectedView, connectedClient);
+    const security = state.players[0]!.security;
+    const card = security[1]!;
+    // Writing a card into its own slot twice (what an in-place Fisher-Yates does when j === i)
+    // drops its refCount to zero, un-rooting it and its lists, and never re-attaches them.
+    security[1] = card;
+    security[1] = card;
+    expect(card[$changes]?.root).toBeUndefined();
+    expect(card.digivolveRoutes[$changes]?.parent).toBeUndefined();
+
+    const reconnectView = buildStateView(state, 0);
+    const reconnectClient = new Decoder(new GameState());
+
+    expect(() => encodeAllForView(state, reconnectView, reconnectClient)).not.toThrow();
+    expect(card[$changes]?.root).toBeDefined();
+    expect(card.digivolveRoutes[$changes]?.parent).toBe(card);
+    const serverOrder = security.map(({ instanceId }) => instanceId);
+    expect(reconnectClient.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(serverOrder);
+    encodePatchForView(state, connectedView, connectedClient);
+    expect(connectedClient.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(serverOrder);
+  });
+
   it("repairs an arriving card through the visibility port, without any sweep", () => {
     const view = buildStateView(state, 0);
     const decoder = new Decoder(new GameState());

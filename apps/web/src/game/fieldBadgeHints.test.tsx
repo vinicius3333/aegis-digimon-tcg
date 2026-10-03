@@ -22,10 +22,10 @@ function blockerWithStack(): Permanent {
   return permanent;
 }
 
-function renderPermanent(onClick = vi.fn<() => void>()) {
+function renderPermanent(onClick = vi.fn<() => void>(), perm = blockerWithStack()) {
   render(
     <I18nProvider>
-      <PermanentView perm={blockerWithStack()} onClick={onClick} />
+      <PermanentView perm={perm} onClick={onClick} />
     </I18nProvider>,
   );
   return onClick;
@@ -53,4 +53,16 @@ it("explains the stack count, a restriction and the DP change", () => {
   fireEvent.click(document.querySelector('[data-dp="down"]')!);
   expect(screen.getAllByRole("tooltip")).toHaveLength(1);
   expect(screen.getByRole("tooltip").textContent).toContain("Printed 5,000 DP, lowered by 2,000 by effects.");
+});
+
+it("Discord 1555363063300096090: shows a digivolve lock such as Rosemon's Option", () => {
+  const locked = blockerWithStack();
+  locked.cannotAttack = false;
+  locked.isSuspended = true;
+  locked.cannotUnsuspend = true;
+  locked.cannotDigivolve = true;
+  renderPermanent(vi.fn<() => void>(), locked);
+
+  fireEvent.click(document.querySelector('[data-label="Can\'t digivolve"]')!);
+  expect(screen.getByRole("tooltip").textContent).toContain("stops this card from digivolving");
 });

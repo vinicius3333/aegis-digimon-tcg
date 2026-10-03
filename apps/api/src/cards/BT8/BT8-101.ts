@@ -50,6 +50,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",

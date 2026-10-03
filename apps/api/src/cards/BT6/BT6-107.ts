@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Return 1 purple Digimon card from your trash to your hand.",
           kind: "Return",
           target: {
             filter: {
@@ -20,6 +21,7 @@ const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart: "Then, place this card in your battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

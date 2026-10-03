@@ -23,7 +23,10 @@ describe("P-236 Glowing Dawn", () => {
     expect(effects).toContainEqual(
       expect.objectContaining({
         trigger: "Main",
-        actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 3 }), { kind: "PlaceInBattleAreaSelf" }],
+        actions: [
+          expect.objectContaining({ kind: "RevealAdd", revealCount: 3 }),
+          expect.objectContaining({ kind: "PlaceInBattleAreaSelf" }),
+        ],
       }),
     );
   });

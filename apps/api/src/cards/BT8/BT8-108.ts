@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "TrashTopDeck",
+          effectTextPart: "[Main] Trash the top 2 cards of your deck and ＜Draw 1＞.",
           controller: "mine",
           amount: 2,
         },
@@ -18,6 +19,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in your battle area.",
         },
       ],
     },

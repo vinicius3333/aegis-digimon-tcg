@@ -65,13 +65,8 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
           to: "deckBottom",
           bindResultAs: "returnedDigimon",
         },
-      },
-      {
-        kind: "Return",
-        condition: { kind: "ifThisEffectDidNotAct" },
-        target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 1 },
-        to: "deckBottom",
-        from: ["trash"],
+        optional: true,
+        abortOnDecline: true,
       },
     ]);
   });
@@ -248,6 +243,39 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011", "EX5-023"]);
     expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(["BT1-080"]);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("declines the optional 'by' cost when attacking and keeps the trash and target", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX5-026", as: "attacker", under: ["EX5-023"] }],
+        trash: [{ card: "EX5-023", as: "returnable" }],
+        deck: ["BT1-011"],
+        security: ["BT1-014"],
+      },
+      1: { battleArea: [{ card: "EX5-021", as: "sameLevel" }], security: ["BT1-014"] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("returnable").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(["EX5-021"]);
   });
 
   it("covers Q3588: a returned level may differ from every opposing level without blocking the return", async () => {

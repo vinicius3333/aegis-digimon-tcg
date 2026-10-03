@@ -19,6 +19,7 @@ export {
   assemblyRequirementFor,
 } from "./data.js";
 export type { TamerOntoDigivolveSpec } from "./data.js";
+export { assemblyMaterialLevels } from "./assemblyMaterialLevels.js";
 export { canAssignDistinctColors, filterToDistinctColors } from "./differentColors.js";
 export { digiXrosSlotMatches } from "./digiXrosSlotMatch.js";
 export type { DigiXrosSlotMatchers, DigiXrosNameOrTraitRef } from "./digiXrosSlotMatch.js";

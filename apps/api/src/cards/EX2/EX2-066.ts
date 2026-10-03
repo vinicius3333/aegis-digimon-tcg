@@ -52,6 +52,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] Reveal the top 3 cards of your deck. Add 1 Tamer card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
           kind: "RevealAdd",
           revealCount: 3,
           add: [
@@ -67,6 +69,7 @@ export const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart: "Then, add this card to your hand.",
           kind: "AddToHandSelf",
         },
       ],

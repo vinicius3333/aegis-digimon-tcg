@@ -47,6 +47,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card, from 1 of your opponent's Digimon, trash any 1 digivolution card for each of this Digimon's face-down digivolution cards.",
           kind: "ConditionalBranch",
           condition: { kind: "true" },
           optional: true,
@@ -93,6 +95,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, return 1 of their Digimon with no digivolution cards to the bottom of the deck.",
               kind: "Return",
               target: {
                 filter: {
@@ -112,6 +115,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card, from 1 of your opponent's Digimon, trash any 1 digivolution card for each of this Digimon's face-down digivolution cards.",
           kind: "ConditionalBranch",
           condition: { kind: "true" },
           optional: true,
@@ -158,6 +163,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, return 1 of their Digimon with no digivolution cards to the bottom of the deck.",
               kind: "Return",
               target: {
                 filter: {

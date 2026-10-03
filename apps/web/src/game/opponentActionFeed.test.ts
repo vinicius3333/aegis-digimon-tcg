@@ -133,6 +133,12 @@ describe("opponent action narration", () => {
     ).toBe(false);
     expect(
       hasOpenCombatPrompt([
+        event({ kind: "alliancePrompt", permanentId: "a", eligibleAllyIds: ["b"] }),
+        event({ kind: "attackEnded", seat: 1, attackerPermanentId: "a" }),
+      ]),
+    ).toBe(false);
+    expect(
+      hasOpenCombatPrompt([
         event({
           kind: "counterWindowOpened",
           attackerPermanentId: "a",

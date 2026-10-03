@@ -1,5 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import printedKunemon from "../../cards/BT1/BT1-012.js";
 import printedMuchomon from "../../cards/BT1/BT1-013.js";
 import printedKokatorimon from "../../cards/BT1/BT1-014.js";
 import printedYokomon from "../../cards/BT1/BT1-015.js";
@@ -11,6 +12,32 @@ const SOURCE = "BT1-013";
 const SEARCH_SOURCE = "BT1-014";
 const PAID_SOURCE = "BT1-015";
 const BATCH_SOURCE = "BT1-016";
+const ALTERNATIVE_RECIPE_SOURCE = "BT1-012";
+
+const masterBlimpmonFromTrash: CompiledCard = {
+  effects: [
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "PlayFromZone",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["MasterBlimpmon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
 
 const playFromZoneSource: CompiledCard = {
   effects: [
@@ -116,12 +143,14 @@ beforeAll(() => {
   registerIrCard(SEARCH_SOURCE, searchSource);
   registerIrCard(PAID_SOURCE, paidPlaySource);
   registerIrCard(BATCH_SOURCE, batchPlaySource);
+  registerIrCard(ALTERNATIVE_RECIPE_SOURCE, masterBlimpmonFromTrash);
 });
 afterAll(() => {
   registerIrCard(SOURCE, printedMuchomon);
   registerIrCard(SEARCH_SOURCE, printedKokatorimon);
   registerIrCard(PAID_SOURCE, printedYokomon);
   registerIrCard(BATCH_SOURCE, printedTyrannomon);
+  registerIrCard(ALTERNATIVE_RECIPE_SOURCE, printedKunemon);
 });
 
 describe("effect-played Assembly", () => {
@@ -290,5 +319,45 @@ describe("effect-played Assembly", () => {
     expect(JSON.parse(s.state.pendingDecision!.payloadJson).candidateInstanceIds).toEqual([
       s.inst("material2").instanceId,
     ]);
+  });
+
+  it("offers every alternative recipe and accepts BT24-062's [TS] Tamer option", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: ALTERNATIVE_RECIPE_SOURCE, as: "source" }],
+        trash: [
+          { card: "BT24-062", as: "masterBlimpmon" },
+          { card: "BT20-049", as: "blimpmon" },
+          { card: "BT24-083", as: "tsTamer" },
+          { card: "BT24-009", as: "tsDigimon" },
+        ],
+      },
+    });
+    await s.ready();
+    s.state.memory = 20;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "selectCards" &&
+        JSON.parse(s.state.pendingDecision.payloadJson).assemblyCardId === "BT24-062",
+    );
+    expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({ min: 0, max: 1 });
+    expect([...JSON.parse(s.state.pendingDecision!.payloadJson).candidateInstanceIds].sort()).toEqual(
+      [s.inst("blimpmon").instanceId, s.inst("tsTamer").instanceId].sort(),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("tsTamer").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT24-062"));
+
+    const masterBlimpmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT24-062");
+    expect(masterBlimpmon?.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("tsTamer").instanceId]);
   });
 });

@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Attacking] [Once Per Turn] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -24,6 +25,7 @@ const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart: "Then, ＜Recovery +1＞",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -47,6 +49,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[On Play] [When Attacking] [Once Per Turn] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -54,6 +57,7 @@ const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart: "Then, ＜Recovery +1＞",
           kind: "GainKeyword",
           target: {
             filter: {

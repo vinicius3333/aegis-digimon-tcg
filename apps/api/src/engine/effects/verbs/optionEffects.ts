@@ -96,6 +96,31 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
   };
 
   /**
+   * A used Option's [Main], announced the way a hand play announces it (playCard's effect
+   * stack): the client reads the clause off the docked card before its result lands.
+   */
+  const resolveAnnouncedOptionEffect = async (ctx: EffectContext, cardId: string): Promise<void> => {
+    const targetModule = getEffectModule(cardId);
+    if (targetModule === undefined) return;
+    for (const effect of targetModule.effectsForTiming(EffectTiming.OnUseOption, ctx.source)) {
+      const announced = {
+        seat: ctx.source.ownerSeat,
+        sourceCardId: ctx.source.cardId,
+        sourceInstanceId: ctx.source.instanceId,
+        effectKey: effect.effectKey,
+        description: effect.description,
+        timing: EffectTiming[EffectTiming.OnUseOption],
+      };
+      engine.emit({ kind: "effectTriggered", ...announced, printedTiming: "Main" });
+      try {
+        await effect.resolve(ctx);
+      } finally {
+        engine.emit({ kind: "effectResolved", ...announced });
+      }
+    }
+  };
+
+  /**
    * "Use 1 Option card from your hand" (BT19-040 and 11 other callers). Resolves the used card's
    * [Main]/`OnUseOption` effect via `resolveCardEffect` under the CALLING card's control, then
    * trashes the Option (Options resolve then go to trash — they are not permanents) and fires
@@ -163,6 +188,14 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
       // physical Option has left its source zone for the no-area resolving slot. Callers use
       // this receipt for `ifThisEffectUsed`; a mere candidate selection is not a successful use.
       ctx.lastOptionUsed = true;
+      // Announced like an Option used from hand (playCard), so the client docks the card
+      // before its [Main] resolves instead of the board changing with nothing on screen.
+      engine.emit({
+        kind: "cardPlayed",
+        seat: ctx.source.ownerSeat,
+        cardId: resolvingCard.cardId,
+        ...(resolvingCard.artId ? { artId: resolvingCard.artId } : {}),
+      });
       try {
         if (usedDefinition === undefined) {
           await resolveCardEffect(ctx, usedCard.cardId, EffectTiming.OnUseOption);
@@ -223,7 +256,7 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
               hasColor: (color) => optionDefinition.colors.includes(color),
             },
           };
-          await resolveCardEffect(optionCtx, usedCard.cardId, EffectTiming.OnUseOption);
+          await resolveAnnouncedOptionEffect(optionCtx, usedCard.cardId);
         }
       } catch (error) {
         // Preserve the normal error surface, but finish the §9-1-4 routing first so a failed

@@ -21,6 +21,17 @@ export const COMPACT_PILES_QUERY = "(width < 960px), (height < 520px) and (orien
 export const SHORT_BOARD_QUERY = "(height < 820px)";
 
 /**
+ * A landscape desktop or tablet without the tall arena layout (at least 1024px wide and
+ * 760px tall): the right rail cannot stack the opponent's eggs, raising area and
+ * security over the viewer's deck and trash, and the trash fell off the bottom of the
+ * field. The deck and trash move into the bottom strip instead. Phones have their own
+ * layouts.
+ */
+export const DOCKED_VIEWER_PILES_QUERY =
+  "(min-width: 600px) and (min-height: 520px) and (max-height: 759px) and (orientation: landscape), " +
+  "(min-width: 600px) and (max-width: 1023px) and (min-height: 520px) and (orientation: landscape)";
+
+/**
  * The portrait arena: phones and tablets held upright stack each side's zones in
  * one row, and the battlefield switches to its portrait art.
  */

@@ -2,13 +2,14 @@
    may do with it right now. The opponent's cards open the same menu with no actions,
    which is how a card is read without acting on it. */
 
-import type { Permanent } from "@aegis/shared";
+import type { Permanent, Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { CardActionMenu } from "../../overlay";
 import { canAttackWith, canVortexAttackWith, parseActivatable } from "../../boardModel";
 import { buildPermanentDetail } from "../../permanentDetail";
 import type { PendingFateBadge } from "../../pendingFate";
 import { Side } from "../../side";
+import { originalDP } from "../../transformation";
 
 export function FieldCardMenu({
   permanent,
@@ -19,6 +20,7 @@ export function FieldCardMenu({
   container,
   returnFocusTo,
   keywordLabels,
+  viewerSeat,
   fate,
   sheet,
   stackCards,
@@ -43,6 +45,7 @@ export function FieldCardMenu({
   container: HTMLElement | null;
   returnFocusTo: HTMLElement | null | undefined;
   keywordLabels?: Readonly<Record<string, string>>;
+  viewerSeat: Seat;
   fate: PendingFateBadge | undefined;
   /** A narrow layout answers with a bottom sheet rather than an anchored menu. */
   sheet: boolean;
@@ -65,7 +68,7 @@ export function FieldCardMenu({
   return (
     <CardActionMenu
       arenaInspection={{ side, container, returnFocusTo }}
-      detail={buildPermanentDetail(presentedPermanent, keywordLabels)}
+      detail={buildPermanentDetail(presentedPermanent, { keywordLabels, viewerSeat })}
       fate={fate}
       x={x}
       y={y}
@@ -73,7 +76,7 @@ export function FieldCardMenu({
       artId={permanent.topCard?.artId}
       sheet={sheet}
       dp={permanent.currentDP}
-      baseDP={permanent.baseDP}
+      baseDP={originalDP(permanent)}
       keywords={[...permanent.keywords]}
       stackCards={stackCards}
       suspended={permanent.isSuspended}

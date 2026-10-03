@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] You may play 1 [Pulsemon] from your hand without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -25,6 +26,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, place this card in your Battle Area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

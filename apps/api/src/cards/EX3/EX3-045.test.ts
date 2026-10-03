@@ -102,7 +102,7 @@ describe("EX3-045 Hydramon", () => {
     expect(targetRequest).toMatchObject({
       kind: "chooseTargets",
       sourceCardId: "EX3-045",
-      options: { timing: "WhenDigivolving", effectText: whenDigivolving, min: 1, max: 1 },
+      options: { timing: "WhenDigivolving", effectText: whenDigivolving, min: 0, max: 1 },
     });
     expect(targetRequest.options!.candidateInstanceIds).not.toContain(s.perm("alreadySuspended").permanentId);
   });

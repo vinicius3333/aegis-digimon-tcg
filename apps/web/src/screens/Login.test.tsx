@@ -5,7 +5,10 @@ import { I18nProvider } from "../i18n";
 import { accountApi } from "../account/client";
 import { Login } from "./Login";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("the sign-in screen", () => {
   it("sends the player to the Discord authorization endpoint", () => {
@@ -47,5 +50,20 @@ describe("the sign-in screen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Back to home" }));
     expect(onBack).toHaveBeenCalledTimes(2);
+  });
+
+  it("emails a magic link to players who sign in without Discord", async () => {
+    const magicLink = vi.spyOn(accountApi, "magicLink").mockResolvedValue({ ok: true });
+    render(
+      <I18nProvider>
+        <Login onBack={() => undefined} />
+      </I18nProvider>,
+    );
+
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "player@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send magic link" }));
+
+    expect(await screen.findByText("Check your email to sign in.")).toBeTruthy();
+    expect(magicLink).toHaveBeenCalledWith("player@example.com");
   });
 });

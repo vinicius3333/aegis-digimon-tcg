@@ -38,10 +38,17 @@ describe("BT13-103 Akihiro Kurata", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn");
     expect(effect).toMatchObject({ frequency: "OncePerTurn" });
     expect(effect?.actions?.slice(0, 2)).toEqual([
-      { kind: "Draw", controller: "mine", amount: 1 },
+      {
+        effectTextPart: "[End of Opponent’s Turn][Once Per Turn] ＜Draw 1＞ and trash 1 card in your hand.",
+        kind: "Draw",
+        controller: "mine",
+        amount: 1,
+      },
       { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
     ]);
     expect(effect?.actions?.[2]).toMatchObject({
+      effectTextPart:
+        "Then, by placing this Tamer as the bottom digivolution card of 1 of your Digimon with [Belphemon] in its name, delete 1 of your opponent's level 6 Digimon.",
       kind: "Delete",
       target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [6] }, count: 1 },
       cost: {

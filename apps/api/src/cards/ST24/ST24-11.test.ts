@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("ST24-11 Lilamon", () => {
@@ -52,6 +53,11 @@ describe("ST24-11 Lilamon", () => {
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("under").instanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(2);
+    // CR 15-11-2-2: "none of their Digimon can unsuspend" also covers a Digimon that enters later.
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.putOnBoard(1, { card: "BT1-012", suspended: true }), "unsuspend")).toBe(
+      true,
+    );
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

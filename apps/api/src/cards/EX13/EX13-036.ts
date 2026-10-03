@@ -27,6 +27,7 @@ const dpDrop = (): Action[] => [
   },
   {
     kind: "ModifyDP",
+    playerWide: true,
     target: { filter: theirDigimon, count: "all" },
     amount: -7000,
     duration: "forTheTurn",

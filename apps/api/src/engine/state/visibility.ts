@@ -1,4 +1,4 @@
-import { $changes, ArraySchema, type Metadata, StateView } from "@colyseus/schema";
+import { $changes, ArraySchema, type ChangeTree, type Metadata, StateView } from "@colyseus/schema";
 import { type VisibilityZone, isHiddenZone, isOwnerPrivateZone } from "./access.js";
 import {
   PRIVATE_VIEW_TAG,
@@ -40,13 +40,14 @@ import {
  */
 
 /**
- * Schema field index of `CardInstance.digivolveTargetPermanentIds`, read from the
- * generated metadata rather than written down, so reordering the class's fields
- * cannot silently point the repair below at the wrong field.
+ * Every CardInstance field that holds a nested schema (its target and route lists), read
+ * from the generated metadata rather than written down. A list added to the class later is
+ * repaired by {@link repairDetachedCardSchema} without anyone remembering to list it here.
  */
-const DIGIVOLVE_TARGETS_FIELD_INDEX = (CardInstance[Symbol.metadata] as Metadata)[
-  "digivolveTargetPermanentIds"
-] as number;
+const NESTED_CARD_FIELDS = Object.values(CardInstance[Symbol.metadata] as Metadata).filter(
+  (field): field is { name: keyof CardInstance; index: number; type: object } =>
+    typeof field === "object" && field !== null && "type" in field && typeof field.type !== "string",
+);
 
 /** All four owner-private zones of a PlayerState, in a stable order. */
 function privateZonesOf(player: PlayerState): readonly CardInstance[][] {
@@ -93,8 +94,8 @@ function publicBoardCardsOf(player: PlayerState, includeLooseZones: boolean): Ca
 }
 
 /**
- * Restore the only nested schema owned by CardInstance when Colyseus has lost its
- * parent link during a remove/reinsert sequence. A reachable card is authoritative
+ * Restore a CardInstance and the nested schemas it owns when Colyseus has lost their
+ * root or parent links during a remove/reinsert sequence. A reachable card is authoritative
  * state; leaving its child detached makes StateView.add() throw and aborts the game
  * action that happened to trigger a visibility refresh.
  *
@@ -129,16 +130,37 @@ function repairDetachedCardSchema(card: CardInstance): void {
     }
   }
   const cardTree = card[$changes];
+  if (cardTree !== undefined) reattachCard(card, cardTree);
   const root = cardTree?.root;
-  const targetsTree = card.digivolveTargetPermanentIds[$changes];
-  if (targetsTree.parent === card && targetsTree.root === root) return;
-  // `root` may legitimately be undefined here and the repair still matters: a card sitting in a
-  // digivolution stack can have a live parentChain but no root, and `StateView.add` rejects a
-  // child on the PARENT link alone ("Cannot add a detached instance"). Passing the undefined
-  // root through is deliberate — `setParent` restores the parentChain and returns early, which
-  // is exactly the part `view.add` checks. Guarding on `root !== undefined` instead skips these
-  // cards and the next view refresh throws mid-action, stalling the match.
-  targetsTree.setParent(card, root, DIGIVOLVE_TARGETS_FIELD_INDEX);
+  for (const field of NESTED_CARD_FIELDS) {
+    const nestedTree = (card[field.name] as { [$changes]?: ChangeTree } | undefined)?.[$changes];
+    if (nestedTree === undefined || (nestedTree.parent === card && nestedTree.root === root)) continue;
+    // `root` may legitimately be undefined here and the repair still matters: a card sitting in a
+    // digivolution stack can have a live parentChain but no root, and `StateView.add` rejects a
+    // child on the PARENT link alone ("Cannot add a detached instance"). Passing the undefined
+    // root through is deliberate — `setParent` restores the parentChain and returns early, which
+    // is exactly the part `view.add` checks. Guarding on `root !== undefined` instead skips these
+    // cards and the next view refresh throws mid-action, stalling the match.
+    nestedTree.setParent(card, root, field.index);
+  }
+}
+
+/**
+ * Re-root a card that still sits in a live collection but that Colyseus no longer tracks.
+ *
+ * Overwriting a collection slot that held the card drops its refCount to zero, and
+ * `Root.remove` clears `root` on the card and on every child it owns. If the card is then
+ * written back into a slot, it keeps that stale state: the full-state walk of a join or
+ * reconnect reaches it through the collection and throws in `StateView.isChangeTreeVisible`
+ * on its parentless children. `setParent` through the collection that holds the card treats
+ * it as new, so `Root.add` re-queues its fields and the same walk re-attaches its children.
+ */
+function reattachCard(card: CardInstance, cardTree: ChangeTree): void {
+  if (cardTree.root !== undefined) return;
+  const parent = cardTree.parent;
+  const parentRoot = (parent as { [$changes]?: ChangeTree } | undefined)?.[$changes]?.root;
+  if (!(parent instanceof ArraySchema) || parentRoot === undefined || !parent.includes(card)) return;
+  cardTree.setParent(parent, parentRoot, parent.indexOf(card));
 }
 
 /**

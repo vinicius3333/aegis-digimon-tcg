@@ -584,4 +584,118 @@ describe("BT26-082 Ravemon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([tamerId]);
   });
+
+  it("Discord 1555674174369042583 resolves On Deletion when a Thomas-reduced Crowmon digivolution ends in Ravemon deleting itself", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-072", as: "declaredBase" },
+            { card: "BT26-072", as: "otherPeckmon" },
+            { card: "BT26-091", as: "yoshino", under: [{ card: "ST24-10", faceUp: false }] },
+            {
+              card: "BT25-087",
+              as: "thomas",
+              under: [
+                { card: "BT1-010", faceUp: false },
+                { card: "BT1-011", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT26-076", as: "crowmon" }],
+          trash: [{ card: "BT26-082", as: "ravemon" }],
+          security: ["BT1-009"],
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim" }, "BT1-084"],
+          hand: ["BT1-010", "BT1-011"],
+          security: ["BT1-012"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["Place 1 card(s) from hand"],
+      },
+    );
+    preferred.push(s.inst("yoshino").instanceId, s.perm("otherPeckmon").permanentId, s.perm("victim").permanentId);
+    const ravemonId = s.inst("ravemon").instanceId;
+    const declaredBaseId = s.perm("declaredBase").permanentId;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 8;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: declaredBaseId,
+        instanceId: s.inst("crowmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === ravemonId), 2000);
+
+    expect(s.events.find(({ kind }) => kind === "digivolved")).toMatchObject({
+      permanentId: declaredBaseId,
+      cardId: "BT26-076",
+    });
+    expect(s.perm("thomas").stack).toHaveLength(1);
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: ravemonId, faceUp: true });
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+it("Discord 1555674174369042583: the same Ravemon triggers When Digivolving again during its pending deletion chain", async () => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT2-075", as: "firstBase", under: ["BT26-005"] },
+          { card: "BT26-076", as: "secondBase" },
+          { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", faceUp: false }] },
+        ],
+        hand: [{ card: "BT26-082", as: "ravemon" }],
+        trash: [{ card: "BT26-065", as: "falcomon" }],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: { hand: ["BT1-009"], security: 3 },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      preferTriggerKeys: ["BT26-005", "BT26-076"],
+      preferInstanceIds: preferred,
+      declinePrompts: ["Place 1 card(s) as your security"],
+    },
+  );
+  preferred.push(s.inst("ravemon").instanceId, s.inst("falcomon").instanceId);
+  s.state.memory = 8;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("firstBase").permanentId,
+      instanceId: s.inst("ravemon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(s.events.filter((event) => event.kind === "digivolved" && event.cardId === "BT26-082")).toHaveLength(2);
+  expect(
+    s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === "BT26-082" &&
+        event.printedTiming === "WhenDigivolving",
+    ),
+  ).toHaveLength(2);
 });

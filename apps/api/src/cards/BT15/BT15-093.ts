@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {
@@ -19,6 +20,8 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart:
+            "Then, by trashing the top or bottom card of your security stack, 1 of your opponent's Digimon gets -6000 DP for the turn.",
           kind: "ModifyDP",
           target: {
             filter: {

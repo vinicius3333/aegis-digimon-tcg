@@ -59,6 +59,7 @@ describe("BT1-113 Forbidden Temptation", () => {
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
             restriction: "unsuspend",
             duration: "untilOpponentNextUnsuspendPhase",
+            whileMatchesTargetFilter: true,
           },
         ],
       },
@@ -323,5 +324,21 @@ describe("BT1-113 Forbidden Temptation", () => {
 
     expect(s.perm("digimon").isSuspended).toBe(true);
     expect(s.perm("tamer").isSuspended).toBe(false);
+  });
+
+  it("CR 15-11-2-2: Security also stops an opposing Digimon that entered after it resolved", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT1-113", as: "securityOption", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-010", as: "present", suspended: true }] },
+    });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    const late = s.putOnBoard(1, { card: "BT1-015", suspended: true });
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Active;
+
+    await unsuspendForActivePhase(s.engine, 1);
+
+    expect(s.perm("present").isSuspended).toBe(true);
+    expect(late.isSuspended).toBe(true);
   });
 });

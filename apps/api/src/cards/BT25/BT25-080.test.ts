@@ -431,7 +431,9 @@ describe("BT25-080 Witchmon", () => {
     ).toEqual({ ok: true });
     await settle(() => !alive(s.state.players[1] as PlayerState, targetId));
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId)).toBe(true);
+    const handCostId = s.inst("handCost").instanceId;
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handCostId)).toBe(false);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(handCostId);
     expect(alive(s.state.players[1] as PlayerState, targetId)).toBe(false);
   });
 });

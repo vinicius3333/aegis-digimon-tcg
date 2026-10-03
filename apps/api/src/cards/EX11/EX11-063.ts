@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Add your top face-down security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -27,6 +28,8 @@ export const compiled: CompiledCard = {
           faceDownOnly: true,
         },
         {
+          effectTextPart:
+            "Then, you may place 1 [Royal Base] trait Digimon card from your hand face up as the bottom security card.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",

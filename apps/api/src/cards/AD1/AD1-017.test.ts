@@ -46,6 +46,89 @@ describe("AD1-017 Dynasmon", () => {
     await settle(() => s.perm("target").currentDP === 2000);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("target").currentDP).toBe(2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("target").currentDP - s.perm("target").baseDP);
+  });
+
+  it("declines the optional 'by' cost on play without trashing security", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-028", "BT1-029"] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
+    });
+    s.state.memory = 11;
+    const security = s.state.players[0]!.security.map(({ instanceId }) => instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(security);
+    expect(s.perm("target").currentDP).toBe(8000);
+  });
+
+  it("declines the optional 'by' cost when digivolving without trashing security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-057", as: "base" }],
+        hand: [{ card: "AD1-017", as: "dynasmon" }],
+        security: ["BT1-028", "BT1-029"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
+    });
+    s.state.memory = 3;
+    const security = s.state.players[0]!.security.map(({ instanceId }) => instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dynasmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual(security);
+    expect(s.perm("target").currentDP).toBe(8000);
+  });
+
+  it("applies -6000 DP to an opposing Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-028", "BT1-029"] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "current", dp: 8000 }],
+          hand: [{ card: "BT1-024", as: "future" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("current").currentDP === 2000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+    expect(s.perm("future").currentDP).toBe(4000);
   });
 
   it("reduces its play cost by 5 with four Lucemon-text cards in trash", async () => {

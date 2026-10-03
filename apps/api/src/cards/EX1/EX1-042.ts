@@ -37,7 +37,6 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "opponent",
-              unsuspended: true,
               kind: ["Digimon"],
             },
             count: 1,

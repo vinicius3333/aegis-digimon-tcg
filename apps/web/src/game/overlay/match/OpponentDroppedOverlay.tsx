@@ -12,7 +12,7 @@ function formatCountdown(totalSeconds: number): string {
 /* Shown over the board while the opponent's socket is gone. The server owns the
    reconnect grace clock; this countdown starts when the client first sees the seat
    drop, so it can run a second or two behind the server and never ahead of it. */
-export function OpponentDroppedOverlay() {
+export function OpponentDroppedOverlay({ onLeave }: { onLeave: () => void }) {
   const { t } = useTranslation();
   const [deadline] = useState(() => Date.now() + RECONNECT_GRACE_SECONDS * 1000);
   const [remainingSeconds, setRemainingSeconds] = useState(RECONNECT_GRACE_SECONDS);
@@ -26,5 +26,12 @@ export function OpponentDroppedOverlay() {
     remainingSeconds > 0
       ? `${t("game.opponentDisconnectedDetail")} ${t("game.opponentDisconnectedCountdown", { time: formatCountdown(remainingSeconds) })}`
       : t("game.opponentDisconnectedExpired");
-  return <WaitingOverlay title={t("game.opponentDisconnected")} detail={detail} />;
+  return (
+    <WaitingOverlay
+      title={t("game.opponentDisconnected")}
+      detail={detail}
+      actionLabel={t("game.leaveMatch")}
+      onAction={onLeave}
+    />
+  );
 }

@@ -49,6 +49,36 @@ describe("BT3-099 We Have to Stop Fighting!", () => {
     expect(observe(s.engine).isRestricted(s.perm("theirs"), "beDeletedInBattle")).toBe(true);
   });
 
+  it("CR 15-11-2-2: also protects a Digimon played after the Option resolved", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-007", as: "mine" }, "BT3-020"],
+          hand: [
+            { card: "BT3-099", as: "option" },
+            { card: "BT1-010", as: "late" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        observe(s.engine).isRestricted(s.perm("mine"), "beDeletedInBattle") && s.state.pendingDecision === undefined,
+    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("late").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    const late = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("late").instanceId,
+    )!;
+
+    expect(observe(s.engine).isRestricted(late, "beDeletedInBattle")).toBe(true);
+  });
+
   it("adds itself to its owner's hand from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT3-099", as: "securityOption", faceUp: true }] } });
     const id = s.inst("securityOption").instanceId;

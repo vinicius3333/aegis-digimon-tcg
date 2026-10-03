@@ -86,6 +86,30 @@ describe("BT14-032", () => {
     assertNoLoudGap(s);
   });
 
+  it("Discord 1555015560587247616 reveals the [Sukamon] card placed from hand into security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT14-032", as: "chuumon" },
+            { card: "BT14-034", as: "sukamon" },
+          ],
+          security: [{ card: "BT1-009", as: "privateCard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chuumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT14-034"));
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT14-034"]);
+    const revealed = s.events.filter((event) => event.kind === "cardRevealed");
+    expect(revealed).toEqual([expect.objectContaining({ seat: 0, cardId: "BT14-034", sourceCardId: "BT14-032" })]);
+    assertNoLoudGap(s);
+  });
+
   it("inherits -3000 DP after a legal Chuumon to Sukamon evolution stack is deleted", async () => {
     const s = setupEngine(
       {

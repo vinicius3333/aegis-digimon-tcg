@@ -45,6 +45,7 @@ describe("presentedSeats live projection", () => {
       heldDrawState: undefined,
       heldBreedingState: undefined,
       heldDeletions: new Map(),
+      heldTrashArrivals: new Map(),
       optimisticPlayedInstanceId: undefined,
     });
 
@@ -54,5 +55,37 @@ describe("presentedSeats live projection", () => {
     expect(grademon.summoningSick).toBe(false);
     expect(grademon.currentDP).toBe(12_000);
     expect(grademon.immuneToOpponentDigimonEffects).toBe(true);
+  });
+
+  it("keeps a held trash arrival out of the pile until its batch is narrated (Discord 1555578375677018193)", () => {
+    const trashed = (instanceId: string, cardId: string) => {
+      const card = new CardInstance();
+      card.instanceId = instanceId;
+      card.cardId = cardId;
+      return card;
+    };
+    const viewer = player(0);
+    viewer.trash.push(trashed("older", "BT1-009"), trashed("shot", "EX7-071"));
+    const opponent = player(1);
+    const shownState = new GameState();
+    shownState.players.push(viewer, opponent);
+
+    const result = presentedSeats({
+      shownState,
+      viewer,
+      opponent,
+      viewerSeat: 0,
+      heldPhaseState: undefined,
+      heldBlowState: undefined,
+      heldSecurityEffectState: undefined,
+      heldDrawState: undefined,
+      heldBreedingState: undefined,
+      heldDeletions: new Map(),
+      heldTrashArrivals: new Map([[1, { seat: 0, instanceIds: ["shot"], stateVersion: 11 }]]),
+      optimisticPlayedInstanceId: undefined,
+    });
+
+    expect(result.shownViewer.trash.map((card) => card.instanceId)).toEqual(["older"]);
+    expect(result.shownOpponent.trash).toHaveLength(0);
   });
 });

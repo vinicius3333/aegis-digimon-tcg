@@ -32,6 +32,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GrantAuraToOpponents",
+          includeLaterEntrants: true,
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
           event: "whenSuspended",
           actions: [{ kind: "GainMemory", amount: -1 }],

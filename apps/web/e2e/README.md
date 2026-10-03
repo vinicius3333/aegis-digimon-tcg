@@ -30,7 +30,7 @@ The command builds shared contracts and the API runtime before running tests, so
 old dist output cannot silently stand in for current source. The API uses its dev
 program with noCheck: this is runtime compilation, not a full API typecheck.
 
-One worker uses loopback ports 4175 (Vite) and 2569 (Colyseus). Do not run two copies
+One worker uses loopback ports 4175 (Vite), 2569 (a TCP edge that stands in for the production proxy) and 2570 (Colyseus). Do not run two copies
 at once. Each test starts a new server/room and browser context. The Node heap is
 limited to 2048 MB; Chromium consumes additional memory. No CI is configured.
 

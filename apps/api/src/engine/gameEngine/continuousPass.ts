@@ -86,6 +86,7 @@ export async function recomputeContinuousEffects(engine: GameEngine): Promise<vo
       }
     } while (engine.recomputeQueued);
 
+    engine.modifiers.refreshReducedDp(engine.state);
     engine.projection.syncActivatableEffects();
     engine.projection.syncKeywords();
     engine.projection.syncSummoningSickness();
@@ -258,8 +259,10 @@ async function derivePass(
   // example, a suspended Digimon unsuspended), not only because a duration was swept. Re-read
   // stored opponent-effect DP modifiers after every such immunity has been re-derived.
   engine.projection.recomputeExpiredAffectationRecipients();
+  engine.modifiers.recomputeFilteredPlayerDp(engine.state);
 
   // A seed is only an input to engine pass. Recompute every seeded permanent from the rebuilt
   // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
   for (const permanentId of seed.keys()) engine.modifiers.recomputeDP(engine.state, permanentId);
+  engine.modifiers.recomputeFilteredPlayerDp(engine.state);
 }

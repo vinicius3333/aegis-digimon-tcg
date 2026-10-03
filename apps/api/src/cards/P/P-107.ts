@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "RevealAdd",
+          effectTextPart:
+            "[Main] Reveal the top 2 cards of your deck. Add 1 black card among them to your hand. Place the rest at the bottom of your deck in any order.",
           revealCount: 2,
           add: [
             {
@@ -22,6 +24,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card into your battle area.",
         },
       ],
     },

@@ -12,12 +12,14 @@
     width: min(32rem, calc(100% - var(--ds-space-8)));
   }
 
-  /* Bounded at the hand dock, the same floor the clause column keeps, so several panels
-     of revealed cards scroll inside the column instead of running off the board.
-     The width fits the row below plus its 1.8rem of padding, so no card is clipped. */
+  /* The column runs from just under the top-bar buttons to just above the corner counters,
+     the only furniture in its lane, so two panels of revealed cards fit on a 765px board
+     before it scrolls. The width fits the row below plus its 1.8rem of padding, so no card
+     is clipped. */
   .narration-slot[data-slot="narration-cards"] {
     width: min(26rem, calc(100% - var(--ds-space-8)));
-    bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;

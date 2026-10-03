@@ -17,6 +17,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your Digimon may unsuspend.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -28,6 +29,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",
           kind: "Restrict",
           target: {
             filter: {
@@ -45,6 +47,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] 1 of your Digimon may unsuspend.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -56,6 +59,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, 1 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",
           kind: "Restrict",
           target: {
             filter: {

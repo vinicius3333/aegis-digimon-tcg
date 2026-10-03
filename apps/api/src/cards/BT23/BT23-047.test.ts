@@ -695,10 +695,14 @@ describe("BT23-047 Examon", () => {
     expect(s.state.memory).toBe(5);
     expect(s.perm("locked").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters after the effect resolves is locked too.
+    const late = s.putOnBoard(1, { card: "BT1-012", suspended: true });
+    expect(observe(s.engine).isRestricted(late, "unsuspend")).toBe(true);
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("locked").isSuspended).toBe(true);
+    expect(late.isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("locked"), "unsuspend")).toBe(false);
 
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
@@ -1004,5 +1008,77 @@ describe("BT23-047 Examon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+  });
+});
+
+describe("BT23-047 Examon — opponent's turn DNA digivolution", () => {
+  it("does not attack when <Delay> DNA digivolves it during the opponent's turn (Discord 1555244967428100348, CR 11-1-2, Q2891)", async () => {
+    const preferred: string[] = [];
+    const options = {
+      autoAcceptOptional: false,
+      autoDeclineOptional: true,
+      autoSelectCards: true,
+      preferInstanceIds: preferred,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-027", suspended: true, as: "blueMaterial" },
+            { card: "BT20-044", as: "greenMaterial" },
+          ],
+          hand: [
+            { card: "BT20-093", as: "gene" },
+            { card: "BT23-047", as: "examon" },
+          ],
+          deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4],
+          security: [PLAIN_LV3, PLAIN_LV3_ALT],
+        },
+        1: {
+          battleArea: [{ card: "BT1-027", dp: 16000, as: "opponentDigimon" }],
+          hand: [{ card: "ST2-16", as: "bounce" }],
+          deck: [PLAIN_LV3, PLAIN_LV3_ALT],
+          security: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4],
+        },
+      },
+      options,
+    );
+    const geneId = s.inst("gene").instanceId;
+    const examonCardId = s.inst("examon").instanceId;
+    preferred.push(s.perm("blueMaterial").permanentId, s.perm("blueMaterial").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: geneId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === geneId));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 7;
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+    const eventsBeforeBounce = s.events.length;
+    const decisionsBeforeBounce = s.decisions.length;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("bounce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST2-16"));
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const examon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === examonCardId);
+    expect(examon).toBeDefined();
+    expect(s.perm("opponentDigimon").isSuspended).toBe(true);
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.events.slice(eventsBeforeBounce).filter((event) => event.kind === "attackDeclared")).toEqual([]);
+    const attackPrompts = s.decisions
+      .slice(decisionsBeforeBounce)
+      .filter(({ req }) => /^attack/.test(String(req.options?.selectionContext ?? "")));
+    expect(attackPrompts).toEqual([]);
+    expect(examon!.isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

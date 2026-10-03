@@ -23,6 +23,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",

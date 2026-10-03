@@ -12,13 +12,14 @@ export interface ResolverDecisions {
    * the resolver calls this only when multiple effects need ordering. Resolves to
    * its index into `active`, or null only for the manager's timeout/cancellation
    * fallback. With a `plan`, the prompt accepts a full resolution plan and is skipped
-   * while the plan already orders every offered effect.
+   * while the plan already orders every offered effect. `waiting` is shown, never offered.
    */
   chooseOrder(
     seat: Seat,
     active: readonly CollectedEffect[],
     timing?: EffectTiming,
     plan?: ResolutionPlan,
+    waiting?: readonly CollectedEffect[],
   ): Promise<number | null>;
   /** Ask the controller whether to use an optional effect (true = use, false = skip), unless `plan` presets it. */
   askOptional(seat: Seat, collected: CollectedEffect, plan?: ResolutionPlan): Promise<boolean>;
@@ -30,7 +31,7 @@ export function createResolverDecisions(
   emit: (event: ServerEvent) => void = () => {},
 ): ResolverDecisions {
   return {
-    async chooseOrder(seat, active, timing, plan) {
+    async chooseOrder(seat, active, timing, plan, waiting = []) {
       log(
         "[chooseOrder]",
         `seat=${seat} count=${active.length}`,
@@ -90,6 +91,7 @@ export function createResolverDecisions(
           decisionTiming ??
           "",
       );
+      const triggerReasons = active.map((c) => c.triggerReason ?? "");
       const sharedSourceCardId = triggerCardIds.every((cardId) => cardId === triggerCardIds[0])
         ? triggerCardIds[0]
         : undefined;
@@ -102,10 +104,18 @@ export function createResolverDecisions(
           triggerKeys,
           triggerCardIds,
           triggerDescriptions: active.map((c) => c.effect.description ?? ""),
+          ...(triggerReasons.some((reason) => reason !== "") ? { triggerReasons } : {}),
           triggerIsInherited: active.map((c) => c.effect.isInherited),
           ...(plan !== undefined ? { acceptsResolutionPlan: true, triggerIsOptional: active.map(mayAskYesNo) } : {}),
           ...(triggerTimings.some((entry) => entry !== "") ? { triggerTimings } : {}),
           ...(decisionTiming !== undefined ? { timing: decisionTiming } : {}),
+          ...(waiting.length > 0
+            ? {
+                waitingTriggerCardIds: waiting.map((c) => c.source.cardId),
+                waitingTriggerDescriptions: waiting.map((c) => c.effect.description ?? ""),
+                waitingTriggerIsInherited: waiting.map((c) => c.effect.isInherited),
+              }
+            : {}),
         },
       });
       if (response.kind !== "orderTriggers") return null;
@@ -188,7 +198,9 @@ function publicOrderEntry(collected: CollectedEffect, timing: string): Resolutio
  * (EX12-032), "1 of your Digimon may attack". Only "your opponent may" is theirs.
  */
 function mayAskYesNo(collected: CollectedEffect): boolean {
-  if (collected.effect.optional) return true;
-  const text = collected.effect.description ?? "";
+  return collected.effect.optional || effectTextMayAskYesNo(collected.effect.description ?? "");
+}
+
+export function effectTextMayAskYesNo(text: string): boolean {
   return /(?<!opponent )\bmay\b/i.test(text) || /\bby [a-z]+ing\b/i.test(text);
 }

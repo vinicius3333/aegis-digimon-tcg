@@ -428,6 +428,25 @@ describe("BT20-093 Unleash the Dragon Gene — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(10 - 2 - (5 - 3));
   });
 
+  it("lets the player pick no card after accepting the optional [Main] play (Discord 1555073882145423380)", async () => {
+    const { s, selection, isOffered } = await offeredMainCandidates(["BT20-023", "EX3-074"]);
+    expect(isOffered("BT20-023")).toBe(true);
+    expect(isOffered("EX3-074")).toBe(true);
+    expect(selection.options?.min).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-093"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("BT20-023").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("EX3-074").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(10 - 2);
+  });
+
   it("triggers <Delay> only when one of your Digimon with [Dracomon]/[Examon] in its text would leave (Q4434)", async () => {
     const qualifying = await runDelayDeparture("BT20-027");
     expect(qualifying.examon?.stack.map((card) => card.cardId)).toContain("BT20-027");

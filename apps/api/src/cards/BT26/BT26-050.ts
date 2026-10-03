@@ -6,9 +6,26 @@ const opponentDigimonTamer = {
   filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
   count: 2,
 } satisfies Target;
+// "None of their suspended Digimon or Tamers" is overall processing with a condition: it also
+// covers cards that suspend after the Option resolves (Comprehensive Rules 15-11-2-3-3).
+const opponentSuspendedDigimonTamers = {
+  filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true },
+  count: "all",
+} satisfies Target;
 const suspendLock = [
-  { kind: "Suspend", target: anyDigimonTamer, optional: true },
-  { kind: "Restrict", target: opponentDigimonTamer, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
+  {
+    effectTextPart: "[When Digivolving] You may suspend 2 Digimon or Tamers.",
+    kind: "Suspend",
+    target: anyDigimonTamer,
+    optional: true,
+  },
+  {
+    effectTextPart: "Then, 2 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",
+    kind: "Restrict",
+    target: opponentDigimonTamer,
+    restriction: "unsuspend",
+    duration: "untilOpponentTurnEnd",
+  },
 ] satisfies Action[];
 const securityCost = {
   kind: "Return",
@@ -51,21 +68,17 @@ export const compiled: CompiledCard = {
         { kind: "Suspend", target: opponentDigimonTamer },
         {
           kind: "Restrict",
-          target: {
-            filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true },
-            count: "all",
-          },
+          target: opponentSuspendedDigimonTamers,
           restriction: "digivolve",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
         {
           kind: "Restrict",
-          target: {
-            filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true },
-            count: "all",
-          },
+          target: opponentSuspendedDigimonTamers,
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
       ],
     },

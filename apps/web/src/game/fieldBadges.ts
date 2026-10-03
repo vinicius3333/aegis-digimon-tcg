@@ -71,6 +71,7 @@ export type RestrictionBadgeKind =
   | "cannotBlock"
   | "cannotSuspend"
   | "cannotUnsuspend"
+  | "cannotDigivolve"
   | "cannotActivateWhenDigivolving"
   | "immuneToOpponentDigimonEffects"
   | "immuneToOpponentOptionEffects"
@@ -99,6 +100,7 @@ export interface RestrictionBadge {
     | "blockOff"
     | "suspendOff"
     | "unsuspendOff"
+    | "digivolveOff"
     | "effectOff"
     | "dpShield"
     | "deDigivolveShield"
@@ -171,6 +173,7 @@ const RESTRICTION_BADGES: readonly RestrictionBadge[] = [
   { kind: "cannotBlock", labelKey: "game.restriction.cannotBlock", icon: "blockOff" },
   { kind: "cannotSuspend", labelKey: "game.restriction.cannotSuspend", icon: "suspendOff" },
   { kind: "cannotUnsuspend", labelKey: "game.restriction.cannotUnsuspend", icon: "unsuspendOff" },
+  { kind: "cannotDigivolve", labelKey: "game.restriction.cannotDigivolve", icon: "digivolveOff" },
   {
     kind: "cannotActivateWhenDigivolving",
     labelKey: "game.restriction.cannotActivateWhenDigivolving",

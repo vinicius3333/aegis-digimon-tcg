@@ -34,7 +34,8 @@ export interface SecurityRevealSceneDeps {
   enqueue: (step: AnimationStep) => void;
   viewerSeat: Seat;
   replayingHistory: boolean;
-  batchId: string;
+  /** The server state version of the batch that raised the check. */
+  stateVersion: number;
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
   queuedSecurityKeyRef: MutableRefObject<number | null>;
   securityDockRef: MutableRefObject<{ key: number; closed: boolean } | null>;
@@ -42,7 +43,8 @@ export interface SecurityRevealSceneDeps {
   /** Mutated: armed at the reveal, released once the check's battle has been drawn. */
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
   /** The board this check's battle still needs, held from the reveal until the blow lands. */
-  blowHoldState: () => GameState | undefined;
+  /** The board the battle is fought on; `true` stands the attacker as the reveal found it. */
+  blowHoldState: (attackerAsRevealed?: boolean) => GameState | undefined;
   setHeldBlowState: Dispatch<SetStateAction<GameState | undefined>>;
   /** The board at a docked reveal, before the effect it is about to resolve. */
   securityEffectHoldState: () => GameState | undefined;
@@ -108,7 +110,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     enqueue,
     viewerSeat,
     replayingHistory,
-    batchId,
+    stateVersion,
     revealOnStageRef,
     queuedSecurityKeyRef,
     securityDockRef,
@@ -207,7 +209,14 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
         setSecurityHitSeat,
         scene: buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat }),
         replace,
-        ...(replayingHistory ? {} : { clausesBefore: batchId }),
+        ...(replayingHistory ? {} : { clausesBefore: stateVersion }),
+        ...(battlePending
+          ? {
+              afterClauses: () => {
+                if (securityBlowRef.current?.key === key) setHeldBlowState(blowHoldState(true));
+              },
+            }
+          : {}),
       }),
     );
     void queue.idle().then(() => {

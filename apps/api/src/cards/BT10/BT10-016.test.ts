@@ -1,38 +1,43 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { type PermanentSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT2/BT2-013.js";
+import "../BT4/BT4-038.js";
 import "../BT6/BT6-070.js";
 import "../BT6/BT6-082.js";
 import { compiled } from "./BT10-016.js";
 import "./BT10-112.js";
 
 describe("BT10-016 Jesmon (X Antibody)", () => {
-  it("encodes Piercing, exact Jesmon evolution for 0, and the persistent played-Digimon watcher", () => {
+  it("encodes Piercing, exact Jesmon evolution for 0, player-wide DP, and the later-entrant attack watchers", () => {
     expect(compiled.effects[0]?.keywords).toEqual([expect.objectContaining({ keyword: "Piercing" })]);
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Jesmon"], cost: 0, isAlternate: true }]);
+    const laterEntrantWatcher = (event: string) =>
+      expect.objectContaining({
+        kind: "SubTrigger",
+        event,
+        playerScoped: true,
+        actions: [
+          expect.objectContaining({
+            kind: "GrantCanAttackUnsuspended",
+            target: expect.objectContaining({ sourceRef: "triggerSubject", count: "all" }),
+          }),
+        ],
+      });
     expect(compiled.effects[1]?.actions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true }),
-        expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd" }),
-        expect.objectContaining({ kind: "GrantCanAttackUnsuspended", duration: "untilOpponentTurnEnd" }),
         expect.objectContaining({
-          kind: "SubTrigger",
-          event: "whenPlayed",
-          playerScoped: true,
-          actions: [
-            expect.objectContaining({
-              kind: "ModifyDP",
-              target: expect.objectContaining({ sourceRef: "triggerSubject", count: "all" }),
-            }),
-            expect.objectContaining({
-              kind: "GrantCanAttackUnsuspended",
-              target: expect.objectContaining({ sourceRef: "triggerSubject", count: "all" }),
-            }),
-          ],
+          kind: "ModifyDP",
+          playerWide: true,
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
         }),
+        expect.objectContaining({ kind: "GrantCanAttackUnsuspended", duration: "untilOpponentTurnEnd" }),
+        laterEntrantWatcher("whenPlayed"),
+        laterEntrantWatcher("whenMovedFromBreeding"),
       ]),
     );
   });
@@ -152,6 +157,48 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
   });
 });
 
+describe("BT10-016 Jesmon (X Antibody) — later entrants", () => {
+  it("gives a Digimon that later moves from breeding +2000 DP and unsuspended attack targets (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-016", as: "base" }],
+          breeding: { card: "BT4-038", as: "breedingRush" },
+          hand: [{ card: "BT10-016", as: "evolving" }],
+        },
+        1: { battleArea: [{ card: "BT10-008", as: "unsuspendedOpponent" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    s.state.turnCount += 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").currentDP === 13_000);
+
+    s.state.phase = Phase.Breeding;
+    expect(
+      s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("breedingRush").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).canAttackUnsuspended(s.perm("breedingRush")));
+    expect(s.perm("breedingRush").currentDP).toBe(s.perm("breedingRush").baseDP + 2000);
+
+    s.state.phase = Phase.Main;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("breedingRush").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("unsuspendedOpponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+  });
+});
+
 describe("BT10-016 Jesmon (X Antibody) — KB Q&A rulings", () => {
   async function borrowJesmonXThroughJesmonGxBlitz(opponentDigimon: PermanentSpec) {
     const s = setupEngine(
@@ -239,7 +286,6 @@ describe("BT10-016 Jesmon (X Antibody) — KB Q&A rulings", () => {
       () =>
         s.state.players[1]!.battleArea.length === 0 && !sistermonBlancInPlay() && s.state.pendingDecision === undefined,
     );
-    await settle();
 
     expect(player.trash.some((card) => card.instanceId === s.inst("sistermonBlanc").instanceId)).toBe(true);
     expect(player.deck).toHaveLength(2);

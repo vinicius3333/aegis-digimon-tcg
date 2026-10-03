@@ -29,6 +29,7 @@ export function PlayChoicePrompts({
   actionConfirm,
   appFusion,
   evoCostChoice,
+  memory,
   assemblyPick,
   digiXrosPick,
   onDualPlay,
@@ -58,8 +59,10 @@ export function PlayChoicePrompts({
     routes: readonly AppFusionRoute[];
     canEvolveNormally: boolean;
   } | null;
-  evoCostChoice: { handCardId: string; baseName: string; options: EvoCostOption[] } | null;
-  assemblyPick: { cardId: string; requirement: AssemblyRequirement; candidates: AssemblyCandidate[] } | null;
+  evoCostChoice: { handCardId: string; baseCardId: string; options: EvoCostOption[] } | null;
+  /** The viewer's memory, signed from the viewer's side, so a cost can show where it lands. */
+  memory: number;
+  assemblyPick: { cardId: string; requirements: AssemblyRequirement[]; candidates: AssemblyCandidate[] } | null;
   digiXrosPick: {
     cardId: string;
     requirements: DigiXrosRequirement[];
@@ -139,7 +142,8 @@ export function PlayChoicePrompts({
       {evoCostChoice ? (
         <EvoCostChoiceOverlay
           evolvingCardId={evoCostChoice.handCardId}
-          baseName={evoCostChoice.baseName}
+          baseCardId={evoCostChoice.baseCardId}
+          memory={memory}
           options={evoCostChoice.options}
           onConfirm={onEvoCost}
           onCancel={onEvoCostCancel}
@@ -149,7 +153,7 @@ export function PlayChoicePrompts({
       {assemblyPick ? (
         <AssemblyMaterialOverlay
           playingCardId={assemblyPick.cardId}
-          requirement={assemblyPick.requirement}
+          requirements={assemblyPick.requirements}
           candidates={assemblyPick.candidates}
           onConfirm={onAssembly}
           onSkip={onAssemblySkip}

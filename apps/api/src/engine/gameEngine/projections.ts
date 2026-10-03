@@ -64,6 +64,8 @@ export interface ProjectionDeps {
   /** Continuous DP deltas as of the last pass, kept across recomputes. */
   readonly continuousDpSeedState: Map<string, number>;
   readonly pendingBlitzAttack: () => PendingBlitzAttack | undefined;
+  /** Whether this turn's Main phase has closed while end-of-turn timings still run in Phase.Main. */
+  readonly hasMainPhaseEnded: () => boolean;
   readonly effectEnvironment: (trigger: TriggerInfo) => EffectEnvironment;
   readonly buildEffectContext: (source: CardSource, trigger: TriggerInfo) => EffectContext;
   readonly isNewlyPlayedRushAttacker: (permanentId: string) => boolean;
@@ -324,7 +326,7 @@ export class BoardProjection {
     projectedPermanents.clear();
     this.projectedActivatableInstances = projectedInstances;
     this.projectedActivatablePermanents = projectedPermanents;
-    if (this.deps.state.phase !== Phase.Main) return;
+    if (this.deps.state.phase !== Phase.Main || this.deps.hasMainPhaseEnded()) return;
 
     const turnPlayer = this.deps.state.players[this.deps.state.turnSeat];
     if (!turnPlayer) return;
@@ -462,7 +464,7 @@ export class BoardProjection {
     const override = this.deps.continuous.originalCardInfoOverride(perm.permanentId);
     perm.originalNameOverride = override?.name ?? "";
     replaceIfChanged(perm.originalColorsOverride, override?.colors ?? []);
-    perm.originalDPOverride = override === undefined ? 0 : (this.deps.modifiers.baseDpOverrideOf(perm) ?? 0);
+    perm.originalDPOverride = this.deps.modifiers.baseDpOverrideOf(perm) ?? 0;
   }
 
   /**
@@ -542,6 +544,13 @@ export class BoardProjection {
     }
   }
 
+  /** Re-publish the projections that only an open Main phase can light. */
+  syncMainPhaseAffordances(): void {
+    this.syncActivatableEffects();
+    this.syncHandAffordances();
+    this.syncLinkTargets();
+  }
+
   /**
    * Publish, per card in the turn player's hand, whether it can be played right now and
    * which of that player's permanents it can legally digivolve onto — the play-side
@@ -556,7 +565,10 @@ export class BoardProjection {
    */
   syncHandAffordances(): void {
     const seat = this.deps.state.turnSeat;
-    const turnPlayer = this.deps.state.phase === Phase.Main ? this.deps.state.players[seat] : undefined;
+    const turnPlayer =
+      this.deps.state.phase === Phase.Main && !this.deps.hasMainPhaseEnded()
+        ? this.deps.state.players[seat]
+        : undefined;
     const active =
       turnPlayer === undefined || turnPlayer.hand.length === 0
         ? undefined
@@ -762,7 +774,10 @@ export class BoardProjection {
    */
   syncLinkTargets(): void {
     const seat = this.deps.state.turnSeat;
-    const turnPlayer = this.deps.state.phase === Phase.Main ? this.deps.state.players[seat] : undefined;
+    const turnPlayer =
+      this.deps.state.phase === Phase.Main && !this.deps.hasMainPhaseEnded()
+        ? this.deps.state.players[seat]
+        : undefined;
     const deps = turnPlayer === undefined ? undefined : this.deps.linkCardDeps();
     const sources = new Set<CardInstance>();
     if (turnPlayer !== undefined) {

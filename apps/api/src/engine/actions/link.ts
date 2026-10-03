@@ -92,12 +92,12 @@ export interface LinkCardDeps {
   /**
    * §10-1-3-1's "meets the requirement" test: whether `linkedCard`'s own printed
    * `<Link>` category requirement (trait/name/text/level) is satisfied by the
-   * CURRENT definition of the Digimon it would link to. The engine binds this to
+   * CURRENT identity of the Digimon it would link to. The engine binds this to
    * its own `linkRequirementSatisfied` (the same predicate the §17-1-3-2-6/7 rule
    * sweep re-checks after linking), so declaration-time legality and the ongoing
    * rule check can never drift apart.
    */
-  linkRequirementSatisfied(hostDefinition: CardDefinition, linkedCard: CardInstance): boolean;
+  linkRequirementSatisfied(host: Permanent, linkedCard: CardInstance): boolean;
   /** Largest currently available recipient reduction, used by declaration legality. */
   linkCostReduction(targetPermanentId: string, cardTraits: readonly string[]): number;
   /**
@@ -186,7 +186,7 @@ export function validateLinkCard(
   // 4. §10-1-3-1: the chosen Digimon must meet the link card's requirement.
   const hostDefinition = definitionOf(permanent.topCard.cardId);
   if (!hostDefinition.kinds.includes(CardKind.Digimon)) return { ok: false, reason: "illegal-target" };
-  if (!deps.linkRequirementSatisfied(hostDefinition, instance)) {
+  if (!deps.linkRequirementSatisfied(permanent, instance)) {
     return { ok: false, reason: "link-requirement-unmet" };
   }
 

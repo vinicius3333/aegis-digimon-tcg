@@ -136,11 +136,6 @@ function KeywordNoticeBody({
       <NoticeThumb cardId={cardId} />
       <div className="match-notice__copy">
         <strong className="match-notice__keyword">{t(`notice.keyword.${keyword}` as const)}</strong>
-        {keyword === "guard" ? null : (
-          <span className="match-notice__label">
-            <CardLink cardId={cardId} />
-          </span>
-        )}
         {descriptionKey ? <p className="match-notice__text">{t(descriptionKey)}</p> : null}
         {materialCardIds?.length ? (
           <div className="match-notice__materials" aria-label={t("notice.digiXrosMaterials")}>

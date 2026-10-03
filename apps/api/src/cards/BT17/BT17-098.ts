@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Reveal the top 3 cards of your deck. Add 1 card with [Pulsemon] in its text among them to the hand. Return the rest to the bottom of the deck.",
           kind: "RevealAdd",
           revealCount: 3,
           add: [
@@ -27,6 +29,7 @@ export const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],
@@ -69,6 +72,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] Reveal the top 3 cards of your deck. Add 1 card with [Pulsemon] in its text among them to the hand. Return the rest to the bottom of the deck.",
           kind: "RevealAdd",
           revealCount: 3,
           add: [
@@ -89,6 +94,7 @@ export const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

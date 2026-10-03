@@ -226,7 +226,7 @@ describe("BT24-009 Shamanmon", () => {
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { declinePrompts: ["Digivolve", "By trashing"], autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();

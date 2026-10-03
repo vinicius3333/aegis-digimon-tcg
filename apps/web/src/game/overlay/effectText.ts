@@ -327,6 +327,9 @@ const DESCRIBED_ACTION_PHRASES: readonly RegExp[] = [
   /^Hatch a Digi-Egg$/,
   /^Search your deck$/,
   /^(?:Digivolve|DNA digivolve|De-Digivolve)$/,
+  // describeAction wraps a cost-gated action as "By paying: <cost> → <body>"; the cost may
+  // echo printed text, so the prefix alone marks the summary as generated.
+  /^By paying: /,
 ];
 // An "activate this?" prompt built from an unmapped IR action kind arrives as a bare
 // identifier ("GainMemory", "gainMemory"): readable in a log, meaningless in a modal. Drop
@@ -343,7 +346,8 @@ export function playerFacingPromptText(promptText: string | undefined, kind: Dec
   // Generic engine verbs add no guidance beyond the decision kind and leak English into
   // localized matches. Let the modal use its translated fallback while the printed effect
   // clause explains what is being selected.
-  if (/^(?:choose targets?|select cards?|choose one effect to activate)$/i.test(trimmed)) return undefined;
+  if (/^(?:choose targets?|select cards?|choose one effect to activate|choose the card order)$/i.test(trimmed))
+    return undefined;
   if (kind !== "optional") return trimmed;
   // A reducer or keyword effect asks with the engine's own summary of what it does
   // ("Draw 2", "Gain 2 memory"), which the printed clause under the prompt already says.

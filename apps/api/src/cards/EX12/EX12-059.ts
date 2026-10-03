@@ -40,12 +40,17 @@ const compiled: CompiledCard = {
       trigger,
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 3＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, by placing 2 level 5 or lower [Machine], [Cyborg] or [ME] trait cards from your hand or trash as this Digimon's bottom digivolution cards, your opponent's effects can't trash any of your Digimon's stacked cards until their turn ends.",
           kind: "StackTrashLock",
+          includeLaterEntrants: true,
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           duration: "untilOpponentTurnEnd",
           cost: placeTwoMaterials,

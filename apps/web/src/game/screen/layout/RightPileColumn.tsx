@@ -1,10 +1,11 @@
 /* The right edge of the field: the opponent's raising area and security stack at the
-   top, the viewer's own deck and trash at the bottom — the mirror of the left edge.
+   top, the viewer's own deck and trash at the bottom — the mirror of the left edge. A
+   desktop too short for all five piles moves the deck and trash into the bottom strip.
 
    The opponent's shield is also the drop area an attack on the player is released
    onto, and the tap target that declares the same attack. */
 
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import { useTranslation } from "../../../i18n";
 import { BreedingSlot, Pile, type DropAttrs } from "../../piece";
 import { Side } from "../../side";
@@ -16,15 +17,15 @@ import type { PresentedPlayer } from "../types";
 export function RightPileColumn({
   opponent,
   opponentBreeding,
-  viewer,
+  viewerPiles,
   pileWidth,
   compactPiles,
-  viewerDeckRef,
   opponentSecurityRef,
   opponentEggDeckRiffling,
-  viewerDeckRiffling,
-  viewerTrashClassName,
   breedingBurst,
+  breedingEffectSource,
+  breedingEffectLinked,
+  breedingHighlight,
   securityCount,
   securityBreak,
   securityBreakMine,
@@ -36,21 +37,20 @@ export function RightPileColumn({
   onOpenOpponentBreeding,
   onAttackSecurity,
   onOpenOpponentSecurity,
-  onOpenViewerTrash,
 }: {
   opponent: PresentedPlayer;
   /** The opponent's raising area as the narration has it, which may lag the board. */
   opponentBreeding: PresentedPlayer;
-  viewer: PresentedPlayer;
+  /** The viewer's deck and trash, unless the bottom strip holds them. */
+  viewerPiles: ReactNode;
   pileWidth: number;
   compactPiles: boolean;
-  viewerDeckRef: RefObject<HTMLDivElement | null>;
   opponentSecurityRef: RefObject<HTMLDivElement | null>;
   opponentEggDeckRiffling: boolean;
-  viewerDeckRiffling: boolean;
-  /** The trash marks itself when an effect is resolving from the pile. */
-  viewerTrashClassName: string;
   breedingBurst: PermanentBurst | undefined;
+  breedingEffectSource: boolean;
+  breedingEffectLinked: boolean;
+  breedingHighlight: boolean;
   /** What the shield shows: a scene still holding a card keeps the higher figure. */
   securityCount: number;
   securityBreak: SecurityBreakCue | null;
@@ -66,7 +66,6 @@ export function RightPileColumn({
   onOpenOpponentBreeding: (() => void) | undefined;
   onAttackSecurity: (() => void) | undefined;
   onOpenOpponentSecurity: (() => void) | undefined;
-  onOpenViewerTrash: (() => void) | undefined;
 }) {
   const { t } = useTranslation();
   return (
@@ -101,6 +100,9 @@ export function RightPileColumn({
               label={t("game.pile.raising")}
               compact={compactPiles}
               burst={breedingBurst}
+              effectSource={breedingEffectSource}
+              effectLinked={breedingEffectLinked}
+              highlight={breedingHighlight}
               width={pileWidth}
               onClick={onOpenOpponentBreeding}
             />
@@ -132,29 +134,7 @@ export function RightPileColumn({
         />
       </div>
       <div style={{ flex: 1 }} />
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-        <Pile
-          className="game-utility-slot game-utility-slot--you-deck"
-          width={pileWidth}
-          compact={compactPiles}
-          count={viewer.deckCount}
-          label={t("game.pile.deck")}
-          riffling={viewerDeckRiffling}
-          refEl={(el) => {
-            viewerDeckRef.current = el;
-          }}
-        />
-        <Pile
-          width={pileWidth}
-          className={`game-utility-slot game-utility-slot--you-trash ${viewerTrashClassName}`}
-          compact={compactPiles}
-          count={viewer.trash.length}
-          label={t("game.pile.trash")}
-          topCardId={viewer.trash[viewer.trash.length - 1]?.cardId}
-          topArtId={viewer.trash[viewer.trash.length - 1]?.artId}
-          onClick={onOpenViewerTrash}
-        />
-      </div>
+      {viewerPiles}
     </aside>
   );
 }

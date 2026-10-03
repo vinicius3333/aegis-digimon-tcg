@@ -298,7 +298,6 @@ export function unimplementedPrimitives(): Primitives {
     setMemory: () => refuse("effect-primitives", "setMemory"),
     modifyDP: () => refuse("effect-primitives", "modifyDP"),
     modifyPlayerDP: () => refuse("effect-primitives", "modifyPlayerDP"),
-    restoreDpReductions: () => refuse("effect-primitives", "restoreDpReductions"),
     setBaseDP: () => refuse("static-continuous-effects", "setBaseDP"),
     playFromHand: () => refuse("effect-primitives", "playFromHand"),
     playFromSecurity: () => refuse("effect-primitives", "playFromSecurity"),
@@ -449,6 +448,14 @@ export function gatherTriggeredEffects(
   },
 ): CollectedEffect[] {
   if (candidateInstances.length === 0) return [];
+  // Live zones and deletion snapshots can name the same physical card. Collect
+  // each source once; separately granted copies are materialized below.
+  const candidateIds = new Set<string>();
+  const uniqueCandidates = candidateInstances.filter(({ instanceId }) => {
+    if (candidateIds.has(instanceId)) return false;
+    candidateIds.add(instanceId);
+    return true;
+  });
   const stackEffectConferrals = grantSnapshot?.stackEffectConferrals ?? env.continuous.listStackEffectConferrals();
   const customEffectGrants = grantSnapshot?.customEffectGrants ?? env.continuous.listCustomEffectGrants();
   const keywordDeletionReaction =
@@ -467,11 +474,11 @@ export function gatherTriggeredEffects(
     stackEffectConferrals.length === 0 &&
     customEffectGrants.length === 0;
   const printedCandidates = plainWindow
-    ? candidateInstances.filter((instance) => {
+    ? uniqueCandidates.filter((instance) => {
         const module = getEffectModule(instance.cardId);
         return module !== undefined && module.hasTiming?.(timing) !== false;
       })
-    : candidateInstances;
+    : uniqueCandidates;
   if (printedCandidates.length === 0) return [];
   const game = createGameAccess(
     env.state,
@@ -571,7 +578,7 @@ export function gatherTriggeredEffects(
   }
 
   const instanceById = (id: string): CardSource | undefined => {
-    for (const inst of candidateInstances) {
+    for (const inst of uniqueCandidates) {
       if (inst.instanceId === id) return createCardSource(inst, lookup);
     }
     return undefined;

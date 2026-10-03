@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            '[On Play] [When Digivolving] 1 of your opponent\'s Digimon gains "[End of Attack] Delete this Digimon." until the end of their turn.',
           kind: "GrantAuraToOpponents",
           target: {
             filter: {
@@ -19,6 +21,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has [LadyDevimon]/[X Antibody] in its digivolution cards, you may play 1 [Volée & Zerdrücken] Token (Digimon/Lv.4/Purple/5000 DP/＜Blocker＞/＜Retaliation＞).",
           kind: "PlayToken",
           tokens: ["Volée & Zerdrücken"],
           count: 1,
@@ -39,6 +43,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            '[On Play] [When Digivolving] 1 of your opponent\'s Digimon gains "[End of Attack] Delete this Digimon." until the end of their turn.',
           kind: "GrantAuraToOpponents",
           target: {
             filter: {
@@ -51,6 +57,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has [LadyDevimon]/[X Antibody] in its digivolution cards, you may play 1 [Volée & Zerdrücken] Token (Digimon/Lv.4/Purple/5000 DP/＜Blocker＞/＜Retaliation＞).",
           kind: "PlayToken",
           tokens: ["Volée & Zerdrücken"],
           count: 1,

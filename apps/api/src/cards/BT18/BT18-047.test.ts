@@ -28,7 +28,7 @@ describe("BT18-047 Arbormon", () => {
         0: { hand: [{ card: "BT18-047", as: "arbormon" }], battleArea: [{ card: "BT18-045", as: "greenCost" }] },
         1: { battleArea: [{ card: "BT1-030", as: "opponentTarget" }] },
       },
-      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
     preferredInstanceIds.push(s.perm("greenCost").topCard!.instanceId, s.perm("opponentTarget").topCard!.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arbormon").instanceId })).toEqual({
@@ -42,11 +42,59 @@ describe("BT18-047 Arbormon", () => {
     assertNoLoudGap(s);
   });
 
-  it("can pay the mandatory suspension cost by suspending itself when no other green Digimon exists", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "BT18-047", as: "arbormon" }] },
-      1: { battleArea: [{ card: "BT1-087", as: "opponentTamer" }] },
-    });
+  it.each([
+    ["On Play", false],
+    ["When Digivolving", true],
+  ])("declines the optional 'by' cost on [%s] and suspends nothing", async (_timing, digivolves) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-050", as: "petaldramon" },
+            { card: "BT18-045", as: "greenCost" },
+          ],
+          hand: [{ card: "BT18-047", as: "arbormon" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-030", as: "opponentTarget" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const intent = digivolves
+      ? {
+          type: "digivolve" as const,
+          permanentId: s.perm("petaldramon").permanentId,
+          instanceId: s.inst("arbormon").instanceId,
+          useAlternateCost: true,
+        }
+      : { type: "playCard" as const, instanceId: s.inst("arbormon").instanceId };
+    expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some(({ isSuspended }) => isSuspended)).toBe(false);
+    expect(s.perm("opponentTarget").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("can pay the suspension cost by suspending itself when no other green Digimon exists", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT18-047", as: "arbormon" }] },
+        1: { battleArea: [{ card: "BT1-087", as: "opponentTamer" }] },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arbormon").instanceId })).toEqual({
@@ -73,7 +121,7 @@ describe("BT18-047 Arbormon", () => {
         },
         1: { battleArea: [{ card: "BT1-087", as: "opponentTamer" }] },
       },
-      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
     preferredInstanceIds.push(s.perm("greenCost").topCard!.instanceId, s.perm("opponentTamer").topCard!.instanceId);
     s.state.memory = 5;

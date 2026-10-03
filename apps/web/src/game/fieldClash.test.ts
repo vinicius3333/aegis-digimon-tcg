@@ -54,6 +54,7 @@ describe("trackOpenAttack", () => {
   it("forgets the attack once anything closes it", () => {
     for (const closer of [
       COMBAT,
+      { kind: "attackEnded", seat: 0, attackerPermanentId: "perm-atk" } as ServerEvent,
       { kind: "securityChecked", seat: 1, revealedCardId: "BT1-020", resolution: "battle" } as ServerEvent,
       { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 3 } as ServerEvent,
       { kind: "phaseChanged", phase: "Main", turnSeat: 0, turnCount: 3 } as ServerEvent,

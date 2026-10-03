@@ -139,7 +139,7 @@ export interface EvoCostChoice {
   handInstanceId: string;
   permanentId: string;
   handCardId: string;
-  baseName: string;
+  baseCardId: string;
   options: EvoCostOption[];
 }
 
@@ -147,7 +147,7 @@ export interface EvoCostChoice {
 export interface AssemblyPick {
   instanceId: string;
   cardId: string;
-  requirement: AssemblyRequirement;
+  requirements: AssemblyRequirement[];
   candidates: AssemblyCandidate[];
 }
 

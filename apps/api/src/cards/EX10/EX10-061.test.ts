@@ -254,6 +254,9 @@ describe("EX10-061 Apocalymon — [When Digivolving] through the real evolution 
     const seen = observe(s.engine);
     expect(seen.hasKeyword(played, "Rush")).toBe(true);
     expect(seen.hasKeyword(s.perm("resident"), "Rush")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "EX10-020");
+    expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Rush")).toBe(true);
     expect(seen.hasKeyword(s.perm("plain"), "Rush")).toBe(false);
     expect(seen.hasKeyword(s.perm("host"), "Rush")).toBe(false);
 
@@ -264,6 +267,7 @@ describe("EX10-061 Apocalymon — [When Digivolving] through the real evolution 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual([
       "BT1-009",
       "BT2-064",
+      "EX10-020",
       "EX10-020",
       CARD_ID,
     ]);

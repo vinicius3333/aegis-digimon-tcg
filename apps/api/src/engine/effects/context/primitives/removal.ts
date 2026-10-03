@@ -17,7 +17,7 @@ export interface RemovalPrimitives {
   trashBreedingPermanent?(seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /**
    * Trash digivolution-stack cards (`instanceIds`) of `hostPermanentId` BY AN EFFECT, firing the
-   * whenDigivolutionTrashed SubTrigger once per card actually trashed (carrying the host as the
+   * whenDigivolutionTrashed SubTrigger once for the cards actually trashed (carrying the host as the
    * subject so a watcher can gate on "an opponent's Digimon"). This is the genuine effect-trash
    * site (KB P-004 Q4113); a return-to-hand bounce that clears digivolution cards uses a separate
    * path and does NOT fire this. Returns the instances trashed.
@@ -162,6 +162,13 @@ export interface RemovalPrimitives {
     opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
   ): Promise<void>;
   unsuspend(permanentIds: string[]): Promise<void>;
+  /**
+   * Whether `unsuspend` would turn this permanent: it is suspended, no "can't unsuspend"
+   * restriction holds it, and its controller can pay any granted hand-trash cost. An
+   * "unsuspend" cost is payable only with such a permanent. Optional on the port so faked
+   * primitives in tests need no change.
+   */
+  canUnsuspend?(permanentId: string): boolean;
   /**
    * Return cards to their owners' hands. Async because a permanent bounce consults the
    * leave-the-battle-area PREVENT reactions first (a "would leave" reaction voids hand

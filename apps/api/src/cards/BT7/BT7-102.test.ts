@@ -76,4 +76,26 @@ describe("BT7-102 ＜Delay＞ option-permanent subsystem", () => {
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT7-102")).toBe(false);
     expect(p0.trash.some((c) => c.cardId === "BT7-102")).toBe(true);
   });
+
+  it("trashes itself for <Delay> without narrating a deletion (CR 4-16-3)", async () => {
+    const s = boosterBoard();
+    const p0 = s.state.players[0] as PlayerState;
+
+    playBooster(s);
+    await settle(
+      () => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT7-102") && s.state.pendingDecision === undefined,
+    );
+    const optionInstanceId = p0.battleArea.find((p) => p.topCard?.cardId === "BT7-102")!.topCard!.instanceId;
+    s.state.turnCount += 1;
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionInstanceId, effectKey: DELAY_KEY }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 2 && s.state.pendingDecision === undefined);
+
+    const delayMoves = s.events.filter(
+      (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(optionInstanceId),
+    );
+    expect(delayMoves).toHaveLength(1);
+    expect(delayMoves[0]).not.toHaveProperty("deletedPermanents");
+  });
 });

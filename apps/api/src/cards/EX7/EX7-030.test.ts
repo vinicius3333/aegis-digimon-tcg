@@ -46,6 +46,8 @@ describe("EX7-030 Cendrillmon", () => {
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               attackPlayer: true,
               withoutSuspending: true,
+              optional: true,
+              abortOnDecline: true,
               cost: {
                 kind: "deleteOwn",
                 target: {
@@ -163,6 +165,41 @@ describe("EX7-030 Cendrillmon", () => {
     expect(s.perm("target").currentDP).toBe(6000);
   });
 
+  it("declines the optional Overclock 'by' deletion and keeps the Familiar without attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-030", as: "cendrill" },
+            { card: "TOKEN-Familiar-Token", as: "familiar" },
+          ],
+          deck: ["BT1-011"],
+        },
+        1: { deck: ["BT1-012"], security: ["BT1-013", "BT1-014"] },
+      },
+      { declinePrompts: ["Familiar"], autoSelectCards: true },
+    );
+    const sourceId = s.perm("cendrill").permanentId;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["EX7-030", "TOKEN-Familiar-Token"]);
+    expect(s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === sourceId)).toBe(
+      false,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
   it("Q3847: Overclock combines Cendrillmon and Familiar's simultaneous DP triggers", async () => {
     const s = setupEngine(
       {
@@ -181,7 +218,8 @@ describe("EX7-030 Cendrillmon", () => {
         },
       },
       {
-        autoDeclineOptional: true,
+        autoAcceptOptional: true,
+        declinePrompts: ["Familiar"],
         autoSelectCards: true,
         autoChooseOption: true,
       },
@@ -263,7 +301,7 @@ describe("EX7-030 Cendrillmon", () => {
             security: ["BT1-013", "BT1-014"],
           },
         },
-        { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+        { autoAcceptOptional: true, declinePrompts: ["Familiar"], autoSelectCards: true, autoChooseOption: true },
       );
       const turn = s.engine.runOneTurn();
       await advance(s.engine).waitForMainPhase(0);

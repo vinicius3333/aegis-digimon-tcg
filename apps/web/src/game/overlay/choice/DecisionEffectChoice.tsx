@@ -16,7 +16,7 @@ export interface EffectChoice {
 /**
  * A `chooseOption` whose choices are printed effects of a card (Rina activating one of
  * UlforceVeedramon's [When Digivolving] effects). Each option is one row: the card's art,
- * its name and timing, and the full printed clause, so the player reads the effect rather
+ * its name and the full printed clause, so the player reads the effect rather
  * than an engine summary.
  */
 export function DecisionEffectChoice({
@@ -35,10 +35,7 @@ export function DecisionEffectChoice({
   const { t } = useTranslation();
   return (
     <div>
-      <ol
-        className="effect-choice"
-        aria-label={t("overlay.chooseEffectPrompt")}
-      >
+      <ol className="effect-choice" aria-label={t("overlay.chooseEffectPrompt")}>
         {choices.map((label, index) => {
           const effect = choiceEffects[index];
           if (effect === undefined) return null;
@@ -57,28 +54,18 @@ export function DecisionEffectChoice({
                 type="button"
                 className="effect-choice__option"
                 aria-label={[timingLabel, name].filter(Boolean).join(", ")}
-                onClick={() =>
-                  onRespond({ kind: "chooseOption", optionIndex: index })
-                }
+                onClick={() => onRespond({ kind: "chooseOption", optionIndex: index })}
               >
                 <span className="effect-choice__index" aria-hidden="true">
                   {index + 1}
                 </span>
                 <span className="effect-choice__art">
-                  <CardFull
-                    cardId={effect.cardId}
-                    width={wideDialog ? 64 : 52}
-                  />
+                  <CardFull cardId={effect.cardId} width={wideDialog ? 64 : 52} />
                 </span>
                 <span className="effect-choice__body">
                   <span className="effect-choice__title">
                     <span className="effect-choice__name">{name}</span>
                     <span className="effect-choice__id">{effect.cardId}</span>
-                    {timingLabel ? (
-                      <span className="effect-choice__timing">
-                        {timingLabel}
-                      </span>
-                    ) : null}
                   </span>
                   <span className="effect-choice__clause">
                     <EffectText text={clause} />

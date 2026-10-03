@@ -37,7 +37,7 @@ import {
   runPlayAction,
 } from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
-import { runRemovalAction } from "./removal.js";
+import { returnableDigivolutionCards, runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
 import { runRestrictionAction } from "./restrictions.js";
 import { runRevealAction } from "./reveal.js";
@@ -246,9 +246,12 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
   ctx.activeTargetFate = targetFateOf(action);
   ctx.activeSelectionContext = action.kind === "Attack" ? "attackSource" : undefined;
+  const outerPickingAcceptedOptional = ctx.pickingAcceptedOptional;
+  ctx.pickingAcceptedOptional = false;
   try {
     return await runActionInner(ctx, action);
   } finally {
+    ctx.pickingAcceptedOptional = outerPickingAcceptedOptional;
     ctx.activeTargetFate = outerFate;
     ctx.activeSelectionContext = outerSelectionContext;
     ctx.activeEffectTextPart = outerEffectTextPart;
@@ -264,6 +267,40 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
 }
 
+/**
+ * Kinds whose single-card pick stays declinable after the player accepts their "you may".
+ * Left out on purpose: Attack and RedirectAttack (the attack proceeds once accepted, BT11-092),
+ * SelectBind (its pick can precede the yes/no), and kinds that ask their own question
+ * (Replacement, UseOptionWithoutCost).
+ */
+const PICK_DECLINABLE_AFTER_YES: ReadonlySet<Action["kind"]> = new Set([
+  "PlayWithoutCost",
+  "PlayFromZone",
+  "Delete",
+  "Return",
+  "Trash",
+  "Suspend",
+  "Unsuspend",
+  "ModifyDP",
+  "GainKeyword",
+  "Restrict",
+  "DeDigivolve",
+  "TrashDigivolution",
+  "PlaceInBattleAreaSelf",
+  "PlaceUnder",
+  "Digivolve",
+  "Link",
+]);
+
+/**
+ * A larger or named set ("1 [Kinkakumon] and 1 [Ginkakumon]", Q1465) is picked one card at a
+ * time, and an accepted set must not stop halfway.
+ */
+function targetsOneCard(action: Action): boolean {
+  const target = "target" in action ? (action.target as Target | undefined) : undefined;
+  return target?.count === undefined || target.count === 1;
+}
+
 function markActivationChosen(ctx: EffectContext): void {
   ctx.oncePerTurnActivationChosen = true;
   ctx.oncePerTurnActivationDeclined = false;
@@ -271,6 +308,24 @@ function markActivationChosen(ctx: EffectContext): void {
 
 function markActivationDeclined(ctx: EffectContext): void {
   if (ctx.oncePerTurnActivationChosen !== true) ctx.oncePerTurnActivationDeclined = true;
+}
+
+/**
+ * CR 11-1-2: only the turn player can attack. A cost-free optional "may attack" whose every
+ * possible attacker belongs to the non-turn player is never offered (KB Q2891). Other
+ * unattackable cases keep their existing confirmation, so a paid "By suspending ..." clause
+ * can still be activated for its cost.
+ */
+function onlyNonTurnPlayerAttackers(ctx: EffectContext, action: Extract<Action, { kind: "Attack" }>): boolean {
+  if (action.cost !== undefined) return false;
+  const attackSubject = action.attacker ?? action.subject ?? action.target;
+  if (attackSubject === undefined) return false;
+  const turnSeat = ctx.game.state.turnSeat;
+  const attackers =
+    attackSubject.isSelf || attackSubject.filter?.isSelfRef
+      ? [ctx.source.permanent()].filter((permanent) => permanent !== undefined)
+      : candidatePermanents(ctx, attackSubject, { includeUnaffectable: true });
+  return attackers.length > 0 && attackers.every((permanent) => permanent.controllerSeat !== turnSeat);
 }
 
 function unavailableAction(ctx: EffectContext, action: Action, abort = false): boolean {
@@ -300,6 +355,7 @@ function isOpponentChosenProcessing(action: Action): boolean {
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
+  let acceptedBeforeItsPick = false;
   const paysProcessingCostBeforeOptional =
     action.kind !== "RawUnparsed" &&
     action.optional === true &&
@@ -485,6 +541,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Delete" &&
     looseCostDefinesDeleteTarget &&
+    action.allowCostWithoutTarget !== true &&
     typeof payableActionCost !== "number" &&
     !looseCostCanProduceDeleteTarget(ctx, action, payableActionCost)
   ) {
@@ -662,6 +719,18 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         ? action.cost.target.filter.boundTo
         : undefined;
     if (boundTo === action.target.bindAs && ctx.selections?.get(boundTo) === undefined) {
+      // The "you may" comes before choosing whose card pays (EX8-070); record the answer so
+      // the regular optional prompt below does not ask it a second time.
+      if (action.optional === true) {
+        const yes = ctx.predecidedOptionalActions?.get(action) ?? (await ctx.ask.optional(ctx, describeAction(action)));
+        if (!yes) {
+          ctx.lastEffectActed = false;
+          markActivationDeclined(ctx);
+          return action.abortOnDecline === true;
+        }
+        ctx.predecidedOptionalActions ??= new Map();
+        ctx.predecidedOptionalActions.set(action, true);
+      }
       const ids = await resolvePermanentTargets(ctx, action.target);
       if (ids.length === 0) return unavailableAction(ctx, action, action.abortOnDecline === true);
       ctx.selections?.set(boundTo, ids[0]!);
@@ -747,6 +816,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
       return unavailableAction(ctx, action, action.abortOnDecline === true);
+    }
+    if (action.kind === "Attack" && onlyNonTurnPlayerAttackers(ctx, action)) {
+      return unavailableAction(ctx, action);
     }
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI
@@ -916,6 +988,16 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         if (!costCreatesRecoveryCandidate()) return unavailableAction(ctx, action);
       }
     }
+    // A scaled ceiling is only known once the action resolves, so only a fixed filter preflights.
+    if (
+      action.kind === "Return" &&
+      (action.from ?? []).includes("digivolutionCards") &&
+      action.scaling === undefined &&
+      action.playCostCeiling === undefined &&
+      returnableDigivolutionCards(ctx, action.target).length === 0
+    ) {
+      return unavailableAction(ctx, action);
+    }
     // A "may digivolve" prompt is meaningful only when at least one matching source and
     // destination form a legal digivolution. In particular, "without paying the cost" does
     // not waive printed requirements (P-092 Q4182); do this before asking so the UI never
@@ -961,6 +1043,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         else markActivationDeclined(ctx);
         return action.abortOnDecline === true;
       }
+      // A cost paid between this answer and the pick must not be stranded by backing out.
+      acceptedBeforeItsPick =
+        chooser === ctx.ask &&
+        payableActionCost === undefined &&
+        additionalCost === undefined &&
+        additionalCosts.length === 0;
       markActivationChosen(ctx);
     }
   }
@@ -1106,6 +1194,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       markActivationDeclined(ctx);
       return action.abortOnDecline === true;
     }
+    // Every cost is already paid, so backing out at the pick equals declining here.
+    acceptedBeforeItsPick = true;
     markActivationChosen(ctx);
   }
   // An "up to N" <Digi-Burst> cost scales its action by the number of cards actually paid
@@ -1186,6 +1276,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     markActivationChosen(ctx);
   }
+
+  ctx.pickingAcceptedOptional =
+    acceptedBeforeItsPick && PICK_DECLINABLE_AFTER_YES.has(action.kind) && targetsOneCard(action);
 
   // Everything the prologue worked out that a case body still needs.
   const scope: ActionScope = { scale, deferredCostSuspensions };

@@ -170,6 +170,12 @@ export interface GrantStaticAction extends ActionBase {
   /** Apply named granted effects to matching permanents that enter before the duration expires. */
   includeLaterEntrants?: boolean;
   /**
+   * Apply the grant to every current and future Digimon of the target player that matches the
+   * target filter, re-read live for the duration. Supported for restriction-backed grants
+   * (`immuneToOpponentDPReductionAndReturn`).
+   */
+  playerWide?: boolean;
+  /**
    * The name alias is valid ONLY during DigiXros material-slot matching. It must not appear in
    * `effectiveNames()` or any ordinary name filter (KB Q3068, Q3105, Q3119). Implied by
    * `grant === "nameForDigiXros"`.

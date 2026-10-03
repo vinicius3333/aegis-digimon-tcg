@@ -68,6 +68,12 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 3,
+      materials: [{ count: 4, kinds: ["Digimon"], namesExact: ["Eyesmon: Scatter Mode"] }],
+    },
+  ],
   digivolutionRequirement: [
     {
       namesExact: ["Eyesmon: Scatter Mode"],

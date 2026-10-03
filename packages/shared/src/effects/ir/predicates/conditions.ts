@@ -154,6 +154,7 @@ export interface Condition {
     | "bindingContains"
     | "boardCountCompare"
     | "triggerSourceNotDeletedAtSameTiming" // the attacker survived the exchange it won (CAP-E11, BT20-044)
+    | "triggerAttackerSurvivedBattle" // printed "deletes ... in battle and survives": the winner is not in the battle's deletion batch
     | "selfHasNameContaining" // BT20-080. Off-field source => false.
     | "orConditions" // alias for "anyOf", emitted when the runtime record spells the combinator out (BT21-010)
     | "namedCountAtLeast" // the `trackCount` tally under `countSource` >= `count`; unset => 0 (BT7-015)

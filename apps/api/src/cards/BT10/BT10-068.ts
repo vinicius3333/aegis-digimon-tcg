@@ -46,6 +46,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           amount: 2000,
           duration: "untilOpponentTurnEnd",
           condition: {
@@ -91,6 +92,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
+          playerWide: true,
           grant: "immuneToOpponentDPReductionAndReturn",
           tokens: [],
           duration: "untilOpponentTurnEnd",

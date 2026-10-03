@@ -57,6 +57,23 @@ describe("BT24-013 Fugamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
+  it("does not draw when a different hand card is trashed (Discord 1555101829619257344)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT24-013", as: "fugamon" }, { card: "BT1-009", as: "other" }, "BT1-009"],
+        battleArea: [{ card: "BT24-013", as: "fieldFugamon" }],
+        deck: ["BT1-010"],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.trash([s.inst("other").instanceId], 0);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fugamon").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
   it("does not draw when this card is trashed while 6 cards remain in hand", async () => {
     const s = setupEngine({
       0: {

@@ -36,7 +36,8 @@ export function linkEligible(targetDef: CardDefinition): boolean {
  * The printed cost is enforced at declaration time (existing `canLinkToTargetPermanent`
  * / `linkCostOf` seams), not re-checked here — this gate only re-evaluates the CATEGORY
  * against the live host, which is what §17-1-3-2-6/§17-1-3-2-7 asks a rule-check sweep
- * to keep honest as the host's own traits/name/level can never change after linking.
+ * to keep honest when the host's name or traits change after linking (EX13-031 rewriting
+ * a Vulcanusmon into [Sukamon] must shed BT25-101's "[Link] [Vulcanusmon]" card).
  */
 export function parseLinkCategory(
   req: string,
@@ -52,17 +53,41 @@ export function parseLinkCategory(
   return undefined;
 }
 
+/** The live identity of a Digimon a link card is, or would be, plugged into. */
+export interface LinkHost {
+  definition: CardDefinition;
+  /** Effective names, lowercased. An original-name rewrite replaces the printed name here. */
+  names: readonly string[];
+  /** Printed traits plus runtime trait grants. */
+  traits: readonly string[];
+}
+
 /**
  * Whether a link card's printed `<Link>` category ("[Link] [Appmon] trait: Cost 1") admits
  * the host. Unparseable or missing requirements impose no category gate.
  */
-export function linkCategoryAllowsHost(hostDef: CardDefinition, linkDef: CardDefinition): boolean {
+export function linkCategoryAllowsHost(host: LinkHost, linkDef: CardDefinition): boolean {
   const req = linkDef.linkRequirement;
   if (typeof req !== "string" || req.length === 0 || req === "-") return true;
   const parsed = parseLinkCategory(req);
   if (parsed === undefined) return true;
-  if ("minLevel" in parsed) return hostDef.level !== undefined && hostDef.level >= parsed.minLevel;
-  return matchNameOrTrait(hostDef, parsed);
+  const { definition } = host;
+  if ("minLevel" in parsed) return definition.level !== undefined && definition.level >= parsed.minLevel;
+
+  // The printed definition also carries static (Rule) name aliases, so it answers only
+  // while the printed name is still one of the host's effective names.
+  const renamedTo = (name: string) => ({ ...definition, cardId: undefined, nameEn: name, nameAliases: undefined });
+  const printedNameLive = host.names.some((name) =>
+    matchNameOrTrait(renamedTo(name), { tokens: [definition.nameEn], match: "nameExact" }),
+  );
+  if (printedNameLive && matchNameOrTrait(definition, parsed)) return true;
+  if (host.names.some((name) => matchNameOrTrait(renamedTo(name), parsed))) return true;
+  if (parsed.match === "name") return false;
+  const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
+  const token = normalizeTrait(parsed.tokens[0] ?? "");
+  return host.traits.some((trait) =>
+    parsed.match === "trait" ? normalizeTrait(trait) === token : normalizeTrait(trait).includes(token),
+  );
 }
 
 /**

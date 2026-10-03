@@ -173,6 +173,100 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === oppOther.permanentId)).toBe(false);
   });
 
+  it("spares one Digimon of each player, so choosing an opposing survivor keeps itself (Discord 1555074299344191549)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: OMNIMON_BASE, as: "base" },
+            { card: OWN_OTHER, as: "ownOther" },
+          ],
+          hand: [{ card: OMNIMON_XA, as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-004", as: "survivor", dp: 12000 },
+            { card: "AD1-011", as: "deleted", dp: 8000 },
+          ],
+          deck: ["BT20-047"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 2;
+    preferInstanceIds.push(s.perm("survivor").topCard.instanceId, s.perm("base").topCard.instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("base").permanentId,
+    ]);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(OMNIMON_XA);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("AD1-004");
+    expect(s.events.flatMap((event) => (event.kind === "cardsMoved" ? (event.returnedPermanents ?? []) : []))).toEqual([
+      expect.objectContaining({ cardId: "AD1-004", seat: 1 }),
+    ]);
+    // The viewer's survivor reads as the wipe; the opponent's, which is the Digimon returned, as the "Then".
+    const survivorPrompts = s.decisions.filter(
+      ({ req }) => req.kind === "chooseTargets" && req.sourceCardId === OMNIMON_XA,
+    );
+    expect(survivorPrompts.map(({ req }) => req.options?.effectTextPart)).toEqual([
+      "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
+      "Then, return 1 of your opponent's Digimon to the bottom of the deck.",
+    ]);
+  });
+
+  it("keeps itself when Omekamon's On Play digivolves it as its controller's only Digimon (Discord 1555074299344191549)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT20-083", as: "omekamon" },
+            { card: OMNIMON_XA, as: "omnimonX" },
+          ],
+          security: ["BT20-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-004", as: "survivor" },
+            { card: "AD1-011", as: "deleted" },
+          ],
+          deck: ["BT20-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 5;
+    const survivor = s.perm("survivor");
+    const deleted = s.perm("deleted");
+    preferInstanceIds.push(survivor.topCard.instanceId);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omekamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    const survivorPrompts = s.decisions.filter(
+      ({ req }) => req.kind === "chooseTargets" && req.sourceCardId === OMNIMON_XA,
+    );
+    expect(survivorPrompts[0]?.req.options?.candidateInstanceIds).toEqual([survivor.permanentId, deleted.permanentId]);
+    expect(survivorPrompts[0]?.req.options?.targetFate).toBeUndefined();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(OMNIMON_XA);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("AD1-011");
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("AD1-004");
+  });
+
   it("returns the chosen opposing survivor to the bottom of deck after the public entry deletion", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -539,9 +633,9 @@ describe("BT20-102 Omnimon (X Antibody) — KB Q&A rulings", () => {
     expect(omnimon?.stack.map((card) => card.instanceId)).toContain(s.inst("omekamon").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownOther").instanceId);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-080", OPPONENT_DIGIMON]),
-    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(OPPONENT_DIGIMON);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-080");
   });
 
   it("still returns an opposing Digimon after a would-leave effect removed this Omnimon mid-effect (Q6018)", async () => {
@@ -555,7 +649,7 @@ describe("BT20-102 Omnimon (X Antibody) — KB Q&A rulings", () => {
         1: {
           battleArea: [
             { card: "EX10-052", as: "leavingLucemon" },
-            { card: "BT18-082", as: "stayingLucemon" },
+            { card: OPPONENT_DIGIMON, as: "returned" },
           ],
           security: ["BT1-010", "BT1-010"],
           deck: ["BT1-010"],
@@ -563,10 +657,10 @@ describe("BT20-102 Omnimon (X Antibody) — KB Q&A rulings", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    preferInstanceIds.push(s.inst("evolving").instanceId);
+    const returnedId = s.perm("returned").topCard.instanceId;
+    preferInstanceIds.push(s.inst("evolving").instanceId, returnedId);
     s.state.memory = 10;
     await s.ready();
-    const stayingLucemonId = s.perm("stayingLucemon").topCard.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -581,7 +675,7 @@ describe("BT20-102 Omnimon (X Antibody) — KB Q&A rulings", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("evolving").instanceId);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("EX10-052");
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(stayingLucemonId);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(returnedId);
   });
 });

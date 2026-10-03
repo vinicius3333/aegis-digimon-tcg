@@ -9,6 +9,7 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "toHand",
+          effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand.",
           controller: "mine",
           amount: 1,
           toTop: true,
@@ -16,6 +17,7 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "addTop",
+          effectTextPart: "Then, ＜Recovery +1＞",
           controller: "mine",
           source: "deck",
           amount: 1,
@@ -28,6 +30,7 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "toHand",
+          effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand.",
           controller: "mine",
           amount: 1,
           toTop: true,
@@ -35,6 +38,7 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "addTop",
+          effectTextPart: "Then, ＜Recovery +1＞",
           controller: "mine",
           source: "deck",
           amount: 1,

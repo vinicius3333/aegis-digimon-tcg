@@ -426,4 +426,46 @@ describe("EX10-025 Sunarizamon", () => {
     );
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it("Discord 1555224478416633927: the player orders the 2 bottom digivolution cards (CR 3-1-3-4)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "sunari" }],
+          battleArea: [{ card: "EX10-028", as: "mineralHost", under: [{ card: "BT1-012", as: "existing" }] }],
+          trash: [
+            { card: CARD_ID, as: "mineral" },
+            { card: "BT13-061", as: "rock" },
+          ],
+          deck: INERT_DECK,
+        },
+        1: { deck: INERT_DECK, security: INERT_SECURITY },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const mineralId = s.inst("mineral").instanceId;
+    const rockId = s.inst("rock").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sunari").instanceId })).toEqual({
+      ok: true,
+    });
+    const ordering = await nextDecision(s, "orderCards", new Set());
+    expect(ordering.options?.orderDestination).toBe("stackBottom");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: [rockId, mineralId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mineralHost").stack.length === 3 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("mineralHost").stack.map((card) => card.instanceId)).toEqual([
+      rockId,
+      mineralId,
+      s.inst("existing").instanceId,
+    ]);
+  });
 });

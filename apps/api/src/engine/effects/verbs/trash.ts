@@ -1,4 +1,4 @@
-import { Permanent, Zone, EffectTiming, CardInstance, type Seat } from "@aegis/shared";
+import { Permanent, Zone, EffectTiming, CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import {
   applyOverflow,
   extractPermanentAt,
@@ -16,6 +16,8 @@ import { fireSecurityTrashedEvents } from "./securityTrashedEvents.js";
  * Trashing loose cards and a permanent's digivolution cards.
  */
 
+type TrashedSources = NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["trashedSources"]>;
+
 export function createTrashVerbs(pc: PrimitivesContext) {
   const { engine, access, continuous, dropPermanentLedgers, ledger, player, state } = pc;
   // Reached through the context because these are built in sibling modules: the
@@ -24,9 +26,17 @@ export function createTrashVerbs(pc: PrimitivesContext) {
   const permanentByTopInstance: PrimitivesContext["helpers"]["permanentByTopInstance"] = (...args) =>
     pc.helpers.permanentByTopInstance(...args);
 
+  // Trash is public and face up (§3-6-3), whatever zone the card left. Flip it before `insertCard`, which
+  // tells the visibility port immediately: a card hidden in hand or face down under a stack
+  // would otherwise reach the opponent without its identity.
+  const insertFaceUpIntoTrash = (card: CardInstance): void => {
+    card.faceUp = true;
+    insertCard(player(card.ownerSeat), Zone.Trash, card);
+  };
+
   const trash = async (
     instanceIds: string[],
-    opts?: { byEffectSeat?: Seat; byRule?: boolean },
+    opts?: { byEffectSeat?: Seat; byRule?: boolean; trashedSources?: TrashedSources },
   ): Promise<CardInstance[]> => {
     // "Effects can't trash it" (§15-1-3, EX9-005). The restriction is keyed by permanent, so it
     // covers every card that permanent owns — its top card, digivolution stack, and link cards.
@@ -54,6 +64,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     const linkedHostsToRefresh = new Set<string>();
     const linkedHostByInstance = new Map<string, string>();
     const optionBattleAreaTrashed: { instanceId: string; permanentId: string }[] = [];
+    const trashedPermanents: NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["trashedPermanents"]> = [];
     // CR 4-9-5's over-limit sweep is rule processing, not an effect: a watcher reading "when
     // effects trash any of this Digimon's link cards" must not see it (Q5088, Q5172, Q5188).
     for (const instanceId of instanceIds) {
@@ -106,6 +117,20 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         }
       }
     }
+    // "When an effect trashes this card in your battle area" (BT19-093, BT19-098, P-159) reads
+    // the live permanent, so it fires before the move, as in the deletion path.
+    if (opts?.byEffectSeat !== undefined && opts.byRule !== true) {
+      for (const owner of state.players) {
+        for (const permanent of [...owner.battleArea]) {
+          if (permanent.topCard === undefined || !instanceIds.includes(permanent.topCard.instanceId)) continue;
+          if (!isOptionPermanent(permanent)) continue;
+          await engine.fireSubTrigger?.("whenTrashedByEffect", {
+            trashedByEffectPermanentId: permanent.permanentId,
+            byEffectSeat: opts.byEffectSeat,
+          });
+        }
+      }
+    }
     for (const instanceId of instanceIds) {
       // Options placed in the battle area are permanents, but their printed
       // trash cost names the Option card itself. Remove that permanent as a
@@ -118,17 +143,20 @@ export function createTrashVerbs(pc: PrimitivesContext) {
           const extracted = extractPermanentAt(owner, index)!;
           dropPermanentLedgers(extracted.permanentId);
           removedOptionPermanent = extracted.topCard;
-          for (const card of [...extracted.stack, ...extracted.linked]) {
-            card.faceUp = false;
-            insertCard(player(card.ownerSeat), Zone.Trash, card);
-          }
+          for (const card of [...extracted.stack, ...extracted.linked]) insertFaceUpIntoTrash(card);
           optionBattleAreaTrashed.push({ instanceId, permanentId: extracted.permanentId });
+          trashedPermanents.push({
+            permanentId: extracted.permanentId,
+            instanceId,
+            cardId: extracted.topCard.cardId,
+            ...(extracted.topCard.artId ? { artId: extracted.topCard.artId } : {}),
+            seat: extracted.controllerSeat,
+          });
           break;
         }
       }
       if (removedOptionPermanent !== undefined) {
-        removedOptionPermanent.faceUp = false;
-        insertCard(player(removedOptionPermanent.ownerSeat), Zone.Trash, removedOptionPermanent);
+        insertFaceUpIntoTrash(removedOptionPermanent);
         moved.push(removedOptionPermanent);
         continue;
       }
@@ -136,7 +164,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
       // re-pushed (this verb moves cards INTO trash, never out of it).
       const removed = removeLooseInstance(state, instanceId, false);
       if (removed === undefined) continue;
-      insertCard(player(removed.ownerSeat), Zone.Trash, removed);
+      insertFaceUpIntoTrash(removed);
       moved.push(removed);
     }
     applyOverflow(
@@ -150,6 +178,15 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         instanceIds: moved.map((c) => c.instanceId),
         from: "various",
         to: Zone.Trash,
+        ...(trashedPermanents.length > 0 ? { trashedPermanents } : {}),
+        ...(opts?.trashedSources !== undefined
+          ? {
+              cardIds: moved.map((c) => c.cardId),
+              artIds: moved.map((c) => c.artId || c.cardId),
+              seat: moved[0]!.ownerSeat,
+              trashedSources: opts.trashedSources,
+            }
+          : {}),
       });
     }
     // Identify only linked instances that actually moved; restricted or missing ids must not
@@ -231,10 +268,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     setBreeding(owner, undefined);
     dropPermanentLedgers(permanent.permanentId);
     const moved = [permanent.topCard, ...permanent.stack, ...permanent.linked];
-    for (const card of moved) {
-      card.faceUp = true;
-      insertCard(player(card.ownerSeat), Zone.Trash, card);
-    }
+    for (const card of moved) insertFaceUpIntoTrash(card);
     applyOverflow(engine.memory, moved, state.turnSeat);
     engine.emit({
       kind: "cardsMoved",
@@ -254,7 +288,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
   /**
    * Trash digivolution-stack cards of `hostPermanentId` BY AN EFFECT (the producing site for
    * the whenDigivolutionTrashed SubTrigger; KB P-004 Q4113). Moves the cards via `trash`, then
-   * fires whenDigivolutionTrashed once per card actually trashed, carrying the host as subject.
+   * fires whenDigivolutionTrashed once for the whole trash, carrying the host as subject.
    * A return-to-hand bounce that clears digivolution cards routes through returnToHand, never
    * here, so the bounce-clear never fires this event.
    */
@@ -281,12 +315,19 @@ export function createTrashVerbs(pc: PrimitivesContext) {
       hostBeforeTrash?.stack.filter((card) => !card.faceUp).map((card) => card.instanceId) ?? [],
     );
     const trashableInstanceIds = instanceIds.filter((instanceId) => !continuous.stackCardTrashLocked(instanceId));
-    const moved = await trash(trashableInstanceIds);
-    // Cards in trash are public and face up, including cards that were face down under
-    // Tamers/Digimon (BT26-094 Q7159; BT26-095 Q7163). `trash` preserves an instance's
-    // face state because it also serves loose face-up zones, so normalize this specific
-    // stack-to-trash route before publishing its watcher events.
-    for (const card of moved) card.faceUp = true;
+    // `trash` turns every card face up (BT26-094 Q7159; BT26-095 Q7163).
+    const moved = await trash(
+      trashableInstanceIds,
+      hostBeforeTrash === undefined
+        ? undefined
+        : {
+            trashedSources: {
+              permanentId: hostPermanentId,
+              hostCardId: hostBeforeTrash.topCard.cardId,
+              ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
+            },
+          },
+    );
     if (moved.length > 0 && engine.fireSubTrigger) {
       // Digi-Burst trashes all chosen sources simultaneously. Notify its self-card watchers in
       // one batch before any per-card fire can trigger a continuous recompute and tear down the
@@ -313,9 +354,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
         ...(opts?.isDigiBurst === true ? { isDigiBurstTrash: true } : {}),
       });
-      for (let i = 0; i < moved.length; i++) {
-        const trashedCard = moved[i]!;
-        const wasTop = topStackCardInstanceId === trashedCard.instanceId;
+      for (const trashedCard of moved) {
         // onDigivolutionCardDiscarded ("when THIS digivolution card is trashed") FIRST: its
         // watcher is a CONTINUOUS install whose source IS the just-trashed card (isSelfRef,
         // BT10-006). fireSubTrigger runs a trailing recomputeContinuousEffects, which drops
@@ -325,17 +364,19 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         // permanent (the host / another card), so they are order-insensitive.
         await engine.fireSubTrigger("onDigivolutionCardDiscarded", {
           subjectPermanentId: hostPermanentId,
-          trashedDigivolutionInstanceId: moved[i]!.instanceId,
+          trashedDigivolutionInstanceId: trashedCard.instanceId,
           ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
           ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
           ...(opts?.isDigiBurst === true ? { isDigiBurstTrash: true } : {}),
         });
-        await engine.fireSubTrigger("whenDigivolutionTrashed", {
-          subjectPermanentId: hostPermanentId,
-          trashedDigivolutionCardWasTop: wasTop,
-          ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
-        });
       }
+      // One effect trashing several cards at once is one event, so "when effects trash cards
+      // from under ..." watchers trigger once, not once per card (KB Q1306).
+      await engine.fireSubTrigger("whenDigivolutionTrashed", {
+        subjectPermanentId: hostPermanentId,
+        trashedDigivolutionCardWasTop: moved.some((card) => card.instanceId === topStackCardInstanceId),
+        ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
+      });
     }
     ledger.dropSourceInstances(
       state,

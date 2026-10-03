@@ -6,6 +6,7 @@ import {
   CardInstance,
   type GameState,
   type Seat,
+  type ServerEvent,
 } from "@aegis/shared";
 import { applyOverflow, insertCard } from "../../state/access.js";
 import {
@@ -281,6 +282,20 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
     // collect-and-insert loop mutates that deck between removals and can invert the requested
     // order. Batch collection makes the move atomic and exposes no transient zone.
     const overflowOrigins = overflowOriginInstanceIds(state);
+    const returnedPermanents: NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["returnedPermanents"]> = [];
+    for (const instanceId of instanceIds) {
+      for (const owner of state.players) {
+        const permanent = owner.battleArea.find((candidate) => candidate.topCard?.instanceId === instanceId);
+        if (permanent?.topCard === undefined) continue;
+        returnedPermanents.push({
+          permanentId: permanent.permanentId,
+          instanceId,
+          cardId: permanent.topCard.cardId,
+          artId: permanent.topCard.artId || permanent.topCard.cardId,
+          seat: owner.seat,
+        });
+      }
+    }
     const collectedBatches: { instanceId: string; cards: CardInstance[] }[] = [];
     for (const instanceId of instanceIds) {
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
@@ -326,6 +341,9 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
         // The deck hides the cards from here on, so the event is the only place a client
         // can read their names. A hand card stays unnamed: its owner's opponent never saw it.
         const named = joined.every((card) => publicBeforeMove.has(card.instanceId));
+        const joinedFromField = returnedPermanents.filter((returned) =>
+          joined.some((card) => card.instanceId === returned.instanceId),
+        );
         engine.emit({
           kind: "cardsMoved",
           instanceIds: joined.map((card) => card.instanceId),
@@ -339,6 +357,7 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
           seat,
           ...(named ? { cardIds: joined.map((card) => card.cardId) } : {}),
           ...(named && joined.every((card) => card.artId !== "") ? { artIds: joined.map((card) => card.artId) } : {}),
+          ...(joinedFromField.length > 0 ? { returnedPermanents: joinedFromField } : {}),
         });
       }
       // The whenEffectAddsToHand sibling for deck-bound returns (BT26-015). Fire once per

@@ -48,12 +48,15 @@ describe("BT25-059 Ceresmon", () => {
         optional: true,
       });
       expect(effect?.actions?.[1]).toMatchObject({
-        kind: "GrantStatic",
+        kind: "Restrict",
         target: {
           filter: { controller: "mine", kind: ["Digimon"], trait: ["Vegetation", "TS"], suspended: true },
           count: "all",
         },
-        grant: "immuneToOpponentDigimonEffects",
+        restriction: "beAffected",
+        fromSourceKind: ["Digimon"],
+        byOpponentEffectsOnly: true,
+        whileMatchesTargetFilter: true,
         duration: "untilOpponentTurnEnd",
       });
       expect(effect?.actions?.[1]?.optional).toBeUndefined();
@@ -244,7 +247,7 @@ describe("BT25-059 Ceresmon", () => {
     expect(invalid.state.memory).toBe(4);
   });
 
-  it("proves immunity against a real opponent Digimon effect while leaving a non-TS control affected", async () => {
+  it("drops the immunity once the TS Digimon unsuspends, so a real opponent suspend lands (CR 15-11-2-3-2)", async () => {
     const run = async (targetAlias: "ownTs" | "ownOther") => {
       const s = setupEngine(
         {
@@ -339,7 +342,8 @@ describe("BT25-059 Ceresmon", () => {
         ).toEqual({ ok: true });
         await settle();
       }
-      if (targetAlias === "ownTs") ok(!s.perm("ownTs").isSuspended);
+      // CR 15-11-2-3-2: unsuspended, it no longer matches "your suspended [TS] Digimon".
+      if (targetAlias === "ownTs") ok(s.perm("ownTs").isSuspended);
       advance(s.engine).endMainPhaseIfOpen(1);
       await opponentTurn;
       if (targetAlias === "ownTs") {
@@ -554,18 +558,15 @@ describe("BT25-059 Ceresmon — KB Q&A rulings", () => {
     expect(offered).toEqual(expect.arrayContaining([s.perm("own").permanentId, s.perm("theirs").permanentId]));
   });
 
-  it.each([
-    ["ownTs", false],
-    ["ownOther", true],
-  ] as const)(
-    "keeps an opponent's suspend effect from suspending it (%s affected=%s) (Q6351)",
-    async (alias, affected) => {
+  it.each([["ownTs"], ["ownOther"]] as const)(
+    "lets an opponent's suspend effect land once %s has unsuspended (CR 15-11-2-3-2)",
+    async (alias) => {
       const { s, preferred } = await shieldWithCeresmon({ battleArea: [{ card: "BT25-011", as: "aquilamon" }] });
       await unsuspendOwn(s);
 
       await opponentOnPlay(s, preferred, "aquilamon", [alias]);
 
-      expect(s.perm(alias).isSuspended).toBe(affected);
+      expect(s.perm(alias).isSuspended).toBe(true);
     },
   );
 
@@ -581,17 +582,15 @@ describe("BT25-059 Ceresmon — KB Q&A rulings", () => {
   });
 
   it("can still be chosen by an opponent's effect, which then does nothing to it (Q6352)", async () => {
-    const { s, preferred } = await shieldWithCeresmon({ battleArea: [{ card: "BT25-011", as: "aquilamon" }] });
-    await unsuspendOwn(s);
+    const { s, preferred } = await shieldWithCeresmon({ battleArea: [{ card: "ST22-04", as: "taomon" }] });
 
-    await opponentOnPlay(s, preferred, "aquilamon", ["ownTs"]);
+    await opponentOnPlay(s, preferred, "taomon", ["ownTs"]);
 
     const offered = s.decisions
-      .filter(({ req }) => req.sourceCardId === "BT25-011" && req.kind === "chooseTargets")
+      .filter(({ req }) => req.sourceCardId === "ST22-04" && req.kind === "chooseTargets")
       .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
     expect(offered).toContain(s.perm("ownTs").permanentId);
-    expect(s.perm("ownTs").isSuspended).toBe(false);
-    expect(s.perm("ownOther").isSuspended).toBe(false);
+    expect(s.perm("ownTs").currentDP).toBe(4000);
   });
 
   it("can be given an opponent's granted effect (Q6353)", async () => {

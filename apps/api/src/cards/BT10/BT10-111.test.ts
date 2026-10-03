@@ -31,7 +31,7 @@ function citeDigiXrosSubstitute(): void {
 
 describe("BT10-111 Shoutmon (King Version)", () => {
   it("registers one Xros Heart DigiXros material for a two-memory reduction", () => {
-    const requirement = [{ materials: [{ traits: ["Xros Heart"] }], count: 2 }];
+    const requirement = [{ materials: [{ traits: ["Xros Heart"] }], count: 2, maxMaterials: 1 }];
     expect(compiled.digiXrosRequirement).toEqual(requirement);
     expect(digiXrosRequirementFor("BT10-111")).toEqual(requirement);
   });

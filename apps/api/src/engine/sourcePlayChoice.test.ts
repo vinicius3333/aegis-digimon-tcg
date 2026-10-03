@@ -84,7 +84,7 @@ describe("fromOwnDigivolutionStack source selection", () => {
     );
     expect(selection?.req.kind).toBe("selectCards");
     if (selection?.req.kind !== "selectCards") throw new Error("source selection was not requested");
-    expect(selection.req.options?.min).toBe(1);
+    expect(selection.req.options?.min).toBe(0);
     expect(selection.req.options?.max).toBe(1);
     expect(new Set(selection.req.options?.candidateInstanceIds)).toEqual(new Set(materialIds));
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("raijinmon").instanceId);

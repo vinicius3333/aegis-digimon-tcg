@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "RevealAdd",
+          effectTextPart:
+            "[Main] Reveal the top 3 cards of your deck. Add 1 Digimon card with [Tyrannomon]\u00a0in its name or the [Reptile] or [Dinosaur]\u00a0trait and 1 [LIBERATOR]\u00a0trait card among them to the hand. Return the rest to the bottom of the deck.",
           revealCount: 3,
           add: [
             {
@@ -50,6 +52,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in the battle area.",
         },
       ],
     },

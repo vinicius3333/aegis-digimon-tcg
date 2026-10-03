@@ -12,7 +12,6 @@
 
 import type { MutableRefObject } from "react";
 import {
-  getCardDefinition,
   type AssemblyPlan,
   type AttackTarget,
   type DecisionRequest,
@@ -225,7 +224,7 @@ export function matchIntents({
         handInstanceId: instanceId,
         permanentId,
         handCardId: cardId,
-        baseName: getCardDefinition(base.topCard?.cardId ?? "")?.nameEn ?? "?",
+        baseCardId: base.topCard?.cardId ?? "",
         options,
       });
       return;

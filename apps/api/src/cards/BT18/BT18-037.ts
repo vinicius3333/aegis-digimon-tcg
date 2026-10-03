@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Search your security stack. You may add 1 card with the [Hybrid]/[Ten Warriors] trait among them to your hand. If you added, ＜Recovery +1 (Deck)＞.",
           kind: "Search",
           controller: "mine",
           searchZone: "security",
@@ -34,6 +36,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, shuffle your security stack.",
           kind: "SecurityManipulation",
           op: "shuffle",
           controller: "mine",

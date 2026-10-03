@@ -10,8 +10,16 @@ export type DecisionView = {
   viewerDecision: DecisionRequest | undefined;
   /** True when the answer is given by tapping the board rather than in a dialog. */
   answerOnBoard: boolean;
-  /** The permanent the prompt came from, highlighted only while it is answered on the board. */
+  /**
+   * The permanent the prompt came from, or the attacker for an attack target, highlighted only
+   * while it is answered on the board.
+   */
   decisionHighlightPermanentId: string | undefined;
+  /**
+   * The raised Digimon whose effect is asking. A breeding slot is never answered on the
+   * board, so it stays lifted for the whole dialog instead.
+   */
+  decisionBreedingSourcePermanentId: string | undefined;
   /** The card whose clause is being asked about, named on the board prompt. */
   decisionSourceCardId: string | undefined;
   decisionSelectable: Set<string>;
@@ -46,6 +54,7 @@ export function decisionViewFor({
   state,
   instanceIndex,
   permanents,
+  breedingPermanents,
   handInstanceIds,
 }: {
   decision: DecisionRequest | undefined;
@@ -57,6 +66,7 @@ export function decisionViewFor({
   state: GameState;
   instanceIndex: ReadonlyMap<string, string>;
   permanents: readonly Permanent[];
+  breedingPermanents: readonly Permanent[];
   handInstanceIds: readonly string[];
 }): DecisionView {
   const viewerDecision = decision && decision.seat === viewerSeat && !decisionAnimationsPending ? decision : undefined;
@@ -86,7 +96,15 @@ export function decisionViewFor({
     viewerDecision,
     answerOnBoard,
     decisionSourceCardId,
-    decisionHighlightPermanentId: answerOnBoard ? decisionSourcePermanentId : undefined,
+    decisionHighlightPermanentId: !answerOnBoard
+      ? undefined
+      : viewerDecision?.options?.selectionContext === "attackTarget"
+        ? viewerDecision.sourcePermanentId
+        : decisionSourcePermanentId,
+    decisionBreedingSourcePermanentId:
+      viewerDecision?.kind === "optional"
+        ? sourcePermanentIdOf(decisionSourceCardId, breedingPermanents, viewerDecision)
+        : undefined,
     decisionSelectable: new Set(viewerDecision?.options?.candidateInstanceIds ?? []),
     decisionVisible,
     decisionVisibleCardIds: new Map(decisionVisible.map((card) => [card.instanceId, card.cardId])),

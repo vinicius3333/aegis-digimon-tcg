@@ -64,8 +64,56 @@ describe("BT18-070 RhinoKabuterimon", () => {
     await s.ready();
 
     expect(s.perm("tamer").topCard?.cardId).toBe("BT18-070");
-    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT18-067", "BT18-063", "BT18-091"]);
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT18-063", "BT18-067", "BT18-091"]);
     expect(observe(s.engine).hasKeyword(s.perm("tamer"), "Collision")).toBe(true);
+  });
+
+  it("Discord 1555224478416633927: the player orders Beetlemon and MetalKabuterimon under the Tamer (CR 3-1-3-4)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-091", as: "tamer" }],
+          hand: [{ card: "BT18-070", as: "rhino" }],
+          trash: [
+            { card: "BT18-063", as: "beetlemon" },
+            { card: "BT18-067", as: "metalKabuterimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const effects = JSON.parse(s.inst("rhino").activatableEffectsJson || "[]") as { effectKey: string }[];
+    const beetlemonId = s.inst("beetlemon").instanceId;
+    const metalKabuterimonId = s.inst("metalKabuterimon").instanceId;
+    s.state.phase = Phase.Main;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("rhino").instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
+    const ordering = s.decisions.find(({ req }) => req.kind === "orderCards")!.req;
+    expect(ordering.options?.orderDestination).toBe("stackBottom");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: [beetlemonId, metalKabuterimonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard?.cardId === "BT18-070");
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
+      beetlemonId,
+      metalKabuterimonId,
+      s.inst("tamer").instanceId,
+    ]);
   });
 
   it("requires one Beetlemon and one MetalKabuterimon rather than two same-name cards", async () => {

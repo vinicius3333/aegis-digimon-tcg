@@ -24,7 +24,7 @@ describe("PlaceUnder keeps a placed card's inherited effects single", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.stack.length === 2));
     const host = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "AD1-020")!;
-    expect(host.stack.map((card) => card.cardId)).toEqual(["BT6-022", "BT21-012"]);
+    expect(host.stack.map((card) => card.cardId)).toEqual(["BT21-012", "BT6-022"]);
 
     s.state.memory = 10;
     expect(

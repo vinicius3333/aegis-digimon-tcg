@@ -33,6 +33,7 @@ export const arenaPtBR: Record<keyof typeof arenaEn, string> = {
   "redesign.arena.restriction.cannotBlock": "Um efeito impede este Digimon de bloquear.",
   "redesign.arena.restriction.cannotSuspend": "Um efeito impede este Digimon de ser suspenso.",
   "redesign.arena.restriction.cannotUnsuspend": "Um efeito mantém este Digimon suspenso na fase de ativação.",
+  "redesign.arena.restriction.cannotDigivolve": "Um efeito impede esta carta de digivolver.",
   "redesign.arena.restriction.cannotActivateWhenDigivolving":
     "Um efeito impede que os efeitos [When Digivolving] deste Digimon sejam ativados.",
 

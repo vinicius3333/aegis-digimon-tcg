@@ -90,6 +90,12 @@ export interface EffectContext {
    * entry and restores in a `finally`. Surfaced as `purpose: "cost"` on the request.
    */
   payingCostDepth?: number;
+  /**
+   * Set while an action whose "you may" the controller already accepted asks for its pick. The
+   * controller's single-card picks then accept zero cards as a back-out. Surfaced as
+   * `purpose: "acceptedOptional"`.
+   */
+  pickingAcceptedOptional?: boolean;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
   effectRestrictions?: Set<string>;
   game: GameAccess;
@@ -107,10 +113,6 @@ export interface EffectContext {
    * declared. Combat invokes this before declaration-triggered effects and before Counter Timing.
    */
   continueEffectAfterAttackDeclaration?: () => Promise<void>;
-  /** Queue a chosen follow-up effect until the attack that interrupted this effect ends. */
-  deferUntilAfterAttackEnd?: (resume: () => Promise<void>) => void;
-  /** Resume outer actions after a modal branch queued by an effect-directed attack. */
-  resumeAfterDeferredModal?: () => Promise<void>;
   /**
    * Per-effect-resolution store for `SelectBind` targets: handle (e.g. "A") -> the chosen
    * permanentId. Populated when a `SelectBind` action resolves and read by a later action's

@@ -4,6 +4,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {
@@ -25,12 +30,6 @@ const compiled: CompiledCard = {
             },
             unit: "cards",
           },
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
         },
       ],
     },
@@ -56,12 +55,6 @@ const compiled: CompiledCard = {
             },
             unit: "cards",
           },
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
         },
       ],
     },

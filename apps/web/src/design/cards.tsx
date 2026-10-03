@@ -1,4 +1,4 @@
-import { cardImageUrls, getCardDefinition, type CardDefinition } from "@aegis/shared";
+import { cardImageUrls, getCardDefinition, type CardColor, type CardDefinition } from "@aegis/shared";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { DEFAULT_CARD_SLEEVE, useCardSleeve } from "./sleeve";
@@ -511,6 +511,7 @@ export function CardMini({
   faceDown = false,
   info = false,
   dp,
+  identity,
   zoomOnHover = true,
 }: {
   cardId?: string;
@@ -525,10 +526,20 @@ export function CardMini({
   faceDown?: boolean;
   info?: boolean;
   dp?: number;
+  /** Original name and colors an effect imposed (KingSukamon), shown instead of the printed ones. */
+  identity?: { name: string; colors: readonly CardColor[] };
   /** Show the floating full-card preview on hover. */
   zoomOnHover?: boolean;
 }) {
-  const def = cardId ? getCardDefinition(cardId) : undefined;
+  const printed = cardId ? getCardDefinition(cardId) : undefined;
+  const def =
+    printed && identity
+      ? {
+          ...printed,
+          nameEn: identity.name || printed.nameEn,
+          colors: identity.colors.length > 0 ? [...identity.colors] : printed.colors,
+        }
+      : printed;
   const urls = cardImageUrls(cardId, artId);
   const [urlIndex, setUrlIndex] = useState(0);
   useEffect(() => setUrlIndex(0), [artId, cardId]);

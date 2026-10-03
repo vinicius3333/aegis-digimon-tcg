@@ -37,6 +37,12 @@ export const DEFAULT_MAX_ACTION_DELAY_MS = 2_800;
 export const COMBAT_REFLEX_MIN_MS = 300;
 export const COMBAT_REFLEX_MAX_MS = 650;
 
+/* How often a real-time seat rechecks a Main phase blocked on someone else (the
+   opponent's decision, a combat window, an engine continuation). Polling with
+   setImmediate instead keeps the event loop from ever sleeping and pins a core
+   for as long as the human takes to answer. */
+const BLOCKED_MAIN_PHASE_POLL_MS = 50;
+
 /** Safety valve: the most actions the bot will take in one Main phase. */
 const MAX_MAIN_PHASE_ACTIONS = 40;
 
@@ -545,7 +551,7 @@ export class BotPlayer {
     while (actionStep < this.maxMainPhaseActions) {
       if (!this.isMyMainPhase()) return;
       if (!this.canChooseMainAction()) {
-        await microtask();
+        await this.waitWhileBlocked();
         continue;
       }
 
@@ -554,7 +560,7 @@ export class BotPlayer {
         if (pending.seat !== this.seat) {
           // A decision for the opponent blocks our actions too. Keep the active seat's
           // driver alive until it closes: only the responding bot is notified directly.
-          await microtask();
+          await this.waitWhileBlocked();
           continue;
         }
         // Our own decision; onDecisionRequested answers it and restarts this loop.
@@ -564,7 +570,7 @@ export class BotPlayer {
       // verb, and the engine refuses an attack until it resolves. A refused attacker is
       // dropped for the rest of the turn, so wait instead of acting into the refusal.
       if (this.state.combatWindow !== undefined) {
-        await microtask();
+        await this.waitWhileBlocked();
         continue;
       }
       actionStep++;
@@ -615,6 +621,11 @@ export class BotPlayer {
     }
 
     if (this.isMyMainPhase() && this.state.pendingDecision === undefined) this.act({ type: "endPhase" });
+  }
+
+  private waitWhileBlocked(): Promise<void> {
+    if (!this.usesRealTimePacing) return microtask();
+    return new Promise<void>((resolve) => setTimeout(resolve, BLOCKED_MAIN_PHASE_POLL_MS));
   }
 
   private isMyMainPhase(): boolean {

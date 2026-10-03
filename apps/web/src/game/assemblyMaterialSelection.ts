@@ -1,7 +1,10 @@
 import {
+  assemblyMaterialLevels,
+  canAssignDistinctColors,
   effectiveExactNames,
   effectiveStaticNames,
   effectiveStaticTraits,
+  getCompiledCard,
   nameIncludesToken,
   textMatchesToken,
 } from "@aegis/shared";
@@ -64,14 +67,40 @@ function matchesNameOrTrait(definition: CardDefinition, ref: NameOrTraitRef): bo
   });
 }
 
+const normalizeKeyword = (keyword: string): string => keyword.replace(/[^a-z0-9]/gi, "").toLowerCase();
+
+/**
+ * Mirrors the engine's `definitionHasKeyword` for persistent keywords such as ＜Blocker＞: the
+ * card's own (non-inherited) static declaration counts; inherited-only text does not (Q7412/Q7413).
+ */
+function declaresPrintedKeyword(definition: CardDefinition, keyword: string): boolean {
+  const requested = normalizeKeyword(keyword);
+  const compiled = getCompiledCard(definition.cardId);
+  if (compiled === undefined) {
+    return (definition.effectText ?? "").toLowerCase().includes(`＜${keyword.toLowerCase()}`);
+  }
+  return compiled.effects.some(
+    (effect) =>
+      effect.isInherited !== true &&
+      (effect.trigger === "Static" || effect.trigger === "Rule") &&
+      (effect.keywords ?? []).some((entry) => normalizeKeyword(entry.keyword) === requested),
+  );
+}
+
 /** Whether one trash card can fill `slot`, mirroring the engine's `materialMatchesAssemblySlot`. */
-export function assemblyMaterialMatchesSlot(definition: CardDefinition, slot: AssemblyMaterial): boolean {
-  const hasNameOrTrait =
+export function assemblyMaterialMatchesSlot(
+  definition: CardDefinition,
+  slot: AssemblyMaterial,
+  destination?: CardDefinition,
+): boolean {
+  const hasIdentityGate =
     (slot.names?.length ?? 0) > 0 ||
     (slot.namesExact?.length ?? 0) > 0 ||
     (slot.traits?.length ?? 0) > 0 ||
-    (slot.nameOrTrait?.length ?? 0) > 0;
-  if (!hasNameOrTrait) return false;
+    (slot.nameOrTrait?.length ?? 0) > 0 ||
+    (slot.printedKeywords?.length ?? 0) > 0;
+  if (!hasIdentityGate) return false;
+  if (slot.printedKeywords?.some((keyword) => !declaresPrintedKeyword(definition, keyword))) return false;
   if (slot.kinds?.length && !slot.kinds.some((kind) => definition.kinds.includes(kind as never))) return false;
   if (slot.colors?.length && !slot.colors.some((color) => definition.colors.includes(color as never))) return false;
   if (slot.names?.length && !slot.names.some((name) => hasNameContaining(definition, name))) return false;
@@ -80,11 +109,12 @@ export function assemblyMaterialMatchesSlot(definition: CardDefinition, slot: As
   }
   if (slot.traits?.length && !slot.traits.some((trait) => includesFolded(traitsOf(definition), trait))) return false;
   if (slot.nameOrTrait?.length && !slot.nameOrTrait.some((ref) => matchesNameOrTrait(definition, ref))) return false;
-  const level = definition.level;
-  if (slot.level !== undefined && level !== slot.level) return false;
-  if (slot.levelMin !== undefined && (level === undefined || level < slot.levelMin)) return false;
-  if (slot.levelMax !== undefined && (level === undefined || level > slot.levelMax)) return false;
-  return true;
+  return assemblyMaterialLevels(definition, destination).some(
+    (level) =>
+      (slot.level === undefined || level === slot.level) &&
+      (slot.levelMin === undefined || (level !== undefined && level >= slot.levelMin)) &&
+      (slot.levelMax === undefined || (level !== undefined && level <= slot.levelMax)),
+  );
 }
 
 export interface AssemblyCandidateDefinition {
@@ -97,12 +127,17 @@ export function assemblyMaterialCount(requirement: AssemblyRequirement): number 
   return requirement.materials.reduce((sum, slot) => sum + slot.count, 0);
 }
 
-function selectionFits(requirement: AssemblyRequirement, selected: AssemblyCandidateDefinition[]): boolean {
+function selectionFits(
+  requirement: AssemblyRequirement,
+  selected: AssemblyCandidateDefinition[],
+  destination: CardDefinition | undefined,
+): boolean {
   const slots = requirement.materials;
   if (selected.length > assemblyMaterialCount(requirement)) return false;
   if (slots.length === 1) {
     const slot = slots[0]!;
-    if (!selected.every((candidate) => assemblyMaterialMatchesSlot(candidate.definition, slot))) return false;
+    if (!selected.every((candidate) => assemblyMaterialMatchesSlot(candidate.definition, slot, destination)))
+      return false;
     if (slot.differentLevels === true) {
       const levels = selected.map((candidate) => candidate.definition.level);
       if (levels.some((level) => level === undefined)) return false;
@@ -112,6 +147,16 @@ function selectionFits(requirement: AssemblyRequirement, selected: AssemblyCandi
       const names = selected.map((candidate) => candidate.definition.nameEn.toLocaleLowerCase());
       if (new Set(names).size !== names.length) return false;
     }
+    if (
+      slot.differentColors === true &&
+      !canAssignDistinctColors(selected.map((candidate) => candidate.definition.colors))
+    ) {
+      return false;
+    }
+    if (slot.differentCardNumbers === true) {
+      const cardNumbers = selected.map((candidate) => candidate.definition.cardId);
+      if (new Set(cardNumbers).size !== cardNumbers.length) return false;
+    }
     return true;
   }
   const remaining = slots.map((slot) => slot.count);
@@ -119,7 +164,7 @@ function selectionFits(requirement: AssemblyRequirement, selected: AssemblyCandi
     if (index === selected.length) return true;
     for (let slotIndex = 0; slotIndex < slots.length; slotIndex += 1) {
       if (remaining[slotIndex]! <= 0) continue;
-      if (!assemblyMaterialMatchesSlot(selected[index]!.definition, slots[slotIndex]!)) continue;
+      if (!assemblyMaterialMatchesSlot(selected[index]!.definition, slots[slotIndex]!, destination)) continue;
       remaining[slotIndex]! -= 1;
       if (assign(index + 1)) return true;
       remaining[slotIndex]! += 1;
@@ -129,29 +174,75 @@ function selectionFits(requirement: AssemblyRequirement, selected: AssemblyCandi
   return assign(0);
 }
 
-/** Trash instances that can extend the player's current Assembly material selection. */
+function selectedCandidates(
+  candidates: AssemblyCandidateDefinition[],
+  selectedInstanceIds: readonly string[],
+): AssemblyCandidateDefinition[] {
+  const selectedIds = new Set(selectedInstanceIds);
+  return candidates.filter((candidate) => selectedIds.has(candidate.instanceId));
+}
+
+/**
+ * Trash instances that can extend the player's current selection toward any alternative recipe
+ * (BT24-062 prints "[Blimpmon]/Tamer card w/[TS] trait").
+ */
 export function eligibleAssemblyCandidateIds(
-  requirement: AssemblyRequirement,
+  requirements: readonly AssemblyRequirement[],
   candidates: AssemblyCandidateDefinition[],
   selectedInstanceIds: string[],
+  destination?: CardDefinition,
 ): Set<string> {
-  const selectedIds = new Set(selectedInstanceIds);
-  const selected = candidates.filter((candidate) => selectedIds.has(candidate.instanceId));
+  const selected = selectedCandidates(candidates, selectedInstanceIds);
   const eligible = new Set(selected.map((candidate) => candidate.instanceId));
-  if (selected.length >= assemblyMaterialCount(requirement)) return eligible;
-  for (const candidate of candidates) {
-    if (selectedIds.has(candidate.instanceId)) continue;
-    if (selectionFits(requirement, [...selected, candidate])) eligible.add(candidate.instanceId);
+  for (const requirement of requirements) {
+    if (selected.length >= assemblyMaterialCount(requirement)) continue;
+    if (!selectionFits(requirement, selected, destination)) continue;
+    for (const candidate of candidates) {
+      if (eligible.has(candidate.instanceId)) continue;
+      if (selectionFits(requirement, [...selected, candidate], destination)) eligible.add(candidate.instanceId);
+    }
   }
   return eligible;
 }
 
-/** Whether the trash holds enough qualifying cards for the recipe to be worth offering. */
-export function assemblyPossible(requirement: AssemblyRequirement, candidates: AssemblyCandidateDefinition[]): boolean {
-  const needed = assemblyMaterialCount(requirement);
-  if (needed === 0) return false;
-  const qualifying = candidates.filter((candidate) =>
-    requirement.materials.some((slot) => assemblyMaterialMatchesSlot(candidate.definition, slot)),
+/** The alternative recipe the selection completes exactly, if any. */
+export function completedAssemblyRequirement(
+  requirements: readonly AssemblyRequirement[],
+  candidates: AssemblyCandidateDefinition[],
+  selectedInstanceIds: readonly string[],
+  destination?: CardDefinition,
+): AssemblyRequirement | undefined {
+  const selected = selectedCandidates(candidates, selectedInstanceIds);
+  return requirements.find(
+    (requirement) =>
+      selected.length === assemblyMaterialCount(requirement) && selectionFits(requirement, selected, destination),
   );
-  return qualifying.length >= needed;
+}
+
+/** Material count to show: the smallest recipe the current selection can still complete. */
+export function assemblyNeededCount(
+  requirements: readonly AssemblyRequirement[],
+  candidates: AssemblyCandidateDefinition[],
+  selectedInstanceIds: readonly string[],
+  destination?: CardDefinition,
+): number {
+  const selected = selectedCandidates(candidates, selectedInstanceIds);
+  const open = requirements.filter((requirement) => selectionFits(requirement, selected, destination));
+  return Math.min(...(open.length > 0 ? open : requirements).map(assemblyMaterialCount));
+}
+
+/** Whether the trash holds enough qualifying cards for any recipe to be worth offering. */
+export function assemblyPossible(
+  requirements: readonly AssemblyRequirement[],
+  candidates: AssemblyCandidateDefinition[],
+  destination?: CardDefinition,
+): boolean {
+  return requirements.some((requirement) => {
+    const needed = assemblyMaterialCount(requirement);
+    if (needed === 0) return false;
+    const qualifying = candidates.filter((candidate) =>
+      requirement.materials.some((slot) => assemblyMaterialMatchesSlot(candidate.definition, slot, destination)),
+    );
+    return qualifying.length >= needed;
+  });
 }

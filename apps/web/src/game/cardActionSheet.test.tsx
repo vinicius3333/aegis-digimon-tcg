@@ -90,6 +90,22 @@ describe("field card action sheet", () => {
     expect(document.querySelector(".card-zoom")).toBeTruthy();
   });
 
+  it("Discord 1555516815226970172: lets the owner read and enlarge a face-down card under their Tamer", () => {
+    renderSheet({ stackCards: [{ cardId: "ST1-02", faceDown: true, role: "stack" }] });
+    const thumb = document.querySelector<HTMLButtonElement>(".card-action-sheet__stack button")!;
+    const name = getCardDefinition("ST1-02")?.nameEn ?? "ST1-02";
+    expect(thumb.textContent).toBe(`${name} · Face down`);
+    fireEvent.click(thumb);
+    expect(document.querySelector(".card-zoom")).toBeTruthy();
+  });
+
+  it("keeps a face-down card the viewer cannot identify closed", () => {
+    renderSheet({ stackCards: [{ cardId: "", faceDown: true, role: "stack" }] });
+    const thumb = document.querySelector<HTMLButtonElement>(".card-action-sheet__stack button")!;
+    expect(thumb.textContent).toBe("Face-down card");
+    expect(thumb.disabled).toBe(true);
+  });
+
   it("offers the breeding promote action only when one is supplied", () => {
     const onPromote = vi.fn();
     renderSheet({ promote: { label: "Move to battle", onPromote } });

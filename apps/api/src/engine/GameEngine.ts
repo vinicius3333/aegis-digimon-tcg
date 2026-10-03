@@ -164,6 +164,8 @@ export class GameEngine {
   counterResolutionInFlight = false;
   /** Nesting guard that defers state-based actions until a used Option finishes routing. */
   optionResolutionDepth = 0;
+  /** Used Options whose [Main] body is still running; its triggers wait for the post-use routing. */
+  optionMainDepth = 0;
   /** Nesting guard that keeps rule checks outside an effect body's atomic resolution. */
   effectResolutionDepth = 0;
   /**
@@ -235,6 +237,14 @@ export class GameEngine {
    * even happens, so no ordering choice is ever offered.
    */
   payingPlayCost = false;
+  /**
+   * Watchers triggered while a declared digivolution is still being paid for, or `undefined`
+   * when no payment is running. They activate once the digivolution completes, in the same
+   * batch as its [When Digivolving] effects (KB Q3999). Resolving them mid-declaration let
+   * BT26-091 Yoshino Fujieda digivolve another Digimon with the very card being declared
+   * (Discord 1555674174369042583).
+   */
+  digivolveCostSubTriggers: ArmedSubTrigger[] | undefined = undefined;
   /**
    * [On Deletion] effects collected from a play-cost deletion, waiting for that play's entry
    * window so the turn player orders them against the played card's [On Play] (Q5131). Kept
@@ -481,6 +491,7 @@ export class GameEngine {
       tracker: this.tracker,
       continuousDpSeedState: this.continuousDpSeedState,
       pendingBlitzAttack: () => this.pendingBlitzAttack,
+      hasMainPhaseEnded: () => this.mainPhase.hasEnded,
       effectEnvironment: (trigger) => effectEnvironment(this, trigger),
       buildEffectContext: (source, trigger) => buildEffectContext(this, source, trigger),
       isNewlyPlayedRushAttacker: (permanentId) => isNewlyPlayedRushAttacker(this, permanentId),

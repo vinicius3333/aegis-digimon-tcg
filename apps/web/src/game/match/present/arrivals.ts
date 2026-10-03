@@ -14,6 +14,7 @@ import { CueTrack } from "../enums";
 import { TIMINGS } from "../../timings";
 import { zoneChangeStep } from "../steps/zoneChangeStep";
 import type { RevealOnStage } from "../types";
+import type { CostClause } from "../presentationGate";
 
 /** What the batch's arrivals leave for the narration routing below them to decide. */
 export type BatchArrivals = {
@@ -62,6 +63,7 @@ export function enqueueArrivals({
   narrate,
   enqueue,
   effectResults,
+  costClause,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
@@ -90,6 +92,8 @@ export function enqueueArrivals({
    * `afterAnnounced` holds each until that unit's clause has been read.
    */
   effectResults?: { fromEventIndex: number; afterAnnounced: (step: AnimationStep) => AnimationStep };
+  /** A ＜Delay＞ clause not read yet: what its controller puts on the field waits for it. */
+  costClause?: CostClause;
 }): BatchArrivals {
   let arriving = false;
   let showcased = false;
@@ -155,6 +159,13 @@ export function enqueueArrivals({
        would hold an earlier effect's results behind it, and that effect has to settle before
        this one can be announced. */
     const effectResult = effectResults !== undefined && !securityReveal && eventIndex >= effectResults.fromEventIndex;
+    /**
+     * A card an Option's ＜Delay＞ played is that clause's consequence, the same way: the Option
+     * breaks, its clause is read, and the card arrives after it. It waits on its permanent's
+     * burst track rather than centre stage, so the clause's toast is never held behind it,
+     * while the card's own [On Play] — which waits for that track — still reads after it lands.
+     */
+    const awaitsCostClause = costClause !== undefined && "seat" in event && event.seat === costClause.seat;
     const step = zoneChangeStep({
       queue,
       presentationBatchRef,
@@ -165,12 +176,18 @@ export function enqueueArrivals({
       key,
       showcase: blocked ? null : showcase,
       burst,
-      leadInMs: isTokenArrival ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
+      leadInMs: isTokenArrival || awaitsCostClause ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
       ...(isTokenArrival
         ? { track: `${CueTrack.CenterStage}-token-${key}` }
         : effectResult
           ? { track: `${CueTrack.CenterStage}-effect-${key}` }
           : {}),
+      ...(awaitsCostClause
+        ? {
+            track: burst ? `burst-${burst.permanentId}` : `${CueTrack.CenterStage}-cost-clause-${key}`,
+            waitFor: costClause.read,
+          }
+        : {}),
     });
     // The board renders a permanent the moment its patch lands, so a card whose arrival is
     // still queued has to be held back from the field until the cue that shows it arriving
@@ -182,7 +199,7 @@ export function enqueueArrivals({
     // Tamer played from the viewer's Security is different: the player has not seen it
     // arrive yet, and it must stay hidden until the security card has reached its
     // right-hand execution slot.
-    const tokenFieldArrival = isTokenArrival && burst !== null && !burst.inBreeding;
+    const tokenFieldArrival = (isTokenArrival || awaitsCostClause) && burst !== null && !burst.inBreeding;
     const opponentsFieldArrival =
       burst !== null && burst.variant === "play" && !burst.inBreeding && "seat" in event && event.seat !== viewerSeat;
     if (

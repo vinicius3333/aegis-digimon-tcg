@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Delete",
+          effectTextPart:
+            "[Security] At the end of the battle, delete 1 of your opponent's Digimon with 4000 DP or less. If no Digimon was deleted by this effect, ＜Draw 1＞. (Draw 1 card from your deck.)",
           target: {
             filter: {
               controller: "opponent",
@@ -28,6 +30,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "AddToHandSelf",
+          effectTextPart: "Then, add this card to its owner’s hand.",
         },
       ],
       isSecurity: true,

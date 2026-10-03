@@ -9,7 +9,7 @@ describe("BT16-010", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Retaliation" }] });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "EndOfOpponentsTurn",
-      actions: [{ kind: "Delete", cost: { kind: "deleteOwn" }, optional: false }],
+      actions: [{ kind: "Delete", cost: { kind: "deleteOwn" }, optional: true, abortOnDecline: true }],
     });
   });
   it("may play a Loogamon or Eiji Nagasumi from trash on deletion", () =>
@@ -48,8 +48,35 @@ describe("BT16-010", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === higherId)).toBe(true);
   });
 
+  it("declines the optional 'by' cost and keeps both Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT16-010", as: "helloogarmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "lowest", dp: 3000 }] },
+    });
+    s.state.turnSeat = 1;
+    const helloogarmonId = s.perm("helloogarmon").permanentId;
+    const lowestId = s.perm("lowest").permanentId;
+
+    const turn = advance(s.engine).runTurn(1);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([helloogarmonId]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([lowestId]);
+  });
+
   it("deletes itself even when the opponent has no Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT16-010", as: "helloogarmon" }] }, 1: {} });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT16-010", as: "helloogarmon" }] }, 1: {} },
+      { autoAcceptOptional: true },
+    );
     s.state.turnSeat = 1;
 
     await advance(s.engine).runTurn(1);

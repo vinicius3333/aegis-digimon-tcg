@@ -35,12 +35,12 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              digivolutionCardsAtMost: 1,
             },
             count: "all",
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
           condition: {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",

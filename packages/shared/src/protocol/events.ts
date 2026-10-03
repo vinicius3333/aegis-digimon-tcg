@@ -65,7 +65,7 @@ export type DigivolveMechanic =
  * board change (Comprehensive Rules §16-18, §16-19, §16-32, §16-37, and ＜Guard＞).
  * ＜Evade＞ and ＜Barrier＞ are absent because they already have prompt/resolved events.
  */
-export type PreventionKeyword = "Scapegoat" | "Decoy" | "Guard" | "Fragment" | "Armor Purge";
+export type PreventionKeyword = "Scapegoat" | "Decoy" | "Guard" | "Fragment" | "Armor Purge" | "Delay";
 
 /** One pending effect in a {@link ServerEvent} `resolutionOrderChosen` answer. */
 export interface ResolutionOrderEntry {
@@ -169,8 +169,16 @@ export type ServerEvent =
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
   /**
+   * The attack `attackDeclared` opened is over, after End of Attack and after any
+   * `combatResolved`. Sent once for every attack, including one that ends with no battle and
+   * no security card checked: an attacker with ＜Security Attack -1＞, an attack ended by an
+   * effect, or a target that left the field. Close anything kept open for the attack here.
+   * Not sent when the attack ended the game: `gameOver` is then the last event.
+   */
+  | { kind: "attackEnded"; seat: Seat; attackerPermanentId: string }
+  /**
    * A deletion (or leave) that a keyword paid to prevent: ＜Scapegoat＞, ＜Decoy＞, ＜Guard＞,
-   * ＜Fragment＞ and ＜Armor Purge＞. Unlike ＜Evade＞ and ＜Barrier＞, these have no prompt
+   * ＜Fragment＞, ＜Armor Purge＞, and a ＜Delay＞ Option that keeps a Digimon on the field. Unlike ＜Evade＞ and ＜Barrier＞, these have no prompt
    * event of their own — without this, the client sees only the cost card leaving and a
    * battle that quietly failed, and the viewer is never told which keyword saved what.
    * Emitted only when the prevention actually happened; a declined prompt emits nothing.
@@ -318,8 +326,33 @@ export type ServerEvent =
       kind: "cardsMoved";
       /** Identity-free movement of face-down deck cards under a field permanent. */
       deckToUnder?: { seat: Seat; permanentId: string; count: number };
+      /** The field permanent whose digivolution cards received these cards. */
+      placedUnder?: { permanentId: string };
       /** Actual deleted field cards, captured before removal; excludes their supporting cards. */
       deletedPermanents?: {
+        permanentId: string;
+        instanceId: string;
+        cardId: string;
+        artId?: string;
+        seat: Seat;
+      }[];
+      /**
+       * Field permanents a move returned whole to a deck, captured before removal so the client
+       * can send each one from where it stood. Absent for cards returned from any other zone.
+       */
+      returnedPermanents?: {
+        permanentId: string;
+        instanceId: string;
+        cardId: string;
+        artId?: string;
+        seat: Seat;
+      }[];
+      /**
+       * Option permanents trashed from the battle area (a ＜Delay＞ paying its cost, an effect
+       * trashing an Option), captured before removal. Trashing is not deletion (CR 4-16-3), so
+       * they never appear in `deletedPermanents`; the client still shows them leaving the field.
+       */
+      trashedPermanents?: {
         permanentId: string;
         instanceId: string;
         cardId: string;
@@ -335,6 +368,17 @@ export type ServerEvent =
         permanentId: string;
         reason: "deDigivolve" | "trashTop";
         /** The card whose effect stripped the stack, when an effect did. */
+        sourceCardId?: string;
+      };
+      /**
+       * Digivolution cards an effect trashed from under a permanent that stays on the field.
+       * `hostCardId` is the permanent's top card, so the client can name the Digimon that lost
+       * them; `cardIds` and `seat` name the trashed cards and their owner.
+       */
+      trashedSources?: {
+        permanentId: string;
+        hostCardId: string;
+        /** The card whose effect trashed them, when an effect did. */
         sourceCardId?: string;
       };
       /** A scheduled turn-end deletion, attributed to the card that installed it. */
@@ -448,6 +492,7 @@ export const SERVER_EVENT_KINDS = [
   "barrierPrompt",
   "barrierResolved",
   "combatResolved",
+  "attackEnded",
   "deletionPrevented",
   "securityRevealed",
   "securityChecked",
@@ -552,8 +597,10 @@ export interface DecisionRequest {
     distinctNames?: boolean; // prevent selecting cards sharing a name, including exact-name aliases
     /** Lets the client use a dedicated in-board interaction without inferring semantics from prompt text. */
     selectionContext?: "attackSource" | "attackTarget";
-    orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination
+    orderDestination?: "deckTop" | "deckBottom" | "stackTop" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
+    /** `chooseOption` only: the zone whose ends the "top" and "bottom" choices name. */
+    topBottomZone?: "digivolutionCards" | "security" | "deck";
     /**
      * `chooseOption` only: the choice is which digivolution requirement an effect-driven
      * digivolution uses. `costs` aligns with `choices`; `costDelta` is the effect's own
@@ -590,6 +637,13 @@ export interface DecisionRequest {
      */
     triggerTimings?: string[];
     triggerDescriptions?: string[];
+    /**
+     * Aligned to `triggerKeys`: the printed trigger condition that armed a watcher entry ("When
+     * effects trash cards from under this Tamer"). A card whose one clause lists several
+     * conditions pends once per event, and the description alone cannot tell those apart. An
+     * empty string marks an entry with no separate condition.
+     */
+    triggerReasons?: string[];
     /** Whether each pending activation belongs to the inherited text box. */
     triggerIsInherited?: boolean[];
     /**
@@ -598,6 +652,14 @@ export interface DecisionRequest {
      * for an entry marked false is accepted and simply never consulted.
      */
     triggerIsOptional?: boolean[];
+    /**
+     * `orderTriggers` only: the controller's older pending effects. They triggered earlier and
+     * resolve after every offered entry (CR §15-4-5-2/3), so the prompt lists them without
+     * letting the player pick them. Aligned with each other, not with `triggerKeys`.
+     */
+    waitingTriggerCardIds?: string[];
+    waitingTriggerDescriptions?: string[];
+    waitingTriggerIsInherited?: boolean[];
     /**
      * `orderTriggers` only: the engine accepts a resolution plan — the full order for the
      * offered entries plus preset yes/no answers — instead of exactly one key. Absent on
@@ -622,8 +684,11 @@ export interface DecisionRequest {
      * choice. The two are otherwise indistinguishable from the request shape — both arrive
      * as `selectCards` over the controller's own cards — which is exactly what an automated
      * seat needs to tell apart before answering.
+     *
+     * `"acceptedOptional"` marks a pick of an action whose "you may" the controller already
+     * accepted. A `min: 0` there only lets the player back out; an empty answer does nothing.
      */
-    purpose?: "cost";
+    purpose?: "cost" | "acceptedOptional";
     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
     assemblyCardId?: string;
     /** Effect-driven play awaiting the existing DigiXros material picker for this card. */

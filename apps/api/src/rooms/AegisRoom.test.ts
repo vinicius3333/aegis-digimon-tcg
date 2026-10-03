@@ -390,52 +390,33 @@ describe("AegisRoom sequenced event batches", () => {
     expect(closeOptions.every((afterNextPatch) => afterNextPatch === true)).toBe(true);
   });
 
-  describe("state patch at a batch close", () => {
-    /** Starts a match and records, in order, each batch close and each patch sent outside the tick. */
-    function startMatch(presentationPacing?: "current" | "sequential") {
-      const room = makeRoom();
-      const order: ("close" | "patch")[] = [];
-      room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => {
-        order.push("patch");
-        return true;
-      });
-      const record = room.broadcast;
-      room.broadcast = vi.fn<(type: string, message: unknown, options?: { afterNextPatch?: boolean }) => void>(
-        (type, message, options) => {
-          if (type === EVENT_CHANNEL && (message as ServerEvent).kind === "batchClosed") order.push("close");
-          record.call(room, type, message, options);
-        },
-      ) as AegisRoom["broadcast"];
-      const a = fakeClient("session-a");
-      const b = fakeClient("session-b");
-      room.clients.push(a);
-      room.onJoin(a, { displayName: "A", deck: EMPTY_DECK, ...(presentationPacing ? { presentationPacing } : {}) });
-      room.clients.push(b);
-      room.onJoin(b, { displayName: "B", deck: EMPTY_DECK });
-      const handleIntent = intentSender(room);
-      handleIntent(a, { type: "ready" });
-      handleIntent(b, { type: "ready" });
-      const count = (entry: "close" | "patch") => order.filter((recorded) => recorded === entry).length;
-      return { order, closes: count("close"), patches: count("patch") };
+  it("sends each shared batch's state patch at its own revision, so no revision is skipped", () => {
+    const room = makeRoom({ botRoom: true, seed: 2 });
+    // eslint-disable-next-line no-new -- constructing the Encoder wires the state root
+    new Encoder(room.state);
+    const log = recordedBroadcasts(room);
+    const patchedVersions: number[] = [];
+    const broadcastPatch = room.broadcastPatch.bind(room);
+    room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => {
+      patchedVersions.push(room.state.stateVersion);
+      log.push(["@patch", room.state.stateVersion, undefined]);
+      return broadcastPatch();
+    });
+    const human = fakeClient("session-human-patches");
+    room.clients.push(human);
+    room.onJoin(human, { displayName: "Human", deck: RED_DECK });
+    room.addBot();
+
+    const closes = log.flatMap(([type, message], index) =>
+      type === EVENT_CHANNEL && (message as ServerEvent).kind === "batchClosed" ? [index] : [],
+    );
+    expect(closes.length).toBeGreaterThan(0);
+    for (const index of closes) {
+      const close = log[index]![1] as Extract<ServerEvent, { kind: "batchClosed" }>;
+      expect(log[index + 1]).toEqual(["@patch", close.stateVersion, undefined]);
     }
-
-    it("leaves the patch to the regular tick when no seated client paces chains", () => {
-      const undeclared = startMatch();
-      const current = startMatch("current");
-      const sequential = startMatch("sequential");
-
-      expect(undeclared.closes).toBeGreaterThan(0);
-      expect(current.patches).toBe(undeclared.patches);
-      expect(sequential.patches - undeclared.patches).toBe(sequential.closes);
-    });
-
-    it("follows every close with its patch once a seated client paces chains itself", () => {
-      const { order, closes } = startMatch("sequential");
-
-      const afterEachClose = order.flatMap((entry, index) => (entry === "close" ? [order[index + 1]] : []));
-      expect(closes).toBeGreaterThan(0);
-      expect(afterEachClose).toEqual(Array.from({ length: closes }, () => "patch"));
-    });
+    const closedVersions = closes.map((index) => (log[index]![1] as { stateVersion: number }).stateVersion);
+    expect(closedVersions.every((version) => patchedVersions.includes(version))).toBe(true);
   });
 
   it("names the last event of the batch in its close", () => {
@@ -606,6 +587,36 @@ describe("AegisRoom combat windows", () => {
     resend(b, 1);
     expect(a.send).toHaveBeenCalledWith(DECISION_CHANNEL, { ...request, stateVersion: 7 });
     expect(b.send).not.toHaveBeenCalled();
+  });
+
+  it("re-sends the pending decision to the reconnected client (Discord 1555741214014447737)", async () => {
+    const room = makeRoom();
+    const [a] = joinBothSeats(room);
+    room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => false);
+    const request: DecisionRequest = {
+      decisionId: "dec-refresh",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: { triggerKeys: ["first", "second"], triggerCardIds: ["BT26-072", "BT26-082"] },
+    };
+    const pending = new PendingDecision();
+    Object.assign(pending, { ...request, payloadJson: JSON.stringify(request.options) });
+    room.state.pendingDecision = pending;
+    (room as unknown as { requestDecision: (seat: number, req: DecisionRequest) => void }).requestDecision(0, request);
+    vi.mocked(a.send).mockClear();
+    const reconnected = fakeClient("session-a");
+    room.allowReconnection = vi.fn(async () => reconnected) as unknown as AegisRoom["allowReconnection"];
+    room.lock = vi.fn(async () => undefined) as AegisRoom["lock"];
+    room.unlock = vi.fn(async () => undefined) as AegisRoom["unlock"];
+
+    await room.onLeave(a, CloseCode.ABNORMAL_CLOSURE);
+
+    expect(reconnected.send).toHaveBeenCalledWith(
+      DECISION_CHANNEL,
+      expect.objectContaining({ decisionId: "dec-refresh" }),
+    );
+    expect(a.send).not.toHaveBeenCalledWith(DECISION_CHANNEL, expect.anything());
   });
 
   it("re-sends the open combat window to a seat that reconnects into it", () => {
@@ -786,5 +797,55 @@ describe("AegisRoom private room reopening", () => {
       Promise.resolve(unstartedRoom("rival-room").onCreate({ private: true, roomCode: live.state.roomCode })),
     ).rejects.toThrow("still in use");
     live.onDispose();
+  });
+});
+
+describe("AegisRoom full state sync guard", () => {
+  type FullState = (client?: Client) => Uint8Array;
+  const encoderFailure = () => new TypeError("Cannot read properties of undefined (reading 'Symbol($changes)')");
+
+  function joinedRoom(): {
+    room: AegisRoom;
+    client: Client;
+    sendFullState: (client: Client) => void;
+    serializer: { getFullState: FullState };
+  } {
+    const room = makeRoom();
+    const [client] = joinBothSeats(room);
+    client.raw = vi.fn<Client["raw"]>();
+    const sendFullState = (room as unknown as { sendFullState(client: Client): void }).sendFullState;
+    // Colyseus keeps the serializer private; the guard is exercised through its real call path.
+    const serializer = Reflect.get(room, "_serializer") as { getFullState: FullState };
+    return { room, client, sendFullState, serializer };
+  }
+
+  it("rebuilds the seat's view and retries once when the full state encode throws", () => {
+    const { client, sendFullState, serializer } = joinedRoom();
+    const viewBeforeFailure = client.view;
+    const fullState = new Uint8Array([1]);
+    serializer.getFullState = vi
+      .fn<FullState>()
+      .mockImplementationOnce(() => {
+        throw encoderFailure();
+      })
+      .mockReturnValue(fullState);
+
+    expect(() => sendFullState(client)).not.toThrow();
+
+    expect(client.view).not.toBe(viewBeforeFailure);
+    expect(client.raw).toHaveBeenCalledWith(fullState);
+  });
+
+  it("closes only this room when the retry fails too, instead of throwing out of the socket handler", () => {
+    const { room, client, sendFullState, serializer } = joinedRoom();
+    room.disconnect = vi.fn<AegisRoom["disconnect"]>(async () => {});
+    serializer.getFullState = vi.fn<FullState>(() => {
+      throw encoderFailure();
+    });
+
+    expect(() => sendFullState(client)).not.toThrow();
+
+    expect(client.raw).not.toHaveBeenCalled();
+    expect(room.disconnect).toHaveBeenCalledWith(CloseCode.WITH_ERROR);
   });
 });

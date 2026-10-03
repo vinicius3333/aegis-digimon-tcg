@@ -445,6 +445,12 @@ describe("BT15-081 Leviamon (X Antibody) — KB Q&A rulings", () => {
         leviamonXDigivolved: eventIndex(
           (event) => event.kind === "digivolved" && event.seat === 0 && event.cardId === "BT15-081",
         ),
+        playedDigimonDeleted: eventIndex(
+          (event) =>
+            event.kind === "cardsMoved" &&
+            event.to === "trash" &&
+            event.instanceIds.includes(s.inst("demidevimon").instanceId),
+        ),
       };
       s.engine.applyIntent(1, { type: "surrender" });
       await loop;
@@ -458,6 +464,9 @@ describe("BT15-081 Leviamon (X Antibody) — KB Q&A rulings", () => {
     expect(withLeviamon.ownBoard).toEqual([
       { topCardId: "BT15-081", stackCardIds: expect.arrayContaining(["EX5-063"]) },
     ]);
+    // EX5-063's derived [On Play] deleted the played DemiDevimon first; the pending trash watcher
+    // never refers to that Digimon, so it still activates.
+    expect(withLeviamon.playedDigimonDeleted).toBeLessThan(withLeviamon.leviamonXDigivolved);
     expect(withLeviamon.leviamonXInTrash).toBe(false);
 
     // Without a [Leviamon] for <Delay> to play, the same trigger finds nothing to digivolve.

@@ -88,7 +88,7 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
     const isChoice = /\btop\s+or\s+bottom\b|\bbottom\s+or\s+top\b/i.test(raw);
     if (isChoice) {
       for (let i = 0; i < n; i++) {
-        const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
+        const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "security" });
         await ctx.fx.trashFromSecurity(seat, 1, { fromTop: idx === 0 });
       }
       return true;
@@ -186,7 +186,24 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
         : host.stack.some((card) => card.instanceId === candidate!.instanceId);
     });
     if (!selectedStillLive) return false;
-    const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+    // Digivolution cards go through the atomic stack trash so their "when trashed from
+    // digivolution cards" triggers fire (EX7-071, P-180); the generic trash skips them.
+    const stackSelections = selectedCandidates
+      .filter((candidate) => candidateZones.get(candidate!.instanceId) === "digivolutionCards")
+      .map((candidate) => ({ hostPermanentId: candidate!.hostPermanentId!, instanceId: candidate!.instanceId }));
+    const linkIds = selectedCandidates
+      .filter((candidate) => candidateZones.get(candidate!.instanceId) === "linked")
+      .map((candidate) => candidate!.instanceId);
+    const movedFromStacks =
+      stackSelections.length === 0
+        ? []
+        : await ctx.fx.trashDigivolutionCardsAtomic(stackSelections, stackSelections.length, {
+            byEffectSeat: ctx.source.ownerSeat,
+            byEffectCardId: ctx.source.cardId,
+          });
+    if (movedFromStacks.length !== stackSelections.length) return false;
+    const movedLinks = linkIds.length === 0 ? [] : await ctx.fx.trash(linkIds, { byEffectSeat: ctx.source.ownerSeat });
+    const moved = [...movedFromStacks, ...movedLinks];
     const movedIds = new Set(moved.map((card) => card.instanceId));
     if (moved.length !== n || chosen.some((instanceId) => !movedIds.has(instanceId))) return false;
     if (out) out.paidCount = moved.length;

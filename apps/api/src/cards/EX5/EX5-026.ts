@@ -65,16 +65,8 @@ export const compiled: CompiledCard = {
             bindResultAs: "returnedDigimon",
             raw: "By returning 1 Digimon card from your trash to the bottom of the deck",
           },
-        },
-        {
-          kind: "Return",
-          condition: { kind: "ifThisEffectDidNotAct" },
-          target: {
-            filter: { zone: "trash", controller: "mine", kind: ["Digimon"] },
-            count: 1,
-          },
-          to: "deckBottom",
-          from: ["trash"],
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

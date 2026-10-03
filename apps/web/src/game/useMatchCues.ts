@@ -26,6 +26,7 @@ import { liveMode } from "./match/environment";
 import { buildCardSiteIndex } from "./match/cardSiteIndex";
 import { presentServerBatch } from "./match/present/presentBatch";
 import type { MemoryHold } from "./match/present/memoryHold";
+import type { OptionDockHold } from "./match/present/optionDock";
 import { securityGrowthSeatOf } from "./match/present/securityGrowth";
 import { securityHold } from "./match/securityHold";
 import { traceCueStep } from "./cueTrace";
@@ -45,6 +46,7 @@ import type {
   DeleteBurst,
   DrawBurst,
   DrawFlight,
+  DrawFlightCard,
   MatchCueAnchors,
   MatchCues,
   RevealOnStage,
@@ -90,6 +92,7 @@ import {
   type SidePanelLookup,
 } from "./sidePanels";
 import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
+import { TIMINGS } from "./timings";
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
@@ -103,7 +106,8 @@ import {
 import { createPresentationProgress } from "./presentationProgress";
 import type { PresentationPacing, PresentationProbe } from "./presentationProbe";
 import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
-import type { DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
+import type { CostClause, DeletionReadyAt, PendingAnnounceGate, PresentationGate } from "./match/presentationGate";
+import type { RemovalLink } from "./match/removalChain";
 import { presentationTelemetry } from "./presentationTelemetry";
 import { type EffectActivation, type EffectSourceLookup } from "./effectSource";
 import { type FieldClashScene, type OpenAttack } from "./fieldClash";
@@ -420,6 +424,8 @@ export function useMatchCues({
   const [heldSecurityEffectState, setHeldSecurityEffectState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [heldDeletions, setHeldDeletions] = useState<MatchCues["heldDeletions"]>(new Map());
+  const [heldTrashArrivals, setHeldTrashArrivals] = useState<MatchCues["heldTrashArrivals"]>(new Map());
+  const trashArrivalKeyRef = useRef(0);
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
   const [announcedTurn, setAnnouncedTurn] = useState<{ seat: Seat; count: number } | undefined>(
     state && { seat: state.turnSeat, count: state.turnCount },
@@ -451,6 +457,7 @@ export function useMatchCues({
   const lastPresentedSeqRef = useRef(0);
   /** Deletions already queued, spanning adjacent server batches. */
   const deletionBurstPresentedRef = useRef(new Set<string>());
+  const removalChainRef = useRef<RemovalLink | null>(null);
   const noticeSequenceRef = useRef(0);
   const sidePanelSequenceRef = useRef(0);
   const narrationSequenceRef = useRef(0);
@@ -477,7 +484,12 @@ export function useMatchCues({
   const watchedLiveVersionRef = useRef(state?.stateVersion);
   /** Cards whose own decision dialog is open, so their clause is not read out twice. */
   const suppressedOwnEffectsRef = useRef(new Map<string, OwnEffectDialog>());
-  const queuedNarrationRef = useRef(new Map<string, NarrationItem>());
+  useEffect(
+    () => () => {
+      for (const dialog of suppressedOwnEffectsRef.current.values()) clearTimeout(dialog.releaseTimer);
+    },
+    [],
+  );
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
@@ -512,7 +524,7 @@ export function useMatchCues({
   const securityClauseGateRef = useRef<SecurityClause | null>(null);
   // A used Option has the same open-ended lifetime as a docked Security card: it starts
   // at cardPlayed and closes only when the server confirms its post-resolution routing.
-  const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);
+  const optionDockRef = useRef<OptionDockHold | null>(null);
   // `cardsMoved` names only instance ids, so the panels need the board's current
   // identity and ownership index to name the cards that just moved.
   const sidePanelLookupRef = useRef<SidePanelLookup>({ cardId: () => undefined, seat: () => undefined });
@@ -520,6 +532,14 @@ export function useMatchCues({
   // attacker, so it is remembered from the attack that opened the check.
   const lastVisibleArtRef = useRef(new Map<string, string>());
   const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
+  /**
+   * What happened to the declared attacker before its check: whether an effect stood it back
+   * up (BeelStarmon's [When Attacking] unsuspend) and which cards left the board meanwhile.
+   * The held battle board is rebuilt from it when one patch carries the whole attack.
+   */
+  const attackSinceDeclarationRef = useRef<
+    { permanentId: string; suspended: boolean; movedInstanceIds: Set<string> } | undefined
+  >(undefined);
   const securityClashKeyRef = useRef(0);
   const queuedSecurityKeyRef = useRef<number | null>(null);
   // The attack still open on the board, so the battle that closes it can be staged
@@ -540,6 +560,7 @@ export function useMatchCues({
   const effectAnnounceGateRef = useRef<PresentationGate | null>(null);
   const causingEffectGateRef = useRef<PresentationGate | null>(null);
   const pendingAnnounceGateRef = useRef<PendingAnnounceGate | null>(null);
+  const costClauseRef = useRef<CostClause | null>(null);
   const deckRiffleKeyRef = useRef(0);
   // Where every card the viewer can see currently sits, so an activation can be
   // played at its source and a reshuffle at the pile it landed in.
@@ -645,7 +666,7 @@ export function useMatchCues({
 
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
 
-  const { narrate, flushHeldNotices, openHeld, narrationBefore } = narrationStream({
+  const { narrate, publishNow, flushHeldNotices, openHeld, narrationBefore } = narrationStream({
     viewerSeat,
     queue,
     cardSiteRef,
@@ -660,15 +681,17 @@ export function useMatchCues({
     effectSequence,
     narrationSkipRef,
     deletionReadyAtRef,
+    optionDockRef,
+    releaseTrashArrivalsThrough,
     effectSourceKeyRef,
     effectAnnounceGateRef,
     pendingAnnounceGateRef,
+    costClauseRef,
     setEffectSources,
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
     suppressedOwnEffectsRef,
-    queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
     readOutHeldRef,
@@ -728,7 +751,7 @@ export function useMatchCues({
    * the attacker it carries stands unsuspended and the board would answer the blow by
    * rotating the dying card upright.
    */
-  function blowHoldState(): GameState | undefined {
+  function blowHoldState(attackerAsRevealed = false): GameState | undefined {
     if (!state) return undefined;
     const live = snapshotGameState(state);
     const attackerId = securityAttackerRef.current?.permanentId;
@@ -740,12 +763,82 @@ export function useMatchCues({
       .map((snapshot) => snapshot.state)
       .find(standing);
     if (!source) return live;
-    const held = snapshotGameState(source);
-    for (const player of held.players) {
-      const attacker = player.battleArea.find((permanent) => permanent.permanentId === attackerId);
-      if (attacker) attacker.isSuspended = true;
+    // The live board already shows everything that resolved before the reveal; only the
+    // attacker the battle is about to delete is put back. Restoring the whole older snapshot
+    // would also bring back what the attack's own effects had removed, and stand the attacker
+    // as it was before they untapped it.
+    const tracked =
+      attackSinceDeclarationRef.current?.permanentId === attackerId ? attackSinceDeclarationRef.current : undefined;
+    const older = snapshotGameState(source);
+    for (const [seatIndex, olderPlayer] of older.players.entries()) {
+      const position = olderPlayer.battleArea.findIndex((permanent) => permanent.permanentId === attackerId);
+      const livePlayer = live.players[seatIndex];
+      if (position < 0 || !livePlayer) continue;
+      const attacker = olderPlayer.battleArea[position]!;
+      // Suspended as declared until the clauses ahead of the check have been read; the break
+      // then stands it up if one of them unsuspended it, so it fights as the server has it.
+      attacker.isSuspended = attackerAsRevealed ? (tracked?.suspended ?? true) : true;
+      const moved = tracked?.movedInstanceIds;
+      if (moved)
+        for (let index = attacker.stack.length - 1; index >= 0; index -= 1)
+          if (moved.has(attacker.stack[index]!.instanceId)) attacker.stack.splice(index, 1);
+      const restored = new Set([attacker.topCard.instanceId, ...attacker.stack.map((card) => card.instanceId)]);
+      for (let index = livePlayer.trash.length - 1; index >= 0; index -= 1)
+        if (restored.has(livePlayer.trash[index]!.instanceId)) livePlayer.trash.splice(index, 1);
+      livePlayer.battleArea.splice(Math.min(position, livePlayer.battleArea.length), 0, attacker);
     }
-    return held;
+    return live;
+  }
+
+  /** Keeps this batch's trash arrivals out of the pile until a moment of it is narrated. */
+  function holdTrashArrivals(fresh: readonly ServerEvent[], stateVersion: number): boolean {
+    const bySeat = new Map<Seat, string[]>();
+    for (const event of fresh) {
+      if (event.kind !== "cardsMoved" || event.to !== "trash") continue;
+      for (const instanceId of event.instanceIds) {
+        const seat = state?.players.findIndex((player) => player.trash.some((card) => card.instanceId === instanceId));
+        if (seat === undefined || seat < 0) continue;
+        bySeat.set(seat as Seat, [...(bySeat.get(seat as Seat) ?? []), instanceId]);
+      }
+    }
+    if (bySeat.size === 0) return false;
+    setHeldTrashArrivals((held) => {
+      const next = new Map(held);
+      for (const [seat, instanceIds] of bySeat)
+        next.set((trashArrivalKeyRef.current += 1), { seat, instanceIds, stateVersion });
+      return next;
+    });
+    return true;
+  }
+
+  function releaseTrashArrivalsThrough(stateVersion: number) {
+    setHeldTrashArrivals((held) => {
+      if (![...held.values()].some((arrival) => arrival.stateVersion <= stateVersion)) return held;
+      return new Map([...held].filter(([, arrival]) => arrival.stateVersion > stateVersion));
+    });
+  }
+
+  function trackAttackSinceDeclaration(fresh: readonly ServerEvent[]) {
+    for (const event of fresh) {
+      if (event.kind === "attackDeclared") {
+        attackSinceDeclarationRef.current = {
+          permanentId: event.attackerPermanentId,
+          suspended: true,
+          movedInstanceIds: new Set(),
+        };
+        continue;
+      }
+      const tracked = attackSinceDeclarationRef.current;
+      if (!tracked || event.kind !== "cardsMoved") continue;
+      if (event.instanceIds.includes(tracked.permanentId)) {
+        if (event.to === "unsuspended") tracked.suspended = false;
+        else if (event.to === "suspended") tracked.suspended = true;
+        continue;
+      }
+      // The attacker's own deletion is what the battle draws; its cards stay on the held board.
+      if (event.deletedPermanents?.some((deleted) => deleted.permanentId === tracked.permanentId)) continue;
+      for (const instanceId of event.instanceIds) tracked.movedInstanceIds.add(instanceId);
+    }
   }
 
   /** The board as it stands at a docked security reveal, before its effect has been read. */
@@ -790,6 +883,8 @@ export function useMatchCues({
     replayingHistory: boolean,
     continuingBatch = false,
   ) {
+    trackAttackSinceDeclaration(fresh);
+    const holdsTrash = !replayingHistory && holdTrashArrivals(fresh, stateVersion);
     presentServerBatch({
       batchId,
       stateVersion,
@@ -815,6 +910,9 @@ export function useMatchCues({
       flushHeldNotices,
       launchDrawFlight,
       launchDeckToUnderFlight,
+      flyDockedOptionUnder,
+      flyCardToDeck,
+      releaseTrashArrivalsThrough,
       launchSecurityGainFlight,
       securityCountOf,
       holdSecurityCard,
@@ -864,12 +962,14 @@ export function useMatchCues({
       causingEffectGateRef,
       effectAnnounceGateRef,
       pendingAnnounceGateRef,
+      costClauseRef,
       securityClashKeyRef,
       securityAttackerRef,
       pendingDestructionsRef,
       deleteBurstKeyRef,
       deletionReadyAtRef,
       deletionBurstPresentedRef,
+      removalChainRef,
       setPendingPermanentIds,
       setHeldDrawState,
       setZoneShowcase,
@@ -892,6 +992,8 @@ export function useMatchCues({
       setDeleteBursts,
       setHeldDeletions,
     });
+    // Whatever happens to the narration, the pile catches up once this batch has played.
+    if (holdsTrash) void queue.idle().then(() => releaseTrashArrivalsThrough(stateVersion));
   }
 
   usePhaseBanners({
@@ -1124,22 +1226,39 @@ export function useMatchCues({
 
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
-  const { launchSecurityGainFlight, launchOpeningSecurityDeal, launchDrawFlight, launchDeckToUnderFlight } = cueFlights(
-    {
-      queue,
-      anchors,
-      viewerSeat,
-      causingEffectGateRef,
-      securityGainKeyRef,
-      drawFlightKeyRef,
-      setSecurityFlights,
-      setSecurityDealCounts,
-      setDrawFlights,
-      setDrawBursts,
-    },
-  );
-  // The draw watcher reads the live state, so its flights wait on that state's own cause.
-  const { launchDrawFlight: launchWatchedDrawFlight } = cueFlights({
+  const {
+    launchSecurityGainFlight,
+    launchOpeningSecurityDeal,
+    launchDrawFlight,
+    launchDeckToUnderFlight,
+    flyCardUnder,
+    flyCardToDeck,
+  } = cueFlights({
+    queue,
+    anchors,
+    viewerSeat,
+    causingEffectGateRef,
+    securityGainKeyRef,
+    drawFlightKeyRef,
+    setSecurityFlights,
+    setSecurityDealCounts,
+    setDrawFlights,
+    setDrawBursts,
+  });
+
+  /** The docked Option card, drawn over the board, flies into the permanent it went under. */
+  function flyDockedOptionUnder(card: DrawFlightCard, permanentId: string, context: AnimationStepContext) {
+    const docked = anchors.board.current?.ownerDocument.querySelector(
+      '[data-testid="security-branch"][data-source="option"]',
+    );
+    return docked ? flyCardUnder(card, docked, permanentId, context) : Promise.resolve(false);
+  }
+
+  // State watchers use the newest phase and that snapshot's cause, including security growth.
+  const {
+    launchDrawFlight: launchWatchedDrawFlight,
+    launchSecurityGainFlight: launchWatchedSecurityGainFlight,
+  } = cueFlights({
     queue: liveStateQueue,
     anchors,
     viewerSeat,
@@ -1186,7 +1305,7 @@ export function useMatchCues({
           securityGrowthSeatOf(event) === seat,
       ),
     launchOpeningSecurityDeal,
-    launchSecurityGainFlight,
+    launchSecurityGainFlight: launchWatchedSecurityGainFlight,
     narrate,
   });
 
@@ -1263,33 +1382,44 @@ export function useMatchCues({
     sidePanels,
     notices,
     dismissOwnEffectNotice: (cardId: string) => {
-      const queuedItemIds = new Set(
-        [...queuedNarrationRef.current.values()]
-          .filter((item) => item.notice !== undefined && isOwnEffectNotice(item.notice, cardId))
-          .map((item) => item.id),
-      );
-      suppressedOwnEffectsRef.current.set(cardId, { queuedItemIds, dialogOpen: true });
-      heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !isOwnEffectNotice(notice, cardId));
-      // Already on screen: the dialog is about to print the same clause, so the item
-      // either loses its notice or leaves with it.
+      const reopened = suppressedOwnEffectsRef.current.get(cardId);
+      if (reopened !== undefined) {
+        clearTimeout(reopened.releaseTimer);
+        delete reopened.releaseTimer;
+      }
+      const dialog = reopened ?? { deferred: [] };
+      suppressedOwnEffectsRef.current.set(cardId, dialog);
+      const held = heldNoticesRef.current.filter((notice) => isOwnEffectNotice(notice, cardId));
+      heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !held.includes(notice));
+      // Already on screen: the dialog is about to print the same clause, so the item gives
+      // its notice to the dialog and keeps only its panel, if it has one.
+      const shownIds = new Set<string>();
+      for (const item of narrationRef.current.values()) {
+        if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
+        shownIds.add(item.id);
+        dialog.deferred.push(item.notice);
+      }
+      dialog.deferred.push(...held);
+      if (shownIds.size === 0) return;
       setNarration((slots) => {
-        let changed = false;
         const next = new Map(slots);
         for (const [slot, item] of slots) {
-          if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
-          changed = true;
+          if (!shownIds.has(item.id)) continue;
           if (item.panel) next.set(slot, { ...item, notice: undefined });
           else next.delete(slot);
         }
-        return changed ? next : slots;
+        return next;
       });
     },
     releaseOwnEffectNotice: (cardId: string) => {
       const dialog = suppressedOwnEffectsRef.current.get(cardId);
       if (dialog === undefined) return;
-      const stillQueued = [...dialog.queuedItemIds].filter((itemId) => queuedNarrationRef.current.has(itemId));
-      if (stillQueued.length === 0) suppressedOwnEffectsRef.current.delete(cardId);
-      else suppressedOwnEffectsRef.current.set(cardId, { queuedItemIds: new Set(stillQueued), dialogOpen: false });
+      clearTimeout(dialog.releaseTimer);
+      dialog.releaseTimer = setTimeout(() => {
+        if (suppressedOwnEffectsRef.current.get(cardId) !== dialog) return;
+        suppressedOwnEffectsRef.current.delete(cardId);
+        publishNow(dialog.deferred, lastBatchIdRef.current);
+      }, TIMINGS.ownEffectNoticeReturn);
     },
     raiseRejection: (reason: string) => {
       noticeSequenceRef.current += 1;
@@ -1326,6 +1456,7 @@ export function useMatchCues({
     heldSecurityEffectState,
     heldBreedingState,
     heldDeletions,
+    heldTrashArrivals,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },
     heldSuspendedIds,

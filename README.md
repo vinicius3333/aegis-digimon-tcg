@@ -122,7 +122,8 @@ pnpm dev
 ```
 
 `pnpm dev` starts the shared package in watch mode, the API on port `2567`, and
-the client at `http://localhost:5173`. The client talks to `ws://localhost:2567`
+the client at `http://localhost:5173`. The API builds once and does not watch: restart
+`pnpm dev` to pick up API changes. The client talks to `ws://localhost:2567`
 unless you set `VITE_AEGIS_API_URL`.
 
 ### Commands
@@ -206,7 +207,7 @@ A release takes two steps. It is not public until you run step 2.
    `messages.json`. Commit as `chore(release): prepare vX.Y.Z-BETA` and push `main`.
 2. **Publish.** From a clean worktree at that commit, run
    `pnpm release:publish -- vX.Y.Z-BETA`. It runs the release checks, pushes the tag and
-   creates the GitHub pre-release with the notes from `pnpm release:notes`.
+   creates the GitHub release, marked as latest, with the notes from `pnpm release:notes`.
 
 `pnpm release:notes -- vX.Y.Z-BETA` prints the notes for an older release.
 

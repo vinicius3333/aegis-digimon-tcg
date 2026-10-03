@@ -29,6 +29,7 @@ import { detachLeaveReplacements, detachTraitTokens } from "../effects/detach.js
 import { guardLeaveReplacements } from "../effects/guard.js";
 import { definitionOf } from "../cards/cardData.js";
 import { consultLeavePrevention } from "../effects/leavePrevention.js";
+import { effectTextMayAskYesNo } from "../decisions/resolverDecisions.js";
 import { evadeLeaveReplacements } from "../effects/evade.js";
 import { canPaySuspendCost } from "../combat/legality.js";
 import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
@@ -61,6 +62,7 @@ import {
   flushDeferredTimingWindows,
   inContinuousPass,
   parkDeferredSecurityRemovalTriggersForAttack,
+  parkDeferredTimingWindowsForAttack,
   resolveLeaveReplacementBody,
   settleBetweenEffects,
   shouldDeferNestedTiming,
@@ -263,7 +265,29 @@ export async function engineConsultLeavePrevention(
   const prevented = await consultLeavePrevention(
     {
       subTriggers: engine.subTriggers,
-      resolveInsteadBody: (body) => resolveLeaveReplacementBody(engine, body),
+      resolveInsteadBody: async (replacement, ctx, body) => {
+        const host = ctx.source.permanent();
+        const announced = {
+          seat: ctx.source.ownerSeat,
+          sourceCardId: ctx.source.cardId,
+          sourceInstanceId: ctx.source.instanceId,
+          sourcePermanentId: host?.permanentId,
+          effectKey: `replacement/${replacement.id}`,
+          description: replacement.description,
+          timing: replacement.event,
+          ...(host !== undefined && host.topCard?.instanceId !== ctx.source.instanceId ? { isInherited: true } : {}),
+        };
+        engine.hooks.emit({
+          kind: "effectTriggered",
+          ...announced,
+          ...(engine.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+        });
+        try {
+          return await resolveLeaveReplacementBody(engine, body);
+        } finally {
+          engine.hooks.emit({ kind: "effectResolved", ...announced });
+        }
+      },
       keywordReplacements: (ids) => [
         ...detachLeaveReplacements(ids, {
           permanentById: (id) => engine.access.permanentById(id),
@@ -322,13 +346,14 @@ export async function engineConsultLeavePrevention(
       markOncePerTurnFired: (key) => engine.tracker.register(key, "replacement"),
       // ＜Guard＞ is the one prevention keyword that resolves as a replacement subscription
       // rather than inline in the deletion paths, so its announcement is wired here.
-      keywordPrevented: (activationIdentity, sourcePermanentId, sourceCardId, savedPermanentId) => {
-        if (activationIdentity !== "keyword-guard") return;
+      keywordPrevented: (activationIdentity, sourcePermanentId, sourceCardId, savedPermanentId, preventionKeyword) => {
+        const keyword = preventionKeyword ?? (activationIdentity === "keyword-guard" ? "Guard" : undefined);
+        if (keyword === undefined) return;
         const saved = engine.access.permanentById(savedPermanentId);
         if (saved === undefined) return;
         engine.hooks.emit({
           kind: "deletionPrevented",
-          keyword: "Guard",
+          keyword,
           seat: saved.controllerSeat,
           permanentId: saved.permanentId,
           ...(saved.topCard === undefined ? {} : { cardId: saved.topCard.cardId }),
@@ -376,13 +401,23 @@ export async function engineConsultLeavePrevention(
             triggerCardIds: keyed.map(({ cardId }) => cardId),
             triggerDescriptions: keyed.map(({ replacement }) => replacement.description),
             triggerIsInherited: keyed.map(({ isInherited }) => isInherited),
+            acceptsResolutionPlan: true,
+            triggerIsOptional: keyed.map(({ replacement }) => effectTextMayAskYesNo(replacement.description)),
           },
         });
-        if (response.kind !== "orderTriggers" || response.order.length === 0) return replacements;
-        const selected = keyed.find(({ key }) => key === response.order[0]);
-        return selected === undefined
-          ? replacements
-          : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+        if (response.kind !== "orderTriggers" || response.order.length === 0) return { order: replacements };
+        const byKey = new Map(keyed.map((entry) => [entry.key, entry.replacement]));
+        const chosen = response.order.flatMap((key) => byKey.get(key) ?? []);
+        const presetAnswers = new Map(
+          Object.entries(response.optionalAnswers ?? {}).flatMap(([key, accept]) => {
+            const replacement = byKey.get(key);
+            return replacement === undefined ? [] : [[replacement.id, accept] as const];
+          }),
+        );
+        return {
+          order: [...chosen, ...replacements.filter((replacement) => !chosen.includes(replacement))],
+          presetAnswers,
+        };
       },
     },
     permanentIds,
@@ -398,10 +433,12 @@ export async function engineConsultLeavePrevention(
     },
   );
   // No [On Deletion] window follows a bounce or a fully averted leave, so what the replacement
-  // triggered activates now instead of waiting for one.
+  // triggered activates now instead of waiting for one. A DigiXros material interrupt is the
+  // exception: it happens inside the play procedure, so its caller hands what it triggered to
+  // the played Digimon's [On Play] window (CR §15-4-3-2, §15-8-3-2).
   const averted =
     opts?.isBounce === true || opts?.insteadOnly === true || permanentIds.every((id) => prevented.has(id));
-  if (averted) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
+  if (averted && opts?.isDigiXros !== true) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
   return prevented;
 }
 
@@ -456,10 +493,12 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // effects, even though the enclosing card will resume after combat.
       const pausedDepth = engine.effectResolutionDepth;
       const pausedOptionDepth = engine.optionResolutionDepth;
+      const pausedOptionMainDepth = engine.optionMainDepth;
       engine.effectResolutionDepth = 0;
+      engine.optionMainDepth = 0;
       try {
         parkDeferredSecurityRemovalTriggersForAttack(engine);
-        await flushDeferredTimingWindows(engine);
+        parkDeferredTimingWindowsForAttack(engine);
         // Settle the already-armed watcher tier before exposing the Option's older
         // printed entry/attack effects. Then settle the interrupted Option's rule
         // check in that same parent pool before Counter Timing/security can proceed.
@@ -475,6 +514,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;
+        engine.optionMainDepth = pausedOptionMainDepth;
       }
     },
     // Called only from inside `runAttackSteps`, where the depth is already 0, so
@@ -491,8 +531,10 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // (a defender's Blast Digivolve [When Digivolving] resolving after combat).
       const pausedDepth = engine.effectResolutionDepth;
       const pausedOptionDepth = engine.optionResolutionDepth;
+      const pausedOptionMainDepth = engine.optionMainDepth;
       engine.effectResolutionDepth = 0;
       engine.optionResolutionDepth = 0;
+      engine.optionMainDepth = 0;
       try {
         await flushDeferredTimingWindows(engine);
         await body();
@@ -500,6 +542,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;
+        engine.optionMainDepth = pausedOptionMainDepth;
       }
     },
     baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
@@ -655,6 +698,14 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       digivolveDeps(engine).fireWouldDigivolve!(engine.state, seat, target, into),
     consultLeavePrevention: (ids, cause, resolvingSeat, opts) =>
       engine.consultLeavePrevention(ids, cause, resolvingSeat, opts),
+    interruptDigiXrosMaterialLeave: async (fieldPermanentIds, resolvingSeat) => {
+      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byEffect", resolvingSeat, {
+        isDigiXros: true,
+        isBounce: true,
+      });
+      return { prevented, triggered: takeLeaveReplacementPending(engine) };
+    },
+    resolveHeldTriggeredEffects: (effects) => runPendingTimingWindow(engine, effects),
     consultDigivolutionTrashRedirect: (ids) => engineConsultDigivolutionTrashRedirect(engine, ids),
     get combat() {
       return getCombat();

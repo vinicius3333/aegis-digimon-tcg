@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-095.js";
 
@@ -55,6 +56,44 @@ describe("BT16-095", () => {
     await settle(() => s.perm("ally").currentDP === 6000);
     expect(s.state.players[1]?.deck).toHaveLength(2);
     expect(s.perm("ally").currentDP).toBe(6000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT1-010");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("ally").currentDP - s.perm("ally").baseDP);
     expect(s.state.players[1]?.battleArea).toHaveLength(1);
+  });
+
+  it("gives its 3000 DP to a Digimon played later in the duration (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT16-095", as: "shine" },
+            { card: "BT1-019", as: "future" },
+          ],
+          battleArea: [
+            { card: "BT16-039", as: "color" },
+            { card: "BT16-050", as: "ally", dp: 3000 },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT16-050", as: "lowOne", dp: 4000 },
+            { card: "BT16-050", as: "lowTwo", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shine").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ally").currentDP === 6000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+
+    expect(s.perm("future").currentDP).toBe(9000);
   });
 });

@@ -41,6 +41,8 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
+          effectTextPart:
+            "[All Turns] When any of your Digimon are played or digivolve, by suspending this Tamer, gain 1 memory if you have a Digimon with [Greymon] in its name.",
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: {
@@ -83,6 +85,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, gain 1 memory if you have a Digimon with [Garurumon] in its name.",
               kind: "GainMemory",
               amount: 1,
               condition: {
@@ -103,6 +106,8 @@ export const compiled: CompiledCard = {
           raw: "whenPlayed",
         },
         {
+          effectTextPart:
+            "[All Turns] When any of your Digimon are played or digivolve, by suspending this Tamer, gain 1 memory if you have a Digimon with [Greymon] in its name.",
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
           sourceFilter: {
@@ -145,6 +150,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, gain 1 memory if you have a Digimon with [Garurumon] in its name.",
               kind: "GainMemory",
               amount: 1,
               condition: {

@@ -49,6 +49,12 @@ export interface PlayerRestrictionEntry {
    */
   matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean;
   continuous?: boolean;
+  /** Same scoping as a per-permanent restriction: block only effects from these card kinds. */
+  fromSourceKind?: string[];
+  /** Same scoping as a per-permanent restriction: block only the restricted player's opponent's effects. */
+  byOpponentEffectsOnly?: boolean;
+  /** Same scoping as a per-permanent restriction: rule processing and battle are not blocked. */
+  byEffectsOnly?: boolean;
 }
 
 export interface AttackTargetRestriction {
@@ -89,6 +95,10 @@ export interface PlayerKeywordGrant {
   keyword: string;
   amount?: number;
   duration: EffectDuration;
+  /** Controller of the granting effect, whose turn a relative duration counts; defaults to `seat`. */
+  ownerSeat?: Seat;
+  /** Live target filter ("all of your Digimon with ＜Reboot＞"); omit to grant every Digimon. */
+  matches?: (permanentId: string) => boolean;
 }
 
 export interface PlayerCustomEffectGrant {

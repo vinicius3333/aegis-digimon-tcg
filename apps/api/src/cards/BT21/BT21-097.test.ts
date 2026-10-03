@@ -18,7 +18,10 @@ describe("BT21-097 App Link", () => {
 
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     expect(main?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "trash" });
-    expect(main?.actions[1]).toEqual({ kind: "PlaceInBattleAreaSelf" });
+    expect(main?.actions[1]).toEqual({
+      effectTextPart: "Then, place this card in the battle area.",
+      kind: "PlaceInBattleAreaSelf",
+    });
 
     const delay = compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn");
     expect(delay?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);

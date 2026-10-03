@@ -11,6 +11,7 @@ import { GRANTED_EFFECT_LIBRARY } from "../grantedEffects.js";
 import { scaleFactor } from "../scaling.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { isPermanentUnaffectable, permanentMatchesFilter } from "../matching/permanent.js";
+import { subscribeLaterEntrants } from "./laterEntrants.js";
 import { SUBTRIGGER_EVENT_MAP } from "./subTrigger.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target } from "@aegis/shared";
@@ -147,34 +148,15 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           const target =
             action.target ??
             ({ filter: action.filter ?? { kind: ["Digimon"], controller: "opponent" }, count: "all" } as Target);
-          ctx.fx.subscribeSubTrigger({
-            description: "opponent-turn entrant granted effect",
+          // Q3590 includes Digimon that enter after this effect resolves, not merely those played
+          // from a card zone; the board-wide seam also carries breeding -> battle movement.
+          subscribeLaterEntrants(ctx, {
+            filter: { controller: "opponent", ...target.filter },
+            duration: action.duration ?? "untilOpponentTurnEnd",
+            label: "GrantAuraToOpponents",
             printedClause: laterEntrantGrantClause(ctx.activeEffectText, ctx.source.definition),
-            // Q3590 includes Digimon that enter after this effect resolves, not
-            // merely those played from a card zone. The board-wide seam also
-            // carries breeding -> battle movement and digivolution entry.
-            event: "onEnterFieldAnyone",
-            activationContext: ctx,
-            once: false,
-            // This is a triggered, duration-scoped watcher. Pin it outside the continuous tier
-            // because a concurrent continuous recompute may otherwise make the ambient
-            // `continuousOpt()` flag appear true while this effect is installing it.
-            continuous: false,
-            expiresOnTurnEndOf: ctx.game.opponentOf(ctx.source.ownerSeat),
-            matches: (subCtx) => {
-              const id = subCtx.trigger.subjectPermanentId;
-              const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
-              return (
-                permanent !== undefined &&
-                permanentMatchesFilter(subCtx, permanent, { ...target.filter, controller: "opponent" }, subCtx.source)
-              );
-            },
-            run: async (subCtx) => {
-              const id = subCtx.trigger.subjectPermanentId;
-              const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
-              const top = permanent?.topCard;
-              if (top !== undefined) grantToPermanent(subCtx, id!);
-            },
+            alreadyGranted: ids,
+            grant: (permanentId) => grantToPermanent(ctx, permanentId),
           });
         }
         return false;
@@ -194,12 +176,11 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
         .map((permanentId) => ctx.game.permanentById(permanentId))
         .filter((permanent): permanent is NonNullable<typeof permanent> => permanent !== undefined);
       const duration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-      for (const permanent of candidates) {
-        // Anchor the watcher to its OWN permanent: `fireSubTrigger(event)` runs every watcher of
-        // that event (it passes no sourcePermanentId), so without this gate one Digimon suspending
-        // would fire EVERY granted watcher. The body's "this Digimon" semantics require the event
-        // subject to BE the watched permanent.
-        const anchorId = permanent.permanentId;
+      // Anchor the watcher to its OWN permanent: `fireSubTrigger(event)` runs every watcher of
+      // that event (it passes no sourcePermanentId), so without this gate one Digimon suspending
+      // would fire EVERY granted watcher. The body's "this Digimon" semantics require the event
+      // subject to BE the watched permanent.
+      const installAura = (anchorId: string): void => {
         ctx.fx.subscribeSubTrigger({
           event: (action.event === undefined ? undefined : SUBTRIGGER_EVENT_MAP[action.event]) ?? "whenSuspended",
           sourcePermanentId: anchorId,
@@ -231,6 +212,16 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
               await runAction(subCtx, auraAction as Action);
             }
           },
+        });
+      };
+      for (const permanent of candidates) installAura(permanent.permanentId);
+      if (action.includeLaterEntrants === true) {
+        subscribeLaterEntrants(ctx, {
+          filter: { ...declaredTarget.filter, controller: "opponent" },
+          duration: action.duration ?? "untilOpponentTurnEnd",
+          label: "GrantAuraToOpponents",
+          alreadyGranted: targetIds,
+          grant: installAura,
         });
       }
       return false;

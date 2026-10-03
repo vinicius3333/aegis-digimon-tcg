@@ -84,6 +84,35 @@ describe("EX7-010 Deputymon", () => {
     expect(s.perm("opponent").stack).toHaveLength(0);
   });
 
+  it("fires the trashed Option's digivolution-card trash trigger (Discord 1555578375677018193)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST1-03", as: "base" },
+            { card: "BT1-009", as: "host", under: [{ card: "EX7-071", as: "screwShot" }] },
+          ],
+          hand: [{ card: "EX7-010", as: "deputy" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("deputy").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("screwShot").instanceId);
+    expect(s.state.memory).toBe(4);
+  });
+
   it("can trash an opponent's stacked Option when attacking", async () => {
     const s = setupEngine(
       {

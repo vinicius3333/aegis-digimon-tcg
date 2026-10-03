@@ -2,30 +2,42 @@
 
 ## Contract
 
-An effect-directed attack can declare an attack and choose a later scaled modal branch
-at the attack-declaration boundary. If that branch is a direct `Battle`, its defender
-is selected after the attack completes. An opponent's immediate effect during the
-attack can therefore play a Digimon that is eligible for the chosen Battle (EX13-077
-Q7477). The number of scaled activations remains the snapshot taken at the modal's
-activation; later choices are reevaluated in sequence after the first branch resolves
-(Q7474/Q7476).
+An effect-directed attack pauses the effect that ordered it. The rest of that effect
+resolves right after the attack declaration, before the [When Attacking] effects that
+the declaration triggered (CR §15-4-3-2, §11-1-4, Q777). Those effects stay pending
+until the ordering effect finishes, then resolve before Counter Timing.
+
+For EX13-077, every color-scaled activation, including a direct `Battle` and the
+trash-return Recovery, therefore resolves before the attacker's [When Attacking]
+effects and before the security check. The number of activations is the snapshot
+taken when the modal activates; each later choice is reevaluated on the live board
+(Q7473/Q7474/Q7476). A Digimon that an opponent's immediate replacement plays during
+one Battle is a legal defender for a later Battle (Q7477).
+
+A `Battle` bullet is offered only while its attacker is on the battle area and at
+least one defender exists. Choosing it otherwise would be a silent no-op.
 
 ## Engine seam
 
-The interpreter keeps the modal choice made during attack declaration and queues its
-Battle branch until the attack's end. `CombatController` runs that continuation after
-attack cleanup, so the later Battle reads the live board and can resolve as a separate
-battle. The effect body's outer continuation remains active until the queued branch
-finishes. Other attack timings and ordinary deletion reactions retain their existing
-windows.
+`runEffect` hands the remaining actions to combat through
+`continueEffectAfterAttackDeclaration`; `CombatController` runs them after the
+declaration and before declaration-triggered effects. The modal resolves every
+scaled activation inline. `canAttemptBattle` in `actions/modal.ts` gates Battle
+bullets.
 
 ## Evidence
 
-- `apps/api/src/cards/EX13/EX13-077.test.ts` Q7477 uses public EX13-077 On Play,
-  AD1-025 Raid, and opponent BT9-050 Leomon (X Antibody). The Battle modal choice is
-  recorded before BT9-050's immediate would-be-deleted-in-battle replacement plays
-  BT1-035 Leomon. That exact new instance is live at the Battle activation prompt and
-  leaves in the selected Battle after the first attack has resolved.
-- EX13-077's scaled Battle/Recovery tests preserve sequential choice, snapshot count,
-  and pending On Deletion behavior. The EX13 collection and engine regression suites
-  pass without an expected failure.
+- `apps/api/src/cards/EX13/EX13-077.test.ts`, Discord bug 1554922883652784198:
+  BT4-057 attacks through EX13-077's On Play. The Battle deletion and the trash
+  return both precede BT4-057's [When Attacking] memory gain, which precedes the
+  security check. The second activation offers only Recovery once no opposing
+  Digimon remains.
+- `apps/api/src/cards/EX13/EX13-077.test.ts` Q7477: the first Battle would delete
+  BT9-050, whose replacement plays BT1-035 Leomon; the second Battle battles that
+  new instance before the effect resolves.
+
+## History
+
+- Commit `34d447938` (September 25) deferred a chosen Battle, and every later scaled
+  activation, until the end of the attack. That order let [When Attacking] effects
+  and the security check resolve first. This fix removes the deferral.

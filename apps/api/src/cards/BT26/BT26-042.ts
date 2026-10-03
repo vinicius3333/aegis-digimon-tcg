@@ -14,8 +14,18 @@ const traitTarget = {
   count: 1,
 } satisfies Target;
 const suspendAndLock = [
-  { kind: "Suspend", target: targets },
-  { kind: "Restrict", target: targets, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
+  {
+    effectTextPart: "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers.",
+    kind: "Suspend",
+    target: targets,
+  },
+  {
+    effectTextPart: "Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
+    kind: "Restrict",
+    target: targets,
+    restriction: "unsuspend",
+    duration: "untilOpponentTurnEnd",
+  },
 ] satisfies Action[];
 const piercingAndDp = [
   { kind: "GainKeyword", keyword: { keyword: "Piercing" }, target: traitTarget, duration: "untilOpponentTurnEnd" },

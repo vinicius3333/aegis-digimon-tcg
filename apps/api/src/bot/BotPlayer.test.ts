@@ -113,6 +113,25 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toEqual([{ type: "endPhase" }]);
   });
 
+  it("waits for the opponent's decision without spinning the event loop", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.pendingDecision = { id: "opponent", seat: 0 } as never;
+    const immediates = vi.spyOn(globalThis, "setImmediate");
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      ...FIXED_THINK,
+      policy: { ...createEvaluationPolicy(), chooseMainAction: () => ({ type: "endPhase" }) },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(10_000);
+    expect(immediates.mock.calls.length).toBeLessThan(10);
+    expect(intents).toEqual([]);
+    state.pendingDecision = undefined;
+    await advance(2_100);
+    expect(intents).toEqual([{ type: "endPhase" }]);
+  });
+
   it("discards a Main decision that returns after the turn changes", async () => {
     vi.useFakeTimers();
     const { state } = botState();
