@@ -170,7 +170,7 @@ scenario("reconnect-decision", () => {
           const surface = screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt");
           expect(surface).not.toBeNull();
           if (request.kind === "optional" && /return 1 to hand/i.test(request.promptText ?? "")) {
-            expect(within(surface!).getByText(/return 1 to hand/i)).toBeTruthy();
+            expect(within(surface!).getByText(/by suspending this tamer, you may return 1 \[evil\]/i)).toBeTruthy();
           }
           return surface!;
         },

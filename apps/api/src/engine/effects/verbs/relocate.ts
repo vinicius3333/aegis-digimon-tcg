@@ -1,5 +1,12 @@
 import { Permanent, Zone, CardInstance } from "@aegis/shared";
-import { extractPermanentAt, insertCard, pushOnStack, setBreeding, unshiftOnStack } from "../../state/access.js";
+import {
+  extractPermanentAt,
+  insertCard,
+  pushOnStack,
+  setBreeding,
+  takeTop,
+  unshiftOnStack,
+} from "../../state/access.js";
 import type { Primitives } from "../EffectContext.js";
 
 import type { PrimitivesContext } from "./context.js";
@@ -172,6 +179,75 @@ export function createRelocateVerbs(pc: PrimitivesContext) {
     return moved;
   };
 
+  const placeEggAndPermanentsUnder: NonNullable<Primitives["placeEggAndPermanentsUnder"]> = async (
+    destPermanentId,
+    orderedCards,
+  ) => {
+    const destination =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (destination?.topCard === undefined) return;
+    const destinationTopId = destination.topCard.instanceId;
+    const sourceIds = orderedCards
+      .flatMap((card) => (card.permanentId === undefined ? [] : [card.permanentId]))
+      .filter(
+        (id) =>
+          id !== destPermanentId &&
+          access.permanentById(id) !== undefined &&
+          !isRestricted(id, "leaveBattleAreaExceptByDeletion"),
+      );
+    // The stack order is a placement choice, not an order of leave events. Consult
+    // every impending leave while all sources (including Leopardmon) are still live.
+    const prevented = await engine.consultLeavePrevention?.(
+      sourceIds,
+      "byEffect",
+      effectSeatStack.at(-1) ?? destination.controllerSeat,
+      { isBounce: true },
+    );
+    const destinationAfterConsult =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (destinationAfterConsult?.topCard?.instanceId !== destinationTopId) return;
+    const eligible = orderedCards.filter(
+      (card) =>
+        card.permanentId !== undefined &&
+        sourceIds.includes(card.permanentId) &&
+        !prevented?.has(card.permanentId) &&
+        access.permanentById(card.permanentId)?.topCard?.instanceId === card.instanceId &&
+        !isRestricted(card.permanentId, "leaveBattleAreaExceptByDeletion"),
+    );
+    await fireWhenPermanentsLeave(eligible.map((card) => card.instanceId));
+    const liveDestination =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (liveDestination?.topCard?.instanceId !== destinationTopId) return;
+    const addedIds: string[] = [];
+    for (const card of [...orderedCards].reverse()) {
+      if (card.permanentId !== undefined) {
+        if (!eligible.includes(card) || access.permanentById(card.permanentId)?.topCard?.instanceId !== card.instanceId)
+          continue;
+        if (relocatePermanent(destPermanentId, card.permanentId, { belowTop: false, shedOwnCards: true }))
+          addedIds.push(card.instanceId);
+      } else {
+        const owner = player(liveDestination.controllerSeat);
+        if (owner.eggDeck[0]?.instanceId !== card.instanceId) continue;
+        const egg = takeTop(owner, Zone.EggDeck)!;
+        egg.faceUp = true;
+        unshiftOnStack(liveDestination, egg);
+        addedIds.push(egg.instanceId);
+        engine.emit({ kind: "cardsMoved", instanceIds: [egg.instanceId], from: Zone.EggDeck, to: Zone.BattleArea });
+      }
+    }
+    if (addedIds.length === 0) return;
+    await engine.recomputeContinuousEffects?.();
+    await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+      subjectPermanentId: destPermanentId,
+      addedDigivolutionCardInstanceIds: addedIds,
+      addedDigivolutionCardsPosition: "bottom",
+      byEffectSeat: effectSeatStack.at(-1) ?? destination.controllerSeat,
+    });
+  };
+
   const relocatePermanentsByEffect: NonNullable<Primitives["relocatePermanentsByEffect"]> = async (
     destPermanentId,
     sourcePermanentIds,
@@ -275,5 +351,5 @@ export function createRelocateVerbs(pc: PrimitivesContext) {
     return moved;
   };
 
-  return { relocatePermanent, relocatePermanentByEffect, relocatePermanentsByEffect };
+  return { relocatePermanent, relocatePermanentByEffect, relocatePermanentsByEffect, placeEggAndPermanentsUnder };
 }

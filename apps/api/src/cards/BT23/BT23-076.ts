@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -14,6 +15,7 @@ export const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart: "Then, ＜Recovery +1 (Deck)＞",
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",

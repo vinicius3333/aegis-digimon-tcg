@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -29,7 +30,6 @@ const compiled: CompiledCard = {
             raw: "＜Security Attack +1＞",
           },
           duration: "forTheTurn",
-          whileMatchesTargetFilter: true,
         },
       ],
     },

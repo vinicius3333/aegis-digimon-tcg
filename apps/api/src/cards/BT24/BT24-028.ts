@@ -28,6 +28,7 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
           abortOnDecline: true,
           ...({
             additionalEffect: {
@@ -82,6 +83,7 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
           abortOnDecline: true,
           ...({
             additionalEffect: {

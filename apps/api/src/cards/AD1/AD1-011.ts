@@ -26,6 +26,8 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           restriction: "beDeletedInBattle",
+          effectTextPart:
+            "[When Digivolving] Until your opponent's turn ends, this Digimon can't be deleted in battle.",
           duration: "untilOpponentTurnEnd",
         },
         {
@@ -38,6 +40,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           restriction: "attackTargetChange",
+          effectTextPart: "Then, if DNA digivolving, this Digimon's attack target can't change for the turn.",
           duration: "forTheTurn",
           condition: {
             kind: "isDnaDigivolving",

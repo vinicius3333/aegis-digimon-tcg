@@ -8,6 +8,7 @@ import {
 import { alternateRequirementAvailable } from "../../../actions/digivolve.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
+import { knownCards, placeAtStackEnd } from "../placeAtChosenStackEnd.js";
 import { scaleFactor } from "../scaling.js";
 import { canPayCost } from "../costs.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
@@ -660,10 +661,16 @@ export async function runDigivolveViaPlacement(
   const candidates = candidateLooseInstances(ctx, action.placeCost.target, ["trash"]);
   const placed = await pickLoose(ctx, action.placeCost.target, candidates);
   if (placed.length === 0) return;
-  await ctx.fx.placeUnder(hosts[0]!, placed, {
-    belowTop: action.placeCost.position !== "bottom",
-    faceUp: true,
-  });
+  await placeAtStackEnd(
+    ctx,
+    hosts[0]!,
+    placed,
+    knownCards(
+      ctx,
+      candidates.filter(({ instanceId }) => placed.includes(instanceId)),
+    ),
+    { atTop: action.placeCost.position !== "bottom", faceUp: true },
+  );
   const result = await ctx.fx.digivolveFromInstance(hosts[0]!, ctx.source.instanceId, {
     payCost: true,
     costOverride: action.cost,

@@ -216,7 +216,77 @@ describe("EX13-036 Kentaurosmon", () => {
 
     expect(s.perm("first").currentDP).toBe(3000);
     expect(s.perm("second").currentDP).toBe(3000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
     assertNoLoudGap(s);
+  });
+
+  it("reduces an opposing Digimon played later that turn in the all-target branch (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "kentaurosmon" }],
+          deck: DECK,
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: BIG_BODY, as: "present" }],
+          hand: [{ card: OTHER_BIG_BODY, as: "late" }],
+          deck: DECK,
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kentaurosmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("present").currentDP).toBe(3000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(3000);
+  });
+
+  it("does not reduce an opposing Digimon played later in the single-target branch (Discord 1555352172206493706)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "kentaurosmon" }],
+          deck: DECK,
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: BIG_BODY, as: "chosen" }],
+          hand: [{ card: OTHER_BIG_BODY, as: "late" }],
+          deck: DECK,
+          security: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kentaurosmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("chosen").currentDP).toBe(3000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(10_000);
   });
 
   it("expires the -7000 at the end of the turn it was applied", async () => {

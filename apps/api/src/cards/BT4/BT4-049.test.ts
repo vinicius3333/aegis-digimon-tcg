@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import "./BT4-049.js";
 
 describe("BT4-049 Varodurumon", () => {
@@ -39,7 +41,39 @@ describe("BT4-049 Varodurumon", () => {
     expect(s.perm("varo").stack).toHaveLength(0);
     expect(s.perm("a").currentDP).toBe(8000);
     expect(s.perm("b").currentDP).toBe(8000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("a").currentDP - s.perm("a").baseDP);
     expect(s.perm("ally").stack).toHaveLength(1);
     expect(s.perm("ally").stack[0]!.instanceId).toBe(s.inst("allySource").instanceId);
+  });
+
+  it("gives -4000 DP to an opposing Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-049", as: "varo", under: ["BT1-001", "BT4-039", "BT4-046"] }] },
+        1: {
+          battleArea: [{ card: "BT2-083", dp: 12000, as: "current" }],
+          hand: [{ card: "BT1-024", as: "future" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const effectKey = effectsOf(
+      EffectTiming.OnDeclaration,
+      internalsOf(s.engine).cardSourceOf(s.perm("varo").topCard!),
+    ).find((effect) => effect.effectKey.startsWith("BT4-049/"))!.effectKey;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("varo").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("current").currentDP === 8000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+    expect(s.perm("future").currentDP).toBe(6000);
   });
 });

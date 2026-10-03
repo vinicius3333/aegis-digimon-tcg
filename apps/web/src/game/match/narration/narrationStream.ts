@@ -1,6 +1,6 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { PresentationReport, Seat } from "@aegis/shared";
-import type { AnimationQueue, AnimationStepContext } from "../../animationQueue";
+import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
 import { buildNarrationItems, COLLAPSED_NARRATION_LIMIT, pushNarrationItem, type NarrationItem } from "../../narration";
 import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
@@ -8,12 +8,14 @@ import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
+import type { OptionDockHold } from "../present/optionDock";
 import { presentableNarration, type OwnEffectDialog } from "./presentableNarration";
 import {
   CONSEQUENCE_GATE_MAX_MS,
   createPresentationGate,
   waitForGate,
   type DeletionReadyAt,
+  type CostClause,
   type PendingAnnounceGate,
   type PresentationGate,
 } from "../presentationGate";
@@ -53,18 +55,22 @@ export interface NarrationStreamDeps {
   presentationReporterRef: MutableRefObject<((report: PresentationReport) => void) | undefined>;
   narrationSkipRef: MutableRefObject<boolean>;
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
+  /** The Option on screen; what the server did after routing it waits for the card to leave. */
+  optionDockRef: MutableRefObject<OptionDockHold | null>;
+  /** Lets the trash show the cards up to this batch, now that its moment is on screen. */
+  releaseTrashArrivalsThrough: (stateVersion: number) => void;
   effectSourceKeyRef: MutableRefObject<number>;
   /** The announcement this batch is still holding its consequences behind. */
   effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
   /** A gate a batch armed before it knew which clause would carry it. */
   pendingAnnounceGateRef: MutableRefObject<PendingAnnounceGate | null>;
+  /** The ＜Delay＞ clause whose Option break, toast and played card are being kept in order. */
+  costClauseRef: MutableRefObject<CostClause | null>;
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
   setNarration: Dispatch<SetStateAction<ReadonlyMap<string, NarrationItem>>>;
   collapseNarrationRef: MutableRefObject<boolean>;
   narrationLimitRef: MutableRefObject<number>;
   suppressedOwnEffectsRef: MutableRefObject<Map<string, OwnEffectDialog>>;
-  /** Items enqueued and not yet published, so a dialog opening can name the ones it silences. */
-  queuedNarrationRef: MutableRefObject<Map<string, NarrationItem>>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   /** Held items a cue has already read out, so a second cue promised the same item skips it. */
@@ -72,6 +78,20 @@ export interface NarrationStreamDeps {
   lastBatchIdRef: MutableRefObject<string>;
   narrationSequenceRef: MutableRefObject<number>;
   narrationRef: MutableRefObject<ReadonlyMap<string, NarrationItem>>;
+}
+
+/** An effect's draw on its way to the hand; a turn's own draw is no clause's result. */
+function isEffectDrawFlight(step: AnimationStep): boolean {
+  return step.id.startsWith("draw-flight-") && step.track?.startsWith("drawFlight-") === true;
+}
+
+function pendingStepIds(queue: AnimationQueue, predicate: (step: AnimationStep) => boolean): Set<string> {
+  const ids = new Set<string>();
+  queue.countPendingSteps((step) => {
+    if (predicate(step)) ids.add(step.id);
+    return false;
+  });
+  return ids;
 }
 
 /** The revision of the batch whose clause armed each announcement gate. */
@@ -91,15 +111,17 @@ export function narrationStream(deps: NarrationStreamDeps) {
     presentationReporterRef,
     narrationSkipRef,
     deletionReadyAtRef,
+    optionDockRef,
+    releaseTrashArrivalsThrough,
     effectSourceKeyRef,
     effectAnnounceGateRef,
     pendingAnnounceGateRef,
+    costClauseRef,
     setEffectSources,
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
     suppressedOwnEffectsRef,
-    queuedNarrationRef,
     heldNoticesRef,
     heldPanelsRef,
     readOutHeldRef,
@@ -148,6 +170,13 @@ export function narrationStream(deps: NarrationStreamDeps) {
         : null;
     const announceGate = body?.variant === "effect" ? (adopted ?? createPresentationGate()) : null;
     if (adopted) pendingAnnounceGateRef.current = null;
+    const pendingCostClause = costClauseRef.current;
+    const costClause =
+      body?.variant === "effect" &&
+      pendingCostClause?.sourceKey === `${seat}:${body.cardId}` &&
+      !pendingCostClause.read.open
+        ? pendingCostClause
+        : null;
     const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
     const itemVersion = heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId);
     // A clause is only the consequence of an announcement from its own batch or an earlier one.
@@ -181,7 +210,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
     // Which phase raised the clause is what lets the ribbon that follows it wait for its
     // beat and then clear it (`waitForPhasePrerequisites`).
     narrationPhaseOrdersRef.current.set(item.id, origin.phaseOrder ?? completedPhaseOrderRef.current);
-    queuedNarrationRef.current.set(item.id, item);
     function reportShown(stepId: string, context: AnimationStepContext) {
       try {
         presentationReporterRef.current?.({
@@ -200,6 +228,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
         // Diagnostic transport must never interrupt the presentation.
       }
     }
+    // A clause is read once the board shows what the clauses before it did. Without this, the
+    // next Yoshino's clause lit up while the previous one's draw was still in the air.
+    const earlierDrawFlights =
+      body?.variant === "effect" ? pendingStepIds(queue, isEffectDrawFlight) : new Set<string>();
     queue.enqueue({
       id: `narration-step-${item.id}`,
       origin,
@@ -217,8 +249,9 @@ export function narrationStream(deps: NarrationStreamDeps) {
         try {
           await runNarrationStep();
         } finally {
-          queuedNarrationRef.current.delete(item.id);
           announceGate?.release();
+          costClause?.focused.release();
+          costClause?.read.release();
           if (activation && !linked) {
             const key = activation.key;
             setEffectSources((sources) => sources.filter((source) => source.key !== key));
@@ -229,6 +262,29 @@ export function narrationStream(deps: NarrationStreamDeps) {
           if (context.mode === "replay" || narrationSkipRef.current) return;
           await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "narration/causingEffect");
           if (context.cancelled || narrationSkipRef.current) return;
+          // What an earlier batch deleted breaks before this moment is read: an Option's
+          // deletion before the [When Attacking] clause that follows it. The deleting batch's
+          // own items are left alone, since its shatter may be waiting on one of them — except
+          // when a docked Option, not a clause, explains the deletion: then its "Deleted"
+          // panel waits for the shatter too.
+          if (context.mode === "live" && itemVersion !== undefined) {
+            await Promise.resolve();
+            for (const deletion of [...deletionReadyAtRef.current.values()]) {
+              const version = deletion.stateVersion;
+              const waits =
+                version !== undefined &&
+                (version < itemVersion ||
+                  (version === itemVersion && deletion.causedByOption === true && body?.variant !== "effect"));
+              if (waits)
+                await waitForGate(deletion.started, context, TIMINGS.securityDockMax, "narration/earlierDeletion");
+            }
+            // The server moved on after routing the Option (BeelStarmon trashing it from the
+            // sources it just went under), so that waits for the card to get there first.
+            const option = optionDockRef.current;
+            if (option?.routedAtVersion !== undefined && itemVersion > option.routedAtVersion)
+              await waitForGate(option.settled, context, TIMINGS.securityDockMax, "narration/optionSettled");
+            if (context.cancelled || narrationSkipRef.current) return;
+          }
           if (onPlay && initialSite?.zone === "field") {
             while (
               queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
@@ -238,9 +294,30 @@ export function narrationStream(deps: NarrationStreamDeps) {
             )
               await context.wait(16);
           }
-          if (context.mode === "live" && body?.variant === "effect") {
+          if (context.mode === "live" && body?.variant === "effect" && costClause) {
+            // A ＜Delay＞ pays by trashing its own Option: the Option is lit where it stands,
+            // it breaks, and only then is the clause read — the card it plays waits for that.
+            activation = {
+              key: ++effectSourceKeyRef.current,
+              cardId: body.cardId,
+              seat,
+              site: { zone: "field", permanentId: costClause.permanentId },
+              itemId: item.id,
+            };
+            setEffectSources((sources) => [...sources, activation as EffectActivation]);
+            reportShown(`effect-source-${activation.key}`, context);
+            await context.wait(effectSourceHoldMs);
+            costClause.focused.release();
+            await waitForGate(costClause.departing, context, TIMINGS.costClauseDeparture, "narration/costDeparting");
+            const departure = deletionReadyAtRef.current.get(costClause.sourceKey);
+            if (costClause.departing.open && departure)
+              await waitForGate(departure.shattered, context, TIMINGS.securityDockMax, "narration/costShattered");
+            if (context.cancelled || narrationSkipRef.current) return;
+          } else if (context.mode === "live" && body?.variant === "effect") {
             // Let this batch register its deletion beats before locating the source.
             await Promise.resolve();
+            await waitForEarlierBeats(body.cardId, seat, earlierDrawFlights, context);
+            if (context.cancelled || narrationSkipRef.current) return;
             for (const deleted of item.notice?.afterDeletions ?? []) {
               const burst = deletionReadyAtRef.current.get(`${deleted.seat}:${deleted.cardId}`);
               await waitForGate(burst?.started, context, TIMINGS.securityDockMax, "narration/causingDeletion");
@@ -253,10 +330,18 @@ export function narrationStream(deps: NarrationStreamDeps) {
             );
             // A granted clause resolves on its recipient before that recipient is deleted.
             // Waiting for its own shatter would cycle with the deletion waiting for this toast.
+            // So does any clause whose card a later batch deleted: BeelStarmon's [When
+            // Attacking] reads before the security check that deletes it.
+            const ownDeletion = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+            const deletedLater =
+              ownDeletion?.stateVersion !== undefined &&
+              itemVersion !== undefined &&
+              ownDeletion.stateVersion > itemVersion;
             const shatter =
-              body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")
+              deletedLater ||
+              (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? ""))
                 ? undefined
-                : deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+                : ownDeletion;
             if (shatter) {
               await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax, "narration/shattered");
               await context.wait(Math.max(0, shatter.readyAt - Date.now()));
@@ -288,15 +373,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
             suppressedOwnEffects: suppressedOwnEffectsRef.current,
           });
           if (!shown) return;
-          const push = (published: NarrationItem) =>
-            setNarration((items) =>
-              pushNarrationItem(
-                items,
-                published,
-                collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
-                collapseNarrationRef.current,
-              ),
-            );
           // Left, then right. A moment carrying both halves is a sentence and its result, so
           // the clause takes the screen first and the cards it moved follow a beat later.
           // The folded phone slot draws both halves in one item, so it is published whole.
@@ -308,6 +384,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
             if (context.cancelled || narrationSkipRef.current) return;
           }
           push(shown);
+          if (itemVersion !== undefined) releaseTrashArrivalsThrough(itemVersion);
           if (activation) {
             const key = activation.key;
             linked = true;
@@ -316,6 +393,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
             );
           }
           announceGate?.release();
+          costClause?.read.release();
           reportShown(`narration-step-${item.id}`, context);
           // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
           // single moment, give every clause one readable beat before the next server event
@@ -325,6 +403,63 @@ export function narrationStream(deps: NarrationStreamDeps) {
       },
     });
     if (announceGate) void queue.idle().then(() => announceGate.release());
+  }
+
+  function push(published: NarrationItem) {
+    setNarration((items) =>
+      pushNarrationItem(
+        items,
+        published,
+        collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
+        collapseNarrationRef.current,
+      ),
+    );
+  }
+
+  /**
+   * Waits until the board has caught up with the clauses before this one: the effect draws
+   * already in the air when it was raised, and the viewer's own clause for the same card that
+   * an answered dialog is about to hand back. That clause came first, so it reads first.
+   */
+  async function waitForEarlierBeats(
+    cardId: string,
+    seat: Seat,
+    earlierDrawFlights: ReadonlySet<string>,
+    context: AnimationStepContext,
+  ) {
+    const deadline = Date.now() + TIMINGS.ownEffectNoticeReturn + CONSEQUENCE_GATE_MAX_MS;
+    const answeredDialogPending = () =>
+      seat === viewerSeat && suppressedOwnEffectsRef.current.get(cardId)?.releaseTimer !== undefined;
+    while (
+      (queue.hasPendingStep((step) => earlierDrawFlights.has(step.id)) || answeredDialogPending()) &&
+      Date.now() < deadline &&
+      !context.cancelled &&
+      !context.skipping
+    )
+      await context.wait(16);
+  }
+
+  /**
+   * Publishes notices at once, outside the queue. For a clause the viewer's own dialog
+   * already printed: its card was lit and read while the dialog was open, so it only needs
+   * its place in the column, ahead of anything raised after it.
+   */
+  function publishNow(notices: readonly MatchNotice[], batchId: string) {
+    if (notices.length === 0) return;
+    const items = buildNarrationItems({
+      batchId,
+      notices,
+      panels: [],
+      nowMs: Date.now(),
+      nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
+    });
+    for (const item of items) {
+      const shown = presentableNarration(item, {
+        collapseNarration: collapseNarrationRef.current,
+        suppressedOwnEffects: suppressedOwnEffectsRef.current,
+      });
+      if (shown) push(shown);
+    }
   }
 
   /**
@@ -401,6 +536,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
   return {
     enqueueNarrationItem,
     narrate,
+    publishNow,
     flushHeldNotices,
     openHeld,
     narrationBefore,

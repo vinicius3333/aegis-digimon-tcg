@@ -35,6 +35,7 @@ describe("BT11-086 Mervamon", () => {
       {
         materials: [{ traits: ["Xros Heart"] }],
         count: 3,
+        maxMaterials: 1,
       },
     ]);
     const s = setupEngine(

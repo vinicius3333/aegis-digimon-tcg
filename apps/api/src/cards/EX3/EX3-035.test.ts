@@ -528,17 +528,8 @@ describe("EX3-035 Goldramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    let decision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    decision = s.state.pendingDecision!;
+    let decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -546,12 +537,22 @@ describe("EX3-035 Goldramon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("chosenTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
+    // The "by" processing condition is asked after the -6000 DP target, at its own clause.
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 2 && s.perm("chosenTarget").currentDP === 4000);
 
     expect(s.perm("chosenTarget").currentDP).toBe(4000);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(3);
-    expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
     expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
   });
 

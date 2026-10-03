@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              playCost: { op: "gte", value: 4 },
+              playCostGte: 4,
               nameOrTrait: [
                 { tokens: ["Mirei Mikagura"], match: "nameExact" },
                 { tokens: ["CS"], match: "trait" },
@@ -58,6 +58,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with the [Holy Beast], [Angel], [Archangel], [Fallen Angel] or [CS] trait from your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

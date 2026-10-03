@@ -2,7 +2,7 @@
 
 import { act, cleanup, render as renderDom, renderHook } from "@testing-library/react";
 import { createElement } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
@@ -646,5 +646,345 @@ describe("a security battle's outcome comes before the attacker's death", () => 
     await advance(TIMINGS.securityDockMax / 4);
     expect(view.result.current.securityClash).toBeNull();
     expect(view.result.current.securityRevealPending).toBe(false);
+  });
+});
+
+describe("BeelStarmon's [When Attacking] clauses read before the security check deletes it (Discord 1555578375677018193)", () => {
+  it("shows the unsuspend and Hurricane Screw Shot toasts before the security break and BeelStarmon's shatter", async () => {
+    const before = {
+      players: [
+        {
+          battleArea: [
+            {
+              permanentId: "perm-3",
+              topCard: { instanceId: "beel", cardId: "BT25-085" },
+              stack: [
+                { instanceId: "shot", cardId: "EX7-071" },
+                { instanceId: "base", cardId: "BT10-012" },
+              ],
+            },
+          ],
+          trash: [],
+          hand: [],
+          securityCount: 5,
+        },
+        {
+          battleArea: [{ permanentId: "perm-1", topCard: { instanceId: "target", cardId: "BT1-009" }, stack: [] }],
+          trash: [],
+          hand: [],
+          securityCount: 5,
+        },
+      ],
+    } as unknown as GameState;
+    const after = {
+      players: [
+        {
+          battleArea: [],
+          trash: [
+            { instanceId: "shot", cardId: "EX7-071" },
+            { instanceId: "base", cardId: "BT10-012" },
+            { instanceId: "beel", cardId: "BT25-085" },
+          ],
+          hand: [],
+          securityCount: 5,
+        },
+        { battleArea: [], trash: [{ instanceId: "target", cardId: "BT1-009" }], hand: [], securityCount: 4 },
+      ],
+    } as unknown as GameState;
+    const useOption =
+      "[When Digivolving] [When Attacking] [Once Per Turn] You may use 1 [Three Musketeers] or [TS] trait Option card from your hand or this Digimon's digivolution cards without paying the cost.";
+    const unsuspend =
+      "[When Digivolving] [When Attacking] [Counter] [Once Per Turn] By trashing 1 Option card from any of your Digimon's digivolution cards or link cards, this Digimon unsuspends.";
+    const beelEffect = (kind: "effectTriggered" | "effectResolved", effectKey: string, description: string) =>
+      ({
+        kind,
+        seat: 0,
+        sourceCardId: "BT25-085",
+        sourceInstanceId: "beel",
+        sourcePermanentId: "perm-3",
+        effectKey,
+        description,
+        timing: "WhenAttacking",
+      }) as ServerEvent;
+    const screwShot = (kind: "effectTriggered" | "effectResolved") =>
+      ({
+        kind,
+        seat: 0,
+        sourceCardId: "EX7-071",
+        sourceInstanceId: "shot",
+        effectKey: "subtrigger/18/onDigivolutionCardDiscarded",
+        description: "onDigivolutionCardDiscarded",
+        timing: "onDigivolutionCardDiscarded",
+        printedTiming: "Static",
+        isInherited: true,
+      }) as ServerEvent;
+    // The live board names the attacker's card; the security scene needs it to hold the attacker.
+    anchors.permanentCardId = (permanentId) => (permanentId === "perm-3" ? "BT25-085" : undefined);
+    onTestFinished(() => {
+      delete anchors.permanentCardId;
+    });
+    const view = renderOrderingCues(before);
+    await advance(0);
+    view.feedBatches([
+      [
+        {
+          kind: "attackDeclared",
+          seat: 0,
+          attackerPermanentId: "perm-3",
+          attackerCardId: "BT25-085",
+          target: { kind: "player" },
+        },
+      ],
+      [beelEffect("effectTriggered", "BT25-085/ir-shared-0", useOption)],
+    ]);
+    await advance(2000);
+    // Everything after the Option choice reaches the client in one patch, as in the reported match.
+    const screwShotMain = (kind: "effectTriggered" | "effectResolved") =>
+      ({
+        kind,
+        seat: 0,
+        sourceCardId: "EX7-071",
+        sourceInstanceId: "shot",
+        effectKey: "EX7-071/main",
+        description: "[Main] Delete 1 of your opponent's level 3 Digimon.",
+        timing: "OnUseOption",
+        ...(kind === "effectTriggered" ? { printedTiming: "Main" } : {}),
+      }) as ServerEvent;
+    view.feedBatches(
+      [
+        [{ kind: "cardPlayed", seat: 0, cardId: "EX7-071" }],
+        [screwShotMain("effectTriggered")],
+        [
+          {
+            kind: "cardsMoved",
+            instanceIds: ["target"],
+            from: "battleArea",
+            to: "trash",
+            deletedPermanents: [{ permanentId: "perm-1", instanceId: "target", cardId: "BT1-009", seat: 1 }],
+          },
+        ],
+        [
+          {
+            kind: "cardsMoved",
+            instanceIds: ["shot"],
+            from: "various",
+            to: "battleArea",
+            optionUsed: true,
+            placedUnder: { permanentId: "perm-3" },
+          },
+        ],
+        [screwShotMain("effectResolved")],
+        [beelEffect("effectResolved", "BT25-085/ir-shared-0", useOption)],
+        [beelEffect("effectTriggered", "BT25-085/ir-shared-1", unsuspend)],
+        [{ kind: "cardsMoved", instanceIds: ["shot"], from: "various", to: "trash" }],
+        [{ kind: "cardsMoved", instanceIds: ["perm-3"], from: "suspended", to: "unsuspended" }],
+        [beelEffect("effectResolved", "BT25-085/ir-shared-1", unsuspend)],
+        [screwShot("effectTriggered"), { kind: "memoryChanged", from: 5, to: 6, reason: "gainMemory" }],
+        [screwShot("effectResolved")],
+        [
+          {
+            kind: "securityRevealed",
+            seat: 1,
+            revealedCardId: "BT1-010",
+            attackerPermanentId: "perm-3",
+            isDigimon: true,
+          },
+        ],
+        [
+          {
+            kind: "cardsMoved",
+            instanceIds: ["base", "beel"],
+            from: "battleArea",
+            to: "trash",
+            deletedPermanents: [{ permanentId: "perm-3", instanceId: "beel", cardId: "BT25-085", seat: 0 }],
+          },
+          { kind: "securityChecked", seat: 1, revealedCardId: "BT1-010", resolution: "battle" },
+        ],
+      ] as ServerEvent[][],
+      after,
+    );
+    let monodramonHeldAtBreak: boolean | undefined;
+    let beelStarmonAtBreak: { isSuspended: boolean; stack: { instanceId: string }[] } | undefined;
+    let optionWasDocked = false;
+    let shotHeldWhileDocked: boolean | undefined;
+    let shotHeldAtUnsuspend: boolean | undefined;
+    const shotHeld = () =>
+      [...view.result.current.heldTrashArrivals.values()].some((arrival) => arrival.instanceIds.includes("shot"));
+    const order = await firstSeenOrder(
+      {
+        optionDocked: () => {
+          optionWasDocked ||= view.result.current.optionBranch !== null;
+          if (optionWasDocked) shotHeldWhileDocked ??= shotHeld();
+          return optionWasDocked;
+        },
+        monodramonShatter: () => view.result.current.deleteBursts.some((burst) => burst.cardId === "BT1-009"),
+        optionLeft: () => optionWasDocked && view.result.current.optionBranch === null,
+        unsuspendToast: () => {
+          const shown = view.result.current.notices.some(
+            (notice) =>
+              notice.body.variant === "effect" &&
+              notice.body.cardId === "BT25-085" &&
+              (notice.body.description ?? "").includes("this Digimon unsuspends"),
+          );
+          if (shown) shotHeldAtUnsuspend ??= shotHeld();
+          return shown;
+        },
+        screwShotToast: () =>
+          view.result.current.notices.some(
+            (notice) =>
+              notice.body.variant === "effect" &&
+              notice.body.cardId === "EX7-071" &&
+              !(notice.body.description ?? "").startsWith("[Main]"),
+          ),
+        securityBreak: () => {
+          if (view.result.current.securityBreak === null) return false;
+          monodramonHeldAtBreak ??= view.result.current.heldBlowState?.players[1]?.battleArea.some(
+            (permanent) => permanent.permanentId === "perm-1",
+          );
+          beelStarmonAtBreak ??= view.result.current.heldBlowState?.players[0]?.battleArea.find(
+            (permanent) => permanent.permanentId === "perm-3",
+          ) as unknown as typeof beelStarmonAtBreak;
+          return true;
+        },
+        beelShatter: () => view.result.current.deleteBursts.some((burst) => burst.cardId === "BT25-085"),
+      },
+      15000,
+    );
+    expect(order).toEqual([
+      "optionDocked",
+      "monodramonShatter",
+      "optionLeft",
+      "unsuspendToast",
+      "screwShotToast",
+      "securityBreak",
+      "beelShatter",
+    ]);
+    expect(monodramonHeldAtBreak).not.toBe(true);
+    // Hurricane Screw Shot reaches the trash with the unsuspend cost, not when it is used.
+    expect(shotHeldWhileDocked).toBe(true);
+    expect(shotHeldAtUnsuspend).toBe(false);
+    // The unsuspend paid for with Hurricane Screw Shot is on screen before the battle.
+    expect(beelStarmonAtBreak?.isSuspended).toBe(false);
+    expect(beelStarmonAtBreak?.stack.map((card) => card.instanceId)).toEqual(["base"]);
+  });
+});
+
+describe("a ＜Delay＞ Option paying its cost", () => {
+  const guardian = {
+    seat: 0,
+    sourceCardId: "BT20-100",
+    sourceInstanceId: "guardian",
+    sourcePermanentId: "perm-3",
+    effectKey: "BT20-100/ir-1-0/action-0",
+    description:
+      "[All Turns] When any of your Digimon with [Omnimon] in its name would leave the battle area, ＜Delay＞",
+    timing: "AllTurns",
+  } as const;
+  const guardianBoard = {
+    players: [
+      {
+        battleArea: [
+          { permanentId: "perm-3", topCard: { instanceId: "guardian", cardId: "BT20-100" }, stack: [], currentDP: 0 },
+        ],
+        trash: [],
+        hand: [],
+      },
+      {
+        ...BOARD.players[1],
+        battleArea: [
+          ...BOARD.players[1]!.battleArea,
+          { permanentId: "perm-7", topCard: { instanceId: "s1-30", cardId: "BT1-009" }, stack: [], currentDP: 3000 },
+        ],
+      },
+    ],
+  } as unknown as GameState;
+  const afterWipe = {
+    players: [
+      { battleArea: [], trash: [{ instanceId: "guardian", cardId: "BT20-100" }], hand: [] },
+      { battleArea: [], trash: [], hand: [] },
+    ],
+  } as unknown as GameState;
+  // The server sends each of these in a batch of its own, as it did in match f1c49980.
+  const delayThenWipe: ServerEvent[][] = [
+    [{ kind: "effectTriggered", ...guardian }],
+    [
+      {
+        kind: "cardsMoved",
+        instanceIds: ["guardian"],
+        from: "various",
+        to: "trash",
+        trashedPermanents: [{ permanentId: "perm-3", instanceId: "guardian", cardId: "BT20-100", seat: 0 }],
+      },
+    ],
+    [{ kind: "effectResolved", ...guardian }],
+    [{ kind: "deletionPrevented", keyword: "Delay", seat: 0, permanentId: "perm-9", cardId: "BT20-102" }],
+    [
+      {
+        kind: "cardsMoved",
+        instanceIds: ["s1-51", "s1-17"],
+        from: "battleArea",
+        to: "trash",
+        deletedPermanents: [{ permanentId: "perm-1", instanceId: "s1-17", cardId: "BT18-015", seat: 1 }],
+      },
+    ],
+    [
+      {
+        kind: "cardsMoved",
+        instanceIds: ["s1-30"],
+        from: "various",
+        to: "deckBottom",
+        seat: 1,
+        returnedPermanents: [{ permanentId: "perm-7", instanceId: "s1-30", cardId: "BT1-009", seat: 1 }],
+      },
+    ],
+  ];
+
+  it("takes the Option, then each opponent Digimon, off the field one at a time (Discord 1555673696960774224)", async () => {
+    const view = renderOrderingCues(guardianBoard);
+    await advance(0);
+    view.feedBatches(delayThenWipe, afterWipe);
+    const seenAt: Record<string, number> = {};
+    const at = (name: string, shown: boolean) => {
+      if (shown) seenAt[name] ??= Date.now();
+      return shown;
+    };
+    await firstSeenOrder(
+      {
+        clause: () =>
+          at(
+            "clause",
+            view.result.current.notices.some(
+              (notice) => notice.body.variant === "effect" && notice.body.cardId === "BT20-100",
+            ),
+          ),
+        optionBreak: () =>
+          at(
+            "optionBreak",
+            view.result.current.deleteBursts.some((burst) => burst.cardId === "BT20-100"),
+          ),
+        opponentBreak: () =>
+          at(
+            "opponentBreak",
+            view.result.current.deleteBursts.some((burst) => burst.cardId === "BT18-015"),
+          ),
+        returnLeaves: () =>
+          at(
+            "returnLeaves",
+            seenAt.opponentBreak !== undefined &&
+              ![...view.result.current.heldDeletions.values()].some((held) => held.permanent.permanentId === "perm-7"),
+          ),
+      },
+      8000,
+    );
+    const probeStepMs = 16;
+    expect(seenAt.opponentBreak! - seenAt.optionBreak!).toBeGreaterThanOrEqual(TIMINGS.removalStagger - probeStepMs);
+    expect(seenAt.returnLeaves! - seenAt.opponentBreak!).toBeGreaterThanOrEqual(TIMINGS.removalStagger - probeStepMs);
+    // The Option breaks as its clause is read, with no reading beat in between.
+    expect(seenAt.optionBreak! - seenAt.clause!).toBeLessThan(TIMINGS.effectAnnounce);
+    expect(
+      view.result.current.notices.some(
+        (notice) => notice.body.variant === "keyword" && notice.body.cardId === "BT20-102",
+      ),
+    ).toBe(false);
   });
 });

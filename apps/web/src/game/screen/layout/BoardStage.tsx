@@ -5,7 +5,7 @@
    is never clipped by the board's own overflow; the ghost that follows a held card goes
    to the document body for the same reason. */
 
-import type { PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
 import type { ArenaBoardLook } from "../../arenaLook";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
@@ -48,6 +48,7 @@ import { RightPileColumn } from "./RightPileColumn";
 import { Sidebar } from "./Sidebar";
 import { TurnBanner } from "./TurnBanner";
 import { ViewerBattleRow } from "./ViewerBattleRow";
+import { ViewerPiles } from "./ViewerPiles";
 
 export interface BoardAnchors {
   board: RefObject<HTMLDivElement | null>;
@@ -154,6 +155,7 @@ export function BoardStage({
   onStartPermanentDrag,
   onInspectPermanent,
   onOpenCard,
+  onResetScenario,
 }: {
   state: GameState;
   shownState: GameState;
@@ -191,6 +193,7 @@ export function BoardStage({
   onStartPermanentDrag: (perm: Permanent, event: ReactPointerEvent) => void;
   onInspectPermanent: { viewer: (perm: Permanent) => void; opponent: (perm: Permanent) => void };
   onOpenCard: (cardId: string, artId?: string) => void;
+  onResetScenario?: () => void;
 }) {
   const { t } = useTranslation();
   const other = otherSeat(viewerSeat);
@@ -204,6 +207,18 @@ export function BoardStage({
       onClose={() => overlays.setSurrenderConfirmOpen(false)}
     />
   ) : null;
+  const viewerPiles = (
+    <ViewerPiles
+      viewer={shownViewer}
+      docked={layout.dockViewerPiles}
+      pileWidth={layout.arenaPileWidth}
+      compactPiles={layout.compactPiles}
+      viewerDeckRef={anchors.viewerDeck}
+      viewerDeckRiffling={cues.deckRiffles.has(`${viewerSeat}:deck`)}
+      viewerTrashClassName={chrome.trashEffectSource(viewerSeat) ?? ""}
+      onOpenViewerTrash={shownViewer.trash.length ? () => overlays.setTrashView(Side.Viewer) : undefined}
+    />
+  );
 
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
@@ -225,6 +240,10 @@ export function BoardStage({
           ref={anchors.board}
           data-art={look.hasArt || undefined}
           style={{
+            ...({
+              "--arena-raising-width": `${layout.arenaRaisingWidth}px`,
+              "--arena-sideline-basis-width": `${layout.arenaSidelineBasisWidth}px`,
+            } as CSSProperties),
             flex: 1,
             position: "relative",
             display: "flex",
@@ -232,6 +251,7 @@ export function BoardStage({
           }}
         >
           <OpponentBar
+            onResetScenario={onResetScenario}
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponent.displayName || t("game.opponent")}
             opponentAvatarId={opponent.avatarId}
@@ -377,14 +397,12 @@ export function BoardStage({
             <RightPileColumn
               opponent={shownOpponent}
               opponentBreeding={breedingOpponent}
-              viewer={shownViewer}
+              viewerPiles={layout.dockViewerPiles ? null : viewerPiles}
               pileWidth={layout.arenaPileWidth}
+              raisingWidth={layout.arenaRaisingWidth}
               compactPiles={layout.compactPiles}
-              viewerDeckRef={anchors.viewerDeck}
               opponentSecurityRef={anchors.opponentSecurity}
               opponentEggDeckRiffling={cues.deckRiffles.has(`${other}:eggDeck`)}
-              viewerDeckRiffling={cues.deckRiffles.has(`${viewerSeat}:deck`)}
-              viewerTrashClassName={chrome.trashEffectSource(viewerSeat) ?? ""}
               breedingBurst={
                 breedingOpponent.breeding ? cues.permanentBursts.get(breedingOpponent.breeding.permanentId) : undefined
               }
@@ -430,7 +448,6 @@ export function BoardStage({
               onOpenOpponentSecurity={
                 shownOpponent.securityCount ? () => overlays.setSecurityView(Side.Opponent) : undefined
               }
-              onOpenViewerTrash={shownViewer.trash.length ? () => overlays.setTrashView(Side.Viewer) : undefined}
             />
           </div>
 
@@ -438,6 +455,7 @@ export function BoardStage({
             playerName={viewer.displayName || t("game.you")}
             playerAvatarId={viewer.avatarId}
             breedingDock={!layout.portraitArena ? breedingDock : null}
+            pileDock={layout.dockViewerPiles ? viewerPiles : null}
             handDockRef={anchors.viewerHandDock}
             cardWidth={layout.handCardWidth}
             minExposure={layout.handMinExposure}

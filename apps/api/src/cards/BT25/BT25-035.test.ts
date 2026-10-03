@@ -309,7 +309,7 @@ describe("BT25-035 Cougarmon", () => {
     expect(s.events.some((event) => event.kind === "barrierPrompt")).toBe(false);
   });
 
-  it("decides the later optional cost before reducing DP, then deletes at zero DP", async () => {
+  it("reduces DP first, then offers the later optional cost, and deletes at zero DP only after the effect", async () => {
     const s = setupEngine(
       {
         0: {
@@ -338,7 +338,7 @@ describe("BT25-035 Cougarmon", () => {
       ok: true,
     });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.perm("opponent").currentDP).toBe(2000);
+    expect(s.perm("opponent").currentDP).toBe(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     const decision = s.state.pendingDecision!;
     expect(

@@ -25,7 +25,7 @@ import { DecisionOrderCardsPanel } from "./DecisionOrderCardsPanel";
 import { totalPlayCost } from "./decisionPlayCost";
 import { totalDP } from "./decisionDpBudget";
 import { DecisionSelectFooter } from "./DecisionSelectFooter";
-import { DecisionTriggerChooser } from "./DecisionTriggerChooser";
+import { DecisionTriggerChooser, type WaitingTrigger } from "./DecisionTriggerChooser";
 import type { DecisionCandidate } from "./decisionTypes";
 import "../effectPromptFamily.css";
 
@@ -164,7 +164,9 @@ export function DecisionOverlay({
       ? "overlay.useEffectPrompt"
       : isChoose
         ? "overlay.chooseEffectPrompt"
-        : "overlay.resolveEffect",
+        : isOrderCards
+          ? "overlay.chooseCardOrderPrompt"
+          : "overlay.resolveEffect",
   );
   // The eyebrow above already names the source card; repeating it as the title says nothing twice.
   const specificPrompt = playerFacingPromptText(request.promptText, request.kind);
@@ -310,6 +312,7 @@ export function DecisionOverlay({
         <DecisionChooseFooter
           choices={choices}
           declineIndex={declineIndex}
+          topBottomZone={request.options?.topBottomZone}
           onRespond={onRespond}
           onOpenBoard={() => setIsViewingBoard(true)}
         />
@@ -339,8 +342,10 @@ export function DecisionOverlay({
           timing={request.options?.timing}
           triggerTimings={request.options?.triggerTimings}
           triggerDescriptions={request.options?.triggerDescriptions}
+          triggerReasons={request.options?.triggerReasons}
           triggerIsInherited={request.options?.triggerIsInherited}
           triggerIsOptional={request.options?.triggerIsOptional}
+          waitingTriggers={waitingTriggersOf(request)}
           acceptsResolutionPlan={isResolutionPlan}
           onRespond={onRespond}
           onOpenBoard={() => setIsViewingBoard(true)}
@@ -354,4 +359,13 @@ export function DecisionOverlay({
       ) : null}
     </div>
   );
+}
+
+function waitingTriggersOf(request: DecisionRequest): WaitingTrigger[] {
+  const cardIds = request.options?.waitingTriggerCardIds ?? [];
+  return cardIds.map((cardId, index) => ({
+    cardId,
+    description: request.options?.waitingTriggerDescriptions?.[index],
+    isInherited: request.options?.waitingTriggerIsInherited?.[index] === true,
+  }));
 }

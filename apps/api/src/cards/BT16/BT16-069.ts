@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If [Gesomon] or [X Antibody] is in this Digimon's digivolution cards, trash any 3 cards under 1 of your opponent's Digimon or Tamers.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -36,6 +38,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, 1 of your opponent's Digimon or Tamers without cards under it can't suspend until the end of their turn.",
           kind: "Restrict",
           target: {
             filter: {
@@ -54,6 +58,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If [Gesomon] or [X Antibody] is in this Digimon's digivolution cards, trash any 3 cards under 1 of your opponent's Digimon or Tamers.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -83,6 +89,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, 1 of your opponent's Digimon or Tamers without cards under it can't suspend until the end of their turn.",
           kind: "Restrict",
           target: {
             filter: {

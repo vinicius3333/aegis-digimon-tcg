@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Your Digimon in the breeding area may digivolve into [Lucemon] from your trash without paying the cost.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -26,6 +28,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

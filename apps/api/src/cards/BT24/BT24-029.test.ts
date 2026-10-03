@@ -23,7 +23,7 @@ describe("BT24-029 Whamon", () => {
     });
   });
 
-  it("requires the qualifying hand card placement for both entry triggers", () => {
+  it("gates both entry triggers on the optional qualifying hand card placement", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as unknown as {
         kind: string;
@@ -36,6 +36,7 @@ describe("BT24-029 Whamon", () => {
           abortOnDecline?: unknown;
           target: { filter: { nameOrTrait: unknown } };
         };
+        optional: boolean;
         abortOnDecline: boolean;
       };
       expect(action.kind).toBe("Restrict");
@@ -43,6 +44,7 @@ describe("BT24-029 Whamon", () => {
       expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
       expect(action.cost.optional).toBeUndefined();
       expect(action.cost.abortOnDecline).toBeUndefined();
+      expect(action.optional).toBe(true);
       expect(action.abortOnDecline).toBe(true);
       expect(action.cost.target.filter.nameOrTrait).toEqual([
         { tokens: ["Sea Beast", "TS"], match: "trait" },
@@ -95,7 +97,7 @@ describe("BT24-029 Whamon", () => {
         },
         1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("placed").instanceId, s.perm("restricted").topCard.instanceId);
     s.state.memory = 10;
@@ -125,7 +127,7 @@ describe("BT24-029 Whamon", () => {
         },
         1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("aquatic").instanceId, s.perm("restricted").permanentId);
     s.state.memory = 10;
@@ -141,6 +143,43 @@ describe("BT24-029 Whamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("whamon").instanceId);
     expect(s.state.memory).toBe(3);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
+  });
+
+  it("declines the optional 'by' placement and restricts no suspension", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT24-029", as: "whamon" },
+          { card: "BT24-102", as: "placed" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision !== undefined ||
+        s.perm("whamon").stack.some((card) => card.instanceId === s.inst("placed").instanceId),
+    );
+    const refusal = s.state.pendingDecision;
+    expect(refusal?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: refusal!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("placed").instanceId]);
+    expect(s.perm("whamon").stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(false);
   });
 
   it("does not restrict suspension when the placement cost is unavailable", async () => {
@@ -461,7 +500,7 @@ describe("BT24-029 Whamon", () => {
         },
         1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("whamon").instanceId, s.inst("placed").instanceId, s.perm("restricted").permanentId);
     s.state.memory = 5;

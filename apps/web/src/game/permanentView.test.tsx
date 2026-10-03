@@ -213,6 +213,28 @@ describe("PermanentView DP changes", () => {
     expect(screen.getByTitle(/DP \+2K/)).toBeTruthy();
   });
 
+  it("Discord 1555271931203158056: shows a Sukamon-rewritten Machinedramon as Sukamon at 3K DP", () => {
+    const permanent = new Permanent();
+    permanent.permanentId = "machinedramon";
+    permanent.controllerSeat = 1;
+    permanent.topCard = Object.assign(new CardInstance(), { instanceId: "machinedramon-top", cardId: "EX1-073" });
+    permanent.baseDP = 11_000;
+    permanent.currentDP = 3000;
+    permanent.originalNameOverride = "Sukamon";
+    permanent.originalColorsOverride.push("White");
+    permanent.originalDPOverride = 3000;
+    render(
+      <I18nProvider>
+        <PermanentView perm={permanent} />
+      </I18nProvider>,
+    );
+
+    expect(screen.getByText("Sukamon")).toBeTruthy();
+    expect(screen.queryByText("Machinedramon")).toBeNull();
+    expect(screen.getByText("3K")).toBeTruthy();
+    expect(document.querySelector("[data-dp]")).toBeNull();
+  });
+
   it("labels a DP reduction explicitly on the affected Digimon", () => {
     render(
       <I18nProvider>
@@ -282,7 +304,7 @@ describe("PermanentView resolved keywords", () => {
     const card = screen.getByTitle("ExTyrannomon");
     expect(card.dataset.state).toBe("suspended");
     const suspendedStyle = card.closest<HTMLElement>("[data-suspended]")?.style;
-    expect(suspendedStyle?.marginInlineStart).toBe("24px");
+    expect(suspendedStyle?.marginInlineStart).toContain("24px");
     expect(suspendedStyle?.marginInlineEnd).toBe("24px");
     expect(card.style.rotate).toBe("90deg");
     expect(screen.getByText("Blocker")).toBeTruthy();
@@ -325,10 +347,11 @@ describe("PermanentView resolved keywords", () => {
     );
 
     expect(screen.getByText("Decoy")).toBeTruthy();
-    expect(screen.getByText("Blocker")).toBeTruthy();
+    expect(screen.queryByText("Blocker")).toBeNull();
     expect(screen.queryByText("Reboot")).toBeNull();
     expect(screen.queryByText("Jamming")).toBeNull();
-    expect(screen.getByText("+2")).toBeTruthy();
+    fireEvent.click(screen.getByText("+3"));
+    expect(screen.getByRole("tooltip").textContent).toContain("Blocker · Reboot · Jamming");
   });
 });
 

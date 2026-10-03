@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When an opponent's Digimon or one of your Digimon with the [Seven Great Demon Lords] trait is played, by trashing 1 card in your hand, return the bottom 3 digivolution cards of 1 of your opponent's Digimon to the bottom of the deck.",
               kind: "ReturnTopDigivolutionCards",
               target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
               cardsPerTarget: 3,
@@ -31,6 +33,8 @@ export const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart:
+                "Then, if your opponent has as many or fewer total Digimon and Tamers as you, delete 1 of your opponent's Digimon with no digivolution cards.",
               kind: "Delete",
               target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: 1 },
               condition: {

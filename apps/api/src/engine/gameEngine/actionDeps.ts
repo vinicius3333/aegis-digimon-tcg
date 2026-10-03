@@ -34,8 +34,8 @@ import {
   type DnaDigivolveDeps,
   type RespondCounterDeps,
 } from "../actions/index.js";
-import { linkRequirementSatisfied } from "./boardQueries.js";
-import { digivolvedFromTamerBase } from "./subTriggerIdentity.js";
+import { linkHostOf, linkRequirementSatisfied } from "./boardQueries.js";
+import { type ArmedSubTrigger, digivolvedFromTamerBase } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
 import { applyIntent, checkTurnEndAfterVerb, findInstance, findLooseInstance } from "./intents.js";
 import {
@@ -58,7 +58,7 @@ import {
   withPendingSubTriggers,
 } from "./subTriggers.js";
 import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
-import { collectDeferredTimingPending } from "./windows.js";
+import { collectDeferredTimingPending, takeLeaveReplacementPending } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
@@ -95,9 +95,11 @@ export function resolutionDeps(
     }
     return [...unique.values()];
   };
-  // A card an Option plays waits with its [On Play] and the watchers its play event armed
-  // until the Option finishes (Q2577); only the Option's other pending watchers resolve here.
-  const pendingWhileOptionResolves = (): CollectedEffect[] => pendingWindowWatchersCollected(engine);
+  // Everything a used Option's [Main] body triggers waits until the Option is trashed or Arts
+  // Digivolved (Q2577, Q6215). Its watchers then join the Arts [When Digivolving] pool, so the
+  // turn player resolves first; without Arts they drain when the Option finishes.
+  const pendingWhileOptionResolves = (): CollectedEffect[] =>
+    engine.optionMainDepth > 0 ? [] : pendingWindowWatchersCollected(engine);
   const unannounced = new Set<CollectedEffect>();
   return {
     // The outermost loop settles deferred queues between effects. A nested resolver normally
@@ -142,7 +144,8 @@ export function resolutionDeps(
       derivedPending.push(...(await collectRuleProcessPending(engine)));
     },
     isGameOver: () => engine.state.gameOver,
-    chooseOrder: (seat, active, timing, plan) => engine.resolverDecisions.chooseOrder(seat, active, timing, plan),
+    chooseOrder: (seat, active, timing, plan, waiting) =>
+      engine.resolverDecisions.chooseOrder(seat, active, timing, plan, waiting),
     askOptional: (seat, collected, plan) => engine.resolverDecisions.askOptional(seat, collected, plan),
     onResolving: (timing, collected) => {
       const reactionIndex = derivedPending.indexOf(collected);
@@ -253,6 +256,28 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       return false;
     },
     prepareDigivolveCost: (_state, _seat, target, evolving) => fireBeforeDigivolveCost(engine, evolving, target),
+    holdCostTriggers: () => {
+      const enclosing = engine.digivolveCostSubTriggers;
+      const held: ArmedSubTrigger[] = [];
+      engine.digivolveCostSubTriggers = held;
+      let holding = true;
+      let activated = false;
+      return {
+        stopHolding: () => {
+          if (!holding) return;
+          holding = false;
+          engine.digivolveCostSubTriggers = enclosing;
+        },
+        activate: async (window) => {
+          if (activated) return window?.();
+          activated = true;
+          await withPendingSubTriggers(engine, [], undefined, window ?? (async () => {}), {
+            onlyInitiallyArmed: true,
+            alsoArmed: held,
+          });
+        },
+      };
+    },
     potentialInteractiveDigivolveReduction: (state, seat, target, into, baseAsDigimon) => {
       if (engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
       const liveReduction = engine.subTriggers.potentialInteractiveReductionFor(
@@ -604,6 +629,10 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
       firePlayEntryWindows(engine, timing, sourceInstanceId),
     beginOptionResolution: () => {
       engine.optionResolutionDepth += 1;
+      engine.optionMainDepth += 1;
+    },
+    finishOptionMain: () => {
+      engine.optionMainDepth = Math.max(0, engine.optionMainDepth - 1);
     },
     finishOptionResolution: async () => {
       if (engine.optionResolutionDepth === 1) {
@@ -638,7 +667,6 @@ export function attackDeps(engine: GameEngine): AttackDeps {
     access: engine.access,
     combat: engine.combat,
     continuous: engine.continuous,
-    attackedThisTurn: engine.combat.attackedThisTurn,
     onCombatComplete: () => checkTurnEndAfterVerb(engine),
     onCombatError: (err) => {
       logError("[engine] combat resolve failed:", err);
@@ -665,7 +693,7 @@ export function blockDeps(engine: GameEngine): BlockDeps {
 }
 
 export function combatDecisionDeps(engine: GameEngine): CombatDecisionDeps {
-  return { state: engine.state, access: engine.access, combat: engine.combat };
+  return { state: engine.state, access: engine.access, combat: engine.combat, continuous: engine.continuous };
 }
 
 /** Assemble the non-combat verb router's dependencies (subsystem: intent-protocol-and-room). */
@@ -733,6 +761,7 @@ export function activateEffectDeps(engine: GameEngine): ActivateEffectDeps {
  */
 export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
   const mem = memoryDepsFromGauge(engine.memory);
+  const materialInterruptPending: CollectedEffect[] = [];
   return {
     maxAffordable: mem.maxAffordable,
     payMemory: mem.payMemory,
@@ -770,20 +799,28 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
     placePendingDigivolution: playCardDeps(engine).placePendingDigivolution,
     relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
       engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),
-    relocatePermanentForDigiXros: async (destPermanentId, sourcePermanentId, opts) => {
-      const prevented = await engine.consultLeavePrevention([sourcePermanentId], "byEffect", undefined, {
+    interruptFieldMaterialLeave: async (fieldPermanentIds) => {
+      // A DigiXros from a main phase action is not an effect (Q2352, Q4184), so "by effects"
+      // clauses must not see these materials leave.
+      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byRule", undefined, {
         playerAction: true,
         isDigiXros: true,
         isBounce: true,
       });
-      if (prevented.has(sourcePermanentId)) return false;
-      return engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts);
+      materialInterruptPending.push(...takeLeaveReplacementPending(engine));
+      return prevented;
     },
     suspendPermanent: async (permanentId) => {
       await engine.primitives.suspend([permanentId]);
     },
     fireTiming: async (_state, _seat, timing, sourceInstanceId, materialCount) =>
-      firePlayEntryWindows(engine, timing, sourceInstanceId, { digiXrosMaterialCount: materialCount }),
+      firePlayEntryWindows(
+        engine,
+        timing,
+        sourceInstanceId,
+        { digiXrosMaterialCount: materialCount },
+        { procedurePending: materialInterruptPending.splice(0) },
+      ),
     emit: (event) => engine.hooks.emit(event as ServerEvent),
   };
 }
@@ -821,7 +858,10 @@ export function linkCardDeps(engine: GameEngine): LinkCardDeps {
   return {
     maxAffordable: mem.maxAffordable,
     payMemory: mem.payMemory,
-    linkRequirementSatisfied: (hostDefinition, linkedCard) => linkRequirementSatisfied(hostDefinition, linkedCard),
+    linkRequirementSatisfied: (host, linkedCard) => {
+      const linkHost = linkHostOf(engine.continuous, host);
+      return linkHost !== undefined && linkRequirementSatisfied(linkHost, linkedCard);
+    },
     linkCostReduction: (targetPermanentId, traits) =>
       engine.continuous.linkCostReductionGrant(
         targetPermanentId,
@@ -947,9 +987,12 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
     runMainPhase: async (seat) => {
       engine.mainEntryPending = true;
       try {
-        return await engine.mainPhase.run(seat);
+        const ending = engine.mainPhase.run(seat);
+        engine.projection.syncMainPhaseAffordances();
+        return await ending;
       } finally {
         engine.mainEntryPending = false;
+        engine.projection.syncMainPhaseAffordances();
       }
     },
     finalizeMainPhaseEntry: () => {

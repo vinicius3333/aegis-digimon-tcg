@@ -1,11 +1,93 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-059.js";
 import "./BT2-060.js";
+import "../EX6/EX6-043.js";
+import "../BT5/BT5-090.js";
+import "./BT2-053.js";
 
 describe("BT2-059 Kurisarimon", () => {
+  it("Discord 1555959036778643466 gains memory for each Diaboromon start-of-main effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: ["BT2-005"],
+          battleArea: [{ card: "EX6-043", under: ["BT2-054", "BT2-059", "BT2-060"] }, { card: "EX6-043" }],
+          hand: ["BT2-054"],
+          deck: Array(10).fill("BT2-054"),
+        },
+        1: { deck: Array(10).fill("BT2-054"), hand: ["BT2-054"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    s.state.isFirstPlayersFirstTurn = false;
+    const loop = s.engine.startTurnLoop();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId.includes("TOKEN"))).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.memory).toBe(7);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("Discord 1555959036778643466 gains memory for Diaboromon and Arata's separate token effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-053", "BT2-059"] }, "BT5-090"],
+          hand: [{ card: "EX6-043", as: "diaboromon" }],
+          deck: ["BT2-054", "BT2-054", "BT2-054"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("diaboromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 4);
+    await drainMicrotasks();
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.memory).toBe(4);
+    // Keramon has the same per-timing watcher: one bonus draw per separate token effect.
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("Discord 1555959036778643466 gains memory for separate same-name plays in the same turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-054", "BT2-059"] }],
+        hand: [
+          { card: "BT2-060", as: "first" },
+          { card: "BT2-060", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    for (const [index, alias] of ["first", "second"].entries()) {
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.length === index + 2);
+      await drainMicrotasks();
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.state.memory).toBe(10 - (index + 1) * 5);
+    }
+  });
+
   it("Q1024 gains 1 memory when another Digimon with the evolved host's name is played", async () => {
     const s = setupEngine({
       0: {

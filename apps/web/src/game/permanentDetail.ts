@@ -9,9 +9,10 @@
 
    Pure projection over a `Permanent`; no rules, no measurement. */
 
-import { getCardDefinition, type Permanent } from "@aegis/shared";
+import { getCardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import { restrictionBadges, type RestrictionBadge } from "./fieldBadges";
-import { permanentTransformation, type PermanentTransformation } from "./transformation";
+import { readableStackCardIdentity } from "./stackCardIdentity";
+import { originalDP, permanentTransformation, type PermanentTransformation } from "./transformation";
 import type { StackCard } from "./overlay";
 
 /** How many security cards an attack checks with no modifier at all. */
@@ -78,7 +79,7 @@ function shownSecurityAttack(permanent: Permanent): number | undefined {
 /** Everything the inspector shows for one field position. */
 export function buildPermanentDetail(
   permanent: Permanent,
-  keywordLabels?: Readonly<Record<string, string>>,
+  { keywordLabels, viewerSeat }: { keywordLabels?: Readonly<Record<string, string>>; viewerSeat?: Seat } = {},
 ): PermanentDetail {
   const topCardId = permanent.topCard?.cardId ?? "";
   const cards: StackCard[] = [
@@ -91,12 +92,15 @@ export function buildPermanentDetail(
           },
         ]
       : []),
-    ...[...permanent.stack].map((card) => ({
-      cardId: card.faceUp ? card.cardId : "",
-      ...(card.faceUp && card.artId ? { artId: card.artId } : {}),
-      ...(!card.faceUp ? { faceDown: true } : {}),
-      role: "stack" as const,
-    })),
+    ...[...permanent.stack].map((card) => {
+      const identity = readableStackCardIdentity(card, viewerSeat);
+      return {
+        cardId: identity.cardId,
+        ...(identity.artId ? { artId: identity.artId } : {}),
+        ...(!card.faceUp ? { faceDown: true } : {}),
+        role: "stack" as const,
+      };
+    }),
     ...[...permanent.linked].map((card) => ({
       cardId: card.cardId,
       ...(card.artId ? { artId: card.artId } : {}),
@@ -112,8 +116,8 @@ export function buildPermanentDetail(
     name: getCardDefinition(topCardId)?.nameEn ?? topCardId,
     cards,
     currentDP: permanent.currentDP,
-    baseDP: permanent.baseDP,
-    dpDelta: permanent.currentDP - permanent.baseDP,
+    baseDP: originalDP(permanent),
+    dpDelta: permanent.currentDP - originalDP(permanent),
     keywords,
     grantedKeywords: [...permanent.grantedKeywords],
     grantedEffectTexts: [...permanent.grantedEffectTexts],

@@ -29,8 +29,17 @@ describe("BT25-037 Pegasusmon", () => {
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(BT25_037.effects?.find((entry) => entry.trigger === trigger)?.actions).toEqual([
-        { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: true },
         {
+          effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand.",
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+        },
+        {
+          effectTextPart:
+            "Then, you may place 1 [Angel], [Archangel], [Three Great Angels] or [Iliad] trait Digimon card or 1 [TS] trait Tamer card from your hand as the top or bottom security card.",
           kind: "SecurityManipulation",
           op: "addTopOrBottom",
           controller: "mine",

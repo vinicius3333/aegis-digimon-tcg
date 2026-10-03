@@ -204,6 +204,13 @@ export interface BoardPrimitives {
     sourcePermanentId: string,
     opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): Promise<boolean>;
+  /** Simultaneous bottom placement of a revealed Digi-Egg and battle-area tops (BT13-007).
+   * Order is nearest the bottom first. Protected sources stay in play; other cards still move.
+   */
+  placeEggAndPermanentsUnder?(
+    destPermanentId: string,
+    orderedCards: { instanceId: string; permanentId?: string }[],
+  ): Promise<void>;
   /**
    * Atomic multi-source form of `relocatePermanentByEffect`. Every source is preflighted
    * before the first permanent leaves play; an invalid source therefore pays nothing and

@@ -9,11 +9,14 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, choose any number of your opponent's Digimon so that their play cost total is up to 6 and delete them.",
           kind: "DeleteBudget",
           filter: { controller: "opponent", kind: ["Digimon"] },
           budget: 6,

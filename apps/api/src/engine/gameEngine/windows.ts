@@ -63,12 +63,13 @@ export async function withPendingPoolDrain(
 export function endResolvingWindow(engine: GameEngine, wasOutermost: boolean): void {
   if (!wasOutermost) return;
   // The entry effects of cards an Option played, printed [On Play] and parked watchers alike,
-  // wait for the Option's post-use routing boundary (Q2577).
+  // and the watchers its [Main] body armed wait for the Option's post-use routing boundary
+  // (Q2577, Q6215).
   if (engine.optionResolutionDepth === 0) {
     engine.pendingNestedTimingEffects = [];
     engine.parkedEntrySubTriggers = [];
+    engine.pendingWindowSubTriggers = [];
   }
-  engine.pendingWindowSubTriggers = [];
   // Claims outlive an inner window when parked watchers are still queued (see
   // `parkArmedForEnclosingWindow`); the queue itself ends here, so the claims do too — but only
   // once no timing window is still folding watchers, since such a window's trailing bus fire
@@ -145,6 +146,20 @@ export function parkDeferredSecurityRemovalTriggersForAttack(engine: GameEngine)
       engine.nestedTriggerSourceIdentity.set(entry, permanentIdentityOf(entry.source) ?? null);
     }
     engine.pendingNestedTimingEffects.push(...collected);
+  }
+}
+
+/**
+ * Fold the reactions the ordering effect's body deferred, such as the watchers of a Digimon it
+ * deleted before ordering the attack, into the attack's [When Attacking] pool. Both happened
+ * during that one effect, so they trigger simultaneously and the turn player orders them
+ * together (CR §15-4-3, KB Q2044, Q3399). Flushing them as their own window first would force
+ * them ahead of the [When Attacking] effects.
+ */
+export function parkDeferredTimingWindowsForAttack(engine: GameEngine): void {
+  for (const entry of collectDeferredTimingPending(engine)) {
+    engine.nestedTriggerSourceIdentity.set(entry, permanentIdentityOf(entry.source) ?? null);
+    engine.pendingNestedTimingEffects.push(entry);
   }
 }
 
@@ -237,7 +252,9 @@ export function collectNestedTimingEffects(
   const capturedTrigger = { ...trigger };
   const environment = effectEnvironment(engine, capturedTrigger);
   return gatherTriggeredEffects(environment, timing, candidateInstances, eventGrantSnapshot(environment)).map(
-    (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
+    // Each captured event is a new activation, even for the same physical card/effect.
+    // Re-collecting this parked entry retains that event's identity.
+    (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger, activationIdentity: capturedTrigger }),
   );
 }
 

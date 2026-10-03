@@ -36,6 +36,8 @@ const OPTIONS = { displayName: "Tamer", deck: { mainDeck: [], eggDeck: [] } };
 interface FakeRoom {
   room: AegisRoom;
   emitState: (state: Partial<GameState>) => void;
+  /** Several patches decoded back to back, before React renders, into one live state object. */
+  emitPatchesTogether: (state: Partial<GameState>, patches: readonly (() => void)[]) => void;
   emitLeave: (code: number) => void;
   emitDecision: (decision: DecisionRequest) => void;
   emitEvent: (event: SequencedServerEvent) => void;
@@ -66,6 +68,13 @@ function fakeRoom(roomId: string): FakeRoom {
   return {
     room,
     emitState: (state) => act(() => onState?.(state as GameState)),
+    emitPatchesTogether: (state, patches) =>
+      act(() => {
+        for (const patch of patches) {
+          patch();
+          onState?.(state as GameState);
+        }
+      }),
     emitLeave: (code) => act(() => onLeave?.(code)),
     emitDecision: (decision) => act(() => messages.get(DECISION_CHANNEL)?.(decision)),
     emitEvent: (event) => act(() => messages.get(EVENT_CHANNEL)?.(event)),
@@ -81,6 +90,32 @@ describe("useRoom reconnection token persistence", () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  it("keeps a snapshot of every revision even when several patches land before a render", async () => {
+    const joined = fakeRoom("room-1");
+    joinOrCreate.mockResolvedValue(joined.room);
+    const { result } = renderHook(() => useRoom(OPTIONS));
+    await waitFor(() => expect(result.current.status).toBe("connected"));
+
+    const live = { stateVersion: 1, memory: 0 } as Partial<GameState>;
+    joined.emitPatchesTogether(live, [
+      () => undefined,
+      () => {
+        live.stateVersion = 2;
+        live.memory = 3;
+      },
+      () => {
+        live.stateVersion = 3;
+        live.memory = 6;
+      },
+    ]);
+
+    expect(result.current.snapshots.map(({ stateVersion, state }) => [stateVersion, state.memory])).toEqual([
+      [1, 0],
+      [2, 3],
+      [3, 6],
+    ]);
   });
 
   it("persists the reconnection token once a fresh join binds", async () => {

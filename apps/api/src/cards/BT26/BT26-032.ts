@@ -22,6 +22,7 @@ const digivolveBody = [
   {
     effectTextPart: "[When Digivolving] All of your opponent's suspended Digimon get -5000 DP until their turn ends.",
     kind: "ModifyDP",
+    playerWide: true,
     target: { filter: opponentSuspendedDigimon, count: "all" },
     amount: -5000,
     duration: "untilOpponentTurnEnd",

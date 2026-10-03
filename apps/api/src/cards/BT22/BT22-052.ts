@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
           effectTextPart:
             "Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -85,6 +86,7 @@ export const compiled: CompiledCard = {
           effectTextPart:
             "Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends.",
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",

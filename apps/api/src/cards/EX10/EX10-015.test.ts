@@ -55,7 +55,7 @@ describe("EX10-015 Psychemon", () => {
       actions: [],
       keywords: [{ keyword: "Piercing" }],
     });
-    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 }]);
     expect(compiled.digivolutionRequirement).toBeUndefined();
   });
 

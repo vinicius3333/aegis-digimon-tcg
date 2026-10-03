@@ -4,8 +4,8 @@
    board is a pure render of what the server sends back (ARCHITECTURE.md §4). */
 
 import { DragKind } from "./screen/enums";
-import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
+import { useFittedCardWidths } from "./screen/hooks/useFittedCardWidths";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { ownAlliancePromptCardId } from "./combatWindowModel";
 import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
@@ -40,6 +40,7 @@ import {
   dropIntentAttrs as modelDropIntentAttrs,
 } from "./screen/model/screenDragIntents";
 import { decisionAllowsPick as modelDecisionAllowsPick, nextDecisionPicks } from "./screen/model/decisionPicks";
+import { preselectedAttackTargets } from "./screen/model/attackTargetPrompt";
 import {
   gameOverReason as modelGameOverReason,
   gameOverResult as modelGameOverResult,
@@ -110,6 +111,7 @@ export function GameScreen({
   betaBattleMode,
   onExit,
   onRematch,
+  onResetScenario,
   signedIn = false,
   demoConnection,
 }: {
@@ -125,6 +127,8 @@ export function GameScreen({
   botDeckId?: string;
   betaBattleMode?: boolean;
   onExit: (screen: Screen) => void;
+  /** Restart a server-backed development scenario from the match controls. */
+  onResetScenario?: () => void;
   /** Receives the private room code, so a private match can return to its room. */
   onRematch?: (privateRoomCode?: string) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
@@ -145,16 +149,8 @@ export function GameScreen({
 }) {
   const { t } = useTranslation();
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
-  const layout = useArenaLayout();
-  const {
-    narrowGameLayout,
-    compactPiles,
-    shortBoard,
-    landscapePhone,
-    collapseNotices,
-    arenaPileWidth,
-    arenaPermanentWidth,
-  } = layout;
+  const arenaLayout = useArenaLayout();
+  const { narrowGameLayout, compactPiles, shortBoard, collapseNotices } = arenaLayout;
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
@@ -242,6 +238,12 @@ export function GameScreen({
     actionConfirm,
     setActionConfirm,
   } = overlayState;
+  useEffect(() => {
+    if (decision?.seat !== viewerSeat) return;
+    const preselected = preselectedAttackTargets(decision);
+    if (preselected.length > 0) setPicks(preselected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decision?.decisionId]);
   // A play leaves the hand visually at the same instant the intent is dispatched. The
   // synchronized state will confirm that departure; a rejection rolls it back.
   const [optimisticPlayedInstanceId, setOptimisticPlayedInstanceId] = useState<string>();
@@ -268,6 +270,15 @@ export function GameScreen({
 
   const boardRef = useRef<HTMLDivElement | null>(null);
   const fieldRef = useRef<HTMLDivElement | null>(null);
+  const fittedWidths = useFittedCardWidths({
+    fieldRef,
+    enabled: arenaLayout.landscapePhone,
+    permanentWidth: arenaLayout.arenaPermanentWidth,
+    pileWidth: arenaLayout.arenaPileWidth,
+  });
+  const arenaPermanentWidth = fittedWidths.permanentWidth;
+  const arenaPileWidth = fittedWidths.pileWidth;
+  const layout = { ...arenaLayout, arenaPermanentWidth, arenaPileWidth };
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // Where each permanent last stood, in board coordinates. A deletion is narrated after
   // the board has already dropped the permanent, so the burst needs the last measurement
@@ -387,34 +398,12 @@ export function GameScreen({
       room?.send(PRESENTATION_CHANNEL, report);
     },
   });
-  const fieldDecisionCandidateIds = new Set<string>();
-  if (state) {
-    for (const player of state.players) {
-      for (const permanent of player.battleArea) {
-        fieldDecisionCandidateIds.add(permanent.permanentId);
-        fieldDecisionCandidateIds.add(permanent.topCard.instanceId);
-      }
-    }
-  }
-  const decisionCandidateIds = decision?.options?.candidateInstanceIds ?? [];
-  const fieldEffectDecision =
-    decision?.seat === viewerSeat &&
-    (decision.kind === "selectCards" || decision.kind === "chooseTargets") &&
-    decisionCandidateIds.length > 0 &&
-    [...decisionCandidateIds, ...(decision.options?.visibleInstanceIds ?? [])].every((id) =>
-      fieldDecisionCandidateIds.has(id),
-    );
-  // A modal already repeats the source card and its clause, so its matching toast is redundant.
-  // A field selection leaves the board visible and is part of the effect's action, so preserve
-  // the effect toast there (notably BlackWarGreymon's Blast Digivolve deletion).
+  // The decision panel repeats the source card and its clause, field selections included, so
+  // the matching toast waits until the viewer has answered.
   const alliancePromptCardId = state ? ownAlliancePromptCardId(state, viewerSeat) : undefined;
   const promptedOwnEffectCardId =
     alliancePromptCardId ??
-    (decision?.seat === viewerSeat &&
-    (!fieldEffectDecision || decision.options?.selectionContext === "attackTarget") &&
-    dialogRepeatsEffectNotice(decision.options)
-      ? decision.sourceCardId
-      : undefined);
+    (decision?.seat === viewerSeat && dialogRepeatsEffectNotice(decision.options) ? decision.sourceCardId : undefined);
   const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
   ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {
@@ -581,6 +570,7 @@ export function GameScreen({
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
     heldDeletions: cues.heldDeletions,
+    heldTrashArrivals: cues.heldTrashArrivals,
     optimisticPlayedInstanceId,
   });
   // What the ribbons have announced, for the readouts only: the live turn is what every
@@ -975,7 +965,7 @@ export function GameScreen({
       keywordLabels={
         breedingYou.breeding ? demoConnection?.keywordLabels?.[breedingYou.breeding.permanentId] : undefined
       }
-      pileWidth={arenaPileWidth}
+      pileWidth={arenaLayout.arenaRaisingWidth}
       compactPiles={compactPiles}
       burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
       effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
@@ -1095,7 +1085,7 @@ export function GameScreen({
   const permanentChrome: Omit<PermanentChrome, "suspendDelayMs"> = {
     keywordLabels: demoConnection?.keywordLabels,
     compact: narrowGameLayout || shortBoard,
-    width: landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth,
+    width: arenaPermanentWidth,
     permanentRefs: permRefs,
     effectSourcePermanentIds,
     effectLinkedPermanentIds,
@@ -1114,6 +1104,7 @@ export function GameScreen({
 
   return (
     <BoardStage
+      onResetScenario={onResetScenario}
       state={state}
       shownState={shownState}
       viewer={you}

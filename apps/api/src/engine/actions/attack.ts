@@ -41,8 +41,6 @@ export interface AttackDeps {
   onCombatComplete?: () => void;
   /** Shared continuous-rule reader (ledger): "can't attack"/"can't attack players". */
   readonly continuous?: ContinuousLegalityReader;
-  /** Permanents that have already attacked this turn (§11-2-3). */
-  readonly attackedThisTurn?: ReadonlySet<string>;
 }
 
 /**
@@ -90,12 +88,10 @@ export function validateAttack(deps: AttackDeps, seat: Seat, intent: AttackInten
     return attackerReject;
   }
 
-  // 5. §11-2-3: each Digimon may attack at most once per turn.
-  if (deps.attackedThisTurn?.has(attacker.permanentId)) {
-    return "illegal-target";
-  }
-
-  // 6. Target legality (player, or an opponent's suspended battle-area Digimon). A ＜Vortex＞
+  // 5. Target legality (player, or an opponent's suspended battle-area Digimon). A ＜Vortex＞
+  // §11-2-3 limits a declaration to one Digimon, not one attack per Digimon per turn.
+  // Suspension and an in-progress attack are checked above; an unsuspended survivor
+  // of an attack without suspending may declare another attack.
   //    declaration (intent.vortex) restricts the player target unless a grant relaxes it.
   return canAttackTarget(access, seat, attacker, intent.target, deps.continuous, intent.vortex);
 }

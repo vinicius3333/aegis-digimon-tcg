@@ -32,6 +32,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Unsuspend",
+          effectTextPart:
+            "[When Attacking] [Once Per Turn] If your opponent has no Digimon with as many or more digivolution cards as this Digimon, it unsuspends.",
           target: {
             filter: { isSelfRef: true },
             count: 1,
@@ -49,6 +51,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "ModifySecurityDP",
+          effectTextPart: "Then, all of your opponent's Security Digimon get -6000 DP for the turn.",
           controller: "opponent",
           amount: -6000,
           duration: "forTheTurn",

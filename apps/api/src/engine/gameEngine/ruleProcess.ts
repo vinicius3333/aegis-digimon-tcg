@@ -1,6 +1,7 @@
 import { uniqueOncePerTurnWatcherOccurrences } from "./subTriggerIdentity.js";
 import { EffectTiming, Permanent, type CardInstance } from "@aegis/shared";
 import { rootZoneOfLooseInstance } from "../effects/primitives.js";
+import { trashArrivalOf } from "../state/access.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { EffectContext } from "../effects/EffectContext.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./ruleDeletions.js";
@@ -148,27 +149,44 @@ export function collectDeletionPending(engine: GameEngine, pool: readonly Pooled
   const pending: CollectedEffect[] = [];
   if (pool.length > 0) {
     const merged = mergeRuleDeletions(pool);
-    const transientIds = new Set(merged.transientCandidates.map(({ instanceId }) => instanceId));
+    const candidates = listCandidateInstances(engine);
+    const candidateIds = new Set(candidates.map(({ instanceId }) => instanceId));
+    const transientIds = new Set<string>();
+    // A deletion snapshot can also contain a Digi-Egg already present in trash.
+    // Union physical sources so its inherited effect is offered only once. Only
+    // absent sources are transient and exempt from the normal trash-residency guard.
+    for (const card of merged.transientCandidates) {
+      if (candidateIds.has(card.instanceId)) continue;
+      candidates.push(card);
+      candidateIds.add(card.instanceId);
+      transientIds.add(card.instanceId);
+    }
     pending.push(
-      ...collectNestedTimingEffects(engine, EffectTiming.OnDestroyedAnyone, merged.trigger, [
-        ...listCandidateInstances(engine),
-        ...merged.transientCandidates,
-      ]).map((collected) => {
-        const instanceId = collected.source.instanceId;
-        if (!merged.trigger.deletedInstanceIds?.includes(instanceId) || transientIds.has(instanceId)) return collected;
-        const canActivate = collected.effect.canActivate;
-        const deletedHostId = merged.trigger.deletedHostInstanceByInstanceId?.[instanceId];
-        return {
-          ...collected,
-          effect: {
-            ...collected.effect,
-            canActivate: (ctx: EffectContext) =>
-              rootZoneOfLooseInstance(engine.state, instanceId) === "trash" &&
-              (deletedHostId === undefined || rootZoneOfLooseInstance(engine.state, deletedHostId) === "trash") &&
-              canActivate(ctx),
-          },
-        };
-      }),
+      ...collectNestedTimingEffects(engine, EffectTiming.OnDestroyedAnyone, merged.trigger, candidates).map(
+        (collected) => {
+          const instanceId = collected.source.instanceId;
+          if (!merged.trigger.deletedInstanceIds?.includes(instanceId) || transientIds.has(instanceId))
+            return collected;
+          const canActivate = collected.effect.canActivate;
+          const deletedHostId = merged.trigger.deletedHostInstanceByInstanceId?.[instanceId];
+          const sourceArrival = trashArrivalOf(engine.state, instanceId);
+          const hostArrival = deletedHostId === undefined ? undefined : trashArrivalOf(engine.state, deletedHostId);
+          return {
+            ...collected,
+            effect: {
+              ...collected.effect,
+              // CR 15-4-4-3: replaying/evolving and returning to trash is a new card,
+              // even if both moves happen inside one body between collection passes.
+              canActivate: (ctx: EffectContext) =>
+                sourceArrival !== undefined &&
+                trashArrivalOf(engine.state, instanceId) === sourceArrival &&
+                (deletedHostId === undefined ||
+                  (hostArrival !== undefined && trashArrivalOf(engine.state, deletedHostId) === hostArrival)) &&
+                canActivate(ctx),
+            },
+          };
+        },
+      ),
     );
     for (const { instanceId, seat } of merged.ascensionCandidates) {
       const card = findLooseInstance(engine, instanceId);

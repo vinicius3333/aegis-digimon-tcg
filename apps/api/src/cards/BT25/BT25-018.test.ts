@@ -102,6 +102,44 @@ describe("BT25-018 Apollomon", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === atBoundaryId));
     expect(s.perm("aboveBoundary").currentDP).toBe(13000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(
+      s.perm("aboveBoundary").currentDP - s.perm("aboveBoundary").baseDP,
+    );
+  });
+
+  it("applies the DP reduction scaled at resolution to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-018", as: "apollomon" }],
+          battleArea: [{ card: "BT1-009", as: "ally" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", dp: 16000, as: "atBoundary" },
+            { card: "BT1-013", dp: 17000, as: "aboveBoundary" },
+          ],
+          hand: [{ card: "BT1-024", as: "future" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    const atBoundaryId = s.perm("atBoundary").permanentId;
+    preferred.push(atBoundaryId);
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("apollomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === atBoundaryId));
+    expect(s.perm("aboveBoundary").currentDP).toBe(13000);
+
+    await advance(s.engine).verb.playInstances([s.inst("future").instanceId]);
+
+    expect(s.perm("future").currentDP).toBe(6000);
   });
 
   it("keeps a zero-DP Digimon selectable until the entry effect finishes (Q6267)", async () => {

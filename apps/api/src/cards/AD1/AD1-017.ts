@@ -44,6 +44,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -72,6 +73,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing your top or bottom security card",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -80,6 +83,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -108,6 +112,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing your top or bottom security card",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

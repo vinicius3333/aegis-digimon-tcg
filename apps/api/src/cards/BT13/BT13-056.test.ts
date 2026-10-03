@@ -241,6 +241,35 @@ describe("BT13-056 Leopardmon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(played, "Blocker")).toBe(true);
   });
+
+  it("also grants Blocker to a green Digimon placed after the effect activates (Q2301)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-056", as: "leo" }],
+          hand: [{ card: "BT13-051", as: "played" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("played").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const lateEntrant = s.putOnBoard(0, "BT13-051");
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(lateEntrant, "Blocker")).toBe(true);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(lateEntrant, "Blocker")).toBe(true);
+  });
 });
 
 describe("BT13-056 Leopardmon — KB Q&A rulings", () => {

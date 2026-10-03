@@ -22,6 +22,7 @@ const boostActions: CardEffect["actions"] = [
     count: 1,
     condition: dynasmonOrXAntibodyUnder,
     cost: trashOwnTopSecurity,
+    optional: true,
     abortOnDecline: true,
     raw: "trash the top card of your opponent's security stack",
   },

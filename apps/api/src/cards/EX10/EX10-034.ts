@@ -78,7 +78,7 @@ const compiled: CompiledCard = {
     { level: 5, colors: ["Black"], cost: 5, isAlternate: false },
     { level: 5, colors: ["Purple"], cost: 5, isAlternate: false },
   ],
-  digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, maxMaterials: 2 }],
+  digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, maxMaterials: 3 }],
 };
 
 registerIrCard("EX10-034", compiled);

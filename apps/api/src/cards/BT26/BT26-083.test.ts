@@ -201,6 +201,23 @@ describe("BT26-083 compiled fidelity", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("CR 15-11-2-2: its On Deletion Security A. -1 also reaches opposing Digimon that enter afterwards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-083", as: "junomon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "existing" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("junomon").permanentId])).toBe(1);
+    await settle(() => observe(s.engine).keywordAmount(s.perm("existing"), "SecurityAttack") === -1);
+    const late = s.putOnBoard(1, "BT1-083");
+
+    expect(observe(s.engine).keywordAmount(late, "SecurityAttack")).toBe(-1);
+  });
+
   it("uses Rush and Piercing after a normal play", async () => {
     const s = setupEngine(
       {

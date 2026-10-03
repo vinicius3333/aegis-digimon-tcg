@@ -1,11 +1,12 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { definitionMatches } from "../matching/definition.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { LooseCandidate, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { playEffectInstances } from "../actions/effectPlayAssembly.js";
 import { CardKind } from "@aegis/shared";
-import type { Cost } from "@aegis/shared";
+import type { Cost, Permanent } from "@aegis/shared";
 
 /**
  * Pay by trashing the top card of the breeding area.
@@ -77,6 +78,19 @@ export async function payTrashBottomFaceDownCost(ctx: EffectContext, cost: Cost)
 /** A top-to-bottom restack cost whose printed text picks any matching Digimon rather than "this" one. */
 export function rotatesChosenStack(cost: Cost): boolean {
   return cost.target !== undefined && cost.raw !== undefined && !/\bthis\b/i.test(cost.raw);
+}
+
+/**
+ * The source permanent a "this Digimon's top stacked card" restack cost rotates, or undefined when
+ * it has no stack or fails the printed qualifier ("this [CS] trait Digimon", BT22-044).
+ */
+export function selfRestackHost(ctx: EffectContext, cost: Cost): Permanent | undefined {
+  const self = ctx.source.permanent();
+  if (self === undefined || self.stack.length === 0) return undefined;
+  if (cost.target !== undefined && !permanentMatchesFilter(ctx, self, cost.target.filter, ctx.source)) {
+    return undefined;
+  }
+  return self;
 }
 
 /**

@@ -70,6 +70,7 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] ＜Recovery +1 (Deck)＞.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -86,6 +87,7 @@ export const compiled: CompiledCard = {
           duration: "permanent",
         },
         {
+          effectTextPart: "Then, add this card to the hand.",
           kind: "AddToHandSelf",
         },
       ],

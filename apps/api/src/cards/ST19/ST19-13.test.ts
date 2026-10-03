@@ -50,7 +50,46 @@ describe("ST19-13 ShinMonzaemon", () => {
     expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
   });
 
-  it("does not recover when the mandatory placement has no eligible trash card", async () => {
+  it.each(["play", "digivolve"] as const)(
+    "declines the optional 'by' cost on %s and keeps the trash card without recovering",
+    async (entry) => {
+      const s = setupEngine({
+        0: {
+          ...(entry === "digivolve" ? { battleArea: [{ card: "ST19-09", as: "base" }] } : {}),
+          hand: [{ card: "ST19-13", as: "shin" }],
+          trash: [{ card: "ST19-02", as: "eligible" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      });
+      s.state.memory = 20;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(
+          0,
+          entry === "play"
+            ? { type: "playCard", instanceId: s.inst("shin").instanceId }
+            : { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("shin").instanceId },
+        ),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision !== undefined || s.state.players[0]!.security.length > 0);
+      expect(s.state.pendingDecision?.kind).toBe("optional");
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("eligible").instanceId]);
+      expect(s.state.players[0]!.security).toHaveLength(0);
+      expect(s.state.players[0]!.deck).toHaveLength(entry === "play" ? 2 : 1);
+    },
+  );
+
+  it("does not recover when no trash card can be placed", async () => {
     const s = setupEngine(
       {
         0: {

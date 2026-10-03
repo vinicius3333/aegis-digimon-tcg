@@ -20,6 +20,7 @@ export function SecurityShieldPile({
   securityDpDelta = 0,
   faceUp,
   securityCards,
+  useSelectedSleeve = true,
   attackLabel,
   landing,
   refEl,
@@ -44,6 +45,8 @@ export function SecurityShieldPile({
   securityDpDelta?: number;
   faceUp?: boolean;
   securityCards?: ArrayLike<SecurityCardView>;
+  /** Hidden cards wear the viewer's chosen sleeve, like their deck; the opponent's wear the default back. */
+  useSelectedSleeve?: boolean;
   /** What attacking this stack would be, while it is a legal target being aimed at. */
   attackLabel?: string;
   /** A card is flying back onto the stack. */
@@ -122,6 +125,7 @@ export function SecurityShieldPile({
             cardId={securityCards?.[index]?.faceUp ? securityCards[index].cardId : ""}
             artId={securityCards?.[index]?.faceUp ? securityCards[index].artId : undefined}
             faceUp={securityCards?.[index]?.faceUp === true}
+            useSelectedSleeve={useSelectedSleeve}
           />
         ))}
       </span>

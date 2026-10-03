@@ -657,4 +657,95 @@ describe("EX12-052 Diarbbitmon — KB Q&A rulings", () => {
       ["oppOne", "oppTwo"].filter((alias) => observe(s.engine).isRestricted(s.perm(alias), "unsuspend")),
     ).toHaveLength(1);
   });
+
+  it("holds opponent suspension triggers until Arts Digivolve, then resolves the turn player first (Discord bug 1555168521175048263)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-093", as: "artsBase" }],
+          hand: [{ card: "EX12-052", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX13-023", as: "ulforce", dp: 30_000 },
+            { card: "BT11-112", as: "rina" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("artsBase").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("artsBase").topCard.cardId === "EX12-052");
+    await settle(() => s.state.pendingDecision === undefined && s.perm("rina").isSuspended);
+
+    const digivolved = s.events.findIndex((event) => event.kind === "digivolved" && event.cardId === "EX12-052");
+    const ownWhenDigivolving = s.events.flatMap((event, index) =>
+      event.kind === "effectTriggered" && event.seat === 0 && event.timing === "WhenDigivolving" ? [index] : [],
+    );
+    const opponentTriggers = s.events.flatMap((event, index) =>
+      event.kind === "effectTriggered" && event.seat === 1 ? [index] : [],
+    );
+    expect(s.perm("ulforce").isSuspended).toBe(true);
+    expect(digivolved).toBeGreaterThan(-1);
+    expect(ownWhenDigivolving.length).toBeGreaterThan(0);
+    expect(
+      s.events.some(
+        (event) => event.kind === "effectTriggered" && event.seat === 1 && event.sourceCardId === "BT11-112",
+      ),
+    ).toBe(true);
+    expect(Math.min(...opponentTriggers)).toBeGreaterThan(digivolved);
+    expect(Math.min(...opponentTriggers)).toBeGreaterThan(Math.max(...ownWhenDigivolving));
+  });
+
+  it("holds opponent suspension triggers until the used Option reaches the trash (Discord bug 1555168521175048263)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-050", as: "nsp" }],
+          hand: [{ card: "EX12-052", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX13-023", as: "ulforce" },
+            { card: "BT11-112", as: "rina" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("rina").isSuspended);
+
+    const trashed = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.optionUsed === true &&
+        event.instanceIds.includes(s.inst("option").instanceId),
+    );
+    const rinaTriggered = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.seat === 1 && event.sourceCardId === "BT11-112",
+    );
+    expect(trashed).toBeGreaterThan(-1);
+    expect(rinaTriggered).toBeGreaterThan(trashed);
+  });
 });

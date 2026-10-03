@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Suspend",
+          effectTextPart: "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon.",
           target: {
             filter: {
               controller: "opponent",
@@ -18,6 +19,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
+          effectTextPart:
+            "Then, if they have no unsuspended Digimon, 1 of your Digimon gains ＜Blocker＞ (At blocker timing, by suspending this Digimon, it becomes the attack target) until the end of your opponent's turn.",
           target: {
             filter: {
               controller: "mine",
@@ -47,6 +50,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Suspend",
+          effectTextPart: "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon.",
           target: {
             filter: {
               controller: "opponent",
@@ -57,6 +61,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
+          effectTextPart:
+            "Then, if they have no unsuspended Digimon, 1 of your Digimon gains ＜Blocker＞ (At blocker timing, by suspending this Digimon, it becomes the attack target) until the end of your opponent's turn.",
           target: {
             filter: {
               controller: "mine",

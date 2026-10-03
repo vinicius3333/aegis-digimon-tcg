@@ -70,6 +70,9 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
   // decision was answered, not whether an ally joined, so a log line could only repeat
   // that something was decided. The ally's own effects narrate themselves.
   allianceResolved: "window terminator carrying no outcome to report",
+  // Closes the attack arrow and the open-attack memory. Whatever the attack did already has
+  // its own line (`combatResolved`, `securityChecked`), so this one would only repeat it.
+  attackEnded: "attack terminator; the outcome events carry the log lines",
   // The offending client gets a transient toast; nobody else is told, and a rejected
   // intent changed no game state, so it is not match history.
   actionRejected: "shown as a toast to the one client that caused it",

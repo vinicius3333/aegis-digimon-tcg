@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] Your opponent can't use Option cards this turn.",
           kind: "RestrictPlay",
           seat: "opponent",
           filter: { kind: ["Option"] },
@@ -26,6 +27,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, add this card to its owner's hand.",
           kind: "AddToHandSelf",
         },
       ],

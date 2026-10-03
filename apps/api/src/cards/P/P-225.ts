@@ -37,11 +37,13 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Draw",
+          effectTextPart: "[Main] ＜Draw 1＞",
           controller: "mine",
           amount: 1,
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in the battle area.",
         },
       ],
     },

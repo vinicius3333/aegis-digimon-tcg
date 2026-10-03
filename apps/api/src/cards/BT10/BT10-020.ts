@@ -6,11 +6,13 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] ＜Draw 1＞. (Draw 1 card from your deck.)",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, for each Digimon your opponent has in play, ＜Draw 1＞.",
           kind: "Draw",
           controller: "mine",
           amount: 1,

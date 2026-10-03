@@ -68,6 +68,9 @@ describe("BT22-052 Leopardmon", () => {
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT22-057")!;
     expect(observe(s.engine).hasKeyword(played, "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("existing"), "Blocker")).toBe(true);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT1-083");
+    expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Blocker")).toBe(true);
     expect(
       observe(s.engine).hasKeyword(
         s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT22-052")!,

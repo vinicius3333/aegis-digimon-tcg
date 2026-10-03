@@ -168,7 +168,9 @@ describe("NoticeStack", () => {
   });
 
   it("names a card the definitions do not know without showing its id", () => {
-    renderNotice(notice({ body: { variant: "keyword", keyword: "digiXros", cardId: "ZZ9-999" } }));
+    renderNotice(
+      notice({ body: { variant: "effect", cardId: "ZZ9-999", timing: "OnPlay", description: "Draw 1 card." } }),
+    );
     const shown = screen.getByTestId("match-notice");
     expect(shown.textContent).toContain("Card");
     expect(shown.textContent).not.toContain("ZZ9-999");
@@ -199,6 +201,20 @@ describe("NoticeStack", () => {
     expect(shown.textContent).toContain(
       "By deleting this Digimon, prevent your other Digimon from leaving the battle area by an opponent's effect.",
     );
+  });
+
+  it.each([
+    "digiXros",
+    "cannotAttack",
+    "cannotBlock",
+    "scapegoat",
+    "decoy",
+    "guard",
+    "fragment",
+    "armorPurge",
+  ] as const)("shows the %s keyword without repeating the card name next to its art", (keyword) => {
+    renderNotice(notice({ body: { variant: "keyword", keyword, cardId: "EX12-008" } }));
+    expect(screen.getByTestId("match-notice").textContent).not.toContain("ToyAgumon");
   });
 
   it.each([
@@ -239,14 +255,14 @@ it("highlights the printed timing markers in Plutomon's effect notice", () => {
 });
 
 describe("NoticeStack stack strip", () => {
-  it("says which card de-digivolved which of your cards", () => {
+  it("says which card trashed the top of your Digimon", () => {
     renderNotice(
       notice({
-        body: { variant: "stackStrip", reason: "deDigivolve", cardId: "EX13-035", sourceCardId: "BT25-025" },
+        body: { variant: "stackStrip", reason: "trashTop", cardId: "EX13-035", sourceCardId: "BT25-025" },
       }),
     );
-    expect(screen.getByText("＜De-Digivolve＞")).toBeTruthy();
-    expect(screen.getByText("Aegiochusmon: Blue de-digivolved your KingEtemon")).toBeTruthy();
+    expect(screen.getByText("Top card trashed")).toBeTruthy();
+    expect(screen.getByText("Aegiochusmon: Blue trashed your KingEtemon from the top of its Digimon")).toBeTruthy();
   });
 
   it("names the opponent's card when the stripped permanent is theirs", () => {

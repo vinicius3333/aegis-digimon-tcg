@@ -25,6 +25,10 @@ describe("ST3-13 Heaven's Gate", () => {
     });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(s.perm("target").currentDP).toBe(11000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT1-010");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("target").currentDP - s.perm("target").baseDP);
     expect(observe(s.engine).securityDp(0)).toBe(5000);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("option").instanceId)).toBe(true);
   });
@@ -38,6 +42,22 @@ describe("ST3-13 Heaven's Gate", () => {
     });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(observe(s.engine).securityDp(0)).toBe(5000);
+  });
+
+  it("boosts the owner's Digimon played after the security effect for the same turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST3-07", as: "present" }],
+        hand: [{ card: "ST3-02", as: "late" }],
+        security: [{ card: "ST3-13", as: "option", faceUp: true }],
+      },
+    });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(s.perm("present").currentDP).toBe(11000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(8000);
   });
 
   it("stacks two security activations in the same turn", async () => {

@@ -16,7 +16,10 @@ describe("BT25-098 Cyber Engage", () => {
         }),
         expect.objectContaining({
           trigger: "Main",
-          actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 3 }), { kind: "PlaceInBattleAreaSelf" }],
+          actions: [
+            expect.objectContaining({ kind: "RevealAdd", revealCount: 3 }),
+            { effectTextPart: "Then, place this card in the battle area.", kind: "PlaceInBattleAreaSelf" },
+          ],
         }),
         expect.objectContaining({
           trigger: "Main",

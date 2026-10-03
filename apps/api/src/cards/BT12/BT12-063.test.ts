@@ -69,7 +69,9 @@ describe("BT12-063 Damemon", () => {
   });
 
   it("DigiXroses with one Save-text Digimon for a 2-cost reduction", async () => {
-    expect(digiXrosRequirementFor("BT12-063")).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    expect(digiXrosRequirementFor("BT12-063")).toEqual([
+      { materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 },
+    ]);
     const s = setupEngine({
       0: {
         hand: [

@@ -31,7 +31,7 @@ describe("BT24-026 Hyogamon", () => {
     });
   });
 
-  it("requires the hand-trash cost before granting Jamming and Blocker", () => {
+  it("gates Jamming and Blocker on the optional hand-trash cost", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
       const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as unknown as Array<{
         cost?: unknown;
@@ -41,7 +41,7 @@ describe("BT24-026 Hyogamon", () => {
         keyword: { keyword: string };
       }>;
       expect(actions[0]!.cost).toMatchObject({ kind: "trash" });
-      expect(actions[0]!.optional).toBeUndefined();
+      expect(actions[0]!.optional).toBe(true);
       expect(actions[0]!.abortOnDecline).toBe(true);
       expect(actions[1]!.target.sameTarget).toBe(true);
       expect(actions[1]!.keyword.keyword).toBe("Blocker");
@@ -175,6 +175,45 @@ describe("BT24-026 Hyogamon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("hyogamon").instanceId),
     );
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Jamming")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker")).toBe(false);
+  });
+
+  it("declines the optional 'by' hand-trash cost and grants no keyword", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT24-026", as: "hyogamon" },
+          { card: "BT1-009", as: "cost" },
+        ],
+        battleArea: [{ card: "BT24-042", as: "eligible" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hyogamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision !== undefined ||
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId),
+    );
+    const refusal = s.state.pendingDecision;
+    expect(refusal?.kind).toBe("selectCards");
+    expect(JSON.parse(refusal!.payloadJson!)).toMatchObject({ min: 0 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: refusal!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Jamming")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker")).toBe(false);
   });
@@ -487,5 +526,47 @@ describe("BT24-026 Hyogamon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("tsBase").stack.map((card) => card.instanceId)).toEqual([s.inst("tsBase").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
+  it("Discord 1555502942403043389: keeps the inherited digivolve pending until Plutomon trashes its target", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT24-026"] }],
+          hand: [
+            { card: "BT24-021", as: "snowGoblimon" },
+            { card: "BT24-075", as: "fugamonCost" },
+          ],
+          deck: [
+            { card: "BT26-059", as: "plutomon" },
+            "BT1-009",
+            "BT1-010",
+            { card: "BT26-079", as: "zombiePlutomon" },
+            "BT1-011",
+            "BT1-012",
+          ],
+          trash: [{ card: "BT24-013", as: "fugamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(
+      s.inst("plutomon").instanceId,
+      s.inst("fugamon").instanceId,
+      s.inst("zombiePlutomon").instanceId,
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("snowGoblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("zombiePlutomon").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT26-066", "BT24-026", "BT26-074", "BT26-059"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT24-013");
   });
 });

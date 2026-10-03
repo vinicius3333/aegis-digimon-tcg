@@ -691,3 +691,61 @@ describe("EX13-034 Wisemon", () => {
     expect(opt.perm("host").isSuspended).toBe(true);
   });
 });
+
+describe("Discord 1555941341962309693 Wisemon alternate public intents", () => {
+  it.each(["BT18-036", "BT19-036", "BT26-022", "BT26-067", "EX10-041", "EX13-029", "EX7-019"])(
+    "Discord 1555941341962309693 publishes and charges the cost-3 alternate onto %s",
+    async (cardId) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: cardId, as: "base" }],
+            hand: [{ card: CARD_ID, as: "wisemon" }],
+            deck: ["BT1-010", "BT1-012"],
+            security: ["BT1-013"],
+          },
+          1: { deck: ["BT1-011"] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 8;
+      await s.ready();
+      const permanentId = s.perm("base").permanentId;
+      expect([...s.inst("wisemon").digivolveRoutes]).toContainEqual(
+        expect.objectContaining({ permanentId, alternateRequirementIndex: 0, projectedCost: 3 }),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId,
+          instanceId: s.inst("wisemon").instanceId,
+          useAlternateCost: true,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === CARD_ID && s.state.pendingDecision === undefined);
+      expect(s.state.memory).toBe(5);
+    },
+  );
+});
+
+describe("Discord 1555941341962309693 Wisemon alternate exclusions", () => {
+  it.each(["BT1-051", "BT18-030"])("rejects an explicit alternate onto %s without spending memory", async (cardId) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: cardId, as: "base" }], hand: [{ card: CARD_ID, as: "wisemon" }], deck: ["BT1-010"] },
+      1: { deck: ["BT1-011"] },
+    });
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("wisemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").topCard.cardId).toBe(cardId);
+  });
+});

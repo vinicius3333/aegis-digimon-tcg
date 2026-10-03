@@ -362,14 +362,11 @@ describe("AD1-006 Shoutmon X7", () => {
     );
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-009")!;
+    // Either [Ballistamon] copy may serve: the player orders the cards placed under the Tamer.
     expect(played.stack.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([
-        x7InstanceId,
-        s.inst("ballistamon").instanceId,
-        s.inst("dorulumon").instanceId,
-        s.inst("starmons").instanceId,
-      ]),
+      expect.arrayContaining([x7InstanceId, s.inst("dorulumon").instanceId, s.inst("starmons").instanceId]),
     );
+    expect(played.stack.map((card) => card.cardId)).toContain("BT10-049");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === x7Id)).toBe(false);
     expect(s.perm("tamer").stack).toHaveLength(1);
     expect(s.perm("tamer").stack[0]?.cardId).toBe("BT10-049");

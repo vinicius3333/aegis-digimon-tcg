@@ -36,6 +36,8 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] Place 1 of your opponent's lowest DP Digimon as the top security card.",
           controller: "mine",
           source: {
             filter: {
@@ -49,6 +51,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "RecoverByTrashingMostSecurity",
+          effectTextPart:
+            "Then, by trashing the top security card of 1 player with the most security cards, ＜Recovery +1＞",
           amount: 1,
         },
       ],
@@ -62,6 +66,8 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] Place 1 of your opponent's lowest DP Digimon as the top security card.",
           controller: "mine",
           source: {
             filter: {
@@ -75,6 +81,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "RecoverByTrashingMostSecurity",
+          effectTextPart:
+            "Then, by trashing the top security card of 1 player with the most security cards, ＜Recovery +1＞",
           amount: 1,
         },
       ],

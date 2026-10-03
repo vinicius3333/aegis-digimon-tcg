@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 level 4 or lower red, green, purple or white Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -22,6 +23,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 blue, yellow, black or white Tamer with a play cost of 3 or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -39,6 +41,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Delete 1 level 4 or lower red, green, purple or white Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -54,6 +57,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 blue, yellow, black or white Tamer with a play cost of 3 or less.",
           kind: "Delete",
           target: {
             filter: {

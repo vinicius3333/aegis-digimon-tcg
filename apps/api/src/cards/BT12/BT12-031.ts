@@ -38,6 +38,14 @@ if (returnToHand?.kind === "Return") {
     ],
   };
 }
+const suspendAll = whenDigivolving?.actions.find((action) => action.kind === "Suspend");
+if (suspendAll?.kind === "Suspend") {
+  suspendAll.effectTextPart = "[When Digivolving] Suspend all of your opponent's Digimon with no digivolution cards.";
+}
+const returnClause =
+  "Then, return 1 of your opponent's suspended Digimon to its owner's hand. By returning 1 [Imperialdramon: Dragon Mode] card from this Digimon's digivolution cards to its owner's hand, place all of your opponent's suspended Digimon at the bottom of their owners' decks instead.";
+if (bottomDeck?.kind === "Return") bottomDeck.effectTextPart = returnClause;
+if (returnToHand?.kind === "Return") returnToHand.effectTextPart = returnClause;
 if (whenDigivolving !== undefined && bottomDeck !== undefined && returnToHand !== undefined) {
   whenDigivolving.actions = [
     ...whenDigivolving.actions.filter((action) => action !== bottomDeck && action !== returnToHand),

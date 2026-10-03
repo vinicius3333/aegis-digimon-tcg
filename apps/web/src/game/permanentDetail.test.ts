@@ -41,6 +41,18 @@ describe("buildPermanentDetail", () => {
     expect(detail.grantedEffectTexts).toEqual([]);
   });
 
+  it("Discord 1555271931203158056: measures DP against a rewritten original DP, not the printed one", () => {
+    const rewritten = permanent();
+    rewritten.originalNameOverride = "Sukamon";
+    rewritten.originalColorsOverride.push("White");
+    rewritten.originalDPOverride = 3000;
+    rewritten.currentDP = 3000;
+    expect(buildPermanentDetail(rewritten)).toMatchObject({ currentDP: 3000, baseDP: 3000, dpDelta: 0 });
+
+    rewritten.currentDP = 5000;
+    expect(buildPermanentDetail(rewritten)).toMatchObject({ baseDP: 3000, dpDelta: 2000 });
+  });
+
   it("reads only the recipient's active granted text", () => {
     const recipient = permanent();
     recipient.grantedEffectTexts.push("[End of Your Turn] Delete 1 of your Digimon.");
@@ -59,6 +71,24 @@ describe("buildPermanentDetail", () => {
       { cardId: "ST1-03", role: "stack" },
       { cardId: "ST1-07", role: "linked" },
     ]);
+  });
+
+  it("Discord 1555516815226970172: lets the owner read a face-down card under their Tamer", () => {
+    const tamer = permanent();
+    tamer.stack[0]!.faceUp = false;
+    expect(buildPermanentDetail(tamer, { viewerSeat: 0 }).cards[1]).toEqual({
+      cardId: "ST1-01",
+      faceDown: true,
+      role: "stack",
+    });
+  });
+
+  it("Discord 1555516815226970172: keeps a face-down card hidden from a viewer who does not own it", () => {
+    const tamer = permanent();
+    tamer.stack[0]!.faceUp = false;
+    const hidden = { cardId: "", faceDown: true, role: "stack" };
+    expect(buildPermanentDetail(tamer, { viewerSeat: 1 }).cards[1]).toEqual(hidden);
+    expect(buildPermanentDetail(tamer).cards[1]).toEqual(hidden);
   });
 
   it("leaves the security-attack figure out at the default single check", () => {

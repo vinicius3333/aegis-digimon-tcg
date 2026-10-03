@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Reveal the top 2 cards of your deck. Place 1 of them on top of your security stack face down. Add the remaining card to your hand.",
           kind: "RevealAdd",
           revealCount: 2,
           add: [
@@ -30,6 +32,7 @@ const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart: "Then, place this card in your battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

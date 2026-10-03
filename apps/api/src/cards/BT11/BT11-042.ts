@@ -12,6 +12,8 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Search",
+          effectTextPart:
+            "[When Digivolving] You may search your security stack, reveal 1 card with [Angel], [Archangel], or [Fallen Angel] in its traits from it, and add it to your hand. If you added a card, ＜Recovery +1 (Deck)＞.",
           controller: "mine",
           filter: { controller: "mine", nameOrTrait: family },
           count: 1,
@@ -27,7 +29,12 @@ export const compiled: CompiledCard = {
           condition: { kind: "ifThisEffectActed" },
           amount: 1,
         },
-        { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
+        {
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          effectTextPart: "Then, shuffle your security stack.",
+          controller: "mine",
+        },
       ],
     },
     {

@@ -32,8 +32,16 @@ export const compiled: CompiledCard = {
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
-        { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, optional: true },
         {
+          effectTextPart: "[When Attacking] [Once Per Turn]You may add your top security card to the hand.",
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          optional: true,
+        },
+        {
+          effectTextPart: "Then, if you have 0 security cards, ＜Recovery +1＞",
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",

@@ -23,15 +23,17 @@ describe("BT24-027 Lanamon", () => {
     });
   });
 
-  it("requires the qualifying hand placement on entry", () => {
+  it("gates entry protection on the optional qualifying hand placement", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as {
         cost: { kind: string; destination: string; position: string; optional?: unknown; abortOnDecline?: unknown };
+        optional?: unknown;
         abortOnDecline?: unknown;
       };
       expect(action.cost).toMatchObject({ kind: "place", destination: "digivolutionStack", position: "bottom" });
       expect(action.cost.optional).toBeUndefined();
       expect(action.cost.abortOnDecline).toBeUndefined();
+      expect(action.optional).toBe(true);
       expect(action.abortOnDecline).toBe(true);
     }
   });
@@ -80,7 +82,7 @@ describe("BT24-027 Lanamon", () => {
           hand: [{ card: "BT24-022", as: "placed" }],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("placed").instanceId, s.perm("protected").permanentId);
     await s.ready();
@@ -105,6 +107,44 @@ describe("BT24-027 Lanamon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lanamon"));
 
     expect(observe(s.engine).isRestricted(s.perm("candidate"), "beDeletedInBattle")).toBe(false);
+  });
+
+  it("declines the optional 'by' placement and grants no protection", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT24-027", as: "lanamon" },
+          { card: "BT24-022", as: "placed" },
+        ],
+        battleArea: [{ card: "BT24-020", as: "protected" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision !== undefined ||
+        s.perm("lanamon").stack.some((card) => card.instanceId === s.inst("placed").instanceId),
+    );
+    const refusal = s.state.pendingDecision;
+    expect(refusal?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: refusal!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("placed").instanceId]);
+    expect(s.perm("lanamon").stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("lanamon"), "beDeletedInBattle")).toBe(false);
   });
 
   it("resolves placement and battle protection from a public play intent", async () => {
@@ -488,15 +528,18 @@ describe("BT24-027 Lanamon", () => {
   );
 
   it("uses the normal blue level-3 evolution route for cost 2", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-020", as: "base" }],
-        hand: [
-          { card: "BT24-027", as: "lanamon" },
-          { card: "BT24-022", as: "placed" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-020", as: "base" }],
+          hand: [
+            { card: "BT24-027", as: "lanamon" },
+            { card: "BT24-022", as: "placed" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 5;
     await s.ready();
     expect(

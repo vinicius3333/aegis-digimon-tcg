@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Suspend",
+          effectTextPart: "[Security] At the end of the battle, suspend 1 of your opponent's Digimon.",
           target: {
             filter: {
               controller: "opponent",
@@ -18,6 +19,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "AddToHandSelf",
+          effectTextPart: "Then, add this card to its owner’s hand.",
         },
       ],
     },

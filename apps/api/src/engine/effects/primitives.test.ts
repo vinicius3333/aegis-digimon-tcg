@@ -1,4 +1,5 @@
 import { describe, it, expect, onTestFinished } from "vitest";
+import { $changes, Encoder, StateView } from "@colyseus/schema";
 import {
   DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES,
   GameState,
@@ -10,7 +11,9 @@ import {
   type Permanent,
   type Seat,
   type ServerEvent,
+  PRIVATE_VIEW_TAG,
 } from "@aegis/shared";
+import { setBreeding } from "../state/access.js";
 import { MemoryGauge } from "../MemoryGauge.js";
 import { ModifierLedger } from "./modifiers.js";
 import { SubTriggerRegistry } from "./subtriggers.js";
@@ -71,6 +74,7 @@ function harness(opts?: {
   board?: BoardSpec;
   combat?: CombatPort;
   rngForSeat?: PrimitivesEngine["rngForSeat"];
+  onConsultLeave?: () => void;
 }): Harness {
   const s = setupEngine(opts?.board);
   const state = s.state;
@@ -120,6 +124,7 @@ function harness(opts?: {
     },
     consultLeavePrevention: async (permanentIds, cause, _resolvingSeat, callOpts) => {
       leavePreventionCalls.push({ permanentIds, cause, opts: callOpts });
+      opts?.onConsultLeave?.();
       return new Set(permanentIds.filter((id) => preventedPermanentIds.has(id)));
     },
     // Production (GameEngine.ts) always supplies this hook, so `createPrimitives` always
@@ -2421,6 +2426,32 @@ describe("primitives: shuffleSecurity re-hides face-up cards", () => {
     });
   });
 
+  it("keeps every shuffled card attached so a reconnect's full sync can encode it", () => {
+    const rng = makeRng(4228219432);
+    const h = harness({ board: { 0: { security: 5 } }, rngForSeat: () => rng });
+    const security = h.state.players[0]!.security;
+    const encoder = new Encoder(h.state);
+    encoder.encodeAll();
+    encoder.discardChanges();
+
+    for (let shuffle = 0; shuffle < 20; shuffle++) {
+      h.fx.shuffleSecurity(0);
+      encoder.encode();
+      encoder.discardChanges();
+    }
+
+    for (const card of security) {
+      expect(card[$changes]?.root).toBeDefined();
+      expect(card.digivolveRoutes[$changes]?.parent).toBe(card);
+    }
+    const view = new StateView();
+    view.add(h.state.players[0]!, PRIVATE_VIEW_TAG);
+    for (const card of security) view.add(card);
+    const iterator = { offset: 0 };
+    const sharedOffset = encoder.encodeAll(iterator).length;
+    expect(() => encoder.encodeAllView(view, sharedOffset, iterator)).not.toThrow();
+  });
+
   it("resets faceUp to false on every security card (EX11-064 Q5929-5931)", () => {
     // a previously flipped face-up card, plus a face-down one
     const h = harness({ board: { 0: { security: [{ card: DIGIMON, faceUp: true }, OPTION] } } });
@@ -3065,6 +3096,71 @@ describe("primitives: forced-attack target legality", () => {
   });
 });
 
+describe("simultaneous Digi-Egg and permanent placement", () => {
+  it.each(["destinationRemoved", "sourceRestricted"])("revalidates %s after leave reactions", async (reaction) => {
+    const h = harness({
+      turnSeat: 0,
+      board: {
+        0: {
+          breeding: { card: "BT13-007", as: "dest" },
+          eggDeck: [{ card: "BT13-007", as: "egg" }],
+          battleArea: [{ card: "BT20-060", as: "source" }],
+        },
+      },
+      onConsultLeave: () => {
+        if (reaction === "destinationRemoved") setBreeding(h.state.players[0]!, undefined);
+        else
+          h.continuous.addRestriction(
+            h.s.perm("source").permanentId,
+            "leaveBattleAreaExceptByDeletion",
+            EffectDuration.Permanent,
+          );
+      },
+    });
+    const destination = h.s.perm("dest");
+    await h.fx.placeEggAndPermanentsUnder!(destination.permanentId, [
+      { instanceId: h.s.inst("egg").instanceId },
+      { instanceId: h.s.inst("source").instanceId, permanentId: h.s.perm("source").permanentId },
+    ]);
+    expect(h.state.players[0]!.battleArea).toHaveLength(1);
+    expect(h.state.players[0]!.eggDeck).toHaveLength(reaction === "destinationRemoved" ? 1 : 0);
+    expect(destination.stack.map((c) => c.cardId)).toEqual(reaction === "destinationRemoved" ? [] : ["BT13-007"]);
+    expect(h.events).toHaveLength(reaction === "destinationRemoved" ? 0 : 1);
+    expect(h.subTriggerFires.some((f) => f.event === "whenLeavesPlay")).toBe(false);
+  });
+
+  it("leaves restricted sources in play while placing the egg and other tops in chosen order", async () => {
+    const h = harness({
+      turnSeat: 0,
+      board: {
+        0: {
+          breeding: { card: "BT13-007", as: "dest" },
+          eggDeck: [{ card: "BT13-007", as: "egg" }],
+          battleArea: [
+            { card: "BT20-060", as: "sourceA", under: [{ card: "BT1-009", as: "shed" }] },
+            { card: "BT22-052", as: "sourceB" },
+          ],
+        },
+      },
+    });
+    h.continuous.addRestriction(
+      h.s.perm("sourceB").permanentId,
+      "leaveBattleAreaExceptByDeletion",
+      EffectDuration.Permanent,
+    );
+    await h.fx.placeEggAndPermanentsUnder!(h.s.perm("dest").permanentId, [
+      { instanceId: h.s.inst("egg").instanceId },
+      { instanceId: h.s.inst("sourceA").instanceId, permanentId: h.s.perm("sourceA").permanentId },
+      { instanceId: h.s.inst("sourceB").instanceId, permanentId: h.s.perm("sourceB").permanentId },
+    ]);
+    expect(h.s.perm("dest").stack.map((c) => c.cardId)).toEqual(["BT13-007", "BT20-060"]);
+    expect(h.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT22-052"]);
+    expect(h.state.players[0]!.trash.map((c) => c.instanceId)).toEqual([h.s.inst("shed").instanceId]);
+    expect(h.state.players[0]!.eggDeck).toHaveLength(0);
+    expect(h.subTriggerFires.filter((f) => f.event === "onAddDigivolutionCards")).toHaveLength(1);
+  });
+});
+
 describe("Primitives completeness guard (no declared-but-unassigned methods)", () => {
   // Every key on the Primitives interface (EffectContext.ts), kept exhaustive by the TS
   // compiler: a `Record<keyof Primitives, true>` fails to compile if a key here is missing OR
@@ -3094,6 +3190,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     cannotIgnoreDigivolution: true,
     canPayActivationCost: true,
     canTrashDigivolutionCard: true,
+    canUnsuspend: true,
     changeEvoCost: true,
     changePlayCost: true,
     conferStackEffects: true,
@@ -3194,6 +3291,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     relocatePermanent: true,
     relocatePermanentByEffect: true,
     relocatePermanentsByEffect: true,
+    placeEggAndPermanentsUnder: true,
     placeMixedMaterialsUnder: true,
     resolveCardEffect: true,
     resolvingEffectSourceKinds: true,

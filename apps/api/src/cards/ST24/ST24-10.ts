@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger,
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] Suspend 1 of your opponent's Digimon or Tamers. It can't unsuspend until their turn ends.",
           kind: "Suspend",
           target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
         },
@@ -21,6 +23,8 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "Then, by trashing 2 bottom face-down cards from under any of your Tamers, this Digimon may digivolve into a [DATA SQUAD] trait Digimon card in the hand without paying the cost.",
           kind: "Digivolve",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           into: {
@@ -31,6 +35,7 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+          payCostBeforeOptional: false,
           cost: {
             kind: "trashBottomFaceDownUnderTamer",
             controller: "mine",

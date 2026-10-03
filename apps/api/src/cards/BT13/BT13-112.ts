@@ -32,6 +32,7 @@ const modalEffect = (): Action => ({
       },
       {
         kind: "GainKeyword",
+        playerWide: true,
         target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
         keyword: { keyword: "Rush", raw: "＜Rush＞" },
         duration: "forTheTurn",

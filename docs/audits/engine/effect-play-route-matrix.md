@@ -151,3 +151,15 @@ The eight absence classifications remain valid for this committed input:
 The 22 covered route classifications and eight catalog absences are preserved. Only the reviewed catalog fingerprint is updated; the validator, source-rule fingerprint, scenario statuses, and automatic-refresh safeguards remain unchanged. This review does not expand the matrix into a whole-catalog card-fidelity claim.
 
 Verification after review: the original failing test passes, and all four route-matrix tooling tests pass, including catalog/rule drift invalidation. In isolated checkout `/tmp/aegis-ci-0db8e29e6`, `pnpm verify:simulator` exits 0 (shared build, API typecheck, 81 verification tests, 22 rules-tool tests, inventory/citation checks, and lint). The route verifier also exits 0 with 14 obligations, 36 scenario links, 34 distinct linked tests, verified engine/UI layers, and empty gaps/errors. These local runs use Node 24.21; the PR's Node 26 CI remains the environment confirmation.
+
+### Catalog review after restored requirement lines (2026-10-02)
+
+`pnpm test:tools` failed with "Effect-play route matrix catalog changed" because the reviewed fingerprint still referred to `a55a2c6e5` (`d84b7aef01e7be6832fe5e95fe79b0432560f275c60d20ca75669f45666863f1`). Commits `0ffa8f9a5`, `1f9fb0919`, `b4429132c` and `bb98518e5` changed the catalog to `b848b89fe6516605f313ca0fcc696c7ba209decdb1afb62afd0860732d923d62`.
+
+The incremental review compared every field against `a55a2c6e5`: 29 cards changed (27 `effectText`, 2 `evoCosts`). All 4,480 card IDs, every `inheritedEffectText` and every `securityEffectText` are unchanged.
+
+- Every changed text adds a printed requirement line (`[Digivolve]`, `[DNA Digivolve]`, `[Assembly]` or `[DigiXros]`), except two count fixes: EX10-031's alternate digivolve cost (4 to 3) and EX10-034's DigiXros material count (2 to 3).
+- The 14 added `[DNA Digivolve]` lines are printed requirements for the manual-hand route. None is an effect instruction that selects a DNA result from security or a revealed deck card.
+- No changed line mentions App Fusion or Burst. The App Fusion and Burst exclusions keep their reviewed inputs.
+
+The 22 covered route classifications and eight catalog absences are preserved. Only the reviewed catalog fingerprint is updated.

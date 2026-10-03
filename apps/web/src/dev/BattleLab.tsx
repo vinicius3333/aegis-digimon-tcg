@@ -7,6 +7,9 @@
    answers what that death sets off. Watch the revealed card — it has to stay on screen until
    the battle's verdict arrives, rather than leaving and being flashed back.
 
+   - `field-grouping` seeds repeated Tamers/Delay Options and a Watchmaker with Save
+     sources. End breeding, activate Izzy to split its group, then activate a Delay
+     to consume one copy through the server. Inspect Watchmaker to read Shoutmon.
    - `security-battle` asks the bot one question, so the card holds for about one think time.
    - `security-chain` asks two back to back, which is the ~5 s hold seen in production. Use
      this one to judge how long a check may sit there with nothing moving on screen. */
@@ -17,10 +20,9 @@ import { deckById, selectableDecks } from "../game/decks";
 import { GameScreen } from "../game/GameScreen";
 import { loadActiveDeckId, loadDecks, loadIdentity } from "../identity";
 import type { AegisJoinOptions } from "../net/types";
-import "./battleLab.css";
 
 /** Boards this route can lay. Anything else in `?scenario=` falls back to the default battle. */
-const BATTLE_LAB_SCENARIOS = ["security-battle", "security-chain", "counter-blast-dna"] as const;
+const BATTLE_LAB_SCENARIOS = ["security-battle", "security-chain", "counter-blast-dna", "field-grouping"] as const;
 
 type BattleLabScenario = (typeof BATTLE_LAB_SCENARIOS)[number];
 
@@ -57,10 +59,8 @@ export function BattleLab() {
         identityColor={colorKey(player.color)}
         startMode="bot"
         onExit={reset}
+        onResetScenario={reset}
       />
-      <button type="button" className="aegis-battle-lab-reset" onClick={reset}>
-        Reset battle
-      </button>
     </>
   );
 }

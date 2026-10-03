@@ -1,11 +1,13 @@
 // Running another card's effect, or an Option, as an effect of this one.
 
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import type { EffectContext } from "../../EffectContext.js";
 import type { CardSource } from "../../CardSource.js";
 import type { Effect } from "../../Effect.js";
 import { effectsOf } from "../../collect.js";
 import { runtimeCompiledCard } from "../compiledCards.js";
 import { describeEffect } from "../describe.js";
+import { withPrintedClauses } from "../registration/printedClauses.js";
 import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
@@ -119,7 +121,9 @@ function borrowableFromCompiled(args: {
 }): BorrowableEffect[] {
   const ordinals = new Map<string, number>();
   const out: BorrowableEffect[] = [];
-  for (const effect of args.compiled.effects) {
+  // Borrowed effects need the same printed provenance as ordinary registered effects.
+  // A timing-only summary cannot distinguish two clauses with the same timing in the client.
+  for (const effect of withPrintedClauses(args.sourceCardId, args.compiled).effects) {
     if (!args.action.fromTriggers.includes(effect.trigger) || effect.isSecurity === true) continue;
     if (args.trigger !== undefined && effect.trigger !== args.trigger) continue;
     const triggerOrdinal = ordinals.get(effect.trigger) ?? 0;
@@ -299,7 +303,7 @@ export async function runActivateForeignEffect(
       runCtx = {
         ...ctx,
         sourcePermanentIdAtCreation: permanentId,
-        effectSourceKinds: [...(definition.kinds ?? [])],
+        activeTiming: borrowed.effect.trigger,
         source: {
           instanceId: chosen.instanceId,
           cardId: chosen.cardId,
@@ -311,6 +315,7 @@ export async function runActivateForeignEffect(
           hasColor: (color) => definition.colors.includes(color),
         },
       };
+      runCtx.effectSourceKinds = effectProvenanceKinds(runCtx);
     }
     // A Q5331 override belongs only to the matching borrowed lender/effect. Clear any inherited
     // marker at the loop boundary, then seed it per item so another eligible Zaxon On Play lender
@@ -322,7 +327,7 @@ export async function runActivateForeignEffect(
     if (lenderIsEffectiveSource) {
       runCtx.fx.enterEffectResolution?.(
         runCtx.source.ownerSeat,
-        [...(runCtx.source.definition.kinds ?? [])],
+        [...(runCtx.effectSourceKinds ?? effectProvenanceKinds(runCtx))],
         runCtx.source.permanent()?.permanentId,
       );
     }

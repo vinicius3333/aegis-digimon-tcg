@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] If you have a Digimon with [Dorugoramon] in its name, delete 1 of your opponent's Digimon or Tamers with a play cost of 4 or less.",
           kind: "Delete",
           target: {
             filter: {
@@ -32,6 +34,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete all of your opponent's Digimon with the lowest play cost.",
           kind: "Delete",
           target: {
             filter: {

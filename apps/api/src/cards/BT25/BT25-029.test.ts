@@ -262,21 +262,21 @@ describe("BT25-029 MirageGaogamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    const paidReturn = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: paidReturn.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
     const firstReturn = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: firstReturn.decisionId,
         response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const paidReturn = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: paidReturn.decisionId,
+        response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
@@ -392,6 +392,19 @@ describe("BT25-029 MirageGaogamon", () => {
       () =>
         s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== firstDecision.decisionId,
     );
+    const returnDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== returnDecision.decisionId,
+    );
     const costDecision = s.state.pendingDecision!;
     expect(costDecision.kind).toBe("optional");
     expect(
@@ -399,18 +412,6 @@ describe("BT25-029 MirageGaogamon", () => {
         type: "respondDecision",
         decisionId: costDecision.decisionId,
         response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== costDecision.decisionId,
-    );
-    const returnDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: returnDecision.decisionId,
-        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
     await settle(

@@ -1,6 +1,7 @@
 import type { GameState, Seat, IntentResult, RejectReason } from "@aegis/shared";
 import type { GameStateAccess } from "../state/access.js";
 import type { CombatController } from "../combat/controller.js";
+import type { ContinuousLegalityReader } from "../combat/legality.js";
 
 /**
  * Combat-decision verb implementations: respondAlliance, respondEvade,
@@ -13,9 +14,11 @@ export interface CombatDecisionDeps {
   readonly state: GameState;
   readonly access: GameStateAccess;
   readonly combat: CombatController;
+  /** Effective Digimon kind includes Tamers transformed by continuous effects. */
+  readonly continuous: ContinuousLegalityReader;
 }
 
-/** Choose an ally (or pass) for ＜Alliance＞ / ＜IceClad＞. */
+/** Choose an ally (or pass) for ＜Alliance＞. */
 export function applyRespondAlliance(
   deps: CombatDecisionDeps,
   seat: Seat,
@@ -58,7 +61,7 @@ function validateRespondAlliance(
   seat: Seat,
   allyPermanentId: string | undefined,
 ): RejectReason | null {
-  const { combat, access } = deps;
+  const { combat, access, continuous } = deps;
 
   if (!combat.hasOpenAllianceDecision) return "wrong-phase";
   if (combat.allianceDecisionSeat !== seat) return "not-your-turn";
@@ -72,7 +75,7 @@ function validateRespondAlliance(
   const ally = access.permanentById(allyPermanentId);
   if (ally === undefined) return "illegal-target";
   if (ally.isSuspended) return "illegal-target";
-  if (!access.isBattleAreaDigimon(ally)) return "illegal-target";
+  if (!access.isBattleAreaDigimon(ally, continuous)) return "illegal-target";
   if (access.controllerOf(ally) !== seat) return "illegal-target";
 
   // Must not be the permanent that triggered the Alliance/IceClad prompt.

@@ -84,6 +84,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] Reveal the top 3 cards of your deck. You may play 1 Digimon card with a play cost of 4 or less among them without paying its memory cost. Place the rest at the bottom of your deck in any order.",
           kind: "RevealAdd",
           revealCount: 3,
           add: [
@@ -101,6 +103,7 @@ const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart: "Then, add this card to its owner's hand.",
           kind: "AddToHandSelf",
         },
       ],

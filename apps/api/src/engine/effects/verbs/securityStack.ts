@@ -1,5 +1,5 @@
 import { Zone, CardInstance, type Seat } from "@aegis/shared";
-import { extractCardAt, insertCard, takeBottom, takeTop } from "../../state/access.js";
+import { clearZone, extractCardAt, fillZone, insertCard, takeBottom, takeTop } from "../../state/access.js";
 
 import type { PrimitivesContext } from "./context.js";
 
@@ -11,20 +11,23 @@ export function createSecurityStackVerbs(pc: PrimitivesContext) {
   const { engine, continuous, effectSeatStack, player } = pc;
 
   const shuffleSecurity = (seat: Seat): void => {
-    const stack = player(seat).security;
+    // Shuffle a detached copy, never the ArraySchema itself: overwriting a slot drops the old
+    // card's Colyseus refCount to zero, which un-roots it and detaches its nested lists. A card
+    // swapped twice in one pass comes back still detached, and the next full sync (join or
+    // reconnect) throws inside the encoder and takes the whole process down.
+    const stack = clearZone(player(seat), Zone.Security);
     // Production engines provide the seat's match-seeded stream. The fallback keeps
     // standalone primitive harnesses usable without a full match lifecycle.
     const random = engine.rngForSeat?.(seat) ?? Math.random;
     for (let i = stack.length - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1));
-      const a = stack[i]!;
-      const b = stack[j]!;
-      stack[i] = b;
-      stack[j] = a;
+      [stack[i], stack[j]] = [stack[j]!, stack[i]!];
     }
     // Shuffling re-hides every security card: a card turned face-up by an effect is
     // face-down again once the stack is shuffled (KB EX11-064 Q5929-5931, BT25-102).
+    // Done before the refill so re-exposing the cards does not re-grant their identity.
     for (const card of stack) card.faceUp = false;
+    fillZone(player(seat), Zone.Security, stack);
   };
 
   const revealCard = (seat: Seat, cardId: string, sourceCardId?: string): void => {

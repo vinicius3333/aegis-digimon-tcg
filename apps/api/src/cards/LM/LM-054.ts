@@ -37,6 +37,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "RevealAdd",
+          effectTextPart:
+            "[Main] Reveal the top 2 cards of your deck. Add 1 yellow or black card among them to the hand. Return the rest to the bottom of deck.",
           revealCount: 2,
           add: [
             {
@@ -52,6 +54,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in the battle area.",
         },
       ],
     },
@@ -90,6 +93,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "RevealAdd",
+          effectTextPart:
+            "[Security] Reveal the top 2 cards of your deck. Add 1 yellow or black card among them to the hand. Return the rest to the bottom of deck.",
           revealCount: 2,
           add: [
             {
@@ -105,6 +110,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in the battle area.",
         },
       ],
       isSecurity: true,

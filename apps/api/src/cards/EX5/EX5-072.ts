@@ -40,10 +40,15 @@ if (reduction?.kind === "ReducePlayCost" && reduction.scaling !== undefined && r
     ],
   });
 }
-const securityReturn = compiled.effects.find((effect) => effect.trigger === "Security")?.actions[0];
+const securityEffect = compiled.effects.find((effect) => effect.trigger === "Security");
+const securityReturn = securityEffect?.actions[0];
 if (securityReturn?.kind === "Return") {
   securityReturn.target.filter.kind = undefined;
+  securityReturn.effectTextPart =
+    "[Security] Return 1 card with [Fanglongmon] in its name from your trash to the hand.";
 }
+const securityAddSelf = securityEffect?.actions[1];
+if (securityAddSelf?.kind === "AddToHandSelf") securityAddSelf.effectTextPart = "Then, add this card to the hand.";
 const mainPlay = compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0];
 if (mainPlay?.kind === "PlayWithoutCost") {
   mainPlay.from = ["hand"];

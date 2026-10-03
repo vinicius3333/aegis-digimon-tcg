@@ -41,6 +41,7 @@ const compiled: CompiledCard = {
           effectTextPart:
             "[On Play] For each color in this Digimon's digivolution cards, all of your opponent's Digimon get -1000 DP for the turn.",
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",

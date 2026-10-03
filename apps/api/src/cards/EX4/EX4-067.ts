@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Return 2 of your opponent's level 4 or lower Digimon to their owners' hands.",
           kind: "Return",
           target: {
             filter: {
@@ -22,6 +23,8 @@ export const compiled: CompiledCard = {
           to: "hand",
         },
         {
+          effectTextPart:
+            "Then, if your opponent has 8 or more cards in their hand, return 1 of your opponent's level 6 or higher Digimon to the bottom of its owner's deck.",
           kind: "Return",
           target: {
             filter: {

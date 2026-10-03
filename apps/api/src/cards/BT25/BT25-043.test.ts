@@ -253,9 +253,46 @@ describe("BT25-043 Habakirimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("optionCost").instanceId);
     expect(s.perm("firstTarget").currentDP).toBe(7000);
     expect(s.perm("secondTarget").currentDP).toBe(15000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(
+      s.perm("secondTarget").currentDP - s.perm("secondTarget").baseDP,
+    );
   });
 
-  it("decides the later security cost before reducing DP, then deletes at zero DP", async () => {
+  it("applies the optional -5000 to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-043", as: "habakiriOption" }],
+          battleArea: [{ card: "BT25-032", as: "glowingDawn" }],
+          security: [{ card: "BT1-001", as: "optionCost" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "current", dp: 20000 }],
+          hand: [{ card: "BT1-024", as: "late" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("habakiriOption").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("current").currentDP === 7000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(5000);
+  });
+
+  it("reduces DP first, then offers the later security cost, and deletes at zero DP only after the effect", async () => {
     const s = setupEngine(
       {
         0: {
@@ -277,7 +314,7 @@ describe("BT25-043 Habakirimon", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.perm("target").currentDP).toBe(8000);
+    expect(s.perm("target").currentDP).toBe(0);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
     const cost = s.state.pendingDecision!;
     expect(

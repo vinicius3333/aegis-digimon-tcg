@@ -147,6 +147,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] [Once Per Turn] This Digimon unsuspends.",
           kind: "Unsuspend",
           target: {
             filter: {
@@ -157,6 +158,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, for every 2 [Royal Knight] trait cards in this Digimon's digivolution cards, trash your opponent's top security card.",
           kind: "Trash",
           target: {
             filter: {

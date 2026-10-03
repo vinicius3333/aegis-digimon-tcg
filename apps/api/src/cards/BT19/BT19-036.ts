@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -14,6 +15,8 @@ export const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart:
+            "Then, if [Wizardmon]/[X Antibody] is in this Digimon's digivolution cards, you may place 1 yellow or purple Option card with cost of 5 or less from your hand as your bottom security card.",
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "mine",
@@ -45,6 +48,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -52,6 +56,8 @@ export const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart:
+            "Then, if [Wizardmon]/[X Antibody] is in this Digimon's digivolution cards, you may place 1 yellow or purple Option card with cost of 5 or less from your hand as your bottom security card.",
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "mine",

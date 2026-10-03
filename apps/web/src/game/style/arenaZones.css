@@ -42,6 +42,12 @@
     padding: 1rem 2rem !important;
     border: 0 !important;
     background: transparent !important;
+    /* The bar spans the board's top edge, over the opponent's trash; only its pieces take clicks. */
+    pointer-events: none;
+  }
+
+  .game-opponent-bar > * {
+    pointer-events: auto;
   }
 
   .game-opponent-identity {
@@ -57,16 +63,20 @@
     position: absolute;
     top: 0.75rem;
     left: 49.5%;
+    /* Centered, so it keeps clear of the widest side: the counters and the truncated
+       name on the left reach about 24.5rem into the bar. */
     width: min(
       calc(
         var(--arena-opponent-hand-count) * var(--arena-opponent-card-width) + (var(--arena-opponent-hand-count) - 1) *
           0.25rem
       ),
-      43vw
+      43vw,
+      100% - 49rem
     );
     height: var(--arena-opponent-card-height);
     gap: 0 !important;
     transform: translateX(-50%);
+    overflow: visible;
   }
 
   .game-opponent-hand > div {
@@ -131,7 +141,7 @@
   .game-pile-column--left > div:first-child {
     position: absolute;
     z-index: 6;
-    right: 3rem;
+    left: 3rem;
     top: 6rem;
   }
 
@@ -142,7 +152,7 @@
   .game-pile-column--right > div:first-child > .game-opponent-breeding {
     position: absolute;
     z-index: 6;
-    left: 3rem;
+    right: 3rem;
     top: 6rem;
     display: flex;
     align-items: flex-start;
@@ -311,6 +321,11 @@
     transform: translateX(-50%);
   }
 
+  /* The tall board shows the security cards themselves, not the shield's face. */
+  .game-security-shield::before {
+    content: none;
+  }
+
   .game-security-shield--opp {
     top: var(--arena-security-top);
   }
@@ -459,5 +474,25 @@
 
   .game-security-shield {
     height: 3rem;
+  }
+}
+
+/* The breeding step focuses the raising area alone. The dim covers the whole board,
+   the bottom strip and every badge, pile and shield that stacks above the field;
+   only the breeding dock and the memory band, which holds the end control, rise
+   above it. The board isolates, so notices and dialogs portalled outside it stay lit. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .aegis-arena .game-board:has(.game-breeding-mode) {
+    isolation: isolate;
+  }
+
+  .aegis-arena .game-board .game-breeding-mode {
+    z-index: 20;
+    /* Down over the 13rem bottom strip, which sits under the field. */
+    bottom: -13rem;
+  }
+
+  .aegis-arena .game-board:has(.game-breeding-mode) :is(.game-breeding-dock, .game-memory-band) {
+    z-index: 21;
   }
 }

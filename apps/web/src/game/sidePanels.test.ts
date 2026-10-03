@@ -317,3 +317,25 @@ describe("stripped stack tops", () => {
     expect(shown).toMatchObject({ titleKey: "panel.strippedTopCards", side: Side.Opponent });
   });
 });
+
+describe("trashed digivolution cards", () => {
+  // Discord 1555176240359415878: EX12-035 MetalGarurumon trashed the source under the bot's Cherubimon.
+  const trashedSources: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["s1-19"],
+    cardIds: ["BT16-024"],
+    artIds: ["BT16-024"],
+    seat: 1,
+    from: "various",
+    to: "trash",
+    trashedSources: { permanentId: "perm-5", hostCardId: "EX6-035", sourceCardId: "EX12-035" },
+  };
+
+  it("titles the trashed cards as digivolution cards, on their owner's side", () => {
+    expect(sidePanelFromEvent(trashedSources, VIEWER, lookup({}, {}), "id", 0)).toMatchObject({
+      titleKey: "panel.trashedDigivolutionCards",
+      side: Side.Opponent,
+      cards: [{ cardId: "BT16-024" }],
+    });
+  });
+});

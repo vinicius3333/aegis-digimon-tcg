@@ -289,7 +289,7 @@ describe("EX3-036 Magnadramon", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
   });
 
-  it("snapshots current opposing Digimon and does not debuff a later entrant", async () => {
+  it("CR 15-11-2-2: also debuffs an opposing Digimon that enters after On Play", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "EX3-036", as: "magnadramon" }] },
       1: {
@@ -307,7 +307,7 @@ describe("EX3-036 Magnadramon", () => {
     )!;
 
     expect(observe(s.engine).keywordAmount(s.perm("existing"), "SecurityAttack")).toBe(-1);
-    expect(observe(s.engine).keywordAmount(entrant, "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(entrant, "SecurityAttack")).toBe(-1);
   });
 
   it("an effect other than Trial still applies only Security Attack -1", async () => {

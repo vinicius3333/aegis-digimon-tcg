@@ -1,4 +1,5 @@
 import type { ModifierLedger } from "../modifiers.js";
+import type { CollectedEffect } from "../collect.js";
 import type { ContinuousEffectLedger } from "../continuous.js";
 import type { DnaMemoryGain, SubTriggerRegistry } from "../subtriggers.js";
 import type { SubTriggerSourceScope } from "../EffectContext.js";
@@ -223,8 +224,22 @@ export interface PrimitivesEngine {
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
       deferWhenPlayed?: boolean;
+      procedurePending?: readonly CollectedEffect[];
     },
   ) => Promise<void>;
+  /**
+   * Resolve the "would leave" interrupts of the battle-area DigiXros materials of an
+   * effect-driven play while the played card is only revealed: not paid for, not in play
+   * (§7-2-2-7, §15-8-5-2, Q3724/Q3725). Returns the materials whose leave was prevented and
+   * the effects the interrupts triggered, which wait for the played card's [On Play] window
+   * (§15-4-3-2, §15-8-3-2).
+   */
+  interruptDigiXrosMaterialLeave?: (
+    fieldPermanentIds: string[],
+    resolvingSeat?: Seat,
+  ) => Promise<{ prevented: Set<string>; triggered: readonly CollectedEffect[] }>;
+  /** Resolve held triggered effects in their own window when the window they waited for never opens. */
+  resolveHeldTriggeredEffects?: (effects: readonly CollectedEffect[]) => Promise<void>;
   /**
    * Consult active digivolution-card-trash "redirect" replacements (BT10-084 Tactimon; KB
    * Q2002-Q2008) BEFORE a trash operation selects which cards to take. Returns the redirected
@@ -324,7 +339,6 @@ export interface MemoryPort {
  */
 export interface CombatPort {
   readonly isAttacking: boolean;
-  readonly attackedThisTurn?: ReadonlySet<string>;
   readonly currentAttackerId: string | undefined;
   /** Resolve a direct rules battle without creating an attack declaration. */
   resolveBattle?(attacker: Permanent, defender: Permanent): Promise<void>;

@@ -362,7 +362,7 @@ has an unresolved clause or residual handwritten behavior.
 
   - `can place all three Gammamon-text cards at the bottom of its stack`
 
-  - `records an independent top-or-bottom choice for each of the three cards`
+  - `Discord 1555224478416633927: places all three cards at one chosen end, in the controller's order, in one move`
 
   - `shares one use between its when-digivolving and when-attacking timings`
 

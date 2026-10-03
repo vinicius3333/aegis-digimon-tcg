@@ -42,6 +42,16 @@ describe("EX6-031 Shakamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shaka").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("shaka") !== undefined && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT1-083");
+    expect(observe(s.engine).keywordAmount(lateKeywordEntrant0, "SecurityAttack")).toBe(
+      observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack"),
+    );
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant1 = s.putOnBoard(1, "BT1-083");
+    expect(observe(s.engine).keywordAmount(lateKeywordEntrant1, "SecurityAttack")).toBe(
+      observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack"),
+    );
   });
 
   it("publicly inverts each own negative Security Attack value during your turn", async () => {

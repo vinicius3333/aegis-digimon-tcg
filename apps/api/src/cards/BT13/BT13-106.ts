@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
           effectTextPart:
             "Then, if there're 6 or fewer total cards in both players' security stacks, all of your opponent's Digimon gain ＜Security Attack -1＞ until the end of your opponent's turn.",
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",

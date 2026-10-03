@@ -12,6 +12,7 @@ const compiled: CompiledCard = {
           target: { filter: { controller: "any", kind: ["Digimon"] }, count: "all" },
           restriction: "beDeletedInBattle",
           duration: "forTheTurn",
+          whileMatchesTargetFilter: true,
         },
       ],
     },

@@ -61,7 +61,7 @@ export const compiled: CompiledCard = {
             target: { filter: { zone: "linked", isSelfRef: true }, count: 1 },
             raw: "by trashing 1 of its link cards",
           },
-          raw: "When this [Vulcanusmon] would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
+          raw: "[All Turns] When this [Vulcanusmon] would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
         },
       ],
     },

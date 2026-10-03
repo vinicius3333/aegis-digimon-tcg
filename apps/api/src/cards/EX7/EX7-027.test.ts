@@ -81,6 +81,8 @@ describe("EX7-027 Chaperomon", () => {
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             attackPlayer: true,
             withoutSuspending: true,
+            optional: true,
+            abortOnDecline: true,
             cost: {
               kind: "deleteOwn",
               target: {
@@ -220,7 +222,7 @@ describe("EX7-027 Chaperomon", () => {
     await stopLoop(s, loop, 0);
   });
 
-  it("executes errata-mandated Overclock at the real end of turn by deleting another Puppet and attacking without suspending", async () => {
+  it("accepts Overclock at the real end of turn, deleting another Puppet and attacking without suspending", async () => {
     const s = setupEngine(
       {
         0: {
@@ -232,7 +234,7 @@ describe("EX7-027 Chaperomon", () => {
         },
         1: { deck: ["BT1-011", "BT1-012"], security: ["BT1-014", "BT1-014"] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -251,6 +253,42 @@ describe("EX7-027 Chaperomon", () => {
       true,
     );
     await advance(s.engine).waitForMainPhase(1);
+    await stopLoop(s, loop, 1);
+  });
+
+  it("declines the optional Overclock 'by' deletion and keeps the Puppet without attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-027", as: "chap" },
+            { card: "EX7-024", as: "fodder" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"], security: ["BT1-014", "BT1-014"] },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const chapId = s.perm("chap").permanentId;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("fodder").topCard.instanceId).toBe(s.inst("fodder").instanceId);
+    expect(s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === chapId)).toBe(
+      false,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(2);
     await stopLoop(s, loop, 1);
   });
 

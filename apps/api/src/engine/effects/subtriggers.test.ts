@@ -353,6 +353,47 @@ describe("SubTriggerRegistry", () => {
     expect(activations).toBe(1);
   });
 
+  it("does not reoffer a once-per-turn reducer to a digivolution nested inside its own cost", async () => {
+    const registry = new SubTriggerRegistry();
+    const fired = new Set<string>();
+    const ledger = {
+      hasFired: (key: string) => fired.has(key),
+      markFired: (key: string) => {
+        fired.add(key);
+      },
+    };
+    const target = { permanentId: "BASE" } as never;
+    const into = { cardId: "BT26-076" } as never;
+    let nestedReduction: number | undefined;
+    registry.subscribeReplacement({
+      event: "wouldDigivolve",
+      sourcePermanentId: "THOMAS",
+      mode: "reduceCost",
+      amount: 1,
+      controllerSeat: 0,
+      oncePerTurnKey: "BT25-087/your-turn",
+      description: "Thomas H. Norstein once-per-turn reducer",
+      appliesTo: () => true,
+      activate: async () => {
+        nestedReduction ??= await registry.activateInteractiveReductionsFor(
+          "wouldDigivolve",
+          0,
+          target,
+          into,
+          "nested",
+          () => fakeCtx,
+          ledger,
+        );
+        return true;
+      },
+    });
+
+    await expect(
+      registry.activateInteractiveReductionsFor("wouldDigivolve", 0, target, into, "declared", () => fakeCtx, ledger),
+    ).resolves.toBe(1);
+    expect(nestedReduction).toBe(0);
+  });
+
   it("keeps an amount-choice reducer installed after refusal until the later accepted play", async () => {
     const registry = new SubTriggerRegistry();
     let activationCount = 0;

@@ -94,7 +94,9 @@ describe("BT12-011 Shoutmon (King Version)", () => {
   });
 
   it("uses one Save material for DigiXros -2", async () => {
-    expect(digiXrosRequirementFor("BT12-011")).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    expect(digiXrosRequirementFor("BT12-011")).toEqual([
+      { materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 },
+    ]);
     const s = setupEngine({
       0: {
         hand: [

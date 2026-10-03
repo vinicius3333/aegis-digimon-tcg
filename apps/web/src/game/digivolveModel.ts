@@ -9,6 +9,7 @@ import {
   effectiveStaticNames,
   effectiveStaticTraits,
   nameIncludesToken,
+  textMatchesToken,
   tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
   dnaDigivolutionRequirementsFor,
@@ -318,12 +319,27 @@ function altRequirementMatches(
   const baseExactNames = effectiveExactNames(baseDef);
   if (req.namesExact && req.namesExact.length > 0 && !req.namesExact.some((n) => baseExactNames.includes(n)))
     return false;
-  if (
-    req.texts &&
-    req.texts.length > 0 &&
-    (!baseDef.effectText || !req.texts.some((t) => baseDef.effectText!.includes(t)))
-  )
-    return false;
+  // Q7313: "in text" includes names, traits and every printed effect/header field.
+  // Mirror the server's text union and keyword matching before building cost choices.
+  if (req.texts?.length) {
+    const textUnion = [
+      ...baseNames,
+      ...(baseDef.types ?? []),
+      ...(baseDef.forms ?? []),
+      ...(baseDef.attributes ?? []),
+      baseDef.effectText,
+      baseDef.inheritedEffectText,
+      baseDef.securityEffectText,
+      baseDef.linkEffect,
+      baseDef.linkRequirement,
+      baseDef.dualEffect,
+      baseDef.optionEffect,
+    ]
+      .filter((value): value is string => value !== undefined)
+      .join(" ")
+      .toLowerCase();
+    if (!req.texts.some((token) => textMatchesToken(textUnion, token))) return false;
+  }
   if (req.placementCost && viewer && placementCostAvailable(viewer, req.placementCost) < req.placementCost.count)
     return false;
   if (!stackGatesSatisfied(req, base)) return false;

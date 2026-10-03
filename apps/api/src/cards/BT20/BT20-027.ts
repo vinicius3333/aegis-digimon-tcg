@@ -8,6 +8,8 @@ export const compiled: CompiledCard = {
       trigger,
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Trash any 3 digivolution cards of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution" as const,
           target: {
             filter: {
@@ -21,6 +23,7 @@ export const compiled: CompiledCard = {
           choose: true,
         },
         {
+          effectTextPart: "Then, delete 1 of their Digimon with no digivolution cards.",
           kind: "Delete" as const,
           target: {
             filter: { controller: "opponent" as const, kind: ["Digimon" as const], digivolutionCards: "none" as const },

@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] You may play 1 white Tamer card with a play cost of 4 or less from your hand without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -22,6 +24,7 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, your opponent may play 1 Tamer card from their hand without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

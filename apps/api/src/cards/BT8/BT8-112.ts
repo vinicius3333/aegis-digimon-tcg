@@ -4,6 +4,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const sharedBody: CompiledCard["effects"][number]["actions"] = [
   {
     kind: "TrashDigivolution",
+    effectTextPart:
+      "[When Digivolving][When Attacking] You may return 1 2-color card from this Digimon's digivolution cards to the bottom of its owner's deck to trash all of the digivolution cards of 1 of your opponent's Digimon.",
     target: {
       filter: {
         controller: "opponent",
@@ -31,6 +33,8 @@ const sharedBody: CompiledCard["effects"][number]["actions"] = [
   },
   {
     kind: "Return",
+    effectTextPart:
+      "Then, return all of your opponent's Digimon with no digivolution cards to the bottom of their owners' decks in any order.",
     target: {
       filter: {
         controller: "opponent",

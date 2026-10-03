@@ -1,5 +1,11 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { seatsForController } from "../matching/permanent.js";
+import {
+  knownCards,
+  orderPermanentsForStackEnd,
+  placeAtChosenStackEnd,
+  placeAtStackEnd,
+} from "../placeAtChosenStackEnd.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { distinctColorPermanentIds, placeCostHostCandidates } from "./candidates.js";
@@ -92,7 +98,7 @@ export async function payRoutedPlaceCost(
           const topInstanceId = permanent.topCard.instanceId;
           const toTop =
             cost.position === "choice"
-              ? (await ctx.ask.chooseOption(ctx, ["top", "bottom"])) === 0
+              ? (await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "security" })) === 0
               : cost.position !== "bottom";
           await ctx.fx.addSecurity(permanent.controllerSeat, [topInstanceId], {
             toTop,
@@ -172,8 +178,11 @@ export async function payRoutedPlaceCost(
         // primitive preflights every source before mutating; refusing the batch in a
         // minimal/legacy context is safer than falling back to partial sequential moves.
         if (ctx.fx.relocatePermanentsByEffect === undefined) return false;
-        const moved = await ctx.fx.relocatePermanentsByEffect(hostPermId, sourceIds, {
-          belowTop: cost.position !== "bottom",
+        const atTop = cost.position !== "bottom";
+        const orderedSourceIds = await orderPermanentsForStackEnd(ctx, sourceIds, atTop);
+        // The primitive relocates in list order, so the last source lands nearest the end.
+        const moved = await ctx.fx.relocatePermanentsByEffect(hostPermId, [...orderedSourceIds].reverse(), {
+          belowTop: atTop,
           shedOwnCards: cost.shedOwnCards !== false,
           ...(cost.faceDown !== undefined ? { faceUp: !cost.faceDown } : {}),
         });
@@ -255,7 +264,7 @@ export async function payRoutedPlaceCost(
     // inserted at the top of security.
     let toTop: boolean;
     if (cost.position === "choice") {
-      const choice = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
+      const choice = await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "security" });
       toTop = choice === 0;
     } else {
       toTop = cost.position !== "bottom";
@@ -336,50 +345,30 @@ export async function payRoutedPlaceCost(
     }
   }
   if (hostPermId === undefined) return false;
-  let orderedPicked = picked;
-  if (picked.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
-    orderedPicked = await ctx.ask.orderCards(ctx, {
-      candidates: picked,
-      visibleCards: picked.map((instanceId) => {
-        const card = srcCandidates.find((candidate) => candidate.instanceId === instanceId);
-        return { instanceId, cardId: card?.cardId ?? "" };
-      }),
-      destination: "stackBottom",
-    });
-  }
-  const placedIds = new Set<string>();
-  if (cost.position === "choice") {
-    // "top or bottom" — prompt the controller per placed card via the shared
-    // binary-choice helper ctx.ask.chooseOption (index 0 = top, 1 = bottom).
-    for (const instanceId of orderedPicked) {
-      const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-      const placed = await ctx.fx.placeUnder(hostPermId, [instanceId], {
-        belowTop: idx === 0,
-        faceUp: cost.faceDown !== true,
-      });
-      for (const card of placed) placedIds.add(card.instanceId);
-    }
-  } else {
-    const placed = await ctx.fx.placeUnder(hostPermId, orderedPicked, {
-      belowTop: cost.position !== "bottom",
-      faceUp: cost.faceDown !== true,
-    });
-    for (const card of placed) placedIds.add(card.instanceId);
-  }
+  const visibleCards = knownCards(
+    ctx,
+    srcCandidates.filter(({ instanceId }) => picked.includes(instanceId)),
+  );
+  const faceUp = cost.faceDown !== true;
+  const placedCards =
+    cost.position === "choice"
+      ? await placeAtChosenStackEnd(ctx, hostPermId, picked, visibleCards, faceUp)
+      : await placeAtStackEnd(ctx, hostPermId, picked, visibleCards, { atTop: cost.position !== "bottom", faceUp });
+  const placedIds = new Set(placedCards.map((card) => card.instanceId));
   // A placement cost is paid only when every selected card actually entered the
   // requested digivolution stack.  The primitive is allowed to reject individual
   // cards (for example, if a replacement or intervening effect makes one no longer
   // movable), so a selection alone must not bind a target or unlock a dependent
   // "if you did" action.
-  if (placedIds.size !== orderedPicked.length || orderedPicked.some((instanceId) => !placedIds.has(instanceId))) {
+  if (placedIds.size !== picked.length || picked.some((instanceId) => !placedIds.has(instanceId))) {
     return false;
   }
-  ctx.lastPlacedUnderInstanceIds = [...orderedPicked];
+  ctx.lastPlacedUnderInstanceIds = [...picked];
   if (cost.bindHostAs !== undefined) {
     ctx.selections ??= new Map();
     ctx.selections.set(cost.bindHostAs, hostPermId);
   }
-  if (cost.storeAs !== undefined && orderedPicked.length > 0) {
+  if (cost.storeAs !== undefined && picked.length > 0) {
     const pickedCard = srcCandidates.find((c) => c.instanceId === picked[0]);
     const def = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never) : undefined;
     const level = def?.level;

@@ -37,6 +37,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Until your opponent's turn ends, 1 of their Digimon and 1 of their Tamers can't suspend.",
           kind: "Restrict",
           target: {
             filter: {
@@ -49,6 +51,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[Main] Until your opponent's turn ends, 1 of their Digimon and 1 of their Tamers can't suspend.",
           kind: "Restrict",
           target: {
             filter: {
@@ -61,6 +65,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],
@@ -103,6 +108,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] Until your opponent's turn ends, 1 of their Digimon and 1 of their Tamers can't suspend.",
           kind: "Restrict",
           target: {
             filter: {
@@ -115,6 +122,8 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart:
+            "[Security] Until your opponent's turn ends, 1 of their Digimon and 1 of their Tamers can't suspend.",
           kind: "Restrict",
           target: {
             filter: {
@@ -127,6 +136,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

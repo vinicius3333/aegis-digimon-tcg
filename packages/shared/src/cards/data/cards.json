@@ -514,6 +514,7 @@
     "attributes": ["-"],
     "types": ["ADVENTURE", "Hero"],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.  [Your Turn] When any of your Digimon digivolve into an [ADVENTURE] trait Digimon, by suspending this Tamer, you may play 1 [ADVENTURE] trait card from your hand. For every 2 of your Tamers' colors, reduce this effect's play cost by 1.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "AD1-019"
@@ -565,6 +566,7 @@
     "attributes": ["-"],
     "types": ["ADVENTURE", "Hero"],
     "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.  [Your Turn] When any of your other [ADVENTURE] trait Digimon or Tamers are played, by suspending this Tamer, 1 of your Digimon may digivolve into an [ADVENTURE] trait Digimon card in the hand. For every 2 of your Tamers' colors, reduce this effect's digivolution cost by 1.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "AD1-022"
@@ -71051,7 +71053,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Mineral", "Bagra Army"],
-    "effectText": "＜Collision＞ \n＜Fragment (3)＞ \n＜Blocker＞ \n[On Play] [When Digivolving] Until your opponent's turn ends, give 1 of their Digimon \"[Start of Your Main Phase] This Digimon attacks.\"[All Turns] [Once Per Turn] When Digimon attack, by trashing any 2 of this Digimon's digivolution cards, this Digimon gains ＜Security A. +1＞ and +3000 DP until your turn ends.\n\n[DigiXros -2] 2 Digimon cards w/[Bagra Army] trait",
+    "effectText": "＜Collision＞ \n＜Fragment (3)＞ \n＜Blocker＞ \n[On Play] [When Digivolving] Until your opponent's turn ends, give 1 of their Digimon \"[Start of Your Main Phase] This Digimon attacks.\"[All Turns] [Once Per Turn] When Digimon attack, by trashing any 2 of this Digimon's digivolution cards, this Digimon gains ＜Security A. +1＞ and +3000 DP until your turn ends.\n\n[DigiXros -2] 3 Digimon cards w/[Bagra Army] trait",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "EX10-034"

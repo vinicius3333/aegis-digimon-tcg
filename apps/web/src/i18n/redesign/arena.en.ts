@@ -31,6 +31,7 @@ export const arenaEn = {
   "redesign.arena.restriction.cannotBlock": "An effect stops this Digimon from blocking.",
   "redesign.arena.restriction.cannotSuspend": "An effect stops this Digimon from suspending.",
   "redesign.arena.restriction.cannotUnsuspend": "An effect keeps this Digimon suspended in the unsuspend phase.",
+  "redesign.arena.restriction.cannotDigivolve": "An effect stops this card from digivolving.",
   "redesign.arena.restriction.cannotActivateWhenDigivolving":
     "An effect stops this Digimon's [When Digivolving] effects from activating.",
 

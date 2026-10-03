@@ -159,7 +159,7 @@ describe("EX10-053 Regulusmon", () => {
 
     const regulus = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === CARD_ID)!;
     expect(regulus.stack.map((card) => card.instanceId)).toEqual(
-      (["g5", "g4", "g3", "g2", "g1"] as const).map((alias) => s.inst(alias).instanceId),
+      (["g1", "g2", "g3", "g4", "g5"] as const).map((alias) => s.inst(alias).instanceId),
     );
     expect(new Set(regulus.stack.map((card) => getCardDefinition(card.cardId)!.nameEn)).size).toBe(5);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
@@ -225,8 +225,8 @@ describe("EX10-053 Regulusmon", () => {
     const regulus = s.perm("gulus");
     expect(regulus.topCard.instanceId).toBe(s.inst("regulus").instanceId);
     expect(regulus.stack.map((card) => card.instanceId)).toEqual([
-      s.inst("g2").instanceId,
       s.inst("g1").instanceId,
+      s.inst("g2").instanceId,
       s.inst("under1").instanceId,
       s.inst("under2").instanceId,
       s.inst("gulus").instanceId,

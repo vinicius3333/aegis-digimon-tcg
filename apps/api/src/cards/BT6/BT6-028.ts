@@ -14,6 +14,7 @@ const compiled: CompiledCard = {
           },
           restriction: "cantBeBlocked",
           duration: "forTheTurn",
+          whileMatchesTargetFilter: true,
           cost: {
             kind: "trash",
             target: {

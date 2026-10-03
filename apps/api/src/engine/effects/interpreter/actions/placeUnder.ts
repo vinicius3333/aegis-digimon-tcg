@@ -5,8 +5,14 @@ import { relocateByEffect } from "../costs.js";
 import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
 import { unsupported } from "../errors.js";
 import { definitionMatches, hasExactName, matchNameOrTrait } from "../matching/definition.js";
+import {
+  knownCards,
+  orderPermanentsForStackEnd,
+  placeAtChosenStackEnd,
+  placeAtStackEnd,
+} from "../placeAtChosenStackEnd.js";
 import { scaleFactor } from "../scaling.js";
-import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
+import { candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import type { Action, Filter, Target, ZoneRef } from "@aegis/shared";
 
@@ -173,15 +179,16 @@ export async function runPlaceUnder(
       });
     }
     const byId = new Map(candidates.map((candidate) => [candidate.instanceId, candidate]));
-    for (const instanceId of [...orderedIds].reverse()) {
-      const candidate = byId.get(instanceId);
-      if (candidate?.kind === "egg") await ctx.fx.placeUnderFromEggDeck(self.permanentId, ctx.source.ownerSeat);
-      else if (candidate?.kind === "permanent")
-        await relocateByEffect(ctx, self.permanentId, candidate.permanentId, {
-          belowTop: false,
-          shedOwnCards: true,
-        });
-    }
+    if (ctx.fx.placeEggAndPermanentsUnder === undefined)
+      return unsupported(ctx, action, "simultaneous Digi-Egg and permanent placement");
+    await ctx.fx.placeEggAndPermanentsUnder(
+      self.permanentId,
+      orderedIds.flatMap((instanceId) => {
+        const candidate = byId.get(instanceId);
+        if (candidate === undefined) return [];
+        return [{ instanceId, ...(candidate.kind === "permanent" ? { permanentId: candidate.permanentId } : {}) }];
+      }),
+    );
     return;
   }
   if (action.mixedSources !== undefined) {
@@ -298,9 +305,11 @@ export async function runPlaceUnder(
     }
     if (destId === undefined) return;
     let placedCount = 0;
-    for (const sourcePermanentId of sourceIds) {
+    const atTop = action.position !== "bottom";
+    const orderedSourceIds = await orderPermanentsForStackEnd(ctx, sourceIds, atTop);
+    for (const sourcePermanentId of [...orderedSourceIds].reverse()) {
       const moved = await relocateByEffect(ctx, destId, sourcePermanentId, {
-        belowTop: action.position !== "bottom",
+        belowTop: atTop,
         ...(action.shedOwnCards === true ? { shedOwnCards: true } : {}),
       });
       if (moved) placedCount += 1;
@@ -511,7 +520,7 @@ export async function runPlaceUnder(
       : action.count === "all"
         ? { ...levelCeilingTarget, count: scopedCandidates.length }
         : levelCeilingTarget;
-  let chosen = await pickLoose(
+  const chosen = await pickLoose(
     ctx,
     placementTarget,
     scopedCandidates,
@@ -519,39 +528,24 @@ export async function runPlaceUnder(
     ctx.ask,
     action.blind === true ? undefined : scopedCandidates.map((candidate) => candidate.instanceId),
   );
-  if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
-    chosen = await ctx.ask.orderCards(ctx, {
-      candidates: chosen,
-      visibleCards: chosen
-        .map((instanceId) => scopedCandidates.find((candidate) => candidate.instanceId === instanceId))
-        .filter((candidate): candidate is LooseCandidate => candidate !== undefined)
-        .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
-      destination: "stackBottom",
-    });
-  }
   rememberPlacedUnder(ctx, chosen);
   // `asDigiXrosMaterial: true` marks placed cards as DigiXros materials for the host Digimon.
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
-  if (chosen.length > 0) {
-    const placementIds = action.position === "bottom" && action.order === "any" ? [...chosen].reverse() : chosen;
-    if (action.position === "choice") {
-      // “As this Digimon's top or bottom digivolution cards” gives the controller a
-      // separate placement choice for every selected card. Index 0 means directly under
-      // the current top; index 1 means the true bottom of the stack.
-      for (const instanceId of placementIds) {
-        const placement = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-        await ctx.fx.placeUnder(hostId, [instanceId], {
-          belowTop: placement === 0,
-          faceUp: action.faceDown !== true,
-        });
-      }
-    } else {
-      await ctx.fx.placeUnder(hostId, placementIds, {
-        belowTop: action.position !== "bottom",
-        faceUp: action.faceDown !== true,
-      });
-    }
+  // DigiXros fixes the material order by its requirement, so the player does not order them.
+  const faceUp = action.faceDown !== true;
+  if (chosen.length > 0 && action.asDigiXrosMaterial === true) {
+    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom", faceUp });
+  } else if (chosen.length > 0) {
+    const visibleCards =
+      action.blind === true
+        ? []
+        : knownCards(
+            ctx,
+            scopedCandidates.filter(({ instanceId }) => chosen.includes(instanceId)),
+          );
+    if (action.position === "choice") await placeAtChosenStackEnd(ctx, hostId, chosen, visibleCards, faceUp);
+    else await placeAtStackEnd(ctx, hostId, chosen, visibleCards, { atTop: action.position !== "bottom", faceUp });
   }
   if (action.bindHostAs && chosen.length > 0) {
     ctx.boundPlayed ??= new Map();

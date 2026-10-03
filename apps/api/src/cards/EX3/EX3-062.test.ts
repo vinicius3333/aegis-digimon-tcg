@@ -202,7 +202,7 @@ describe("EX3-062 WarGrowlmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.trash).toHaveLength(5);
     expect(s.state.players[1]!.trash).toHaveLength(3);
-    expect(payload(s)).toMatchObject({ min: 1, max: 1, timing: "WhenDigivolving" });
+    expect(payload(s)).toMatchObject({ min: 0, max: 1, timing: "WhenDigivolving" });
     expect(payload(s).candidateInstanceIds).toEqual(
       expect.arrayContaining([s.inst("milledGuilmon").instanceId, s.inst("takato").instanceId]),
     );

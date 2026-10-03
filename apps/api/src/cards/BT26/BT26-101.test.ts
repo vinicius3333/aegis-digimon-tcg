@@ -171,7 +171,14 @@ describe("BT26-101 compiled fidelity", () => {
     expect(observe(s.engine).hasKeyword(s.perm("tsDigimon"), "Blocker")).toBe(true);
     expect(s.perm("tsDigimon").currentDP).toBe(5000);
     expect(observe(s.engine).hasKeyword(s.perm("nonTs"), "Blocker")).toBe(false);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant0 = s.putOnBoard(0, "BT26-009");
+    expect(observe(s.engine).hasKeyword(lateKeywordEntrant0, "Blocker")).toBe(true);
     expect(s.perm("nonTs").currentDP).toBe(3000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(0, "BT26-009");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("tsDigimon").currentDP - s.perm("tsDigimon").baseDP);
   });
 
   it("can choose the unsuspend mode without the named Tamer (Q7182)", async () => {
@@ -218,5 +225,38 @@ describe("BT26-101 compiled fidelity", () => {
 
     expect(s.perm("tsDigimon").keywords).not.toContain("Blocker");
     expect(s.perm("tsDigimon").currentDP).toBe(2000);
+  });
+
+  it("grants Blocker and +3000 DP to a TS Digimon played later, but not to a non-TS Digimon (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT26-101", as: "option" },
+            { card: "BT26-009", as: "laterTs" },
+            { card: "BT1-009", as: "laterNonTs" },
+          ],
+          battleArea: [
+            { card: "BT26-009", as: "tsDigimon", suspended: true },
+            { card: "BT25-086", as: "dan" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tsDigimon").currentDP === 5000 && s.state.pendingDecision === undefined);
+
+    await advance(s.engine).verb.playInstances([s.inst("laterTs").instanceId, s.inst("laterNonTs").instanceId]);
+
+    expect(observe(s.engine).hasKeyword(s.perm("laterTs"), "Blocker")).toBe(true);
+    expect(s.perm("laterTs").currentDP).toBe(5000);
+    expect(observe(s.engine).hasKeyword(s.perm("laterNonTs"), "Blocker")).toBe(false);
+    expect(s.perm("laterNonTs").currentDP).toBe(3000);
   });
 });

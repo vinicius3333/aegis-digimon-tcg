@@ -4,6 +4,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const actions: Action[] = [
   {
     kind: "Suspend",
+    effectTextPart:
+      "[When Digivolving][On Play] For each green or black Tamer you have in play, suspend 1 of your opponent's Digimon.",
     target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 },
     scaling: {
       per: 1,
@@ -13,6 +15,8 @@ const actions: Action[] = [
   },
   {
     kind: "Restrict",
+    effectTextPart:
+      "Then, 1 of your opponent's suspended Digimon can't unsuspend during your opponent's next unsuspend phase.",
     target: { filter: { controller: "opponent", suspended: true, kind: ["Digimon"] }, count: 1 },
     restriction: "unsuspend",
     duration: "untilOpponentTurnEnd",

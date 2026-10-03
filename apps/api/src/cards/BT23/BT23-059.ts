@@ -113,6 +113,8 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
+          effectTextPart:
+            "[All Turns] [Once Per Turn] When Option cards in the battle area are trashed, this Digimon unsuspends.",
           kind: "SubTrigger",
           event: "whenOptionInBattleAreaTrashed",
           actions: [
@@ -127,6 +129,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "Then, your opponent's Digimon's effects don't affect this Digimon for the turn.",
               kind: "GrantStatic",
               target: {
                 filter: {

@@ -38,6 +38,7 @@ export function OpponentBar({
   onOpenArenaLook,
   onSurrender,
   onSkipPresentation,
+  onResetScenario,
 }: {
   handStripRef: RefObject<HTMLDivElement | null>;
   opponentName: string;
@@ -60,6 +61,7 @@ export function OpponentBar({
   onOpenArenaLook: () => void;
   onSurrender: () => void;
   onSkipPresentation: () => void;
+  onResetScenario?: () => void;
 }) {
   const { t } = useTranslation();
   const fanned = Math.max(0, handCount);
@@ -150,6 +152,11 @@ export function OpponentBar({
             <Icons.MoreVertical size={20} />
           </summary>
           <div className="game-mobile-menu__actions">
+            {onResetScenario ? (
+              <button type="button" onClick={onResetScenario}>
+                ↻ Reset battle
+              </button>
+            ) : null}
             <button type="button" onClick={onOpenLog}>
               <Icons.ScrollText size={18} /> {t("game.matchLog")}
             </button>
@@ -181,12 +188,27 @@ export function OpponentBar({
           <button className="game-mobile-look" onClick={onOpenArenaLook} aria-label={t("redesign.arena.look.open")}>
             <Icons.Palette size={16} />
           </button>
-          <button className="game-mobile-surrender" onClick={onSurrender} aria-label={t("game.surrender")}>
-            <Icons.LogOut size={16} />
+          <button
+            className="game-mobile-surrender"
+            onClick={onResetScenario ?? onSurrender}
+            aria-label={onResetScenario ? "Reset battle" : t("game.surrender")}
+          >
+            {onResetScenario ? "↻" : <Icons.LogOut size={16} />}
           </button>
         </>
       ) : (
         <div className="game-topbar-actions">
+          {onResetScenario ? (
+            <button
+              type="button"
+              className="game-topbar-button"
+              onClick={onResetScenario}
+              aria-label="Reset battle"
+              title="Reset battle"
+            >
+              ↻
+            </button>
+          ) : null}
           <button className="game-topbar-button" onClick={onOpenLog} aria-label={t("game.matchLog")}>
             <Icons.ScrollText size={17} />
           </button>

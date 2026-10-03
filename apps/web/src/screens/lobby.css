@@ -384,6 +384,39 @@ button.lobby-active-strip__jump {
   box-shadow: var(--ds-focus-ring);
 }
 
+.lobby-beta-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-3);
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  cursor: pointer;
+}
+
+.lobby-beta-option input {
+  min-height: 0;
+  margin: 3px 0 0;
+  accent-color: var(--ds-accent);
+}
+
+.lobby-beta-option strong {
+  font: 700 var(--ds-text-xs) / 1.4 var(--ds-font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lobby-beta-option__description {
+  display: block;
+  margin-top: 2px;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.45;
+}
+
 .lobby-random-pool {
   display: grid;
   gap: var(--ds-space-2);

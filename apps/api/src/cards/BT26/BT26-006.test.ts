@@ -8,6 +8,44 @@ import { compiled } from "./BT26-006.js";
 const CARD_ID = "BT26-006";
 
 describe("BT26-006 Monimon", () => {
+  it("can decline the By cost without trashing sources (Discord 1556016563600101406)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT10-073",
+              as: "host",
+              under: [
+                { card: CARD_ID, as: "monimon" },
+                { card: "BT1-009", as: "sourceA" },
+                { card: "BT1-010", as: "sourceB" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT14-057", as: "candidate" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 500 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const sources = s.perm("host").stack.map(({ instanceId }) => instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual(sources);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("candidate").instanceId]);
+    expect(s.state.memory).toBe(5);
+  });
+
   it("plays a Bagra Army Tamer through the play branch with the cost reduced by 2", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -245,7 +283,7 @@ describe("BT26-006 Monimon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
-  it("pays the By cost before declining the optional play payload", async () => {
+  it("can accept the By cost and decline the play afterward (Discord 1556016563600101406)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -255,28 +293,58 @@ describe("BT26-006 Monimon", () => {
               as: "host",
               under: [
                 { card: CARD_ID, as: "monimon" },
-                { card: "BT10-073", as: "costA" },
-                { card: "BT14-057", as: "costB" },
+                { card: "BT1-009", as: "costA" },
+                { card: "BT1-010", as: "costB" },
               ],
             },
           ],
           hand: [{ card: "BT14-057", as: "candidate" }],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 500 }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true },
     );
-    s.state.memory = 1;
+    s.state.memory = 5;
     await s.ready();
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
-
-    expect(s.perm("host").stack).toHaveLength(1);
-    expect(s.perm("host").topCard.cardId).toBe("BT10-073");
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.decisions.at(-1)?.req.sourceCardId === CARD_ID && s.decisions.at(-1)?.req.kind === "selectCards",
+    );
+    const costPick = s.decisions.at(-1)!.req;
+    expect(costPick.options).toMatchObject({ min: 2, max: 2, purpose: "cost" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costPick.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("costA").instanceId, s.inst("costB").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision !== undefined && s.state.pendingDecision.decisionId !== costPick.decisionId,
+    );
+    const playPick = s.decisions.at(-1)!.req;
+    expect(playPick.options).toMatchObject({ min: 0, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playPick.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("monimon").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("costA").instanceId,
+      s.inst("costB").instanceId,
+    ]);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("candidate").instanceId]);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(5);
   });
 
   it("Q6960 ends the attack when its attacker becomes DigiXros material for the effect-played Digimon", async () => {
@@ -394,6 +462,7 @@ describe("BT26-006 Monimon", () => {
         trigger: "WhenAttacking",
         isInherited: true,
         frequency: "OncePerTurn",
+        cost: { kind: "trash", optional: true, target: { count: 2 } },
         actions: [
           {
             kind: "Modal",
@@ -403,10 +472,9 @@ describe("BT26-006 Monimon", () => {
                 {
                   kind: "PlayWithoutCost",
                   reduceCostBy: 2,
-                  cost: { kind: "trash", target: { count: 2 } },
                 },
               ],
-              [{ kind: "UseOptionWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
+              [{ kind: "UseOptionWithoutCost", reduceCostBy: 2 }],
             ],
           },
         ],

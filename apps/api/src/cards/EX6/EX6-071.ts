@@ -11,6 +11,8 @@ export const compiled: CompiledCard = {
           ...effect,
           actions: [
             {
+              effectTextPart:
+                "[Main] If your opponent has 5 or more cards in their hand, they must trash 1 card in their hand.",
               kind: "Trash",
               target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
               chooser: "opponent",
@@ -23,6 +25,8 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart:
+                "Then, delete 1 of your opponent's Digimon with a level equal to or higher than thenumber of cards in their hand.",
               kind: "Delete",
               target: {
                 filter: {

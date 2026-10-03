@@ -167,7 +167,7 @@ export function boardActions({
     setStackView(null);
   };
 
-  const stackCardsOf = (perm: Permanent) => modelStackCardsOf({ perm });
+  const stackCardsOf = (perm: Permanent) => modelStackCardsOf({ perm, viewerSeat: viewer.seat });
 
   function openOwnPermanent(permanentId: string) {
     const perm = findPermanent(permanentId);

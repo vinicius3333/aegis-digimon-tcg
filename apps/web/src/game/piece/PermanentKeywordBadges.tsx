@@ -8,8 +8,8 @@ const MAX_VISIBLE_KEYWORD_COUNT = 3;
 /** The pill line starts after the digivolution count and reaches past the card's right edge (fieldBadges.css). */
 const LINE_START_PX = 22;
 const LINE_OVERHANG_PX = 12;
-/** The pills use an 8px monospace font: every character is 0.6em wide. */
-const CHARACTER_WIDTH_PX = 4.8;
+/** The pills use a 9px monospace font: every character is 0.6em wide. */
+const CHARACTER_WIDTH_PX = 5.4;
 const PILL_PADDING_PX = 8;
 const PILL_GAP_PX = 2;
 const MORE_CHIP_WIDTH_PX = 22;
@@ -18,8 +18,8 @@ const pillWidth = (label: string) => label.length * CHARACTER_WIDTH_PX + PILL_PA
 
 /**
  * How many pills fit on the single line above a card of `cardWidth`, leaving room for the
- * "+N" chip when some are left out. At least one pill always shows, so a narrow card still
- * reads one keyword in full and "+N" for the rest.
+ * "+N" chip when some are left out. If no complete label fits, show only the count
+ * with every keyword in its explanation rather than a truncated fragment.
  */
 export function visibleKeywordCount(labels: readonly string[], cardWidth: number): number {
   const available = cardWidth - LINE_START_PX + LINE_OVERHANG_PX;
@@ -32,7 +32,7 @@ export function visibleKeywordCount(labels: readonly string[], cardWidth: number
     used = next;
     count += 1;
   }
-  return Math.max(1, count);
+  return count;
 }
 
 /** The resolved keyword pills on one line just above a permanent's card. */

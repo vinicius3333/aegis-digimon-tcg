@@ -262,7 +262,7 @@ describe("EX5-007 Coronamon", () => {
     await loop;
   });
 
-  it("does not rotate or gain memory when the host's top card lacks Light Fang or Night Claw", async () => {
+  it("does not offer the rotation when the host lacks Light Fang or Night Claw", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT1-014", as: "host", under: ["EX5-007"] }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -271,14 +271,7 @@ describe("EX5-007 Coronamon", () => {
     const effect = observe(s.engine)
       .activatableEffects(s.perm("host"))
       .find((entry) => /Gain 2 memory/i.test(entry.description ?? ""));
-    expect(effect).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("host").stack[0]!.instanceId,
-        effectKey: effect!.effectKey,
-      }),
-    ).toEqual({ ok: true });
+    expect(effect).toBeUndefined();
     await settle();
     expect(s.perm("host").topCard?.cardId).toBe("BT1-014");
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX5-007"]);

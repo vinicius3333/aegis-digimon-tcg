@@ -3,6 +3,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const paidDeleteActions = [
   {
+    effectTextPart:
+      "Then, by placing 3 [Bagra Army] trait Digimon cards from your trash as this Digimon's top digivolution cards, delete 1 of their Digimon or Tamers with cards under it.",
     kind: "PlaceUnder" as const,
     target: {
       filter: {
@@ -37,6 +39,8 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Choose 1 card in your opponent's hand without looking and place it as any of their Digimon's bottom digivolution card or under any of their Tamers.",
           kind: "PlaceUnder",
           blind: true,
           target: {
@@ -58,6 +62,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] Choose 1 card in your opponent's hand without looking and place it as any of their Digimon's bottom digivolution card or under any of their Tamers.",
           kind: "PlaceUnder",
           blind: true,
           target: {

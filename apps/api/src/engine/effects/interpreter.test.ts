@@ -2635,7 +2635,7 @@ describe("multiple borrowed effects", () => {
 });
 
 describe("effect-wide optional processing decision order", () => {
-  it("decides a targeted later By condition before the first payload", async () => {
+  it("asks a targeted later By condition after the earlier payload", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-TARGETED-BY", ownerSeat: 0 });
     const ctx = makeContext({
@@ -2673,10 +2673,10 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "trash"),
-    ).toEqual(["optional", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "optional"]);
   });
 
-  it("decides an optional By cost before actions but asks about its payload after payment", async () => {
+  it("asks an optional By cost at its clause and its payload after payment", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-OPTIONAL-COST-ORDER", ownerSeat: 0 });
     const ctx = makeContext({ source, recorder });
@@ -2714,10 +2714,10 @@ describe("effect-wide optional processing decision order", () => {
           (verb) =>
             verb === "costChoice" || verb === "payloadChoice" || verb === "gainMemoryForSeat" || verb === "gainMemory",
         ),
-    ).toEqual(["costChoice", "gainMemoryForSeat", "gainMemory", "payloadChoice", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "costChoice", "gainMemory", "payloadChoice", "gainMemoryForSeat"]);
   });
 
-  it("skips an optional By cost and its payload when the early cost choice is declined", async () => {
+  it("skips an optional By cost and its payload when its cost choice is declined", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-DECLINED-OPTIONAL-COST", ownerSeat: 0 });
     const ctx = makeContext({
@@ -2753,10 +2753,10 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
-    ).toEqual(["optional", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "optional"]);
   });
 
-  it("selects a later hand-trash By cost before actions and pays with that card later", async () => {
+  it("selects a later hand-trash By cost at its clause and pays with that card", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-SELECTED-COST-ORDER", ownerSeat: 0 });
     const costCard = { instanceId: "selected-cost", cardId: "X-COST-CARD", ownerSeat: 0 };
@@ -2769,7 +2769,6 @@ describe("effect-wide optional processing decision order", () => {
     const originalSelectCards = ctx.ask.selectCards;
     ctx.ask.selectCards = async (decisionCtx, request) => {
       expect(decisionCtx.payingCostDepth).toBeGreaterThan(0);
-      expect(decisionCtx.activeTargetFate).toBe("trash");
       return originalSelectCards(decisionCtx, request);
     };
     ctx.fx.trash = async (...args) => {
@@ -2806,12 +2805,12 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat" || verb === "trash"),
-    ).toEqual(["selectCards", "gainMemoryForSeat", "trash", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "selectCards", "trash", "gainMemoryForSeat"]);
     expect(recorder.calls.filter((call) => call.verb === "selectCards")).toHaveLength(1);
     expect(recorder.calls.find((call) => call.verb === "trash")?.args[0]).toEqual([costCard.instanceId]);
   });
 
-  it("does not pay a later hand-trash By cost when the early selection is declined", async () => {
+  it("does not pay a later hand-trash By cost when its selection is declined", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-DECLINED-SELECTED-COST", ownerSeat: 0 });
     const ctx = makeContext({
@@ -2850,10 +2849,10 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat" || verb === "trash"),
-    ).toEqual(["selectCards", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "selectCards"]);
   });
 
-  it("reserves different hand cards for two early By selections", async () => {
+  it("offers a second hand-trash By cost only the cards left after the first payment", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-TWO-SELECTED-COSTS", ownerSeat: 0 });
     const ownHand = [
@@ -2895,7 +2894,7 @@ describe("effect-wide optional processing decision order", () => {
     expect(recorder.calls.filter((call) => call.verb === "gainMemoryForSeat")).toHaveLength(3);
   });
 
-  it("preselects a later delete-own By cost and reuses that permanent at payment", async () => {
+  it("chooses a later delete-own By cost at its clause and deletes that permanent", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-DELETE-OWN-ORDER", ownerSeat: 0 });
     const costPermanent = makeFakePermanent({
@@ -2946,14 +2945,14 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "chooseTargets" || verb === "gainMemoryForSeat" || verb === "deletePermanent"),
-    ).toEqual(["chooseTargets", "gainMemoryForSeat", "deletePermanent", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "chooseTargets", "deletePermanent", "gainMemoryForSeat"]);
     expect(recorder.calls.filter((call) => call.verb === "chooseTargets")).toHaveLength(1);
     expect(recorder.calls.find((call) => call.verb === "deletePermanent")?.args[0]).toEqual([
       costPermanent.permanentId,
     ]);
   });
 
-  it("rejects a two-permanent By payment when one preselected payer leaves play", async () => {
+  it("does not offer a two-permanent By cost when an earlier payload removes one payer", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-STALE-DELETE-COST", ownerSeat: 0 });
     const ownBattleArea = ["cost-a", "cost-b"].map((permanentId) =>
@@ -3011,20 +3010,30 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "chooseTargets" || verb === "gainMemoryForSeat" || verb === "deletePermanent"),
-    ).toEqual(["chooseTargets", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat"]);
     expect(ownBattleArea).toHaveLength(1);
   });
 
-  it("does not replace a preselected hand cost with another card after the first action", async () => {
+  it("offers a hand-trash By cost only the cards still in hand when its clause is reached", async () => {
     const recorder: Recorder = { calls: [] };
-    const source = makeSource({ cardId: "X-STALE-COST-SELECTION", ownerSeat: 0 });
-    const selected = { instanceId: "selected", cardId: "X-COST-A", ownerSeat: 0 };
-    const other = { instanceId: "other", cardId: "X-COST-B", ownerSeat: 0 };
-    const ownHand = [selected, other];
-    const ctx = makeContext({ source, recorder, ownHand, selectCardsAnswer: () => [selected.instanceId] });
+    const source = makeSource({ cardId: "X-HAND-COST-AT-CLAUSE", ownerSeat: 0 });
+    const removed = { instanceId: "removed", cardId: "X-COST-A", ownerSeat: 0 };
+    const remaining = { instanceId: "remaining", cardId: "X-COST-B", ownerSeat: 0 };
+    const ownHand = [removed, remaining];
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownHand,
+      selectCardsAnswer: ({ candidates }) => candidates.slice(0, 1),
+    });
     ctx.fx.gainMemoryForSeat = (...args) => {
       recorder.calls.push({ verb: "gainMemoryForSeat", args });
-      ownHand.shift();
+      if (ownHand[0] === removed) ownHand.shift();
+    };
+    ctx.fx.trash = async (...args) => {
+      recorder.calls.push({ verb: "trash", args });
+      const index = ownHand.findIndex((card) => card.instanceId === args[0][0]);
+      return index < 0 ? ([] as never) : (ownHand.splice(index, 1) as never);
     };
     const compiled: CompiledCard = {
       coverage: "full",
@@ -3049,15 +3058,21 @@ describe("effect-wide optional processing decision order", () => {
         },
       ],
     };
-    await irCardModule("X-STALE-COST-SELECTION", compiled)
+    await irCardModule("X-HAND-COST-AT-CLAUSE", compiled)
       .effectsForTiming(EffectTiming.OnPlay, source)[0]!
       .resolve(ctx);
     expect(
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat" || verb === "trash"),
-    ).toEqual(["selectCards", "gainMemoryForSeat"]);
-    expect(ownHand.map((card) => card.instanceId)).toEqual([other.instanceId]);
+    ).toEqual(["gainMemoryForSeat", "selectCards", "trash", "gainMemoryForSeat"]);
+    expect(
+      recorder.calls
+        .filter((call) => call.verb === "selectCards")
+        .map((call) => (call.args[0] as { candidates: string[] }).candidates),
+    ).toEqual([[remaining.instanceId]]);
+    expect(recorder.calls.find((call) => call.verb === "trash")?.args[0]).toEqual([remaining.instanceId]);
+    expect(ownHand).toEqual([]);
   });
 
   it("keeps a later mandatory non-By hand cost mandatory", async () => {
@@ -3100,7 +3115,7 @@ describe("effect-wide optional processing decision order", () => {
     ).toEqual(["gainMemoryForSeat", "trash", "gainMemoryForSeat"]);
   });
 
-  it("uses the borrowed trash-first cost at both early choice and later payment", async () => {
+  it("uses the borrowed trash-first cost when the later By clause is paid", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-BORROWED-BY", ownerSeat: 0 });
     const handCard = { instanceId: "hand-cost", cardId: "X-HAND", ownerSeat: 0 };
@@ -3145,11 +3160,11 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "addSecurity"),
-    ).toEqual(["optional", "gainMemoryForSeat", "addSecurity", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "optional", "addSecurity", "gainMemoryForSeat"]);
     expect(recorder.calls.find((call) => call.verb === "addSecurity")?.args[1]).toEqual([trashCard.instanceId]);
   });
 
-  it("decides a later By condition even when the IR payload is mandatory", async () => {
+  it("asks a later By condition at its clause even when the IR payload is mandatory", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-MANDATORY-PAYLOAD-BY", ownerSeat: 0 });
     const ctx = makeContext({
@@ -3179,10 +3194,10 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
-    ).toEqual(["optional", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "optional"]);
   });
 
-  it("decides a later CostGatedBlock By condition before the first action", async () => {
+  it("asks a later CostGatedBlock By condition after the first action", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-GATED-BY", ownerSeat: 0 });
     const ctx = makeContext({
@@ -3216,10 +3231,10 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
-    ).toEqual(["optional", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "optional"]);
   });
 
-  it("decides a later CostModifier By condition once before the first action", async () => {
+  it("asks a later CostModifier By condition once after the first action", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-MODIFIER-BY", ownerSeat: 0 });
     const ctx = makeContext({
@@ -3255,7 +3270,7 @@ describe("effect-wide optional processing decision order", () => {
       recorder.calls
         .map((call) => call.verb)
         .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
-    ).toEqual(["optional", "gainMemoryForSeat", "gainMemory"]);
+    ).toEqual(["gainMemoryForSeat", "optional", "gainMemory"]);
   });
 
   it("does not reuse a parent's choice for a nested action with the same path", async () => {
@@ -3277,7 +3292,7 @@ describe("effect-wide optional processing decision order", () => {
     expect(recorder.calls.filter((call) => call.verb === "gainMemoryForSeat")).toHaveLength(0);
   });
 
-  it("decides a later By condition before processing an earlier action in the same effect", async () => {
+  it("processes an earlier action before asking a later By condition in the same effect", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-OPTIONAL-ORDER", ownerSeat: 0 });
     const ctx = makeContext({
@@ -3309,10 +3324,10 @@ describe("effect-wide optional processing decision order", () => {
     await irCardModule("X-OPTIONAL-ORDER", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
     expect(
       recorder.calls.map((call) => call.verb).filter((verb) => verb === "optional" || verb === "gainMemoryForSeat"),
-    ).toEqual(["optional", "gainMemoryForSeat"]);
+    ).toEqual(["gainMemoryForSeat", "optional"]);
   });
 
-  it("asks once, then pays the later By condition at its printed position", async () => {
+  it("asks the later By condition once at its printed position, then pays it", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-OPTIONAL-YES", ownerSeat: 0 });
     const ctx = makeContext({
@@ -3347,14 +3362,14 @@ describe("effect-wide optional processing decision order", () => {
         .filter((call) => call.verb === "optional" || call.verb === "gainMemoryForSeat" || call.verb === "gainMemory")
         .map((call) => [call.verb, call.verb === "optional" ? null : call.args[call.verb === "gainMemory" ? 0 : 1]]),
     ).toEqual([
-      ["optional", null],
       ["gainMemoryForSeat", 1],
+      ["optional", null],
       ["gainMemory", -1],
       ["gainMemoryForSeat", 2],
     ]);
   });
 
-  it("does not offer a later By condition that cannot be paid before the effect starts", async () => {
+  it("does not offer or pay a later By condition that cannot be paid when its clause is reached", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-OPTIONAL-UNPAYABLE", ownerSeat: 0 });
     const ctx = makeContext({
@@ -3384,6 +3399,7 @@ describe("effect-wide optional processing decision order", () => {
     };
     await irCardModule("X-OPTIONAL-UNPAYABLE", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
     expect(recorder.calls.filter((call) => call.verb === "optional")).toHaveLength(0);
+    expect(recorder.calls.filter((call) => call.verb === "gainMemory")).toHaveLength(0);
     expect(recorder.calls.filter((call) => call.verb === "gainMemoryForSeat").map((call) => call.args[1])).toEqual([1]);
   });
 });
@@ -5577,9 +5593,11 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     });
 
     expect(paid).toBe(true);
+    expect(recorder.calls.map(({ verb }) => verb)).toEqual(["orderCards", "placeUnder"]);
+    // Order position 1 (G1) ends nearest the bottom, so it is inserted last.
     expect(recorder.calls).toContainEqual({
       verb: "placeUnder",
-      args: ["SELF#NAMED-COST", ["G1", "W1"], { belowTop: false, faceUp: true }],
+      args: ["SELF#NAMED-COST", ["W1", "G1"], { belowTop: false, faceUp: true }],
     });
   });
 

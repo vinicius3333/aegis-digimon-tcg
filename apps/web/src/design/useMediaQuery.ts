@@ -15,7 +15,13 @@ export function useMediaQuery(mediaQuery: string): boolean {
     const update = () => setMatches(query.matches);
     update();
     query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
+    // Embedded WebKit can deliver resize before its MediaQueryList change.
+    // Keep TypeScript card sizes aligned with the stylesheet at that boundary.
+    window.addEventListener("resize", update);
+    return () => {
+      query.removeEventListener("change", update);
+      window.removeEventListener("resize", update);
+    };
   }, [mediaQuery]);
   return matches;
 }

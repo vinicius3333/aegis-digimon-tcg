@@ -14,6 +14,8 @@ describe("BT17-001 Gigimon", () => {
           expect.objectContaining({
             kind: "Delete",
             cost: expect.objectContaining({ kind: "payMemory", memory: 1 }),
+            optional: true,
+            abortOnDecline: true,
             target: {
               filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
               count: 1,
@@ -29,15 +31,18 @@ describe("BT17-001 Gigimon", () => {
   });
 
   it("pays 1 memory and deletes an opposing 3000 DP Digimon when its host attacks", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-007", under: ["BT17-001"], as: "host" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "effectTarget" },
-          { card: "AD1-003", as: "battleTarget", suspended: true },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-007", under: ["BT17-001"], as: "host" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "effectTarget" },
+            { card: "AD1-003", as: "battleTarget", suspended: true },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 2;
     await s.ready();
     const effectTargetInstanceId = s.perm("effectTarget").topCard!.instanceId;
@@ -56,6 +61,38 @@ describe("BT17-001 Gigimon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetPermanentId)).toBe(
       true,
     );
+  });
+
+  it("declines the optional 'by' cost without paying memory or deleting", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-007", under: ["BT17-001"], as: "host" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "effectTarget" }], security: ["BT1-009"] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    const effectTargetPermanentId = s.perm("effectTarget").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.state.memory).toBe(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(effectTargetPermanentId);
   });
 
   it("does not pay memory or delete when the opponent has no Digimon at 3000 DP or less", async () => {

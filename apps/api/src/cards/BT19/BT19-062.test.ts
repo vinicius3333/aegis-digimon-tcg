@@ -315,6 +315,13 @@ describe("BT19-062 Cyberdramon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([OPTION]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("opponentOption").instanceId);
     expect(s.perm("cyber").isSuspended).toBe(true);
+    // CR 4-16-3: trashing the Option is not a deletion, so the move narrates no deleted permanent.
+    const optionMoves = s.events.filter(
+      (event) =>
+        event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(s.inst("queen").instanceId),
+    );
+    expect(optionMoves).toHaveLength(1);
+    expect(optionMoves[0]).not.toHaveProperty("deletedPermanents");
   });
 
   it("attacks normally when it controls no Option in the battle area", async () => {

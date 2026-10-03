@@ -24,6 +24,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving][When Attacking][Once Per Turn] By placing 1 [X Antibody] or level 6 card from this Digimon's digivolution cards at the bottom of its owner's deck, reveal all of your opponent's security cards, and trash 1 of them. Place the rest in your opponent's security stack face down.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
@@ -65,6 +67,7 @@ const compiled: CompiledCard = {
           source: "rest",
         },
         {
+          effectTextPart: "Then, your opponent shuffles their security stack.",
           kind: "SecurityManipulation",
           op: "shuffle",
           controller: "opponent",
@@ -77,6 +80,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving][When Attacking][Once Per Turn] By placing 1 [X Antibody] or level 6 card from this Digimon's digivolution cards at the bottom of its owner's deck, reveal all of your opponent's security cards, and trash 1 of them. Place the rest in your opponent's security stack face down.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
@@ -118,6 +123,7 @@ const compiled: CompiledCard = {
           source: "rest",
         },
         {
+          effectTextPart: "Then, your opponent shuffles their security stack.",
           kind: "SecurityManipulation",
           op: "shuffle",
           controller: "opponent",

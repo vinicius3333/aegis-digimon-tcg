@@ -8,6 +8,7 @@ for (const effect of compiled.effects) {
   for (const action of effect.actions) {
     if (action.kind === "ModifyDP" && action.cost?.kind === "return") {
       action.scaling = { per: 1, usePaidCount: true, unit: "cards" };
+      action.playerWide = true;
     }
   }
 }

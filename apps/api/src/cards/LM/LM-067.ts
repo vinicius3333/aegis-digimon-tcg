@@ -18,6 +18,7 @@ const freePlayFromReveal: Action = {
       },
       count: 1,
       to: "play",
+      payCost: false,
       optional: true,
       orDispositions: [{ filter: { kind: ["Option"] }, to: "useOption" }],
     },

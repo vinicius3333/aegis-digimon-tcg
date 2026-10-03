@@ -98,12 +98,12 @@ export function createTrashStackVerbs(pc: PrimitivesContext) {
             ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
             ...(opts?.isDigiBurst === true ? { isDigiBurstTrash: true } : {}),
           });
-          await engine.fireSubTrigger("whenDigivolutionTrashed", {
-            subjectPermanentId: hostPermanentId,
-            trashedDigivolutionCardWasTop: entry.wasTop,
-            ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
-          });
         }
+        await engine.fireSubTrigger("whenDigivolutionTrashed", {
+          subjectPermanentId: hostPermanentId,
+          trashedDigivolutionCardWasTop: entries.some(({ wasTop }) => wasTop),
+          ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
+        });
       }
     }
     ledger.dropSourceInstances(

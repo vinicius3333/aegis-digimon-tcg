@@ -12,7 +12,9 @@ describe("BT12-048 Dracmon", () => {
       cost: 0,
       isAlternate: true,
     });
-    expect(digiXrosRequirementFor("BT12-048")).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    expect(digiXrosRequirementFor("BT12-048")).toEqual([
+      { materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 },
+    ]);
   });
 
   it("places up to three revealed Tamers from hand at deck bottom and draws that many", async () => {

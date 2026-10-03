@@ -188,7 +188,7 @@ describe("EX3-061 Dinobeemon", () => {
         s.inst("paildramon").instanceId,
         s.inst("otherPaildramon").instanceId,
       ]),
-      min: 1,
+      min: 0,
       max: 1,
       timing: "WhenDigivolving",
     });
@@ -308,7 +308,7 @@ describe("EX3-061 Dinobeemon", () => {
 
     const candidates = payload(s).candidateInstanceIds!;
     expect(s.decisions.at(-1)!.req.sourceCardId).toBe("EX3-061");
-    expect(payload(s)).toMatchObject({ min: 1, max: 1, timing: "OnDeletion" });
+    expect(payload(s)).toMatchObject({ min: 0, max: 1, timing: "OnDeletion" });
     expect(candidates).toEqual(
       expect.arrayContaining([s.inst("stackWormmon").instanceId, s.inst("trashWormmon").instanceId]),
     );

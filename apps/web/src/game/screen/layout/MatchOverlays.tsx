@@ -10,7 +10,7 @@
    each of them. */
 
 import type { RefObject } from "react";
-import { canMoveFromBreeding, canUseBreedingAction, parseActivatable } from "../../boardModel";
+import { canMoveFromBreeding, canUseBreedingAction, displayMemory, parseActivatable } from "../../boardModel";
 import type { GameState, DecisionRequest, Permanent, PlayerState, Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { ActionConfirmationOverlay, MulliganOverlay, printedCardName } from "../../overlay";
@@ -265,6 +265,7 @@ export function MatchOverlays({
           !scenes.zoneShowcase &&
           !scenes.revealShowcase
         }
+        opponentSecurityCount={opponent.securityCount}
         onTogglePick={onTogglePick}
         onRespond={intents.respondDecision}
         onOpenDialog={() => overlays.setDecisionAsDialog(true)}
@@ -351,6 +352,7 @@ export function MatchOverlays({
             : null
         }
         evoCostChoice={overlays.evoCostChoice}
+        memory={displayMemory(state, viewerSeat)}
         assemblyPick={overlays.assemblyPick}
         digiXrosPick={overlays.digiXrosPick}
         {...playAnswers}
@@ -366,6 +368,7 @@ export function MatchOverlays({
           container={boardRef.current}
           returnFocusTo={permanentRefs.current[cardMenuPermanent.permanentId]}
           keywordLabels={keywordLabels?.[cardMenuPermanent.permanentId]}
+          viewerSeat={viewerSeat}
           fate={fateBadges.get(cardMenuPermanent.permanentId)}
           sheet={narrowGameLayout}
           stackCards={actions.stackCardsOf(cardMenuPermanent)}
@@ -413,6 +416,7 @@ export function MatchOverlays({
           container={boardRef.current}
           returnFocusTo={permanentRefs.current[stackViewPermanent.permanentId]}
           keywordLabels={keywordLabels?.[presentedStackPermanent.permanentId]}
+          viewerSeat={viewerSeat}
           cards={actions.stackCardsOf(stackViewPermanent)}
           fate={fateBadges.get(stackViewPermanent.permanentId)}
           onAttack={() => actions.beginAttack(stackViewPermanent.permanentId)}
