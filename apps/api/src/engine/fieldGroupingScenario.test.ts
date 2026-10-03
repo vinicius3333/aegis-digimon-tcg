@@ -18,7 +18,7 @@ it("keeps late-game density within a real 50-card deck with distinct instances a
   layDevScenario("arena-field-grouping-dense", s.state, [RED_DECK, BLUE_DECK]);
   await s.ready();
   expect(checkStateInvariants(s.state)).toEqual([]);
-  for (const player of s.state.players) {
+  for (const [seat, player] of s.state.players.entries()) {
     const cards = [
       ...player.deck,
       ...player.hand,
@@ -37,7 +37,9 @@ it("keeps late-game density within a real 50-card deck with distinct instances a
       counts.set(card.cardId, (counts.get(card.cardId) ?? 0) + 1);
     }
     expect(Math.max(...counts.values())).toBeLessThanOrEqual(4);
-    expect(player.battleArea).toHaveLength(21);
+    // The viewer also fields a green Lv.5 Lillymon.
+    expect(player.battleArea).toHaveLength(seat === 0 ? 22 : 21);
+    expect(player.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-079")).toBe(seat === 0);
     const linked = player.battleArea.find((permanent) => permanent.topCard.cardId === "BT25-075")!;
     expect(linked.stack).toHaveLength(12);
     expect(linked.linked.map((card) => card.cardId)).toEqual(["BT25-101", "BT25-100"]);

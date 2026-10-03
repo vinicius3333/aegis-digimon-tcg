@@ -371,12 +371,20 @@ function layDenseFieldGroupingScenario(state: GameState, decks: readonly [Deckli
     ["BT1-011"],
   ];
   const links = ["BT25-101", "BT25-100"];
-  // Field 43 + security 2 + hand 1 + draw pile 4 = 50. No synthetic extra cards.
+  // The viewer also fields a green Lv.5, which takes a card from their draw pile.
+  const viewerStacks = [...stacks, ["BT1-079"]];
+  // Field 43 (44 for the viewer) + security 2 + hand 1 + draw pile 4 (3) = 50. No synthetic extra cards.
   const remainder = ["BT1-014", "BT1-014", "P-035", "BT1-015", "BT1-015", "BT1-016", "BT1-016"];
+  const viewerRemainder = remainder.slice(0, -1);
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
     if (!player) continue;
-    loadDeckInto(player, seat, { mainDeck: [...stacks.flat(), ...links, ...remainder], eggDeck: decks[seat].eggDeck });
+    const seatStacks = seat === 0 ? viewerStacks : stacks;
+    const seatRemainder = seat === 0 ? viewerRemainder : remainder;
+    loadDeckInto(player, seat, {
+      mainDeck: [...seatStacks.flat(), ...links, ...seatRemainder],
+      eggDeck: decks[seat].eggDeck,
+    });
     const take = (id: string) => {
       const card = extractCardAt(
         player,
@@ -387,7 +395,7 @@ function layDenseFieldGroupingScenario(state: GameState, decks: readonly [Deckli
       card.faceUp = true;
       return card;
     };
-    stacks.forEach((stack, index) => {
+    seatStacks.forEach((stack, index) => {
       const permanent = new Permanent();
       permanent.permanentId = `dense-${seat}-${index}`;
       permanent.controllerSeat = seat;
