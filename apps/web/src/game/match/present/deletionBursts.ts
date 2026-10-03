@@ -49,6 +49,7 @@ export function enqueueDeletionBursts({
   enqueue,
   stateVersion,
   causedByOption,
+  readBeforeBreak = true,
 }: {
   queue: AnimationQueue;
   fresh: readonly ServerEvent[];
@@ -76,6 +77,8 @@ export function enqueueDeletionBursts({
   enqueue: (step: AnimationStep) => void;
   stateVersion: number;
   causedByOption: boolean;
+  /** Paced announcement gates already include the reading beat. */
+  readBeforeBreak?: boolean;
 }) {
   function releaseHeldDeletion(key: number) {
     setHeldDeletions((held) => {
@@ -133,7 +136,7 @@ export function enqueueDeletionBursts({
         blowKey,
         securityBlowRef,
         causingEffectGate: anchorId === costClause?.permanentId ? costClause.focused : causingEffectGate,
-        readBeforeBreak: anchorId !== costClause?.permanentId,
+        readBeforeBreak: readBeforeBreak && anchorId !== costClause?.permanentId,
         stateVersion,
         causedByOption,
         ...(removal ? { removal } : {}),

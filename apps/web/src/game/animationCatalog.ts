@@ -94,7 +94,7 @@ export const ANIMATION_FAMILIES = {
   removal: {
     label: "Delete, trash and return",
     owner: "match/present/deletionBursts.ts",
-    timings: ["cardShatter", "removalStagger", "drawFlight"],
+    timings: ["cardShatter", "deletionBurst", "removalStagger", "drawFlight"],
     sequence: "Clause/impact → retain field card → shatter or return flight → remove",
   },
   stack: {

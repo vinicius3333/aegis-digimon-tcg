@@ -3332,7 +3332,7 @@ describe("notices", () => {
     });
   });
 
-  it("pauses an accepted notice's reading clock while the viewer decides", async () => {
+  it("keeps an accepted notice's reading clock running while the viewer decides", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
@@ -3340,16 +3340,13 @@ describe("notices", () => {
     await advance(0);
     expect(result.current.notices).toHaveLength(1);
 
-    // A question halfway through reading preserves the remaining half until answered.
+    // A question halfway through reading does not extend the toast's lifetime.
     await advance(TIMINGS.noticeLifetime / 2);
     rerender({
       events: [EFFECT],
       decisionPending: true,
       decisionStateVersion: 1,
     });
-    await advance(TIMINGS.noticeLifetime * 2);
-    expect(result.current.notices).toHaveLength(1);
-    rerender({ events: [EFFECT], decisionPending: false });
     await advance(TIMINGS.noticeLifetime / 2 - 1);
     expect(result.current.notices).toHaveLength(1);
     await advance(1);
@@ -4282,10 +4279,10 @@ describe("a DigiXros play whose [On Play] deletes, and the question it raises", 
     await advance(0);
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword"]);
 
-    // Presentation continues during a question, keeping every accepted announcement.
+    // Presentation continues during a question; earlier announcements expire independently.
     await advance(NOTICE_ITEM_MS + 1);
-    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["keyword", "effect", "deletion"]);
-    expect(result.current.notices[1]?.body).toMatchObject({
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["effect", "deletion"]);
+    expect(result.current.notices[0]?.body).toMatchObject({
       cardId: KIMERAMON,
       timing: "On Play",
     });
@@ -4435,7 +4432,7 @@ describe("the narration feed", () => {
     expect(result.current.narration.size).toBe(0);
   });
 
-  it("keeps a paused occurrence's clock when its cards half arrives during a decision", async () => {
+  it("keeps the arrival clock when its cards half arrives during a decision", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     const events: ServerEvent[] = [
       theirEffect("BT1-001"),
@@ -4448,14 +4445,13 @@ describe("the narration feed", () => {
     expect(original.panel).toBeUndefined();
     await advance(TIMINGS.narrationCardsLag / 2);
     rerender({ events, decisionPending: true, decisionStateVersion: 1 });
-    await advance(TIMINGS.narrationCardsLag / 2 + 12_000);
+    await advance(TIMINGS.narrationCardsLag / 2);
     const withCards = result.current.narration.get(original.id)!;
     expect(withCards.panel).toBeDefined();
-    expect(withCards.pausedAt).toBeDefined();
+    expect(withCards.pausedAt).toBeUndefined();
     expect(withCards.createdAt).toBe(original.createdAt);
-    rerender({ events, decisionPending: false });
-    await advance(100);
-    expect(result.current.narration.has(original.id)).toBe(true);
+    await advance(12_000);
+    expect(result.current.narration.has(original.id)).toBe(false);
   });
 
   it("keeps repeated activations of the same card independently dismissible", async () => {
@@ -4483,7 +4479,7 @@ describe("the narration feed", () => {
     expect(cards(result.current.narration)).toEqual(["BT1-002"]);
   });
 
-  it("opens a decision without waiting for reading timers and preserves the accepted stack", async () => {
+  it("expires accepted toasts from arrival while a chain is still asking a question", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
     rerender({
@@ -4500,7 +4496,7 @@ describe("the narration feed", () => {
     await advance(0);
     expect(result.current.decisionBarrierPending).toBe(false);
     await advance(TIMINGS.noticeLifetime);
-    expect(result.current.narration.size).toBe(2);
+    expect(result.current.narration.size).toBe(0);
     rerender({ events: [yourEffect("BT1-001"), yourEffect("BT1-002")], decisionPending: false });
     await advance(TIMINGS.noticeLifetime);
     expect(result.current.narration.size).toBe(0);
@@ -4676,7 +4672,7 @@ describe("triggered effect source prelude", () => {
     expect(result.current.deleteBursts).toHaveLength(1);
     expect(result.current.effectSources).toHaveLength(0);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);
-    await advance(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
+    await advance(TIMINGS.deletionBurst);
     expect(result.current.deleteBursts).toHaveLength(0);
     expect(result.current.effectSources).toMatchObject([{ site: { zone: "trash", instanceId: "sec-1" } }]);
     expect(result.current.notices.filter((notice) => notice.body.variant === "effect")).toHaveLength(0);

@@ -125,13 +125,8 @@ export const TIMINGS = {
    * The outcome beat: the reference client's parallel 250ms claw and shake, then its 100ms
    * settle (`Effects.cs:2039-2160`).
    *
-   * NOTE: this also bounds the death it shows. `CLASH_SHATTER_MS` fits the shards inside this
-   * beat, so a card deleted in a clash breaks in 260ms while the same card deleted on the
-   * board takes `cardShatter`'s 520ms — half the speed of every other death in the game.
-   * Widening it is wanted, but it is not a one-number change: the CSS fallbacks for
-   * `--t-clash-outcome` and `--t-clash-outcome-at` mirror this table by hand, and
-   * `SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS` must stay inside
-   * `SECURITY_DESTRUCTION_NARRATION_MS` (1900ms), which 610 here overruns at 2123.
+   * `CLASH_SHATTER_MS` allows the last shard to finish within this beat; field deletions
+   * use the same 260ms shard duration plus their 90ms spread.
    */
   clashOutcome: 350,
   /** The scene fading back out, on the turn banner's 160ms wipe. */
@@ -289,12 +284,14 @@ export const TIMINGS = {
   /** An Option rising out of the hand fan as it activates. */
   effectHandRise: 540,
   /** The card's own art breaking into shards where it was deleted. */
-  cardShatter: 520,
+  cardShatter: 260,
+  /** A field deletion, including the last shard and the delayed energy ring. */
+  deletionBurst: 350,
   /**
    * The gap between cards one effect takes off the field. Each leaves as the previous card's
    * art finishes breaking, so a board wipe reads one Digimon at a time.
    */
-  removalStagger: 520,
+  removalStagger: 350,
   /** A stripped top card (＜De-Digivolve＞) lifting off its permanent toward the trash. */
   stackStripPeel: 560,
 } as const;
@@ -328,9 +325,7 @@ export const CLASH_DOCK_AT_MS = CLASH_OUTCOME_AT_MS;
 export const CLASH_DOCK_LEAVE_MS = CLASH_DOCK_AT_MS + TIMINGS.clashExit;
 
 /**
- * How long a card's shards fly inside the centre-stage clash. A field deletion breaks on
- * the longer `cardShatter` clock because nothing takes the board back from it, but inside
- * the clash the card has only the outcome beat before the scene fades — so the shards, and
+ * How long a card's shards fly inside the centre-stage clash. The shards, and
  * the stagger that starts the last of them, have to finish within it or they are cut off
  * mid-flight.
  */
@@ -502,6 +497,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-effect-trash-rise": TIMINGS.effectTrashRise,
   "--t-effect-hand-rise": TIMINGS.effectHandRise,
   "--t-card-shatter": TIMINGS.cardShatter,
+  "--t-deletion-burst": TIMINGS.deletionBurst,
   "--t-stack-strip-peel": TIMINGS.stackStripPeel,
   "--t-clash-shatter": CLASH_SHATTER_MS,
 };

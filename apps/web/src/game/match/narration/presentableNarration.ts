@@ -3,7 +3,7 @@ import { narrationReadingTime, TOUCH_NARRATION_LIFETIME_SCALE, type NarrationIte
 /** Start the reading clock when the animation queue actually publishes this moment. */
 export function presentableNarration(
   item: NarrationItem,
-  { collapseNarration, paused }: { collapseNarration: boolean; paused: boolean },
+  { collapseNarration }: { collapseNarration: boolean },
 ): NarrationItem {
   const now = Date.now();
   return {
@@ -12,6 +12,5 @@ export function presentableNarration(
       ? { lifetimeMs: Math.round(narrationReadingTime(item) * TOUCH_NARRATION_LIFETIME_SCALE) }
       : {}),
     createdAt: now,
-    ...(paused ? { pausedAt: now } : {}),
   };
 }

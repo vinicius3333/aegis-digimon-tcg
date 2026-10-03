@@ -924,6 +924,7 @@ export function presentServerBatch({
     enqueue,
     stateVersion,
     causedByOption: optionResolving,
+    readBeforeBreak: !sequential,
   });
   enqueueDeckReturns({
     queue,

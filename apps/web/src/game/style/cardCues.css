@@ -373,11 +373,16 @@
 /* Left where a permanent was deleted: the board has already dropped the card, so the
    burst is placed from the position it last held. */
 .game-delete-burst {
+  --t-card-burst: calc(var(--t-deletion-burst, 350ms) - 90ms);
   position: absolute;
   z-index: 62;
   width: 96px;
   height: 96px;
   pointer-events: none;
+}
+
+.game-delete-burst .battle-burst__ring--late {
+  animation-delay: 90ms;
 }
 
 /* A top card stripped off a permanent that stays on the field (＜De-Digivolve＞): the

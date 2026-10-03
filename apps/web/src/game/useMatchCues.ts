@@ -90,14 +90,7 @@ import {
   type SidePanelLookup,
 } from "./sidePanels";
 import { noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
-import {
-  narrationReadingTime,
-  pauseNarration,
-  resumeNarration,
-  trimNarration,
-  NARRATION_QUEUE_LIMIT,
-  type NarrationItem,
-} from "./narration";
+import { narrationReadingTime, trimNarration, NARRATION_QUEUE_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import type { RevealShowcase } from "./match/present/revealShowcases";
@@ -695,7 +688,6 @@ export function useMatchCues({
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
-    decisionPendingRef,
     targetDecisionRef,
     targetClausesRef,
     batchesRef,
@@ -719,18 +711,15 @@ export function useMatchCues({
     });
   }, [narration]);
 
-  // Decisions preserve accepted effects and their remaining reading time. New
-  // announcements start paused too, so an immediate follow-up question cannot lose them.
+  // Questions can release a new clause; each visible toast keeps its arrival clock.
   useLayoutEffect(() => {
-    const now = Date.now();
-    setNarration((items) => (decisionPending ? pauseNarration(items, now) : resumeNarration(items, now)));
     flushTargetClauses();
   }, [decisionPending, targetDecision?.decisionId]);
 
-  // Each record expires on its own clock once the decision has been answered.
+  // Each record expires on its own clock, including while a chain asks questions.
   // Schedule only the next expiry, and cancel on unmount or replacement.
   useEffect(() => {
-    if (decisionPending || narration.size === 0) return;
+    if (narration.size === 0) return;
     const expiresAt = Math.min(...[...narration.values()].map((item) => item.createdAt + narrationReadingTime(item)));
     const timer = setTimeout(
       () => {
@@ -745,7 +734,7 @@ export function useMatchCues({
       Math.max(0, expiresAt - Date.now()),
     );
     return () => clearTimeout(timer);
-  }, [narration, decisionPending]);
+  }, [narration]);
 
   // A tightened cap has to be applied to what is already on screen, per column: trimming
   // the map as one list would drop a clause because the other column happened to be full.

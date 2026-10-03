@@ -35,6 +35,8 @@ import { PacingTuner, useLabPacing } from "./PacingTuner";
 import { observeGateExpiry } from "../game/match/presentationGate";
 import { presentationTelemetry } from "../game/presentationTelemetry";
 import { AnimationInventory } from "./AnimationInventory";
+import { createLiveMotionProbe } from "./liveMotionProbe";
+import { LiveMotionHarness } from "./LiveMotionHarness";
 import "./effectsLab.css";
 
 type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
@@ -151,6 +153,17 @@ export function EffectsLab() {
   const [lab, dispatch] = useReducer(effectsLabReducer, emptyEffectsLab);
   const [selectedBatchId, setSelectedBatchId] = useState<string>();
   const [copyStatus, setCopyStatus] = useState<string>();
+  const motionProbe = useMemo(() => createLiveMotionProbe(), []);
+  useEffect(() => {
+    const globals = window as unknown as Record<string, unknown>;
+    const motionKey = "__aegisLiveMotion";
+    globals[motionKey] = motionProbe;
+    return () => {
+      motionProbe.stop();
+      if (globals[motionKey] === motionProbe) delete globals[motionKey];
+    };
+  }, [motionProbe]);
+  useEffect(() => motionProbe.reset(), [motionProbe, run]);
   const controlsRef = useRef<PresentationControls | undefined>(undefined);
   // A read-only dev bridge lets browser tests inspect the same room, snapshots and queue
   // as this screen. It never opens an observer connection or sends game intents.
@@ -421,6 +434,7 @@ export function EffectsLab() {
             </section>
             <PacingTuner portuguese={portuguese} />
             <AnimationInventory state={lab} />
+            <LiveMotionHarness probe={motionProbe} />
             <ServerTimeline
               lab={lab}
               portuguese={portuguese}

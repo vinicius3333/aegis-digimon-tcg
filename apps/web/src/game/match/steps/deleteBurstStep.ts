@@ -91,7 +91,7 @@ export function deleteBurstStep({
   if (cardId && metadataSeat !== undefined) {
     const now = Date.now();
     deletionReadyAtRef.current.set(`${metadataSeat}:${cardId}`, {
-      readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
+      readyAt: now + delayMs + TIMINGS.deletionBurst,
       stateVersion,
       causedByOption,
       instanceId: metadataInstanceId,
@@ -158,7 +158,7 @@ export function deleteBurstStep({
         setDeleteBursts((bursts) => [...bursts, burst]);
         started.release();
         if (removal) startRemoval(removal);
-        await context.wait(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
+        await context.wait(TIMINGS.deletionBurst);
       } finally {
         shattered.release();
         setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));

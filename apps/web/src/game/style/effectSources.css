@@ -283,7 +283,7 @@
   position: absolute;
   inset: 0;
   display: block;
-  animation: battle-card-shatter var(--t-card-shatter, 520ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation: battle-card-shatter var(--t-card-shatter, 260ms) cubic-bezier(0.33, 1, 0.68, 1) both;
   animation-delay: var(--shard-delay, 0ms);
 }
 

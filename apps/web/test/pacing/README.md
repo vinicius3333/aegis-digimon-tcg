@@ -77,11 +77,11 @@ Every paced row had zero early results, unreadable or missing clauses, gate expi
 
 | Scenario suffix          | Sequential shown / ceiling (ms) | Stacked shown / ceiling (ms) |
 | ------------------------ | ------------------------------: | ---------------------------: |
-| `ghost-execute`          |                 53,008 / 59,000 |              43,968 / 49,000 |
-| `ghost-execute-security` |                 59,744 / 66,000 |              49,840 / 55,000 |
-| `attack-stack`           |                 45,968 / 51,000 |              32,320 / 36,000 |
+| `ghost-execute`          |                 51,312 / 59,000 |              42,272 / 49,000 |
+| `ghost-execute-security` |                 57,616 / 66,000 |              48,592 / 55,000 |
+| `attack-stack`           |                 40,496 / 51,000 |              26,208 / 36,000 |
 | `security-removed`       |                 14,480 / 16,000 |              11,328 / 13,000 |
-| `titan-cascade`          |                 20,752 / 23,000 |              15,328 / 17,000 |
+| `titan-cascade`          |                 17,360 / 23,000 |              11,936 / 17,000 |
 
 The ceilings allow approximately 10% headroom, rounded for clarity. Some rise above the old
 ceilings because each clause now gets a safe headline reading floor, exact physical sources
@@ -89,6 +89,13 @@ receive their focus before printed source costs, and resumed clauses precede the
 the viewer's answer. Field arrivals, hand counts, DP and memory also wait for their own clause.
 These longer sequences retain strict zero-failure invariants; the duration allowance cannot
 authorize an early result or a rescued gate.
+
+The 2026-10-03 refresh gives visible toasts their own arrival clock, including during
+questions. Field deletions use 260 ms shard motion plus 90 ms spread (350 ms total), and
+paced cause gates no longer add a second 800 ms reading beat. Source focus, card travel,
+reading floors and consent checks remain covered by the matrix. Real browser movement,
+paused/hidden calibration and full shard/ring completion are covered by the
+[Orca live-motion harness](../../src/dev/LIVE_MOTION.md).
 
 Source focus holds for 720 ms at Normal in both styles, including minor, repeated and late
 effects. Effect speed still scales this orientation beat, but chain-tail acceleration only

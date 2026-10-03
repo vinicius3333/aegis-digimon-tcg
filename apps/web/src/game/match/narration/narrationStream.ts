@@ -7,8 +7,6 @@ import {
   isCardListNotice,
   pushNarrationItem,
   supersedeEffectClauses,
-  pauseNarration,
-  resumeNarration,
   type NarrationItem,
 } from "../../narration";
 import type { MatchNotice } from "../../notices";
@@ -89,7 +87,6 @@ export interface NarrationStreamDeps {
   setNarration: Dispatch<SetStateAction<ReadonlyMap<string, NarrationItem>>>;
   collapseNarrationRef: MutableRefObject<boolean>;
   narrationLimitRef: MutableRefObject<number>;
-  decisionPendingRef: MutableRefObject<boolean>;
   targetDecisionRef: MutableRefObject<DecisionRequest | undefined>;
   targetClausesRef: MutableRefObject<Map<string, () => void>>;
   batchesRef: MutableRefObject<readonly ServerBatch[]>;
@@ -160,7 +157,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
-    decisionPendingRef,
     targetDecisionRef,
     targetClausesRef,
     batchesRef,
@@ -499,16 +495,13 @@ export function narrationStream(deps: NarrationStreamDeps) {
             }
             targetClausesRef.current.delete(published.id);
             const now = Date.now();
-            const paused = decisionPendingRef.current;
             const collapseNarration = collapseNarrationRef.current;
-            const fresh = presentableNarration(published, { collapseNarration, paused });
+            const fresh = presentableNarration(published, { collapseNarration });
             setNarration((items) => {
-              const current = paused ? pauseNarration(items, now) : resumeNarration(items, now);
+              const current = items;
               const existing = current.get(published.id);
               // Adding the cards half keeps the clock already earned by this occurrence.
-              const visible = existing
-                ? { ...fresh, createdAt: existing.createdAt, pausedAt: existing.pausedAt }
-                : fresh;
+              const visible = existing ? { ...fresh, createdAt: existing.createdAt } : fresh;
               return pushNarrationItem(
                 takesTheScreen(published)
                   ? supersedeEffectClauses(current, now, activePacing().clauseStackMs)

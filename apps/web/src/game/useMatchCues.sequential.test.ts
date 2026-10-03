@@ -301,7 +301,7 @@ describe("sequential pacing plays one effect at a time", () => {
 });
 
 describe("resumed effect results", () => {
-  it("keeps a previous copy's toast while the new copy waits for target confirmation", async () => {
+  it("expires a previous copy's toast while the new copy waits for target confirmation", async () => {
     setBasePacing(PACING_BY_STYLE.stacked);
     const anchors = geometry();
     const board = {
@@ -356,19 +356,19 @@ describe("resumed effect results", () => {
     );
     view.rerender({ fed: [first, second], question: target });
     await advance(12_000);
-    expect([...view.result.current.narration.keys()]).toEqual([original]);
+    expect([...view.result.current.narration.keys()]).toEqual([]);
     const result = singleServerBatch([draw("second-draw"), resolved("AD1-002", "src-b", "b/draw")], 3);
     view.rerender({ fed: [first, second, result], question: undefined });
     await advance(0);
     expect(
       view.result.current.notices.map((notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId),
-    ).toEqual(["src-a", "src-b"]);
-    expect([...view.result.current.narration.keys()][0]).toBe(original);
+    ).toEqual(["src-b"]);
+    expect([...view.result.current.narration.keys()][0]).not.toBe(original);
     await advance(activePacing().resumeAnnounceMs + 16);
     expect(view.result.current.drawFlights).toHaveLength(1);
   });
 
-  it("keeps an accepted clause visible throughout the next decision without changing its occurrence", async () => {
+  it("lets an accepted clause expire during the next decision without replaying it on answer", async () => {
     setBasePacing(PACING_BY_STYLE.stacked);
     const anchors = geometry();
     const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
@@ -393,10 +393,10 @@ describe("resumed effect results", () => {
     expect(original?.notice).toBeDefined();
     view.rerender({ fed: [first], question: true });
     await advance(12_000);
-    expect([...view.result.current.narration.values()].map((item) => item.id)).toContain(original!.id);
+    expect([...view.result.current.narration.values()].map((item) => item.id)).not.toContain(original!.id);
     view.rerender({ fed: [first], question: false });
     await advance(100);
-    expect(clauseShown(view, "AD1-002")).toBe(true);
+    expect(clauseShown(view, "AD1-002")).toBe(false);
     await advance(12_000);
     expect(clauseShown(view, "AD1-002")).toBe(false);
   });
