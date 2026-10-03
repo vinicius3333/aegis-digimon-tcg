@@ -6,7 +6,7 @@ import shutil
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +30,40 @@ class Transition:
     value: float
     advantage: float = 0.0
     target: float = 0.0
+
+
+def action_family(action: dict[str, Any]) -> str:
+    intent = action["intent"]
+    if intent.get("digiXros"):
+        return "mainDigiXros"
+    if intent["type"] == "respondCounter":
+        if not intent.get("sourceInstanceId"):
+            return "counterDecline"
+        effect = intent.get("effectKey", "")
+        if effect.startswith("blast-dna-digivolve:"):
+            return "blastDnaCounter"
+        if effect.startswith("blast-digivolve:"):
+            return "blastCounter"
+        return "printedCounter"
+    return intent["type"]
+
+
+@dataclass
+class ActionCoverage:
+    """Learner proposals, not proof that their resulting engine intents executed."""
+
+    offered: dict[str, int] = field(default_factory=dict)
+    selected: dict[str, int] = field(default_factory=dict)
+
+    def observe(self, message: dict[str, Any], selected: int) -> None:
+        # Count windows offering each family once, irrespective of candidate multiplicity.
+        for family in {action_family(action) for action in message["actions"]}:
+            self.offered[family] = self.offered.get(family, 0) + 1
+        family = action_family(message["actions"][selected])
+        self.selected[family] = self.selected.get(family, 0) + 1
+
+    def snapshot(self) -> dict[str, dict[str, int]]:
+        return {"offeredWindows": dict(self.offered), "selectedProposals": dict(self.selected)}
 
 
 def expected_payment_forfeit(config: dict[str, Any], message: dict[str, Any]) -> bool:
@@ -100,6 +134,7 @@ def episode(
     opponent: CandidatePolicy | None = None,
 ) -> tuple[list[Transition], dict[str, Any]]:
     transitions: list[Transition] = []
+    coverage = ActionCoverage()
     # A per-episode stream keeps sampling reproducible regardless of thread scheduling.
     generator = torch.Generator().manual_seed(config["seed"])
     opponent_generator = torch.Generator().manual_seed(config["seed"] + 1)
@@ -124,6 +159,7 @@ def episode(
                 continue
             if message["type"] == "decision":
                 transition = infer(model, encoder, message, device, greedy, generator)
+                coverage.observe(message, transition.selected)
                 transitions.append(transition)
                 bridge.send({"decisionId": message["decisionId"], "action": transition.selected})
                 continue
@@ -135,6 +171,7 @@ def episode(
                     "decks": config["decks"],
                     "opponentName": config.get("opponentName", "heuristic"),
                     "usable": False,
+                    "actionCoverage": coverage.snapshot(),
                 }
             payment_forfeit = expected_payment_forfeit(config, message)
             if (
@@ -157,6 +194,7 @@ def episode(
                     "decks": config["decks"],
                     "opponentName": config.get("opponentName", "heuristic"),
                     "usable": False,
+                    "actionCoverage": coverage.snapshot(),
                 }
             reward = (
                 0.0
@@ -179,6 +217,7 @@ def episode(
                 "opponentName": config.get("opponentName", "heuristic"),
                 "usable": True,
                 "reward": reward,
+                "actionCoverage": coverage.snapshot(),
             }
 
 
@@ -292,6 +331,18 @@ def wins_by_opponent(records: list[dict[str, Any]]) -> dict[str, list[int]]:
         entry = totals.setdefault(record.get("opponentName", "heuristic"), [0, 0])
         entry[0] += record.get("reward") == 1
         entry[1] += 1
+    return totals
+
+
+def action_coverage(records: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
+    """Aggregate only usable learner episodes; old archives have no coverage evidence."""
+    totals: dict[str, dict[str, int]] = {"offeredWindows": {}, "selectedProposals": {}}
+    for record in records:
+        if not record.get("usable") or record.get("failed"):
+            continue
+        for metric, counts in record.get("actionCoverage", {}).items():
+            for family, count in counts.items():
+                totals[metric][family] = totals[metric].get(family, 0) + count
     return totals
 
 
@@ -546,6 +597,7 @@ def main(
                 "elapsedSeconds": time.monotonic() - started,
                 "winsByLearnerDeck": wins_by_learner_deck(records),
                 "winsByOpponent": wins_by_opponent(records),
+                "actionCoverage": action_coverage(records),
                 **metrics,
             }
             (output / "results.json").write_text(

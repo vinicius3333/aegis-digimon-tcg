@@ -31,6 +31,8 @@ To evaluate without updating the model:
 
 Evaluation seeds must remain separate from training and model selection. `--checkpoint` without `--evaluate` warm-starts the weights and optimizer for a new seeded run; it does not resume the exact random stream of an interrupted run. Checkpoints require matching engine/card fingerprints and feature versions. The initial experimental checkpoint predates that fingerprint and the second feature schema, so it remains reproducible only with its archived pilot code.
 
+New PPO/evaluation results include learner `actionCoverage`: `offeredWindows` counts each action family at most once per decision window, and `selectedProposals` counts the chosen candidates. Main DNA, Link, App Fusion, Main DigiXros and printed/Blast/Blast DNA Counter remain distinguishable. Opponent decisions are excluded. Only usable episodes contribute to the run aggregate; truncated records keep their partial counts. These are policy proposals, including material subchoices, rather than accepted engine executions. Effect DigiXros material choices still appear as `respondDecision`; these counters alone cannot prove their execution. Historical results without this field contain no such evidence.
+
 ## Interface and limits
 
 `createTrainingPolicy` and `createAsyncTrainingPolicy` execute the same legal-action routines. Card selection and ordering use one generator that yields each choice with its prior selections; the synchronous and asynchronous runners differ only in how they obtain the next index. The asynchronous callback receives `(window, signal)` and returns `Promise<number>`. Invalid indices fail explicitly, and aborted requests cannot advance to another selection step.
