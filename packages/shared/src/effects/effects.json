@@ -221756,6 +221756,19 @@
         "trigger": "WhenAttacking",
         "isInherited": true,
         "frequency": "OncePerTurn",
+        "cost": {
+          "kind": "trash",
+          "optional": true,
+          "target": {
+            "filter": {
+              "zone": "digivolutionCards",
+              "controllerDefault": "mine",
+              "hostFilter": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }] }
+            },
+            "count": 2
+          },
+          "raw": "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon"
+        },
         "actions": [
           {
             "kind": "Modal",
@@ -221776,23 +221789,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
-                  "optional": true,
-                  "payCostBeforeOptional": true,
-                  "cost": {
-                    "kind": "trash",
-                    "target": {
-                      "filter": {
-                        "zone": "digivolutionCards",
-                        "controllerDefault": "mine",
-                        "hostFilter": {
-                          "kind": ["Digimon"],
-                          "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }]
-                        }
-                      },
-                      "count": 2
-                    },
-                    "raw": "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon"
-                  }
+                  "optional": true
                 }
               ],
               [
@@ -221807,23 +221804,7 @@
                   "from": ["hand"],
                   "payCost": true,
                   "reduceCostBy": 2,
-                  "optional": true,
-                  "payCostBeforeOptional": true,
-                  "cost": {
-                    "kind": "trash",
-                    "target": {
-                      "filter": {
-                        "zone": "digivolutionCards",
-                        "controllerDefault": "mine",
-                        "hostFilter": {
-                          "kind": ["Digimon"],
-                          "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }]
-                        }
-                      },
-                      "count": 2
-                    },
-                    "raw": "By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon"
-                  }
+                  "optional": true
                 }
               ]
             ]

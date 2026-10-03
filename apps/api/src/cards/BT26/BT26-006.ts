@@ -3,6 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cost: Cost = {
   kind: "trash",
+  optional: true,
   target: {
     filter: {
       zone: "digivolutionCards",
@@ -20,6 +21,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
+      cost,
       actions: [
         {
           kind: "Modal",
@@ -41,8 +43,6 @@ export const compiled: CompiledCard = {
                 payCost: true,
                 reduceCostBy: 2,
                 optional: true,
-                payCostBeforeOptional: true,
-                cost,
               },
             ],
             [
@@ -58,8 +58,6 @@ export const compiled: CompiledCard = {
                 payCost: true,
                 reduceCostBy: 2,
                 optional: true,
-                payCostBeforeOptional: true,
-                cost,
               },
             ],
           ],

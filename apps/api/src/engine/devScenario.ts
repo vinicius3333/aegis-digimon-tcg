@@ -36,6 +36,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
   "arena",
@@ -313,6 +314,35 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   // Not the rulebook's first turn: the human draws on turn 1 like any later turn.
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Monimon's By cost can be refused before sources move (Discord 1556016563600101406). */
+function layBt26MonimonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-006", "BT10-073", "P-115", "EX10-031"], "-monimon-attacker"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-monimon-yuu", "BT10-093", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-monimon-chuuchuumon", "BT14-057", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    for (const slot of ["first", "second", "third"]) {
+      const target = establishedDigimon(1, ["BT1-009"], `-monimon-target-${slot}`);
+      target.isSuspended = true;
+      placePermanent(opponent, target);
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Stresses the Alliance ally picker with one attacker and 19 eligible allies. */
@@ -4892,6 +4922,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
+  "arena-bt26-monimon-optional-cost": layBt26MonimonOptionalCostScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt11-rina-ulforce-effect-choice": layBt11RinaUlforceEffectChoiceScenario,
