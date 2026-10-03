@@ -3,6 +3,7 @@
    taking their turn, the way a typing indicator reads in a chat. A name past
    `maxLength` is cut, and tapping it shows the whole name. */
 
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { isDigimonWorldAvatarId } from "@aegis/shared";
 import { Avatar } from "../../../design/primitives";
@@ -15,12 +16,14 @@ export function PlayerLine({
   side,
   playing = false,
   maxLength,
+  timer,
 }: {
   name: string;
   avatarId?: string;
   side: "player" | "opponent";
   playing?: boolean;
   maxLength?: number;
+  timer?: ReactNode;
 }) {
   const { t } = useTranslation();
   const { tooltipId, open, show, closeSoon, cancelClose } = useAnchoredTooltip<"name">({
@@ -29,7 +32,7 @@ export function PlayerLine({
   const characters = Array.from(name);
   const shortened = maxLength !== undefined && characters.length > maxLength;
   return (
-    <div className="game-player-line" data-side={side}>
+    <div className="game-player-line" data-side={side} data-timed={timer ? true : undefined}>
       <span className="game-player-line__avatar">
         <Avatar name={name} avatarId={isDigimonWorldAvatarId(avatarId) ? avatarId : null} size={18} />
       </span>
@@ -58,6 +61,7 @@ export function PlayerLine({
           <i aria-hidden="true" />
         </span>
       ) : null}
+      {timer}
       {open &&
         createPortal(
           <span

@@ -2,16 +2,13 @@
    turn control. The ribbon is announced here rather than over the board because it is
    the boundary between the two halves that the phase actually moves. */
 
-import { Phase, type GameState, type Seat } from "@aegis/shared";
-import { MatchTimer } from "../../MatchTimer";
+import { Phase } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { MemoryGauge, TurnControl } from "../../piece";
 import type { PhaseBanner } from "../../phaseBanner";
 import type { TurnControlState } from "../../turnControl";
 
 export function MemoryBand({
-  timerState,
-  viewerSeat,
   phaseBanner,
   memory,
   compact,
@@ -22,8 +19,6 @@ export function MemoryBand({
   endPhaseBlocked,
   onEndPhase,
 }: {
-  timerState?: GameState;
-  viewerSeat?: Seat;
   phaseBanner: PhaseBanner | null;
   memory: number;
   compact: boolean;
@@ -52,14 +47,11 @@ export function MemoryBand({
         phaseSweeping={phaseSweeping}
         prediction={memoryPrediction}
       />
-      <div className={timerState?.matchTimer ? "game-turn-clock-control" : "game-turn-clock-control--off"}>
-        {timerState && viewerSeat !== undefined ? <MatchTimer state={timerState} seat={viewerSeat} /> : null}
-        <TurnControl
-          state={turnControlState}
-          covered={endPhaseBlocked ? true : undefined}
-          onEndPhase={() => !endPhaseBlocked && onEndPhase()}
-        />
-      </div>
+      <TurnControl
+        state={turnControlState}
+        covered={endPhaseBlocked ? true : undefined}
+        onEndPhase={() => !endPhaseBlocked && onEndPhase()}
+      />
       {/* A visual summary only: the phase banner above announces each change. */}
       <ol className="game-phase-rail" aria-hidden="true">
         {PHASE_RAIL.map((phase) => (

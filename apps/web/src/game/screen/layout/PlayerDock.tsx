@@ -11,6 +11,7 @@ import { ActionBar } from "./ActionBar";
 import { PlayerLine } from "./PlayerLine";
 
 export function PlayerDock({
+  timer,
   playerName,
   playerAvatarId,
   breedingDock,
@@ -34,6 +35,7 @@ export function PlayerDock({
   selectCard,
   onHoverChange,
 }: {
+  timer?: ReactNode;
   /** The viewer's name for the line over the tray, when the screen knows it. */
   playerName?: string;
   playerAvatarId?: string;
@@ -81,7 +83,7 @@ export function PlayerDock({
       }}
     >
       {breedingDock}
-      {playerName ? <PlayerLine name={playerName} avatarId={playerAvatarId} side="player" /> : null}
+      {playerName ? <PlayerLine name={playerName} avatarId={playerAvatarId} side="player" timer={timer} /> : null}
       <div className="game-hand-dock" ref={handDockRef} style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}>
         {actionBar ? (
           <ActionBar

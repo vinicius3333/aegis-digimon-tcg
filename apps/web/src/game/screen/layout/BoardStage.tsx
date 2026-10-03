@@ -238,9 +238,7 @@ export function BoardStage({
           className="game-board aegis-arena-surface"
           ref={anchors.board}
           data-art={look.hasArt || undefined}
-          data-timer-decision={
-            (state.matchTimer && !state.gameOver && state.pendingDecision?.seat === viewerSeat) || undefined
-          }
+          data-timer-decision={(state.matchTimer && !state.gameOver && !!state.pendingDecision) || undefined}
           style={{
             flex: 1,
             position: "relative",
@@ -249,6 +247,7 @@ export function BoardStage({
           }}
         >
           <OpponentBar
+            timer={state.matchTimer ? <MatchTimer state={state} seat={other} opponent /> : undefined}
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponent.displayName || t("game.opponent")}
             opponentAvatarId={opponent.avatarId}
@@ -272,11 +271,6 @@ export function BoardStage({
           />
 
           <DecisionMatchTimer state={state} seat={viewerSeat} />
-          {state.matchTimer ? (
-            <div className="game-opponent-clock">
-              <MatchTimer state={state} seat={other} opponent />
-            </div>
-          ) : null}
           {/* One moment at a time. The portrait phone folds both sides into a single
               centred slot; everywhere else the viewer reads the left corner and the
               opponent's moments arrive in the right one. */}
@@ -364,8 +358,6 @@ export function BoardStage({
                 onPermanentInspect={onInspectPermanent.opponent}
               />
               <MemoryBand
-                timerState={state}
-                viewerSeat={viewerSeat}
                 phaseBanner={cues.phaseBanner}
                 memory={readouts.memory}
                 compact={layout.compactPiles}
@@ -456,6 +448,7 @@ export function BoardStage({
           </div>
 
           <PlayerDock
+            timer={state.matchTimer ? <MatchTimer state={state} seat={viewerSeat} /> : undefined}
             playerName={viewer.displayName || t("game.you")}
             playerAvatarId={viewer.avatarId}
             breedingDock={!layout.portraitArena ? breedingDock : null}
