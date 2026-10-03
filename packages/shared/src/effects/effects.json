@@ -8321,8 +8321,7 @@
                   "nameOrTrait": [{ "tokens": ["Xros Heart"], "match": "trait" }]
                 },
                 "count": 1,
-                "to": "underTamer",
-                "requiresMinRevealed": 2
+                "to": "underTamer"
               }
             ],
             "rest": "deckBottom"
