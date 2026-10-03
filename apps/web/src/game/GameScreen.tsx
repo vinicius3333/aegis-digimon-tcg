@@ -50,6 +50,7 @@ import { actionGuards } from "./screen/model/actionGuards";
 import { dialogRepeatsEffectNotice } from "./notices";
 import { handEntriesOf } from "./screen/model/handEntries";
 import { presentedSeats } from "./screen/model/presentedSeats";
+import { visibleBoard } from "./screen/model/visibleBoard";
 import { appFusionLive } from "./screen/model/appFusionLive";
 import { memoryPreviewInputs } from "./screen/model/memoryPreviewInputs";
 import { spotlightRequest } from "./screen/model/spotlightRequest";
@@ -411,6 +412,25 @@ export function GameScreen({
   useEffect(() => {
     devProbeRef.current?.onDecision?.(decision);
   }, [decision]);
+  useEffect(() => {
+    const onBoard = devProbeRef.current?.onBoard;
+    if (!state || !onBoard) return;
+    const displayed =
+      selectPresentedState({
+        live: state,
+        snapshots: snapshots ?? [],
+        presentedStateVersion: cues.presentedStateVersion,
+      }) ?? state;
+    const visible = visibleBoard({
+      live: state,
+      displayed,
+      viewerSeat,
+      cues,
+      optimisticPlayedInstanceId,
+      presentationPacing,
+    });
+    if (visible) onBoard({ live: state, displayed, visible, viewerSeat });
+  }, [state, state?.stateVersion, snapshots, cues, viewerSeat, optimisticPlayedInstanceId, presentationPacing]);
   // The decision panel repeats the source card and its clause, field selections included, so
   // the matching toast waits until the viewer has answered.
   const alliancePromptCardId = state ? ownAlliancePromptCardId(state, viewerSeat) : undefined;
@@ -507,6 +527,21 @@ export function GameScreen({
     if (!optimisticPlayedInstanceId) return;
     const stillInHand = you?.hand.some((card) => card.instanceId === optimisticPlayedInstanceId) ?? false;
     if (!stillInHand) {
+      const presented =
+        presentationPacing === "sequential"
+          ? selectPresentedState({
+              live: state,
+              snapshots: snapshots ?? [],
+              presentedStateVersion: cues.presentedStateVersion,
+            })
+          : state;
+      const shownHand =
+        cues.heldDrawState?.seat === viewerSeat
+          ? cues.heldDrawState.state.players[viewerSeat]?.hand
+          : presented?.players[viewerSeat]?.hand;
+      // A confirmed play may already be absent live while its flight still holds an older
+      // hand snapshot. Keep the existing hide until that snapshot also releases the card.
+      if (shownHand?.some((card) => card.instanceId === optimisticPlayedInstanceId)) return;
       setOptimisticPlayedInstanceId(undefined);
       return;
     }
@@ -517,7 +552,17 @@ export function GameScreen({
         (event.seq ?? index) > playAttemptEventSeqRef.current,
     );
     if (rejected) setOptimisticPlayedInstanceId(undefined);
-  }, [events, optimisticPlayedInstanceId, you]);
+  }, [
+    events,
+    optimisticPlayedInstanceId,
+    you,
+    state,
+    snapshots,
+    cues.presentedStateVersion,
+    cues.heldDrawState,
+    viewerSeat,
+    presentationPacing,
+  ]);
 
   const { spotlightRequestRef, spotlightSubjects, boardSize } = useBoardMeasurements({
     viewer: you,
@@ -585,6 +630,7 @@ export function GameScreen({
     heldDeletions: cues.heldDeletions,
     heldTrashArrivals: cues.heldTrashArrivals,
     optimisticPlayedInstanceId,
+    presentationPacing,
   });
   // What the ribbons have announced, for the readouts only: the live turn is what every
   // guard below reads, and what `isMyTurn` must keep meaning.

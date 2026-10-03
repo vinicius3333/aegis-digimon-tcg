@@ -56,6 +56,10 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   timing: "screen/model/triggerDetails.ts",
   effectText: "notices.ts",
   effectTextPart: "notices.ts",
+  // Diagnostic provenance identifies initial consent separately from later choices. It
+  // changes no pick constraint; the engine publishes accepted activation for the UI.
+  effectKey: null,
+  activationConfirmation: null,
   isInherited: "screen/layout/DecisionPrompts.tsx",
   targetFate: "pendingFate.ts",
   affectedPermanentIds: "pendingFate.ts",
@@ -68,6 +72,39 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
 };
 
 describe("engine to UI decision contract", () => {
+  it.each([true, false])(
+    "keeps activation provenance private while an optional prompt remains answerable (%s)",
+    (activationConfirmation) => {
+      const onRespond = vi.fn<(response: DecisionResponse) => void>();
+      render(
+        <I18nProvider>
+          <DecisionOverlay
+            request={{
+              decisionId: "consent",
+              seat: 0,
+              kind: "optional",
+              promptText: "Use this effect?",
+              options: { effectKey: "private/effect-identity", activationConfirmation },
+            }}
+            candidates={[]}
+            picks={[]}
+            onTogglePick={vi.fn()}
+            onRespond={onRespond}
+          />
+        </I18nProvider>,
+      );
+      expect(screen.queryByText("private/effect-identity")).toBeNull();
+      const accept = screen.getByRole("button", { name: /^Yes, activate$/ });
+      const decline = screen.getByRole("button", { name: /^No, decline$/ });
+      expect((accept as HTMLButtonElement).disabled).toBe(false);
+      expect((decline as HTMLButtonElement).disabled).toBe(false);
+      fireEvent.click(accept);
+      expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: true });
+      fireEvent.click(decline);
+      expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: false });
+    },
+  );
+
   for (const [key, consumer] of Object.entries(OPTION_CONSUMERS)) {
     if (consumer === null) continue;
     it(`reads options.${key} in ${consumer}`, () => {

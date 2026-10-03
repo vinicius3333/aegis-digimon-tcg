@@ -21,7 +21,12 @@ export function ZoneShowcase({ showcase }: { showcase: ZoneShowcaseModel }) {
   const cardName = getCardDefinition(showcase.cardId)?.nameEn ?? showcase.cardId;
   const digivolving = showcase.kind === "digivolve";
   return (
-    <div className="battle-showcase" data-testid="zone-showcase" role="status">
+    <div
+      className="battle-showcase"
+      data-testid="zone-showcase"
+      role="status"
+      style={showcase.departToField ? { animation: "none" } : undefined}
+    >
       <figure className="battle-showcase__frame">
         <span className="battle-showcase__halo" aria-hidden="true">
           <CardBurst variant={digivolving ? "evolve" : "play"} color={showcase.color} />

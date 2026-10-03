@@ -171,6 +171,7 @@ export interface AegisJoinOptions {
     | "security-battle"
     | "effects-lab-own-chain"
     | "effects-lab-opponent-chain"
+    | "effects-lab-opponent-play"
     | "effects-lab-nested"
     | "effects-lab-prod-royal-knights"
     | "effects-lab-prod-ghost"

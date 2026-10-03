@@ -91,13 +91,13 @@ const SEQUENTIAL_PACING: PacingConfig = {
   chainTailPercent: 100,
   overlapResults: 0,
   resumeAnnounceMs: 700,
-  clauseReadableMs: 0,
+  clauseReadableMs: 1720,
 };
 
-/* Chosen with the harness (pacing options table in the commit that set them): short beats for
-   minor effects (Hearthstone's 0.2 s) and for an opponent's repeated effect, the chain speeding
-   up after its second effect, a short beat after an answer, and a readable floor so no clause
-   leaves the screen before it can be read (REFERENCES.md, takeaways 1, 2 and 4). */
+/* Tuned with the real-engine harness: minor and familiar effects use short beats, long
+   chains accelerate after their second effect, and recent clauses stay readable in the
+   stack. The floor includes frame sampling margin at every speed. These numbers are Aegis
+   measurements; the primary-source motion principles live in pacing/REFERENCES.md. */
 const STACKED_PACING: PacingConfig = {
   ...SEQUENTIAL_PACING,
   announceMs: 500,
@@ -109,7 +109,7 @@ const STACKED_PACING: PacingConfig = {
   chainTailFrom: 2,
   chainTailPercent: 40,
   resumeAnnounceMs: 150,
-  clauseReadableMs: 1700,
+  clauseReadableMs: 1720,
   clauseStackMs: 5000,
 };
 

@@ -5,7 +5,7 @@
 export const RANKED_ENABLED = false;
 
 /**
- * Sequential effect pacing in real matches, with its Effect speed setting. Off: players keep
- * `current` pacing. The effects lab (/dev/effects-lab) uses sequential pacing either way.
+ * Accepted effect focus, ordered clauses and results in real matches, with the Effect
+ * speed setting. The effects lab also retains legacy pacing for measured comparisons.
  */
-export const SEQUENTIAL_PACING_ENABLED = false;
+export const SEQUENTIAL_PACING_ENABLED = true;

@@ -45,6 +45,7 @@ export function enqueueOptionDock({
   optionDockKeyRef,
   optionDockRef,
   decisionPendingRef,
+  decisionSourceCardIdRef,
   setOptionBranch,
   flyDockedOptionUnder,
   releaseTrashArrivalsThrough,
@@ -64,6 +65,8 @@ export function enqueueOptionDock({
   /** Mutated: the dock the Option track is holding open; the hold step polls it. */
   optionDockRef: MutableRefObject<OptionDockHold | null>;
   decisionPendingRef: MutableRefObject<boolean>;
+  /** An unrelated effect's prompt must not keep an already routed Option open. */
+  decisionSourceCardIdRef?: MutableRefObject<string | undefined>;
   setOptionBranch: Dispatch<SetStateAction<SecurityBranchScene | null>>;
   flyDockedOptionUnder: FlyDockedOptionUnder;
   /** An Option routed to the trash reaches the pile as its dock closes, not while docked. */
@@ -105,6 +108,9 @@ export function enqueueOptionDock({
       )
     );
   };
+  const ownDecisionPending = () =>
+    decisionPendingRef.current &&
+    (decisionSourceCardIdRef?.current === undefined || decisionSourceCardIdRef.current === usedOption.cardId);
   enqueue({
     id: `option-dock-in-${key}`,
     track: CueTrack.OptionDock,
@@ -133,12 +139,12 @@ export function enqueueOptionDock({
         // as a security card, onto the field) is marked at that placement and goes on
         // resolving, so the marker alone would pull the card off screen while the viewer is
         // still answering prompts about it. The dock exists to keep it readable through exactly
-        // those prompts, so an open decision holds it too — under the same ceiling. A whole
+        // those prompts, so its own open decision holds it too — under the same ceiling. A whole
         // Option can also arrive in one patch, routed before anything it did was drawn, so
         // the card stays until its clause and its deletions have played.
         while (
           !context.cancelled &&
-          (!optionDockRef.current?.closed || decisionPendingRef.current || consequencesPending()) &&
+          (!optionDockRef.current?.closed || ownDecisionPending() || consequencesPending()) &&
           waitedMs < TIMINGS.securityDockMax
         ) {
           await context.wait(TIMINGS.securityDockPoll);

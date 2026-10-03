@@ -17,6 +17,8 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import { eventChangesPresentedBoard } from "../../animationCatalog";
+import type { FlyPlayedCard } from "../flights";
 import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import type { FieldClashScene, OpenAttack } from "../../fieldClash";
 import type { MatchNotice } from "../../notices";
@@ -97,16 +99,6 @@ export type PresentSegment = (
   continuingBatch?: boolean,
 ) => void;
 
-/** Events that change nothing a viewer sees on the board. */
-const BOARD_NEUTRAL_KINDS: ReadonlySet<ServerEvent["kind"]> = new Set([
-  "effectTriggered",
-  "effectResolved",
-  "effectActivated",
-  "effectOptionChosen",
-  "resolutionOrderChosen",
-  "batchClosed",
-]);
-
 /**
  * The board a batch that announces an effect is narrated over. The server can emit an
  * effect's first results in the same batch as its `effectTriggered`, and that batch's board
@@ -120,7 +112,7 @@ export function announcedBoardVersion(
 ): number {
   const opensAt = sequenced.opened[0]?.eventIndex;
   if (opensAt === undefined) return stateVersion;
-  const changesBoard = (event: ServerEvent) => !BOARD_NEUTRAL_KINDS.has(event.kind);
+  const changesBoard = eventChangesPresentedBoard;
   const resultsBefore = events.slice(0, opensAt).some(changesBoard);
   const resultsAfter = events.slice(opensAt + 1).some(changesBoard);
   return resultsAfter && !resultsBefore ? stateVersion - 1 : stateVersion;
@@ -153,6 +145,7 @@ export function presentServerBatch({
   launchDeckToUnderFlight,
   flyDockedOptionUnder,
   flyCardToDeck,
+  flyPlayedCard,
   releaseTrashArrivalsThrough,
   launchSecurityGainFlight,
   securityCountOf,
@@ -189,6 +182,7 @@ export function presentServerBatch({
   optionDockKeyRef,
   optionDockRef,
   decisionPendingRef,
+  decisionSourceCardIdRef,
   heldNoticesRef,
   heldPanelsRef,
   queuedSecurityKeyRef,
@@ -264,6 +258,7 @@ export function presentServerBatch({
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   flyDockedOptionUnder: FlyDockedOptionUnder;
   flyCardToDeck: FlyCardToDeck;
+  flyPlayedCard?: FlyPlayedCard;
   releaseTrashArrivalsThrough: (stateVersion: number) => void;
   launchSecurityGainFlight: (seat: Seat) => void;
   securityCountOf: (seat: Seat) => number | undefined;
@@ -305,6 +300,7 @@ export function presentServerBatch({
   optionDockKeyRef: MutableRefObject<number>;
   optionDockRef: MutableRefObject<OptionDockHold | null>;
   decisionPendingRef: MutableRefObject<boolean>;
+  decisionSourceCardIdRef?: MutableRefObject<string | undefined>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   queuedSecurityKeyRef: MutableRefObject<number | null>;
@@ -590,8 +586,8 @@ export function presentServerBatch({
       launchDeckToUnderFlight,
       setHeldDrawState,
     });
-    // A trigger that joined an earlier unit of the same effect is announced by that unit's
-    // clause, as "×N": it raises no clause and lights no source of its own.
+    // A trigger that joined an earlier unit shares its "×N" clause. Each accepted physical
+    // source still focuses, so the viewer can see which copies paid their activation cost.
     const groupedAt = new Set(sequenced?.grouped.map(({ eventIndex }) => eventIndex));
     const { announcement, opened, panelAt } = collected;
     const kept = collected.raised.flatMap((notice, index) =>
@@ -615,7 +611,7 @@ export function presentServerBatch({
           },
         ]
       : [];
-    const lit = [...relit, ...(groupedAt.size === 0 ? fresh : fresh.filter((_, index) => !groupedAt.has(index)))];
+    const lit = [...relit, ...fresh];
     const { arriving, showcased, zoneChanges, firstArrivalIndex, afterShowcaseNotices } = enqueueArrivals({
       fresh,
       viewerSeat,
@@ -633,6 +629,7 @@ export function presentServerBatch({
       setZoneShowcase,
       setPermanentBursts,
       arrivalHoldIds,
+      flyPlayedCard,
       releaseArrivalHoldsWhenIdle,
       narrate,
       enqueue,
@@ -649,6 +646,7 @@ export function presentServerBatch({
     });
     enqueueEffectSources({
       fresh: lit,
+      groupedTriggers: sequenced?.grouped.map(({ eventIndex }) => fresh[eventIndex]!) ?? [],
       usedOption,
       combatLeadInMs,
       cardSiteRef,
@@ -673,14 +671,17 @@ export function presentServerBatch({
       if (event.kind === "turnEnded") presentedTurnSeatRef.current = event.nextSeat;
       if (event.kind === "phaseChanged") presentedTurnSeatRef.current = event.turnSeat;
     }
-    enqueueMemoryHold({
-      fresh,
-      announceGate: unitGate ?? batchAnnounceGate,
-      turnSeat: turnSeatBeforeBatch,
-      memoryHoldKeyRef,
-      setHeldMemory,
-      enqueue,
-    });
+    // A paced unit pins the complete snapshot through its announcement. A legacy gauge
+    // hold from a later queued unit would replace that snapshot's earlier memory value.
+    if (!unitGate)
+      enqueueMemoryHold({
+        fresh,
+        announceGate: batchAnnounceGate,
+        turnSeat: turnSeatBeforeBatch,
+        memoryHoldKeyRef,
+        setHeldMemory,
+        enqueue,
+      });
     if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
     if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
     // An On Play / When Digivolving notice reads as the consequence of the card
@@ -740,6 +741,7 @@ export function presentServerBatch({
       optionDockKeyRef,
       optionDockRef,
       decisionPendingRef,
+      decisionSourceCardIdRef,
       setOptionBranch,
       flyDockedOptionUnder,
       releaseTrashArrivalsThrough,

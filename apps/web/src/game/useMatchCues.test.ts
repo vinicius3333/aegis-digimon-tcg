@@ -545,10 +545,12 @@ function renderCuesAwaitingAnswer() {
       batches,
       decisionPending,
       decisionStateVersion,
+      decisionSourceCardId,
     }: {
       batches: readonly ServerBatch[];
       decisionPending: boolean;
       decisionStateVersion?: number;
+      decisionSourceCardId?: string;
     }) =>
       useMatchCues({
         narrationLimit: 3,
@@ -558,6 +560,7 @@ function renderCuesAwaitingAnswer() {
         mulliganOpen: false,
         decisionPending,
         decisionStateVersion,
+        decisionSourceCardId,
         anchors,
         onActionRejected: vi.fn<(reason: string) => void>(),
       }),
@@ -566,6 +569,7 @@ function renderCuesAwaitingAnswer() {
         batches: [] as readonly ServerBatch[],
         decisionPending: false,
         decisionStateVersion: undefined as number | undefined,
+        decisionSourceCardId: undefined as string | undefined,
       },
     },
   );
@@ -575,15 +579,18 @@ function renderCuesAwaitingAnswer() {
       events,
       decisionPending,
       decisionStateVersion,
+      decisionSourceCardId,
     }: {
       events: readonly ServerEvent[];
       decisionPending: boolean;
       decisionStateVersion?: number;
+      decisionSourceCardId?: string;
     }) =>
       view.rerender({
         batches: feed(events),
         decisionPending,
         decisionStateVersion,
+        decisionSourceCardId,
       }),
   };
 }
@@ -2113,7 +2120,7 @@ describe("match cues", () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
-    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true });
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId: "BT1-090" });
     await advance(0);
     expect(result.current.optionBranch?.state).toBe("docked");
 
@@ -2125,6 +2132,14 @@ describe("match cues", () => {
     await advance(TIMINGS.securityDockPoll * 2);
     expect(result.current.optionBranch?.state).toBe("closing");
     await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.optionBranch).toBeNull();
+  });
+
+  it("closes a routed Option while a different effect is asking its question", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+    rerender({ events: [OPTION_USE, OPTION_ROUTED], decisionPending: true, decisionSourceCardId: "EX13-028" });
+    await advance(TIMINGS.optionDockHold + TIMINGS.securityDockPoll + SECURITY_DOCK_CLOSE_MS);
     expect(result.current.optionBranch).toBeNull();
   });
 

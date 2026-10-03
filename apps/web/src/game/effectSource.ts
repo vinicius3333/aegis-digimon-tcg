@@ -54,7 +54,9 @@ export function effectActivationFromEvent(
   key: number,
   locate: EffectSourceLookup,
 ): EffectActivation | null {
-  if (event.kind !== "effectActivated") return null;
+  // Direct Main completion receipts can arrive after declining their inner operation.
+  // Their accepted effectTriggered lifecycle owns focus; a receipt alone earns none.
+  if (event.kind !== "effectActivated" || event.receiptOnly === true) return null;
   const site = locate(event.sourceCardId, event.seat);
   if (!site) return null;
   return { key, seat: event.seat, cardId: event.sourceCardId, site };

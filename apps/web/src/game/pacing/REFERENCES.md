@@ -2,6 +2,22 @@
 
 This file collects citable evidence on how digital card games pace chained effects, opponent actions, and history. It maps that evidence to the Aegis sequential-chain knobs so we can tune them with sources, not guesses.
 
+## Primary sources checked for the effects lab (2026-10-03)
+
+| Evidence                                                                                                                                                                                 | Application in Aegis                                                                                                                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Material choreography](https://m1.material.io/motion/choreography.html) recommends continuity through a clear focal element and stable destination space.                               | Accepted source focus dims the field briefly. A public play carries the same face from its showcase to the field, lands, then allows On Play.                                           |
+| [Material duration and easing](https://m1.material.io/motion/duration-easing.html) relates duration to distance and surface change, while keeping recurring movement responsive.         | Concrete travel durations live in `timings.ts`; the deck/hand/field geometry supplies the path. Text reading and travel are separate beats.                                             |
+| [Blizzard's 31.6 notes](https://hearthstone.blizzard.com/en-us/news/24179332/31-6-patch-notes), published 2025-02-18, describe accelerating Battlegrounds combat and slowing its finish. | Inference: familiar later effects can use shorter active beats while their clauses remain visible. The exact Aegis percentages are tuned by the harness, not supplied by Blizzard.      |
+| [GWENT 9.0 notes](https://www.playgwent.com/en/news/38504/9-0-patch-notes) describe allowing play without waiting for every card visual to finish.                                       | The engine keeps authoritative state. Snapshot/choice gates wait for meaningful presentation, while decoration and answer-dependent docks cannot block the decision that releases them. |
+| [W3C animation from interactions](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html) explains disabling nonessential motion.                                  | Reduced motion collapses travel and clears destination holds while preserving accepted effect text and choices; desktop, phone and reduced-motion browser cases verify completion.      |
+
+These sources justify the presentation principles. They do not prescribe TCG timing values
+or prove that a player can read a full card clause in a short beat. The harness measures a
+headline reading floor, keeps the recent text stack available, and separately reports full
+reading time. The historical survey below contains secondary reports and explicitly labeled
+estimates; it is background, not a specification for the new implementation.
+
 ## 1. Games
 
 "cited:" means the source states it. "estimate:" means our inference or community observation. "none found" means we found no source.
@@ -96,7 +112,7 @@ What this means for us (estimates, to verify with the harness):
 
 12. **The `stacked` pacing style follows takeaway 11.** It keeps DCGO's shape: a short active beat (360 ms glow + 500 ms announce, about DCGO's 0.95 s; 300 ms settle) and earlier clauses that stay on screen, dimmed, for 5 s from when they appeared (DCGO: 5.5 s), at most three under the one resolving now. Readable time counts the active beat plus the dimmed time, at 3 words/s. The harness compares it with `sequential` on every scenario and speed (`apps/web/test/pacing/`).
 
-13. **Long chains speed up; a floor keeps them readable.** Measured with the harness (all scenarios, stacked): short beats for minor effects (takeaway 4) and for an opponent's repeated text, beats at 40% after the chain's second effect (Battlegrounds' speed-up, takeaway 1), a 150 ms beat after an answer, and a readable floor (`clauseReadableMs`, 1.7 s at Normal: 360 ms plus 4 words at 3 words/s) cut the long production chains from about 3.5 s to 2.4 s per effect at Normal with no unreadable clause. `current` pacing, with no beats at all, already takes 2.3–2.5 s per effect on those chains: the rest is result animations and the viewer's own prompts, so DCGO's ~0.95 s is not reachable by beats alone.
+13. **Long chains speed up; a floor keeps them readable.** The earlier harness tuning used short minor/repeated beats, 40% beats after the second effect, and a 150 ms beat after an answer. The current reading floor is 1.72 s at Normal: 360 ms orientation plus 4 words at 3 words/s, with frame sampling margin. Those are headline and continuity budgets, not time to read a full clause. Use the current committed `test/pacing/pacing-baseline.json` for reproducible scenario durations; historical per-effect averages do not establish current performance after the acceptance protocol and flight changes.
 
 ## 4. Top 5 references
 

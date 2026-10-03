@@ -18,6 +18,7 @@ import { TIMINGS } from "../../timings";
  */
 export function enqueueEffectSources({
   fresh,
+  groupedTriggers = [],
   usedOption,
   combatLeadInMs,
   cardSiteRef,
@@ -26,6 +27,8 @@ export function enqueueEffectSources({
   enqueue,
 }: {
   fresh: readonly ServerEvent[];
+  /** Accepted copies sharing a clause still identify each physical source. */
+  groupedTriggers?: readonly ServerEvent[];
   /** The Option this batch played, if any: its dock below is the more legible presentation. */
   usedOption: ServerEvent | undefined;
   combatLeadInMs: number;
@@ -38,6 +41,19 @@ export function enqueueEffectSources({
 }) {
   for (const event of fresh) {
     effectSourceKeyRef.current += 1;
+    // effectActivated is a completion marker for direct abilities. A matching accepted
+    // announcement owns its focus already; completion must not flash the source twice.
+    if (
+      event.kind === "effectActivated" &&
+      fresh.some(
+        (candidate) =>
+          (candidate.kind === "effectTriggered" || candidate.kind === "effectResolved") &&
+          candidate.seat === event.seat &&
+          candidate.sourceCardId === event.sourceCardId &&
+          candidate.effectKey === event.effectKey,
+      )
+    )
+      continue;
     // Do not also make the used Option's final trash position look like the source of its
     // own [Main] — the dock already shows where that effect came from.
     if (
@@ -46,7 +62,14 @@ export function enqueueEffectSources({
       event.sourceCardId === usedOption.cardId
     )
       continue;
-    const activation = effectActivationFromEvent(event, effectSourceKeyRef.current, cardSiteRef.current.locate);
+    const site =
+      event.kind === "effectTriggered" && groupedTriggers.includes(event)
+        ? cardSiteRef.current.locate(event.sourceCardId, event.seat, event)
+        : undefined;
+    const activation: EffectActivation | null =
+      site && event.kind === "effectTriggered"
+        ? { key: effectSourceKeyRef.current, seat: event.seat, cardId: event.sourceCardId, site }
+        : effectActivationFromEvent(event, effectSourceKeyRef.current, cardSiteRef.current.locate);
     if (!activation) continue;
     enqueue({
       id: `effect-source-${activation.key}`,

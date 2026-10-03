@@ -3,9 +3,10 @@
    controls, without opening a second connection. Absent, the match screen behaves exactly
    as it does without them. */
 
-import type { DecisionRequest } from "@aegis/shared";
+import type { DecisionRequest, GameState, Seat } from "@aegis/shared";
 import type { AnimationQueue, AnimationStepEvent } from "./animationQueue";
 import type { ServerBatch } from "../net/serverBatches";
+import type { VisibleBoard } from "./screen/model/visibleBoard";
 
 /**
  * How simultaneous effects are paced on screen. `current` is today's behaviour; the others
@@ -35,4 +36,6 @@ export interface PresentationProbe {
   /** Every closed server batch, replayed history included, before it is presented. */
   onBatch?(batch: ServerBatch): void;
   onDecision?(decision: DecisionRequest | undefined): void;
+  /** Raw snapshots and the visible projection after field, arrival, pile and readout holds. */
+  onBoard?(board: { live: GameState; displayed: GameState; visible: VisibleBoard; viewerSeat: Seat }): void;
 }

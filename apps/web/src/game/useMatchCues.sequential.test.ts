@@ -7,6 +7,7 @@ import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import type { PresentationPacing } from "./presentationProbe";
 import { activePacing, DEFAULT_PACING, PACING_BY_STYLE, setBasePacing } from "./pacing";
+import { TIMINGS } from "./timings";
 
 vi.mock("../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
 
@@ -27,7 +28,11 @@ const BOARD = {
   ],
 } as unknown as GameState;
 
-function triggered(sourceCardId: string, sourceInstanceId: string, effectKey: string): ServerEvent {
+function triggered(
+  sourceCardId: string,
+  sourceInstanceId: string,
+  effectKey: string,
+): Extract<ServerEvent, { kind: "effectTriggered" }> {
   return {
     kind: "effectTriggered",
     seat: 0,
@@ -253,7 +258,208 @@ describe("sequential pacing plays one effect at a time", () => {
   });
 });
 
+describe("resumed effect results", () => {
+  it.each(["queued", "already visible"] as const)(
+    "waits for its %s clause to return after the last own-card dialog",
+    async (whenHidden) => {
+      setBasePacing(PACING_BY_STYLE.stacked);
+      const anchors = geometry();
+      const view = renderHook(
+        ({ fed, question }: { fed: readonly ServerBatch[]; question: boolean }) =>
+          useMatchCues({
+            batches: fed,
+            state: BOARD,
+            viewerSeat: VIEWER,
+            mulliganOpen: false,
+            anchors,
+            onActionRejected: vi.fn<(reason: string) => void>(),
+            presentationPacing: "sequential",
+            decisionPending: question,
+            decisionSourceCardId: question ? "AD1-002" : undefined,
+          }),
+        { initialProps: { fed: [] as readonly ServerBatch[], question: false } },
+      );
+      const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
+      if (whenHidden === "queued") act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
+      view.rerender({ fed: [first], question: whenHidden === "queued" });
+      await advance(600);
+      expect(clauseShown(view, "AD1-002")).toBe(whenHidden === "already visible");
+      if (whenHidden === "already visible") {
+        act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
+        view.rerender({ fed: [first], question: true });
+      }
+      await advance(1200);
+      expect(clauseShown(view, "AD1-002")).toBe(false);
+      const results = singleServerBatch([draw("drawn-a"), resolved("AD1-002", "src-a", "a/draw")], 2);
+      act(() => view.result.current.releaseOwnEffectNotice("AD1-002"));
+      view.rerender({ fed: [first, results], question: false });
+
+      await advance(TIMINGS.ownEffectNoticeReturn - 1);
+      expect(view.result.current.drawFlights).toHaveLength(0);
+      expect(clauseShown(view, "AD1-002")).toBe(false);
+      await advance(1);
+      expect(clauseShown(view, "AD1-002")).toBe(true);
+      expect(view.result.current.drawFlights).toHaveLength(0);
+      await advance(activePacing().resumeAnnounceMs + 16);
+      expect(view.result.current.drawFlights).toHaveLength(1);
+      await advance(1500);
+      expect(view.result.current.decisionAnimationsPending).toBe(false);
+    },
+  );
+
+  it("uses a finite resume beat when its clause stayed on screen", async () => {
+    setBasePacing(PACING_BY_STYLE.stacked);
+    const anchors = geometry();
+    const view = renderHook(
+      ({ fed, question }: { fed: readonly ServerBatch[]; question: boolean }) =>
+        useMatchCues({
+          batches: fed,
+          state: BOARD,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+          presentationPacing: "sequential",
+          decisionPending: question,
+          decisionSourceCardId: question ? "AD1-002" : undefined,
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[], question: false } },
+    );
+    const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
+    view.rerender({ fed: [first], question: true });
+    await advance(1800);
+    expect(clauseShown(view, "AD1-002")).toBe(true);
+    const results = singleServerBatch([draw("drawn-a"), resolved("AD1-002", "src-a", "a/draw")], 2);
+    view.rerender({ fed: [first, results], question: false });
+    await advance(activePacing().resumeAnnounceMs + 16);
+    expect(view.result.current.drawFlights).toHaveLength(1);
+  });
+
+  it("lets the next own-card question open, then waits for the clause after its final answer", async () => {
+    setBasePacing(PACING_BY_STYLE.stacked);
+    const anchors = geometry();
+    const view = renderHook(
+      ({ fed, question }: { fed: readonly ServerBatch[]; question: boolean }) =>
+        useMatchCues({
+          batches: fed,
+          state: BOARD,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+          presentationPacing: "sequential",
+          decisionPending: question,
+          decisionSourceCardId: question ? "AD1-002" : undefined,
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[], question: false } },
+    );
+    act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
+    const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
+    view.rerender({ fed: [first], question: true });
+    await advance(1800);
+    const firstAnswer = singleServerBatch([draw("first-draw")], 2);
+    // The answer immediately asks again; its dialog keeps the already-read clause.
+    view.rerender({ fed: [first, firstAnswer], question: true });
+    await advance(activePacing().resumeAnnounceMs + 16);
+    expect(view.result.current.drawFlights).toHaveLength(1);
+    await advance(1500);
+    expect(view.result.current.decisionAnimationsPending).toBe(false);
+
+    const finalAnswer = singleServerBatch([draw("final-draw"), resolved("AD1-002", "src-a", "a/draw")], 3);
+    act(() => view.result.current.releaseOwnEffectNotice("AD1-002"));
+    view.rerender({ fed: [first, firstAnswer, finalAnswer], question: false });
+    await advance(TIMINGS.ownEffectNoticeReturn - 1);
+    expect(view.result.current.drawFlights).toHaveLength(0);
+    await advance(1);
+    expect(clauseShown(view, "AD1-002")).toBe(true);
+    await advance(activePacing().resumeAnnounceMs + 16);
+    expect(view.result.current.drawFlights).toHaveLength(1);
+  });
+});
+
 describe("sequential pacing through a security check", () => {
+  it("reads a security-played On Play clause before its same-batch cost panel and draws", async () => {
+    setBasePacing(PACING_BY_STYLE.stacked);
+    const state = {
+      ...BOARD,
+      players: [{ ...BOARD.players[0]!, trash: [{ instanceId: "discard", cardId: "BT1-009" }] }, BOARD.players[1]!],
+    } as unknown as GameState;
+    const security: ServerEvent = {
+      ...triggered("AD1-002", "src-a", "a/security"),
+      timing: "Security",
+      description: "[Security] Play this card without paying the cost.",
+      duringSecurityCheck: true,
+    };
+    const onPlay: ServerEvent = {
+      ...triggered("AD1-002", "src-a", "a/onPlay"),
+      timing: "OnPlay",
+      description: "[On Play] By trashing 1 card from your hand, draw 1 card.",
+      duringSecurityCheck: true,
+    };
+    const batches = [
+      singleServerBatch(
+        [
+          {
+            kind: "securityRevealed",
+            seat: 0,
+            revealedCardId: "AD1-002",
+            attackerPermanentId: "attacker",
+            hasSecurityEffect: true,
+          },
+        ],
+        1,
+      ),
+      singleServerBatch([security], 2),
+      singleServerBatch(
+        [
+          {
+            kind: "cardPlayed",
+            seat: 0,
+            cardId: "AD1-002",
+            instanceId: "src-a",
+            permanentId: "perm-a",
+            fromZone: "security",
+          },
+        ],
+        3,
+      ),
+      singleServerBatch([{ ...security, kind: "effectResolved" } as ServerEvent], 4),
+      singleServerBatch([onPlay, { kind: "cardsMoved", instanceIds: ["discard"], from: "various", to: "trash" }], 5),
+      singleServerBatch([draw("drawn-a")], 6),
+      singleServerBatch([{ ...onPlay, kind: "effectResolved" } as ServerEvent], 7),
+      singleServerBatch([{ kind: "securityChecked", seat: 0, revealedCardId: "AD1-002", resolution: "effect" }], 8),
+    ];
+    const anchors = geometry();
+    const view = renderHook(
+      ({ fed }: { fed: readonly ServerBatch[] }) =>
+        useMatchCues({
+          batches: fed,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+          presentationPacing: "sequential",
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[] } },
+    );
+    await advance(0);
+    view.rerender({ fed: batches });
+    let clauseAt: number | undefined;
+    let drawAt: number | undefined;
+    for (let elapsed = 0; elapsed <= 12_000; elapsed += 16) {
+      if (effectClauses(view).some((notice) => notice.body.variant === "effect" && notice.body.timing === "OnPlay"))
+        clauseAt ??= elapsed;
+      if (view.result.current.drawFlights.length > 0) drawAt ??= elapsed;
+      await advance(16);
+    }
+    expect(clauseAt).toBeDefined();
+    expect(drawAt).toBeDefined();
+    // Samples are 16 ms apart; the clause and its draw can land between frames.
+    expect(drawAt! - clauseAt!).toBeGreaterThanOrEqual(activePacing().announceMs - 16);
+    expect(view.result.current.decisionAnimationsPending).toBe(false);
+  });
+
   const ATTACK: ServerEvent = {
     kind: "attackDeclared",
     seat: 0,

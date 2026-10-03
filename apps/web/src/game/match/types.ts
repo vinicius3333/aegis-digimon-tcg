@@ -33,6 +33,11 @@ export type DrawFlight = {
   duration: number;
   /** The card's face, when the move made its identity public; a card back otherwise. */
   card?: DrawFlightCard;
+  /** A confirmed play travels to its field slot before the permanent is revealed. */
+  kind?: "play";
+  targetPermanentId?: string;
+  fromWidth?: number;
+  toWidth?: number;
 };
 
 export type DrawFlightCard = { cardId: string; artId?: string };

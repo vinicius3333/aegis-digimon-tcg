@@ -478,6 +478,8 @@ export function useMatchCues({
   // step was enqueued under.
   const decisionPendingRef = useRef(decisionPending);
   decisionPendingRef.current = decisionPending;
+  const decisionSourceCardIdRef = useRef(decisionSourceCardId);
+  decisionSourceCardIdRef.current = decisionSourceCardId;
   const liveStateVersionRef = useRef(state?.stateVersion);
   liveStateVersionRef.current = state?.stateVersion;
   /** The live revision the state watchers last compared against; updated after they run. */
@@ -843,7 +845,10 @@ export function useMatchCues({
 
   /** The board as it stands at a docked security reveal, before its effect has been read. */
   function securityEffectHoldState(): GameState | undefined {
-    return state ? snapshotGameState(state) : undefined;
+    const revision = presentationBatchRef.current?.stateVersion;
+    const revealBoard =
+      revision === undefined ? undefined : snapshots?.find((snapshot) => snapshot.stateVersion === revision)?.state;
+    return revealBoard ?? (state ? snapshotGameState(state) : undefined);
   }
 
   /**
@@ -910,6 +915,7 @@ export function useMatchCues({
       flushHeldNotices,
       launchDrawFlight,
       launchDeckToUnderFlight,
+      flyPlayedCard,
       flyDockedOptionUnder,
       flyCardToDeck,
       releaseTrashArrivalsThrough,
@@ -948,6 +954,7 @@ export function useMatchCues({
       optionDockKeyRef,
       optionDockRef,
       decisionPendingRef,
+      decisionSourceCardIdRef,
       heldNoticesRef,
       heldPanelsRef,
       queuedSecurityKeyRef,
@@ -1233,6 +1240,7 @@ export function useMatchCues({
     launchDeckToUnderFlight,
     flyCardUnder,
     flyCardToDeck,
+    flyPlayedCard,
   } = cueFlights({
     queue,
     anchors,
@@ -1255,21 +1263,19 @@ export function useMatchCues({
   }
 
   // State watchers use the newest phase and that snapshot's cause, including security growth.
-  const {
-    launchDrawFlight: launchWatchedDrawFlight,
-    launchSecurityGainFlight: launchWatchedSecurityGainFlight,
-  } = cueFlights({
-    queue: liveStateQueue,
-    anchors,
-    viewerSeat,
-    causingEffectGateRef: liveStateCauseRef,
-    securityGainKeyRef,
-    drawFlightKeyRef,
-    setSecurityFlights,
-    setSecurityDealCounts,
-    setDrawFlights,
-    setDrawBursts,
-  });
+  const { launchDrawFlight: launchWatchedDrawFlight, launchSecurityGainFlight: launchWatchedSecurityGainFlight } =
+    cueFlights({
+      queue: liveStateQueue,
+      anchors,
+      viewerSeat,
+      causingEffectGateRef: liveStateCauseRef,
+      securityGainKeyRef,
+      drawFlightKeyRef,
+      setSecurityFlights,
+      setSecurityDealCounts,
+      setDrawFlights,
+      setDrawBursts,
+    });
 
   useDrawWatcher({
     state,
@@ -1397,6 +1403,7 @@ export function useMatchCues({
       for (const item of narrationRef.current.values()) {
         if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
         shownIds.add(item.id);
+        effectSequence.deferClause(item.notice);
         dialog.deferred.push(item.notice);
       }
       dialog.deferred.push(...held);

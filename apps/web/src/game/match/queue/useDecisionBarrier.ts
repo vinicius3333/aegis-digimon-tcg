@@ -78,7 +78,7 @@ export function useDecisionBarrier({
     );
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [presentedStateVersion, progress]);
+  }, [presentedStateVersion, queueActivity, progress]);
 
   /**
    * Snapshot revision barrier. Its budget bounds how long the displayed board
@@ -113,8 +113,11 @@ export function useDecisionBarrier({
       sequentialBudgetMs(PLAY_LEAD_IN_BUDGET_MS, pendingEffectUnits()),
     );
     return () => clearTimeout(timer);
+    // Finishing a cue is progress: a healthy sequence of phase ribbons, arrivals and
+    // deletions must not spend a one-moment budget merely because the server sent it
+    // in a burst. A frozen cue still reaches this ceiling without a heartbeat.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [decisionPending, decisionStateVersion, progress]);
+  }, [decisionPending, decisionStateVersion, queueActivity, progress]);
 
   /**
    * The wait is on progress: any queue change restarts the clock, so a long healthy sequence

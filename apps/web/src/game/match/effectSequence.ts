@@ -172,6 +172,8 @@ export interface EffectUnit {
 
   /** A clause was raised for it. A unit nobody announces has nothing to read before its results. */
   narrated: boolean;
+  /** Opens when its clause is visible; hiding it behind an own-card dialog resets this gate. */
+  clauseVisible: PresentationGate;
   /** The unit ahead of this one has settled: its source may light up. */
   started: PresentationGate;
   /** Its clause has been on screen for its announce beat: its results may play. Replaced when the unit resumes. */
@@ -204,6 +206,12 @@ export interface EffectSequence {
   unitOf(notice: object | undefined): EffectUnit | undefined;
   /** The clause a unit raised, to restate its count after a trigger joined it. */
   noticeOf(unit: EffectUnit): object | undefined;
+  /** A dialog is repeating this clause, so its returning toast is still owed. */
+  deferClause(notice: object): void;
+  /** The clause is on screen, including an own-card toast returned after its dialog. */
+  showClause(notice: object | undefined): void;
+  /** A returned clause, or the same effect's dialog still open, makes its resume readable. */
+  resumedClauseReady(unit: EffectUnit, decisionPending: boolean): PresentationGate;
   /**
    * The card whose effect is asking the viewer something, or undefined once nothing is asked.
    * That card's open units wait on the answer, including one whose trigger reaches the client
@@ -310,6 +318,7 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
   const pending = new Set<EffectUnit>();
   const notices = new WeakMap<object, EffectUnit>();
   const noticeByUnit = new WeakMap<EffectUnit, object>();
+  const resumedClauses = new Map<EffectUnit, PresentationGate>();
   let askingCardId: string | undefined;
   let newestUnit: EffectUnit | undefined;
   const clauseSteps = new Set<string>();
@@ -349,6 +358,7 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
       repeat,
       touched: new Set(),
       narrated: false,
+      clauseVisible: createPresentationGate(),
       started,
       announced,
       settled: createPresentationGate(),
@@ -446,10 +456,27 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
     noticeOf(unit) {
       return noticeByUnit.get(unit);
     },
+    deferClause(notice) {
+      const unit = notices.get(notice);
+      if (unit?.clauseVisible.open) unit.clauseVisible = createPresentationGate();
+    },
+    showClause(notice) {
+      if (notice) notices.get(notice)?.clauseVisible.release();
+    },
+    resumedClauseReady(unit, decisionPending) {
+      const ready = createPresentationGate();
+      if (unit.clauseVisible.open || (decisionPending && askingCardId === unit.sourceCardId)) ready.release();
+      else {
+        resumedClauses.set(unit, ready);
+        void unit.clauseVisible.opened.then(() => ready.release());
+      }
+      return ready;
+    },
     noteQuestion(sourceCardId) {
       askingCardId = sourceCardId;
       if (sourceCardId !== undefined) askedSinceUnit = true;
       for (const unit of open) if (unit.sourceCardId === sourceCardId) unit.askedDuring = true;
+      for (const [unit, ready] of resumedClauses) if (unit.sourceCardId === sourceCardId) ready.release();
     },
     markClauseStep(stepId) {
       clauseSteps.add(stepId);
@@ -492,6 +519,10 @@ export function createEffectSequence(options: EffectSequenceOptions = {}): Effec
     },
     settle(unit) {
       pending.delete(unit);
+      resumedClauses.delete(unit);
+      // An answer can open the next question before its results finish. Re-arm the
+      // same unit so that question's final answer earns its own return beat too.
+      if (askingCardId === unit.sourceCardId) unit.askedDuring = true;
       lastSettledAt = Date.now();
       unit.started.release();
       unit.announced.release();
@@ -604,6 +635,7 @@ function settleStep(unit: EffectUnit, deps: EffectUnitStepsDeps, id: string, wai
  */
 export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): AnimationStep[] {
   const { onStarted } = deps;
+  const announced = unit.announced;
   return [
     {
       id: `effect-unit-announce-${unit.id}`,
@@ -614,9 +646,9 @@ export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): An
           unit.started.release();
           onStarted?.(unit);
           if (context.mode !== "live" || !unit.narrated) return;
-          await waitForGate(unit.announced, context, activePacing().announceMaxMs, "effectUnit/announced");
+          await waitForGate(announced, context, activePacing().announceMaxMs, "effectUnit/announced");
         } finally {
-          unit.announced.release();
+          announced.release();
         }
       },
     },
@@ -626,10 +658,11 @@ export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): An
 
 /**
  * The steps that play a unit's results after the viewer answered its question. The unit had
- * settled so the prompt could open; its clause is still on screen, and what the answer did
- * waits one more announce beat, so it does not play the instant the prompt disappears.
+ * settled so the prompt could open. A dialog may have hidden its clause, so the answer's
+ * results wait for that clause to return, then take their finite resume beat.
  */
 export function resumedUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): AnimationStep[] {
+  const announced = unit.announced;
   return [
     {
       id: `effect-unit-resume-${unit.id}`,
@@ -637,9 +670,17 @@ export function resumedUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): A
       holdsBoard: true,
       async run(context) {
         try {
-          if (context.mode === "live" && unit.narrated) await context.wait(unitBeats(unit).resumeMs);
+          if (context.mode === "live" && unit.narrated) {
+            await waitForGate(
+              deps.sequence.resumedClauseReady(unit, deps.decisionPending()),
+              context,
+              activePacing().announceMaxMs,
+              "effectUnit/resumedClause",
+            );
+            if (!context.cancelled && !context.skipping) await context.wait(unitBeats(unit).resumeMs);
+          }
         } finally {
-          unit.announced.release();
+          announced.release();
         }
       },
     },

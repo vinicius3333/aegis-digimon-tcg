@@ -19,6 +19,7 @@ import { NarrationStack } from "../../NarrationStack";
 import { resolvingProgress } from "../../resolutionChain";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
 import { TargetingSpotlight } from "../../TargetingSpotlight";
+import { EffectFocus } from "../../EffectFocus";
 import { BATTLE_TIMING_STYLE } from "../../timings";
 import { shieldSecurityCount } from "../../securityClash";
 import { turnControlState } from "../../turnControl";
@@ -312,6 +313,12 @@ export function BoardStage({
             ref={anchors.field}
             style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
           >
+            <EffectFocus
+              sources={cues.effectSources}
+              field={anchors.field}
+              permanents={anchors.permanents}
+              choosingTargets={targeting.spotlight.open}
+            />
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}

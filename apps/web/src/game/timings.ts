@@ -22,6 +22,10 @@ export const TIMINGS = {
   handDrawRing: 900,
   /** A card arriving in the battle area. */
   cardEnter: 320,
+  /** A confirmed card moving from its source zone or reveal to its field slot. */
+  playFlight: 460,
+  /** Touch layouts keep the same move readable at smaller card sizes. */
+  playFlightTouch: 540,
   /** The stars that pop over a card that just landed. */
   cardSparkle: 900,
   /** The memory marker landing on its new chip. */

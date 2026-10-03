@@ -37,6 +37,8 @@ export interface AnimationStepContext {
 
 export interface AnimationStep {
   id: string;
+  /** A confirmed arrival; its On Play clause waits for this permanent on any track. */
+  arrivingPermanentId?: string;
   /** Originating server batch, retained by steps spawned after later batches arrive. */
   origin?: { batchId: string; stateVersion: number; sourceCardId?: string; timing?: string; phaseOrder?: number };
   run(context: AnimationStepContext): void | Promise<void>;

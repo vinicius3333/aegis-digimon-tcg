@@ -4,6 +4,8 @@ import { withoutId } from "../eventLookup";
 import type { PermanentBurst, ZoneShowcase } from "../../showcases";
 import { SHOWCASE_TOTAL_MS, TIMINGS } from "../../timings";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import type { ServerEvent } from "@aegis/shared";
+import type { FlyPlayedCard, PlayFlightOrigin } from "../flights";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
 
 /**
@@ -28,6 +30,7 @@ export function zoneChangeStep({
   leadInMs = 0,
   track = CueTrack.CenterStage,
   waitFor,
+  play,
 }: {
   queue: AnimationQueue;
   presentationBatchRef: MutableRefObject<{ batchId: string; stateVersion: number } | undefined>;
@@ -47,6 +50,7 @@ export function zoneChangeStep({
   track?: string;
   /** The clause this arrival is the consequence of; the card arrives once it has been read. */
   waitFor?: PresentationGate;
+  play?: { event: Extract<ServerEvent, { kind: "cardPlayed" }>; fly: FlyPlayedCard };
 }): AnimationStep {
   const origin = presentationBatchRef.current && {
     ...presentationBatchRef.current,
@@ -54,6 +58,8 @@ export function zoneChangeStep({
   };
   return {
     id: `zone-change-${key}`,
+    ...(origin ? { origin } : {}),
+    ...(burst ? { arrivingPermanentId: burst.permanentId } : {}),
     track,
     async run(context) {
       // The caller may already be holding the permanent off the board on this step's
@@ -69,11 +75,16 @@ export function zoneChangeStep({
         if (burst) setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
         return;
       }
+      let showcaseOrigin: PlayFlightOrigin | undefined;
       if (showcase) {
         try {
           if (burst) setPendingPermanentIds((held) => new Set(held).add(burst.permanentId));
-          setZoneShowcase(showcase);
+          setZoneShowcase(play ? { ...showcase, departToField: true } : showcase);
           await context.wait(SHOWCASE_TOTAL_MS);
+          if (play) {
+            const rect = document.querySelector(".battle-showcase__art")?.getBoundingClientRect();
+            if (rect?.width) showcaseOrigin = rect;
+          }
         } finally {
           // A replacing cue (a security check) cancels the wait, and the board
           // must not be left holding a card up or hiding a permanent.
@@ -83,6 +94,17 @@ export function zoneChangeStep({
         if (context.cancelled) return;
       }
       if (!burst) return;
+      if (play) {
+        // Keep the destination hidden through travel, then let the landing and On Play
+        // happen on the permanent's existing serialized burst track.
+        setPendingPermanentIds((held) => new Set(held).add(burst.permanentId));
+        try {
+          await play.fly(play.event, context, showcaseOrigin);
+        } finally {
+          setPendingPermanentIds((held) => withoutId(held, burst.permanentId));
+        }
+        if (context.cancelled) return;
+      }
       // A Security play belonging to the viewer has no centre-screen showcase, but it
       // may still have been held until the source card completed its right-hand move.
       // Hand the field back at this landing beat, together with its burst.

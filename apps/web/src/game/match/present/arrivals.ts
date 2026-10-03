@@ -15,6 +15,7 @@ import { TIMINGS } from "../../timings";
 import { zoneChangeStep } from "../steps/zoneChangeStep";
 import type { RevealOnStage } from "../types";
 import type { CostClause } from "../presentationGate";
+import type { FlyPlayedCard } from "../flights";
 
 /** What the batch's arrivals leave for the narration routing below them to decide. */
 export type BatchArrivals = {
@@ -64,6 +65,7 @@ export function enqueueArrivals({
   enqueue,
   effectResults,
   costClause,
+  flyPlayedCard,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
@@ -94,6 +96,7 @@ export function enqueueArrivals({
   effectResults?: { fromEventIndex: number; afterAnnounced: (step: AnimationStep) => AnimationStep };
   /** A ＜Delay＞ clause not read yet: what its controller puts on the field waits for it. */
   costClause?: CostClause;
+  flyPlayedCard?: FlyPlayedCard;
 }): BatchArrivals {
   let arriving = false;
   let showcased = false;
@@ -176,6 +179,9 @@ export function enqueueArrivals({
       key,
       showcase: blocked ? null : showcase,
       burst,
+      ...(event.kind === "cardPlayed" && event.permanentId && flyPlayedCard
+        ? { play: { event, fly: flyPlayedCard } }
+        : {}),
       leadInMs: isTokenArrival || awaitsCostClause ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
       ...(isTokenArrival
         ? { track: `${CueTrack.CenterStage}-token-${key}` }
@@ -205,6 +211,7 @@ export function enqueueArrivals({
     if (
       burst &&
       (showcase ||
+        (event.kind === "cardPlayed" && event.permanentId && flyPlayedCard !== undefined) ||
         opponentsFieldArrival ||
         tokenFieldArrival ||
         securityReveal !== undefined ||

@@ -25,6 +25,8 @@ export interface ZoneShowcase {
   kind: "play" | "digivolve";
   /** Card colour, so the halo behind the card matches the card. */
   color: ColorName;
+  /** Keep the reveal visible until a confirmed flight takes it to the field. */
+  departToField?: boolean;
 }
 
 /** The looks the shared burst component can wear. */

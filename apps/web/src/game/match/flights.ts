@@ -1,5 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
-import type { Seat } from "@aegis/shared";
+import type { Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStepContext } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
@@ -7,6 +7,15 @@ import { TIMINGS } from "../timings";
 import { CueTrack } from "./enums";
 import type { DrawBurst, DrawFlight, DrawFlightCard, MatchCueAnchors } from "./types";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "./presentationGate";
+import { permanentVisualElement } from "../screen/dropZones";
+
+export type PlayFlightOrigin = Pick<DOMRect, "left" | "top" | "width" | "height">;
+
+export type FlyPlayedCard = (
+  event: Extract<ServerEvent, { kind: "cardPlayed" }>,
+  context: AnimationStepContext,
+  fromShowcase?: PlayFlightOrigin,
+) => Promise<boolean>;
 
 export interface CueFlightsDeps {
   queue: AnimationQueue;
@@ -295,13 +304,109 @@ export function cueFlights(deps: CueFlightsDeps) {
     return true;
   }
 
+  /**
+   * An accepted public play, never an optimistic drag. The server's origin names the
+   * source zone; the destination remains hidden until this flight lands. An opponent's
+   * reveal hands the card to the flight from centre stage instead of flashing it away.
+   */
+  const flyPlayedCard: FlyPlayedCard = async (event, context, fromShowcase) => {
+    const board = anchors.board.current;
+    if (!board || !event.permanentId || context.mode !== "live" || context.cancelled) return false;
+    const boardRect = board.getBoundingClientRect();
+    if (!boardRect.width) return false;
+    // A cache can still describe a different presented board or an old row slot.
+    // The pending card keeps its layout box, so measure its printed art directly.
+    // A hold may release before React commits that destination; allow up to eight
+    // frames for that commit, then let the caller reveal the card without travel.
+    const destinationRect = () => {
+      const permanent = [...board.querySelectorAll<HTMLElement>("[data-id]")].find(
+        (element) => element.isConnected && element.dataset.id === event.permanentId,
+      );
+      const rect = permanent ? permanentVisualElement(permanent).getBoundingClientRect() : undefined;
+      return rect?.width && rect.height ? rect : undefined;
+    };
+    let targetRect = destinationRect();
+    for (let frame = 0; !targetRect && frame < 8; frame += 1) {
+      if (context.cancelled || context.skipping || context.mode !== "live") return false;
+      await context.wait(16);
+      targetRect = destinationRect();
+    }
+    if (!targetRect || context.cancelled || context.skipping || context.mode !== "live") return false;
+    const target = {
+      x: targetRect.left + targetRect.width / 2 - boardRect.left,
+      y: targetRect.top + targetRect.height / 2 - boardRect.top,
+    };
+    const source = playedCardSource(event, anchors, viewerSeat);
+    const sourceRect = fromShowcase ?? source?.getBoundingClientRect();
+    // Opponent cards are already public at the reveal; none of their hand is inspected.
+    if (!sourceRect?.width) return false;
+    const x = sourceRect.left + sourceRect.width / 2 - boardRect.left;
+    const y = sourceRect.top + sourceRect.height / 2 - boardRect.top;
+    const key = ++drawFlightKeyRef.current;
+    const duration = isTouchLayout() ? TIMINGS.playFlightTouch : TIMINGS.playFlight;
+    const flight: DrawFlight = {
+      key,
+      kind: "play",
+      targetPermanentId: event.permanentId,
+      x,
+      y,
+      dx: target.x - x,
+      dy: target.y - y,
+      duration,
+      card: { cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) },
+      fromWidth: fromShowcase ? fromShowcase.width : Math.min(sourceRect.width, 100),
+      toWidth: targetRect.width,
+    };
+    setDrawFlights((flights) => [...flights, flight]);
+    try {
+      await context.wait(duration);
+    } finally {
+      setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+    }
+    return true;
+  };
+
   return {
     flyCardUnder,
     flyCardToDeck,
+    flyPlayedCard,
     launchSecurityGainFlight,
     launchOpeningSecurityDeal,
     launchDrawFlight,
     launchDeckToSecurityFlight,
     launchDeckToUnderFlight,
   };
+}
+
+/** Only geometry is read; the face always comes from the accepted public event. */
+export function playedCardSource(
+  event: Extract<ServerEvent, { kind: "cardPlayed" }>,
+  anchors: MatchCueAnchors,
+  viewerSeat: Seat,
+): Element | null {
+  const mine = event.seat === viewerSeat;
+  const board = anchors.board.current;
+  const sourceZone = "fromZone" in event ? event.fromZone : undefined;
+  if (sourceZone === "trash")
+    return board?.querySelector(mine ? ".game-utility-slot--you-trash" : ".game-utility-slot--opp-trash") ?? null;
+  if (sourceZone === "deck") return mine ? anchors.yourDeck.current : anchors.oppDeck.current;
+  if (sourceZone === "security") {
+    const side = mine ? "you" : "opp";
+    const dock = document.querySelector(
+      `.battle-security-branch[data-source='security'][data-side='${side}'] .battle-security-branch__frame > div`,
+    );
+    return dock ?? (mine ? anchors.yourSecurity.current : anchors.oppSecurity.current);
+  }
+  if (sourceZone === "resolvingOption")
+    return document.querySelector(".battle-security-branch[data-source='option'] .battle-security-branch__frame > div");
+  if (sourceZone === "stack" || sourceZone === "digivolutionCards") {
+    const hostId = "fromPermanentId" in event ? event.fromPermanentId : undefined;
+    return hostId
+      ? ([...(board?.querySelectorAll<HTMLElement>("[data-id]") ?? [])].find(
+          (element) => element.dataset.id === hostId,
+        ) ?? null)
+      : null;
+  }
+  if (sourceZone !== undefined && sourceZone !== "hand") return null;
+  return mine ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
 }

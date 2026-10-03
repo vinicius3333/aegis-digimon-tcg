@@ -32,6 +32,9 @@ import {
 } from "./effectsLabModel";
 import { SCENARIO_NOTES, type ScenarioCopy } from "./LiveArenaDemo";
 import { PacingTuner, useLabPacing } from "./PacingTuner";
+import { observeGateExpiry } from "../game/match/presentationGate";
+import { presentationTelemetry } from "../game/presentationTelemetry";
+import { AnimationInventory } from "./AnimationInventory";
 import "./effectsLab.css";
 
 type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
@@ -39,6 +42,7 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
   ["effects-lab-own-chain", "Effects lab · own trigger chain"],
   ["effects-lab-opponent-chain", "Effects lab · opponent trigger chain"],
+  ["effects-lab-opponent-play", "Effects lab · opponent confirmed play and On Play"],
   ["effects-lab-nested", "Effects lab · nested triggers"],
   ["effects-lab-prod-royal-knights", "Effects lab · production Royal Knights"],
   ["effects-lab-prod-ghost", "Effects lab · production Ghost"],
@@ -51,6 +55,7 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
   ["arena-gate-deadly-sins-effect-order", "EX6 Gate of Deadly Sins · effect resolution plan"],
   ["arena-security-effect-pacing", "Security effects · pacing"],
   ["arena-ex13-giromon-block-triggers", "EX13 Giromon · 6 block triggers"],
+  ["arena-drasil-optional-effect-presets", "Optional effects · King Drasil accept or decline"],
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
@@ -61,6 +66,10 @@ const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "effects-lab-opponent-chain": {
     en: "Pass breeding, then end your turn. The bot resolves five start-of-main effects with no prompt for you.",
     ptBR: "Passe a criação e encerre o turno. O bot resolve cinco efeitos de início da fase principal sem nenhuma escolha sua.",
+  },
+  "effects-lab-opponent-play": {
+    en: "Pass breeding, then end your turn. The bot plays Gabumon from hand: watch the showcase, field flight, landing and its On Play draw in order.",
+    ptBR: "Passe a criação e encerre o turno. O bot joga Gabumon da mão: acompanhe a apresentação, o voo ao campo, a chegada e a compra de Ao Jogar nessa ordem.",
   },
   "effects-lab-nested": {
     en: "Pass breeding, then attack the player with Gallantmon. Order its two effects; the deletion adds more triggers, then three security checks follow.",
@@ -143,6 +152,45 @@ export function EffectsLab() {
   const [selectedBatchId, setSelectedBatchId] = useState<string>();
   const [copyStatus, setCopyStatus] = useState<string>();
   const controlsRef = useRef<PresentationControls | undefined>(undefined);
+  // A read-only dev bridge lets browser tests inspect the same room, snapshots and queue
+  // as this screen. It never opens an observer connection or sends game intents.
+  const observedRef = useRef({
+    board: undefined as { live: unknown; displayed: unknown; visible: unknown; viewerSeat: number } | undefined,
+    decision: undefined as unknown,
+    steps: [] as LabStepEvent[],
+    events: [] as unknown[],
+    gateExpiries: [] as string[],
+    truncated: false,
+  });
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const globals = window as unknown as Record<string, unknown>;
+    const labKey = "__aegisEffectsLab";
+    const read = Object.assign(
+      () => ({
+        scenario,
+        ...observedRef.current,
+        pendingSteps: controlsRef.current?.queue.pendingCount(),
+        queueIdle: controlsRef.current?.queue.isIdle(),
+        counters: presentationTelemetry.read().counters,
+      }),
+      {
+        reset() {
+          observedRef.current.steps = [];
+          observedRef.current.events = [];
+          observedRef.current.gateExpiries = [];
+          observedRef.current.truncated = false;
+          presentationTelemetry.reset();
+        },
+      },
+    );
+    globals[labKey] = read;
+    const stop = observeGateExpiry(({ label }) => observedRef.current.gateExpiries.push(label));
+    return () => {
+      stop();
+      if (globals[labKey] === read) delete globals[labKey];
+    };
+  }, [scenario]);
   const playbackRef = useRef({ rate, paused });
   playbackRef.current = { rate, paused };
 
@@ -185,15 +233,31 @@ export function EffectsLab() {
           key = `${stepSequenceRef.current}`;
           stepKeysRef.current.set(event.step, key);
         }
-        record({ type: "step", event: labStepEvent(key, event) });
+        const observed = labStepEvent(key, event);
+        observedRef.current.steps.push(observed);
+        if (observedRef.current.steps.length > 4000) {
+          observedRef.current.steps.shift();
+          observedRef.current.truncated = true;
+        }
+        record({ type: "step", event: observed });
       },
       onBatch(batch) {
         if (!current()) return;
+        observedRef.current.events.push(...JSON.parse(JSON.stringify(batch.events)));
+        if (observedRef.current.events.length > 2000) {
+          observedRef.current.events.splice(0, observedRef.current.events.length - 2000);
+          observedRef.current.truncated = true;
+        }
         record({ type: "batch", batch, at: performance.now() });
       },
       onDecision(decision) {
         if (!current()) return;
+        observedRef.current.decision = decision && JSON.parse(JSON.stringify(decision));
         record({ type: "decision", decision, at: performance.now() });
+      },
+      onBoard(board) {
+        if (!current()) return;
+        observedRef.current.board = JSON.parse(JSON.stringify(board));
       },
     };
   }, [record, run]);
@@ -360,6 +424,7 @@ export function EffectsLab() {
               </details>
             </section>
             <PacingTuner portuguese={portuguese} />
+            <AnimationInventory state={lab} />
             <ServerTimeline
               lab={lab}
               portuguese={portuguese}

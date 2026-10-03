@@ -2,7 +2,7 @@
 
    `handEntries` is the live hand, which is what every legality answer is read off — the
    server's own projections travel on each card. `shownHandEntries` is the hand on screen,
-   which only a turn-start draw hold can keep behind the live one. A card the hold still
+   which a paced snapshot or turn-start draw hold can keep behind the live one. A card the hold still
    shows but the server has already taken has no projections left, so it is filled in as
    unplayable rather than dropped: the viewer sees the card leave when the ribbon says it
    does, and cannot act on it meanwhile. A card an optimistic play has taken out of the
@@ -18,7 +18,7 @@ export function handEntriesOf({
   optimisticPlayedInstanceId,
 }: {
   viewer: PlayerState;
-  /** The hand on screen, which a draw hold may keep behind the server's. */
+  /** The hand on screen, held by a draw ribbon or the paced presentation revision. */
   shownHand: readonly CardInstance[] | undefined;
   handHeld: boolean;
   optimisticPlayedInstanceId: string | undefined;
