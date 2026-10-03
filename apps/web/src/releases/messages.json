@@ -1,4 +1,40 @@
 {
+  "releases.1.8.6-beta.summary": {
+    "en": "This update fixes attacks without suspending, pending effects, card costs, Tamer Security effects, Hybrid search and DUAL immunity.",
+    "pt-BR": "Esta atualização corrige ataques sem suspender, efeitos pendentes, custos de cartas, efeitos de Security de Tamers, busca de Hybrid e imunidade contra cartas DUAL."
+  },
+  "releases.1.8.6-beta.fix.repeatAttack": {
+    "en": "Digimon that attack without suspending can now attack again while unsuspended, including ST12-12 Blanc with Rush.",
+    "pt-BR": "Digimon que atacam sem suspender agora podem atacar novamente enquanto estiverem ativos, incluindo ST12-12 Blanc com Rush."
+  },
+  "releases.1.8.6-beta.fix.removedTriggers": {
+    "en": "Pending field effects now stop if their source has left its original position, fixing the Plutomon and Zombi interaction.",
+    "pt-BR": "Efeitos de campo pendentes agora param quando sua origem sai da posição original, corrigindo a interação entre Plutomon e Zombi."
+  },
+  "releases.1.8.6-beta.fix.gundramon": {
+    "en": "LM-067 Gundramon now uses the Option revealed by its effect without paying its use cost.",
+    "pt-BR": "LM-067 Gundramon agora usa a Option revelada pelo seu efeito sem pagar o custo de uso."
+  },
+  "releases.1.8.6-beta.fix.hybridSearch": {
+    "en": "Searching for Hybrid in the deck builder now finds cards with Hybrid in their printed form.",
+    "pt-BR": "Buscar Hybrid no construtor de decks agora encontra cartas com Hybrid na forma impressa."
+  },
+  "releases.1.8.6-beta.fix.taiki": {
+    "en": "BT10-087 Taiki Kudo can now place a lone revealed Xros Heart Digimon under a Tamer.",
+    "pt-BR": "BT10-087 Taiki Kudo agora pode colocar um único Digimon Xros Heart revelado embaixo de um Tamer."
+  },
+  "releases.1.8.6-beta.fix.tamerSecurity": {
+    "en": "Restored the Security effects of AD1-019, AD1-022 and BT7-088 Tamers so they play themselves without paying the cost.",
+    "pt-BR": "Restaurados os efeitos de Security dos Tamers AD1-019, AD1-022 e BT7-088 para que entrem em jogo sem pagar o custo."
+  },
+  "releases.1.8.6-beta.fix.wisemon": {
+    "en": "The digivolution menu now offers alternate costs that depend on card text, including EX13-034 Wisemon’s Witchelny requirement.",
+    "pt-BR": "O menu de digievolução agora oferece custos alternativos que dependem do texto das cartas, incluindo o requisito Witchelny de EX13-034 Wisemon."
+  },
+  "releases.1.8.6-beta.fix.dualImmunity": {
+    "en": "Immunity now checks the active face of DUAL cards: their Option effects can affect Diarbbitmon despite its immunity to Digimon effects, and their Digimon effects bypass immunity to Option effects. Granted and borrowed effects also preserve their source.",
+    "pt-BR": "A imunidade agora verifica a face ativa das cartas DUAL: seus efeitos de Option podem afetar Diarbbitmon apesar da imunidade a efeitos de Digimon, e seus efeitos de Digimon passam pela imunidade a efeitos de Option. Efeitos concedidos e copiados também preservam sua origem."
+  },
   "releases.1.8.5-beta.summary": {
     "en": "This update fixes the No Selection choice in Link effects.",
     "pt-BR": "Esta atualização corrige a opção Nenhuma seleção nos efeitos de Link."

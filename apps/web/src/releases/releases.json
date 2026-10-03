@@ -1,5 +1,37 @@
 [
   {
+    "version": "1.8.6-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.6-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.6-beta.fix.repeatAttack"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.removedTriggers"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.gundramon"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.hybridSearch"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.taiki"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.tamerSecurity"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.wisemon"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.dualImmunity"
+      }
+    ]
+  },
+  {
     "version": "1.8.5-beta",
     "releasedAt": "2026-10-03",
     "summaryKey": "releases.1.8.5-beta.summary",
