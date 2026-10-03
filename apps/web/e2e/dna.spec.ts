@@ -26,6 +26,8 @@ test("dragging Silphymon onto the field DNA digivolves both exact materials for 
 
   const browserState = await match.snapshot();
   const silphymonId = browserState.players[0]!.hand.find((card) => card.cardId === "BT16-012")!.instanceId;
+  // The server has placed Reppamon; wait until its presentation releases normal actions.
+  await expect(page.getByRole("button", { name: /^end phase$/i })).toBeEnabled();
   await game.dragCardTo(/^silphymon$/i, page.locator('[data-drop="battle-you"]'));
   await expect(page.getByText(/DNA Digivolution available/i)).toBeVisible();
   await page.getByRole("button", { name: /^DNA Digivolve$/i }).click();

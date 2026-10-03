@@ -37,6 +37,7 @@ import {
 import {
   baseDropIntentAttrs as modelBaseDropIntentAttrs,
   dragIntentAt as modelDragIntentAt,
+  canDragCard,
   dropIntentAttrs as modelDropIntentAttrs,
 } from "./screen/model/screenDragIntents";
 import { decisionAllowsPick as modelDecisionAllowsPick, nextDecisionPicks } from "./screen/model/decisionPicks";
@@ -281,7 +282,8 @@ export function GameScreen({
   }>();
   const allianceConfirmationSubmittedRef = useRef(false);
 
-  const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
+  const { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag } = useDragPlumbing();
+  canDragRef.current = null;
 
   const boardRef = useRef<HTMLDivElement | null>(null);
   const fieldRef = useRef<HTMLDivElement | null>(null);
@@ -838,6 +840,10 @@ export function GameScreen({
   const { findPermanent, handleTap, handleDrop, onYourPerm, onBreeding } = actions;
   handleTapRef.current = handleTap;
   handleDropRef.current = handleDrop;
+  canDragRef.current = (candidate) =>
+    !mainActionBlocked &&
+    (candidate.kind !== DragKind.Attack || (!handSel && !linkSel)) &&
+    canDragCard({ drag: candidate, you, handEntries });
   const combatWindowAnswers = combatAnswers({
     room,
     acknowledgeBlockWindowLocally: demoConnection?.acknowledgeBlockWindow,

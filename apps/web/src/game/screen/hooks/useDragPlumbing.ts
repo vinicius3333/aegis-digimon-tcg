@@ -29,6 +29,8 @@ export function useDragPlumbing() {
   /** Assigned every render, so the listeners below reach the current handlers. */
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
   const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
+  /** Live legality: a pending press may inspect any card, but only a legal action may drag. */
+  const canDragRef = useRef<((d: DragState) => boolean) | null>(null);
   // The drop area the pointer is currently over, so the ghost can carry the name
   // of the intent that release would send.
   const [dragHover, setDragHover] = useState<DropZoneHit | null>(null);
@@ -43,11 +45,17 @@ export function useDragPlumbing() {
         setDrag({ ...d, x: e.clientX, y: e.clientY });
         return;
       }
+      if (!d.started && gesture === "scroll") {
+        setDrag(null);
+        setDragHover(null);
+        return;
+      }
+      if (canDragRef.current?.(d) !== true) {
+        setDrag(null);
+        setDragHover(null);
+        return;
+      }
       if (!d.started) {
-        if (gesture === "scroll") {
-          setDrag(null);
-          return;
-        }
         e.preventDefault();
         d.capture?.setPointerCapture?.(e.pointerId);
       }
@@ -58,8 +66,9 @@ export function useDragPlumbing() {
     const up = (e: PointerEvent) => {
       const d = dragRef.current;
       if (d) {
-        if (d.started) handleDropRef.current?.(d, e.clientX, e.clientY);
-        else {
+        if (d.started) {
+          if (canDragRef.current?.(d) === true) handleDropRef.current?.(d, e.clientX, e.clientY);
+        } else {
           swallowNextClick();
           handleTapRef.current?.(d);
         }
@@ -82,15 +91,19 @@ export function useDragPlumbing() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // A patch can revoke an action while the pointer stands still above the board.
+  useEffect(() => {
+    if (dragRef.current?.started && canDragRef.current?.(dragRef.current) !== true) {
+      setDrag(null);
+      setDragHover(null);
+    }
+  });
+
   /** The index is a position in the hand the viewer can see, so the entry is resolved there. */
   function startHandDrag(index: number, entry: HandEntry | undefined, e: ReactPointerEvent) {
     if (!entry) return;
     const deferred = e.pointerType !== "mouse";
-    if (!deferred) {
-      e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-    }
-    setDrag({
+    const pending: DragState = {
       kind: DragKind.Play,
       index,
       instanceId: entry.instanceId,
@@ -103,7 +116,12 @@ export function useDragPlumbing() {
       started: false,
       deferred,
       capture: e.currentTarget,
-    });
+    };
+    if (!deferred && canDragRef.current?.(pending) === true) {
+      e.preventDefault();
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    }
+    setDrag(pending);
   }
 
   function startPermDrag(perm: Permanent, e: ReactPointerEvent) {
@@ -130,5 +148,5 @@ export function useDragPlumbing() {
     });
   }
 
-  return { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag };
+  return { drag, dragHover, handleTapRef, handleDropRef, canDragRef, startHandDrag, startPermDrag };
 }
