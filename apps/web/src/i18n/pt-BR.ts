@@ -91,6 +91,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.8.5-beta.summary": releaseMessages["releases.1.8.5-beta.summary"]["pt-BR"],
+  "releases.1.8.5-beta.fix.sonicShotDecline": releaseMessages["releases.1.8.5-beta.fix.sonicShotDecline"]["pt-BR"],
+  "releases.1.8.5-beta.fix.linkRecipientDecline":
+    releaseMessages["releases.1.8.5-beta.fix.linkRecipientDecline"]["pt-BR"],
   "releases.1.8.4-beta.summary": releaseMessages["releases.1.8.4-beta.summary"]["pt-BR"],
   "releases.1.8.4-beta.feature.triggerReason": releaseMessages["releases.1.8.4-beta.feature.triggerReason"]["pt-BR"],
   "releases.1.8.4-beta.fix.byOrder": releaseMessages["releases.1.8.4-beta.fix.byOrder"]["pt-BR"],
