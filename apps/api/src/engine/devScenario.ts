@@ -60,6 +60,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-lm067-gundramon-free-option",
   "arena-ex13-sampson-face-down-sources",
   "arena-p240-arcturusmon-vb-routes",
   "arena-p240-arcturusmon-ordered-placement",
@@ -411,6 +412,31 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Discord 1555848735278239744: LM-067 reveals P-180, which must cost no memory. */
+function layLm067GundramonFreeOptionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT10-064"], "-gundramon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-gundramon", "LM-067", 0));
+    // Main-entry draw, digivolution draw, then an unambiguous six-card reveal.
+    const top = ["BT1-065", "BT1-065", "P-180", "BT1-027", "BT1-028", "BT1-045", "BT1-047", "BT1-050"];
+    for (let index = top.length - 1; index >= 0; index -= 1) {
+      insertCard(human, Zone.Deck, faceDownCard(`dev-gundramon-deck-${index}`, top[index]!, 0), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Match c3ab8a19: Dan & Kanan uses Sonic Shot, then the player declines its Link recipient. */
@@ -4603,6 +4629,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-p240-arcturusmon-ordered-placement": layP240ArcturusmonOrderedPlacementScenario,
