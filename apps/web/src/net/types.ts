@@ -57,6 +57,7 @@ export interface AegisJoinOptions {
     | "arena-bt20-dragon-gene-skip-play"
     | "arena-bt26-rosemon-option-digivolve-lock"
     | "arena-bt26-ravemon-nested-on-deletion"
+    | "arena-bt26-ravemon-recycled-trigger"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
     | "arena-bt24-fugamon-self-trash"
     | "arena-ex12-metalgarurumon-trash-then-return"

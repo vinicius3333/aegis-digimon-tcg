@@ -76,6 +76,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt26-rosemon-option-digivolve-lock",
   "arena-bt26-ravemon-nested-on-deletion",
+  "arena-bt26-ravemon-recycled-trigger",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
   "arena-ex12-metalgarurumon-trash-then-return",
@@ -428,6 +429,37 @@ function layEx13SampsonFaceDownSourcesScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Same physical Ravemon evolves again before its earlier deletion chain has finished. */
+function layBt26RavemonRecycledTriggerScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    // Keep Falcomon's reveal and the two digivolution draws unambiguous.
+    for (let n = 0; n < 6; n += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-recycled-neutral-${seat}-${n}`, "BT1-009", seat), "top");
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-005", "BT2-075"], "-recycled-first-base"));
+    placePermanent(human, establishedDigimon(0, ["BT26-076"], "-recycled-crowmon"));
+    const tamer = establishedDigimon(0, ["BT1-089"], "-recycled-tamer");
+    pushOnStack(tamer, faceDownCard("dev-recycled-tamer-source", "BT1-010", 0));
+    placePermanent(human, tamer);
+    insertCard(human, Zone.Hand, faceDownCard("dev-recycled-ravemon", "BT26-082", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-recycled-falcomon", "BT26-065", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) insertCard(bot, Zone.Hand, faceDownCard("dev-recycled-opponent-discard", "BT1-009", 1));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
 }
 
 /**
@@ -4397,6 +4429,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
   "arena-bt26-ravemon-nested-on-deletion": layBt26RavemonNestedOnDeletionScenario,
+  "arena-bt26-ravemon-recycled-trigger": layBt26RavemonRecycledTriggerScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,

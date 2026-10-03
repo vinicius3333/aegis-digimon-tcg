@@ -652,3 +652,50 @@ describe("BT26-082 Ravemon — KB Q&A rulings", () => {
     await loop;
   });
 });
+
+it("Discord 1555674174369042583: the same Ravemon triggers When Digivolving again during its pending deletion chain", async () => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT2-075", as: "firstBase", under: ["BT26-005"] },
+          { card: "BT26-076", as: "secondBase" },
+          { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", faceUp: false }] },
+        ],
+        hand: [{ card: "BT26-082", as: "ravemon" }],
+        trash: [{ card: "BT26-065", as: "falcomon" }],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: { hand: ["BT1-009"], security: 3 },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      preferTriggerKeys: ["BT26-005", "BT26-076"],
+      preferInstanceIds: preferred,
+      declinePrompts: ["Place 1 card(s) as your security"],
+    },
+  );
+  preferred.push(s.inst("ravemon").instanceId, s.inst("falcomon").instanceId);
+  s.state.memory = 8;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("firstBase").permanentId,
+      instanceId: s.inst("ravemon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(s.events.filter((event) => event.kind === "digivolved" && event.cardId === "BT26-082")).toHaveLength(2);
+  expect(
+    s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === "BT26-082" &&
+        event.printedTiming === "WhenDigivolving",
+    ),
+  ).toHaveLength(2);
+});
