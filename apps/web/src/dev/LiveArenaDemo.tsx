@@ -284,6 +284,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue GrapLeomon e mande Gaomon atacar o jogador. O efeito Ao Atacar de Gaomon (cada jogador compra 1) deve resolver ANTES de o Analogman do bot suspender e redirecionar o ataque.",
     en: "Play GrapLeomon and order Gaomon to attack the player. Gaomon's When Attacking effect (each player draws 1) must resolve BEFORE the bot's Analogman suspends and redirects the attack.",
   },
+  "arena-rina-evade-unsuspend": {
+    ptBR: "Começa após Ulforce X virar Veemon, sobreviver ao Arts de Noir com Evade e receber o turno com 5 de memória (custo da Opção). Veemon e Rina EX13 devem desvirar ANTES dos efeitos das Rinas aparecerem. Resolva Rina EX13 primeiro: suspender para comprar é opcional; evoluir em Veedramon por 0 também é opcional. Rina BT11 dá +1 (6); ao entrar na Principal, Rina EX13 dá +1 (7). Se aceitar a compra, Rina EX13 deve continuar suspensa.",
+    en: "Starts after Ulforce X became Veemon, survived Noir's Arts deletion with Evade, and received the turn with 5 memory from the Option's cost. Veemon and EX13 Rina must unsuspend BEFORE the Rina effects appear. Resolve EX13 Rina first: suspending to draw is optional; digivolving into Veedramon for 0 is also optional. BT11 Rina gains 1 (6); at Main entry EX13 Rina gains 1 (7). If you accept the draw, EX13 Rina must stay suspended.",
+  },
   "arena-bt11-rina-ulforce-effect-choice": {
     ptBR: "Encerre a criação e ataque a segurança com UlforceVeedramon. Resolva primeiro a Rina BT11 e aceite suspendê-la. As duas opções devem mostrar textos diferentes: mudar orientação e devolver os Digimon com menos fontes. Escolha a segunda e aceite: só BT1-013 volta ao fundo do deck; BT1-011 com uma fonte fica. Depois resolva o Ao Atacar de Ulforce.",
     en: "End breeding and attack security with UlforceVeedramon. Resolve BT11 Rina first and accept suspending her. The two options must show different texts: change orientation and return the Digimon with the fewest sources. Choose the second and accept: only BT1-013 returns to the deck bottom; BT1-011 with one source stays. Then resolve Ulforce's When Attacking effect.",
@@ -617,6 +621,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-marcus-alliance", "Alliance · Marcus treated as a Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-effect-choice", "BT11 Rina · EX13 Ulforce effect choice"],
+  ["arena-rina-evade-unsuspend", "Rina · Evade → next-turn unsuspend"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],
   ["arena-bt15-leviamon-x-played-subject-left", "BT15 Leviamon X · trigger survives a deleted played Digimon"],

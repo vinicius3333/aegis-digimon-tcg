@@ -9,6 +9,7 @@ import {
 } from "@aegis/shared";
 import {
   extractCardAt,
+  fillZone,
   insertCard,
   linkCard,
   placePermanent,
@@ -44,6 +45,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
   "arena-bt11-rina-ulforce-effect-choice",
+  "arena-rina-evade-unsuspend",
   "arena-ex3-wingdramon-evade-suspend-lock",
   "arena-ex13-wingdramon-evade-suspend-lock",
   "arena-bt20-grademon-redirect",
@@ -2560,6 +2562,43 @@ function layBt11RinaUlforceImmunityScenario(state: GameState, decks: readonly [D
   state.memory = 3;
 }
 
+/** Discord 1555995840093360188: start just after Noir's Arts deletion was Evaded. */
+function layRinaEvadeUnsuspendScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    const veemon = establishedDigimon(0, ["BT11-023"], "-rina-evade-veemon");
+    veemon.isSuspended = true;
+    placePermanent(human, veemon);
+    placePermanent(human, establishedDigimon(0, ["BT11-112"], "-rina-evade-bt11"));
+    const rina = establishedDigimon(0, ["EX13-069"], "-rina-evade-ex13");
+    rina.isSuspended = true;
+    placePermanent(human, rina);
+    fillZone(human, Zone.Hand, [faceDownCard("dev-rina-evade-veedramon", "EX13-019", 0)]);
+    fillZone(
+      human,
+      Zone.Deck,
+      Array.from({ length: 12 }, (_, index) => faceDownCard(`dev-rina-evade-draw-${index}`, "BT1-009", 0)),
+    );
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT6-084", "EX13-066"], "-rina-evade-noir"));
+    placePermanent(bot, establishedDigimon(1, ["ST12-12"], "-rina-evade-blanc"));
+    placePermanent(bot, establishedDigimon(1, ["BT13-013"], "-rina-evade-savior"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 6;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /** Discord bug 1555770458866065499: distinguish Ulforce's two borrowed digivolution effects. */
 function layBt11RinaUlforceEffectChoiceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -4856,6 +4895,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt11-rina-ulforce-effect-choice": layBt11RinaUlforceEffectChoiceScenario,
+  "arena-rina-evade-unsuspend": layRinaEvadeUnsuspendScenario,
   "arena-ex3-wingdramon-evade-suspend-lock": layEx3WingdramonEvadeSuspendLockScenario,
   "arena-ex13-wingdramon-evade-suspend-lock": layEx13WingdramonEvadeSuspendLockScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,

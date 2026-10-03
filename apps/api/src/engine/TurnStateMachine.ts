@@ -39,8 +39,9 @@ export interface TurnFlowHooks {
   deckCount(seat: Seat): number;
 
   /**
-   * Unsuspend the turn player's permanents at the start of the Active phase. Returns
-   * the affected permanent ids (for the event log). The documented rules unsuspends battle-area
+   * Unsuspend the turn player's permanents at the start of the Active phase, announce
+   * the affected permanent ids before resolving their reactions, and return those ids.
+   * The documented rules unsuspends battle-area
    * permanents the turn player controls (plus any with Reboot) and all raising-area
    * permanents (digivolve subsystem owns Reboot/CanUnsuspend nuances).
    */
@@ -227,10 +228,7 @@ export class TurnStateMachine {
     await this.hooks.fireTiming(EffectTiming.OnStartTurn);
     if (this.hooks.isGameOver()) return;
 
-    const unsuspended = await this.hooks.unsuspendForActivePhase(this.state.turnSeat);
-    for (const permanentId of unsuspended) {
-      this.emit({ kind: "cardsMoved", instanceIds: [permanentId], from: "suspended", to: "unsuspended" });
-    }
+    await this.hooks.unsuspendForActivePhase(this.state.turnSeat);
 
     await this.hooks.clearDurations("ownerActivePhaseEnd");
   }
