@@ -446,6 +446,57 @@
   outline: 2px solid var(--ds-focus-color);
   outline-offset: -2px;
 }
+.trigger-chooser__waiting {
+  /* A long backlog scrolls inside its own box. Left to its content height it
+     squeezed the offered effects to a sliver and pushed the footer, with the
+     resolve button, out of the clipped dialog. */
+  flex: 0 1 auto;
+  min-height: 0;
+  /* A percentage would not resolve: the dialog only caps its height. */
+  max-height: min(28dvh, 14rem);
+  margin-top: var(--ds-space-3);
+  padding: var(--ds-space-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px dashed var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  opacity: 0.8;
+}
+.trigger-chooser__reason {
+  color: var(--ds-accent, var(--ds-fg-muted));
+  font-size: var(--ds-text-xs);
+  font-weight: 600;
+}
+.trigger-chooser__waiting-count {
+  margin-left: var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+.trigger-chooser__waiting-title {
+  color: var(--ds-fg-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.trigger-chooser__waiting-hint {
+  margin: var(--ds-space-1) 0 var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+.trigger-chooser__waiting-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.trigger-chooser__waiting-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+}
 .trigger-chooser__mandatory {
   justify-self: center;
   color: var(--ds-fg-muted);

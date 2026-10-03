@@ -78,6 +78,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent places 1 card from their hand as the bottom security card.",
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "opponent",
@@ -85,6 +87,7 @@ export const compiled: CompiledCard = {
           source: "hand",
         },
         {
+          effectTextPart: "Then, trash their top security card.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
@@ -98,6 +101,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent places 1 card from their hand as the bottom security card.",
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "opponent",
@@ -105,6 +110,7 @@ export const compiled: CompiledCard = {
           source: "hand",
         },
         {
+          effectTextPart: "Then, trash their top security card.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",

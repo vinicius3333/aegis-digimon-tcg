@@ -116,7 +116,7 @@ describe("EX12-077 Proximamon", () => {
     expect(compiledEffects["EX12-077"]).toEqual(compiled);
   });
 
-  it("places exactly two matching cards and deletes an opponent Digimon", async () => {
+  it("declines the optional 'by' placement and deletes nothing", async () => {
     const s = setupEngine(
       {
         0: {
@@ -130,6 +130,36 @@ describe("EX12-077 Proximamon", () => {
         1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("proximamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-077"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("sourceOne").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("sourceTwo").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("places exactly two matching cards and deletes an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX12-077", as: "proximamon" },
+            { card: "EX12-005", as: "sourceOne" },
+          ],
+          trash: [{ card: "EX12-007", as: "sourceTwo" }],
+          battleArea: [{ card: "EX12-005", as: "host" }],
+        },
+        1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, declinePrompts: ["Play"], autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 20;
     await s.ready();
@@ -158,7 +188,7 @@ describe("EX12-077 Proximamon", () => {
         },
         1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+      { autoAcceptOptional: true, declinePrompts: ["Play"], autoSelectCards: true, preferOptionIndex: 1 },
     );
     s.state.memory = 20;
     await s.ready();
@@ -306,7 +336,7 @@ describe("EX12-077 Proximamon", () => {
         },
         1: { battleArea: [{ card: "BT1-020", as: "target" }], security: ["BT1-101", "BT1-101"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, declinePrompts: ["By placing"], autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 5;
     await s.ready();
@@ -350,7 +380,7 @@ describe("EX12-077 Proximamon", () => {
         },
         1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, declinePrompts: ["Play"], autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 20;
     await s.ready();
@@ -645,7 +675,7 @@ describe("EX12-077 Proximamon — KB Q&A rulings", () => {
         },
         1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, declinePrompts: ["Play"], autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 20;
     await s.ready();

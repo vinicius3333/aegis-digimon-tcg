@@ -71,6 +71,31 @@ describe("EX7-071 Hurricane Screw Shot", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("places itself as the bottom digivolution card, below the existing sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-071", as: "hurricane" }],
+          battleArea: [{ card: "EX7-059", as: "musketeer", under: [{ card: "BT1-009", as: "source" }] }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "levelThree" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hurricane").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("musketeer").stack.length === 2);
+
+    // Index 0 is the bottom of the digivolution cards.
+    expect(s.perm("musketeer").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("hurricane").instanceId,
+      s.inst("source").instanceId,
+    ]);
+  });
+
   it("gains memory when EX7-059 publicly trashes this stack card as its attack cost", async () => {
     const s = setupEngine(
       {

@@ -105,13 +105,15 @@ export interface ResolutionEnv {
    * remaining effect is optional (source
    * `CanNoSelect = active.All(s => s.CardEffect.IsSkippable(...))`).
    * `plan` holds the controller's resolution plan for this window; a prompt it already
-   * answers is skipped.
+   * answers is skipped. `waiting` lists the controller's older pending effects, which only
+   * resolve after this group (§15-4-5-2/3); the prompt shows them but never offers them.
    */
   chooseOrder(
     seat: Seat,
     active: readonly CollectedEffect[],
     timing: EffectTiming,
     plan?: ResolutionPlan,
+    waiting?: readonly CollectedEffect[],
   ): Promise<number | null>;
 
   /**
@@ -327,15 +329,25 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
         else if (first !== identity && !inProgress.has(key)) departed.add(key);
       }
 
-      const active = collectedThisPass.filter(
-        (c) =>
-          !declined.has(declineKey(c)) &&
-          !resolved.has(declineKey(c)) &&
-          !inProgress.has(declineKey(c)) &&
-          !departed.has(declineKey(c)) &&
+      // One pending activation per key. Two collection paths can hand in the same effect for
+      // the same trigger (an inherited [On Deletion] reached both from the deleted stack and
+      // from the window parked for it), and `resolved` retires the key after the first one
+      // runs, so the copy could only ever sit in the order prompt as a choice that never runs
+      // (Discord 1555741214014447737: BT26-005 Pinamon listed twice under Ravemon).
+      const activeKeys = new Set<string>();
+      const active = collectedThisPass.filter((c) => {
+        const key = declineKey(c);
+        if (activeKeys.has(key)) return false;
+        const activatable =
+          !declined.has(key) &&
+          !resolved.has(key) &&
+          !inProgress.has(key) &&
+          !departed.has(key) &&
           !loopStopped.has(c.effect.effectKey) &&
-          canActivate(c.effect, env.makeContext(c), env.tracker),
-      );
+          canActivate(c.effect, env.makeContext(c), env.tracker);
+        if (activatable) activeKeys.add(key);
+        return activatable;
+      });
       if (active.length === 0) return;
 
       // §18-3 Infinite Loops. The window is still handing out activatable effects after
@@ -407,8 +419,9 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       // prompt within one controller's group.
       const frontSeat = orderingSeatOf(ordered[0]!);
       const group = ordered.filter((c) => orderingSeatOf(c) === frontSeat);
+      const waiting = active.filter((c) => !group.includes(c) && orderingSeatOf(c) === frontSeat);
 
-      const choice = await pickNext(frontSeat, group, timing, env, plan);
+      const choice = await pickNext(frontSeat, group, timing, env, plan, waiting);
       if (choice === null) {
         // Decline is only returned when every effect in the group is optional. Mark them
         // declined so the loop can progress to the other player's effects (or finish).
@@ -470,11 +483,12 @@ async function pickNext(
   timing: EffectTiming,
   env: ResolutionEnv,
   plan: ResolutionPlan,
+  waiting: readonly CollectedEffect[],
 ): Promise<number | null> {
   if (group.length === 1) return 0;
 
   const allOptional = group.every((c) => c.effect.optional);
-  const picked = await env.chooseOrder(seat, group, timing, plan);
+  const picked = await env.chooseOrder(seat, group, timing, plan, waiting);
 
   if (picked === null) return allOptional ? null : 0;
   if (picked < 0 || picked >= group.length) return allOptional ? null : 0;

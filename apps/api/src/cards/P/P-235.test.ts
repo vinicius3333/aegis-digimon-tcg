@@ -25,7 +25,7 @@ describe("P-235 Digital Accident Tactics Squad", () => {
         trigger: "Main",
         actions: [
           expect.objectContaining({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" }),
-          { kind: "PlaceInBattleAreaSelf" },
+          expect.objectContaining({ kind: "PlaceInBattleAreaSelf" }),
         ],
       }),
     );

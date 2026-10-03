@@ -182,11 +182,36 @@ describe("EX8-064", () => {
     await settle(() => s.perm("first").currentDP === 4000 && s.perm("second").currentDP === 2000);
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(2000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(s.perm("first").currentDP - s.perm("first").baseDP);
     s.state.memory = 0;
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.perm("first").currentDP).toBe(10000);
     expect(s.perm("second").currentDP).toBe(8000);
+  });
+  it("applies the -6000 DP turn modifier to a Digimon played later in the turn (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-064", as: "source" }],
+          deck: Array(40).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "first", dp: 10000 }],
+          hand: [{ card: "BT1-024", as: "late" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.perm("first").currentDP === 4000);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+
+    expect(s.perm("late").currentDP).toBe(4000);
   });
   it("de-digivolves the selected opposing stack by exactly 3 before applying the global DP reduction", async () => {
     const s = setupEngine(

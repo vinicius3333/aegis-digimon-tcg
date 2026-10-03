@@ -7,9 +7,7 @@ const compiled: CompiledCard = {
       trigger: "EndOfAllTurns",
       actions: [
         {
-          kind: "Draw",
-          controller: "mine",
-          amount: 1,
+          kind: "ConditionalBranch",
           condition: {
             kind: "handAtMost",
             value: 7,
@@ -30,6 +28,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          ifTrue: [{ kind: "Draw", controller: "mine", amount: 1 }],
         },
       ],
       isInherited: true,

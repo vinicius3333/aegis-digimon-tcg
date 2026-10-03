@@ -210,7 +210,10 @@ scenario("digivolve-normal", () => {
     // it — proving the digivolution actually stacked rather than replaced the card.
     await vi.waitFor(() => expect(screen.getAllByText(/^greymon$/i).length).toBeGreaterThan(0), { timeout: 10_000 });
     expect(screen.getByText(/4,000 DP/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^open agumon$/i })).toBeTruthy();
+    // Scoped to the inspector: Agumon's [On Play] toast, held back while its reveal asked
+    // for a Tamer, can still be on screen with its own "Open Agumon" link.
+    const inspector = screen.getByRole("dialog", { name: /^greymon$/i });
+    expect(within(inspector).getByRole("button", { name: /^open agumon$/i })).toBeTruthy();
 
     await opponent.leave();
   }, 60_000);

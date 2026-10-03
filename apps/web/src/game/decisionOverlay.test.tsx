@@ -39,7 +39,7 @@ it("renders each Monarchlizamon trigger's authoritative clause instead of repeat
   expect(screen.getByText(/This Digimon may battle 1 of your opponent's Digimon/)).toBeTruthy();
 });
 
-it("shows each borrowable effect as its card and full printed clause", () => {
+it("Discord 1555770458866065499: shows each borrowable effect as its full printed clause", () => {
   const { onRespond } = renderDecision({
     decisionId: "rina-activates-ulforce",
     seat: 0,
@@ -66,7 +66,12 @@ it("shows each borrowable effect as its card and full printed clause", () => {
   ).toBeTruthy();
   expect(screen.queryByText(/Until the end of your opponent's turn/)).toBeNull();
   expect(screen.getByText(/activate 1 of that Digimon's \[When Digivolving\] effects/)).toBeTruthy();
-  fireEvent.click(screen.getAllByRole("button", { name: /\[When Digivolving\], UlforceVeedramon/ })[1]!);
+  const effectButtons = screen.getAllByRole("button", { name: /\[When Digivolving\], UlforceVeedramon/ });
+  expect(within(effectButtons[0]!).getByText(/1 of your Digimon may change orientation/)).toBeTruthy();
+  expect(within(effectButtons[0]!).queryByText(/You may return all/)).toBeNull();
+  expect(within(effectButtons[1]!).getByText(/You may return all/)).toBeTruthy();
+  expect(within(effectButtons[1]!).queryByText(/1 of your Digimon may change orientation/)).toBeNull();
+  fireEvent.click(effectButtons[1]!);
   expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
 });
 
@@ -275,6 +280,53 @@ describe("resolution plan chooser", () => {
     fireEvent.click(screen.getByRole("button", { name: "Resolve next effect" }));
 
     expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys.creepymon] });
+  });
+
+  it("Discord 1555502942403043389: lists earlier pending effects without offering them", () => {
+    const { onRespond } = renderDecision({
+      ...planRequest,
+      options: {
+        ...planRequest.options,
+        waitingTriggerCardIds: ["BT24-026"],
+        waitingTriggerDescriptions: [
+          "[Your Turn] [Once Per Turn] When your hand is trashed from, this [Demon] or [Titan] trait Digimon may digivolve into [Titamon] or a [Titan] trait Digimon card in the trash with the digivolution cost reduced by 1.",
+        ],
+        waitingTriggerIsInherited: [true],
+      },
+    });
+    const waiting = screen.getByRole("region", { name: "Resolve after these" });
+    expect(within(waiting).getByText("Hyogamon")).toBeTruthy();
+    expect(within(waiting).queryByRole("button")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Hyogamon/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all, top to bottom" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resolve in this order" }));
+    expect(onRespond).toHaveBeenCalledWith({
+      kind: "orderTriggers",
+      order: [keys.beelzemon, keys.creepymon, keys.sukamon],
+    });
+  });
+
+  it("Discord 1555741214014447737: counts identical earlier effects in one row", () => {
+    const yoshino =
+      "[Your Turn] When any of your opponent's Digimon or Tamers suspend, or effects trash cards from under this Tamer, by suspending this Tamer, 1 of your Digimon may digivolve into a [Vegetation], [Fairy] or [DATA SQUAD] trait Digimon card in the hand with the cost reduced by 1.";
+    const ravemon =
+      "[On Deletion] Your opponent trashes 1 card in their hand. Then, if their hand has 7 or fewer cards, you may place this card face up as the bottom security card.";
+    renderDecision({
+      ...planRequest,
+      options: {
+        ...planRequest.options,
+        waitingTriggerCardIds: ["BT26-091", "BT26-091", "BT26-091", "BT26-091", "BT26-091", "BT26-082"],
+        waitingTriggerDescriptions: [yoshino, yoshino, yoshino, yoshino, yoshino, ravemon],
+        waitingTriggerIsInherited: [false, false, false, false, false, false],
+      },
+    });
+
+    const waiting = screen.getByRole("region", { name: "Resolve after these" });
+    expect(within(waiting).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(waiting).getByText("×5")).toBeTruthy();
+    expect(within(waiting).getByText("Ravemon")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Resolve next effect" })).toBeTruthy();
   });
 });
 
@@ -2500,7 +2552,8 @@ describe("digivolution cost choice", () => {
     expect(tiles.map((tile) => tile.textContent)).toEqual(["3memory3 → 0", "4memory3 → -1"]);
     expect(tiles.map((tile) => tile.dataset.recommended)).toEqual(["true", undefined]);
     // Paying past 0 hands memory to the opponent, which ends the turn.
-    expect(tiles.map((tile) => tile.dataset.passesTurn)).toEqual([undefined, "true"]);  });
+    expect(tiles.map((tile) => tile.dataset.passesTurn)).toEqual([undefined, "true"]);
+  });
 
   it("sends the chosen path, keeping the route in each tile's accessible name", () => {
     const onConfirm = renderCostChoice();

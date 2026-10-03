@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Yao Qinglan] from your hand without paying the cost.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {
@@ -35,6 +37,8 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
+              effectTextPart:
+                "Then, if you don't have a Digimon, you may play 1 [Sangomon] from your trash without paying the cost.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {

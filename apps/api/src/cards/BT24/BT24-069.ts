@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenMoving",
       actions: [
         {
+          effectTextPart: "[When Moving] [When Digivolving] Trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -17,6 +18,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, your opponent may trash 1 card in their hand. If your opponent didn't trash with this effect, trash the top 2 cards of your opponent's deck.",
           kind: "Trash",
           target: {
             filter: {
@@ -44,6 +47,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Moving] [When Digivolving] Trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -54,6 +58,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, your opponent may trash 1 card in their hand. If your opponent didn't trash with this effect, trash the top 2 cards of your opponent's deck.",
           kind: "Trash",
           target: {
             filter: {

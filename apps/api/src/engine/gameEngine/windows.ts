@@ -252,7 +252,9 @@ export function collectNestedTimingEffects(
   const capturedTrigger = { ...trigger };
   const environment = effectEnvironment(engine, capturedTrigger);
   return gatherTriggeredEffects(environment, timing, candidateInstances, eventGrantSnapshot(environment)).map(
-    (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
+    // Each captured event is a new activation, even for the same physical card/effect.
+    // Re-collecting this parked entry retains that event's identity.
+    (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger, activationIdentity: capturedTrigger }),
   );
 }
 

@@ -23,6 +23,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 [Angel], [Archangel], [Three Great Angels] or [Iliad] trait Digimon card from your hand or your Digimon's digivolution cards as the top or bottom security card.",
           kind: "SecurityManipulation",
           op: "addTopOrBottom",
           controller: "mine",
@@ -40,6 +42,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, if DNA digivolving, trash both players' top security cards.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "mine",
@@ -56,6 +59,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] You may place 1 [Angel], [Archangel], [Three Great Angels] or [Iliad] trait Digimon card from your hand or your Digimon's digivolution cards as the top or bottom security card.",
           kind: "SecurityManipulation",
           op: "addTopOrBottom",
           controller: "mine",
@@ -73,6 +78,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, if DNA digivolving, trash both players' top security cards.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "mine",

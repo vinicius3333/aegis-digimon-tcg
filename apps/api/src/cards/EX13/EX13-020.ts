@@ -2,6 +2,8 @@ import type { Action, CardEffect, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const selfDpBuff: Action = {
+  effectTextPart:
+    "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] This Digimon gets +1000 DP until your opponent's turn ends for each color in trashes.",
   kind: "ModifyDP",
   target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
   amount: 1000,
@@ -13,6 +15,8 @@ const selfDpBuff: Action = {
 const opponentDigimon: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
 
 const opponentDpDebuff: Action = {
+  effectTextPart:
+    "Then, to 1 of your opponent's Digimon, give -4000 DP until their turn ends for every 5000 DP this Digimon has.",
   kind: "ModifyDP",
   target: opponentDigimon,
   amount: -4000,

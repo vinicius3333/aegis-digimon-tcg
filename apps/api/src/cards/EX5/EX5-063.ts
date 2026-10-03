@@ -17,6 +17,14 @@ for (const effect of compiled.effects) {
       raw: "your opponent has as many or more total Digimon and Tamers as you",
     };
   }
+  if (highest?.kind === "Delete") {
+    highest.effectTextPart =
+      "[On Play] [When Digivolving] If your opponent has as many or more total Digimon and Tamers as you, delete 1 of your opponent's Digimon with the highest level.";
+  }
+  const lowest = effect.actions[1];
+  if (lowest?.kind === "Delete") {
+    lowest.effectTextPart = "Then, delete 1 of your opponent's Digimon with the lowest level.";
+  }
 }
 compiled.effects.push({
   trigger: "AllTurns",

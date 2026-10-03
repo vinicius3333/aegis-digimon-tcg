@@ -1,4 +1,5 @@
 import { describe, it, expect, onTestFinished } from "vitest";
+import { $changes, Encoder, StateView } from "@colyseus/schema";
 import {
   DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES,
   GameState,
@@ -10,6 +11,7 @@ import {
   type Permanent,
   type Seat,
   type ServerEvent,
+  PRIVATE_VIEW_TAG,
 } from "@aegis/shared";
 import { MemoryGauge } from "../MemoryGauge.js";
 import { ModifierLedger } from "./modifiers.js";
@@ -2419,6 +2421,32 @@ describe("primitives: shuffleSecurity re-hides face-up cards", () => {
       cardId: "BT1-045",
       sourceCardId: "EX3-029",
     });
+  });
+
+  it("keeps every shuffled card attached so a reconnect's full sync can encode it", () => {
+    const rng = makeRng(4228219432);
+    const h = harness({ board: { 0: { security: 5 } }, rngForSeat: () => rng });
+    const security = h.state.players[0]!.security;
+    const encoder = new Encoder(h.state);
+    encoder.encodeAll();
+    encoder.discardChanges();
+
+    for (let shuffle = 0; shuffle < 20; shuffle++) {
+      h.fx.shuffleSecurity(0);
+      encoder.encode();
+      encoder.discardChanges();
+    }
+
+    for (const card of security) {
+      expect(card[$changes]?.root).toBeDefined();
+      expect(card.digivolveRoutes[$changes]?.parent).toBe(card);
+    }
+    const view = new StateView();
+    view.add(h.state.players[0]!, PRIVATE_VIEW_TAG);
+    for (const card of security) view.add(card);
+    const iterator = { offset: 0 };
+    const sharedOffset = encoder.encodeAll(iterator).length;
+    expect(() => encoder.encodeAllView(view, sharedOffset, iterator)).not.toThrow();
   });
 
   it("resets faceUp to false on every security card (EX11-064 Q5929-5931)", () => {

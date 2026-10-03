@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -41,9 +42,74 @@ describe("RB1-019 ShinMonzaemon", () => {
     expect(s.state.players[0]!.security.at(0)).toMatchObject({ instanceId: ownLevel3, faceUp: false });
     expect(s.state.players[1]!.security.at(0)).toMatchObject({ instanceId: opposingLevel3, faceUp: false });
     expect(s.perm("opposingLevel5").currentDP).toBe(5000);
+    // CR 15-11-2-2: a Digimon that enters afterwards is affected too.
+    const lateEntrant = s.putOnBoard(1, "BT10-086");
+    await advance(s.engine).recompute();
+    expect(lateEntrant.currentDP - lateEntrant.baseDP).toBe(
+      s.perm("opposingLevel5").currentDP - s.perm("opposingLevel5").baseDP,
+    );
     expect(observe(s.engine).keywordAmount(s.perm("opposingLevel5"), "SecurityAttack")).toBe(-1);
+    // CR 15-11-2-2: a Digimon that enters afterwards gains it too.
+    const lateKeywordEntrant1 = s.putOnBoard(1, "BT1-083");
+    expect(observe(s.engine).keywordAmount(lateKeywordEntrant1, "SecurityAttack")).toBe(
+      observe(s.engine).keywordAmount(s.perm("opposingLevel5"), "SecurityAttack"),
+    );
     expect(s.state.memory).toBe(5);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(oldTopId);
+  });
+
+  it("weakens level 4 or higher opposing Digimon played later, through the opponent's next turn only (Discord 1555352172206493706)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "RB1-018", as: "base" }],
+          hand: [{ card: "RB1-019", as: "shin" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          hand: [
+            { card: "RB1-024", as: "laterLevel5" },
+            { card: "RB1-011", as: "laterLevel3" },
+            { card: "RB1-024", as: "duringTheirTurn" },
+          ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shin").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "RB1-019" && s.state.pendingDecision === undefined);
+
+    await advance(s.engine).verb.playInstances([s.inst("laterLevel5").instanceId, s.inst("laterLevel3").instanceId]);
+    expect(s.perm("laterLevel5").currentDP).toBe(5000);
+    expect(observe(s.engine).keywordAmount(s.perm("laterLevel5"), "SecurityAttack")).toBe(-1);
+    expect(s.perm("laterLevel3").currentDP).toBe(1000);
+    expect(observe(s.engine).keywordAmount(s.perm("laterLevel3"), "SecurityAttack")).toBe(0);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.playInstances([s.inst("duringTheirTurn").instanceId]);
+    expect(s.perm("laterLevel5").currentDP).toBe(5000);
+    expect(s.perm("duringTheirTurn").currentDP).toBe(5000);
+    expect(observe(s.engine).keywordAmount(s.perm("duringTheirTurn"), "SecurityAttack")).toBe(-1);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("laterLevel5").currentDP).toBe(8000);
+    expect(observe(s.engine).keywordAmount(s.perm("laterLevel5"), "SecurityAttack")).toBe(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("places the attacked opponent Digimon face down at security bottom after trashing Numemon", async () => {

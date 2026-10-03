@@ -47,7 +47,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "GrantStatic",
+          kind: "Restrict",
           target: {
             filter: {
               controller: "mine",
@@ -57,8 +57,10 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "immuneToOpponentDigimonEffects",
-          tokens: [],
+          restriction: "beAffected",
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
         },
       ],
@@ -80,7 +82,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "GrantStatic",
+          kind: "Restrict",
           target: {
             filter: {
               controller: "mine",
@@ -90,8 +92,10 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "immuneToOpponentDigimonEffects",
-          tokens: [],
+          restriction: "beAffected",
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
         },
       ],

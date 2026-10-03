@@ -11,6 +11,7 @@ import {
   breedingPermanents,
   fieldPermanents,
   isDigimonOrDigiEgg,
+  linkHostOf,
   linkRequirementSatisfied,
 } from "./boardQueries.js";
 
@@ -238,24 +239,21 @@ export class RuleChecks {
 
   /** §17-1-3-2-6/§17-1-3-2-7 predicate — some battle-area Digimon holds a link card its own printed requirement no longer matches. */
   anyInvalidLinkedCards(): boolean {
-    return battleAreaPermanents(this.deps.state).some((p) => {
-      if (p.topCard === undefined) return false;
-      const hostDef = definitionOf(p.topCard);
-      return p.linked.some((card) => !linkRequirementSatisfied(hostDef, card));
-    });
+    return this.invalidLinkedCardIds().length > 0;
   }
 
   /** §17-1-3-2-6/§17-1-3-2-7 process — trash every linked card whose own requirement its host no longer satisfies. */
   async trashInvalidLinkedCards(): Promise<void> {
-    const toTrash: string[] = [];
-    for (const permanent of battleAreaPermanents(this.deps.state)) {
-      if (permanent.topCard === undefined) continue;
-      const hostDef = definitionOf(permanent.topCard);
-      for (const card of permanent.linked) {
-        if (!linkRequirementSatisfied(hostDef, card)) toTrash.push(card.instanceId);
-      }
-    }
+    const toTrash = this.invalidLinkedCardIds();
     if (toTrash.length > 0) await this.deps.primitives().trash(toTrash, { byRule: true });
+  }
+
+  private invalidLinkedCardIds(): string[] {
+    return battleAreaPermanents(this.deps.state).flatMap((permanent) => {
+      const host = linkHostOf(this.deps.continuous, permanent);
+      if (host === undefined) return [];
+      return permanent.linked.filter((card) => !linkRequirementSatisfied(host, card)).map((card) => card.instanceId);
+    });
   }
 
   /**

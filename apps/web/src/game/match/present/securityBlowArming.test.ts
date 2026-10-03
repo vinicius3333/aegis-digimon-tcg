@@ -25,7 +25,7 @@ function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
     enqueue: (step) => queue.enqueue(step),
     viewerSeat: 0,
     replayingHistory: false,
-    batchId: "batch-1",
+    stateVersion: 1,
     revealOnStageRef: { current: null },
     queuedSecurityKeyRef: { current: null },
     securityDockRef: { current: null },

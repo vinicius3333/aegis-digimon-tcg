@@ -39,6 +39,8 @@ export interface CollectedEffect {
    */
   timingLabel?: string;
   printedTiming?: string;
+  /** The printed condition that armed a watcher, when its description is the whole clause. */
+  triggerReason?: string;
 }
 
 /**

@@ -18,6 +18,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
       actions: [
         {
+          effectTextPart:
+            "[End of Your Turn] [Once Per Turn] If your opponent has 5 or more memory, their Digimon effects don't affect this Digimon until their turn ends.",
           kind: "Restrict",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           restriction: "beAffected",
@@ -27,6 +29,8 @@ export const compiled: CompiledCard = {
           condition: { kind: "memoryAtLeast", value: 5, controller: "opponent" },
         },
         {
+          effectTextPart:
+            "Then, if they have 5 or less, their Option effects don't affect this Digimon until their turn ends.",
           kind: "Restrict",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           restriction: "beAffected",

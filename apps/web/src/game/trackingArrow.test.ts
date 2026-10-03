@@ -56,6 +56,11 @@ describe("activeAttackArrow", () => {
     expect(activeAttackArrow(events)).toBeNull();
   });
 
+  it("drops the arrow of an attack that checks no security card (Discord 1555477213594259456)", () => {
+    const events: ServerEvent[] = [attackSecurity, { kind: "attackEnded", seat: 0, attackerPermanentId: "att" }];
+    expect(activeAttackArrow(events)).toBeNull();
+  });
+
   it("re-aims the arrow onto the target a redirect switched to, without restarting it", () => {
     const declared = activeAttackArrow([attackSecurity]);
     const redirected = activeAttackArrow([attackSecurity, { ...attackDigimon, redirected: true }]);

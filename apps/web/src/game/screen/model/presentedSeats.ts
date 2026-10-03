@@ -7,16 +7,24 @@
    belong to a turn the ribbons have already announced. A breeding hold keeps the raising
    area on its own clock. A security-effect hold keeps the battle area and trash as they were
    at the reveal until the card's [Security] clause has been read. A deletion hold keeps a deleted permanent in its slot until the
-   shatter that takes it has begun.
+   shatter that takes it has begun. A trash-arrival hold keeps a card out of the trash until
+   the batch that moved it there is narrated.
 
    The viewer's hand count also drops the card an optimistic play has already taken out
    of the hand, so the readout matches the cards on screen. */
 
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
 import { otherSeat } from "../../boardModel";
-import { blowField, deletionField, liveProjectionFields, phaseField, securityEffectField } from "./presentedBoard";
+import {
+  blowField,
+  deletionField,
+  liveProjectionFields,
+  phaseField,
+  securityEffectField,
+  trashArrivalField,
+} from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
-import type { HeldDeletion } from "../../match/types";
+import type { HeldDeletion, HeldTrashArrival } from "../../match/types";
 
 export function presentedSeats({
   shownState,
@@ -29,6 +37,7 @@ export function presentedSeats({
   heldDrawState,
   heldBreedingState,
   heldDeletions,
+  heldTrashArrivals,
   optimisticPlayedInstanceId,
 }: {
   shownState: GameState;
@@ -41,39 +50,48 @@ export function presentedSeats({
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   heldBreedingState: { seat: Seat; player: PlayerState } | undefined;
   heldDeletions: ReadonlyMap<number, HeldDeletion>;
+  heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
   /** A card a play has already taken out of the hand, pending the server's word. */
   optimisticPlayedInstanceId: string | undefined;
 }) {
   const heldDeletionsOf = (seat: Seat) => [...heldDeletions.values()].filter((deletion) => deletion.seat === seat);
+  const heldTrashArrivalsOf = (seat: Seat) =>
+    [...heldTrashArrivals.values()].filter((arrival) => arrival.seat === seat);
   const presentedViewer = liveProjectionFields({
-    player: deletionField({
-      player: blowField({
-        player: securityEffectField({
-          player: phaseField({
-            player: shownState.players[viewerSeat] ?? viewer,
-            held: heldPhaseState?.players[viewerSeat],
+    player: trashArrivalField({
+      player: deletionField({
+        player: blowField({
+          player: securityEffectField({
+            player: phaseField({
+              player: shownState.players[viewerSeat] ?? viewer,
+              held: heldPhaseState?.players[viewerSeat],
+            }),
+            held: heldSecurityEffectState?.players[viewerSeat],
           }),
-          held: heldSecurityEffectState?.players[viewerSeat],
+          held: heldBlowState?.players[viewerSeat],
         }),
-        held: heldBlowState?.players[viewerSeat],
+        held: heldDeletionsOf(viewerSeat),
       }),
-      held: heldDeletionsOf(viewerSeat),
+      held: heldTrashArrivalsOf(viewerSeat),
     }),
     live: viewer,
   });
   const presentedOpponent = liveProjectionFields({
-    player: deletionField({
-      player: blowField({
-        player: securityEffectField({
-          player: phaseField({
-            player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
-            held: heldPhaseState?.players[otherSeat(viewerSeat)],
+    player: trashArrivalField({
+      player: deletionField({
+        player: blowField({
+          player: securityEffectField({
+            player: phaseField({
+              player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
+              held: heldPhaseState?.players[otherSeat(viewerSeat)],
+            }),
+            held: heldSecurityEffectState?.players[otherSeat(viewerSeat)],
           }),
-          held: heldSecurityEffectState?.players[otherSeat(viewerSeat)],
+          held: heldBlowState?.players[otherSeat(viewerSeat)],
         }),
-        held: heldBlowState?.players[otherSeat(viewerSeat)],
+        held: heldDeletionsOf(otherSeat(viewerSeat)),
       }),
-      held: heldDeletionsOf(otherSeat(viewerSeat)),
+      held: heldTrashArrivalsOf(otherSeat(viewerSeat)),
     }),
     live: opponent,
   });

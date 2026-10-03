@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] 1 of your opponent's Digimon or Tamers can't unsuspend until the end of their turn.",
           kind: "Restrict",
           target: {
             filter: {
@@ -19,6 +21,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, by suspending 1 of their Digimon or Tamers, unsuspend 1 of your Digimon.",
           kind: "Unsuspend",
           target: {
             filter: {

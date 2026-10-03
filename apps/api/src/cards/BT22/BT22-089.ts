@@ -58,6 +58,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with the [Holy Beast], [Angel], [Archangel], [Fallen Angel] or [CS] trait from your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

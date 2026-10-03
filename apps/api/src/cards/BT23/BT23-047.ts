@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "unsuspend",
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentNextUnsuspendPhase",
         },
         {
@@ -111,6 +112,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "unsuspend",
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentNextUnsuspendPhase",
         },
         {

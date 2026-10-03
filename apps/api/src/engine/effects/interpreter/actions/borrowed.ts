@@ -6,6 +6,7 @@ import type { Effect } from "../../Effect.js";
 import { effectsOf } from "../../collect.js";
 import { runtimeCompiledCard } from "../compiledCards.js";
 import { describeEffect } from "../describe.js";
+import { withPrintedClauses } from "../registration/printedClauses.js";
 import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
@@ -119,7 +120,9 @@ function borrowableFromCompiled(args: {
 }): BorrowableEffect[] {
   const ordinals = new Map<string, number>();
   const out: BorrowableEffect[] = [];
-  for (const effect of args.compiled.effects) {
+  // Borrowed effects need the same printed provenance as ordinary registered effects.
+  // A timing-only summary cannot distinguish two clauses with the same timing in the client.
+  for (const effect of withPrintedClauses(args.sourceCardId, args.compiled).effects) {
     if (!args.action.fromTriggers.includes(effect.trigger) || effect.isSecurity === true) continue;
     if (args.trigger !== undefined && effect.trigger !== args.trigger) continue;
     const triggerOrdinal = ordinals.get(effect.trigger) ?? 0;

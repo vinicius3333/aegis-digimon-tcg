@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-022.js";
 import "../BT1/BT1-072.js";
 import "../BT1/BT1-112.js";
@@ -31,6 +32,26 @@ describe("BT4-101 Final Aqua Blaster", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
     ).toBe(true);
+  });
+
+  it("CR 15-11-2-2: also grants the attack deletion to own Digimon that enter afterwards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-023", as: "attacker" }], hand: [{ card: "BT4-101", as: "option" }, "BT1-010"] },
+      1: { battleArea: [{ card: "BT4-045", as: "target" }] },
+    });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT4-101"));
+    const lateCard = s.state.players[0]!.hand.find((card) => card.cardId === "BT1-010")!;
+
+    await advance(s.engine).verb.playInstances([lateCard.instanceId]);
+    await settle();
+    const late = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === lateCard.instanceId)!;
+
+    expect(observe(s.engine).customEffectGrants(late)).toHaveLength(1);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
   });
 
   it("adds itself to its owner's hand from security", async () => {

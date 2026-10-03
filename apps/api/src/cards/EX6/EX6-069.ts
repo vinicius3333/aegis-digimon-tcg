@@ -6,6 +6,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may place 1 Digimon card with the [Seven Great Demon Lords] trait from your hand or trash as the bottom digivolution card of the [Gate of Deadly Sins] in your breeding area.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -24,7 +26,7 @@ export const compiled: CompiledCard = {
           position: "bottom",
           optional: true,
         },
-        { kind: "PlaceInBattleAreaSelf" },
+        { effectTextPart: "Then, place this card in your battle area.", kind: "PlaceInBattleAreaSelf" },
       ],
     },
     {

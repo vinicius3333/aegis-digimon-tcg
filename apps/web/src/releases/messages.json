@@ -1,4 +1,140 @@
 {
+  "releases.1.8.3-beta.summary": {
+    "en": "This update brings back the effect menu after a page refresh, keeps the resolve button in view when many effects are pending, and makes BT26-091 Yoshino Fujieda trigger once per event.",
+    "pt-BR": "Esta atualização traz de volta o menu de efeitos depois de recarregar a página, mantém o botão de resolver visível quando há muitos efeitos pendentes e faz BT26-091 Yoshino Fujieda ativar uma vez por evento."
+  },
+  "releases.1.8.3-beta.fix.reconnect": {
+    "en": "After you refresh the page or reconnect mid-match, the effect or choice you still have to answer now appears again instead of leaving the game stuck.",
+    "pt-BR": "Depois de recarregar a página ou reconectar no meio da partida, o efeito ou a escolha que você ainda precisa responder agora aparece de novo, em vez de deixar o jogo travado."
+  },
+  "releases.1.8.3-beta.fix.pendingList": {
+    "en": "With many pending effects, identical ones now share one row with a count, the list scrolls on its own, and the resolve button stays in view.",
+    "pt-BR": "Com muitos efeitos pendentes, os efeitos iguais agora ficam numa linha só com a contagem, a lista rola sozinha e o botão de resolver continua visível."
+  },
+  "releases.1.8.3-beta.fix.trashOnce": {
+    "en": "Effects that react when cards are trashed from under a card, such as BT26-091 Yoshino Fujieda, now activate once when one effect trashes several cards at the same time.",
+    "pt-BR": "Efeitos que reagem quando cartas são descartadas de baixo de uma carta, como BT26-091 Yoshino Fujieda, agora ativam uma vez só quando um efeito descarta várias cartas ao mesmo tempo."
+  },
+  "releases.1.8.3-beta.fix.effectOrder": {
+    "en": "When copies of the same card resolve one after another, each effect notice and its draw now play in order instead of at the same time.",
+    "pt-BR": "Quando cópias da mesma carta resolvem uma depois da outra, cada aviso de efeito e sua compra agora aparecem em ordem, e não ao mesmo tempo."
+  },
+  "releases.1.8.2-beta.summary": {
+    "en": "This update makes [On Deletion] effects activate right away after long digivolution chains, lets you choose which Digimon ＜Decoy＞ saves, and keeps the board in step with the effect notices.",
+    "pt-BR": "Esta atualização faz os efeitos [On Deletion] ativarem na hora depois de cadeias longas de digievolução, deixa você escolher qual Digimon o ＜Decoy＞ salva e mantém o campo no ritmo dos avisos de efeito."
+  },
+  "releases.1.8.2-beta.feature.delayBreak": {
+    "en": "A ＜Delay＞ Option now breaks on the field before its effect is read out, and cards that effects remove from the field now leave one at a time.",
+    "pt-BR": "Uma Option com ＜Delay＞ agora se quebra no campo antes de o efeito ser lido, e as cartas que efeitos removem do campo agora saem uma de cada vez."
+  },
+  "releases.1.8.2-beta.feature.effectToast": {
+    "en": "The notice for your own effect now appears after you answer its prompt, not on top of it.",
+    "pt-BR": "O aviso do seu próprio efeito agora aparece depois que você responde à escolha, e não por cima dela."
+  },
+  "releases.1.8.2-beta.fix.nestedOnDeletion": {
+    "en": "[On Deletion] effects now activate right away when BT25-087 Thomas H. Norstein reduces a Crowmon digivolution that ends with BT26-082 Ravemon deleting itself. BT26-091 Yoshino Fujieda now waits until that digivolution is complete, and Thomas's effect is no longer offered twice in one turn.",
+    "pt-BR": "Os efeitos [On Deletion] agora ativam na hora quando BT25-087 Thomas H. Norstein reduz uma digievolução para Crowmon que termina com BT26-082 Ravemon deletando a si mesmo. BT26-091 Yoshino Fujieda agora espera essa digievolução terminar, e o efeito do Thomas não é mais oferecido duas vezes no mesmo turno."
+  },
+  "releases.1.8.2-beta.fix.promptText": {
+    "en": "The prompts of BT26-076 Crowmon and BT20-102 Omnimon (X Antibody) now show only the sentence you are answering.",
+    "pt-BR": "As escolhas de BT26-076 Crowmon e BT20-102 Omnimon (X Antibody) agora mostram só a frase que você está respondendo."
+  },
+  "releases.1.8.2-beta.fix.decoy": {
+    "en": "When several Digimon that ＜Decoy＞ can protect are deleted at the same time, you now choose which one it saves.",
+    "pt-BR": "Quando vários Digimon que o ＜Decoy＞ pode proteger são deletados ao mesmo tempo, agora você escolhe qual deles ele salva."
+  },
+  "releases.1.8.2-beta.fix.delaySave": {
+    "en": "A ＜Delay＞ that can't activate yet, such as on the turn its Option was placed, no longer asks whether to stop a Digimon from leaving play.",
+    "pt-BR": "Um ＜Delay＞ que ainda não pode ativar, como no turno em que a Option foi colocada, não pergunta mais se deve impedir um Digimon de sair de jogo."
+  },
+  "releases.1.8.2-beta.fix.laterKeywords": {
+    "en": "BT3-106 Beast Cyclone and BT13-056 Leopardmon now also give their keyword to Digimon that enter play later in the turn, such as tokens.",
+    "pt-BR": "BT3-106 Beast Cyclone e BT13-056 Leopardmon agora também dão a palavra-chave aos Digimon que entram em jogo mais tarde no turno, como tokens."
+  },
+  "releases.1.8.2-beta.fix.boardSync": {
+    "en": "The board no longer jumps ahead of the effect notices when several effects resolve at once, and the breeding area no longer goes empty at the start of a turn.",
+    "pt-BR": "O campo não pula mais à frente dos avisos de efeito quando vários efeitos resolvem de uma vez, e a área de criação não fica mais vazia no início do turno."
+  },
+  "releases.1.8.1-beta.summary": {
+    "en": "This update lets you look at the face-down cards under your own cards, asks before you pay optional \"By ...\" costs, and lets every card that reacts to a Digimon leaving play activate.",
+    "pt-BR": "Esta atualização permite ver as cartas viradas para baixo embaixo das suas cartas, pergunta antes de pagar custos opcionais \"By ...\" e faz todas as cartas que reagem à saída de um Digimon ativarem."
+  },
+  "releases.1.8.1-beta.feature.orderPrompt": {
+    "en": "The effect order prompt now also lists the older effects still waiting to resolve, under \"Resolve after these\", so they no longer look lost.",
+    "pt-BR": "A escolha de ordem dos efeitos agora também lista os efeitos mais antigos que ainda vão resolver, em \"Resolver depois destes\", para que não pareçam perdidos."
+  },
+  "releases.1.8.1-beta.feature.cantDigivolveChip": {
+    "en": "A Digimon that can't digivolve now shows a chip on the field, for example under BT26 Rosemon's Option.",
+    "pt-BR": "Um Digimon que não pode digievoluir agora mostra um aviso no campo, por exemplo sob a Option da BT26 Rosemon."
+  },
+  "releases.1.8.1-beta.fix.faceDownSources": {
+    "en": "You can now look at the face-down cards under your own Tamers and Digimon, such as the cards [DATA SQUAD] Tamers keep there. Your opponent still can't see them.",
+    "pt-BR": "Agora você pode ver as cartas viradas para baixo embaixo dos seus Tamers e Digimon, como as que os Tamers [DATA SQUAD] guardam ali. O oponente continua sem vê-las."
+  },
+  "releases.1.8.1-beta.fix.optionalCosts": {
+    "en": "Effects that start with \"By ...\" now ask before you pay the cost, on cards across AD1, BT15 to BT24, EX5, EX7, EX8, EX12, EX13, ST19 and promos. P-245 Kakkinmon can now pay its suspend cost with a full hand.",
+    "pt-BR": "Efeitos que começam com \"By ...\" agora perguntam antes de você pagar o custo, em cartas de AD1, BT15 a BT24, EX5, EX7, EX8, EX12, EX13, ST19 e promos. A P-245 Kakkinmon agora pode pagar o custo de suspender com a mão cheia."
+  },
+  "releases.1.8.1-beta.fix.leaveReactions": {
+    "en": "When a Digimon would leave play, every card that reacts to it now activates, in the order you choose. Two BT20-091 Cool Boy now each play an Omekamon, and Cool Boy only draws for your [Royal Knight] Digimon on your turn.",
+    "pt-BR": "Quando um Digimon vai sair de jogo, todas as cartas que reagem a isso agora ativam, na ordem que você escolher. Dois BT20-091 Cool Boy agora jogam um Omekamon cada, e o Cool Boy só compra pelos seus Digimon [Royal Knight] no seu turno."
+  },
+  "releases.1.8.1-beta.fix.optionSources": {
+    "en": "An Option used from digivolution cards, such as by BT25-085 Beelstarmon, is now shown before it resolves. EX7-071 now goes to the bottom of the digivolution cards, and its trash effect activates when an effect or cost trashes it.",
+    "pt-BR": "Uma Option usada a partir das cartas de digievolução, como pela BT25-085 Beelstarmon, agora aparece antes de resolver. A EX7-071 agora vai para o fundo das cartas de digievolução, e seu efeito de descarte ativa quando um efeito ou custo a descarta."
+  },
+  "releases.1.8.1-beta.fix.pendingEffects": {
+    "en": "An inherited effect waiting to resolve is no longer dropped when it briefly has no target, as with Hyogamon after Plutomon digivolves.",
+    "pt-BR": "Um efeito herdado esperando para resolver não é mais descartado quando fica sem alvo por um momento, como o da Hyogamon depois que o Plutomon digievolui."
+  },
+  "releases.1.8.1-beta.fix.digivolveLocks": {
+    "en": "BT26 Rosemon's Option and BT16 Paildramon's DNA effect now lock every Digimon they name, including ones that suspend or enter play later, and \"can't unsuspend\" locks now end on time.",
+    "pt-BR": "A Option da BT26 Rosemon e o efeito de DNA da BT16 Paildramon agora travam todos os Digimon que citam, inclusive os que suspendem ou entram em jogo depois, e as travas de \"não pode desuspender\" agora terminam na hora certa."
+  },
+  "releases.1.8.1-beta.fix.attackEnd": {
+    "en": "An attack that ends with no battle and no security check no longer leaves its arrow on screen.",
+    "pt-BR": "Um ataque que termina sem batalha e sem checar segurança não deixa mais a seta na tela."
+  },
+  "releases.1.8.1-beta.fix.stability": {
+    "en": "A player joining or reconnecting can no longer crash the server, and trashed cards now always show face up to both players.",
+    "pt-BR": "Um jogador entrando ou reconectando não derruba mais o servidor, e as cartas descartadas agora sempre aparecem viradas para cima para os dois jogadores."
+  },
+  "releases.1.8.0-beta.summary": {
+    "en": "This update redesigns the digivolution cost prompt, makes \"all Digimon\" effects reach Digimon that enter later, and fixes DigiXros, Link and end-of-turn attack timing.",
+    "pt-BR": "Esta atualização redesenha a escolha de custo de digievolução, faz efeitos de \"todos os Digimon\" alcançarem Digimon que entram depois e corrige o tempo de DigiXros, Link e ataques no fim do turno."
+  },
+  "releases.1.8.0-beta.feature.costPrompt": {
+    "en": "The digivolution cost prompt was redesigned: it shows the card, the Digimon it digivolves onto, and each cost option as one button.",
+    "pt-BR": "A escolha de custo de digievolução foi redesenhada: ela mostra a carta, o Digimon que vai receber a digievolução e cada opção de custo como um botão."
+  },
+  "releases.1.8.0-beta.feature.trashedSources": {
+    "en": "When an effect trashes digivolution cards, the game now names and shows the cards that were trashed.",
+    "pt-BR": "Quando um efeito descarta cartas de digievolução, o jogo agora mostra e nomeia as cartas descartadas."
+  },
+  "releases.1.8.0-beta.feature.attackTarget": {
+    "en": "End-of-turn attacks now ask for their target in a clear prompt.",
+    "pt-BR": "Ataques no fim do turno agora pedem o alvo numa escolha clara."
+  },
+  "releases.1.8.0-beta.fix.laterArrivals": {
+    "en": "Effects such as \"all of your opponent's Digimon get -X DP for the turn\" now also affect Digimon that enter play later in that duration, and conditions such as \"suspended\" are checked live. This fixes EX12-076 Susanoomon and 24 other cards.",
+    "pt-BR": "Efeitos como \"todos os Digimon do oponente recebem -X DP no turno\" agora também afetam Digimon que entram em jogo depois, durante a duração, e condições como \"suspenso\" são verificadas o tempo todo. Isso corrige EX12-076 Susanoomon e outras 24 cartas."
+  },
+  "releases.1.8.0-beta.fix.digixros": {
+    "en": "DigiXros now resolves material effects in the right order, treats materials as leaving by rule, and follows the printed material limits.",
+    "pt-BR": "O DigiXros agora resolve os efeitos dos materiais na ordem certa, trata os materiais como saindo por regra e segue os limites de materiais impressos."
+  },
+  "releases.1.8.0-beta.fix.link": {
+    "en": "Link requirements now check a Digimon's current name and traits, so a renamed Digimon can receive or keep a Link card correctly.",
+    "pt-BR": "Os requisitos de Link agora verificam o nome e os traços atuais do Digimon, então um Digimon renomeado recebe ou mantém uma carta de Link corretamente."
+  },
+  "releases.1.8.0-beta.fix.mainEnded": {
+    "en": "After your Main phase ends, cards in hand no longer look playable while end-of-turn effects resolve.",
+    "pt-BR": "Depois que sua fase principal termina, as cartas da mão não aparecem mais como jogáveis enquanto efeitos de fim de turno resolvem."
+  },
+  "releases.1.8.0-beta.fix.dpImmunity": {
+    "en": "DP reductions apply again when a Digimon loses its immunity, and changes to original DP apply even under DP-reduction immunity.",
+    "pt-BR": "Reduções de DP voltam a valer quando um Digimon perde a imunidade, e mudanças no DP original valem mesmo com imunidade a redução de DP."
+  },
   "releases.1.7.8-beta.summary": {
     "en": "This update makes Assembly follow each card's printed recipe, keeps trying to bring you back to a match after a connection drop, and shows only the printed card text in optional effect prompts.",
     "pt-BR": "Esta atualização faz o Assembly seguir a receita impressa de cada carta, continua tentando te devolver à partida após uma queda de conexão e mostra só o texto impresso da carta nos efeitos opcionais."

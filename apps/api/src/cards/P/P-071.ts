@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
+          effectTextPart:
+            "[Security] At the end of the battle, you may play 1 purple level 3 Digimon card from your trash without paying its memory cost.",
           target: {
             filter: {
               controller: "mine",
@@ -23,6 +25,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "AddToHandSelf",
+          effectTextPart: "Then, add this card to its owner's hand.",
         },
       ],
     },

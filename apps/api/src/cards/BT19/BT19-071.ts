@@ -4,8 +4,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const playEffects: CardEffect[] = (["OnPlay", "WhenDigivolving"] as const).map((trigger): CardEffect => ({
   trigger,
   actions: [
-    { kind: "TrashTopDeck", controller: "mine", amount: 2 },
     {
+      effectTextPart: "[On Play] [When Digivolving] Trash the top 2 cards of your deck.",
+      kind: "TrashTopDeck",
+      controller: "mine",
+      amount: 2,
+    },
+    {
+      effectTextPart: "Then, this Digimon gains ＜Blocker＞until the end of your opponent's turn.",
       kind: "GainKeyword",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       keyword: { keyword: "Blocker", raw: "＜Blocker＞" },

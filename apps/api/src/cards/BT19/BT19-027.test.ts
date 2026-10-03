@@ -402,8 +402,13 @@ describe("BT19-027 Ryugumon — KB Q&A rulings", () => {
     await settle();
 
     expect(opponentBoardWhenOwnOnPlayTriggered).toEqual([["EX6-056"]]);
+    // [End of Turn] opens; its leave announces Ryugumon's ＜Decode＞ and Lucemon: Chaos Mode's
+    // reaction as their own effects inside it.
     expect(effectTimeline).toEqual([
       "BT19-027 triggered",
+      "BT19-027 triggered",
+      "Ryugumon effect resolved",
+      "EX6-054 triggered",
       "Ryugumon effect resolved",
       "BT1-041 triggered",
       "EX6-056 triggered",

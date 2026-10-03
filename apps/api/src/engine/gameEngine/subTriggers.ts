@@ -123,19 +123,26 @@ export async function fireSubTrigger(
     });
     return;
   }
-  // A would-be-returned reaction interrupts the causing effect before its target moves
-  // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
-  if (event !== "wouldBeReturned" && shouldDeferNestedTiming(engine) && !engine.resolvingBarrierSecurityCost) {
-    // The event subject can leave the board before the causing effect finishes. Bind each
-    // context now, at trigger time, so the pending activation keeps the subject snapshot
-    // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
+  // The event subject can leave the board before a pending watcher activates. Bind each
+  // context now, at trigger time, so the pending activation keeps the subject snapshot
+  // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
+  const armWithTriggerTimeContexts = (): ArmedSubTrigger[] => {
     const subscriptions = subscriptionsFor();
     const contexts = new Map<number, EffectContext>();
     for (const sub of subscriptions) {
       const ctx = buildSubTriggerContext(engine, sub, payload);
       if (ctx !== undefined) contexts.set(sub.id, ctx);
     }
-    engine.pendingWindowSubTriggers.push(...armedSubTriggers(engine, subscriptions, payload, contexts));
+    return armedSubTriggers(engine, subscriptions, payload, contexts);
+  };
+  if (engine.digivolveCostSubTriggers !== undefined && event !== "wouldBeReturned" && event !== "onDeletionOf") {
+    engine.digivolveCostSubTriggers.push(...armWithTriggerTimeContexts());
+    return;
+  }
+  // A would-be-returned reaction interrupts the causing effect before its target moves
+  // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
+  if (event !== "wouldBeReturned" && shouldDeferNestedTiming(engine) && !engine.resolvingBarrierSecurityCost) {
+    engine.pendingWindowSubTriggers.push(...armWithTriggerTimeContexts());
     return;
   }
   // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
@@ -507,15 +514,16 @@ export async function runSubTriggersInChosenOrder(
       // Drop watchers whose trigger condition lapsed while an earlier one resolved, so the
       // ordering prompt never offers an effect that can no longer activate (CR §15-4-4-5).
       for (let index = remaining.length - 1; index >= 0; index -= 1) {
-        if (!subTriggerStillActivatable(engine, remaining[index]!)) remaining.splice(index, 1);
+        if (!subTriggerStillPending(engine, remaining[index]!)) remaining.splice(index, 1);
       }
-      if (remaining.length === 0) break;
+      const activatable = remaining.filter(subTriggerHasLegalOutcome);
+      if (activatable.length === 0) break;
       const orderingSeatOfArmed = (item: ArmedSubTrigger): Seat =>
         item.sub.orderedByTurnPlayer === true ? engine.state.turnSeat : item.ctx.source.ownerSeat;
-      const prioritySeat = remaining.some((item) => orderingSeatOfArmed(item) === engine.state.turnSeat)
+      const prioritySeat = activatable.some((item) => orderingSeatOfArmed(item) === engine.state.turnSeat)
         ? engine.state.turnSeat
-        : orderingSeatOfArmed(remaining[0]!);
-      const sameController = remaining.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
+        : orderingSeatOfArmed(activatable[0]!);
+      const sameController = activatable.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
       const offered = sameController.map((item) => subTriggerAsCollected(engine, item));
       let chosenIndex = 0;
       if (sameController.length > 1) {
@@ -581,7 +589,9 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
         ...collected.effect,
         canActivate: () => {
           sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
-          return !sourceDeparted && !oncePerTurnSpentByAnotherOccurrence(engine, item);
+          return (
+            !sourceDeparted && !oncePerTurnSpentByAnotherOccurrence(engine, item) && subTriggerHasLegalOutcome(item)
+          );
         },
         resolve: async (resolverCtx: EffectContext) => {
           // Retire the pending trigger before its body can open another window, mirroring
@@ -662,7 +672,7 @@ export function parkedEntryCollected(engine: GameEngine): CollectedEffect[] {
         // intentionally retain their last-live source context after that source is deleted.
         (item.sub.sourcePermanentId === undefined ||
           engine.access.permanentById(item.sub.sourcePermanentId) !== undefined) &&
-        subTriggerStillActivatable(engine, item),
+        subTriggerStillPending(engine, item),
     ),
   );
 }
@@ -694,7 +704,7 @@ export function pendingWindowWatchersCollected(engine: GameEngine): CollectedEff
       engine.pendingWindowSubTriggers.filter(
         (item) =>
           !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
-          subTriggerStillActivatable(engine, item),
+          subTriggerStillPending(engine, item),
       ),
     ),
   );
@@ -734,13 +744,17 @@ export async function withPendingSubTriggers(
      * parked next to them rather than fired on the trailing bus, which would run them first.
      */
     parkArmedToEnclosingWindow?: () => boolean;
+    /** Watchers armed by an earlier event of the same batch, such as a digivolution's costs. */
+    alsoArmed?: readonly ArmedSubTrigger[];
   } = {},
 ): Promise<void> {
   // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
-  const armed =
-    engine.ruleProcessing || payload === undefined
+  const armed = [
+    ...(engine.ruleProcessing || payload === undefined
       ? []
-      : events.flatMap((event) => armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload));
+      : events.flatMap((event) => armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload))),
+    ...(opts.alsoArmed ?? []),
+  ];
   // An anchor-less delayed one-shot (BT1-021's end-of-turn memory loss) has no context, so
   // `armedSubTriggers` cannot snapshot it. It still belongs to the event it was set up before.
   const initialContextless =
@@ -769,6 +783,11 @@ export async function withPendingSubTriggers(
       });
       return;
     }
+    const alsoRemaining = (opts.alsoArmed ?? []).filter(
+      (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
+    );
+    if (alsoRemaining.length > 0)
+      await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, alsoRemaining));
     const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
     if (trigger === undefined) return;
     for (const event of events) await engine.fireSubTrigger(event, trigger);
@@ -838,12 +857,31 @@ export function parkArmedForEnclosingWindow(engine: GameEngine, armed: readonly 
  * resolutions — the SubTrigger bus gets engine for free by evaluating `matches` at fire time.
  */
 export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTrigger): boolean {
+  return subTriggerStillPending(engine, item) && subTriggerHasLegalOutcome(item);
+}
+
+/**
+ * Is the watcher's trigger still pending, regardless of whether its body could do anything right
+ * now? A pending pool keeps a watcher only while this holds, and the resolver retires for the
+ * rest of the window any effect that drops out of its pool once (CR §15-4-4-5).
+ */
+export function subTriggerStillPending(engine: GameEngine, item: ArmedSubTrigger): boolean {
   const ctx = item.contextAtFireTime();
   if (ctx === undefined) return false;
   if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
   if (oncePerTurnSpentByAnotherOccurrence(engine, item)) return false;
-  if (item.sub.hasLegalOutcome !== undefined && !item.sub.hasLegalOutcome(ctx)) return false;
   return item.sub.canFire === undefined || item.sub.canFire(ctx);
+}
+
+/**
+ * Lacking a legal outcome is not a lapsed trigger condition: another simultaneous effect that
+ * resolves first can still create one (Q2889). Two inherited "may digivolve into a [Titan] card
+ * in the trash" watchers trigger on one hand trash; the first digivolves into Plutomon, whose
+ * [When Digivolving] then trashes the only card the second watcher can digivolve into.
+ */
+function subTriggerHasLegalOutcome(item: ArmedSubTrigger): boolean {
+  const ctx = item.contextAtFireTime();
+  return ctx !== undefined && (item.sub.hasLegalOutcome === undefined || item.sub.hasLegalOutcome(ctx));
 }
 
 /**
@@ -858,6 +896,17 @@ function oncePerTurnSpentByAnotherOccurrence(engine: GameEngine, item: ArmedSubT
     engine.tracker.count(oncePerTurnKey, "subtrigger") > 0 &&
     !item.occurrence.oncePerTurnSuccessfulKeys.has(oncePerTurnKey)
   );
+}
+
+/**
+ * The condition clause of a watcher ("When effects trash cards from under this Tamer"), shown
+ * beside the printed text the prompt displays. Only needed when that text is the whole printed
+ * clause, which may list several conditions that each pend separately.
+ */
+function triggerReasonOf(sub: SubTriggerSubscription): { triggerReason?: string } {
+  if (sub.printedClause === undefined || sub.description === undefined) return {};
+  const condition = /^\s*(when\b[^,]*)/i.exec(sub.description)?.[1]?.trim();
+  return condition === undefined ? {} : { triggerReason: condition };
 }
 
 /** Present a watcher to the ordering prompt as an ordinary collected effect. */
@@ -876,6 +925,7 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence
     discardedStackSourceProof: ctx.discardedStackSourceProof,
     timingLabel: sub.event,
     printedTiming: sub.printedTiming,
+    ...triggerReasonOf(sub),
     effect: {
       effectKey: subTriggerEffectKey(sub),
       description: sub.printedClause ?? sub.description,

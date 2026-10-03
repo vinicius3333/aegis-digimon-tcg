@@ -168,7 +168,7 @@ mobileScenario("reconnect-decision", () => {
             const surface = screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt");
             expect(surface).not.toBeNull();
             if (request.kind === "optional" && /return 1 to hand/i.test(request.promptText ?? "")) {
-              expect(within(surface!).getByText(/return 1 to hand/i)).toBeTruthy();
+              expect(within(surface!).getByText(/by suspending this tamer, you may return 1 \[evil\]/i)).toBeTruthy();
             }
             return surface!;
           },
@@ -240,8 +240,13 @@ mobileScenario("reconnect-decision", () => {
 
       expect(protagonist.trash.length).toBe(trashBeforePlay.length + 1);
       expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(protagonist.handCount);
-      expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
-        String(protagonist.trash.length),
+      // The pile follows the narration: the paid card lands once its batch is on screen.
+      await vi.waitFor(
+        () =>
+          expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
+            String(protagonist.trash.length),
+          ),
+        { timeout: 10_000 },
       );
       expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 

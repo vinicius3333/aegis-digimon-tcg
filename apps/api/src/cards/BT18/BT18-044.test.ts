@@ -32,7 +32,43 @@ describe("BT18-044 FunBeemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("does nothing when the mandatory Royal Base placement cost has no eligible card", async () => {
+  it("declines the optional 'by' cost and keeps the Royal Base card and security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT18-044", as: "funbeemon" },
+            { card: "BT18-046", as: "royalBase" },
+          ],
+          security: [{ card: "BT1-009", as: "topSecurity" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("royalBase").instanceId]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("topSecurity").instanceId,
+    ]);
+    assertNoLoudGap(s);
+  });
+
+  it("does nothing when the Royal Base placement cost has no eligible card", async () => {
     const s = setupEngine(
       {
         0: {

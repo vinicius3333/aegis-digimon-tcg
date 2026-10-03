@@ -8,6 +8,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Search",
+          effectTextPart:
+            "[On Play] You may search your security stack for 1 Digimon card with [Warrior] or [Holy Warrior] in its type, reveal it, and add it to your hand. If you do, trigger ＜Recovery +1 (Deck)＞. (Place the top card of your deck on top of your security stack.)",
           controller: "mine",
           filter: {
             zone: "security",
@@ -39,6 +41,7 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "shuffle",
+          effectTextPart: "Then, shuffle your security stack.",
           controller: "mine",
         },
       ],

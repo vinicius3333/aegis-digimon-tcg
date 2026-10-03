@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] [Once Per Turn] You may add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -32,6 +33,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, if you have 0 security cards, ＜Recovery +1＞",
           kind: "GainKeyword",
           target: {
             filter: {

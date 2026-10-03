@@ -53,6 +53,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfOpponentsTurn",
       actions: [
         {
+          effectTextPart: "[End of Opponent’s Turn][Once Per Turn] ＜Draw 1＞ and trash 1 card in your hand.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
@@ -68,6 +69,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, by placing this Tamer as the bottom digivolution card of 1 of your Digimon with [Belphemon] in its name, delete 1 of your opponent's level 6 Digimon.",
           kind: "Delete",
           target: {
             filter: {

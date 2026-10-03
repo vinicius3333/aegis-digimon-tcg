@@ -1,4 +1,11 @@
-import { type CardDefinition, type Condition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
+import {
+  type CardDefinition,
+  type Condition,
+  type Permanent,
+  type PreventionKeyword,
+  type Seat,
+  type ZoneRef,
+} from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 import { effectProvenanceKinds } from "./effectProvenance.js";
 
@@ -210,6 +217,8 @@ export interface ReplacementSubscriptionBase {
   sourceInstanceId?: string;
   /** Stable compiled effect/action identity. Description is display text and must not identify rules uses. */
   activationIdentity?: string;
+  /** The keyword a successful "prevent" names to the players (a ＜Delay＞ Option saving a Digimon). */
+  preventionKeyword?: PreventionKeyword;
   /** Stable key used to consume a persistent replacement at most once in a turn. */
   oncePerTurnKey?: string;
   /**
@@ -323,12 +332,6 @@ export interface ReplacementSubscriptionInstead extends ReplacementSubscriptionB
   appliesToPending?: (ctx: EffectContext, target: Permanent) => boolean;
   /** Stable per-turn key gating this reaction to ONCE PER TURN (BT20-091 "[Once Per Turn]"). */
   oncePerTurnKey?: string;
-  /**
-   * A reaction that plays other cards without replacing the leave itself (＜Decode＞). It
-   * neither claims nor yields to the single replacement a leave event carries (KB Q5352):
-   * another card's reaction to the same leave still resolves beside it (KB Q6884).
-   */
-  sharesLeaveEvent?: boolean;
 }
 
 /**
@@ -426,6 +429,12 @@ export class SubTriggerRegistry {
    * absent) windowToken is passed. See {@link fire}.
    */
   private oncePerTimingFiredFor = new Map<number | string, unknown>();
+  /**
+   * [Once Per Turn] reducers whose activation is still paying its cost. The turn ledger is only
+   * marked once `activate` returns, so a digivolution nested inside that cost would otherwise
+   * be offered the same reducer again (BT25-087 Thomas H. Norstein, Discord 1555674174369042583).
+   */
+  private readonly activatingOncePerTurnKeys = new Set<string>();
 
   private oncePerTimingKey(sub: SubTriggerSubscription): number | string {
     return sub.oncePerTimingIdentity ?? sub.id;
@@ -881,7 +890,12 @@ export class SubTriggerRegistry {
     for (const replacement of this.replacements) {
       if (replacement.event !== event || replacement.mode !== "reduceCost") continue;
       if (replacement.activate === undefined || replacement.controllerSeat !== seat) continue;
-      if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) continue;
+      const oncePerTurnKey = replacement.oncePerTurnKey;
+      if (
+        oncePerTurnKey !== undefined &&
+        (turnBudget?.hasFired(oncePerTurnKey) === true || this.activatingOncePerTurnKeys.has(oncePerTurnKey))
+      )
+        continue;
       if (replacement.appliesTo !== undefined) {
         if (!replacement.appliesTo(target, originZone, baseAsDigimon)) continue;
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
@@ -895,12 +909,18 @@ export class SubTriggerRegistry {
       if (ctx === undefined) continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
-      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials, baseAsDigimon);
+      if (oncePerTurnKey !== undefined) this.activatingOncePerTurnKeys.add(oncePerTurnKey);
+      let activated: Awaited<ReturnType<typeof replacement.activate>>;
+      try {
+        activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials, baseAsDigimon);
+      } finally {
+        if (oncePerTurnKey !== undefined) this.activatingOncePerTurnKeys.delete(oncePerTurnKey);
+      }
       if (!activated) {
         continue;
       }
       reduction += typeof activated === "number" ? activated : (replacement.amount ?? 0);
-      if (replacement.oncePerTurnKey !== undefined) turnBudget?.markFired(replacement.oncePerTurnKey);
+      if (oncePerTurnKey !== undefined) turnBudget?.markFired(oncePerTurnKey);
       if (replacement.consumeOnActivate === true) consumed.add(replacement.id);
     }
     if (consumed.size > 0) this.replacements = this.replacements.filter((replacement) => !consumed.has(replacement.id));

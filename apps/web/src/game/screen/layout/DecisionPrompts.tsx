@@ -18,7 +18,10 @@ import {
   BoardSourceHostPrompt,
   OpponentSelectingPill,
 } from "../../BoardDecisionRail";
+import { cardDisplayName } from "../../cardLinks";
 import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
+import { securityAttackLabelKey } from "../../securityChrome";
+import { attackTargetPrompt, isPlayerAttackTarget } from "../model/attackTargetPrompt";
 import {
   AssemblyMaterialOverlay,
   DecisionOverlay,
@@ -51,6 +54,7 @@ export function DecisionPrompts({
   max,
   triggerDetails,
   opponentSelecting,
+  opponentSecurityCount,
   onTogglePick,
   onRespond,
   onOpenDialog,
@@ -71,6 +75,8 @@ export function DecisionPrompts({
   triggerDetails: readonly TriggerDetail[];
   /** The opponent has a question open and the viewer is waiting on their answer. */
   opponentSelecting: boolean;
+  /** Whether attacking the opponent is a Security Attack or a Direct Attack. */
+  opponentSecurityCount: number;
   onTogglePick: (instanceId: string) => void;
   onRespond: (response: DecisionResponse) => void;
   onOpenDialog: () => void;
@@ -87,6 +93,28 @@ export function DecisionPrompts({
         isInherited: decision?.options?.isInherited,
       })
     : undefined;
+  const attack = attackTargetPrompt(decision, permanents);
+  const attackClause = (() => {
+    if (attack?.attackerCardId === undefined) return undefined;
+    const card = cardDisplayName(attack.attackerCardId, t);
+    const only = attack.onlyTarget;
+    if (only === undefined) return t("overlay.attackChooseTarget", { card });
+    const target =
+      only.kind === "player"
+        ? t(opponentSecurityCount > 0 ? "overlay.attackTargetSecurity" : "overlay.attackTargetPlayer")
+        : only.cardId === undefined
+          ? undefined
+          : cardDisplayName(only.cardId, t);
+    return target === undefined
+      ? t("overlay.attackChooseTarget", { card })
+      : t("overlay.attackOnlyTarget", { card, target });
+  })();
+  const attackConfirmLabel =
+    attack === undefined
+      ? undefined
+      : picks.some(isPlayerAttackTarget)
+        ? t(securityAttackLabelKey(opponentSecurityCount))
+        : t("overlay.declareAttack");
   const boardSelectionKind =
     decision?.kind === "selectCards" || decision?.kind === "chooseTargets" ? decision.kind : undefined;
   const assemblyCardId = decision?.kind === "selectCards" ? decision.options?.assemblyCardId : undefined;
@@ -156,11 +184,12 @@ export function DecisionPrompts({
               ? t("overlay.selectCardsSubtitle", { count: max })
               : t("overlay.selectCardsRangeSubtitle", { range: `${min}–${max}` }))
           }
-          clause={clause}
+          clause={attackClause ?? clause}
           min={min}
           max={max}
           pickCount={picks.length}
           canConfirm={picks.length >= min && picks.length <= max}
+          confirmLabel={attackConfirmLabel}
           onConfirm={() => onRespond({ kind: boardSelectionKind, instanceIds: picks })}
           onNoSelection={() => onRespond({ kind: boardSelectionKind, instanceIds: [] })}
           onOpenDialog={onOpenDialog}

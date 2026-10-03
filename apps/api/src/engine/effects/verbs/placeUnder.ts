@@ -49,6 +49,7 @@ export function createPlaceUnderVerbs(pc: PrimitivesContext) {
         instanceIds: placed.map((c) => c.instanceId),
         from: "various",
         to: Zone.BattleArea,
+        placedUnder: { permanentId: targetPermanentId },
         ...(deckSources.size === 1
           ? {
               deckToUnder: {

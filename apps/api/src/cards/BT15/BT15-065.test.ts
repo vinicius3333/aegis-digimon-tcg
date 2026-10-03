@@ -95,6 +95,36 @@ describe("BT15-065", () => {
     expect(observe(s.engine).isRestricted(s.perm("lowCostTarget"), "attackPlayers")).toBe(true);
   });
 
+  it("CR 15-11-2-2: also restricts a play cost 5 or lower Digimon that entered after On Play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT15-065", as: "waruMonzaemon" },
+            { card: "BT14-058", as: "numemon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT14-058", as: "lowCostTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("waruMonzaemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("waruMonzaemon").stack.some(({ instanceId }) => instanceId === s.inst("numemon").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    const lowCost = s.putOnBoard(1, "BT1-010");
+    const highCost = s.putOnBoard(1, "BT1-083");
+
+    expect(observe(s.engine).isRestricted(lowCost, "attackPlayers")).toBe(true);
+    expect(observe(s.engine).isRestricted(highCost, "attackPlayers")).toBe(false);
+  });
+
   it("pays its digivolution effect with only its own Numemon source", async () => {
     const s = setupEngine(
       {

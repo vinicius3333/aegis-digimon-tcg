@@ -20,6 +20,8 @@ const debuffOpponentDigimon: Action = {
     target: ownTopSecurity,
     raw: "By trashing your top security card",
   },
+  optional: true,
+  abortOnDecline: true,
   raw: "By trashing your top security card, 1 of your opponent's Digimon gets -4000 DP for the turn",
 };
 

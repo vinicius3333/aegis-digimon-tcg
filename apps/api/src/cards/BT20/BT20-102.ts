@@ -12,8 +12,17 @@ const omnimonInDigivolutionCards: Condition = {
   raw: "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards",
 };
 
-/** The printed 「お互いのデジモン1体ずつ」: each player keeps 1 survivor, chosen by this effect's controller. */
+const wipeClause =
+  "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.";
+const returnClause = "Then, return 1 of your opponent's Digimon to the bottom of the deck.";
+
+/**
+ * The printed 「お互いのデジモン1体ずつ」: each player keeps 1 survivor, chosen by this effect's
+ * controller. The opponent's survivor is the Digimon the "Then" sentence returns, since it is
+ * the only one the wipe leaves them, so that prompt reads as the return.
+ */
 const chooseSurvivor = (controller: "mine" | "opponent", bindAs: string): Action => ({
+  effectTextPart: controller === "mine" ? wipeClause : returnClause,
   kind: "SelectBind",
   target: { filter: { controller, kind: ["Digimon"] }, count: 1, bindAs },
   condition: omnimonInDigivolutionCards,

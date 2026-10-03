@@ -149,6 +149,12 @@ scenario("target-decision", () => {
       );
     }
 
+    // The second check reveals an Option whose [Security] clause docks beside the board, and
+    // the board holds what that check did until the clause reads, across a turn end too. Let
+    // the dock leave first, or Brave Shield's whole turn resolves behind that held board.
+    await screen.findByTestId("security-branch", {}, { timeout: 10_000 });
+    await vi.waitFor(() => expect(screen.queryByTestId("security-branch")).toBeNull(), { timeout: 10_000 });
+
     // Both legal targets are now visibly suspended before the Option is used.
     expect(
       within(yourBattleArea())

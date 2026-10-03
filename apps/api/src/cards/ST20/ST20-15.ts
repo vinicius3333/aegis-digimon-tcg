@@ -59,6 +59,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -66,6 +67,7 @@ const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart: "Then, place this card face up as the top security card.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",

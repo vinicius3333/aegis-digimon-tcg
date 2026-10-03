@@ -445,13 +445,13 @@ describe("BT21-029 Medusamon — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
-    // BT16-095's [Security] gives +3000 DP to the Digimon its owner has at resolution. The token
-    // misses the boost only because Medusamon's pending trigger played it after that resolution.
+    // BT16-095's "all of your Digimon get +3000 DP" doesn't choose targets, so the token that
+    // Medusamon's pending trigger plays after that resolution still gets the boost.
     const tokens = s.state.players[1]!.battleArea.filter((permanent) =>
       permanent.topCard.cardId.startsWith("TOKEN-Petrification"),
     );
     expect(tokens).toHaveLength(1);
-    expect(tokens[0]!.currentDP).toBe(3000);
+    expect(tokens[0]!.currentDP).toBe(6000);
     expect(s.perm("bystander").currentDP).toBe(bystanderBaseDP + 3000);
     const eventOrder = s.events.flatMap((event) =>
       (event.kind === "effectResolved" && event.sourceCardId === "BT16-095") ||

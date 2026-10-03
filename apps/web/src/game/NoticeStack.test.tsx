@@ -168,7 +168,9 @@ describe("NoticeStack", () => {
   });
 
   it("names a card the definitions do not know without showing its id", () => {
-    renderNotice(notice({ body: { variant: "keyword", keyword: "digiXros", cardId: "ZZ9-999" } }));
+    renderNotice(
+      notice({ body: { variant: "effect", cardId: "ZZ9-999", timing: "OnPlay", description: "Draw 1 card." } }),
+    );
     const shown = screen.getByTestId("match-notice");
     expect(shown.textContent).toContain("Card");
     expect(shown.textContent).not.toContain("ZZ9-999");
@@ -199,6 +201,20 @@ describe("NoticeStack", () => {
     expect(shown.textContent).toContain(
       "By deleting this Digimon, prevent your other Digimon from leaving the battle area by an opponent's effect.",
     );
+  });
+
+  it.each([
+    "digiXros",
+    "cannotAttack",
+    "cannotBlock",
+    "scapegoat",
+    "decoy",
+    "guard",
+    "fragment",
+    "armorPurge",
+  ] as const)("shows the %s keyword without repeating the card name next to its art", (keyword) => {
+    renderNotice(notice({ body: { variant: "keyword", keyword, cardId: "EX12-008" } }));
+    expect(screen.getByTestId("match-notice").textContent).not.toContain("ToyAgumon");
   });
 
   it.each([

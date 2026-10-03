@@ -47,6 +47,8 @@ const compiled: CompiledCard = {
       },
       actions: [
         {
+          effectTextPart:
+            "[Main][Once Per Turn] Digivolve your [Agumon] into 1 [Agumon - Bond of Bravery] in your hand for its digivolution cost, ignoring its level. If you do, trash the top 2 cards of your security stack.",
           kind: "Digivolve",
           target: {
             filter: {
@@ -90,6 +92,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, if you have 1 or more security cards, delete that Digimon at the end of the turn.",
           kind: "SubTrigger",
           event: "endOfTurn",
           once: true,

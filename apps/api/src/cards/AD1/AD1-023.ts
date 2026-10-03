@@ -4,6 +4,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const placeHybridBody = (): Action[] => [
   {
     kind: "PlaceUnder",
+    effectTextPart:
+      "[Start of Your Main Phase] [On Play] You may place up to 2 [Hybrid]\u00a0trait cards with different colors from your hand or trash under this Tamer. If this effect placed, ＜Draw 1＞",
     target: {
       filter: {
         differentColors: true,
@@ -26,6 +28,7 @@ const placeHybridBody = (): Action[] => [
   },
   {
     kind: "GainMemory",
+    effectTextPart: "Then, if there are 4 or more [Hybrid]\u00a0trait cards under this Tamer, gain 2 memory.",
     amount: 2,
     condition: {
       kind: "selfDigivolutionStackCountAtLeast",

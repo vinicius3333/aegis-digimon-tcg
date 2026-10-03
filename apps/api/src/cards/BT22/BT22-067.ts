@@ -3,12 +3,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const buffAndAttack: Action[] = [
   {
+    effectTextPart: "[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP until your opponent's turn ends.",
     kind: "ModifyDP",
     target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
     amount: 3000,
     duration: "untilOpponentTurnEnd",
   },
   {
+    effectTextPart: "Then, 1 of your Digimon may attack a player.",
     kind: "Attack",
     target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
     optional: true,

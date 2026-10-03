@@ -110,12 +110,6 @@ export interface ReplacementInstallInstead extends ReplacementInstallBase {
   appliesToPending?: (ctx: EffectContext, target: Permanent) => boolean;
   /** Stable per-turn key gating this reaction to once per turn (BT20-091 "[Once Per Turn]"). */
   oncePerTurnKey?: string;
-  /**
-   * A reaction that plays other cards without replacing the leave itself (＜Decode＞). It
-   * neither claims nor yields to the single replacement a leave event carries (KB Q5352):
-   * another card's reaction to the same leave still resolves beside it (KB Q6884).
-   */
-  sharesLeaveEvent?: boolean;
 }
 
 /**

@@ -56,6 +56,19 @@ export interface HeldDeletion {
   trash: readonly CardInstance[];
 }
 
+/**
+ * Cards one batch moved to a seat's trash, kept out of the pile until that batch is narrated.
+ * One patch can carry a whole chain, so without this a card shows up in the trash while the
+ * screen is still presenting an earlier use of it (an Option docked, then placed under a
+ * Digimon, before a cost trashes it).
+ */
+export interface HeldTrashArrival {
+  seat: Seat;
+  instanceIds: readonly string[];
+  /** The state version of the batch that moved them. */
+  stateVersion: number;
+}
+
 /** The shield break, and which of its two beats the defender's shield is playing. */
 export type SecurityBreakCue = SecurityBreakScene & { phase: SecurityBreakPhase };
 
@@ -142,13 +155,13 @@ export interface MatchCues {
   /** The notices currently on screen, the refusal included. A read-only view of {@link narration}. */
   notices: readonly MatchNotice[];
   /**
-   * Drops the viewer's own effect notice for a card whose decision dialog is now open —
+   * Holds back the viewer's own effect notice for a card whose decision dialog is now open —
    * the dialog already names the card and prints the clause the notice would repeat.
    */
   dismissOwnEffectNotice: (cardId: string) => void;
   /**
-   * The dialog for that card has closed. Clauses it raises from here on read out again;
-   * the ones already silenced stay silent.
+   * The dialog for that card has closed. The notices it held back read out once the answer
+   * settles, unless another dialog for the same card opens first.
    */
   releaseOwnEffectNotice: (cardId: string) => void;
   /** Raises a notice for a refused action, which no server event narrates for the viewer. */
@@ -236,6 +249,8 @@ export interface MatchCues {
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** Deleted permanents still on the board, by the key of the shatter that will take them. */
   heldDeletions: ReadonlyMap<number, HeldDeletion>;
+  /** Cards the server has already trashed whose move to the trash is not on screen yet. */
+  heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
   /** The last announced phase persists through the gaps between ribbons. */
   displayedPhase: GameState["phase"] | undefined;
   /**

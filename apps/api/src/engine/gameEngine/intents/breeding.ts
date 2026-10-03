@@ -40,6 +40,9 @@ export function handleMoveFromBreeding(engine: GameEngine, seat: Seat, intent: M
   const result = applyMoveFromBreeding(engine.state, seat, intent, breedingDeps(engine));
   if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
   const movedPermanentId = result.outcome.permanentId;
+  // The DP ledger skips a permanent while it is in breeding (Q4252), so ledger entries that
+  // already cover battle-area Digimon (player-wide modifiers) only land once it is recomputed.
+  engine.modifiers.recomputeDP(engine.state, movedPermanentId);
   // The breeding -> battle move fires the OnMove timing, the broad entry timing/bus, then
   // the two movement SubTrigger events below so reactive watchers execute (both fired unconditionally:
   // a watcher's sourceFilter (isSelfRef / controller matching) gates which side reacts):

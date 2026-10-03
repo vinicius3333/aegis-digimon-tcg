@@ -10,8 +10,13 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Trash", target: { filter: { zone: "hand", controller: "mine" }, count: 2 } },
         {
+          effectTextPart: "[When Digivolving] Trash2 cards in your hand.",
+          kind: "Trash",
+          target: { filter: { zone: "hand", controller: "mine" }, count: 2 },
+        },
+        {
+          effectTextPart: "Then, delete1 of your opponent's Digimon with as much or less DP as this Digimon.",
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },

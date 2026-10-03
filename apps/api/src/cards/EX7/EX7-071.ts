@@ -102,6 +102,7 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          position: "bottom",
           underFilter: {
             controller: "mine",
             kind: ["Digimon"],

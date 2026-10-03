@@ -2,6 +2,7 @@ import type { Action, CardEffect, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const trashBottomTwoSources: Action = {
+  effectTextPart: "[On Play] [When Digivolving] trash the bottom 2 digivolution cards of 1 of your opponent's Digimon.",
   kind: "TrashDigivolution",
   target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
   amount: 2,
@@ -10,6 +11,7 @@ const trashBottomTwoSources: Action = {
 };
 
 const suspendLock: Action = {
+  effectTextPart: "Then, 1 of their Digimon or Tamers can't suspend until their turn ends.",
   kind: "Restrict",
   target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
   restriction: "suspend",

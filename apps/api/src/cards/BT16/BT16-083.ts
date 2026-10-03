@@ -85,6 +85,7 @@ const compiled: CompiledCard = {
             },
             raw: "By returning 1 Digi-Egg card from your trash to the bottom of the Digi-Egg deck",
           },
+          optional: true,
           abortOnDecline: true,
         },
         {

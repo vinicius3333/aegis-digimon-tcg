@@ -26,11 +26,13 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash the top 2 cards of your deck.",
           kind: "TrashTopDeck",
           controller: "mine",
           amount: 2,
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

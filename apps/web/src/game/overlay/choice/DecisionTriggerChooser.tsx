@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { parseTriggerKey, type DecisionResponse } from "@aegis/shared";
+import { getCardDefinition, parseTriggerKey, type DecisionResponse } from "@aegis/shared";
 import { EffectText } from "../../EffectText";
 import { CardFull } from "../../../design/cards";
 import { Button } from "../../../design/primitives";
@@ -18,6 +18,12 @@ import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
 /** Preset answer for an effect's yes/no questions; absent means the engine asks. */
 type Preset = "yes" | "no";
 
+export interface WaitingTrigger {
+  cardId: string;
+  description: string | undefined;
+  isInherited: boolean;
+}
+
 /**
  * The chooser for an `orderTriggers` decision. A plain prompt picks the one effect that fires
  * next. A prompt that accepts a resolution plan lets the player click effects in resolution
@@ -31,8 +37,10 @@ export function DecisionTriggerChooser({
   timing,
   triggerTimings,
   triggerDescriptions,
+  triggerReasons,
   triggerIsInherited,
   triggerIsOptional,
+  waitingTriggers,
   acceptsResolutionPlan,
   onRespond,
   onOpenBoard,
@@ -45,8 +53,12 @@ export function DecisionTriggerChooser({
   timing: string | undefined;
   triggerTimings: readonly string[] | undefined;
   triggerDescriptions: readonly string[] | undefined;
+  /** Aligned to `triggerKeys`: the printed condition that armed each entry, when it differs. */
+  triggerReasons: readonly string[] | undefined;
   triggerIsInherited: readonly boolean[] | undefined;
   triggerIsOptional: readonly boolean[] | undefined;
+  /** Older pending effects that resolve after every offered entry. Shown, never chosen. */
+  waitingTriggers: readonly WaitingTrigger[];
   acceptsResolutionPlan: boolean;
   onRespond: (response: DecisionResponse) => void;
   onOpenBoard: () => void;
@@ -185,7 +197,9 @@ export function DecisionTriggerChooser({
               <button
                 type="button"
                 className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}
-                aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel].filter(Boolean).join(", ")}
+                aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel, triggerReasons?.[i]]
+                  .filter(Boolean)
+                  .join(", ")}
                 aria-pressed={chosen}
                 onClick={() => toggle(key)}
               >
@@ -206,6 +220,11 @@ export function DecisionTriggerChooser({
                     <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
                     <span className="trigger-chooser__id">{cardId}</span>
                     {detail?.sourceLabel ? <span className="trigger-chooser__source">{detail.sourceLabel}</span> : null}
+                    {triggerReasons?.[i] ? (
+                      <span className="trigger-chooser__reason">
+                        {t("overlay.triggerReason", { reason: triggerReasons[i] })}
+                      </span>
+                    ) : null}
                   </span>
                   {chosen && !acceptsResolutionPlan ? (
                     <span className="trigger-chooser__check" aria-hidden="true">
@@ -236,6 +255,7 @@ export function DecisionTriggerChooser({
           );
         })}
       </div>
+      {waitingTriggers.length > 0 ? <WaitingTriggerList entries={waitingTriggers} timing={timing} /> : null}
       <div className="trigger-chooser__footer">
         <DecisionViewBoardButton onOpenBoard={onOpenBoard} />
         {acceptsResolutionPlan && optionCount > 1 ? (
@@ -307,6 +327,63 @@ function onceActivatableIndexes(triggerKeys: readonly string[], clauses: readonl
     seen.add(identity);
     return [index];
   });
+}
+
+/**
+ * Effects that triggered before the offered ones. The rules resolve every newer effect first
+ * (CR §15-4-5-2/3), so without this list a player sees their earlier effects vanish from the
+ * prompt and may think the game dropped them. Identical entries collapse into one counted row:
+ * three Tamers watching the same event would otherwise repeat one long clause until the list
+ * crowds out the effects the player can actually choose.
+ */
+function WaitingTriggerList({ entries, timing }: { entries: readonly WaitingTrigger[]; timing: string | undefined }) {
+  const { t } = useTranslation();
+  const groups = groupWaitingTriggers(entries, timing);
+  return (
+    <section className="trigger-chooser__waiting" aria-label={t("overlay.waitingEffects")}>
+      <div className="trigger-chooser__waiting-title">{t("overlay.waitingEffects")}</div>
+      <p className="trigger-chooser__waiting-hint">{t("overlay.waitingEffectsHint")}</p>
+      <ul className="trigger-chooser__waiting-list">
+        {groups.map(({ cardId, clause, count }, index) => (
+          <li key={`${cardId}-${index}`} className="trigger-chooser__waiting-entry">
+            <CardFull cardId={cardId} width={40} zoomOnHover={false} />
+            <span className="trigger-chooser__meta">
+              <span className="trigger-chooser__name">
+                {getCardDefinition(cardId)?.nameEn ?? cardId}
+                {count > 1 ? <span className="trigger-chooser__waiting-count">×{count}</span> : null}
+              </span>
+              {clause ? (
+                <span className="trigger-chooser__effect-text">
+                  <EffectText text={clause} />
+                </span>
+              ) : null}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function groupWaitingTriggers(
+  entries: readonly WaitingTrigger[],
+  timing: string | undefined,
+): { cardId: string; clause: string | undefined; count: number }[] {
+  const groups = new Map<string, { cardId: string; clause: string | undefined; count: number }>();
+  for (const entry of entries) {
+    const clause =
+      playerFacingEffectClause({
+        cardId: entry.cardId,
+        timing,
+        description: entry.description,
+        isInherited: entry.isInherited,
+      }) ?? entry.description;
+    const key = `${entry.cardId}\u0000${clause ?? ""}`;
+    const group = groups.get(key);
+    if (group) group.count += 1;
+    else groups.set(key, { cardId: entry.cardId, clause, count: 1 });
+  }
+  return [...groups.values()];
 }
 
 /** Ask / Yes / No for the yes/no questions one pending effect will ask. */

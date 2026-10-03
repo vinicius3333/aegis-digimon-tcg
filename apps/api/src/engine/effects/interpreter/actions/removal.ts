@@ -623,7 +623,20 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           }
         }
         const chosen = await pickLoose(ctx, action.target, candidates, undefined, chooser);
-        if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        // Per-host stack trash, not the generic verb: only it fires the trashed cards'
+        // "when trashed from digivolution cards" triggers (EX7-071, P-180).
+        const chosenByHost = new Map<string, string[]>();
+        for (const instanceId of chosen) {
+          const hostPermanentId = candidates.find((candidate) => candidate.instanceId === instanceId)?.hostPermanentId;
+          if (hostPermanentId === undefined) continue;
+          chosenByHost.set(hostPermanentId, [...(chosenByHost.get(hostPermanentId) ?? []), instanceId]);
+        }
+        for (const [hostPermanentId, instanceIds] of chosenByHost) {
+          await ctx.fx.trashDigivolutionCards(hostPermanentId, instanceIds, {
+            byEffectSeat: ctx.source.ownerSeat,
+            byEffectCardId: ctx.source.cardId,
+          });
+        }
         ctx.lastEffectActed = chosen.length > 0;
         // A "by trashing N" condition trashes as many as it can but is met only by all N (Q2006).
         const required = action.target.upTo === true ? undefined : action.target.count;

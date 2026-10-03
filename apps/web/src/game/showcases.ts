@@ -143,6 +143,18 @@ export function burstPalette(variant: BurstVariant, color: ColorName = "Neutral"
   }
 }
 
+export type FieldDeparture = NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["deletedPermanents"]>[number];
+
+/**
+ * The permanents a move to the trash took off the field: the deleted ones, and the Options
+ * trashed from the battle area (a ＜Delay＞ paying its cost). Trashing is not deletion, but on
+ * the board both are a card breaking where it stood.
+ */
+export function fieldDeparturesFromEvent(event: ServerEvent): readonly FieldDeparture[] {
+  if (event.kind !== "cardsMoved" || event.to !== "trash") return [];
+  return [...(event.deletedPermanents ?? []), ...(event.trashedPermanents ?? [])];
+}
+
 /**
  * What an event says just left the field, as ids the board can be asked to locate. A
  * combat resolution names permanents; an effect that trashes a permanent narrates the card
@@ -151,9 +163,7 @@ export function burstPalette(variant: BurstVariant, color: ColorName = "Neutral"
  */
 export function deletionAnchorIdsFromEvent(event: ServerEvent): readonly string[] {
   if (event.kind === "combatResolved") return event.deletedPermanentIds;
-  if (event.kind === "cardsMoved" && event.to === "trash" && event.deletedPermanents?.length)
-    return event.deletedPermanents.map((deleted) => deleted.permanentId);
-  return [];
+  return fieldDeparturesFromEvent(event).map((departed) => departed.permanentId);
 }
 
 /** The phase name the protocol uses for the draw step of a turn. */

@@ -6,7 +6,9 @@ import {
   digimonEligibleForMindLink,
   linkCategoryAllowsHost,
   linkEligible,
+  type LinkHost,
 } from "../../mindLink.js";
+import { staticTraitsOf } from "../../../cards/cardData.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
@@ -14,6 +16,16 @@ import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents } from "../targeting/permanents.js";
 import { isTamer } from "@aegis/shared";
 import type { Action, CardDefinition, Filter, Permanent } from "@aegis/shared";
+
+function linkHostOf(ctx: EffectContext, permanent: Permanent): LinkHost | undefined {
+  if (permanent.topCard === undefined) return undefined;
+  const definition = ctx.game.definitionOf(permanent.topCard);
+  return {
+    definition,
+    names: ctx.game.effectiveNames?.(permanent) ?? [definition.nameEn.toLowerCase()],
+    traits: ctx.game.effectiveTraits?.(permanent.permanentId) ?? staticTraitsOf(definition),
+  };
+}
 
 function linkTargetIncludesSelf(action: Extract<Action, { kind: "Link" }>): boolean {
   return [action.target.filter, ...(action.target.orFilters ?? []), ...(action.target.filter.orFilters ?? [])].some(
@@ -34,11 +46,8 @@ export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kin
   const materials = [...looseMaterial, ...selfMaterial];
   if (materials.length === 0) return false;
   const admitsSomeMaterial = (permanent: Permanent): boolean => {
-    const hostDefinition = permanent.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard);
-    return (
-      hostDefinition !== undefined &&
-      materials.some((material) => linkCategoryAllowsHost(hostDefinition, material))
-    );
+    const host = linkHostOf(ctx, permanent);
+    return host !== undefined && materials.some((material) => linkCategoryAllowsHost(host, material));
   };
 
   if (action.recipient === undefined) {
@@ -127,11 +136,9 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   const candidateDefinition = (candidate: { cardId: string }): CardDefinition =>
     ctx.game.definitionOf({ cardId: candidate.cardId } as never);
   const candidatesHostedBy = (permanent: Permanent) => {
-    if (permanent.topCard === undefined) return [];
-    const hostDefinition = ctx.game.definitionOf(permanent.topCard);
-    return eligibleCandidates.filter((candidate) =>
-      linkCategoryAllowsHost(hostDefinition, candidateDefinition(candidate)),
-    );
+    const host = linkHostOf(ctx, permanent);
+    if (host === undefined) return [];
+    return eligibleCandidates.filter((candidate) => linkCategoryAllowsHost(host, candidateDefinition(candidate)));
   };
   // The recipient is a chosen friendly Digimon ("link ... to 1 of your Digimon") or, by
   // default, the source permanent ("to this Digimon").

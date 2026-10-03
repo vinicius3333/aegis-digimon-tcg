@@ -103,6 +103,8 @@ export interface AnimationQueue {
   pendingCount(): number;
   /** Includes queued steps; cancelled and non-live steps cannot hold a visual barrier. */
   hasPendingStep(predicate: (step: AnimationStep) => boolean): boolean;
+  /** Counts what `hasPendingStep` would find, so a waiter can tell progress from a stall. */
+  countPendingSteps(predicate: (step: AnimationStep) => boolean): number;
 }
 
 export const DEFAULT_TRACK = "main";
@@ -218,6 +220,17 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
     return true;
   }
 
+  function countPendingSteps(predicate: (step: AnimationStep) => boolean): number {
+    let total = 0;
+    for (const track of tracks.values()) {
+      for (const run of track.running)
+        if (!run.cancelled && modeOf(run.step) === "live" && predicate(run.step)) total += 1;
+      for (const entry of track.queued)
+        for (const step of entry.steps) if (modeOf(step) === "live" && predicate(step)) total += 1;
+    }
+    return total;
+  }
+
   function announceIdle() {
     if (!isIdle()) return;
     fastForward = false;
@@ -324,14 +337,9 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       return new Promise<void>((resolve) => idleResolvers.push(resolve));
     },
     hasPendingStep(predicate) {
-      for (const track of tracks.values()) {
-        if (track.running.some((run) => !run.cancelled && modeOf(run.step) === "live" && predicate(run.step)))
-          return true;
-        if (track.queued.some((entry) => entry.steps.some((step) => modeOf(step) === "live" && predicate(step))))
-          return true;
-      }
-      return false;
+      return countPendingSteps(predicate) > 0;
     },
+    countPendingSteps,
     pendingCount() {
       let total = 0;
       for (const track of tracks.values()) total += track.queued.length + track.running.length;

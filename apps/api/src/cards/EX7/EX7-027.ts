@@ -52,6 +52,8 @@ export const compiled: CompiledCard = {
           },
           attackPlayer: true,
           withoutSuspending: true,
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "deleteOwn",
             target: {

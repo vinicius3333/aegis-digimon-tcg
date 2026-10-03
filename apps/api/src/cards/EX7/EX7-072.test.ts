@@ -89,6 +89,30 @@ describe("EX7-072 Seventh Fascination", () => {
     await stopLoop(s, loop, 0);
   });
 
+  it("CR 15-11-2-2: also grants the end-turn deletion to an opposing Digimon that enters afterwards", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX7-072", as: "option" }], battleArea: [{ card: "EX7-061", as: "purple" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "first" }], hand: [{ card: "BT1-010", as: "late" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 1);
+
+    await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
+    await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 2);
+
+    const late = s.state.players[1]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("late").instanceId,
+    )!;
+    expect([...late.grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
+  });
+
   it("Q5728/Q5729: pays the trash cost on exact Lilithmon X evolution and activates Main", async () => {
     const s = setupEngine(
       {

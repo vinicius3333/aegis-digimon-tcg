@@ -10,6 +10,7 @@ import { ROLE_LABEL_KEYS } from "../constants";
 import type { StackCard } from "../types";
 import { CardZoomOverlay } from "./CardZoomOverlay";
 import type { CardActionEffect, CardActionLink, CardActionPromote } from "./cardActionMenuTypes";
+import { stackCardCaption } from "./stackCardCaption";
 
 /** Bottom sheet (touch layouts) for a permanent's actions, with its live stats and stack. */
 export function CardActionSheetPanel({
@@ -173,15 +174,11 @@ export function CardActionSheetPanel({
                       <button
                         type="button"
                         key={`${c.cardId}-${i}`}
-                        disabled={c.faceDown || !c.cardId}
+                        disabled={!c.cardId}
                         onClick={() => onZoom(c.cardId, c.artId)}
                       >
                         <CardArt cardId={c.cardId} artId={c.artId} width={54} />
-                        <figcaption>
-                          {c.faceDown || !c.cardId
-                            ? t("game.hiddenCard")
-                            : (getCardDefinition(c.cardId)?.nameEn ?? c.cardId)}
-                        </figcaption>
+                        <figcaption>{stackCardCaption(c, t)}</figcaption>
                       </button>
                     ))}
                   </div>

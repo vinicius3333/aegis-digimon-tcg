@@ -200,6 +200,13 @@ export function sidePanelFromEvent(
       // Identified field deletions already receive one dedicated notice per Digimon.
       // Announcing the whole stack here duplicates that notice and calls sources deleted.
       if (event.to === "trash" && (event.deletedPermanents?.length ?? 0) > 0) return null;
+      // An Option trashed from the battle area breaks where it stood, which names it; a panel
+      // repeating the same card beside its own clause pulls the eye off the break.
+      if (
+        event.to === "trash" &&
+        event.instanceIds.every((movedId) => event.trashedPermanents?.some((trashed) => trashed.instanceId === movedId))
+      )
+        return null;
       // A draw already has a deck-to-hand flight. Showing the private drawn card
       // in a narration panel duplicates that motion (and, for effect draws, the
       // effect notice itself). Digivolution draws are never separate effects.

@@ -8,14 +8,14 @@ const opponentLv4: Filter = {
 };
 const tamerBottomCost = { kind: "trashBottomFaceDownUnderTamer", controller: "mine" } satisfies Action["cost"];
 const trashOpponentHand: Action = {
+  effectTextPart:
+    "Then, by trashing the bottom face-down card from under any of your Tamers, they trash 1 card in their hand.",
   kind: "CostGatedBlock",
   cost: { ...tamerBottomCost, count: 1 },
   optional: true,
   abortOnDecline: true,
   actions: [
     {
-      effectTextPart:
-        "Then, by trashing the bottom face-down card from under any of your Tamers, they trash 1 card in their hand.",
       kind: "Trash",
       chooser: "opponent",
       target: { filter: { controllerDefault: "opponent", zone: "hand" }, count: 1 },

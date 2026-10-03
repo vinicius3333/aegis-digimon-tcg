@@ -760,6 +760,10 @@ export class CombatController {
       this.cleanup();
       const completedCombat = this.takeCompletedCombat();
       if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
+      // `gameOver` stays the last event of a match; it already closes everything an attack opened.
+      if (!this.access.game.gameOver) {
+        this.hooks.emit({ kind: "attackEnded", seat: attackerSeat, attackerPermanentId: attacker.permanentId });
+      }
     }
   }
 
@@ -1345,8 +1349,8 @@ export class CombatController {
     }
     const postBarrierDeletedIds = resolvedDeletedIds.filter((id) => !barrieredIds.has(id));
     // Q4262: Barrier does not cancel same-event prevention or instead siblings. The shared
-    // consult preserves Q6250/Q5352 instead exclusivity while allowing eligible prevention
-    // candidates such as P-146 (Q4261/Q4262) to resolve independently.
+    // consult still offers the instead reactions (Q6250) and lets eligible prevention
+    // candidates such as P-146 (Q4261/Q4262) resolve independently.
     if (barrieredIds.size > 0) {
       await this.hooks.consultLeavePrevention?.([...barrieredIds]);
     }

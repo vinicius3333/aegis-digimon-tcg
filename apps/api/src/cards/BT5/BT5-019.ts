@@ -9,6 +9,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
+          effectTextPart:
+            "[When Digivolving] You may place 1 red Digimon card from your hand at the top of this Digimon's digivolution cards.",
           target: { filter: { zone: "hand", controller: "mine", kind: ["Digimon"], colors: ["Red"] }, count: 1 },
           from: ["hand"],
           asTop: true,
@@ -16,6 +18,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Delete",
+          effectTextPart:
+            "Then, for each [OmniShoutmon] or [ZeigGreymon] in this Digimon's digivolution cards, delete 1 of your opponent's Digimon with 5000 DP or less.",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } }, count: 1 },
           scaling: {
             per: 1,

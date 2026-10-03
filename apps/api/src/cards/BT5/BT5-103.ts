@@ -8,6 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -21,6 +22,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
+          playerWide: true,
           target: {
             filter: {
               controller: "mine",
@@ -42,6 +44,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Restrict",
+          effectTextPart: "[Security] Your opponent's Digimon can't attack players for the turn.",
           target: {
             filter: {
               controller: "opponent",
@@ -51,9 +54,11 @@ const compiled: CompiledCard = {
           },
           restriction: "attackPlayers",
           duration: "forTheTurn",
+          whileMatchesTargetFilter: true,
         },
         {
           kind: "AddToHandSelf",
+          effectTextPart: "Then, add this card to your hand.",
         },
       ],
       isSecurity: true,

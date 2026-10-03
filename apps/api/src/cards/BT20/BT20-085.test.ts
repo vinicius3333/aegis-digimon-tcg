@@ -69,6 +69,7 @@ describe("BT20-085 Shoto Kazama", () => {
           kind: "Suspend",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           cost: { kind: "suspend", target: { isSelf: true } },
+          optional: true,
           abortOnDecline: true,
         },
         {
@@ -212,6 +213,39 @@ describe("BT20-085 Shoto Kazama", () => {
     expect(s.perm("vortex").currentDP).toBe(7000);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await turnLoop;
+  });
+
+  it("declines the optional 'by' cost at end of turn and neither suspends nor boosts", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-085", as: "shoto" },
+            { card: "ST18-10", dp: 7000, as: "vortex" },
+          ],
+          deck: ["BT20-010", "BT20-010"],
+        },
+        1: { battleArea: [{ card: "BT20-047", as: "opponent" }], deck: ["BT20-010", "BT20-010"] },
+      },
+      { autoSelectCards: true, declinePrompts: ["returning this Tamer to the bottom of the deck"] },
+    );
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await ownTurn;
+
+    expect(s.perm("shoto").isSuspended).toBe(false);
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.perm("vortex").currentDP).toBe(7000);
   });
 
   it("plays the exact Shoto instance from a public security check without cost", async () => {

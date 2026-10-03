@@ -53,6 +53,7 @@ export interface FieldClashScene {
  */
 function closesAttack(event: ServerEvent): boolean {
   return (
+    event.kind === "attackEnded" ||
     event.kind === "combatResolved" ||
     event.kind === "securityChecked" ||
     event.kind === "turnEnded" ||
