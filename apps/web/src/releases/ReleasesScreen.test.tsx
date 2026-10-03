@@ -27,6 +27,8 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "O que há de novo" })).toBeTruthy();
-    expect(screen.getByText(/Esta atualização traz de volta o menu de efeitos depois de recarregar a página/)).toBeTruthy();
+    expect(
+      screen.getByText(/Esta atualização traz de volta o menu de efeitos depois de recarregar a página/),
+    ).toBeTruthy();
   });
 });
