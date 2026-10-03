@@ -687,7 +687,13 @@ export class AegisRoom extends Room<{ state: GameState }> {
         this.rebuildClientViews();
         return result;
       },
-      input.botOptions,
+      {
+        ...input.botOptions,
+        canChooseBreedingAction: () =>
+          this.engine.breeding.isOpen &&
+          !this.engine.breeding.isActionSpent &&
+          (input.botOptions?.canChooseBreedingAction?.() ?? true),
+      },
     );
     this.withBatch(() =>
       this.engine.seatPlayer(seat, `bot:${participantId}`, {
@@ -942,7 +948,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
         this.rebuildClientViews();
         return result;
       },
-      modelOptions,
+      {
+        ...modelOptions,
+        canChooseBreedingAction: () => this.engine.breeding.isOpen && !this.engine.breeding.isActionSpent,
+      },
     );
 
     this.debug("bot.seated", { seat: this.BOT_SEAT, deck });

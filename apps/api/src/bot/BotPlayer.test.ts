@@ -286,6 +286,53 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toEqual([{ type: "endPhase" }]);
   });
 
+  it("does not request a breeding action for an automatically closed engine window", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.phase = Phase.Breeding;
+    let open = false;
+    const chooseBreedingAction = vi.fn<() => Intent>(() => ({ type: "endPhase" }));
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      canChooseBreedingAction: () => open,
+      policy: { ...createEvaluationPolicy(), chooseBreedingAction },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 1, turnCount: 1 });
+    await advance(1);
+    expect(chooseBreedingAction).not.toHaveBeenCalled();
+    expect(intents).toEqual([]);
+    open = true;
+    state.turnCount = 2;
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 1, turnCount: 2 });
+    await advance(1);
+    expect(chooseBreedingAction).toHaveBeenCalledOnce();
+    expect(intents).toEqual([{ type: "endPhase" }]);
+    bot.dispose();
+  });
+
+  it("discards pending inference when the engine breeding window closes without a phase event", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.phase = Phase.Breeding;
+    let open = true;
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      canChooseBreedingAction: () => open,
+      policy: { ...createEvaluationPolicy(), chooseBreedingAction: () => deferred.promise },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 1, turnCount: 1 });
+    await advance(1);
+    open = false;
+    deferred.resolve({ type: "endPhase" });
+    await advance(1);
+    expect(intents).toEqual([]);
+    expect(bot.inferenceFallbacks).toEqual({ timeout: 0, error: 0 });
+    bot.dispose();
+  });
+
   it("uses the heuristic to answer a timed-out required decision", async () => {
     vi.useFakeTimers();
     const { state } = botState();

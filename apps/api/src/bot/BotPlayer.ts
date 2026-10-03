@@ -60,6 +60,8 @@ export interface BotOptions {
   thinkDelay?: () => Promise<void>;
   /** Headless training waits for engine continuations before requesting a move. */
   canChooseMainAction?: () => boolean;
+  /** Authoritative breeding window, including phases the engine automatically skips. */
+  canChooseBreedingAction?: () => boolean;
   /** Training can use Infinity and enforce an explicit episode truncation externally. */
   maxMainPhaseActions?: number;
 }
@@ -108,6 +110,7 @@ export class BotPlayer {
   private readonly usesRealTimePacing: boolean;
   private readonly pause: (minMs: number, maxMs: number) => Promise<void>;
   private readonly canChooseMainAction: () => boolean;
+  private readonly canChooseBreedingAction: () => boolean;
   private readonly maxMainPhaseActions: number;
 
   constructor(
@@ -125,6 +128,7 @@ export class BotPlayer {
     if (!Number.isFinite(this.policyTimeoutMs) || this.policyTimeoutMs <= 0)
       throw new Error("policyTimeoutMs must be finite and positive");
     this.canChooseMainAction = options.canChooseMainAction ?? (() => true);
+    this.canChooseBreedingAction = options.canChooseBreedingAction ?? (() => true);
     this.maxMainPhaseActions = options.maxMainPhaseActions ?? MAX_MAIN_PHASE_ACTIONS;
     if (!(this.maxMainPhaseActions > 0)) throw new Error("maxMainPhaseActions must be positive");
     const random = createBotRandom(seed ^ 0x9e37);
@@ -493,7 +497,8 @@ export class BotPlayer {
       this.state.gameOver ||
       this.state.turnSeat !== this.seat ||
       this.state.phase !== Phase.Breeding ||
-      this.state.pendingDecision !== undefined
+      this.state.pendingDecision !== undefined ||
+      !this.canChooseBreedingAction()
     )
       return;
     if (this.breedingActionTurn === this.state.turnCount) return;
@@ -513,6 +518,7 @@ export class BotPlayer {
       this.state.turnSeat === this.seat &&
       this.state.phase === Phase.Breeding &&
       this.state.pendingDecision === undefined &&
+      this.canChooseBreedingAction() &&
       this.eventRevision === revision;
     const answer = this.resolvePolicyIntent(
       (signal) => this.policy.chooseBreedingAction(view, signal),

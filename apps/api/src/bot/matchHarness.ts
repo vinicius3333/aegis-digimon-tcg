@@ -187,6 +187,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       policy: timed(policy, stats[seat].decisionLatenciesMs, () => !closed),
       seed,
       thinkDelay: microtask,
+      canChooseBreedingAction: () => engine.breeding.isOpen && !engine.breeding.isActionSpent,
       ...(config.policyTimeoutMs === undefined ? {} : { policyTimeoutMs: config.policyTimeoutMs }),
       ...(config.canChooseMainAction === undefined
         ? {}
