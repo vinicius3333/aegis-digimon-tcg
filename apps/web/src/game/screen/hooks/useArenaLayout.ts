@@ -76,7 +76,7 @@ export function useArenaLayout(): ArenaLayout {
       : shortPortraitArena
         ? 40
         : 44
-    : shortLandscapePhone || shortNarrowDock
+    : landscapePhone || shortNarrowDock
       ? 44
       : compactPiles || shortRails || dockViewerPiles
         ? 56
