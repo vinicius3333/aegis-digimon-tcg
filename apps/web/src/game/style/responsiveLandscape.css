@@ -546,10 +546,11 @@
   .game-board > .game-player-dock {
     display: contents !important;
   }
+  /* Bottom-aligned, so the raising card's stack badge clears the memory band. */
   .game-player-dock > .game-breeding-dock {
     z-index: 2;
     grid-area: 4 / 2;
-    align-self: center;
+    align-self: end;
     padding: 0 var(--ds-space-1) !important;
     border: 0 !important;
     background: transparent !important;
