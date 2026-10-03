@@ -224,6 +224,12 @@
 }
 
 /* The phase ribbon crosses the memory line without intercepting board input. */
+/* The banner lives in the memory band, whose stacking context sat under the field
+   cards' copy and source badges (z 9). While it plays, the band rises over the field. */
+.game-board .game-memory-band:has(.game-phase-banner) {
+  z-index: 12;
+}
+
 .game-board .game-phase-banner {
   top: 50%;
   left: 0;
