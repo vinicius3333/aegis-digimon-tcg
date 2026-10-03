@@ -91,7 +91,7 @@ export function useArenaLayout(): ArenaLayout {
           : 76
     : landscapePhone
       ? shortLandscapePhone
-        ? 48
+        ? 42
         : LANDSCAPE_PHONE_PERMANENT_WIDTH
       : shortBoard
         ? 76

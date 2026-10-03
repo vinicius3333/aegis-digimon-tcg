@@ -480,3 +480,40 @@
     bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* A phone on its side with the browser's bars showing leaves the board about 270px.
+   The opponent's bar, the hand and the dock each give up height, so both battle rows
+   hold a whole card instead of a sliver. */
+@media (height < 360px) and (orientation: landscape) {
+  :root {
+    --hand-card-width: 2.75rem;
+  }
+  .game-opponent-bar {
+    min-height: 0;
+    padding: 1px var(--ds-space-2) !important;
+  }
+  .game-opponent-bar .game-arena-counter,
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] .game-arena-counter {
+    width: 1.75rem;
+    min-width: 0;
+    height: 1.75rem;
+    min-height: 0;
+  }
+  .game-opponent-bar > .game-arena-counters {
+    padding: 0;
+  }
+  .aegis-arena .game-opponent-bar :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-surrender) {
+    min-width: 30px;
+    width: 30px;
+    min-height: 30px;
+    height: 30px;
+  }
+  .game-breeding-dock {
+    padding-block: 2px !important;
+  }
+  /* The piles read on their own: an egg, a card back, a face-up card. Their
+     captions cost the dock and each rail 14px. */
+  .game-board :is(.game-utility-slot, .game-utility-slot > div, .game-breeding-slot) > span {
+    display: none;
+  }
+}
