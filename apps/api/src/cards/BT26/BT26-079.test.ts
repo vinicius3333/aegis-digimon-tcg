@@ -499,6 +499,52 @@ describe("BT26-079 compiled behavior", () => {
     await loop;
   });
 
+  it.each([false, true])(
+    "Discord 1555883726292914187: removes the pending watcher after De-Digivolve (effect evolution: %s)",
+    async (byEffect) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT22-044", as: "base", under: ["BT22-004", "BT22-044"] }],
+            hand: [{ card: "BT22-056", as: "evolution" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+            deck: ["BT1-014", "BT1-015"],
+          },
+          1: {
+            battleArea: [{ card: "BT26-079", as: "zombie", under: ["BT26-059"] }],
+            hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const inherited = s.perm("base").stack.find(({ cardId }) => cardId === "BT22-044")!;
+      const effects = JSON.parse(s.perm("base").activatableEffectsJson || "[]") as { effectKey: string }[];
+      expect(
+        s.engine.applyIntent(
+          0,
+          byEffect
+            ? {
+                type: "activateEffect",
+                sourceInstanceId: inherited.instanceId,
+                effectKey: effects[0]!.effectKey,
+              }
+            : {
+                type: "digivolve",
+                permanentId: s.perm("base").permanentId,
+                instanceId: s.inst("evolution").instanceId,
+              },
+        ),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("zombie").topCard.cardId).toBe("BT26-059");
+      expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT26-079");
+      expect(s.state.players[0]!.hand).toHaveLength(byEffect ? 7 : 6);
+      expect(s.state.players[1]!.hand).toHaveLength(6);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("uses Decode to play Plutomon from its stack instead of leaving by an effect", async () => {
     const s = setupEngine(
       {
