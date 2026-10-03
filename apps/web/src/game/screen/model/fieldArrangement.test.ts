@@ -44,12 +44,21 @@ function ids(permanents: readonly Permanent[]) {
 }
 
 describe("arrangeField", () => {
-  it("keeps Digimon in the main row, sorted by level then play cost", () => {
+  it("keeps Digimon in the main row in play order", () => {
     const { digimon } = arrangeField(
       [permanent("alphamon", ALPHAMON), permanent("guardromon", GUARDROMON), permanent("palmon", PALMON)],
       plainOptions,
     );
-    expect(ids(digimon)).toEqual(["palmon", "guardromon", "alphamon"]);
+    expect(ids(digimon)).toEqual(["alphamon", "guardromon", "palmon"]);
+  });
+
+  it("keeps a Digimon in place when it digivolves", () => {
+    const palmon = permanent("palmon", PALMON);
+    const field = [palmon, permanent("guardromon", GUARDROMON)];
+    expect(ids(arrangeField(field, plainOptions).digimon)).toEqual(["palmon", "guardromon"]);
+    palmon.stack.push(palmon.topCard);
+    palmon.topCard = card(ALPHAMON, "palmon-digivolved");
+    expect(ids(arrangeField(field, plainOptions).digimon)).toEqual(["palmon", "guardromon"]);
   });
 
   it("moves Tamers then Options to the support row, cheapest first", () => {
@@ -89,7 +98,16 @@ describe("arrangeField", () => {
       ],
       plainOptions,
     );
-    expect(support.map((group) => ids(group.members))).toEqual([["arata-2"], ["arata-1", "arata-3"]]);
+    expect(support.map((group) => ids(group.members))).toEqual([["arata-1", "arata-3"], ["arata-2"]]);
+  });
+
+  it("keeps a copy in place when it suspends to use its effect", () => {
+    const saved = permanent("watch-saved", WATCHMAKER, { stack: 1 });
+    const plain = permanent("watch-plain", WATCHMAKER);
+    const field = [plain, saved];
+    expect(arrangeField(field, plainOptions).support.map((group) => group.key)).toEqual(["watch-plain", "watch-saved"]);
+    plain.isSuspended = true;
+    expect(arrangeField(field, plainOptions).support.map((group) => group.key)).toEqual(["watch-plain", "watch-saved"]);
   });
 
   it("treats a card held before an unsuspend sweep as still suspended", () => {

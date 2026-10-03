@@ -2,8 +2,9 @@
 
    The server keeps every permanent in one array in play order, and no rule reads that
    order back, so the client is free to present it differently. Digimon stay in the main
-   row, sorted by level then play cost. Tamers and Options move to a smaller row, where
-   copies that look and act the same collapse into one card with a count.
+   row in play order, so digivolving a Digimon never moves it. Tamers and Options move
+   to a smaller row, where copies that look and act the same collapse into one card
+   with a count.
 
    Pure: the rows decide what "singled out" means from their own chrome. */
 
@@ -84,21 +85,12 @@ export function arrangeField(
     (supportKindRank(permanent) === undefined ? digimon : support).push(permanent);
   }
 
-  digimon.sort(
-    compareBy(
-      (permanent) => definitionOf(permanent)?.level ?? 0,
-      (permanent) => definitionOf(permanent)?.playCost ?? 0,
-      (permanent) => permanent.topCard?.cardId ?? "",
-      indexOf,
-    ),
-  );
-
   support.sort(
     compareBy(
       (permanent) => supportKindRank(permanent) ?? 0,
       (permanent) => definitionOf(permanent)?.playCost ?? 0,
       (permanent) => permanent.topCard?.cardId ?? "",
-      (permanent) => (isSuspended(permanent) ? 1 : 0),
+      // Play order, not readiness: suspending a copy to use its effect must not move it.
       indexOf,
     ),
   );
