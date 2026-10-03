@@ -80,8 +80,7 @@ describe("Tamer suspend costs gate their complete triggered sequences", () => {
       if (action.kind === "SubTrigger") {
         const hasSelfSuspendPayload = action.actions.some(
           (nested) =>
-            nested.kind === "Suspend" &&
-            (nested.target.isSelf === true || nested.target.filter.isSelfRef === true),
+            nested.kind === "Suspend" && (nested.target.isSelf === true || nested.target.filter.isSelfRef === true),
         );
         if (hasSelfSuspendPayload) offenders.push(`${cardId}:${action.event}`);
       }
@@ -118,6 +117,7 @@ describe("Tamer suspend costs gate their complete triggered sequences", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -185,6 +185,7 @@ describe("Tamer suspend costs gate their complete triggered sequences", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 20;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
