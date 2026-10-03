@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-match-timer": {
+    ptBR: "Timer real: 60 s por jogador, +15 s por turno, limitado a 60 s. Encerre a criação e jogue contra o bot. Só conta o tempo de quem precisa responder; efeitos e animações pausam a contagem. Fique sem agir para testar a derrota por timeout. Reiniciar combate restaura os relógios.",
+    en: "Live timer: 60 sec per player, +15 sec per turn, capped at 60 sec. End breeding and play against the bot. Only the required responder's time counts; effects and animations pause it. Stop acting to test defeat by timeout. Reset combat restores the clocks.",
+  },
   "arena-bt20-bakemon-violet-retroactive": {
     ptBR: "Evolua Ghostmon para BT20-068 Bakemon. Aceite jogar BT23-087 Violet Inboots da mão. Como Violet entrou depois da evolução, ela deve permanecer desuspensa e não deve oferecer Rush para esse Bakemon.",
     en: "Digivolve Ghostmon into BT20-068 Bakemon. Accept playing BT23-087 Violet Inboots from hand. Violet entered after the evolution, so it should remain unsuspended and should not offer Rush to this Bakemon.",
@@ -548,6 +552,7 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena", "Attack steps · Counter/Blocker"],
+  ["arena-match-timer", "Timer · vs bot (60s + 15s/turn)"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],

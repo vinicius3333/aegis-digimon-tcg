@@ -22,6 +22,7 @@ export interface AegisJoinOptions {
   devScenario?:
     | "battle"
     | "arena"
+    | "arena-match-timer"
     | "arena-aegiochus-dark-assembly"
     | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"

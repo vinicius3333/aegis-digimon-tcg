@@ -37,6 +37,7 @@ import {
 export const DEV_SCENARIO_IDS = [
   "battle",
   "arena",
+  "arena-match-timer",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
   "arena-bt11-analogman-redirect-timing",
@@ -1424,6 +1425,13 @@ function layArenaScenario(state: GameState, decks: readonly [Decklist, Decklist]
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** A live timer test opens on the human's turn with both battle areas populated. */
+function layMatchTimerScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  layArenaScenario(state, decks);
+  state.turnSeat = 0;
+  state.memory = 3;
 }
 
 /** Reproduces the opponent view of a mixed security stack with public, face-up cards. */
@@ -4357,6 +4365,7 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
+  "arena-match-timer": layMatchTimerScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,

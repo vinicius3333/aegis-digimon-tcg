@@ -37,7 +37,10 @@ capped at the starting reserve; the opening turn does not receive a refill.
 Private-room creators may also choose `timerStartSeconds` (60, 180, 300, 600)
 and `timerRefillSeconds` (0, 15, 30, 60). Invalid values use the defaults.
 The creator's settings apply to both seats; guest join payloads cannot change them.
-Ranked, tournament and bot rooms ignore clock opt-in.
+Ranked, tournament and ordinary bot rooms ignore clock opt-in. Outside production,
+`/dev/arena?scenario=arena-match-timer` enables a live bot test with 60-second banks
+and a 15-second refill, capped at 60 seconds. Only the required responder’s clock
+is displayed; both readouts are hidden during automatic resolution and presentation pauses.
 
 The server owns elapsed time. `timerRemaining0` and `timerRemaining1` are rounded-up
 seconds; `timerActiveSeat` is 0 or 1 while that player must act, and -1 while paused.

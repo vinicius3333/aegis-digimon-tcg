@@ -7,9 +7,33 @@ import { DecisionMatchTimer, MatchTimer, formatMatchTime } from "./MatchTimer";
 
 afterEach(cleanup);
 describe("match timer readouts", () => {
+  it("shows only the required responder, and hides both clocks while paused", () => {
+    const state = new GameState();
+    state.matchTimer = true;
+    const view = () => (
+      <I18nProvider>
+        <MatchTimer state={state} seat={0} />
+        <MatchTimer state={state} seat={1} opponent />
+      </I18nProvider>
+    );
+    const { rerender } = render(view());
+    expect(screen.queryAllByRole("timer")).toHaveLength(0);
+    state.timerActiveSeat = 0;
+    rerender(view());
+    expect(screen.getAllByRole("timer")).toHaveLength(1);
+    expect(screen.getByRole("timer").getAttribute("aria-label")).toContain("Your time");
+    state.timerActiveSeat = 1;
+    rerender(view());
+    expect(screen.getAllByRole("timer")).toHaveLength(1);
+    expect(screen.getByRole("timer").getAttribute("aria-label")).toContain("Opponent");
+    state.timerActiveSeat = -1;
+    rerender(view());
+    expect(screen.queryAllByRole("timer")).toHaveLength(0);
+  });
   it("keeps a decision clock above the sheet only for its responder until the match ends", () => {
     const state = new GameState();
     state.matchTimer = true;
+    state.timerActiveSeat = 1;
     const decision = new PendingDecision();
     decision.seat = 1;
     state.pendingDecision = decision;

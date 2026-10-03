@@ -12,19 +12,15 @@ export function formatMatchTime(seconds: number): string {
 /** Reads live authoritative state, never the board's held animation snapshot. */
 export function MatchTimer({ state, seat, opponent = false }: { state: GameState; seat: Seat; opponent?: boolean }) {
   const { t } = useTranslation();
-  if (!state.matchTimer) return null;
+  if (!state.matchTimer || state.gameOver || state.timerActiveSeat !== seat) return null;
   const remaining = seat === 0 ? state.timerRemaining0 : state.timerRemaining1;
-  const active = !state.gameOver && state.timerActiveSeat === seat;
   const low = remaining <= 30;
   const label = t(opponent ? "game.timer.opponent" : "game.timer.you");
-  const status = t(
-    low ? "game.timer.low" : active ? (opponent ? "game.opponentsTurn" : "game.timer.active") : "game.timer.paused",
-  );
-  const Icon = active ? Icons.Clock : Icons.Pause;
+  const status = t(low ? "game.timer.low" : opponent ? "game.opponentsTurn" : "game.timer.active");
   return (
     <div
       className="match-timer"
-      data-active={active || undefined}
+      data-active="true"
       data-low={low || undefined}
       data-testid={opponent ? "opponent-match-timer" : "viewer-match-timer"}
       role="timer"
@@ -32,7 +28,7 @@ export function MatchTimer({ state, seat, opponent = false }: { state: GameState
     >
       <div className="match-timer__label">
         <span>{label}</span>
-        <Icon size={14} />
+        <Icons.Clock size={14} />
       </div>
       <strong className="match-timer__time">{formatMatchTime(remaining)}</strong>
       <span className="match-timer__status">{status}</span>
@@ -45,7 +41,13 @@ export function MatchTimer({ state, seat, opponent = false }: { state: GameState
 
 /** Keep the responder's bank visible when a decision sheet covers the board. */
 export function DecisionMatchTimer({ state, seat }: { state: GameState; seat: Seat }) {
-  if (!state.matchTimer || state.gameOver || state.pendingDecision?.seat !== seat || typeof document === "undefined")
+  if (
+    !state.matchTimer ||
+    state.gameOver ||
+    state.timerActiveSeat !== seat ||
+    state.pendingDecision?.seat !== seat ||
+    typeof document === "undefined"
+  )
     return null;
   return createPortal(
     <div className="game-decision-clock">

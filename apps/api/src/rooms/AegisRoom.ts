@@ -520,13 +520,18 @@ export class AegisRoom extends Room<{ state: GameState }> {
     });
 
     // Optional clocks belong to casual/private rooms. Ignore crafted ranked/tournament options.
+    const devTimer = this.devScenario === "arena-match-timer";
     this.matchClock = new MatchClock(
       this.state,
       {
         ...options,
-        matchTimer: !this.isTournamentRoom && !this.isRankedRoom && !this.isBotRoom && options.matchTimer === true,
+        matchTimer:
+          !this.isTournamentRoom &&
+          !this.isRankedRoom &&
+          (devTimer || (!this.isBotRoom && options.matchTimer === true)),
+        ...(devTimer ? { timerStartSeconds: 60, timerRefillSeconds: 15 } : {}),
       },
-      this.isPrivate,
+      this.isPrivate || devTimer,
       performance.now(),
     );
     if (this.state.matchTimer) {
@@ -992,9 +997,11 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // has no seatByClient entry for applyIntent to route through) — starting the
     // match directly here is the bot seat's stand-in for readiness.
     // Legacy bot joins can promote a waiting casual room to practice mode.
-    this.state.matchTimer = false;
-    this.state.timerActiveSeat = -1;
-    this.matchClockInterval?.clear();
+    if (this.devScenario !== "arena-match-timer") {
+      this.state.matchTimer = false;
+      this.state.timerActiveSeat = -1;
+      this.matchClockInterval?.clear();
+    }
     if (this.devScenario !== undefined) this.startDevScenarioNow(this.devScenario);
     else this.startMatchNow();
     return true;
