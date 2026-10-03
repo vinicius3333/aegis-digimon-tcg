@@ -17,6 +17,11 @@ export function BattleRow({
   const { t } = useTranslation();
   const rowRef = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ left: false, right: false, x: 0, y: 0, end: 0 });
+  const measureRef = useRef<() => void>(undefined);
+  // A sibling lane appearing can move this one without resizing it, so every render
+  // re-reads where the paging controls belong. Reading is cheap; re-creating the
+  // observers below on every render was not.
+  useLayoutEffect(() => measureRef.current?.());
   useLayoutEffect(() => {
     const row = rowRef.current;
     if (!row) return;
@@ -43,19 +48,31 @@ export function BattleRow({
       );
     }
     const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
-    observer?.observe(row);
-    for (const child of row.children) observer?.observe(child);
+    const observeChildren = () => {
+      observer?.disconnect();
+      observer?.observe(row);
+      for (const child of row.children) observer?.observe(child);
+    };
+    // Set up once rather than on every render: a crowded board re-rendered every
+    // lane's observers and listeners on each state change. Cards entering or
+    // leaving re-observe the children; any size change re-measures.
+    const children = typeof MutationObserver === "undefined" ? undefined : new MutationObserver(observeChildren);
+    children?.observe(row, { childList: true });
+    observeChildren();
+    measureRef.current = measure;
     row.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     measure();
     return () => {
       observer?.disconnect();
+      children?.disconnect();
+      measureRef.current = undefined;
       row.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
     };
-  }, [children]);
+  }, []);
 
   function scroll(direction: number) {
     const row = rowRef.current;
