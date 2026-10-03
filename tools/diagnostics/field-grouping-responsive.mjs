@@ -32,6 +32,10 @@ async function inspect() {
   for (const row of rows) {
     const rowRect = row.getBoundingClientRect();
     check(rowRect.top >= 0 && rowRect.bottom <= innerHeight, "Battle row outside viewport");
+    if (innerWidth >= 1024 && innerHeight >= 760 && row.classList.contains("game-battle-row--opp")) {
+      const breeding = document.querySelector(".game-opponent-breeding")?.getBoundingClientRect();
+      check(Boolean(breeding && rowRect.right <= breeding.left - 8), "Opponent lane overlaps breeding slots");
+    }
     for (const lane of row.querySelectorAll(".game-battle-lane")) {
       const rect = lane.getBoundingClientRect();
       const cards = [...lane.querySelectorAll("[data-field-key]")];
@@ -130,7 +134,7 @@ if (process.argv.includes("--screenshots") || outputArg) {
     .join("\n");
   writeFileSync(
     join(outputDir, "index.html"),
-    `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Field grouping · Orca screenshots</title><style>body{margin:0;padding:24px;background:#111827;color:#e5e7eb;font:16px system-ui}h1{font-size:24px}p{max-width:75ch;color:#b7c3d6}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}figure{margin:0;padding:12px;background:#1e293b;border-radius:12px}figcaption{margin-bottom:12px}img{display:block;width:100%;height:auto;max-height:700px;object-fit:contain}a{color:#93c5fd}</style><h1>Field grouping after the pile-layout merge</h1><p>Orca Browser captures of the server-backed field-grouping scenario. Click a capture for its original resolution. Layout checks cover lane clipping, horizontal scrolling and saved-source inspection. Pending entrance animations in background tabs are recorded separately in <a href="results.json">results.json</a>.</p><div class="gallery">${figures}</div></html>`,
+    `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Field grouping · Orca screenshots</title><style>body{margin:0;padding:24px;background:#111827;color:#e5e7eb;font:16px system-ui}h1{font-size:24px}p{max-width:75ch;color:#b7c3d6}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}figure{margin:0;padding:12px;background:#1e293b;border-radius:12px}figcaption{margin-bottom:12px}img{display:block;width:100%;height:auto;max-height:700px;object-fit:contain}a{color:#93c5fd}</style><h1>Field grouping with compact desktop zones</h1><p>Orca Browser captures of the server-backed field-grouping scenario. Click a capture for its original resolution. Layout checks cover lane clipping, horizontal scrolling and saved-source inspection. Pending entrance animations in background tabs are recorded separately in <a href="results.json">results.json</a>.</p><div class="gallery">${figures}</div></html>`,
   );
 }
 orca(["exec", "--command", "set viewport 390 844"]);

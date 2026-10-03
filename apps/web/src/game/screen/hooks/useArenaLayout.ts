@@ -56,8 +56,6 @@ export function useArenaLayout(): ArenaLayout {
     "(min-width: 600px) and (max-width: 1023px) and (orientation: portrait) and (min-height: 800px)",
   );
   const compactArena = useMediaQuery("(height < 950px)");
-  // Under this height a rail cannot stack two full-size piles over a security shield.
-  const shortRails = useMediaQuery("(height < 640px) and (orientation: landscape)");
   const tightArena = useMediaQuery("(height < 875px)");
   // Just above the phone layout, full-size hand cards leave the field too short for both battle rows.
   const shortDock = useMediaQuery("(min-height: 520px) and (max-height: 559px) and (orientation: landscape)");
@@ -69,7 +67,7 @@ export function useArenaLayout(): ArenaLayout {
   const shortNarrowDock = useMediaQuery(
     "(min-width: 600px) and (max-width: 759px) and (min-height: 520px) and (max-height: 599px) and (orientation: landscape)",
   );
-  // A docked full-size deck is too tall for the counters that sit under it in the bottom strip.
+  // Auxiliary desktop piles stay compact so the battle cards get the usable space.
   const arenaPileWidth = portraitArena
     ? tabletPortraitArena
       ? 62
@@ -78,9 +76,7 @@ export function useArenaLayout(): ArenaLayout {
         : 44
     : landscapePhone || shortNarrowDock
       ? 44
-      : compactPiles || shortRails || dockViewerPiles
-        ? 56
-        : 72;
+      : 56;
   const arenaPermanentWidth = portraitArena
     ? tabletPortraitArena
       ? 88

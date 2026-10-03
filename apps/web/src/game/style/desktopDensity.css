@@ -1,0 +1,61 @@
+/* Auxiliary zones leave the desktop's height and width to the battle cards.
+   Security keeps its count and five distinct backs; it needs less space than a
+   permanent whose artwork, effects and sources players have to read. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .aegis-arena .game-board .game-field {
+    --arena-security-top: 5rem;
+    --arena-security-height: 2.75rem;
+  }
+
+  .aegis-arena .game-board .game-security-shield {
+    height: var(--arena-security-height);
+  }
+
+  .aegis-arena .game-board .game-security-cards {
+    gap: 0.25rem;
+    align-items: center;
+    height: var(--arena-security-height);
+  }
+
+  .aegis-arena .game-board .game-security-cards i {
+    width: 2rem;
+    height: 1.75rem;
+    border-radius: var(--ds-radius-sm);
+  }
+
+  .aegis-arena .game-board .game-opponent-hand {
+    --arena-opponent-card-width: 2.5rem;
+    --arena-opponent-card-height: 3.5rem;
+  }
+
+  .aegis-arena .game-board .game-battle-zones > .game-battle-row {
+    left: 10%;
+    right: 10%;
+  }
+
+  .aegis-arena .game-board .game-battle-zones > .game-battle-row--opp {
+    /* Both breeding slots, their gap and a gutter must clear a full lane. */
+    right: max(10%, 12.5rem);
+  }
+
+  .aegis-arena .game-board .game-pile-column--left > div:first-child {
+    left: 2rem;
+    top: 5rem;
+  }
+
+  .aegis-arena .game-board .game-pile-column--right > div:first-child > .game-opponent-breeding {
+    right: 2rem;
+    top: 5rem;
+  }
+
+  .aegis-arena
+    .game-board
+    :is(
+      .game-utility-slot--you-eggs,
+      .game-utility-slot--you-raising,
+      .game-utility-slot--opp-eggs,
+      .game-utility-slot--opp-raising
+    ) {
+    width: 4.5rem;
+  }
+}
