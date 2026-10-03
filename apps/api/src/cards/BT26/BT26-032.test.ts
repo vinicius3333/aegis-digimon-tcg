@@ -231,8 +231,8 @@ describe("BT26-032 compiled fidelity", () => {
       const choose = s.decisions.find((decision) => decision.req.kind === "chooseOption");
       expect(choose?.req.options?.choices).toHaveLength(2);
       expect(choose?.req.options?.choices).toEqual([
-        "[When Digivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
-        "[When Digivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
+        "[When Digivolving] All of your opponent's suspended Digimon get -5000 DP until their turn ends. Then, by suspending 1 Digimon, if it's your turn, you may play or use 1 [Vegetation] or [TS] trait card from your hand with the cost reduced by 5.",
+        "[When Digivolving] All of your opponent's suspended Digimon get -5000 DP until their turn ends. Then, by suspending 1 Digimon, if it's your turn, you may play or use 1 [Vegetation] or [TS] trait card from your hand with the cost reduced by 5.",
       ]);
       expect(
         s.engine.applyIntent(0, {

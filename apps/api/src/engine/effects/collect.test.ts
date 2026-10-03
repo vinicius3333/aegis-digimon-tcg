@@ -171,7 +171,7 @@ describe("gatherTriggeredEffects (full instance -> source -> collection chain)",
     expect([...new Set(keywords)].sort()).toEqual(scenario.expected);
   });
 
-  it("builds sources from instances and collects triggered effects", () => {
+  it.each([1, 2])("collects each printed effect once when its physical source is listed %i times", (count) => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT7-089", as: "perm" }] } });
     s.state.turnSeat = 0;
     const card = s.perm("perm").topCard;
@@ -185,7 +185,7 @@ describe("gatherTriggeredEffects (full instance -> source -> collection chain)",
         continuous: new ContinuousEffectLedger(),
       },
       EffectTiming.None,
-      [card],
+      Array(count).fill(card),
     );
     expect(collected.map((c) => c.effect.effectKey)).toEqual(["BT7-089/ir-35-0", "BT7-089/ir-35-1"]);
     expect(collected[0]?.source.cardId).toBe("BT7-089");
