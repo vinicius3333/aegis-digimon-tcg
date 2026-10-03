@@ -288,7 +288,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
   /**
    * Trash digivolution-stack cards of `hostPermanentId` BY AN EFFECT (the producing site for
    * the whenDigivolutionTrashed SubTrigger; KB P-004 Q4113). Moves the cards via `trash`, then
-   * fires whenDigivolutionTrashed once per card actually trashed, carrying the host as subject.
+   * fires whenDigivolutionTrashed once for the whole trash, carrying the host as subject.
    * A return-to-hand bounce that clears digivolution cards routes through returnToHand, never
    * here, so the bounce-clear never fires this event.
    */
@@ -354,9 +354,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
         ...(opts?.isDigiBurst === true ? { isDigiBurstTrash: true } : {}),
       });
-      for (let i = 0; i < moved.length; i++) {
-        const trashedCard = moved[i]!;
-        const wasTop = topStackCardInstanceId === trashedCard.instanceId;
+      for (const trashedCard of moved) {
         // onDigivolutionCardDiscarded ("when THIS digivolution card is trashed") FIRST: its
         // watcher is a CONTINUOUS install whose source IS the just-trashed card (isSelfRef,
         // BT10-006). fireSubTrigger runs a trailing recomputeContinuousEffects, which drops
@@ -366,17 +364,19 @@ export function createTrashVerbs(pc: PrimitivesContext) {
         // permanent (the host / another card), so they are order-insensitive.
         await engine.fireSubTrigger("onDigivolutionCardDiscarded", {
           subjectPermanentId: hostPermanentId,
-          trashedDigivolutionInstanceId: moved[i]!.instanceId,
+          trashedDigivolutionInstanceId: trashedCard.instanceId,
           ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
           ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
           ...(opts?.isDigiBurst === true ? { isDigiBurstTrash: true } : {}),
         });
-        await engine.fireSubTrigger("whenDigivolutionTrashed", {
-          subjectPermanentId: hostPermanentId,
-          trashedDigivolutionCardWasTop: wasTop,
-          ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
-        });
       }
+      // One effect trashing several cards at once is one event, so "when effects trash cards
+      // from under ..." watchers trigger once, not once per card (KB Q1306).
+      await engine.fireSubTrigger("whenDigivolutionTrashed", {
+        subjectPermanentId: hostPermanentId,
+        trashedDigivolutionCardWasTop: moved.some((card) => card.instanceId === topStackCardInstanceId),
+        ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
+      });
     }
     ledger.dropSourceInstances(
       state,

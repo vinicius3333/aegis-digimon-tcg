@@ -1,6 +1,6 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { PresentationReport, Seat } from "@aegis/shared";
-import type { AnimationQueue, AnimationStepContext } from "../../animationQueue";
+import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
 import { buildNarrationItems, COLLAPSED_NARRATION_LIMIT, pushNarrationItem, type NarrationItem } from "../../narration";
 import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
@@ -78,6 +78,20 @@ export interface NarrationStreamDeps {
   lastBatchIdRef: MutableRefObject<string>;
   narrationSequenceRef: MutableRefObject<number>;
   narrationRef: MutableRefObject<ReadonlyMap<string, NarrationItem>>;
+}
+
+/** An effect's draw on its way to the hand; a turn's own draw is no clause's result. */
+function isEffectDrawFlight(step: AnimationStep): boolean {
+  return step.id.startsWith("draw-flight-") && step.track?.startsWith("drawFlight-") === true;
+}
+
+function pendingStepIds(queue: AnimationQueue, predicate: (step: AnimationStep) => boolean): Set<string> {
+  const ids = new Set<string>();
+  queue.countPendingSteps((step) => {
+    if (predicate(step)) ids.add(step.id);
+    return false;
+  });
+  return ids;
 }
 
 /** The revision of the batch whose clause armed each announcement gate. */
@@ -214,6 +228,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
         // Diagnostic transport must never interrupt the presentation.
       }
     }
+    // A clause is read once the board shows what the clauses before it did. Without this, the
+    // next Yoshino's clause lit up while the previous one's draw was still in the air.
+    const earlierDrawFlights =
+      body?.variant === "effect" ? pendingStepIds(queue, isEffectDrawFlight) : new Set<string>();
     queue.enqueue({
       id: `narration-step-${item.id}`,
       origin,
@@ -298,6 +316,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
           } else if (context.mode === "live" && body?.variant === "effect") {
             // Let this batch register its deletion beats before locating the source.
             await Promise.resolve();
+            await waitForEarlierBeats(body.cardId, seat, earlierDrawFlights, context);
+            if (context.cancelled || narrationSkipRef.current) return;
             for (const deleted of item.notice?.afterDeletions ?? []) {
               const burst = deletionReadyAtRef.current.get(`${deleted.seat}:${deleted.cardId}`);
               await waitForGate(burst?.started, context, TIMINGS.securityDockMax, "narration/causingDeletion");
@@ -353,15 +373,6 @@ export function narrationStream(deps: NarrationStreamDeps) {
             suppressedOwnEffects: suppressedOwnEffectsRef.current,
           });
           if (!shown) return;
-          const push = (published: NarrationItem) =>
-            setNarration((items) =>
-              pushNarrationItem(
-                items,
-                published,
-                collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
-                collapseNarrationRef.current,
-              ),
-            );
           // Left, then right. A moment carrying both halves is a sentence and its result, so
           // the clause takes the screen first and the cards it moved follow a beat later.
           // The folded phone slot draws both halves in one item, so it is published whole.
@@ -392,6 +403,63 @@ export function narrationStream(deps: NarrationStreamDeps) {
       },
     });
     if (announceGate) void queue.idle().then(() => announceGate.release());
+  }
+
+  function push(published: NarrationItem) {
+    setNarration((items) =>
+      pushNarrationItem(
+        items,
+        published,
+        collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
+        collapseNarrationRef.current,
+      ),
+    );
+  }
+
+  /**
+   * Waits until the board has caught up with the clauses before this one: the effect draws
+   * already in the air when it was raised, and the viewer's own clause for the same card that
+   * an answered dialog is about to hand back. That clause came first, so it reads first.
+   */
+  async function waitForEarlierBeats(
+    cardId: string,
+    seat: Seat,
+    earlierDrawFlights: ReadonlySet<string>,
+    context: AnimationStepContext,
+  ) {
+    const deadline = Date.now() + TIMINGS.ownEffectNoticeReturn + CONSEQUENCE_GATE_MAX_MS;
+    const answeredDialogPending = () =>
+      seat === viewerSeat && suppressedOwnEffectsRef.current.get(cardId)?.releaseTimer !== undefined;
+    while (
+      (queue.hasPendingStep((step) => earlierDrawFlights.has(step.id)) || answeredDialogPending()) &&
+      Date.now() < deadline &&
+      !context.cancelled &&
+      !context.skipping
+    )
+      await context.wait(16);
+  }
+
+  /**
+   * Publishes notices at once, outside the queue. For a clause the viewer's own dialog
+   * already printed: its card was lit and read while the dialog was open, so it only needs
+   * its place in the column, ahead of anything raised after it.
+   */
+  function publishNow(notices: readonly MatchNotice[], batchId: string) {
+    if (notices.length === 0) return;
+    const items = buildNarrationItems({
+      batchId,
+      notices,
+      panels: [],
+      nowMs: Date.now(),
+      nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
+    });
+    for (const item of items) {
+      const shown = presentableNarration(item, {
+        collapseNarration: collapseNarrationRef.current,
+        suppressedOwnEffects: suppressedOwnEffectsRef.current,
+      });
+      if (shown) push(shown);
+    }
   }
 
   /**
@@ -468,6 +536,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
   return {
     enqueueNarrationItem,
     narrate,
+    publishNow,
     flushHeldNotices,
     openHeld,
     narrationBefore,

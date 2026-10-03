@@ -162,6 +162,45 @@ describe("BT26-091 Yoshino Fujieda — KB Q&A rulings", () => {
     },
   );
 
+  it("triggers once when one effect trashes 2 cards from under Yoshino (Discord 1555741214014447737)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT26-091",
+              as: "yoshino",
+              under: [
+                { card: "ST24-12", as: "bottom", faceUp: false },
+                { card: "BT26-082", as: "next", faceUp: false },
+              ],
+            },
+            "BT26-039",
+          ],
+        },
+        1: { battleArea: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("yoshino").permanentId,
+      [s.inst("bottom").instanceId, s.inst("next").instanceId],
+      0,
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const trashTriggers = s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourcePermanentId === s.perm("yoshino").permanentId &&
+        event.effectKey.includes("When effects trash cards from under this Tamer"),
+    );
+    expect(s.perm("yoshino").stack).toHaveLength(0);
+    expect(trashTriggers).toHaveLength(1);
+  });
+
   it("Q3999 waits for a Thomas-reduced digivolution to complete, then orders with its When Digivolving", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

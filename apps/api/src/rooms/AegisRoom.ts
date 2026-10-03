@@ -874,7 +874,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // missed every card that reached the hand while the seat was offline, so the fresh view
       // must go on the new Client; assigning it to `client` left the socket on the stale one.
       reconnectedClient.view = this.engine.makeStateView(seat);
-      this.resendOpenPrompts(client, seat);
+      this.resendOpenPrompts(reconnectedClient, seat);
     } catch {
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
       // departure — the opponent wins an in-progress match.

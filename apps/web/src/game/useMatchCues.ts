@@ -605,7 +605,7 @@ export function useMatchCues({
 
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
 
-  const { narrate, flushHeldNotices, openHeld, narrationBefore } = narrationStream({
+  const { narrate, publishNow, flushHeldNotices, openHeld, narrationBefore } = narrationStream({
     viewerSeat,
     queue,
     cardSiteRef,
@@ -1219,7 +1219,7 @@ export function useMatchCues({
       dialog.releaseTimer = setTimeout(() => {
         if (suppressedOwnEffectsRef.current.get(cardId) !== dialog) return;
         suppressedOwnEffectsRef.current.delete(cardId);
-        narrate(dialog.deferred, [], lastBatchIdRef.current);
+        publishNow(dialog.deferred, lastBatchIdRef.current);
       }, TIMINGS.ownEffectNoticeReturn);
     },
     raiseRejection: (reason: string) => {

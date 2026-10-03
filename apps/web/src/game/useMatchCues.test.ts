@@ -5161,6 +5161,47 @@ it("keeps a clause held back across two dialogs the same effect opens in a row",
   expect(result.current.notices).toMatchObject([{ body: { variant: "effect", cardId: "EX13-069" } }]);
 });
 
+it("Discord 1555741214014447737: reads a held clause before the next copy's clause", async () => {
+  const board = {
+    players: [
+      {
+        battleArea: [
+          { permanentId: "first", topCard: { cardId: "BT26-091", instanceId: "copy-1" } },
+          { permanentId: "second", topCard: { cardId: "BT26-091", instanceId: "copy-2" } },
+        ],
+        hand: [],
+        trash: [],
+      },
+      { battleArea: [], hand: [], trash: [] },
+    ],
+  } as unknown as GameState;
+  const startOfMain = (permanentId: string, instanceId: string): ServerEvent => ({
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "BT26-091",
+    sourcePermanentId: permanentId,
+    sourceInstanceId: instanceId,
+    effectKey: "BT26-091/ir-1-0",
+    description:
+      "[Start of Your Main Phase] By placing 1 [DATA SQUAD] trait card from your hand face down under this Tamer, ＜Draw 1＞ and gain 1 memory.",
+    timing: "StartOfYourMainPhase",
+  });
+  const { result, rerender } = renderCuesOverBoard(board);
+  const first = startOfMain("first", "copy-1");
+  rerender([first]);
+  act(() => result.current.dismissOwnEffectNotice("BT26-091"));
+  await advance(TIMINGS.effectSourceHold + NARRATION_TICK_MS);
+
+  // The answer resolves the first copy, and the server announces the second in the same tick.
+  act(() => result.current.releaseOwnEffectNotice("BT26-091"));
+  rerender([first, startOfMain("second", "copy-2")]);
+  await advance(HELD_CLAUSE_RETURN_MS + TIMINGS.effectSourceHold);
+
+  expect(
+    result.current.notices.map((notice) => notice.body.variant === "effect" && notice.body.sourcePermanentId),
+  ).toEqual(["first", "second"]);
+});
+
 it("highlights the opponent's Plutomon when its All Turns hand-trash effect activates", async () => {
   const board = {
     players: [
