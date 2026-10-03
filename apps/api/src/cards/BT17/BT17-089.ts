@@ -27,8 +27,13 @@ export const compiled: CompiledCard = {
           event: "whenSuspended",
           sourceFilter: { isSelfRef: true },
           actions: [
-            { kind: "GainMemory", amount: 1 },
             {
+              effectTextPart: "[Your Turn] When this Tamer becomes suspended, gain 1 memory.",
+              kind: "GainMemory",
+              amount: 1,
+            },
+            {
+              effectTextPart: "Then, if you have [Argomon] or a yellow Digimon with [Agumon]/[Greymon], ＜Draw 1＞.",
               kind: "Draw",
               controller: "mine",
               amount: 1,

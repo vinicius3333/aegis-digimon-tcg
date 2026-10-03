@@ -7,12 +7,15 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] Add the top card of your security stack to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, you may place 1 card with [Sukamon] in its name from your hand on top of your security stack.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",

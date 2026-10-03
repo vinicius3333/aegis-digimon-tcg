@@ -16,7 +16,15 @@ if (whenDigivolving !== undefined) {
       ),
   );
   const suspend = whenDigivolving.actions.find((action) => action.kind === "Suspend");
-  if (suspend?.kind === "Suspend") suspend.condition = dnaCondition;
+  if (suspend?.kind === "Suspend") {
+    suspend.condition = dnaCondition;
+    suspend.effectTextPart =
+      "[When Digivolving] If DNA digivolving, suspend 1 of your opponent’s Digimon, and this Digimon gets +3000 DP for the turn.";
+  }
+  const attack = whenDigivolving.actions.find((action) => action.kind === "Attack");
+  if (attack?.kind === "Attack") {
+    attack.effectTextPart = "Then, you may attack your opponent's Digimon with this Digimon.";
+  }
   const attackIndex = whenDigivolving.actions.findIndex((action) => action.kind === "Attack");
   whenDigivolving.actions.splice(attackIndex < 0 ? whenDigivolving.actions.length : attackIndex, 0, {
     kind: "ModifyDP",

@@ -5,6 +5,8 @@ const cardId = "BT21-058";
 
 const revealAndPlaceVemmon = [
   {
+    effectTextPart:
+      "[On Play] [When Digivolving] Reveal the top 3 cards of your deck. Add 1 card with [Vemmon] in its text among them to the hand. trash the rest.",
     kind: "RevealAdd" as const,
     revealCount: 3,
     add: [
@@ -20,6 +22,8 @@ const revealAndPlaceVemmon = [
     rest: "trash" as const,
   },
   {
+    effectTextPart:
+      "Then, you may place up to 2 [Vemmon] from your trash as 1 of your Digimon's bottom digivolution cards.",
     kind: "PlaceUnder" as const,
     target: {
       filter: {

@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash 2 digivolution cards from the bottom of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -20,6 +21,8 @@ const compiled: CompiledCard = {
           fromTop: false,
         },
         {
+          effectTextPart:
+            "Then, 1 of your opponent's Digimon with no digivolution cards can't attack or block until the end of your opponent's next turn.",
           kind: "Restrict",
           target: {
             filter: {
@@ -33,6 +36,7 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, place this card in your battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

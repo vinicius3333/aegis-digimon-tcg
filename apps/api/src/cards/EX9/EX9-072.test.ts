@@ -191,8 +191,22 @@ describe("EX9-072", () => {
     }));
   it("trades the bottom security card for this card as face-up bottom security", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toEqual([
-      { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: false },
-      { kind: "SecurityManipulation", op: "placeAsSecurity", controller: "mine", toTop: false, faceUp: true },
+      {
+        effectTextPart: "[Main] Add your bottom security card to the hand.",
+        kind: "SecurityManipulation",
+        op: "toHand",
+        controller: "mine",
+        amount: 1,
+        toTop: false,
+      },
+      {
+        effectTextPart: "Then, place this card face up as the bottom security card.",
+        kind: "SecurityManipulation",
+        op: "placeAsSecurity",
+        controller: "mine",
+        toTop: false,
+        faceUp: true,
+      },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
       isSecurity: true,

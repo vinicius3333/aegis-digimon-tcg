@@ -42,6 +42,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -49,6 +50,7 @@ export const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart: "Then, if you have 3 or fewer security cards, ＜Recovery +1 (Deck)＞.",
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",
@@ -69,6 +71,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] Add your top security card to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -76,6 +79,7 @@ export const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart: "Then, if you have 3 or fewer security cards, ＜Recovery +1 (Deck)＞.",
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",

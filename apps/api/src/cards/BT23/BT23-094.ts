@@ -37,6 +37,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Until your opponent's turn ends, give 1 of their Digimon ＜Security A. -1＞ and it can't activate [When Digivolving] or [When Attacking] effects.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -67,6 +69,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],
@@ -127,6 +130,8 @@ export const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] Until your opponent's turn ends, give 1 of their Digimon ＜Security A. -1＞ and it can't activate [When Digivolving] or [When Attacking] effects.",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -157,6 +162,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

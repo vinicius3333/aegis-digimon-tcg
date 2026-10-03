@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Search",
+          effectTextPart:
+            "[On Play] Search your security stack. You may add 1 yellow or black card with 2 or more colors among them to the hand. If you added cards, ＜Recovery +1 (Deck)＞ (Place the top card of your deck on top of your security stack).",
           controller: "mine",
           filter: {
             controller: "mine",
@@ -33,6 +35,7 @@ const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "shuffle",
+          effectTextPart: "Then, shuffle your security stack.",
           controller: "mine",
         },
       ],

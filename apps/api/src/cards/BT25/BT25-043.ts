@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[When Digivolving] [When Attacking] [Once Per Turn] ＜Recovery +1＞",
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",
@@ -32,6 +33,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, by trashing the top security card of 1 player with the most security cards, this Digimon unsuspends.",
           kind: "RecoverByTrashingMostSecurity",
           amount: 1,
           recover: false,
@@ -55,6 +58,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Digivolving] [When Attacking] [Once Per Turn] ＜Recovery +1＞",
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",
@@ -62,6 +66,8 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, by trashing the top security card of 1 player with the most security cards, this Digimon unsuspends.",
           kind: "RecoverByTrashingMostSecurity",
           amount: 1,
           recover: false,

@@ -3,8 +3,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const recoveryAndBreedingDigivolve: Pick<CompiledCard["effects"][number], "actions"> = {
   actions: [
-    { kind: "Recover", amount: 1 },
+    { effectTextPart: "[On Play] [When Digivolving] ＜Recovery +1 (Deck)＞.", kind: "Recover", amount: 1 },
     {
+      effectTextPart:
+        "Then, if during an attack, 1 of your Digimon in the breeding area may digivolve into a level 6 or lower [Chronicle] trait Digimon card in the hand or trash without paying the cost.",
       kind: "Digivolve",
       target: {
         filter: { zone: "breeding", controller: "mine", kind: ["Digimon"] },

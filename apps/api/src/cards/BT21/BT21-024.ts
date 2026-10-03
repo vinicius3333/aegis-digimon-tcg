@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If your opponent has 5 or fewer security cards, they place 1 card from their hand as the bottom security card.",
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "opponent",
@@ -22,6 +24,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, trash their top security card.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
@@ -33,6 +36,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [When Digivolving] If your opponent has 5 or fewer security cards, they place 1 card from their hand as the bottom security card.",
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "opponent",
@@ -48,6 +53,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, trash their top security card.",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",

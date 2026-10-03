@@ -21,9 +21,15 @@ const sparrowmonStack = {
 for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
   const effect = compiled.effects.find((candidate) => candidate.trigger === trigger);
   const placement = effect?.actions[0];
-  if (placement?.kind === "PlaceUnder") placement.underFilter = undefined;
+  if (placement?.kind === "PlaceUnder") {
+    placement.underFilter = undefined;
+    placement.effectTextPart =
+      "[On Play][When Digivolving] You may place 1 Digimon card with a [Xros Heart] trait from your hand or from under one of your Tamers under this Digimon as its bottom digivolution card.";
+  }
   if (effect !== undefined) {
     effect.actions[1] = {
+      effectTextPart:
+        "Then, if this Digimon has [Sparrowmon] in its digivolution cards, until the end of your opponent's turn, all of your Digimon gain ＜Blocker＞ and can't be returned to hands or decks.",
       kind: "ConditionalBranch",
       condition: sparrowmonStack,
       ifTrue: [

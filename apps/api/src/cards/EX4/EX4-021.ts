@@ -7,11 +7,14 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: 1,
         },
         {
+          effectTextPart:
+            "Then, all of your opponent's level 4 or lower Digimon can't attack until the end of your opponent's turn.",
           kind: "Restrict",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },

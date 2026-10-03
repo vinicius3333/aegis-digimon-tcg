@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] Search your security stack. You may add 1 card with [Leomon] in its name among them to the hand. If you added a card, ＜Recovery +1 (Deck)＞ (Place the top card of your deck on top of your security stack).",
           kind: "Search",
           controller: "mine",
           searchZone: "security",
@@ -23,7 +25,12 @@ export const compiled: CompiledCard = {
           amount: 1,
           condition: { kind: "ifThisEffectActed" },
         },
-        { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
+        {
+          effectTextPart: "Then, shuffle your security stack.",
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "mine",
+        },
       ],
     },
     {

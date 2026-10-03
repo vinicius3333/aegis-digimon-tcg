@@ -37,6 +37,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "RevealAdd",
+          effectTextPart:
+            "[Main] Reveal the top 3 cards of your deck. Add 1 card with the [Glowing Dawn]\u00a0trait among them to the hand. Return the rest to the bottom of the deck.",
           revealCount: 3,
           add: [
             {
@@ -57,6 +59,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
+          effectTextPart: "Then, place this card in the battle area.",
         },
       ],
     },

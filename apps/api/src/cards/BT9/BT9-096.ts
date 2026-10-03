@@ -8,6 +8,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Return",
+          effectTextPart: "[Main] Return 1 of your opponent’s level 4 or lower Digimon to its owner’s hand.",
           target: {
             filter: {
               controller: "opponent",
@@ -23,6 +24,8 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Return",
+          effectTextPart:
+            "Then, if you have a Digimon with [Jellymon] in its name or with [Jellymon] in its digivolution cards, return 1 of your opponent’s Tamers to its owner’s hand.",
           target: {
             filter: {
               controller: "opponent",

@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may place 1 [Royal Base] trait Digimon card from your trash face up as your bottom security card.",
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "mine",
@@ -28,6 +30,8 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, delete up to 8 play cost total worth of your opponent's Digimon. For each of your face up security cards, add 2 to the maximum play cost you may choose with this effect.",
           kind: "DeleteBudget",
           filter: {
             controller: "opponent",

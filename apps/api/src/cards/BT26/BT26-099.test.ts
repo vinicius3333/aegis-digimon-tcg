@@ -27,7 +27,7 @@ describe("BT26-099 compiled fidelity", () => {
           trigger: "Main",
           actions: [
             expect.objectContaining({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" }),
-            { kind: "PlaceInBattleAreaSelf" },
+            { effectTextPart: "Then, place this card in the battle area.", kind: "PlaceInBattleAreaSelf" },
           ],
         }),
         expect.objectContaining({ trigger: "AllTurns", keywords: [{ keyword: "Delay", raw: "＜Delay＞" }] }),

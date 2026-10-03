@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] 1 of your Digimon gains ＜Security Attack +1＞ for the turn. (This Digimon checks 1 additional security card.)",
           kind: "GainKeyword",
           target: {
             filter: {
@@ -23,6 +25,7 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          effectTextPart: "Then, place this card in your battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

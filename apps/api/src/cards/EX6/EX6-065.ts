@@ -36,6 +36,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may place 1 Digimon card with the [Legend-Arms] trait from your trash as 1 of your Digimon’s bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -59,6 +61,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

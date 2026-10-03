@@ -30,6 +30,8 @@ const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] When this Digimon would leave the battle area other than by one of your effects, play 1 [BlitzGreymon] and 1 [CresGarurumon] from this Digimon's digivolution cards without paying the costs.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {
@@ -44,6 +46,8 @@ const compiled: CompiledCard = {
               payCost: false,
             },
             {
+              effectTextPart:
+                "[All Turns] When this Digimon would leave the battle area other than by one of your effects, play 1 [BlitzGreymon] and 1 [CresGarurumon] from this Digimon's digivolution cards without paying the costs.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {
@@ -58,6 +62,7 @@ const compiled: CompiledCard = {
               payCost: false,
             },
             {
+              effectTextPart: "Then, place this Digimon at the bottom of your security stack face down.",
               kind: "SecurityManipulation",
               op: "addBottom",
               controller: "mine",

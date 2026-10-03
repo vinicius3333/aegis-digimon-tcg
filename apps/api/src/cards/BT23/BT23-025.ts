@@ -17,6 +17,8 @@ const compiled: CompiledCard = {
       },
       actions: [
         {
+          effectTextPart:
+            "[Hand] [Main] If you have a Digimon or Tamer with the [CS] trait, by paying 5 cost, give 3 of your opponent's Digimon ＜Security A. -1＞ until their turn ends.",
           kind: "CostGatedBlock",
           condition: {
             kind: "youHave",
@@ -38,6 +40,7 @@ const compiled: CompiledCard = {
               duration: "untilOpponentTurnEnd",
             },
             {
+              effectTextPart: "Then, place this card as the top security card.",
               kind: "SecurityManipulation",
               op: "placeAsSecurity",
               controller: "mine",

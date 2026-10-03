@@ -34,6 +34,8 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
+          effectTextPart:
+            "[Your Turn] When you play a blue Digimon, you may suspend this Tamer to trash the bottom digivolution card of 1 of your opponent's Digimon.",
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: {
@@ -70,6 +72,8 @@ export const compiled: CompiledCard = {
               abortOnDecline: false,
             },
             {
+              effectTextPart:
+                "Then, if the Digimon played is [MarineAngemon], trash the bottom digivolution card of all of your opponent's Digimon.",
               kind: "TrashDigivolution",
               target: {
                 filter: {
@@ -86,6 +90,8 @@ export const compiled: CompiledCard = {
           ],
         },
         {
+          effectTextPart:
+            "[Your Turn] When you play a blue Digimon, you may suspend this Tamer to trash the bottom digivolution card of 1 of your opponent's Digimon.",
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: {

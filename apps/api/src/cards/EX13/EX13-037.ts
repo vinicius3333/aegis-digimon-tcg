@@ -14,7 +14,14 @@ const thinOwnSecurity: Condition = {
 };
 
 const trashBoostTrash = (): Action[] => [
-  { kind: "trashSecurityTop", controller: "mine", count: 1, raw: "trash your top security card" },
+  {
+    effectTextPart:
+      "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] trash your top security card and this Digimon gets +10000 DP until your opponent's turn ends.",
+    kind: "trashSecurityTop",
+    controller: "mine",
+    count: 1,
+    raw: "trash your top security card",
+  },
   {
     kind: "ModifyDP",
     target: self,
@@ -23,6 +30,7 @@ const trashBoostTrash = (): Action[] => [
     raw: "this Digimon gets +10000 DP until your opponent's turn ends",
   },
   {
+    effectTextPart: "Then, if you have 3 or fewer security cards, trash their top security card.",
     kind: "trashSecurityTop",
     controller: "opponent",
     count: 1,
@@ -66,13 +74,21 @@ export const compiled: CompiledCard = {
           raw: "[All Turns] [Once Per Turn] When security stacks are removed from, 1 of your opponent's Digimon gets -12000 DP until their turn ends. Then, if you have 3 or fewer security cards, ＜Recovery +1＞",
           actions: [
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When security stacks are removed from, 1 of your opponent's Digimon gets -12000 DP until their turn ends.",
               kind: "ModifyDP",
               target: { filter: theirDigimon, count: 1 },
               amount: -12000,
               duration: "untilOpponentTurnEnd",
               raw: "1 of your opponent's Digimon gets -12000 DP until their turn ends",
             },
-            { kind: "Recover", amount: 1, condition: thinOwnSecurity, raw: "＜Recovery +1＞" },
+            {
+              effectTextPart: "Then, if you have 3 or fewer security cards, ＜Recovery +1＞",
+              kind: "Recover",
+              amount: 1,
+              condition: thinOwnSecurity,
+              raw: "＜Recovery +1＞",
+            },
           ],
         },
       ],

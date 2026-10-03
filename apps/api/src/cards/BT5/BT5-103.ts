@@ -44,6 +44,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Restrict",
+          effectTextPart: "[Security] Your opponent's Digimon can't attack players for the turn.",
           target: {
             filter: {
               controller: "opponent",
@@ -57,6 +58,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "AddToHandSelf",
+          effectTextPart: "Then, add this card to your hand.",
         },
       ],
       isSecurity: true,
