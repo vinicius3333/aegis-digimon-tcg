@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.8.9-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.9-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.9-beta.fix.unsuspendOrder"
+      },
+      {
+        "textKey": "releases.1.8.9-beta.fix.deviceTrash"
+      }
+    ]
+  },
+  {
     "version": "1.8.8-beta",
     "releasedAt": "2026-10-03",
     "summaryKey": "releases.1.8.8-beta.summary",

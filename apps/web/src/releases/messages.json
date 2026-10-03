@@ -1,4 +1,16 @@
 {
+  "releases.1.8.9-beta.summary": {
+    "en": "This update fixes turn-start unsuspend announcements and Device effects triggered when trashed from the battle area.",
+    "pt-BR": "Esta atualização corrige a apresentação do unsuspend no início do turno e os efeitos de Device ativados quando são descartados da área de batalha."
+  },
+  "releases.1.8.9-beta.fix.unsuspendOrder": {
+    "en": "At turn start, cards now visibly unsuspend before effects such as Rina Shinomiya resolve, including after Evade in the previous turn. Reboot follows the same order.",
+    "pt-BR": "No início do turno, as cartas agora mostram o unsuspend antes da resolução de efeitos como os de Rina Shinomiya, inclusive após Evade no turno anterior. Reboot segue a mesma ordem."
+  },
+  "releases.1.8.9-beta.fix.deviceTrash": {
+    "en": "BT19-093 Queen Device, BT19-098 King Device and P-159 Rook Device now activate their trash effects after effect-driven removal from the battle area, preserving their targets and duration.",
+    "pt-BR": "BT19-093 Queen Device, BT19-098 King Device e P-159 Rook Device agora ativam seus efeitos de descarte após serem removidos da área de batalha por um efeito, preservando seus alvos e duração."
+  },
   "releases.1.8.8-beta.summary": {
     "en": "This update fixes Leopardmon ACE memory gain with King Drasil and Alliance with Marcus treated as a Digimon.",
     "pt-BR": "Esta atualização corrige o ganho de memória de Leopardmon ACE com King Drasil e Alliance com Marcus tratado como Digimon."
