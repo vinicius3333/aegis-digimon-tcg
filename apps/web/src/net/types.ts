@@ -44,6 +44,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-grademon-immunity"
     | "arena-ex7-seventh-fascination-turn"
     | "arena-lm067-gundramon-free-option"
+    | "arena-bt10-taiki-x7-xros-heart"
     | "arena-ex13-sampson-face-down-sources"
     | "arena-p240-arcturusmon-vb-routes"
     | "arena-p240-arcturusmon-ordered-placement"
