@@ -28,7 +28,9 @@ function permanent(
   result.isSuspended = overrides.isSuspended ?? false;
   for (let index = 0; index < (overrides.stack ?? 0); index++)
     result.stack.push(card(PALMON, `${permanentId}-${index}`));
-  result.activatableEffectsJson = overrides.activatable ? "[{}]" : "";
+  result.activatableEffectsJson = overrides.activatable
+    ? JSON.stringify([{ instanceId: result.topCard.instanceId, effectKey: "main", description: "Activate" }])
+    : "";
   return result;
 }
 
@@ -109,6 +111,24 @@ describe("arrangeField", () => {
       plainOptions,
     );
     expect(support.map((group) => ids(group.members))).toEqual([["ami-1", "ami-3"], ["ami-2"]]);
+  });
+
+  it("separates partially spent effect lists while grouping equal actions across instances and order", () => {
+    const copies = [1, 2, 3].map((id) => permanent(`ami-${id}`, AMI_AIBA));
+    copies.forEach((copy, index) => {
+      const keys = index === 1 ? ["main-a"] : index === 2 ? ["main-b", "main-a"] : ["main-a", "main-b"];
+      copy.activatableEffectsJson = JSON.stringify(
+        keys.map((effectKey) => ({
+          instanceId: copy.topCard.instanceId,
+          effectKey,
+          description: effectKey,
+        })),
+      );
+    });
+    expect(arrangeField(copies, plainOptions).support.map((group) => ids(group.members))).toEqual([
+      ["ami-1", "ami-3"],
+      ["ami-2"],
+    ]);
   });
 
   it("never groups a Tamer that holds cards under it", () => {

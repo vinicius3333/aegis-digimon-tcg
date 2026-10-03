@@ -9,6 +9,7 @@
 
 import { CardKind, getCardDefinition, type Permanent } from "@aegis/shared";
 import { restrictionBadges } from "../../fieldBadges";
+import { parseActivatable } from "../../boardModel";
 
 /** Copies shown as one card. The first member is the one drawn and the one a tap acts on. */
 export interface FieldGroup {
@@ -50,7 +51,9 @@ function appearanceKey(permanent: Permanent, suspended: boolean): string | undef
     permanent.originalNameOverride,
     [...permanent.keywords],
     [...permanent.grantedKeywords],
-    permanent.activatableEffectsJson !== "",
+    parseActivatable(permanent.activatableEffectsJson)
+      .map((effect) => effect.effectKey)
+      .sort(),
     restrictionBadges(permanent).map((badge) => badge.kind),
   ]);
 }
