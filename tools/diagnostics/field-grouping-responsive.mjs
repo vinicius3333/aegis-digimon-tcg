@@ -1,8 +1,9 @@
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { join, resolve as resolvePath } from "node:path";
 
 // A connected /dev/battle?scenario=field-grouping Orca tab, with the main phase open.
-// node tools/diagnostics/field-grouping-responsive.mjs <browserPageId> [--screenshots]
+// node tools/diagnostics/field-grouping-responsive.mjs <browserPageId> [--screenshots] [--output-dir=path]
 // Screenshots require a visible tab; the harness never brings Orca to the foreground.
 const page = process.argv[2];
 if (!page) throw new Error("Pass the Orca page ID of the server-backed grouping scenario.");
@@ -90,23 +91,47 @@ async function inspect() {
   return { width: innerWidth, height: innerHeight, lanes, inspectionInFlight, failures };
 }
 
+const outputArg = process.argv.find((arg) => arg.startsWith("--output-dir="));
+const outputDir = resolvePath(outputArg?.slice("--output-dir=".length) ?? "/tmp");
+if (process.argv.includes("--screenshots") || outputArg) mkdirSync(outputDir, { recursive: true });
 const results = [];
 for (const [width, height] of [
   [320, 640],
+  [360, 740],
   [390, 844],
+  [640, 360],
+  [844, 320],
   [844, 390],
   [768, 1024],
   [1024, 768],
   [1440, 900],
+  [1920, 1080],
 ]) {
   orca(["exec", "--command", `set viewport ${width} ${height}`]);
   const result = evaluate(inspect);
   results.push(result);
   if (process.argv.includes("--screenshots")) {
     const screenshot = orca(["screenshot"]);
-    writeFileSync(`/tmp/field-grouping-live-${width}x${height}.png`, Buffer.from(screenshot.data, "base64"));
+    writeFileSync(
+      join(outputDir, `field-grouping-live-${width}x${height}.png`),
+      Buffer.from(screenshot.data, "base64"),
+    );
   }
   console.log(JSON.stringify(result));
+}
+if (process.argv.includes("--screenshots") || outputArg) {
+  writeFileSync(join(outputDir, "results.json"), `${JSON.stringify(results, null, 2)}\n`);
+  const figures = results
+    .map(({ width, height, failures }) => {
+      const filename = `field-grouping-live-${width}x${height}.png`;
+      if (!existsSync(join(outputDir, filename))) return "";
+      return `<figure><figcaption>${width} × ${height} · ${failures.length ? "Check failures" : "Layout passed"}</figcaption><a href="${filename}"><img src="${filename}" alt="Server-backed grouped battle at ${width} by ${height}" loading="lazy"></a></figure>`;
+    })
+    .join("\n");
+  writeFileSync(
+    join(outputDir, "index.html"),
+    `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Field grouping · Orca screenshots</title><style>body{margin:0;padding:24px;background:#111827;color:#e5e7eb;font:16px system-ui}h1{font-size:24px}p{max-width:75ch;color:#b7c3d6}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}figure{margin:0;padding:12px;background:#1e293b;border-radius:12px}figcaption{margin-bottom:12px}img{display:block;width:100%;height:auto;max-height:700px;object-fit:contain}a{color:#93c5fd}</style><h1>Field grouping after the pile-layout merge</h1><p>Orca Browser captures of the server-backed field-grouping scenario. Click a capture for its original resolution. Layout checks cover lane clipping, horizontal scrolling and saved-source inspection. Pending entrance animations in background tabs are recorded separately in <a href="results.json">results.json</a>.</p><div class="gallery">${figures}</div></html>`,
+  );
 }
 orca(["exec", "--command", "set viewport 390 844"]);
 if (results.some((result) => result.failures.length)) process.exitCode = 1;
