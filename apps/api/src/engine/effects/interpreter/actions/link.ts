@@ -181,7 +181,9 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
         min: action.recipient.upTo ? 0 : 1,
         max: 1,
       });
-      if (chosenRecipient.length > 0) recipientId = chosenRecipient[0];
+      // An empty optional selection declines the Link; do not fall back to the source.
+      if (chosenRecipient.length === 0) return;
+      recipientId = chosenRecipient[0];
     }
   }
   if (recipientId === undefined) {

@@ -54,6 +54,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt21-davis-top-stack",
   "arena-bt21-dracomon-start-main",
   "arena-bt21-dogatchmon-link-attack",
+  "arena-bt24-sonic-shot-decline-link",
   "arena-bt26-chronomon-dm-succession",
   "arena-bt8-digimon-emperor-breeding-memory",
   "arena-face-up-security",
@@ -410,6 +411,28 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Match c3ab8a19: Dan & Kanan uses Sonic Shot, then the player declines its Link recipient. */
+function layBt24SonicShotDeclineLinkScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT24-085"], "-sonic-shot-tamer"));
+    placePermanent(human, establishedDigimon(0, ["BT24-009"], "-sonic-shot-host-1"));
+    placePermanent(human, establishedDigimon(0, ["BT24-009"], "-sonic-shot-host-2"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-sonic-shot-option", "BT24-095", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /**
@@ -4574,6 +4597,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt16-phoenixmon-x-antibody-name": layBt16PhoenixmonXAntibodyNameScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-bt21-dogatchmon-link-attack": layBt21DogatchmonLinkAttackScenario,
+  "arena-bt24-sonic-shot-decline-link": layBt24SonicShotDeclineLinkScenario,
   "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
   "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
