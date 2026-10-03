@@ -1,4 +1,16 @@
 {
+  "releases.1.8.7-beta.summary": {
+    "en": "This update fixes repeated Kurisarimon and Keramon inherited effects when separate effects play Digimon.",
+    "pt-BR": "Esta atualização corrige as ativações repetidas das herdadas de Kurisarimon e Keramon quando efeitos separados jogam Digimon."
+  },
+  "releases.1.8.7-beta.fix.kurisarimon": {
+    "en": "BT2-059 Kurisarimon now gains memory for each separate same-name play effect, including Diaboromon with Arata Sanada and multiple Diaboromon start-of-main effects. Simultaneous plays from one effect still trigger it once.",
+    "pt-BR": "BT2-059 Kurisarimon agora ganha memória por cada efeito separado que joga um Digimon de mesmo nome, incluindo Diaboromon com Arata Sanada e vários efeitos de Diaboromon no início da Fase Principal. Jogadas simultâneas de um único efeito continuam ativando a herdada apenas uma vez."
+  },
+  "releases.1.8.7-beta.fix.keramon": {
+    "en": "BT2-053 Keramon now draws a card for each separate same-name play effect while preserving a single draw for simultaneous plays.",
+    "pt-BR": "BT2-053 Keramon agora compra um card por cada efeito separado que joga um Digimon de mesmo nome, mantendo uma única compra para jogadas simultâneas."
+  },
   "releases.1.8.6-beta.summary": {
     "en": "This update fixes attacks without suspending, pending effects, card costs, Tamer Security effects, Hybrid search and DUAL immunity.",
     "pt-BR": "Esta atualização corrige ataques sem suspender, efeitos pendentes, custos de cartas, efeitos de Security de Tamers, busca de Hybrid e imunidade contra cartas DUAL."
