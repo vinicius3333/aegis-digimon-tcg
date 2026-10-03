@@ -236,6 +236,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue GrapLeomon e mande Gaomon atacar o jogador. O efeito Ao Atacar de Gaomon (cada jogador compra 1) deve resolver ANTES de o Analogman do bot suspender e redirecionar o ataque.",
     en: "Play GrapLeomon and order Gaomon to attack the player. Gaomon's When Attacking effect (each player draws 1) must resolve BEFORE the bot's Analogman suspends and redirects the attack.",
   },
+  "arena-bt11-rina-ulforce-effect-choice": {
+    ptBR: "Encerre a criação e ataque a segurança com UlforceVeedramon. Resolva primeiro a Rina BT11 e aceite suspendê-la. As duas opções devem mostrar textos diferentes: mudar orientação e devolver os Digimon com menos fontes. Escolha a segunda e aceite: só BT1-013 volta ao fundo do deck; BT1-011 com uma fonte fica. Depois resolva o Ao Atacar de Ulforce.",
+    en: "End breeding and attack security with UlforceVeedramon. Resolve BT11 Rina first and accept suspending her. The two options must show different texts: change orientation and return the Digimon with the fewest sources. Choose the second and accept: only BT1-013 returns to the deck bottom; BT1-011 with one source stays. Then resolve Ulforce's When Attacking effect.",
+  },
   "arena-bt11-rina-ulforce-immunity": {
     ptBR: "Encerre a criação e ataque a segurança com Rebootmon. Ao Atacar, vincule Logimon de graça e desuspenda Rebootmon (imunidade a efeitos de Digimon do oponente). Logimon suspende UlforceVeedramon; a Rina do bot ativa o Quando Digivolve de Ulforce. Rebootmon deve ficar; só BT1-013 volta ao fundo do deck.",
     en: "End breeding and attack security with Rebootmon. On When Attacking, link Logimon for free and unsuspend Rebootmon (immune to opponent Digimon effects). Logimon suspends UlforceVeedramon; the bot's Rina activates Ulforce's When Digivolving. Rebootmon must stay; only BT1-013 goes to the deck bottom.",
@@ -555,6 +559,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
+  ["arena-bt11-rina-ulforce-effect-choice", "BT11 Rina · EX13 Ulforce effect choice"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],
   ["arena-bt15-leviamon-x-played-subject-left", "BT15 Leviamon X · trigger survives a deleted played Digimon"],

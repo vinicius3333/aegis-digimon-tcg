@@ -24,6 +24,7 @@ export interface AegisJoinOptions {
     | "arena-alliance-20"
     | "arena-bt11-analogman-redirect-timing"
     | "arena-bt11-rina-ulforce-immunity"
+    | "arena-bt11-rina-ulforce-effect-choice"
     | "arena-ex12-diarbbitmon-option-trigger-timing"
     | "arena-bt15-leviamon-x-played-subject-left"
     | "arena-ex3-wingdramon-evade-suspend-lock"
