@@ -667,7 +667,6 @@ export function attackDeps(engine: GameEngine): AttackDeps {
     access: engine.access,
     combat: engine.combat,
     continuous: engine.continuous,
-    attackedThisTurn: engine.combat.attackedThisTurn,
     onCombatComplete: () => checkTurnEndAfterVerb(engine),
     onCombatError: (err) => {
       logError("[engine] combat resolve failed:", err);

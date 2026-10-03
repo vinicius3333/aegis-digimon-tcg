@@ -339,7 +339,6 @@ export interface MemoryPort {
  */
 export interface CombatPort {
   readonly isAttacking: boolean;
-  readonly attackedThisTurn?: ReadonlySet<string>;
   readonly currentAttackerId: string | undefined;
   /** Resolve a direct rules battle without creating an attack declaration. */
   resolveBattle?(attacker: Permanent, defender: Permanent): Promise<void>;

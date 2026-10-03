@@ -127,8 +127,8 @@ export function createCombatVerbs(pc: PrimitivesContext) {
     const controllerSeat = attacker.controllerSeat;
     // CR §16-16-3: the processing condition is 1 or more memory on the opponent's side.
     if (engine.memory.memoryFor(access.opponentOf(controllerSeat)) < 1) return;
-    // Glossary <Blitz>: it never enables a Digimon that could not attack normally.
-    if (engine.combat?.attackedThisTurn?.has(attackerPermanentId) === true) return;
+    // forceAttack checks suspension and the in-progress attack guard. A prior
+    // attack without suspending does not prevent a later legal ＜Blitz＞ attack.
     await forceAttack(attackerPermanentId, {
       ...opts,
       attackMechanic: "Blitz",
