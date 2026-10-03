@@ -29,7 +29,7 @@ function roomWithHuman(deck = trainingDeck(TRAINING_DECK_VERSIONS[0]).deck) {
   return { room, human };
 }
 
-function requestedDeck(index: 0 | 1) {
+function requestedDeck(index: number) {
   return ALL_FAMOUS_DECKS.find((deck) => deck.deckVersion === TRAINING_DECK_VERSIONS[index])!.deckId;
 }
 
@@ -65,23 +65,26 @@ describe("opt-in trained policies in Aegis rooms", () => {
     expect(InferenceClient.start).not.toHaveBeenCalled();
   });
 
-  it.each([0, 1] as const)("uses the real async adapter for supported bot deck %i", async (deckIndex) => {
-    await startBotInference({ AEGIS_BOT_CHECKPOINT: checkpoint, AEGIS_BOT_PYTHON: "/test/python" });
-    const deck = trainingDeck(TRAINING_DECK_VERSIONS[0]).deck;
-    deck.mainDeck.reverse();
-    const { room, human } = roomWithHuman(deck);
-    expect(room.addBot(requestedDeck(deckIndex))).toBe(true);
-    expect(room.state.players[1]!.displayName).toBe("BT26 AI");
-    expect(room.addBot(requestedDeck(deckIndex))).toBe(true);
-    await keepAndAdvance(room, human);
-    expect(choose).toHaveBeenCalled();
-    expect(choose.mock.calls.every(([window]) => window.observation.seat === 1 && window.teacher === undefined)).toBe(
-      true,
-    );
-    expect(InferenceClient.start).toHaveBeenCalledTimes(1);
-    expect(InferenceClient.start).toHaveBeenCalledWith(expect.objectContaining({ command: "/test/python" }));
-    expect(close).not.toHaveBeenCalled();
-  });
+  it.each(TRAINING_DECK_VERSIONS.map((version, index) => ({ version, index })))(
+    "uses the real async adapter for supported bot deck $version",
+    async ({ index: deckIndex }) => {
+      await startBotInference({ AEGIS_BOT_CHECKPOINT: checkpoint, AEGIS_BOT_PYTHON: "/test/python" });
+      const deck = trainingDeck(TRAINING_DECK_VERSIONS[(deckIndex + 1) % TRAINING_DECK_VERSIONS.length]!).deck;
+      deck.mainDeck.reverse();
+      const { room, human } = roomWithHuman(deck);
+      expect(room.addBot(requestedDeck(deckIndex))).toBe(true);
+      expect(room.state.players[1]!.displayName).toBe("BT26 AI");
+      expect(room.addBot(requestedDeck(deckIndex))).toBe(true);
+      await keepAndAdvance(room, human);
+      expect(choose).toHaveBeenCalled();
+      expect(choose.mock.calls.every(([window]) => window.observation.seat === 1 && window.teacher === undefined)).toBe(
+        true,
+      );
+      expect(InferenceClient.start).toHaveBeenCalledTimes(1);
+      expect(InferenceClient.start).toHaveBeenCalledWith(expect.objectContaining({ command: "/test/python" }));
+      expect(close).not.toHaveBeenCalled();
+    },
+  );
 
   it("keeps unsupported opponent lists on the existing bot", async () => {
     await startBotInference({ AEGIS_BOT_CHECKPOINT: checkpoint });
