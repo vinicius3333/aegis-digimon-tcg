@@ -476,3 +476,23 @@
     height: 3rem;
   }
 }
+
+/* The breeding step focuses the raising area alone. The dim covers the whole board,
+   the bottom strip and every badge, pile and shield that stacks above the field;
+   only the breeding dock and the memory band, which holds the end control, rise
+   above it. The board isolates, so notices and dialogs portalled outside it stay lit. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .aegis-arena .game-board:has(.game-breeding-mode) {
+    isolation: isolate;
+  }
+
+  .aegis-arena .game-board .game-breeding-mode {
+    z-index: 20;
+    /* Down over the 13rem bottom strip, which sits under the field. */
+    bottom: -13rem;
+  }
+
+  .aegis-arena .game-board:has(.game-breeding-mode) :is(.game-breeding-dock, .game-memory-band) {
+    z-index: 21;
+  }
+}
