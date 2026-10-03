@@ -1,5 +1,6 @@
 import { COARSE_POINTER_QUERY, useMediaQuery } from "../../../design/useMediaQuery";
 import { FieldLayout, useFieldLayout } from "../../../design/fieldLayout";
+import { useFieldCardWidth } from "../layout/fieldCardWidth";
 import { HAND_CARD_WIDTH_COMPACT, HAND_MIN_EXPOSURE_TOUCH } from "../../piece";
 import {
   COMPACT_PILES_QUERY,
@@ -8,6 +9,7 @@ import {
   NARROW_LAYOUT_QUERY,
   PORTRAIT_ARENA_QUERY,
   LANDSCAPE_PHONE_PERMANENT_WIDTH,
+  SIDELINE_ARENA_QUERY,
   SHORT_BOARD_QUERY,
 } from "../queries";
 
@@ -29,6 +31,10 @@ export type ArenaLayout = {
   arenaPileWidth: number;
   /** Pixel width of a permanent on the field. */
   arenaPermanentWidth: number;
+  /** Pixel width of the egg deck, the raising slot and, beside the rows, each security card. */
+  arenaRaisingWidth: number;
+  /** The card width the sideline columns are spaced for, which a crowded row's narrowing does not change. */
+  arenaSidelineBasisWidth: number;
   /** Pixel width of a card in the hand fan. */
   handCardWidth: number;
   /** How much of a covered hand card stays visible, where a finger needs the target. */
@@ -102,6 +108,8 @@ export function useArenaLayout(): ArenaLayout {
           : compactArena
             ? 100
             : 116;
+  const sidelineArena = useMediaQuery(SIDELINE_ARENA_QUERY);
+  const fieldCardWidth = useFieldCardWidth();
   const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const collapseNotices = narrowGameLayout && !landscapePhone;
   return {
@@ -115,6 +123,8 @@ export function useArenaLayout(): ArenaLayout {
     collapseNotices,
     arenaPileWidth,
     arenaPermanentWidth,
+    arenaRaisingWidth: sidelineArena ? (fieldCardWidth?.drawn ?? arenaPermanentWidth) : arenaPileWidth,
+    arenaSidelineBasisWidth: sidelineArena ? (fieldCardWidth?.heightFitted ?? arenaPermanentWidth) : arenaPileWidth,
     handCardWidth: portraitArena
       ? tabletPortraitArena
         ? 104

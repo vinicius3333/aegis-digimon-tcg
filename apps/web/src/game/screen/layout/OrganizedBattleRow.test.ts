@@ -1,10 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { fitLanes, LanePlacement } from "./OrganizedBattleRow";
+import { fitLanes, fitLanesToWidth, laneContentWidth, LanePlacement } from "./OrganizedBattleRow";
 import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 
 const crowded = { digimonCount: 6, supportCount: 6 };
 
 describe("fitLanes", () => {
+  it("shrinks a crowded lane to fit the row before it scrolls, down to a floor", () => {
+    const upright = { suspended: false, sources: 0, links: 0, copies: 1 };
+    const suspended = { ...upright, suspended: true };
+    const crowded = { digimon: [...Array(7).fill(upright), ...Array(4).fill(suspended)], support: [upright] };
+    const lanes = { placement: LanePlacement.Stacked, digimon: 87, support: 87 };
+    const content = { digimonCount: 11, supportCount: 1, supportScale: 1, sourceStep: 2, fitWidth: true };
+    const fitted = fitLanesToWidth(lanes, 1260, crowded, content);
+    expect(fitted.digimon).toBeLessThan(87);
+    expect(fitted.digimon).toBe(fitted.support);
+    expect(laneContentWidth(crowded.digimon, fitted.digimon, 0.25, 2)).toBeLessThanOrEqual(1260);
+    expect(fitLanesToWidth(lanes, 400, crowded, content).digimon).toBe(66);
+    expect(fitLanesToWidth(lanes, 1260, crowded, { ...content, fitWidth: false })).toBe(lanes);
+  });
+  it("sizes a sideline row the same before and after its first Tamer", () => {
+    const sideline = { supportScale: 1, reserveSupport: true, overlapLanes: true };
+    const row = { width: 1257, height: 323 };
+    const empty = fitLanes(row, 100, { digimonCount: 1, supportCount: 0, ...sideline });
+    const withTamer = fitLanes(row, 100, { digimonCount: 1, supportCount: 1, ...sideline });
+    expect(withTamer).toEqual(empty);
+    expect(withTamer).toMatchObject({ placement: LanePlacement.Stacked, support: withTamer.digimon });
+  });
+  it("gains width when stacked lanes share their clearance", () => {
+    const row = { width: 1257, height: 323 };
+    const content = { digimonCount: 1, supportCount: 1, supportScale: 1 };
+    const separate = fitLanes(row, 100, content);
+    const shared = fitLanes(row, 100, { ...content, overlapLanes: true });
+    expect(shared.digimon).toBeGreaterThan(separate.digimon);
+  });
   it("keeps portrait support below Digimon when both lanes fit", () => {
     const lanes = fitLanes({ width: 288, height: 320 }, 84, {
       ...crowded,

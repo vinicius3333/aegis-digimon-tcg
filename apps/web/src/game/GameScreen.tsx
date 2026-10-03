@@ -965,7 +965,7 @@ export function GameScreen({
       keywordLabels={
         breedingYou.breeding ? demoConnection?.keywordLabels?.[breedingYou.breeding.permanentId] : undefined
       }
-      pileWidth={arenaPileWidth}
+      pileWidth={arenaLayout.arenaRaisingWidth}
       compactPiles={compactPiles}
       burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
       effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}

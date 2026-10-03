@@ -2,12 +2,14 @@
    and Options. The outer element keeps the row's class, so every breakpoint still
    places and sizes it as the single row it replaces; each lane scrolls on its own. */
 
-import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import type { Permanent } from "@aegis/shared";
 import { BattleRow, suspendedCardEdgeClearance } from "../../BattleRow";
 import { carryGroupKeys, type FieldArrangement, type PreviousPlacement } from "../model/fieldArrangement";
 import "../../style/fieldLayout.css";
-import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
+import { linkCardOverhang, linkCardSlots, sourceFanStepLimit } from "../../boardModel";
+import { COPY_EDGE_STEP, copyEdgeCount } from "../../piece/PermanentCopies";
+import { reportFieldCardWidth, useFieldCardWidth } from "./fieldCardWidth";
 
 const CARD_ASPECT = 1.4;
 /** The design's --ds-touch-target minimum also applies to each permanent's button wrapper. */
@@ -15,6 +17,12 @@ const MIN_PERMANENT_HEIGHT = 44;
 const LANE_GAP = 0;
 /** The smallest Digimon stacked lanes shrink to, as a share of the layout's width. */
 const MIN_STACKED_SHRINK = 0.6;
+/** A crowded lane shrinks its cards to this share of the height-fitted width before it scrolls. */
+const MIN_WIDTH_SHRINK = 0.75;
+/** Each lane's horizontal padding, from fieldLayout.css. */
+const LANE_INLINE_PADDING = 12;
+const DIGIMON_GAP_SHARE = 0.25;
+const SUPPORT_GAP_SHARE = 0.3;
 
 /**
  * Stacked puts the support lane under the Digimon (above them for the opponent). A row
@@ -208,7 +216,7 @@ function useFieldMotion(
   }, [rowRef, previous, signature]);
 }
 
-interface LaneLayout {
+export interface LaneLayout {
   placement: LanePlacement;
   digimon: number;
   support: number;
@@ -224,6 +232,85 @@ interface LaneContent {
   sourceTop?: number;
   sourceStep?: number;
   preferStacked?: boolean;
+  /** Overrides the stacked support lane's share of the Digimon width. */
+  supportScale?: number;
+  /** Size the cards as if both lanes were full, so playing the first Tamer changes nothing. */
+  reserveSupport?: boolean;
+  /** Stacked lanes share the clearance between them: one lane's suspension sweep and the other's badge strip. */
+  overlapLanes?: boolean;
+  /** Shrink crowded lanes' cards, down to a floor, before they scroll. */
+  fitWidth?: boolean;
+}
+
+/** What a card adds to its lane's width beyond the card itself. */
+export interface LaneCard {
+  suspended: boolean;
+  sources: number;
+  links: number;
+  copies: number;
+}
+
+function laneGap(width: number, preferStacked: boolean, share: number): number {
+  return Math.max(preferStacked ? 20 : 12, Math.round(width * share));
+}
+
+/** Room at each end of a lane for a card turning sideways or its source fan. */
+function laneEdge(width: number, sources: number, sourceStep: number): number {
+  return Math.max(
+    suspendedCardEdgeClearance(width),
+    sources ? 12 + (sources - 1) * Math.min(sourceStep, sourceFanStepLimit(width, sources)) : 22,
+  );
+}
+
+/** A lane's scroll width at a card width, matching PermanentView's inline margins. */
+export function laneContentWidth(
+  cards: readonly LaneCard[],
+  width: number,
+  gapShare: number,
+  sourceStep: number,
+  preferStacked = false,
+): number {
+  if (cards.length === 0) return 0;
+  const suspendedMargin = Math.ceil(width * 0.2);
+  const frames = cards.reduce((total, card) => {
+    const turn = card.suspended ? suspendedMargin : 0;
+    const start = card.sources
+      ? Math.max(turn, 4 + (card.sources - 1) * Math.min(sourceStep, sourceFanStepLimit(width, card.sources)))
+      : turn;
+    const end = turn + linkCardOverhang(card.links, width) + copyEdgeCount(card.copies) * COPY_EDGE_STEP;
+    return total + Math.max(MIN_PERMANENT_HEIGHT, width) + start + end;
+  }, 0);
+  const sources = Math.max(...cards.map((card) => card.sources));
+  // The lane's flex gap also separates each end's turn clearance from the cards.
+  return (
+    frames +
+    (cards.length + 1) * laneGap(width, preferStacked, gapShare) +
+    2 * laneEdge(width, sources, sourceStep) +
+    2 * LANE_INLINE_PADDING
+  );
+}
+
+/**
+ * Narrows stacked lanes whose cards overflow the row's width, down to a floor. Past
+ * the floor the lanes scroll rather than shrink cards past reading.
+ */
+export function fitLanesToWidth(
+  lanes: LaneLayout,
+  rowWidth: number,
+  cards: { digimon: readonly LaneCard[]; support: readonly LaneCard[] },
+  content: LaneContent,
+): LaneLayout {
+  if (!content.fitWidth || lanes.placement !== LanePlacement.Stacked || rowWidth <= 0) return lanes;
+  const scale = content.supportScale ?? LANE_METRICS[LanePlacement.Stacked].supportScale;
+  const supportFor = (width: number) => Math.max(22, Math.floor(width * scale));
+  const step = content.sourceStep ?? 4;
+  const preferStacked = content.preferStacked ?? false;
+  const fits = (width: number) =>
+    laneContentWidth(cards.digimon, width, DIGIMON_GAP_SHARE, step, preferStacked) <= rowWidth &&
+    laneContentWidth(cards.support, supportFor(width), SUPPORT_GAP_SHARE, step, preferStacked) <= rowWidth;
+  if (fits(lanes.digimon)) return lanes;
+  const digimon = Math.max(Math.ceil(lanes.digimon * MIN_WIDTH_SHRINK), fittedWidth(lanes.digimon, fits));
+  return { ...lanes, digimon, support: supportFor(digimon) };
 }
 
 function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { digimon: 0, support: 0 }): LaneMetrics {
@@ -255,6 +342,18 @@ function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { 
   };
 }
 
+/**
+ * How far stacked lanes may overlap. The facing lane's clearance below its cards only
+ * holds a card mid-turn, never at rest, so it can share space with the next lane's
+ * badge strip. The contact shadow stays clear.
+ */
+function laneOverlap(placement: LanePlacement, content: LaneContent, metrics: LaneMetrics): number {
+  if (!content.overlapLanes || placement !== LanePlacement.Stacked) return 0;
+  const shadow = content.preferStacked ? 8 : 10;
+  const clearance = Math.min(metrics.digimonPadding.bottom, metrics.supportPadding.bottom) - shadow;
+  return Math.max(0, Math.min(metrics.digimonPadding.top, metrics.supportPadding.top, clearance));
+}
+
 /** Largest integral width whose complete painted lane fits. */
 function fittedWidth(ceiling: number, fits: (width: number) => boolean): number {
   let low = 1;
@@ -272,13 +371,17 @@ function laneHeight(width: number, padding: { top: number; bottom: number }) {
 
 /** Stacked widths, or undefined when stacking would shrink the Digimon past the floor. */
 function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout | undefined {
-  const supportScale = LANE_METRICS[LanePlacement.Stacked].supportScale;
+  const supportScale = content.supportScale ?? LANE_METRICS[LanePlacement.Stacked].supportScale;
   const supportWidth = (width: number) => Math.max(22, Math.floor(width * supportScale));
   const digimon = fittedWidth(layoutWidth, (width) => {
     const support = supportWidth(width);
     const metrics = laneMetrics(LanePlacement.Stacked, content, { digimon: width, support });
     return (
-      laneHeight(width, metrics.digimonPadding) + laneHeight(support, metrics.supportPadding) + LANE_GAP <= rowHeight
+      laneHeight(width, metrics.digimonPadding) +
+        laneHeight(support, metrics.supportPadding) +
+        LANE_GAP -
+        laneOverlap(LanePlacement.Stacked, content, metrics) <=
+      rowHeight
     );
   });
   if (digimon < (content.preferStacked ? 44 : layoutWidth * MIN_STACKED_SHRINK)) return undefined;
@@ -305,11 +408,10 @@ function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneCo
  * width is the ceiling. Placement depends on available height, so splitting or
  * merging copies cannot flip the lanes or change every Digimon's size.
  */
-export function fitLanes(
-  row: { width: number; height: number },
-  layoutWidth: number,
-  content: LaneContent,
-): LaneLayout {
+export function fitLanes(row: { width: number; height: number }, layoutWidth: number, drawn: LaneContent): LaneLayout {
+  const content = drawn.reserveSupport
+    ? { ...drawn, digimonCount: Math.max(1, drawn.digimonCount), supportCount: Math.max(1, drawn.supportCount) }
+    : drawn;
   if (row.height <= 0) {
     return {
       placement: LanePlacement.Stacked,
@@ -325,7 +427,7 @@ export function fitLanes(
         laneHeight(width, laneMetrics(placement, content, { digimon: width, support: 0 }).digimonPadding) <= row.height,
     );
     const support = fittedWidth(
-      content.preferStacked ? 56 : layoutWidth * LANE_METRICS[placement].supportScale,
+      content.preferStacked ? 56 : layoutWidth * (content.supportScale ?? LANE_METRICS[placement].supportScale),
       (width) =>
         laneHeight(width, laneMetrics(placement, content, { digimon: 0, support: width }).supportPadding) <= row.height,
     );
@@ -337,7 +439,17 @@ export function fitLanes(
 
 function useRowSize() {
   const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0, sourceTop: 6, sourceStep: 4, preferStacked: false });
+  const [size, setSize] = useState({
+    width: 0,
+    height: 0,
+    sourceTop: 6,
+    sourceStep: 4,
+    preferStacked: false,
+    supportScale: undefined as number | undefined,
+    reserveSupport: false,
+    overlapLanes: false,
+    fitWidth: false,
+  });
   function measure() {
     const row = ref.current;
     if (!row) return;
@@ -345,14 +457,32 @@ function useRowSize() {
     const sourceTop = Number.parseFloat(style.getPropertyValue("--arena-source-top")) || 6;
     const sourceStep = Number.parseFloat(style.getPropertyValue("--arena-source-step")) || 4;
     const preferStacked = style.getPropertyValue("--field-prefer-stacked").trim() === "1";
+    const supportScale = Number.parseFloat(style.getPropertyValue("--field-support-scale")) || undefined;
+    const reserveSupport = style.getPropertyValue("--field-reserve-support").trim() === "1";
+    const overlapLanes = style.getPropertyValue("--field-overlap-lanes").trim() === "1";
+    const fitWidth = style.getPropertyValue("--field-fit-width").trim() === "1";
     setSize((previous) =>
       previous.width === row.clientWidth &&
       previous.height === row.clientHeight &&
       previous.sourceTop === sourceTop &&
       previous.sourceStep === sourceStep &&
-      previous.preferStacked === preferStacked
+      previous.preferStacked === preferStacked &&
+      previous.supportScale === supportScale &&
+      previous.reserveSupport === reserveSupport &&
+      previous.overlapLanes === overlapLanes &&
+      previous.fitWidth === fitWidth
         ? previous
-        : { width: row.clientWidth, height: row.clientHeight, sourceTop, sourceStep, preferStacked },
+        : {
+            width: row.clientWidth,
+            height: row.clientHeight,
+            sourceTop,
+            sourceStep,
+            preferStacked,
+            supportScale,
+            reserveSupport,
+            overlapLanes,
+            fitWidth,
+          },
     );
   }
   // Media-query renders can precede ResizeObserver delivery, especially in background tabs.
@@ -425,14 +555,54 @@ export function OrganizedBattleRow({
     sourceTop: size.sourceTop,
     sourceStep: size.sourceStep,
     preferStacked: size.preferStacked,
+    supportScale: size.supportScale,
+    reserveSupport: size.reserveSupport,
+    overlapLanes: size.overlapLanes,
+    fitWidth: size.fitWidth,
   };
-  const lanes = fitLanes(size, layoutWidth, content);
+  const laneCard = (members: readonly Permanent[]): LaneCard => ({
+    suspended: isSuspended(members[0]!),
+    sources: members[0]!.stack.length,
+    links: members[0]!.linked.length,
+    copies: members.length,
+  });
+  const heightFitted = fitLanes(size, layoutWidth, content);
+  const ownLanes = fitLanesToWidth(
+    heightFitted,
+    size.width,
+    {
+      digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
+      support: arrangement.support.map((group) => laneCard(group.members)),
+    },
+    content,
+  );
+  const rowKey = useId();
+  const reports = size.reserveSupport && size.height > 0;
+  const reportedHeightFitted = reports ? heightFitted.digimon : undefined;
+  const reportedWidth = reports ? ownLanes.digimon : undefined;
+  useEffect(
+    () =>
+      reportFieldCardWidth(
+        rowKey,
+        reportedHeightFitted === undefined || reportedWidth === undefined
+          ? undefined
+          : { heightFitted: reportedHeightFitted, drawn: reportedWidth },
+      ),
+    [rowKey, reportedHeightFitted, reportedWidth],
+  );
+  useEffect(() => () => reportFieldCardWidth(rowKey, undefined), [rowKey]);
+  // Rows sharing one card size follow the narrowest of them.
+  const sharedWidth = useFieldCardWidth()?.drawn;
+  const lanes =
+    reportedWidth !== undefined && sharedWidth !== undefined && sharedWidth < ownLanes.digimon
+      ? {
+          ...ownLanes,
+          digimon: sharedWidth,
+          support: Math.round(sharedWidth * (ownLanes.support / ownLanes.digimon)),
+        }
+      : ownLanes;
   const metrics = laneMetrics(lanes.placement, content, lanes);
-  const edge = (width: number, sources: number) =>
-    Math.max(
-      suspendedCardEdgeClearance(width),
-      sources ? 12 + (sources - 1) * Math.min(size.sourceStep, sourceFanStepLimit(width, sources)) : 22,
-    );
+  const edge = (width: number, sources: number) => laneEdge(width, sources, size.sourceStep);
   const digimonCards = arrangement.digimon.map((permanent) => card([permanent], permanent.permanentId, lanes.digimon));
   const supportCards = carryGroupKeys(arrangement.support, previous.current, isSuspended).map((group) =>
     card(group.members, group.key, lanes.support),
@@ -454,7 +624,7 @@ export function OrganizedBattleRow({
         flex: "0 1 auto",
         minHeight: 0,
         display: "flex",
-        gap: Math.max(size.preferStacked ? 20 : 12, Math.round(lanes.digimon * 0.25)),
+        gap: laneGap(lanes.digimon, size.preferStacked, DIGIMON_GAP_SHARE),
         justifyContent: "safe center",
         alignItems: "center",
         ...({
@@ -478,7 +648,7 @@ export function OrganizedBattleRow({
       style={{
         flex: "0 1 auto",
         display: "flex",
-        gap: Math.max(size.preferStacked ? 20 : 12, Math.round(lanes.support * 0.3)),
+        gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
         justifyContent: "safe center",
         alignItems: "center",
         ...({
@@ -497,7 +667,13 @@ export function OrganizedBattleRow({
       ref={ref}
       data-field-layout="organized"
       data-lanes={lanes.placement}
-      style={{ ...rowProps.style, gap: LANE_GAP }}
+      style={{
+        ...rowProps.style,
+        gap: LANE_GAP,
+        ...({
+          "--field-lane-overlap": `${hasSupport ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
+        } as React.CSSProperties),
+      }}
     >
       {supportFirst && !size.preferStacked
         ? [supportLane, content.digimonCount || !hasSupport ? digimonLane : null]

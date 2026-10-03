@@ -5,7 +5,7 @@
    is never clipped by the board's own overflow; the ghost that follows a held card goes
    to the document body for the same reason. */
 
-import type { PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
 import type { ArenaBoardLook } from "../../arenaLook";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
@@ -240,6 +240,10 @@ export function BoardStage({
           ref={anchors.board}
           data-art={look.hasArt || undefined}
           style={{
+            ...({
+              "--arena-raising-width": `${layout.arenaRaisingWidth}px`,
+              "--arena-sideline-basis-width": `${layout.arenaSidelineBasisWidth}px`,
+            } as CSSProperties),
             flex: 1,
             position: "relative",
             display: "flex",
@@ -395,6 +399,7 @@ export function BoardStage({
               opponentBreeding={breedingOpponent}
               viewerPiles={layout.dockViewerPiles ? null : viewerPiles}
               pileWidth={layout.arenaPileWidth}
+              raisingWidth={layout.arenaRaisingWidth}
               compactPiles={layout.compactPiles}
               opponentSecurityRef={anchors.opponentSecurity}
               opponentEggDeckRiffling={cues.deckRiffles.has(`${other}:eggDeck`)}

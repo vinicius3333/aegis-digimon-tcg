@@ -52,6 +52,15 @@
     bottom / 100% 1px no-repeat;
 }
 
+.game-board
+  .game-field
+  .game-battle-zones
+  > .game-battle-row[data-field-layout="organized"]
+  > .game-battle-lane
+  + .game-battle-lane {
+  margin-top: calc(-1 * var(--field-lane-overlap, 0px));
+}
+
 /* A row too short for two lanes, like a phone on its side, lays them side by side. */
 .game-board .game-field .game-battle-zones > .game-battle-row[data-lanes="side-by-side"] {
   flex-direction: row;
