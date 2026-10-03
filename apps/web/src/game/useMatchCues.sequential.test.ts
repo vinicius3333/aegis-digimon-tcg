@@ -179,7 +179,7 @@ afterEach(() => {
 
 describe("sequential pacing plays one effect at a time", () => {
   it.each(EFFECT_SPEEDS)(
-    "preserves a readable field-card focus through minor and late chain effects at %s speed",
+    "keeps field focus readable and starts results within the reference pace at %s speed",
     async (speed) => {
       setBasePacing(PACING_BY_STYLE.stacked);
       setEffectSpeed(speed);
@@ -195,12 +195,16 @@ describe("sequential pacing plays one effect at a time", () => {
       const active = new Map<number, number>();
       const durations: number[] = [];
       let mostNotices = 0;
+      let firstSourceAt: number | undefined;
+      let firstDrawAt: number | undefined;
       for (let elapsed = 0; elapsed <= 12_000; elapsed += 16) {
         mostNotices = Math.max(mostNotices, view.result.current.narration.size);
         const focused = view.result.current.effectSources.filter(
           (source) => source.linked !== true && source.site.zone === "field",
         );
         const keys = new Set(focused.map((source) => source.key));
+        if (focused.length > 0) firstSourceAt ??= elapsed;
+        if (view.result.current.drawFlights.length > 0) firstDrawAt ??= elapsed;
         for (const source of focused) if (!active.has(source.key)) active.set(source.key, elapsed);
         for (const [key, started] of active) {
           if (keys.has(key)) continue;
@@ -214,6 +218,11 @@ describe("sequential pacing plays one effect at a time", () => {
       expect(mostNotices).toBe(3);
       const readableFocus = Math.round(TIMINGS.effectSourceHold * EFFECT_SPEED_SCALE[speed]);
       for (const duration of durations) expect(duration).toBeGreaterThanOrEqual(readableFocus - 32);
+      expect(firstSourceAt).toBeDefined();
+      expect(firstDrawAt).toBeDefined();
+      const leadIn = firstDrawAt! - firstSourceAt!;
+      expect(leadIn).toBeGreaterThanOrEqual(readableFocus - 32);
+      expect(leadIn).toBeLessThanOrEqual(1000 * EFFECT_SPEED_SCALE[speed] + 32);
     },
   );
 

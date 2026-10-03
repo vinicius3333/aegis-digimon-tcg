@@ -77,11 +77,11 @@ Every paced row had zero early results, unreadable or missing clauses, gate expi
 
 | Scenario suffix          | Sequential shown / ceiling (ms) | Stacked shown / ceiling (ms) |
 | ------------------------ | ------------------------------: | ---------------------------: |
-| `ghost-execute`          |                 53,008 / 59,000 |              45,440 / 50,000 |
-| `ghost-execute-security` |                 59,744 / 66,000 |              51,504 / 57,000 |
-| `attack-stack`           |                 45,968 / 51,000 |              35,968 / 40,000 |
-| `security-removed`       |                 14,480 / 16,000 |              11,728 / 13,000 |
-| `titan-cascade`          |                 20,752 / 23,000 |              17,344 / 20,000 |
+| `ghost-execute`          |                 53,008 / 59,000 |              43,968 / 49,000 |
+| `ghost-execute-security` |                 59,744 / 66,000 |              49,840 / 55,000 |
+| `attack-stack`           |                 45,968 / 51,000 |              32,320 / 36,000 |
+| `security-removed`       |                 14,480 / 16,000 |              11,328 / 13,000 |
+| `titan-cascade`          |                 20,752 / 23,000 |              15,328 / 17,000 |
 
 The ceilings allow approximately 10% headroom, rounded for clarity. Some rise above the old
 ceilings because each clause now gets a safe headline reading floor, exact physical sources
@@ -93,7 +93,10 @@ authorize an early result or a rescued gate.
 Source focus holds for 720 ms at Normal in both styles, including minor, repeated and late
 effects. Effect speed still scales this orientation beat, but chain-tail acceleration only
 shortens clause and settle beats. The regression samples three actual field-source lifetimes
-at every speed. Sounds and arrivals waiting on a unit's announcement use that announcement's
+at every speed and verifies that the first draw starts within the reference pace. Stacked
+Normal waits 200 ms between its clause and results, then rests 100 ms after results complete.
+The resulting 920 ms common field lead-in approximates DCGO without shortening visual result
+durations or retained text lifetimes. Sounds and arrivals waiting on a unit's announcement use that announcement's
 own safety ceiling, so a longer source focus after a Security reveal does not release them early.
 
 The matrix includes a confirmed opponent hand play and On Play, Giromon's block trigger chain,

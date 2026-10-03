@@ -91,14 +91,16 @@ const SEQUENTIAL_PACING: PacingConfig = {
   clauseReadableMs: 1720,
 };
 
-/* Minor and familiar effects use shorter clause beats, and long chains shorten those beats
-   after their second effect. Every physical source keeps the full orientation moment: the
-   eye still has to find a different card. Recent clauses stay readable in the stack. The
-   floor includes frame sampling margin at every speed; see pacing/REFERENCES.md. */
+/* Long chains shorten clause and settle beats after their second effect. Every physical
+   source keeps the full orientation moment so the viewer can find a different card.
+   Recent clauses stay readable in the stack. The
+   normal field lead-in is 920 ms (720 ms focus + 200 ms clause), close to DCGO's ~0.9 s,
+   without speeding up card travel or truncating result visuals. The reading floor includes
+   frame sampling margin at every speed; see pacing/REFERENCES.md. */
 const STACKED_PACING: PacingConfig = {
   ...SEQUENTIAL_PACING,
-  announceMs: 500,
-  settleMs: 300,
+  announceMs: 200,
+  settleMs: 100,
   minorAnnounceMs: 200,
   minorSettleMs: 100,
   repeatShortBeats: 1,

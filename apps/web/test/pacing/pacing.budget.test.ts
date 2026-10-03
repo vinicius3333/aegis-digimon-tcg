@@ -57,18 +57,18 @@ const PRODUCTION_CHAINS: Record<
 > = {
   "effects-lab-prod-ghost-execute": {
     normalShownMs: 59_000,
-    stackedNormalShownMs: 50_000,
+    stackedNormalShownMs: 49_000,
   },
   "effects-lab-prod-ghost-execute-security": {
     normalShownMs: 66_000,
-    stackedNormalShownMs: 57_000,
+    stackedNormalShownMs: 55_000,
   },
   "effects-lab-prod-attack-stack": {
     normalShownMs: 51_000,
-    stackedNormalShownMs: 40_000,
+    stackedNormalShownMs: 36_000,
   },
   "effects-lab-prod-security-removed": { normalShownMs: 16_000, stackedNormalShownMs: 13_000 },
-  "effects-lab-prod-titan-cascade": { normalShownMs: 23_000, stackedNormalShownMs: 20_000 },
+  "effects-lab-prod-titan-cascade": { normalShownMs: 23_000, stackedNormalShownMs: 17_000 },
 };
 
 const pacedProductionChains = () => paced().filter((row) => row.scenario in PRODUCTION_CHAINS);

@@ -36,6 +36,9 @@ its speed controls scale playback or Effect speed without switching the pacing s
 Recent toast columns retain up to six moments and scroll within their bounded height.
 The edge buttons reveal notices above or below; arriving effects follow the newest only
 while the viewer stays at the bottom. The resolution strip leaves when a chain settles.
+At Normal, stacked effects keep the 720 ms source focus, announce for 200 ms before results,
+and rest for 100 ms afterwards. This brings a common field effect's lead-in near DCGO's
+0.9 s while leaving card travel, particles, Security scenes and toast lifetimes intact.
 
 | Family                                   | Recipes and visible surfaces                                                                  | Evidence harness                                                                                                     |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
