@@ -1,5 +1,6 @@
 // Running another card's effect, or an Option, as an effect of this one.
 
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import type { EffectContext } from "../../EffectContext.js";
 import type { CardSource } from "../../CardSource.js";
 import type { Effect } from "../../Effect.js";
@@ -302,7 +303,7 @@ export async function runActivateForeignEffect(
       runCtx = {
         ...ctx,
         sourcePermanentIdAtCreation: permanentId,
-        effectSourceKinds: [...(definition.kinds ?? [])],
+        activeTiming: borrowed.effect.trigger,
         source: {
           instanceId: chosen.instanceId,
           cardId: chosen.cardId,
@@ -314,6 +315,7 @@ export async function runActivateForeignEffect(
           hasColor: (color) => definition.colors.includes(color),
         },
       };
+      runCtx.effectSourceKinds = effectProvenanceKinds(runCtx);
     }
     // A Q5331 override belongs only to the matching borrowed lender/effect. Clear any inherited
     // marker at the loop boundary, then seed it per item so another eligible Zaxon On Play lender
@@ -325,7 +327,7 @@ export async function runActivateForeignEffect(
     if (lenderIsEffectiveSource) {
       runCtx.fx.enterEffectResolution?.(
         runCtx.source.ownerSeat,
-        [...(runCtx.source.definition.kinds ?? [])],
+        [...(runCtx.effectSourceKinds ?? effectProvenanceKinds(runCtx))],
         runCtx.source.permanent()?.permanentId,
       );
     }

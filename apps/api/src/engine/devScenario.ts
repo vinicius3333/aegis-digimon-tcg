@@ -35,6 +35,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-diarbbitmon-dual-option-immunity",
   "battle",
   "arena",
   "arena-aegiochus-dark-assembly",
@@ -383,6 +384,42 @@ function layBt23BakemonNoTargetScenario(state: GameState, decks: readonly [Deckl
 }
 
 /** Both public routes to Seventh Fascination's Main must wait for the recipient's turn end. */
+/** Discord 1555938104404348949: real evolution immunity followed by Eclipse Impact. */
+function layDiarbbitmonDualOptionImmunityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0]!;
+  const base = establishedDigimon(0, ["EX12-051"], "-diarbbitmon");
+  base.isSuspended = true;
+  placePermanent(human, base);
+  insertCard(human, Zone.Hand, faceDownCard("dev-diarbbitmon-evolution", "EX12-052", 0));
+  const bot = state.players[1]!;
+  placePermanent(bot, establishedDigimon(1, ["ST23-13"], "-eclipse-tamer"));
+  // Passing supplies 3 memory; both Tamers then gain 1 at Main start, so the
+  // evaluation policy can spend 5 on Eclipse Impact without handing over memory.
+  placePermanent(bot, establishedDigimon(1, ["ST23-13"], "-eclipse-memory-tamer"));
+  for (const slot of ["-eclipse-battle", "-eclipse-vortex"]) {
+    const victim = establishedDigimon(1, ["BT26-061"], slot);
+    victim.isSuspended = true;
+    placePermanent(bot, victim);
+  }
+  while (bot.security.length > 0) extractCardAt(bot, Zone.Security, 0);
+  for (let index = 0; index < 5; index++) {
+    insertCard(bot, Zone.Security, faceDownCard(`dev-eclipse-security-${index}`, "BT1-001", 1));
+  }
+  insertCard(bot, Zone.Hand, faceDownCard("dev-eclipse-impact", "ST23-09", 1));
+  // Keep the opponent's next draw from introducing another action into this repro.
+  insertCard(bot, Zone.Deck, faceDownCard("dev-eclipse-draw", "BT1-001", 1), "top");
+  state.turnSeat = 0;
+  state.turnCount = 2;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 function layEx7SeventhFascinationTurnScenario(
   state: GameState,
   decks: readonly [Decklist, Decklist],
@@ -4676,6 +4713,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
+  "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,

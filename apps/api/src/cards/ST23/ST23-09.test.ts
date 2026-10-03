@@ -10,6 +10,13 @@ import "../BT15/BT15-038.js";
 import "../BT8/BT8-031.js";
 import "./ST23-04.js";
 import "./ST23-09.js";
+import "../EX12/EX12-052.js";
+import "../BT19/BT19-089.js";
+import "../BT1/BT1-079.js";
+import "../BT26/BT26-056.js";
+import "../BT26/BT26-057.js";
+import "../BT26/BT26-032.js";
+import "../BT24/BT24-102.js";
 
 describe("ST23-09 Atratusmon", () => {
   it("deletes the opponent's lowest-DP Digimon when digivolving", async () => {
@@ -455,4 +462,168 @@ describe("ST23-09 Atratusmon — KB Q&A rulings", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === allyBottomId));
     expect(s.perm("ally").stack.map((card) => card.instanceId)).not.toContain(allyBottomId);
   });
+});
+
+describe("Discord bug 1555938104404348949 — DUAL Option provenance", () => {
+  it.each([
+    { optionCard: "ST23-09", onField: false, suspended: false, attacksAtMain: false, deckBottom: true },
+    { optionCard: "EX12-052", onField: true, suspended: true, attacksAtMain: false, deckBottom: false },
+    { optionCard: "BT26-057", onField: true, suspended: false, attacksAtMain: true, deckBottom: false },
+  ])(
+    "1555938104404348949: $optionCard Option affects Diarbbitmon despite Digimon-effect immunity",
+    async ({ optionCard, onField, suspended, attacksAtMain, deckBottom }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "ST23-13", as: "beatbreak" }],
+            hand: [{ card: optionCard, as: "option" }],
+            deck: ["BT1-001", "BT1-002"],
+          },
+          1: {
+            battleArea: [{ card: "EX12-051", as: "diarbbitmon", suspended: optionCard === "ST23-09" }],
+            hand: [{ card: "EX12-052", as: "evolution" }],
+            deck: ["BT1-001", "BT1-002"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("diarbbitmon").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "EX12-052") &&
+          s.state.pendingDecision === undefined,
+      );
+      const targetId = s.inst("evolution").instanceId;
+      s.state.turnSeat = 0;
+      s.state.memory = 10;
+      expect(
+        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+      const remaining = s.state.players[1]!.battleArea.find((p) => p.permanentId === s.perm("diarbbitmon").permanentId);
+      expect({
+        onField: remaining !== undefined,
+        suspended: remaining?.isSuspended ?? false,
+        attacksAtMain: remaining?.attacksAtStartOfMainPhase ?? false,
+        deckBottom: s.state.players[1]!.deck.at(-1)?.instanceId === targetId,
+      }).toEqual({ onField, suspended, attacksAtMain, deckBottom });
+    },
+  );
+});
+
+it("1555938104404348949: Atratusmon's Digimon face bypasses Option-only immunity", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "ST23-08", as: "base" }],
+        hand: [{ card: "ST23-09", as: "evolution" }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "target" }],
+        hand: [{ card: "BT19-089", as: "redCard" }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.turnSeat = 1;
+  s.state.memory = 10;
+  await s.ready();
+  const targetId = s.perm("target").topCard!.instanceId;
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("redCard").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.trash.some((c) => c.instanceId === s.inst("redCard").instanceId));
+  expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Option")).toBe(true);
+  s.state.turnSeat = 0;
+  s.state.memory = 10;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolution").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "ST23-09") &&
+      s.state.pendingDecision === undefined,
+  );
+  expect(s.state.players[1]!.trash.some((c) => c.instanceId === targetId)).toBe(true);
+});
+
+it("1555938104404348949: inherited suspension on a DUAL Digimon bypasses Option-only immunity", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT26-056", as: "host", under: ["BT1-079"] }], deck: ["BT1-001", "BT1-002"] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "target" }],
+        hand: [{ card: "BT19-089", as: "redCard" }],
+        deck: ["BT1-001", "BT1-002"],
+        security: ["BT1-001", "BT1-002"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.isFirstPlayersFirstTurn = false;
+  s.state.turnSeat = 1;
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("redCard").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.trash.some((c) => c.instanceId === s.inst("redCard").instanceId));
+  expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Option")).toBe(true);
+  s.state.turnSeat = 0;
+  s.state.memory = 10;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  expect(s.perm("target").isSuspended).toBe(true);
+});
+
+it("1555938104404348949: Homeros borrows a DUAL Digimon effect without Option provenance", async () => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT24-102", as: "homeros" },
+          { card: "BT26-032", as: "lender" },
+        ],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-002"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "target" }],
+        hand: [{ card: "BT19-089", as: "redCard" }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.perm("target").permanentId);
+  s.state.turnSeat = 1;
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("redCard").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.trash.some((c) => c.instanceId === s.inst("redCard").instanceId));
+  await duringMainPhase(s, 0, 3, async () => {});
+  expect(s.perm("homeros").isSuspended).toBe(true);
+  expect(s.perm("target").isSuspended).toBe(true);
 });

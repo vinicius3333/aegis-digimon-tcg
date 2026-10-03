@@ -52,6 +52,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Entre na Fase Principal com 5 de memória. Evolua BT10-064 Gogmamon para LM-067 Gundramon da mão (custo 4). Na revelação, escolha P-180 Bind Red Trigger: seu uso deve manter a memória em 1. P-180 descarta o topo da segurança do bot; escolha Gundramon para colocá-la como fonte do fundo. Ordene as outras 5 cartas para o fundo do deck. A memória deve continuar em 1, sem passar o turno.",
     en: "Enter Main with 5 memory. Digivolve BT10-064 Gogmamon into LM-067 Gundramon from hand (cost 4). Choose P-180 Bind Red Trigger from the reveal: using it must keep memory at 1. P-180 trashes the bot's top security; choose Gundramon to place it as the bottom source. Order the other 5 cards to the deck bottom. Memory must remain at 1 without passing the turn.",
   },
+  "arena-diarbbitmon-dual-option-immunity": {
+    ptBR: "Evolua EX12-051 para EX12-052 Diarbbitmon da mão. Escolha o próprio Diarbbitmon para a imunidade e +3000 DP; batalhe o primeiro BT26-061 do bot. Encerre o turno e aceite Vortex contra o segundo BT26-061: Diarbbitmon deve ficar suspenso. Os dois ST23-13 dão ao bot 5 de memória na Principal. Ele usa ST23-09 Atratusmon como Option (Eclipse Impact), escolhendo Diarbbitmon. Apesar da imunidade a efeitos de Digimon, ele deve ir ao fundo do deck: Eclipse Impact é efeito de Option. Recuse Arts Digivolve, se oferecido.",
+    en: "Digivolve EX12-051 into EX12-052 Diarbbitmon from hand. Choose Diarbbitmon for immunity and +3000 DP; battle the bot's first BT26-061. End the turn and accept Vortex against the second BT26-061: Diarbbitmon should be suspended. The two ST23-13 Tamers give the bot 5 memory in Main. It uses ST23-09 Atratusmon as an Option (Eclipse Impact), choosing Diarbbitmon. Despite Digimon-effect immunity, it must go to the deck bottom: Eclipse Impact is an Option effect. Decline Arts Digivolve if offered.",
+  },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
@@ -604,6 +608,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-lm067-gundramon-free-option", "LM-067 Gundramon · free revealed Option"],
+  ["arena-diarbbitmon-dual-option-immunity", "Diarbbitmon · Eclipse Impact / DUAL immunity"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
