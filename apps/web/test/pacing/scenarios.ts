@@ -18,10 +18,14 @@ export interface AnswerPreferences {
   preferInstanceIds?: readonly string[];
   /** Prompts (by substring of their text) the viewer refuses. */
   declinePrompts?: readonly string[];
+  declineAllOptional?: boolean;
+  blockFirstAvailable?: boolean;
 }
 
 export interface ScenarioPlan {
   id: DevScenarioId;
+  /** Distinct accept/decline runs may share the same authoritative server layout. */
+  variant?: string;
   /**
    * The viewer's moves, in order. Each is played once the board is idle and nothing is asked.
    * A move returns undefined while its moment has not come, and `SKIP` once it has passed.
@@ -82,7 +86,7 @@ export const SCENARIO_PLANS: readonly ScenarioPlan[] = [
     id: "effects-lab-own-chain",
     moves: [passBreeding, digivolve("BT10-062", "BT9-065")],
     answers: {},
-    finished: (_state, resolved) => resolved[0] >= 7,
+    finished: (state, resolved) => resolved[0] >= 6 && permanentOf(state, "BT9-065") !== undefined,
     maxMs: MAX_MS,
   },
   {
@@ -90,6 +94,15 @@ export const SCENARIO_PLANS: readonly ScenarioPlan[] = [
     moves: [passBreeding, passMain],
     answers: {},
     finished: (_state, resolved) => resolved[1] >= 5,
+    maxMs: MAX_MS,
+  },
+  {
+    id: "effects-lab-opponent-play",
+    moves: [passBreeding, passMain],
+    answers: {},
+    finished: (state, resolved) =>
+      state.players[1]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-029") === true &&
+      resolved[1] >= 1,
     maxMs: MAX_MS,
   },
   {
@@ -181,6 +194,36 @@ export const SCENARIO_PLANS: readonly ScenarioPlan[] = [
     finished: (state) => (state.players[1]?.securityCount ?? 5) <= 3,
     maxMs: MAX_MS,
   },
+  {
+    id: "arena-ex13-giromon-block-triggers",
+    moves: [],
+    answers: { blockFirstAvailable: true },
+    finished: (_state, resolved) => resolved[0] >= 6,
+    maxMs: MAX_MS,
+  },
+  ...[false, true].map((decline): ScenarioPlan => ({
+    id: "arena-drasil-optional-effect-presets",
+    variant: `arena-drasil-optional-effect-presets-${decline ? "declined" : "accepted"}`,
+    moves: [
+      passBreeding,
+      (state) => {
+        const card = handCard(state, "BT23-062");
+        return card ? { type: "playCard", instanceId: card.instanceId } : undefined;
+      },
+    ],
+    answers: { declineAllOptional: decline },
+    finished: (state, resolved) => {
+      const drasil =
+        state.players[VIEWER]?.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT23-072") ?? [];
+      return (
+        permanentOf(state, "BT23-062") !== undefined &&
+        drasil.length === 2 &&
+        drasil.every((permanent) => permanent.isSuspended === !decline) &&
+        (decline || resolved[0] >= 2)
+      );
+    },
+    maxMs: MAX_MS,
+  })),
 ];
 
 /** The target a selection prefers: the viewer's EX13-028 Sukamon, whose deletion is the point. */
@@ -202,6 +245,7 @@ export function answerDecision(
 ): DecisionResponse | undefined {
   const options = request.options;
   const refused =
+    (preferences.declineAllOptional === true && request.kind === "optional") ||
     (preferences.declinePrompts ?? []).some((prompt) => (request.promptText ?? "").includes(prompt)) ||
     (request.kind === "selectCards" && options?.digiXrosCardId !== undefined);
   switch (request.kind) {
@@ -233,12 +277,12 @@ export function answerDecision(
 }
 
 /** The pass (or forced block) for a combat window the viewer is asked to answer. */
-export function answerCombatWindow(state: GameState): Intent | undefined {
+export function answerCombatWindow(state: GameState, preferences: AnswerPreferences = {}): Intent | undefined {
   const window = state.combatWindow;
   if (!window || window.seat !== VIEWER) return undefined;
   switch (window.kind) {
     case "block":
-      return window.mustBlock && window.eligiblePermanentIds[0]
+      return (window.mustBlock || preferences.blockFirstAvailable) && window.eligiblePermanentIds[0]
         ? { type: "declareBlock", blockerPermanentId: window.eligiblePermanentIds[0] }
         : { type: "declineBlock" };
     case "counter":

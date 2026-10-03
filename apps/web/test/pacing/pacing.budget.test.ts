@@ -5,15 +5,17 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { minReadableMs } from "./metrics";
 import { rowKey, summarize, type SummaryRow } from "./report";
 import { matrix, measureEntry } from "./runMatrix";
 
 vi.mock("../../src/design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
 
-// Stalls are a budget line here, not an error thrown by test/setupGateExpiry.ts.
-(globalThis as Record<symbol, unknown>)[Symbol.for("aegis.gateExpiriesMeasured")] = true;
+// Keep the measurement exemption scoped to this suite; subsequent suites must still fail
+// if a product gate reaches its ceiling.
+const measuredFlag = Symbol.for("aegis.gateExpiriesMeasured");
+let priorMeasuredFlag: unknown;
 
 /** Slack on durations, so a harmless reordering of timers does not fail the build. */
 const DURATION_SLACK = 1.1;
@@ -28,20 +30,22 @@ const baseline = new Map(
 let rows: SummaryRow[] = [];
 
 beforeAll(async () => {
+  priorMeasuredFlag = (globalThis as Record<symbol, unknown>)[measuredFlag];
+  (globalThis as Record<symbol, unknown>)[measuredFlag] = true;
   rows = [];
   for (const entry of matrix()) rows.push(summarize(await measureEntry(entry)));
 }, 120_000);
+afterAll(() => {
+  if (priorMeasuredFlag === undefined) delete (globalThis as Record<symbol, unknown>)[measuredFlag];
+  else (globalThis as Record<symbol, unknown>)[measuredFlag] = priorMeasuredFlag;
+});
 
 /** The runs in a pacing style, which paces effects one at a time. */
 const paced = () => rows.filter((row) => row.pacing !== "current");
 
-type GapMetric = "boardAheadUnits" | "unreadable" | "gateExpiries";
-
 /**
  * The chains rebuilt from production logs (apps/api/src/engine/devScenario.ts). Paced, they
- * must show no board ahead, no unreadable clause and no stall, apart from the gaps listed
- * here, which are known and not fixed yet (see the harness README); `stacked` has only the
- * held [Security] card's board ahead. Each also has a ceiling on its shown time at Normal
+ * must show no board ahead, no unreadable clause and no stall. Each also has a ceiling on its shown time at Normal
  * speed per pacing style: about 10% over what it measured.
  */
 const PRODUCTION_CHAINS: Record<
@@ -49,35 +53,25 @@ const PRODUCTION_CHAINS: Record<
   {
     normalShownMs: number;
     stackedNormalShownMs: number;
-    knownGaps?: Partial<Record<GapMetric, number>>;
-    stackedGaps?: Partial<Record<GapMetric, number>>;
   }
 > = {
   "effects-lab-prod-ghost-execute": {
-    normalShownMs: 57_000,
-    stackedNormalShownMs: 31_500,
-    knownGaps: { unreadable: 2 },
+    normalShownMs: 54_000,
+    stackedNormalShownMs: 43_000,
   },
   "effects-lab-prod-ghost-execute-security": {
-    normalShownMs: 64_000,
-    stackedNormalShownMs: 38_500,
-    knownGaps: { boardAheadUnits: 2, unreadable: 2, gateExpiries: 1 },
-    stackedGaps: { boardAheadUnits: 2 },
+    normalShownMs: 61_000,
+    stackedNormalShownMs: 49_000,
   },
   "effects-lab-prod-attack-stack": {
-    normalShownMs: 37_000,
-    stackedNormalShownMs: 28_000,
-    knownGaps: { boardAheadUnits: 1, unreadable: 2 },
+    normalShownMs: 47_000,
+    stackedNormalShownMs: 32_500,
   },
-  "effects-lab-prod-security-removed": { normalShownMs: 16_000, stackedNormalShownMs: 10_000 },
-  "effects-lab-prod-titan-cascade": { normalShownMs: 23_000, stackedNormalShownMs: 15_500 },
+  "effects-lab-prod-security-removed": { normalShownMs: 14_000, stackedNormalShownMs: 10_000 },
+  "effects-lab-prod-titan-cascade": { normalShownMs: 22_000, stackedNormalShownMs: 18_000 },
 };
 
 const pacedProductionChains = () => paced().filter((row) => row.scenario in PRODUCTION_CHAINS);
-const knownGap = (row: SummaryRow, metric: GapMetric) => {
-  const chain = PRODUCTION_CHAINS[row.scenario];
-  return (row.pacing === "stacked" ? chain?.stackedGaps : chain?.knownGaps)?.[metric] ?? 0;
-};
 
 function budgetOf(row: SummaryRow): SummaryRow {
   const budget = baseline.get(rowKey(row));
@@ -97,8 +91,94 @@ function breaking(
 }
 
 describe("effect pacing budget", () => {
+  it("measures the complete matrix rather than silently passing a filtered or empty run", () => {
+    expect(process.env.PACING_ONLY).toBeUndefined();
+    expect(rows.length).toBe(matrix().length);
+    expect(rows.length).toBeGreaterThan(0);
+  });
+
   it("finishes every scenario", () => {
     expect(rows.filter((row) => row.timedOut).map(rowKey)).toEqual([]);
+    expect(
+      breaking(
+        rows,
+        (row) => row.pendingSteps,
+        () => 0,
+      ),
+    ).toEqual([]);
+    expect(
+      breaking(
+        rows,
+        (row) => row.failedSteps,
+        () => 0,
+      ),
+    ).toEqual([]);
+    expect(
+      breaking(
+        rows,
+        (row) => row.droppedSteps,
+        () => 0,
+      ),
+    ).toEqual([]);
+  });
+
+  it("announces every accepted effect, including isolated effects", () => {
+    expect(
+      breaking(
+        paced(),
+        (row) => row.missingAnnouncements,
+        () => 0,
+      ),
+    ).toEqual([]);
+  });
+
+  it("holds optional effect toasts until the viewer answers", () => {
+    expect(
+      breaking(
+        paced(),
+        (row) => row.optionalAnnouncementsBeforeAnswer,
+        () => 0,
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps isolated and chained results behind their own announcements", () => {
+    expect(
+      breaking(
+        paced(),
+        (row) => row.allResultsBeforeCause,
+        () => 0,
+      ),
+    ).toEqual([]);
+    expect(
+      breaking(
+        paced(),
+        (row) => row.costBeforeFocus,
+        () => 0,
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps isolated and chained effects readable", () => {
+    expect(
+      breaking(
+        paced(),
+        (row) => row.allUnreadable,
+        () => 0,
+      ),
+    ).toEqual([]);
+  });
+
+  it("finishes paced chains without rescuing the board or a prompt by its budget", () => {
+    for (const metric of ["boardBudgetHits", "decisionBudgetHits", "decisionStallHits"] as const)
+      expect(
+        breaking(
+          paced(),
+          (row) => row[metric],
+          () => 0,
+        ),
+        metric,
+      ).toEqual([]);
   });
 
   it("never shows two active effect clauses at once when paced", () => {
@@ -122,6 +202,20 @@ describe("effect pacing budget", () => {
   });
 
   it("keeps the board from running ahead no more than the baseline", () => {
+    expect(
+      breaking(
+        paced(),
+        (row) => row.boardAheadUnits,
+        () => 0,
+      ),
+    ).toEqual([]);
+    expect(
+      breaking(
+        paced(),
+        (row) => row.boardAheadMs,
+        () => 0,
+      ),
+    ).toEqual([]);
     expect(
       breaking(
         rows,
@@ -158,7 +252,7 @@ describe("effect pacing budget", () => {
       breaking(
         paced(),
         (row) => row.gateExpiries,
-        (row) => knownGap(row, "gateExpiries"),
+        () => 0,
       ),
     ).toEqual([]);
   });
@@ -170,7 +264,7 @@ describe("effect pacing budget", () => {
         breaking(
           pacedProductionChains(),
           (row) => row[metric],
-          (row) => knownGap(row, metric),
+          () => 0,
         ).map((culprit) => `${metric} ${culprit}`),
       ),
     ).toEqual([]);

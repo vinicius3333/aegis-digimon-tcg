@@ -9,6 +9,8 @@ import { act, renderHook } from "@testing-library/react";
 import { useLayoutEffect } from "react";
 import { vi } from "vitest";
 import { CATALOG_DECKS, type DecisionRequest, type GameState, type SequencedServerEvent } from "@aegis/shared";
+import { presentationTelemetry, type PresentationCounters } from "../../src/game/presentationTelemetry";
+import { visibleBoard, type VisibleBoard } from "../../src/game/screen/model/visibleBoard";
 import { useMatchCues, type MatchCueAnchors } from "../../src/game/useMatchCues";
 import type { MatchCues } from "../../src/game/match/types";
 import { emptyBatchInbox, receiveServerEvent, type BatchInbox, type ServerBatch } from "../../src/net/serverBatches";
@@ -70,8 +72,10 @@ export interface Sample {
   at: number;
   liveVersion: number;
   displayedVersion: number;
+  visibleBoard?: VisibleBoard;
   clauses: Clause[];
   litSources: string[];
+  focusedPermanentIds: string[];
   /** Keys of the keyed consequence cues on screen, as `<kind>-<key>`. */
   cues: string[];
   promptVisible: boolean;
@@ -93,15 +97,24 @@ export interface StepRecord {
   queuedAt: number;
   startedAt?: number;
   endedAt?: number;
+  outcome?: "finished" | "dropped";
+  failed: boolean;
+  cancelled: boolean;
+  skipping: boolean;
 }
 
 export interface DecisionRecord {
   decisionId: string;
   kind: string;
   sourceCardId?: string;
+  sourceInstanceId?: string;
+  effectKey?: string;
+  activationConfirmation?: boolean;
   arrivedAt: number;
   visibleAt?: number;
   answeredAt?: number;
+  /** Only whole-effect optional refusals without any results may suppress an announcement. */
+  optionalAccepted?: boolean;
 }
 
 export interface Recording {
@@ -118,6 +131,15 @@ export interface Recording {
   decisions: readonly DecisionRecord[];
   /** Presentation gates that ran out their ceiling instead of being released: a stall. */
   gateExpiries: readonly string[];
+  counters: PresentationCounters;
+  pendingSteps: number;
+  /** Public printed DP by authoritative revision, before presentation holds. */
+  dpSnapshots?: readonly {
+    stateVersion: number;
+    permanents: readonly { permanentId: string; topInstanceId: string; currentDP: number }[];
+  }[];
+  /** Public hand counts after each authoritative patch, including hidden opponent draws. */
+  handCountSnapshots?: readonly { stateVersion: number; counts: readonly [number, number] }[];
   /** Where the server stood when the run ended, to tell a stuck run from a slow one. */
   end: { turnSeat: number; phase: string; pendingDecision?: string; resolvedBySeat: readonly [number, number] };
 }
@@ -196,6 +218,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
   const human = options.human ?? DEFAULT_HUMAN;
   setBasePacing(options.basePacing ?? (pacing === "current" ? DEFAULT_PACING : PACING_BY_STYLE[pacing]));
   setEffectSpeed(speed);
+  presentationTelemetry.reset();
   vi.spyOn(Math, "random").mockImplementation(seededRandom(options.seed ?? 7));
 
   const startedAt = Date.now();
@@ -208,6 +231,25 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
   const closedBatches: (ServerBatch & { receivedAt: number })[] = [];
   const decisions: DecisionRecord[] = [];
   const resolvedBySeat: [number, number] = [0, 0];
+  const dpSnapshots = new Map<number, NonNullable<Recording["dpSnapshots"]>[number]>();
+  const handCountSnapshots = new Map<number, NonNullable<Recording["handCountSnapshots"]>[number]>();
+  const recordPublicState = (state: GameState) => {
+    if (dpSnapshots.has(state.stateVersion)) return;
+    handCountSnapshots.set(state.stateVersion, {
+      stateVersion: state.stateVersion,
+      counts: [state.players[0]?.handCount ?? 0, state.players[1]?.handCount ?? 0],
+    });
+    dpSnapshots.set(state.stateVersion, {
+      stateVersion: state.stateVersion,
+      permanents: [...state.players].flatMap((player) =>
+        [...player.battleArea].map((permanent) => ({
+          permanentId: permanent.permanentId,
+          topInstanceId: permanent.topCard.instanceId,
+          currentDP: permanent.currentDP,
+        })),
+      ),
+    });
+  };
   let decodedState: GameState | undefined;
 
   const onMessage = (message: WireMessage) => {
@@ -220,6 +262,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
       decision = reconciled.decision;
       confirmedDecisionId = reconciled.confirmedDecisionId;
       snapshots = recordSnapshot(snapshots, decodedState);
+      recordPublicState(decodedState);
       return;
     }
     if (message.channel === "decision") {
@@ -233,6 +276,9 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
           decisionId: request.decisionId,
           kind: request.kind,
           ...(request.sourceCardId ? { sourceCardId: request.sourceCardId } : {}),
+          ...(request.sourceInstanceId ? { sourceInstanceId: request.sourceInstanceId } : {}),
+          effectKey: request.options?.effectKey,
+          activationConfirmation: request.options?.activationConfirmation,
           arrivedAt: message.at,
         });
       return;
@@ -256,6 +302,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
   });
   decodedState = room.state;
   snapshots = recordSnapshot(snapshots, decodedState);
+  recordPublicState(decodedState);
 
   let controls: PresentationControls | undefined;
   const steps = new Map<object, StepRecord>();
@@ -275,11 +322,20 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
           fromBatch: presentingBatch !== undefined,
           liveVersionAtQueue: decodedState?.stateVersion ?? 0,
           queuedAt: at,
+          failed: false,
+          cancelled: false,
+          skipping: false,
         };
         steps.set(event.step, record);
       }
       if (event.phase === "started") record.startedAt = at;
-      else if (event.phase === "finished" || event.phase === "dropped") record.endedAt = at;
+      else if (event.phase === "finished" || event.phase === "dropped") {
+        record.endedAt = at;
+        record.outcome = event.phase;
+      }
+      record.failed ||= event.failed;
+      record.cancelled ||= event.cancelled;
+      record.skipping ||= event.skipping;
     },
   };
 
@@ -349,8 +405,14 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
       at: now,
       liveVersion: live.stateVersion ?? 0,
       displayedVersion: displayed?.stateVersion ?? 0,
+      ...(displayed
+        ? { visibleBoard: visibleBoard({ live, displayed, viewerSeat: VIEWER, cues, presentationPacing }) }
+        : {}),
       clauses: clausesOf(cues),
       litSources: cues.effectSources.map((source) => source.cardId),
+      focusedPermanentIds: cues.effectSources.flatMap((source) =>
+        source.linked !== true && source.site.zone === "field" ? [source.site.permanentId] : [],
+      ),
       cues: cueKeys(cues),
       promptVisible,
       ...(promptVisible && viewerDecision?.sourceCardId ? { promptSourceCardId: viewerDecision.sourceCardId } : {}),
@@ -369,7 +431,10 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
           const response = answerDecision(viewerDecision, live, plan.answers);
           if (response) {
             answered.add(viewerDecision.decisionId);
-            if (record) record.answeredAt = now;
+            if (record) {
+              record.answeredAt = now;
+              if (response.kind === "optional") record.optionalAccepted = response.accept;
+            }
             const acknowledged = acknowledgeDecisionResponse({
               current: { decision, confirmedDecisionId },
               decisionId: viewerDecision.decisionId,
@@ -379,7 +444,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
             room.send({ type: "respondDecision", decisionId: viewerDecision.decisionId, response });
           }
         } else {
-          const intent = answerCombatWindow(live);
+          const intent = answerCombatWindow(live, plan.answers);
           if (intent) room.send(intent);
         }
       }
@@ -412,7 +477,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
   }
 
   const recording: Recording = {
-    scenario: plan.id,
+    scenario: plan.variant ?? plan.id,
     pacing,
     speed,
     startedAt,
@@ -424,6 +489,10 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
     steps: [...steps.values()],
     decisions,
     gateExpiries: [],
+    counters: presentationTelemetry.read().counters,
+    pendingSteps: controls?.queue.pendingCount() ?? 0,
+    dpSnapshots: [...dpSnapshots.values()],
+    handCountSnapshots: [...handCountSnapshots.values()],
     end: {
       turnSeat: room.room.state.turnSeat,
       phase: room.room.state.phase,

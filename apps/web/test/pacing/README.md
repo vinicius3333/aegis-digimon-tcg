@@ -2,7 +2,7 @@
 
 The harness measures how the match screen paces triggered effects. It plays each effects-lab
 scenario on the real server and the real client cue pipeline, on one fake clock. A full run
-takes about 15 seconds and gives the same numbers every time.
+contains 119 rows and typically takes about a minute. Its fake-clock measurements are deterministic.
 
 ## How it works
 
@@ -13,7 +13,12 @@ takes about 15 seconds and gives the same numbers every time.
   `sequential` client's chain pacing. Every pacing style joins as `sequential`.
 - `runScenario.ts` feeds what the socket delivered into `useMatchCues` every 16 ms, as `useRoom`
   does, and samples the screen. The viewer plays the scenario's moves when the screen is idle
-  (800 ms later) and answers a prompt 1000 ms after it opens.
+  (800 ms later) and answers a prompt 1000 ms after it opens. The screen's `visibleBoard`
+  projection applies arrival, reveal, deletion, draw, rotation and readout holds to each frame.
+  Public DP snapshots also attribute changes to the exact effect-owned batch, even when the
+  engine emits no result event; a newly evolved top's base DP remains part of its arrival.
+  Hidden hand draws use their batch's authoritative public target count, so an earlier turn
+  draw cannot impersonate a later effect. A replayed card uses its newly created permanent.
 - `scenarios.ts` holds the moves and answer rules for each scenario.
 - `metrics.ts` turns a recording into the numbers below. `report.ts` builds the table.
 
@@ -39,7 +44,7 @@ One row per scenario, pacing and Effect speed. `pacing` is `current` or a pacing
 | max clauses         | Most effect clauses on screen at once.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | active clauses      | Most effect clauses on screen at once that a later clause had not dimmed. Paced effects must keep it at 1.                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | RBC                 | Result before cause: effects with a consequence cue (draw flight, burst, pulse, showcase) on screen before their own clause.                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ahead fx / ahead ms | Board ahead: effects whose board revision (their first result batch) was on screen while an earlier effect was announced and their own clause was not yet shown, and for how long.                                                                                                                                                                                                                                                                                                                                              |
+| ahead fx / ahead ms | Board ahead: effects whose physical field, pile or readout result appeared before their clause while an earlier effect was announced. Public movements use exact identities and visible transitions; results without public identities retain the revision check.                                                                                                                                                                                                                                                               |
 | dead ms             | Time inside a chain with effects still to announce and nothing on screen: no lit source, no cue, no prompt, no ribbon, no clause younger than 1 s.                                                                                                                                                                                                                                                                                                                                                                              |
 | minor               | Share of memory- or DP-only effects (`isMinorEffect`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | min alone           | Shortest time any effect's clause stood alone on screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -61,20 +66,49 @@ The `effects-lab-prod-*` scenarios rebuild the hardest trigger chains found in t
 | `effects-lab-prod-security-removed`       | Taking a security card wakes 3 watchers; one digivolves, whose [When Digivolving] runs |
 | `effects-lab-prod-titan-cascade`          | A hand trash and a play from trash wake 5 effects (8 in the log; see devScenario.ts)   |
 
-Paced, these must show no result before its cause, one active clause, no board ahead, no
-unreadable clause and no stall. `pacing.budget.test.ts` lists the gaps still open and holds each
-chain under a shown-time ceiling at Normal, per pacing style. `stacked` has one gap:
+The budget requires every paced production chain to show one active clause, no result before
+its cause, no board ahead, no unreadable clause and no gate expiry. There are no known-gap
+allowances. Each chain also has a shown-time ceiling at Normal, per pacing style.
 
-- `ghost-execute-security`: the [Security] card that places itself is on the board before its
-  clause (2 effects, about 4 s).
+The complete 119-row verification measured these Normal shown times, excluding viewer think time.
+Every paced row had zero early results, unreadable or missing clauses, gate expiries and budget rescues.
 
-`sequential` keeps the older gaps: 2 memory-only clauses under the minimum readable time
-(`ghost-execute(-security)` Slow), one sound gate run to its ceiling (`ghost-execute-security`
-Slow), and in `attack-stack` 2 bot clauses pushed out before readable and one board ahead at
-Slow and Fast.
+| Scenario suffix          | Sequential shown / ceiling (ms) | Stacked shown / ceiling (ms) |
+| ------------------------ | ------------------------------: | ---------------------------: |
+| `ghost-execute`          |                 48,656 / 54,000 |              39,040 / 43,000 |
+| `ghost-execute-security` |                 55,040 / 61,000 |              44,528 / 49,000 |
+| `attack-stack`           |                 42,384 / 47,000 |              29,376 / 32,500 |
+| `security-removed`       |                 12,672 / 14,000 |               8,992 / 10,000 |
+| `titan-cascade`          |                 19,664 / 22,000 |              16,064 / 18,000 |
 
-The viewer's next prompt in `attack-stack` still waits 12–19 s (stacked) while the bot's chain
-plays out; see the handoff for why it is not opened earlier.
+The ceilings allow approximately 10% headroom, rounded for clarity. Some rise above the old
+ceilings because each clause now gets a safe headline reading floor, exact physical sources
+receive their focus before printed source costs, and resumed clauses precede the results of
+the viewer's answer. Field arrivals, hand counts, DP and memory also wait for their own clause.
+These longer sequences retain strict zero-failure invariants; the duration allowance cannot
+authorize an early result or a rescued gate.
+
+The matrix includes a confirmed opponent hand play and On Play, Giromon's block trigger chain,
+and two explicit King Drasil runs: accept
+both watchers after playing Dracmon, or decline both. Their end conditions assert the actual
+sources' suspension states, so the declined run cannot pass merely by omitting every effect.
+
+The original chain timing columns remain comparable with historical reports. Additional
+columns cover all effects, including isolated effects: `all fx`, `single fx`, `missing`,
+`all unreadable` and `all early results`. A refused whole effect without a mandatory result
+does not require a toast. Initial activation questions use the engine's `effectKey`, physical
+source and `activationConfirmation` provenance; optional operations inside an already active
+effect do not suppress its existing clause.
+
+Printed Delay departures and source-suspension payments ("by suspending this" or "may suspend
+this … to") are attributed to the
+exact physical source. They may precede the toast only after that source receives focus;
+moving or suspending another permanent remains a result. `cost before focus` checks this order.
+
+`failed steps`, `dropped steps`, `pending steps`, `board rescues`, `prompt rescues` and
+`prompt stalls` distinguish actual completion from silently discarded cues or budget rescue.
+The measurement suites restore their gate-expiry exemption afterwards, so it cannot disable
+the normal suite's gate checks.
 
 ## Stacked speed knobs
 
@@ -103,16 +137,28 @@ which the repository must not hold. So the harness rebuilds the chains as dev sc
 ## Update the baseline on purpose
 
 1. Make the change and run `pacing:measure`. Read the "Against the baseline" lines.
-2. If every change is intended, run `pacing:baseline` and commit `pacing-baseline.json` with
+2. If every change is intended and all paced invariants pass, run `pacing:baseline` and commit `pacing-baseline.json` with
    the change. Put the before and after numbers in the commit body.
 3. The budget test then holds the new numbers.
+
+Baseline refresh refuses filtered runs, timeouts and failures in paced announcements,
+readability, result order, consent, queue completion, gates or rescue counters. A new baseline
+cannot turn those failures into accepted budgets.
 
 ## Limits
 
 - The network has no latency, and a React render happens at most every 16 ms.
 - A watched cue (a DP pulse, a draw flight from a hand count) is matched to the effect whose
   batch revision it first covers. A pipeline cue uses the batch its step was enqueued for.
+- An implicit printed DP change requires one effect owner per authoritative batch. A batch
+  with several possible owners fails measurement; a future fixture must supply separate
+  snapshots or an authoritative result event that establishes ownership.
 - The human's think times are fixed. They move `chain ms`, not `shown ms`.
 - Fixed timing can miss a wait cycle that real browser timing closes (a start-of-main
   chain froze every track in Chromium). `e2e/effects-lab-pacing.spec.ts` covers that in a
   real browser; run it with `pnpm --filter @aegis/web test:browser effects-lab-pacing.spec.ts`.
+  Its matrix covers both pacing styles on desktop, phone and reduced motion; it observes the
+  actual room state, visible field, queue completion, painted notice identities and source focus. Separate
+  accepted/declined Drasil cases assert no source focus or toast before consent and a confirmed
+  hand-card flight followed by its field landing. The 11 cases also include opponent hand-play
+  flight, landing, focus and On Play order on desktop and phone, with screenshot artifacts.

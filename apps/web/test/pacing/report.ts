@@ -39,6 +39,20 @@ export interface SummaryRow {
   minOptionalAnswerBeatMs: number | null;
   gateExpiries: number;
   timedOut: boolean;
+  /** All triggered effects, including singles which are excluded from chain timing columns. */
+  totalEffects: number;
+  singleEffects: number;
+  missingAnnouncements: number;
+  allUnreadable: number;
+  allResultsBeforeCause: number;
+  costBeforeFocus: number;
+  optionalAnnouncementsBeforeAnswer: number;
+  failedSteps: number;
+  droppedSteps: number;
+  pendingSteps: number;
+  boardBudgetHits: number;
+  decisionBudgetHits: number;
+  decisionStallHits: number;
 }
 
 export const rowKey = (row: Pick<SummaryRow, "scenario" | "pacing" | "speed">) =>
@@ -51,6 +65,8 @@ function minOf(values: readonly number[]): number | null {
 export function summarize(metrics: RunMetrics): SummaryRow {
   const units = metrics.chains.flatMap((chain) => chain.units);
   const narrated = units.filter((unit) => unit.narrated);
+  const allUnits = [...units, ...metrics.singles];
+  const expected = allUnits.filter((unit) => !unit.declined);
   const scale = metrics.pacing !== "current" ? EFFECT_SPEED_SCALE[metrics.speed as EffectSpeed] : 1;
   const delays = metrics.decisions.flatMap((decision) =>
     decision.promptDelayMs !== undefined ? [decision.promptDelayMs] : [],
@@ -90,6 +106,37 @@ export function summarize(metrics: RunMetrics): SummaryRow {
     ),
     gateExpiries: metrics.gateExpiries.length,
     timedOut: metrics.timedOut,
+    totalEffects: allUnits.length,
+    singleEffects: metrics.singles.length,
+    missingAnnouncements: expected.filter((unit) => !unit.narrated).length,
+    allUnreadable: expected.filter(
+      (unit) => !unit.shownAtEnd && (!unit.narrated || unit.readableMs < minReadableMs(scale)),
+    ).length,
+    allResultsBeforeCause: expected.filter(
+      (unit) =>
+        unit.firstResultAt !== undefined &&
+        (unit.clauseShownAt === undefined || unit.firstResultAt < unit.clauseShownAt),
+    ).length,
+    costBeforeFocus: allUnits.filter((unit) => unit.costBeforeFocus).length,
+    optionalAnnouncementsBeforeAnswer: metrics.decisions.filter(
+      (decision) =>
+        decision.activationConfirmation === true &&
+        decision.answeredAtMs !== undefined &&
+        allUnits.some(
+          (unit) =>
+            unit.sourceCardId === decision.sourceCardId &&
+            unit.effectKey === decision.effectKey &&
+            unit.sourceInstanceId === decision.sourceInstanceId &&
+            unit.triggeredAt <= metrics.startedAt + decision.arrivedAtMs &&
+            (unit.resolvedAt ?? Infinity) >= metrics.startedAt + decision.arrivedAtMs &&
+            unit.clauseShownAt !== undefined &&
+            unit.clauseShownAt < metrics.startedAt + decision.answeredAtMs!,
+        ),
+    ).length,
+    failedSteps: metrics.failedSteps.length,
+    droppedSteps: metrics.droppedSteps.length,
+    pendingSteps: metrics.pendingSteps,
+    ...metrics.counters,
   };
 }
 
@@ -115,6 +162,19 @@ const COLUMNS: readonly [keyof SummaryRow, string][] = [
   ["maxPromptDelayMs", "prompt delay"],
   ["minOptionalAnswerBeatMs", "use→result"],
   ["gateExpiries", "stalls"],
+  ["totalEffects", "all fx"],
+  ["singleEffects", "single fx"],
+  ["missingAnnouncements", "missing"],
+  ["allUnreadable", "all unreadable"],
+  ["allResultsBeforeCause", "all early results"],
+  ["costBeforeFocus", "cost before focus"],
+  ["optionalAnnouncementsBeforeAnswer", "before answer"],
+  ["failedSteps", "failed steps"],
+  ["droppedSteps", "dropped steps"],
+  ["pendingSteps", "pending steps"],
+  ["boardBudgetHits", "board rescues"],
+  ["decisionBudgetHits", "prompt rescues"],
+  ["decisionStallHits", "prompt stalls"],
 ];
 
 export function markdownTable(rows: readonly SummaryRow[]): string {
@@ -143,6 +203,19 @@ const COMPARED: readonly (keyof SummaryRow)[] = [
   "maxPromptDelayMs",
   "minOptionalAnswerBeatMs",
   "gateExpiries",
+  "totalEffects",
+  "singleEffects",
+  "missingAnnouncements",
+  "allUnreadable",
+  "allResultsBeforeCause",
+  "costBeforeFocus",
+  "optionalAnnouncementsBeforeAnswer",
+  "failedSteps",
+  "droppedSteps",
+  "pendingSteps",
+  "boardBudgetHits",
+  "decisionBudgetHits",
+  "decisionStallHits",
 ];
 
 /** One line per run whose compared numbers moved against the baseline. */

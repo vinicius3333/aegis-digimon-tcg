@@ -5,9 +5,9 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { matrix, measureEntry } from "./runMatrix";
-import { compareWithBaseline, markdownTable, summarize, type SummaryRow } from "./report";
+import { compareWithBaseline, markdownTable, rowKey, summarize, type SummaryRow } from "./report";
 
 vi.mock("../../src/design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
 
@@ -15,10 +15,17 @@ vi.mock("../../src/design/sound", () => ({ playSound: vi.fn<(kind: string) => vo
 const BASELINE = resolve(process.cwd(), "test/pacing/pacing-baseline.json");
 const OUTPUT = resolve(process.cwd(), ".pacing-report") + "/";
 
-// Expiries are reported in the table rather than thrown by test/setupGateExpiry.ts.
-(globalThis as Record<symbol, unknown>)[Symbol.for("aegis.gateExpiriesMeasured")] = true;
-
 describe.runIf(process.env.PACING_MEASURE === "1")("pacing measurement", () => {
+  const measuredFlag = Symbol.for("aegis.gateExpiriesMeasured");
+  let priorMeasuredFlag: unknown;
+  beforeAll(() => {
+    priorMeasuredFlag = (globalThis as Record<symbol, unknown>)[measuredFlag];
+    (globalThis as Record<symbol, unknown>)[measuredFlag] = true;
+  });
+  afterAll(() => {
+    if (priorMeasuredFlag === undefined) delete (globalThis as Record<symbol, unknown>)[measuredFlag];
+    else (globalThis as Record<symbol, unknown>)[measuredFlag] = priorMeasuredFlag;
+  });
   it("measures every scenario and compares it with the baseline", async () => {
     const runs = [];
     for (const entry of matrix()) runs.push(await measureEntry(entry));
@@ -39,6 +46,30 @@ describe.runIf(process.env.PACING_MEASURE === "1")("pacing measurement", () => {
     if (process.env.PACING_UPDATE_BASELINE === "1") {
       if (process.env.PACING_ONLY)
         throw new Error("PACING_ONLY measures part of the matrix; unset it to write the baseline");
+      const invariants = [
+        "missingAnnouncements",
+        "allUnreadable",
+        "allResultsBeforeCause",
+        "boardAheadUnits",
+        "boardAheadMs",
+        "costBeforeFocus",
+        "optionalAnnouncementsBeforeAnswer",
+        "pendingSteps",
+        "failedSteps",
+        "droppedSteps",
+        "gateExpiries",
+        "boardBudgetHits",
+        "decisionBudgetHits",
+        "decisionStallHits",
+      ] as const;
+      const failures = rows.flatMap((row) =>
+        row.timedOut
+          ? [`${rowKey(row)} timed out`]
+          : row.pacing === "current"
+            ? []
+            : invariants.flatMap((metric) => (row[metric] > 0 ? [`${rowKey(row)} ${metric}=${row[metric]}`] : [])),
+      );
+      if (failures.length) throw new Error(`Cannot bless a failing paced baseline:\n${failures.join("\n")}`);
       writeFileSync(BASELINE, `${JSON.stringify(rows, null, 2)}\n`);
     }
     expect(rows.every((row) => !row.timedOut)).toBe(true);

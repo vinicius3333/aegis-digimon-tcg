@@ -17,7 +17,9 @@ export interface MatrixEntry {
 /** `PACING_ONLY=id,id` narrows a run to those scenarios, for a quick local look. */
 function selectedPlans(): readonly ScenarioPlan[] {
   const only = process.env.PACING_ONLY?.split(",").filter(Boolean);
-  return only?.length ? SCENARIO_PLANS.filter((plan) => only.includes(plan.id)) : SCENARIO_PLANS;
+  const unknown = only?.filter((id) => !SCENARIO_PLANS.some((plan) => (plan.variant ?? plan.id) === id)) ?? [];
+  if (unknown.length) throw new Error(`Unknown PACING_ONLY scenarios: ${unknown.join(", ")}`);
+  return only?.length ? SCENARIO_PLANS.filter((plan) => only.includes(plan.variant ?? plan.id)) : SCENARIO_PLANS;
 }
 
 export function matrix(speeds: readonly EffectSpeed[] = ["slow", "normal", "fast"]): MatrixEntry[] {
