@@ -1,27 +1,37 @@
 // @vitest-environment jsdom
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import { basePacingConfig, DEFAULT_PACING } from "../game/pacing";
+import { activePacing, DEFAULT_PACING, setBasePacing, setEffectSpeed } from "../game/pacing";
 import { PacingTuner, useLabPacing } from "./PacingTuner";
-import { saveTunedPacing } from "./pacingTunerModel";
 
 afterEach(() => {
   cleanup();
+  setBasePacing(DEFAULT_PACING);
+  setEffectSpeed("normal");
   localStorage.clear();
 });
 
-function Lab({ panelOpen }: { panelOpen: boolean }) {
+function LabControls() {
   useLabPacing();
-  return panelOpen ? <PacingTuner portuguese={false} /> : null;
+  return <PacingTuner portuguese={false} />;
 }
 
-it("keeps the tuned pacing while the panel is collapsed and drops it when the lab closes", () => {
-  const tuned = { ...DEFAULT_PACING, announceMs: 1234 };
-  saveTunedPacing(tuned);
-  const { rerender, unmount } = render(<Lab panelOpen />);
-  expect(basePacingConfig().announceMs).toBe(1234);
-  rerender(<Lab panelOpen={false} />);
-  expect(basePacingConfig().announceMs).toBe(1234);
-  unmount();
-  expect(basePacingConfig()).toBe(DEFAULT_PACING);
+it("uses the match's stacked timing even when obsolete lab settings request truncated single-clause effects", () => {
+  setEffectSpeed("normal");
+  localStorage.setItem(
+    "aegis.dev.effects-lab.pacing",
+    JSON.stringify({
+      ...DEFAULT_PACING,
+      sourceHoldMs: 120,
+      shortSourceHoldMs: 80,
+      clauseStackMs: 0,
+    }),
+  );
+  render(<LabControls />);
+
+  expect(activePacing()).toEqual(DEFAULT_PACING);
+  expect(screen.queryByRole("button", { name: "Sequential" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Current-like" })).toBeNull();
+  expect(screen.queryByRole("spinbutton", { name: "Clause stack (ms)" })).toBeNull();
+  expect(screen.getByRole("combobox", { name: "Effect speed" })).toBeDefined();
 });

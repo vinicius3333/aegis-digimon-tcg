@@ -1,12 +1,12 @@
 /* Every timing knob sequential effect pacing reads, in one place.
 
    Code reads the knobs through `activePacing()` at the moment it waits, never at module load,
-   so a change made by the effects lab or the Effect speed setting applies to the next effect
+   so a change made by a timing harness or the Effect speed setting applies to the next effect
    without remounting the match. `current` pacing reads nothing from here.
 
    Each pacing style has its own config in `PACING_BY_STYLE`, and `DEFAULT_PACING_STYLE` picks
-   the one players get. To try values live, open /dev/effects-lab, use the Pacing tuner, then
-   paste its "Copy as TS" output over the style's config. */
+   the one players get. The effects lab uses the same default stacked config as a match;
+   alternate configs are exercised by the timing harness. */
 
 export interface PacingConfig {
   /** How long an effect's source card glows before its clause appears (ms). */
@@ -41,9 +41,9 @@ export interface PacingConfig {
   shortSourceHoldMs: number;
   /** 1: an opponent's effect whose card and text already resolved in this chain takes the short beats. 0: off. */
   repeatShortBeats: number;
-  /** Effects after this many in one chain play their beats at `chainTailPercent`. 0: off (count). */
+  /** Effects after this many in one chain shorten their clause and settle beats. 0: off (count). */
   chainTailFrom: number;
-  /** How long the beats of an effect late in a long chain are, as a share of their length (%). */
+  /** The clause and settle beats late in a chain, as a share of their length (%). Source focus stays whole. */
   chainTailPercent: number;
   /**
    * 1: the next effect lights up while this effect's results still play, when those results
@@ -73,7 +73,7 @@ export type PacingStyle = "sequential" | "stacked";
 export const PACING_STYLES: readonly PacingStyle[] = ["sequential", "stacked"];
 
 const SEQUENTIAL_PACING: PacingConfig = {
-  sourceHoldMs: 360,
+  sourceHoldMs: 720,
   announceMs: 700,
   settleMs: 300,
   minorAnnounceMs: 450,
@@ -85,7 +85,7 @@ const SEQUENTIAL_PACING: PacingConfig = {
   recapLifetimeMs: 8000,
   minChainLength: 2,
   clauseStackMs: 0,
-  shortSourceHoldMs: 360,
+  shortSourceHoldMs: 720,
   repeatShortBeats: 0,
   chainTailFrom: 0,
   chainTailPercent: 100,
@@ -94,17 +94,16 @@ const SEQUENTIAL_PACING: PacingConfig = {
   clauseReadableMs: 1720,
 };
 
-/* Tuned with the real-engine harness: minor and familiar effects use short beats, long
-   chains accelerate after their second effect, and recent clauses stay readable in the
-   stack. The floor includes frame sampling margin at every speed. These numbers are Aegis
-   measurements; the primary-source motion principles live in pacing/REFERENCES.md. */
+/* Minor and familiar effects use shorter clause beats, and long chains shorten those beats
+   after their second effect. Every physical source keeps the full orientation moment: the
+   eye still has to find a different card. Recent clauses stay readable in the stack. The
+   floor includes frame sampling margin at every speed; see pacing/REFERENCES.md. */
 const STACKED_PACING: PacingConfig = {
   ...SEQUENTIAL_PACING,
   announceMs: 500,
   settleMs: 300,
   minorAnnounceMs: 200,
   minorSettleMs: 100,
-  shortSourceHoldMs: 200,
   repeatShortBeats: 1,
   chainTailFrom: 2,
   chainTailPercent: 40,
@@ -172,7 +171,7 @@ export function basePacingConfig(): PacingConfig {
   return basePacing;
 }
 
-/** Replaces the unscaled config. The effects lab tuner uses this; the game never does. */
+/** Harnesses replace the unscaled config; the effects lab restores the match default. */
 export function setBasePacing(config: PacingConfig): void {
   basePacing = config;
   active = scalePacing(basePacing, EFFECT_SPEED_SCALE[effectSpeed]);

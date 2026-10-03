@@ -81,7 +81,6 @@ import {
   type ObservedBatch,
 } from "../effectSequence";
 import {
-  CONSEQUENCE_GATE_MAX_MS,
   createPresentationGate,
   waitForGate,
   type DeletionReadyAt,
@@ -638,7 +637,7 @@ export function presentServerBatch({
             effectResults: {
               fromEventIndex: sequenced?.opened[0]?.eventIndex ?? 0,
               afterAnnounced: (step: AnimationStep) =>
-                afterGate(step, unitGate, CONSEQUENCE_GATE_MAX_MS, "arrival/effectUnit"),
+                afterGate(step, unitGate, activePacing().announceMaxMs, "arrival/effectUnit"),
             },
           }
         : {}),
@@ -1000,11 +999,11 @@ export function presentServerBatch({
   }
 }
 
-/** A step held until a gate opens: by default, its effect unit's clause has been read. */
+/** Waiters use the announcement owner's ceiling, including a security reveal before the clause. */
 function afterGate(
   step: AnimationStep,
   gate: PresentationGate,
-  ceilingMs = CONSEQUENCE_GATE_MAX_MS,
+  ceilingMs = activePacing().announceMaxMs,
   label = "sound/effectUnit",
 ): AnimationStep {
   return {

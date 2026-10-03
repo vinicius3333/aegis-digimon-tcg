@@ -26,6 +26,14 @@ chain acceleration. Keep motion in those tables. Keep new event contracts in the
 `game/style` and the piece components render the vocabulary; moving every renderer into
 one directory would obscure the relation between a card and its state.
 
+Accepted field effects get a 720 ms source focus at Normal speed before their clause appears.
+Minor effects and later effects in a chain keep that orientation time: chain acceleration
+shortens the clause and settle beats. The viewer's Effect speed still scales the source focus.
+The focus then becomes the steady light linked to the visible clause. Announcement consumers
+share the owner's safety ceiling, including a Security reveal before its source can focus.
+The effects lab always uses the match's stacked timing. It ignores obsolete saved tuning;
+its speed controls scale playback or Effect speed without switching the pacing style.
+
 | Family                                   | Recipes and visible surfaces                                                                  | Evidence harness                                                                                                     |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Opening, turn and phase                  | `flights.ts`, `usePhaseBanners.ts`, shields, phase ribbon, turn banner                        | New live match; `/dev/effects-lab` traces; queue/phase tests                                                         |

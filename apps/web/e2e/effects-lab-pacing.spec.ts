@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { test, expect, type Page, type TestInfo } from "@playwright/test";
 import { GamePage } from "./game-page";
 import { SPOTLIGHT_PADDING_PX, SPOTLIGHT_RADIUS_PX } from "../src/game/spotlight";
+import { DEFAULT_PACING } from "../src/game/pacing";
 
 /* A paced chain must keep moving in a real browser. The jsdom pacing harness replays the
    same scenarios on a fake clock, but a wait cycle between presentation steps only closes
@@ -68,15 +69,20 @@ class EffectsLabPage {
   button(name: RegExp) {
     return this.page.getByRole("button", { name }).filter({ visible: true });
   }
-  async start(style: string, scenario = "effects-lab-opponent-chain", endTurn = true) {
+  async start(scenario = "effects-lab-opponent-chain", endTurn = true) {
     await this.page.addInitScript(() => {
       localStorage.setItem("aegis:locale", "en");
-      localStorage.removeItem("aegis.dev.effects-lab.pacing");
+      // Obsolete tuning must not shorten effects or switch the lab out of stacked.
+      localStorage.setItem(
+        "aegis.dev.effects-lab.pacing",
+        JSON.stringify({ sourceHoldMs: 120, shortSourceHoldMs: 80, clauseStackMs: 0 }),
+      );
       localStorage.setItem("aegis.effect-speed", "normal");
     });
     await this.page.goto(`/dev/effects-lab?scenario=${scenario}`);
     await expect(this.button(/END BREEDING/i)).toBeEnabled({ timeout: 45_000 });
-    await this.page.getByRole("button", { name: style, exact: true }).click();
+    await expect(this.page.getByRole("combobox", { name: /^pacing$/i })).toHaveCount(0);
+    await expect(this.page.getByRole("button", { name: "Sequential", exact: true })).toHaveCount(0);
     await this.button(/^Collapse/i).click();
     await this.button(/END BREEDING/i).click();
     await expect(this.button(/END PHASE/i)).toBeEnabled({ timeout: 20_000 });
@@ -87,7 +93,9 @@ class EffectsLabPage {
       globals.__labNoticeAt = new Map<string, number>();
       globals.__labFocusedSources = new Set<string>();
       globals.__labFocusAt = new Map<string, number>();
+      globals["__labFocusDurations"] = [] as { cardId: string; ms: number }[];
       globals.__labArrivals = new Map<string, ArrivalPaint>();
+      let focused: { key: string; cardId: string; at: number } | undefined;
       const record = () => {
         for (const element of document.querySelectorAll<HTMLElement>("[data-narration-id]")) {
           const bounds = element.getBoundingClientRect();
@@ -106,6 +114,17 @@ class EffectsLabPage {
             if (!focusAt.has(element.dataset.sourceCardId!))
               focusAt.set(element.dataset.sourceCardId!, performance.now());
           }
+        const source = document.querySelector<SVGElement>('[data-testid="effect-focus"]');
+        const focusKey = source?.dataset.sourcePermanentId;
+        if (focused && focused.key !== focusKey) {
+          (globals["__labFocusDurations"] as { cardId: string; ms: number }[]).push({
+            cardId: focused.cardId,
+            ms: performance.now() - focused.at,
+          });
+          focused = undefined;
+        }
+        if (source && focusKey && !focused)
+          focused = { key: focusKey, cardId: source.dataset.sourceCardId!, at: performance.now() };
         for (const element of document.querySelectorAll<HTMLElement>(
           '[data-testid="confirmed-play-flight"], [data-testid="confirmed-play-landing"]',
         )) {
@@ -291,6 +310,7 @@ class EffectsLabPage {
       return {
         notices: [...(globals.__labPaintedNotices as Set<string>)],
         sources: [...(globals.__labFocusedSources as Set<string>)],
+        focusDurations: globals["__labFocusDurations"] as { cardId: string; ms: number }[],
       };
     });
     if (!reduced) {
@@ -322,6 +342,14 @@ class EffectsLabPage {
       expect(clauses).toHaveLength(5);
       for (const clause of clauses) expect(paint.notices).toContain(clause.stepId.slice("narration-step-".length));
       expect(paint.sources.length).toBeGreaterThan(0);
+      const fieldSources = paint.focusDurations.filter(({ cardId }) =>
+        ["LM-002", "EX8-011", "P-200", "P-199"].includes(cardId),
+      );
+      expect(fieldSources).toHaveLength(4);
+      for (const source of fieldSources)
+        expect(source.ms, `${source.cardId} source focus was cut short`).toBeGreaterThanOrEqual(
+          DEFAULT_PACING.sourceHoldMs - 100,
+        );
     }
   }
 }
@@ -375,7 +403,7 @@ test.describe("effects lab pacing in the browser", () => {
     }, info) => {
       if (phone) await page.setViewportSize({ width: 390, height: 844 });
       const lab = new EffectsLabPage(page);
-      await lab.start("Stacked", "effects-lab-opponent-play");
+      await lab.start("effects-lab-opponent-play");
       await lab.captureArrival("BT1-029", info);
       if (phone) await page.getByRole("button", { name: "Show the full notice", exact: true }).click();
       await expect
@@ -446,7 +474,7 @@ test.describe("effects lab pacing in the browser", () => {
     }, info) => {
       if (phone) await page.setViewportSize({ width: 390, height: 844 });
       const lab = new EffectsLabPage(page);
-      await lab.start("Stacked", "arena-drasil-optional-effect-presets", false);
+      await lab.start("arena-drasil-optional-effect-presets", false);
       await new GamePage(page).play(/^dracmon$/i);
       await lab.captureArrival("BT23-062", info);
       await page.getByRole("button", { name: "Select all, top to bottom", exact: true }).click();
@@ -535,16 +563,15 @@ test.describe("effects lab pacing in the browser", () => {
     { name: "phone", viewport: { width: 390, height: 844 }, reduced: false },
     { name: "reduced motion", viewport: { width: 1440, height: 1000 }, reduced: true },
   ];
-  for (const style of ["Stacked", "Sequential"])
-    for (const format of formats) {
-      test(`the bot chain paints and settles (${style}, ${format.name})`, async ({ page }) => {
-        await page.setViewportSize(format.viewport);
-        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
-        const lab = new EffectsLabPage(page);
-        await lab.start(style);
-        if (format.name === "phone")
-          await page.getByRole("button", { name: "Show the full notice", exact: true }).click();
-        await lab.finish(format.reduced);
-      });
-    }
+  for (const format of formats) {
+    test(`the bot chain paints and settles (Stacked, ${format.name})`, async ({ page }) => {
+      await page.setViewportSize(format.viewport);
+      await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+      const lab = new EffectsLabPage(page);
+      await lab.start();
+      if (format.name === "phone")
+        await page.getByRole("button", { name: "Show the full notice", exact: true }).click();
+      await lab.finish(format.reduced);
+    });
+  }
 });

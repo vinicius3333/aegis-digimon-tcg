@@ -56,19 +56,19 @@ const PRODUCTION_CHAINS: Record<
   }
 > = {
   "effects-lab-prod-ghost-execute": {
-    normalShownMs: 54_000,
-    stackedNormalShownMs: 43_000,
+    normalShownMs: 59_000,
+    stackedNormalShownMs: 50_000,
   },
   "effects-lab-prod-ghost-execute-security": {
-    normalShownMs: 61_000,
-    stackedNormalShownMs: 49_000,
+    normalShownMs: 66_000,
+    stackedNormalShownMs: 57_000,
   },
   "effects-lab-prod-attack-stack": {
-    normalShownMs: 47_000,
-    stackedNormalShownMs: 32_500,
+    normalShownMs: 51_000,
+    stackedNormalShownMs: 40_000,
   },
-  "effects-lab-prod-security-removed": { normalShownMs: 14_000, stackedNormalShownMs: 10_000 },
-  "effects-lab-prod-titan-cascade": { normalShownMs: 22_000, stackedNormalShownMs: 18_000 },
+  "effects-lab-prod-security-removed": { normalShownMs: 16_000, stackedNormalShownMs: 13_000 },
+  "effects-lab-prod-titan-cascade": { normalShownMs: 23_000, stackedNormalShownMs: 20_000 },
 };
 
 const pacedProductionChains = () => paced().filter((row) => row.scenario in PRODUCTION_CHAINS);

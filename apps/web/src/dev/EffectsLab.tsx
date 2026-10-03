@@ -107,7 +107,8 @@ const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const RATES = [0.25, 0.5, 1, 2, 4] as const;
-const PACINGS: readonly PresentationPacing[] = ["current", "sequential"];
+// The queued presentation protocol is named sequential; its match timing is stacked.
+const MATCH_PACING: PresentationPacing = "sequential";
 const ZOOMS = [0.05, 0.1, 0.2, 0.4] as const;
 
 const LabGameScreen = memo(GameScreen);
@@ -143,7 +144,6 @@ export function EffectsLab() {
   const portuguese = locale === "pt-BR";
   const [run, setRun] = useState(0);
   const [scenario, setScenario] = useState<DevScenario>(initialScenario);
-  const [pacing, setPacing] = useState<PresentationPacing>("sequential");
   const [panelOpen, setPanelOpen] = useState(true);
   useLabPacing();
   const [rate, setRate] = useState(1);
@@ -326,7 +326,13 @@ export function EffectsLab() {
   }, [documentPlayback, rate, paused]);
 
   async function copyTrace() {
-    const trace = effectsLabTrace(lab, { scenario, pacing, rate, paused, userAgent: navigator.userAgent });
+    const trace = effectsLabTrace(lab, {
+      scenario,
+      pacing: MATCH_PACING,
+      rate,
+      paused,
+      userAgent: navigator.userAgent,
+    });
     try {
       await navigator.clipboard.writeText(trace);
       setCopyStatus(portuguese ? "Copiado" : "Copied");
@@ -348,7 +354,7 @@ export function EffectsLab() {
           botDeckId="bt26-dgo-2026-08-28-8-plutomon"
           onExit={reset}
           devProbe={devProbe}
-          presentationPacing={pacing}
+          presentationPacing={MATCH_PACING}
         />
       </div>
       <aside className="aegis-effects-lab-panel" aria-label={portuguese ? "Inspetor" : "Inspector"}>
@@ -399,16 +405,6 @@ export function EffectsLab() {
                     {RATES.map((value) => (
                       <option key={value} value={value}>
                         {value}x
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="aegis-effects-lab-field">
-                  <span>{portuguese ? "Ritmo" : "Pacing"}</span>
-                  <select value={pacing} onChange={(event) => setPacing(event.target.value as PresentationPacing)}>
-                    {PACINGS.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
                       </option>
                     ))}
                   </select>

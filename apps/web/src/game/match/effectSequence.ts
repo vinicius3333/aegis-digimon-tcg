@@ -85,8 +85,9 @@ export interface UnitBeats {
 
 /**
  * The beats one effect gets. A minor effect, and an opponent's effect repeating card text the
- * chain already showed, take the short beats; every effect late in a long chain plays its
- * beats at `chainTailPercent`. Its clause stays readable after its beat in the dimmed stack.
+ * chain already showed, take the short beats. Late effects shorten clause and settle beats
+ * at `chainTailPercent`, preserving the time to find their physical source. Their clauses
+ * stay readable after their beats in the dimmed stack.
  */
 export function unitBeats(unit: BeatFacts, pacing = activePacing()): UnitBeats {
   const minor = isMinorEffect(unit);
@@ -95,7 +96,7 @@ export function unitBeats(unit: BeatFacts, pacing = activePacing()): UnitBeats {
     pacing.chainTailFrom > 0 && (unit.chainIndex ?? 0) > pacing.chainTailFrom ? pacing.chainTailPercent / 100 : 1;
   const scaled = (ms: number) => Math.round(ms * tail);
   return {
-    sourceHoldMs: scaled(short ? pacing.shortSourceHoldMs : pacing.sourceHoldMs),
+    sourceHoldMs: short ? pacing.shortSourceHoldMs : pacing.sourceHoldMs,
     announceMs: scaled(short ? pacing.minorAnnounceMs : pacing.announceMs),
     settleMs: scaled(short ? pacing.minorSettleMs : pacing.settleMs),
     resumeMs: scaled(minor ? pacing.minorAnnounceMs : pacing.resumeAnnounceMs),

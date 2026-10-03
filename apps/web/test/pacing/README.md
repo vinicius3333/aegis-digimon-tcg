@@ -3,6 +3,8 @@
 The harness measures how the match screen paces triggered effects. It plays each effects-lab
 scenario on the real server and the real client cue pipeline, on one fake clock. A full run
 contains 119 rows and typically takes about a minute. Its fake-clock measurements are deterministic.
+The interactive effects lab always uses the match's stacked timing and ignores obsolete saved
+tuning. Alternative pacing styles remain harness comparisons; the lab retains speed controls.
 
 ## How it works
 
@@ -75,11 +77,11 @@ Every paced row had zero early results, unreadable or missing clauses, gate expi
 
 | Scenario suffix          | Sequential shown / ceiling (ms) | Stacked shown / ceiling (ms) |
 | ------------------------ | ------------------------------: | ---------------------------: |
-| `ghost-execute`          |                 48,656 / 54,000 |              39,040 / 43,000 |
-| `ghost-execute-security` |                 55,040 / 61,000 |              44,528 / 49,000 |
-| `attack-stack`           |                 42,384 / 47,000 |              29,376 / 32,500 |
-| `security-removed`       |                 12,672 / 14,000 |               8,992 / 10,000 |
-| `titan-cascade`          |                 19,664 / 22,000 |              16,064 / 18,000 |
+| `ghost-execute`          |                 53,008 / 59,000 |              45,440 / 50,000 |
+| `ghost-execute-security` |                 59,744 / 66,000 |              51,504 / 57,000 |
+| `attack-stack`           |                 45,968 / 51,000 |              35,968 / 40,000 |
+| `security-removed`       |                 14,480 / 16,000 |              11,728 / 13,000 |
+| `titan-cascade`          |                 20,752 / 23,000 |              17,344 / 20,000 |
 
 The ceilings allow approximately 10% headroom, rounded for clarity. Some rise above the old
 ceilings because each clause now gets a safe headline reading floor, exact physical sources
@@ -87,6 +89,12 @@ receive their focus before printed source costs, and resumed clauses precede the
 the viewer's answer. Field arrivals, hand counts, DP and memory also wait for their own clause.
 These longer sequences retain strict zero-failure invariants; the duration allowance cannot
 authorize an early result or a rescued gate.
+
+Source focus holds for 720 ms at Normal in both styles, including minor, repeated and late
+effects. Effect speed still scales this orientation beat, but chain-tail acceleration only
+shortens clause and settle beats. The regression samples three actual field-source lifetimes
+at every speed. Sounds and arrivals waiting on a unit's announcement use that announcement's
+own safety ceiling, so a longer source focus after a Security reveal does not release them early.
 
 The matrix includes a confirmed opponent hand play and On Play, Giromon's block trigger chain,
 and two explicit King Drasil runs: accept
@@ -116,9 +124,9 @@ the normal suite's gate checks.
 
 | Knob                                                    | What it does                                                                                   |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `minorAnnounceMs`, `minorSettleMs`, `shortSourceHoldMs` | Short beats for a minor effect (memory or DP only).                                            |
+| `minorAnnounceMs`, `minorSettleMs`, `shortSourceHoldMs` | Minor clause and settle beats; the source hold remains 720 ms at Normal.                       |
 | `repeatShortBeats`                                      | An opponent's effect whose card and text already resolved in this chain takes the short beats. |
-| `chainTailFrom`, `chainTailPercent`                     | After the chain's first effects, every beat plays at this share of its length.                 |
+| `chainTailFrom`, `chainTailPercent`                     | After the chain's first effects, clause and settle beats play at this share of their length.   |
 | `resumeAnnounceMs`                                      | The beat between the viewer's answer and what it did.                                          |
 | `clauseReadableMs`                                      | No clause leaves the column, or is hidden by a prompt, before it has been up this long.        |
 | `overlapResults`                                        | Off. Lights the next effect while results play; it left clauses unreadable at Slow and Fast.   |
@@ -157,8 +165,9 @@ cannot turn those failures into accepted budgets.
 - Fixed timing can miss a wait cycle that real browser timing closes (a start-of-main
   chain froze every track in Chromium). `e2e/effects-lab-pacing.spec.ts` covers that in a
   real browser; run it with `pnpm --filter @aegis/web test:browser effects-lab-pacing.spec.ts`.
-  Its matrix covers both pacing styles on desktop, phone and reduced motion; it observes the
-  actual room state, visible field, queue completion, painted notice identities and source focus. Separate
+  Its matrix covers the fixed stacked timing on desktop, phone and reduced motion, including
+  obsolete saved tuning; it observes the actual room state, visible field, queue completion,
+  painted notice identities and each field source's real focus duration. Separate
   accepted/declined Drasil cases assert no source focus or toast before consent and a confirmed
-  hand-card flight followed by its field landing. The 11 cases also include opponent hand-play
+  hand-card flight followed by its field landing. The eight cases also include opponent hand-play
   flight, landing, focus and On Play order on desktop and phone, with screenshot artifacts.

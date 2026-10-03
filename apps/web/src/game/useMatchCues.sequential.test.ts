@@ -6,7 +6,15 @@ import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import type { PresentationPacing } from "./presentationProbe";
-import { activePacing, DEFAULT_PACING, PACING_BY_STYLE, setBasePacing } from "./pacing";
+import {
+  activePacing,
+  DEFAULT_PACING,
+  EFFECT_SPEEDS,
+  EFFECT_SPEED_SCALE,
+  PACING_BY_STYLE,
+  setBasePacing,
+  setEffectSpeed,
+} from "./pacing";
 import { TIMINGS } from "./timings";
 
 vi.mock("../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
@@ -108,8 +116,8 @@ function renderChain(presentationPacing: PresentationPacing) {
   return {
     ...view,
     /** Every batch of the chain lands in one render, the way a 13 ms server burst does. */
-    feedChain() {
-      for (const events of CHAIN) batches = [...batches, singleServerBatch(events, (version += 1))];
+    feedChain(chain: readonly (readonly ServerEvent[])[] = CHAIN) {
+      for (const events of chain) batches = [...batches, singleServerBatch(events, (version += 1))];
       view.rerender({ fed: batches });
     },
     /** The server asks the viewer something, raised at the revision the chain closed with. */
@@ -166,9 +174,46 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   setBasePacing(DEFAULT_PACING);
+  setEffectSpeed("normal");
 });
 
 describe("sequential pacing plays one effect at a time", () => {
+  it.each(EFFECT_SPEEDS)(
+    "preserves a readable field-card focus through minor and late chain effects at %s speed",
+    async (speed) => {
+      setBasePacing(PACING_BY_STYLE.stacked);
+      setEffectSpeed(speed);
+      const view = renderChain("sequential");
+      await advance(0);
+      view.feedChain([
+        ...CHAIN,
+        [triggered("AD1-002", "src-a", "a/memory")],
+        [{ kind: "memoryChanged", from: 0, to: 1, reason: "effect" }],
+        [resolved("AD1-002", "src-a", "a/memory")],
+      ]);
+
+      const active = new Map<number, number>();
+      const durations: number[] = [];
+      for (let elapsed = 0; elapsed <= 12_000; elapsed += 16) {
+        const focused = view.result.current.effectSources.filter(
+          (source) => source.linked !== true && source.site.zone === "field",
+        );
+        const keys = new Set(focused.map((source) => source.key));
+        for (const source of focused) if (!active.has(source.key)) active.set(source.key, elapsed);
+        for (const [key, started] of active) {
+          if (keys.has(key)) continue;
+          durations.push(elapsed - started);
+          active.delete(key);
+        }
+        await advance(16);
+      }
+
+      expect(durations).toHaveLength(3);
+      const readableFocus = Math.round(TIMINGS.effectSourceHold * EFFECT_SPEED_SCALE[speed]);
+      for (const duration of durations) expect(duration).toBeGreaterThanOrEqual(readableFocus - 32);
+    },
+  );
+
   it("flies an effect's draw only once its clause has been read for its announce beat", async () => {
     const view = renderChain("sequential");
     await advance(0);
@@ -282,7 +327,7 @@ describe("resumed effect results", () => {
       const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
       if (whenHidden === "queued") act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
       view.rerender({ fed: [first], question: whenHidden === "queued" });
-      await advance(600);
+      await advance(activePacing().sourceHoldMs + 32);
       expect(clauseShown(view, "AD1-002")).toBe(whenHidden === "already visible");
       if (whenHidden === "already visible") {
         act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
