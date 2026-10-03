@@ -8,7 +8,12 @@ export const SECURITY_FLIP_DURATION = 420;
 
 type PublicCard = { cardId: string; artId?: string; faceUp: boolean };
 
-export function SecurityCardSlot({ cardId = "", artId, faceUp = false }: Partial<PublicCard>) {
+export function SecurityCardSlot({
+  cardId = "",
+  artId,
+  faceUp = false,
+  useSelectedSleeve = false,
+}: Partial<PublicCard> & { useSelectedSleeve?: boolean }) {
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const [previous, setPrevious] = useState<PublicCard>({ cardId, artId, faceUp });
   const [turningDown, setTurningDown] = useState<PublicCard | null>(null);
@@ -42,11 +47,17 @@ export function SecurityCardSlot({ cardId = "", artId, faceUp = false }: Partial
           />
           {turningDown ? (
             <span className="game-security-card__back">
-              <CardBack width={64} useSelectedSleeve={false} />
+              <CardBack width={64} useSelectedSleeve={useSelectedSleeve} />
             </span>
           ) : null}
         </span>
       ) : null}
+      {/* Only layouts that draw security as cards show the sleeve; the others keep the shield. */}
+      {publicCard ? null : (
+        <span className="game-security-card__sleeve" aria-hidden>
+          <CardBack width={64} useSelectedSleeve={useSelectedSleeve} />
+        </span>
+      )}
       {faceUp && cardId
         ? securityCardEffects(cardId).map((effect) => (
             <span className="game-security-card__buff" key={effect.text} title={effect.text}>
