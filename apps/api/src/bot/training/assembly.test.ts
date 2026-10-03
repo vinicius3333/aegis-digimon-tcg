@@ -47,6 +47,86 @@ const materialWindows = (windows: TrainingWindow[]) =>
   windows.filter(({ actions }) => actions.some(({ label }) => /Assembly/.test(label) && label !== "Assembly play"));
 
 describe("Assembly through the asynchronous training policy", () => {
+  const abbadomonRecipes = [
+    { card: "EX9-047", materials: ["EX9-048", "BT7-069", "EX9-048", "BT7-069"], cost: 4 },
+    { card: "EX9-055", materials: ["EX9-005", "EX9-005", "EX9-005", "EX9-005"], cost: 5 },
+  ];
+
+  it.each(
+    abbadomonRecipes.flatMap((recipe) =>
+      ([0, 1] as const).flatMap((seat) => [false, true].map((reverse) => ({ ...recipe, seat, reverse }))),
+    ),
+  )(
+    "$card requires four exact-name materials seat=$seat reverse=$reverse",
+    async ({ card, materials, cost, seat, reverse }) => {
+      const setup = setupEngine({
+        [seat]: {
+          hand: [{ card, as: "played" }],
+          trash: [
+            ...materials.map((material, index) => ({ card: material, as: `material-${index}` })),
+            { card: "EX9-046", as: "negamon-text-only" },
+            { card: "ST15-14", as: "tamer" },
+          ],
+        },
+      });
+      setup.state.turnSeat = seat;
+      setup.state.memory = 10;
+      await setup.ready();
+      const eligible = materials.map((_, index) => setup.inst(`material-${index}`).instanceId);
+      const picks = reverse ? [...eligible].reverse() : eligible;
+      const windows = await resolveMain(setup, seat, (window) => {
+        if (window.kind === "main") return window.actions.findIndex(({ label }) => label === "Assembly play");
+        if (materialWindows([window]).length === 0) return declineOther(window);
+        const next = picks[window.selected.length];
+        return next === undefined
+          ? window.actions.findIndex(({ label }) => label === "Finish Assembly")
+          : window.actions.findIndex(({ sourceId }) => sourceId === next);
+      });
+      expect(windows[0]!.actions.find(({ label }) => label === "Assembly play")?.projectedCost).toBe(cost);
+      expect(
+        materialWindows(windows).map(({ selected, actions }) => ({
+          selected,
+          offered: actions.map(({ label, sourceId }) => (label === "Assembly material" ? sourceId : label)),
+        })),
+      ).toEqual([
+        ...picks.map((_, index) => ({
+          selected: picks.slice(0, index),
+          offered: eligible.filter((id) => !picks.slice(0, index).includes(id)),
+        })),
+        { selected: picks, offered: ["Finish Assembly"] },
+      ]);
+      const player = setup.state.players[seat]!;
+      const played = setup.inst("played").instanceId;
+      expect(
+        player.battleArea
+          .find(({ topCard }) => topCard.instanceId === played)
+          ?.stack.map(({ instanceId }) => instanceId),
+      ).toEqual([...picks].reverse());
+      expect(player.hand.map(({ instanceId }) => instanceId)).not.toContain(played);
+      expect(player.trash.map(({ instanceId }) => instanceId)).toEqual([
+        setup.inst("negamon-text-only").instanceId,
+        setup.inst("tamer").instanceId,
+      ]);
+      expect(setup.state.memory).toBe(10 - cost);
+    },
+  );
+
+  it.each(abbadomonRecipes.flatMap((recipe) => ([0, 1] as const).map((seat) => ({ ...recipe, seat }))))(
+    "$card omits Assembly with only three exact-name materials seat=$seat",
+    async ({ card, materials, seat }) => {
+      const setup = setupEngine({
+        [seat]: {
+          hand: [{ card, as: "played" }],
+          trash: [...materials.slice(0, 3), "EX9-046", "ST15-14"],
+        },
+      });
+      setup.state.turnSeat = seat;
+      setup.state.memory = 10;
+      await setup.ready();
+      expect(mainActions(setup.engine, seat).map(({ label }) => label)).toEqual(["End main phase", "Play or use card"]);
+    },
+  );
+
   it.each(([0, 1] as const).flatMap((seat) => [0, 1].map((material) => ({ seat, material }))))(
     "BT26-073 main-phase Assembly seat=$seat material=$material",
     async ({ seat, material }) => {

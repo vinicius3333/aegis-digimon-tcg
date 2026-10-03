@@ -6,15 +6,6 @@ import { breedingActions, mainActions } from "./actions.js";
 import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
 import "../../cards/index.js";
 
-/**
- * Printed declarations the training action space cannot make yet, accepted on purpose. The
- * bot still plays the card by its normal route and pays the full cost.
- * EX9-055 Abbadomon prints [Assembly -6] 4 [Negamon] and EX9-047 Eyesmon prints
- * [Assembly -3] 4 [Eyesmon: Scatter Mode]; the catalog gained both after the Abbadomon deck
- * was pinned, and the bot has no Assembly declaration.
- */
-const KNOWN_UNDECLARED_REQUIREMENTS = new Set(["EX9-055:assemblyRequirement", "EX9-047:assemblyRequirement"]);
-
 describe("BT26 training main and breeding actions", () => {
   it("declares an alternate Glowing Dawn evolution through the real engine", async () => {
     const setup = setupEngine(
@@ -90,14 +81,13 @@ describe("BT26 training main and breeding actions", () => {
         "digiXrosRequirement",
         "mindLinkRequirement",
       ] as const) {
-        if (KNOWN_UNDECLARED_REQUIREMENTS.has(`${cardId}:${key}`)) continue;
         expect({ cardId, key, requirements: compiled?.[key] ?? [] }).toEqual({ cardId, key, requirements: [] });
       }
     }
     // Assembly has a dedicated adapter and policy suite (`assembly.test.ts`) for exactly these producers.
     expect(
       [...cards].filter((cardId) => (runtimeCompiledCard(cardId)?.assemblyRequirement ?? []).length > 0).sort(),
-    ).toEqual(["BT26-073", "BT26-085"]);
+    ).toEqual(["BT26-073", "BT26-085", "EX9-047", "EX9-055"]);
   });
   it("pins the scoped keyword families and excludes unexercised Counter windows", () => {
     const keywords = new Set<string>();
