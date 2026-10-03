@@ -14,7 +14,6 @@ import { type LogLine } from "../../matchLog";
 import { intents } from "../../../net/intents";
 import { SurrenderDialog } from "./SurrenderDialog";
 import { useTranslation } from "../../../i18n";
-import { usePileLayout } from "../../../design/pileLayout";
 import { CardOpenerProvider } from "../../cardLinks";
 import { NarrationStack } from "../../NarrationStack";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
@@ -195,7 +194,6 @@ export function BoardStage({
   onOpenCard: (cardId: string, artId?: string) => void;
 }) {
   const { t } = useTranslation();
-  const pileLayout = usePileLayout();
   const other = otherSeat(viewerSeat);
   const { shownViewer, shownOpponent, breedingViewer, breedingOpponent } = seats;
   const surrenderDialog = overlays.surrenderConfirmOpen ? (
@@ -239,7 +237,6 @@ export function BoardStage({
           className="game-board aegis-arena-surface"
           ref={anchors.board}
           data-art={look.hasArt || undefined}
-          data-pile-layout={pileLayout}
           style={{
             flex: 1,
             position: "relative",
