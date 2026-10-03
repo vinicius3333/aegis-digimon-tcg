@@ -86,6 +86,15 @@
     right / 1px 100% no-repeat;
 }
 
+/* Each lane clips above its badge strip, where a fate pill over the card's top edge
+   was cut in half. The pill rides just inside the card instead, so a target
+   appearing never needs a taller lane and smaller cards. */
+.game-board .game-battle-row[data-field-layout="organized"] .game-fate-badge {
+  top: 0.35rem;
+  left: 50%;
+  translate: -50% 0;
+}
+
 /* A copy split off a group was already on the field: it slides out rather than entering. */
 .game-board .game-card-enter--quiet {
   animation: none;

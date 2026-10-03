@@ -207,6 +207,11 @@
   animation: battle-target-pulse 1.1s ease-in-out infinite alternate;
 }
 
+/* A turned card lies across its upright frame, so the target ring turns with it. */
+.game-permanent--threatened[data-suspended]::after {
+  inset: calc(var(--permanent-width, 76px) * 0.2 - 0.35rem) calc(var(--permanent-width, 76px) * -0.2 - 0.35rem);
+}
+
 @keyframes battle-target-pulse {
   from {
     opacity: 0.72;
