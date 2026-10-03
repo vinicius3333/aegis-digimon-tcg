@@ -693,7 +693,7 @@ export function blockDeps(engine: GameEngine): BlockDeps {
 }
 
 export function combatDecisionDeps(engine: GameEngine): CombatDecisionDeps {
-  return { state: engine.state, access: engine.access, combat: engine.combat };
+  return { state: engine.state, access: engine.access, combat: engine.combat, continuous: engine.continuous };
 }
 
 /** Assemble the non-combat verb router's dependencies (subsystem: intent-protocol-and-room). */

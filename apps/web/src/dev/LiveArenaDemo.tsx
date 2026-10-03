@@ -492,6 +492,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Seu turno começa com todos os seus Digimon com Reboot suspensos. Observe a fase de Dessuspensão.",
     en: "Your turn starts with all your Reboot Digimon suspended. Watch the Unsuspend phase.",
   },
+  "arena-marcus-alliance": {
+    ptBR: "Pule a criação. No início da Principal, aceite pagar 1 de memória para transformar BT12-092 Marcus Damon em um Digimon de 3000 DP (a memória fica em 4). Ataque a segurança do bot com BT23-020 Seadramon. No Alliance, escolha Marcus: a resposta deve ser aceita, Marcus suspende e Seadramon fica com 8000 DP durante o ataque, checando 2 cartas. A segurança do bot cai de 5 para 3. Ao terminar o ataque, Seadramon volta a 5000 DP. Se recusar a transformação no início da Principal, Marcus não deve aparecer como aliado de Alliance.",
+    en: "Skip breeding. At the start of Main, accept paying 1 memory to treat BT12-092 Marcus Damon as a 3000 DP Digimon (memory becomes 4). Attack the bot's security with BT23-020 Seadramon. Choose Marcus for Alliance: the answer must be accepted, Marcus suspends, and Seadramon has 8000 DP during the attack and checks 2 cards. The bot's security drops from 5 to 3. Seadramon returns to 5000 DP after the attack. If you decline the transformation at the start of Main, Marcus must not appear as an Alliance ally.",
+  },
   "arena-alliance-20": {
     ptBR: "Encerre a criação, ataque com Seadramon e escolha 1 dos outros 19 Digimon para Alliance.",
     en: "End breeding, attack with Seadramon, and choose 1 of the other 19 Digimon for Alliance.",
@@ -606,6 +610,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
+  ["arena-marcus-alliance", "Alliance · Marcus treated as a Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-effect-choice", "BT11 Rina · EX13 Ulforce effect choice"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
