@@ -98,6 +98,8 @@ export interface ArmedSubTrigger {
   contextAtFireTime: () => EffectContext | undefined;
   /** Unique occurrence captured by one `armedSubTriggers` call. */
   occurrence: {
+    /** Identity of the causing body at trigger time, before a deferred watcher resolves. */
+    windowToken?: number;
     /** Once-per-turn keys that were unused when this event snapshot was armed. */
     oncePerTurnSnapshotKeys: ReadonlySet<string>;
     /** Shared success ledger for ordered bodies resolving this same event snapshot. */

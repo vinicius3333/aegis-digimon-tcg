@@ -87,6 +87,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt26-yoshino-match-b3759aa7",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
+  "arena-bt2-kurisarimon-repeat-memory",
+  "arena-bt2-kurisarimon-start-main-memory",
   "arena-ex12-metalgarurumon-trash-then-return",
   "arena-bt22-palmon-cs-restack",
   "arena-bt22-mirei-play-cost-floor",
@@ -1070,6 +1072,38 @@ function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord 1555959036778643466: separate token effects each trigger Kurisarimon. */
+function layBt2KurisarimonRepeatMemoryScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  startMain = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    const stack = ["BT2-005", "BT2-054", "BT2-059", "BT2-060"];
+    if (startMain) stack.push("EX6-043");
+    placePermanent(human, establishedDigimon(0, stack, "-kurisarimon-host"));
+    if (startMain) {
+      placePermanent(human, establishedDigimon(0, ["EX6-043"], "-kurisarimon-peer"));
+    } else {
+      placePermanent(human, establishedDigimon(0, ["BT5-090"], "-kurisarimon-arata"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-kurisarimon-diaboromon", "EX6-043", 0));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-kurisarimon-spare", "BT2-054", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = startMain ? 3 : 1;
 }
 
 /** BT24-013 Fugamon draws only when that Fugamon itself is trashed from the hand. */
@@ -4828,6 +4862,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt26-yoshino-match-b3759aa7": layBt26YoshinoMatchScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
+  "arena-bt2-kurisarimon-repeat-memory": layBt2KurisarimonRepeatMemoryScenario,
+  "arena-bt2-kurisarimon-start-main-memory": (state, decks) =>
+    layBt2KurisarimonRepeatMemoryScenario(state, decks, true),
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,
   "arena-bt22-palmon-cs-restack": layBt22PalmonCsRestackScenario,
   "arena-bt22-mirei-play-cost-floor": layBt22MireiPlayCostFloorScenario,
