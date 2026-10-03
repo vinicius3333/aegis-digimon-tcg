@@ -29,12 +29,9 @@
   }
 
   .aegis-arena .game-board .game-battle-zones > .game-battle-row {
-    left: 10%;
-    right: 10%;
-  }
-
-  .aegis-arena .game-board .game-battle-zones > .game-battle-row--opp {
-    /* Both breeding slots, their gap and a gutter must clear a full lane. */
+    /* The opponent's breeding slots, their gap and a gutter must clear a full lane.
+       Both rows keep that inset on both sides so their cards share one centre. */
+    left: max(10%, 12.5rem);
     right: max(10%, 12.5rem);
   }
 

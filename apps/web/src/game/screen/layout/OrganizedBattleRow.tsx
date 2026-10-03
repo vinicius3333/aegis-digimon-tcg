@@ -613,6 +613,8 @@ export function OrganizedBattleRow({
     splitKeys.current = new Set(cards.filter((drawn) => drawn.splitOff).map((drawn) => drawn.fieldKey));
   });
 
+  // A reserved Digimon lane stays drawn while empty, so the support lane never moves into it.
+  const keepsDigimonSlot = content.reserveSupport && lanes.placement === LanePlacement.Stacked;
   const digimonLane = (
     <BattleRow
       key="digimon"
@@ -622,7 +624,7 @@ export function OrganizedBattleRow({
       edgeClearance={edge(lanes.digimon, content.digimonSources)}
       style={{
         flex: "0 1 auto",
-        minHeight: 0,
+        minHeight: keepsDigimonSlot ? laneHeight(lanes.digimon, metrics.digimonPadding) : 0,
         display: "flex",
         gap: laneGap(lanes.digimon, size.preferStacked, DIGIMON_GAP_SHARE),
         justifyContent: "safe center",
@@ -638,6 +640,7 @@ export function OrganizedBattleRow({
     </BattleRow>
   );
 
+  const showsDigimonLane = content.digimonCount > 0 || !hasSupport || keepsDigimonSlot;
   const supportLane = hasSupport ? (
     <BattleRow
       key="support"
@@ -676,8 +679,8 @@ export function OrganizedBattleRow({
       }}
     >
       {supportFirst && !size.preferStacked
-        ? [supportLane, content.digimonCount || !hasSupport ? digimonLane : null]
-        : [content.digimonCount || !hasSupport ? digimonLane : null, supportLane]}
+        ? [supportLane, showsDigimonLane ? digimonLane : null]
+        : [showsDigimonLane ? digimonLane : null, supportLane]}
     </div>
   );
 }
