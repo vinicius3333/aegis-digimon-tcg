@@ -1598,3 +1598,52 @@ describe("hand-resident SET digivolution cost", () => {
     expect(options.map((option) => option.cost)).toEqual([5, 1]);
   });
 });
+
+describe("Discord 1555941341962309693 Wisemon Witchelny cost choices", () => {
+  it.each(["BT18-036", "BT19-036", "BT26-022", "BT26-067", "EX10-041", "EX13-029", "EX7-019"])(
+    "Discord 1555941341962309693 offers the printed cost 3 onto %s, including trait-only text",
+    (cardId) => {
+      const base = permOf(cardId);
+      const options = getDigivolveCostOptions("EX13-034", base, undefined, undefined, [
+        { permanentId: base.permanentId, alternateRequirementIndex: -1, projectedCost: 4 },
+        { permanentId: base.permanentId, alternateRequirementIndex: 0, projectedCost: 3 },
+      ]);
+      expect(options).toContainEqual(
+        expect.objectContaining({ type: "alternate", cost: 3, alternateRequirementIndex: 0 }),
+      );
+    },
+  );
+  it("does not offer the alternate on a plain yellow Lv.4 or a Witchelny Lv.3", () => {
+    expect(getDigivolveCostOptions("EX13-034", permOf("BT1-051"))).toEqual([
+      expect.objectContaining({ type: "normal", cost: 4 }),
+    ]);
+    expect(getDigivolveCostOptions("EX13-034", permOf("BT18-030"))).toEqual([]);
+  });
+});
+
+describe("Discord 1555941341962309693 alternate text mechanism sweep", () => {
+  it.each([
+    ["AD1-001", "BT11-062", 2], // Omnimon only in the inherited effect.
+    ["BT16-062", "BT8-013", 3], // Gammamon only in the name.
+    ["EX12-030", "RB1-013", 3], // Jellymon only in the name.
+    ["EX13-033", "BT19-036", 3], // Witchelny in trait/inherited effect.
+    ["EX13-037", "BT18-039", 3], // Witchelny only in the trait.
+  ] as const)("offers %s onto %s for %i through all printed text fields", (cardId, baseId, cost) => {
+    expect(getDigivolveCostOptions(cardId, permOf(baseId))).toContainEqual(
+      expect.objectContaining({ type: "alternate", cost, alternateRequirementIndex: 0 }),
+    );
+  });
+
+  it.each(["BT10-111", "BT15-012", "BT21-059"])(
+    "does not treat Material Save or Savemon text on %s as the Save keyword",
+    (baseId) => {
+      expect(getDigivolveCostOptions("BT12-039", permOf(baseId))).toEqual([]);
+    },
+  );
+
+  it("keeps a genuine Save keyword route", () => {
+    expect(getDigivolveCostOptions("BT12-039", permOf("EX10-026"))).toContainEqual(
+      expect.objectContaining({ type: "alternate", cost: 3, alternateRequirementIndex: 0 }),
+    );
+  });
+});

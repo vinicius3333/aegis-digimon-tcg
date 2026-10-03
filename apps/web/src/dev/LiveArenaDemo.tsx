@@ -408,6 +408,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Faça a DNA digivolução de Wingdramon + Groundramon em Examon. Examon ataca a segurança e depois batalha com o Digimon do bot. O efeito de vencer a batalha não pode resolver sozinho: ele deve aparecer no mesmo prompt de ordem que o efeito de suspensão do Wingdramon e o [When Attacking] do Bebydomon, e você escolhe a ordem.",
     en: "DNA digivolve Wingdramon + Groundramon into Examon. Examon attacks security, then battles the bot's Digimon. The win-battle effect must not resolve on its own: it must appear in the same order prompt as Wingdramon's suspend effect and Bebydomon's [When Attacking], and you choose the order.",
   },
+  "arena-ex13-wisemon-witchelny-cost": {
+    ptBR: "Reprodução da sequência de Nom (13:40 UTC). Encerre a criação; evolua BT18-036 em BT19-036 Wizardmon (X Antibody) por 0. Aceite colocar BT18-098 no fundo da segurança e suspenda Kari para ganhar 1 memória (8 → 9). Jogue a segunda Kari por 4 (9 → 5). Evolua em EX13-034 Wisemon: devem aparecer o custo regular de 4 e o alternativo de 3. Escolha 3 (5 → 2) e o próprio Wisemon para receber Reboot, Blocker e proteção contra De-Digivolve.",
+    en: "Reproduce Nom's sequence (13:40 UTC). End breeding; evolve BT18-036 into BT19-036 Wizardmon (X Antibody) for 0. Accept placing BT18-098 at the bottom of security and suspend Kari to gain 1 memory (8 → 9). Play the second Kari for 4 (9 → 5). Evolve into EX13-034 Wisemon: both regular cost 4 and alternate cost 3 must appear. Choose 3 (5 → 2) and Wisemon itself to receive Reboot, Blocker and De-Digivolve protection.",
+  },
   "arena-ex13-chirinmon-cost-choice": {
     ptBR: "Digivolva o Lv.4 [DATA SQUAD] em Chirinmon. O efeito deve perguntar uma vez se você quer usá-lo e, depois, qual custo pagar: a carta do topo da segurança ou a carta virada para baixo sob o Tamer. Nenhum botão deve repetir o texto do efeito.",
     en: "Digivolve the [DATA SQUAD] Lv.4 into Chirinmon. The effect must ask once whether to use it, then which cost to pay: the top security card or the face-down card under the Tamer. No button should repeat the effect text.",
@@ -675,6 +679,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
   ["arena-bt23-examon-opponent-turn-dna", "BT23 Examon · Delay DNA in opponent's turn, no attack"],
   ["arena-ex13-chirinmon-cost-choice", "EX13 Chirinmon · either-or cost choice"],
+  ["arena-ex13-wisemon-witchelny-cost", "EX13 Wisemon · Witchelny cost 3 / 4"],
   ["arena-ex13-flamewizardmon-optional-cost", "EX13 FlameWizardmon · optional security cost"],
   ["arena-sukamon-transform-digivolve", "EX13 KingSukamon · white Sukamon can't take green digivolve"],
   ["arena-sukamon-transform-digivolve-viewer", "Sukamon rewrite · your Blossomon refused"],

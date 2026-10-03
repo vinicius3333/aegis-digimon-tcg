@@ -129,6 +129,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-examon-battle-win-timing",
   "arena-bt23-examon-opponent-turn-dna",
   "arena-ex13-chirinmon-cost-choice",
+  "arena-ex13-wisemon-witchelny-cost",
   "arena-ex13-flamewizardmon-optional-cost",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
@@ -2261,6 +2262,37 @@ function laySukamonTransformDigivolveViewerScenario(state: GameState, decks: rea
   }
 
   state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
+}
+
+/** Discord 1555941341962309693, Nom match cbd3a09b-b0c9-497a-837a-90f25c7d7abb.
+ * Stage the sequence before 13:40:18Z: Wizardmon -> X Antibody, recover an Option,
+ * gain memory with Kari, play another Kari, then choose Wisemon's printed cost.
+ */
+function layEx13WisemonWitchelnyCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-004", "BT18-030", "BT18-036"], "-wisemon-base"));
+    placePermanent(human, establishedDigimon(0, ["BT8-090"], "-wisemon-kari"));
+    while (human.security.length > 0) takeTop(human, Zone.Security);
+    ["BT20-102", "BT1-010", "BT1-011"].forEach((cardId, index) =>
+      insertCard(human, Zone.Security, faceDownCard(`dev-wisemon-security-${index}`, cardId, 0)),
+    );
+    insertCard(human, Zone.Hand, faceDownCard("dev-wisemon-x", "BT19-036", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-wisemon-option", "BT18-098", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-wisemon-new-kari", "BT8-090", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-wisemon", "EX13-034", 0));
+  }
+  state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 8;
@@ -4803,6 +4835,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
   "arena-bt23-examon-opponent-turn-dna": layBt23ExamonOpponentTurnDnaScenario,
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
+  "arena-ex13-wisemon-witchelny-cost": layEx13WisemonWitchelnyCostScenario,
   "arena-ex13-flamewizardmon-optional-cost": layEx13FlameWizardmonOptionalCostScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
