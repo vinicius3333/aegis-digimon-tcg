@@ -5,6 +5,7 @@ import { createObservationHistory } from "./history.js";
 import { teacherActionIndex } from "./teacher.js";
 import { breedingActions, mainActions, type TrainingAction } from "./actions.js";
 import { decisionSteps } from "./decisions.js";
+import { counterActions } from "./counter.js";
 import { assemblyMaterialSteps } from "./assembly.js";
 import { selectionCards, trainingObservation, type TrainingObservation } from "./observation.js";
 
@@ -241,19 +242,7 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     chooseCounterResponse: (view, context, signal) =>
       take(
         "counter",
-        [
-          { intent: { type: "respondCounter" }, label: "Decline counter", targetId: context.attackerPermanentId },
-          ...context.eligibleCounters.map((counter) => ({
-            intent: {
-              type: "respondCounter",
-              sourceInstanceId: counter.instanceId,
-              effectKey: counter.effectKey,
-            } as Intent,
-            label: counter.description,
-            sourceId: counter.instanceId,
-            targetId: context.attackerPermanentId,
-          })),
-        ],
+        counterActions(engine, seat, context),
         undefined,
         teacher?.chooseCounterResponse(view, context),
         signal,

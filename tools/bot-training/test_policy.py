@@ -72,6 +72,41 @@ def window() -> dict:
 
 
 class PolicyTests(unittest.TestCase):
+    def test_counter_choices_distinguish_hosts_and_hand_dna_materials(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], [])
+        for dna in (False, True):
+            with self.subTest(dna=dna):
+                message = window()
+                player = message["observation"]["players"][0]
+                top = player["hand"][0]
+                player["board"] = [
+                    {"permanentId": f"host-{index}", "top": {**top, "instanceId": f"top-{index}"},
+                     "stack": [{"instanceId": "inherited", "cardId": "B"}] if index == 1 else [],
+                     "linked": [], "dp": 2000, "suspended": False, "keywords": [], "statuses": {}}
+                    for index in range(2)
+                ]
+                message["kind"] = "counter"
+                message["actions"] = [
+                    {"intent": {"type": "respondCounter", "sourceInstanceId": "card-17",
+                                "effectKey": f"opaque-route-{index}"},
+                     "label": "Blast counter", "sourceId": "card-17", "targetId": "host-0"}
+                    for index in range(2)
+                ]
+                _, indistinguishable = encoder.encode(message)
+                np.testing.assert_array_equal(indistinguishable[0], indistinguishable[1])
+                for index, action in enumerate(message["actions"]):
+                    action["materialIds"] = [f"host-{index}"] + (["card-29"] if dna else [])
+                state, actions = encoder.encode(message)
+                self.assertFalse(np.array_equal(actions[0], actions[1]))
+                renamed = json.loads(json.dumps(message).replace("host-", "opaque-host-").replace("card-", "opaque-card-"))
+                renamed_state, renamed_actions = encoder.encode(renamed)
+                np.testing.assert_array_equal(state, renamed_state)
+                np.testing.assert_array_equal(actions, renamed_actions)
+                if dna:
+                    message["actions"][1]["materialIds"] = ["host-0", "card-17"]
+                    _, changed_hand = encoder.encode(message)
+                    self.assertFalse(np.array_equal(actions[0], changed_hand[1]))
+
     def test_compound_material_order_is_visible_without_learning_instance_ids(self) -> None:
         encoder = FeatureEncoder(["A", "B"], [])
         message = window()
