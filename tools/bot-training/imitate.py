@@ -24,6 +24,56 @@ class Metrics(TypedDict):
     decisions: int
 
 
+def cache_demonstrations(
+    dataset: Path, output: Path, encoder: FeatureEncoder
+) -> tuple[list[Sample], list[Sample], dict[str, str], dict[str, list[str]]]:
+    """Keep encoded features on disk; only each optimization batch needs resident RAM."""
+    source_hashes = {
+        "config.json": hashlib.sha256((dataset / "config.json").read_bytes()).hexdigest()
+    }
+    split: dict[str, list[str]] = {"training": [], "validation": []}
+    references: dict[str, list[tuple[int, int, int]]] = {"training": [], "validation": []}
+    cache_path = output / "encoded-samples.f32"
+    offset = 0
+    with cache_path.open("wb") as cache:
+        for path in sorted(dataset.glob("episode-*.jsonl")):
+            index = int(path.stem.split("-")[-1])
+            name = "validation" if index % 5 == 0 else "training"
+            split[name].append(path.name)
+            content = path.read_bytes()
+            source_hashes[path.name] = hashlib.sha256(content).hexdigest()
+            for line in content.decode().splitlines():
+                row = json.loads(line)
+                if not row["supervised"]:
+                    continue
+                state, actions = encoder.encode(row["window"])
+                if len(actions) <= 1:
+                    continue
+                state.tofile(cache)
+                actions.tofile(cache)
+                references[name].append((offset, len(actions), row["action"]))
+                offset += state.size + actions.size
+    if not references["training"] or not references["validation"]:
+        raise click.ClickException("Need completed episodes in both training and validation folds")
+    features = np.memmap(cache_path, dtype=np.float32, mode="r")
+
+    def samples(name: str) -> list[Sample]:
+        result: list[Sample] = []
+        for start, count, label in references[name]:
+            end = start + encoder.state_dim
+            actions_end = end + count * encoder.action_dim
+            result.append(
+                (
+                    features[start:end],
+                    features[end:actions_end].reshape(count, encoder.action_dim),
+                    label,
+                )
+            )
+        return result
+
+    return samples("training"), samples("validation"), source_hashes, split
+
+
 def batch_tensors(samples: list[Sample], device: torch.device) -> TensorBatch:
     count = max(len(actions) for _, actions, _ in samples)
     padded = np.zeros((len(samples), count, samples[0][1].shape[1]), dtype=np.float32)
@@ -72,27 +122,7 @@ def main(dataset: Path, output: Path, epochs: int, seed: int, device: str) -> No
     ):
         raise click.ClickException("Dataset feature schema differs from this encoder")
     encoder = FeatureEncoder(metadata["cardIds"], metadata["keywords"])
-    training: list[Sample] = []
-    validation: list[Sample] = []
-    source_hashes = {
-        "config.json": hashlib.sha256((dataset / "config.json").read_bytes()).hexdigest()
-    }
-    split = {"training": [], "validation": []}
-    for path in sorted(dataset.glob("episode-*.jsonl")):
-        index = int(path.stem.split("-")[-1])
-        name = "validation" if index % 5 == 0 else "training"
-        split[name].append(path.name)
-        destination = validation if name == "validation" else training
-        content = path.read_bytes()
-        source_hashes[path.name] = hashlib.sha256(content).hexdigest()
-        for line in content.decode().splitlines():
-            row = json.loads(line)
-            if row["supervised"]:
-                state, actions = encoder.encode(row["window"])
-                if len(actions) > 1:
-                    destination.append((state, actions, row["action"]))
-    if not training or not validation:
-        raise click.ClickException("Need completed episodes in both training and validation folds")
+    training, validation, source_hashes, split = cache_demonstrations(dataset, output, encoder)
     torch.manual_seed(seed)
     torch.set_num_threads(2)
     rng = np.random.default_rng(seed)
@@ -107,6 +137,11 @@ def main(dataset: Path, output: Path, epochs: int, seed: int, device: str) -> No
         "split": split,
         "metadata": metadata,
         "featureVersion": FEATURE_VERSION,
+        "encodedCacheBytes": (output / "encoded-samples.f32").stat().st_size,
+        "implementationHashes": {
+            name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+            for name in ["imitate.py", "features.py", "model.py"]
+        },
     }
     (output / "config.json").write_text(json.dumps(config, indent=2))
     history = [
