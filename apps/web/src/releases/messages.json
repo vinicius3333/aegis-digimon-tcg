@@ -1,4 +1,120 @@
 {
+  "releases.1.9.0-beta.summary": {
+    "en": "This update introduces an organized battle field, a tabletop pile layout and improvements to crowded boards and smaller screens.",
+    "pt-BR": "Esta atualização traz um campo de batalha organizado, um layout de pilhas como numa mesa e melhorias para campos cheios e telas menores."
+  },
+  "releases.1.9.0-beta.feature.organizedField": {
+    "en": "The organized field keeps Digimon in their play order and places Tamers and Options in a separate row, grouping identical copies with the same available effects. Cards selected by effects step out of their group, and you can switch back to the classic field in Settings.",
+    "pt-BR": "O campo organizado mantém os Digimon na ordem em que foram jogados e coloca Tamers e Options em uma linha separada, agrupando cópias idênticas com os mesmos efeitos disponíveis. Cartas selecionadas por efeitos saem do grupo, e você pode voltar ao campo clássico nas Configurações."
+  },
+  "releases.1.9.0-beta.feature.tabletopLayout": {
+    "en": "Deck, trash, security and breeding areas now use a tabletop arrangement with mirrored opponent piles. On laptops, security sits beside the breeding area, and hidden security cards display the selected deck sleeve.",
+    "pt-BR": "Deck, lixo, security e área de criação agora usam uma disposição como numa mesa, com as pilhas do oponente espelhadas. Em notebooks, a security fica ao lado da criação, e as cartas ocultas de security mostram o sleeve escolhido para o deck."
+  },
+  "releases.1.9.0-beta.fix.responsiveArena": {
+    "en": "The arena fits portrait and landscape phones more comfortably, with card sizes that update when the window changes, clearer source and Link stacks, complete keyword labels and better access to the hand and game controls.",
+    "pt-BR": "A arena se ajusta melhor a celulares na vertical e na horizontal, com tamanhos de cartas que acompanham mudanças na janela, pilhas de fontes e Links mais claras, rótulos completos de palavras-chave e melhor acesso à mão e aos controles da partida."
+  },
+  "releases.1.9.0-beta.fix.fieldFeedback": {
+    "en": "Cards keep their position when their state changes, target cues stay inside their field lane and the phase banner remains visible above cards. During breeding, the focus highlights the breeding area, and crowded boards render more efficiently.",
+    "pt-BR": "As cartas mantêm sua posição quando mudam de estado, os indicadores de alvo ficam dentro da linha correspondente e o banner de fase permanece visível acima das cartas. Durante a criação, o destaque fica na área de criação, e campos cheios são renderizados com mais eficiência."
+  },
+  "releases.1.9.0-beta.fix.divineArmsPrompt": {
+    "en": "BT25-101 Divine Arms now shows the full All Turns effect text when offering to trash a Link card to prevent Vulcanusmon from leaving the battle area.",
+    "pt-BR": "Divine Arms BT25-101 agora mostra o texto completo do efeito All Turns ao oferecer o descarte de uma carta de Link para impedir que Vulcanusmon saia da área de batalha."
+  },
+  "releases.1.8.10-beta.summary": {
+    "en": "This update fixes the optional digivolution-card trash cost of BT26-006 Monimon.",
+    "pt-BR": "Esta atualização corrige o custo opcional de descarte de fontes do Monimon BT26-006."
+  },
+  "releases.1.8.10-beta.fix.monimonOptionalCost": {
+    "en": "BT26-006 Monimon now lets you decline trashing two digivolution cards before choosing whether to play or use a Bagra Army card. Declining keeps the sources and the once-per-turn use; accepting requires exactly two sources and spends the use even if you skip playing or using a card.",
+    "pt-BR": "Monimon BT26-006 agora permite recusar o descarte de duas fontes antes de escolher se deseja jogar ou usar uma carta Bagra Army. Recusar preserva as fontes e o uso por turno; aceitar exige exatamente duas fontes e consome o uso mesmo que você não jogue ou use uma carta."
+  },
+  "releases.1.8.9-beta.summary": {
+    "en": "This update fixes turn-start unsuspend announcements and Device effects triggered when trashed from the battle area.",
+    "pt-BR": "Esta atualização corrige a apresentação do unsuspend no início do turno e os efeitos de Device ativados quando são descartados da área de batalha."
+  },
+  "releases.1.8.9-beta.fix.unsuspendOrder": {
+    "en": "At turn start, cards now visibly unsuspend before effects such as Rina Shinomiya resolve, including after Evade in the previous turn. Reboot follows the same order.",
+    "pt-BR": "No início do turno, as cartas agora mostram o unsuspend antes da resolução de efeitos como os de Rina Shinomiya, inclusive após Evade no turno anterior. Reboot segue a mesma ordem."
+  },
+  "releases.1.8.9-beta.fix.deviceTrash": {
+    "en": "BT19-093 Queen Device, BT19-098 King Device and P-159 Rook Device now activate their trash effects after effect-driven removal from the battle area, preserving their targets and duration.",
+    "pt-BR": "BT19-093 Queen Device, BT19-098 King Device e P-159 Rook Device agora ativam seus efeitos de descarte após serem removidos da área de batalha por um efeito, preservando seus alvos e duração."
+  },
+  "releases.1.8.8-beta.summary": {
+    "en": "This update fixes Leopardmon ACE memory gain with King Drasil and Alliance with Marcus treated as a Digimon.",
+    "pt-BR": "Esta atualização corrige o ganho de memória de Leopardmon ACE com King Drasil e Alliance com Marcus tratado como Digimon."
+  },
+  "releases.1.8.8-beta.fix.leopardmon": {
+    "en": "BT22-052 Leopardmon ACE now gains 2 memory when King Drasil places another Royal Knight under itself at the same time as Leopardmon, regardless of the chosen order of the digivolution cards.",
+    "pt-BR": "BT22-052 Leopardmon ACE agora ganha 2 de memória quando King Drasil coloca outro Royal Knight embaixo de si ao mesmo tempo que Leopardmon, independentemente da ordem escolhida para as fontes."
+  },
+  "releases.1.8.8-beta.fix.marcusAlliance": {
+    "en": "Alliance now accepts BT12-092 and AD1-021 Marcus Damon while their effects treat them as Digimon, applying their DP and the extra security check.",
+    "pt-BR": "Alliance agora aceita BT12-092 e AD1-021 Marcus Damon enquanto seus efeitos os tratam como Digimon, aplicando seus DP e a verificação extra de segurança."
+  },
+  "releases.1.8.7-beta.summary": {
+    "en": "This update fixes repeated Kurisarimon and Keramon inherited effects when separate effects play Digimon.",
+    "pt-BR": "Esta atualização corrige as ativações repetidas das herdadas de Kurisarimon e Keramon quando efeitos separados jogam Digimon."
+  },
+  "releases.1.8.7-beta.fix.kurisarimon": {
+    "en": "BT2-059 Kurisarimon now gains memory for each separate same-name play effect, including Diaboromon with Arata Sanada and multiple Diaboromon start-of-main effects. Simultaneous plays from one effect still trigger it once.",
+    "pt-BR": "BT2-059 Kurisarimon agora ganha memória por cada efeito separado que joga um Digimon de mesmo nome, incluindo Diaboromon com Arata Sanada e vários efeitos de Diaboromon no início da Fase Principal. Jogadas simultâneas de um único efeito continuam ativando a herdada apenas uma vez."
+  },
+  "releases.1.8.7-beta.fix.keramon": {
+    "en": "BT2-053 Keramon now draws a card for each separate same-name play effect while preserving a single draw for simultaneous plays.",
+    "pt-BR": "BT2-053 Keramon agora compra um card por cada efeito separado que joga um Digimon de mesmo nome, mantendo uma única compra para jogadas simultâneas."
+  },
+  "releases.1.8.6-beta.summary": {
+    "en": "This update fixes attacks without suspending, pending effects, card costs, Tamer Security effects, Hybrid search and DUAL immunity.",
+    "pt-BR": "Esta atualização corrige ataques sem suspender, efeitos pendentes, custos de cartas, efeitos de Security de Tamers, busca de Hybrid e imunidade contra cartas DUAL."
+  },
+  "releases.1.8.6-beta.fix.repeatAttack": {
+    "en": "Digimon that attack without suspending can now attack again while unsuspended, including ST12-12 Blanc with Rush.",
+    "pt-BR": "Digimon que atacam sem suspender agora podem atacar novamente enquanto estiverem ativos, incluindo ST12-12 Blanc com Rush."
+  },
+  "releases.1.8.6-beta.fix.removedTriggers": {
+    "en": "Pending field effects now stop if their source has left its original position, fixing the Plutomon and Zombi interaction.",
+    "pt-BR": "Efeitos de campo pendentes agora param quando sua origem sai da posição original, corrigindo a interação entre Plutomon e Zombi."
+  },
+  "releases.1.8.6-beta.fix.gundramon": {
+    "en": "LM-067 Gundramon now uses the Option revealed by its effect without paying its use cost.",
+    "pt-BR": "LM-067 Gundramon agora usa a Option revelada pelo seu efeito sem pagar o custo de uso."
+  },
+  "releases.1.8.6-beta.fix.hybridSearch": {
+    "en": "Searching for Hybrid in the deck builder now finds cards with Hybrid in their printed form.",
+    "pt-BR": "Buscar Hybrid no construtor de decks agora encontra cartas com Hybrid na forma impressa."
+  },
+  "releases.1.8.6-beta.fix.taiki": {
+    "en": "BT10-087 Taiki Kudo can now place a lone revealed Xros Heart Digimon under a Tamer.",
+    "pt-BR": "BT10-087 Taiki Kudo agora pode colocar um único Digimon Xros Heart revelado embaixo de um Tamer."
+  },
+  "releases.1.8.6-beta.fix.tamerSecurity": {
+    "en": "Restored the Security effects of AD1-019, AD1-022 and BT7-088 Tamers so they play themselves without paying the cost.",
+    "pt-BR": "Restaurados os efeitos de Security dos Tamers AD1-019, AD1-022 e BT7-088 para que entrem em jogo sem pagar o custo."
+  },
+  "releases.1.8.6-beta.fix.wisemon": {
+    "en": "The digivolution menu now offers alternate costs that depend on card text, including EX13-034 Wisemon’s Witchelny requirement.",
+    "pt-BR": "O menu de digievolução agora oferece custos alternativos que dependem do texto das cartas, incluindo o requisito Witchelny de EX13-034 Wisemon."
+  },
+  "releases.1.8.6-beta.fix.dualImmunity": {
+    "en": "Immunity now checks the active face of DUAL cards: their Option effects can affect Diarbbitmon despite its immunity to Digimon effects, and their Digimon effects bypass immunity to Option effects. Granted and borrowed effects also preserve their source.",
+    "pt-BR": "A imunidade agora verifica a face ativa das cartas DUAL: seus efeitos de Option podem afetar Diarbbitmon apesar da imunidade a efeitos de Digimon, e seus efeitos de Digimon passam pela imunidade a efeitos de Option. Efeitos concedidos e copiados também preservam sua origem."
+  },
+  "releases.1.8.5-beta.summary": {
+    "en": "This update fixes the No Selection choice in Link effects.",
+    "pt-BR": "Esta atualização corrige a opção Nenhuma seleção nos efeitos de Link."
+  },
+  "releases.1.8.5-beta.fix.sonicShotDecline": {
+    "en": "Choosing No Selection for BT24-095 Sonic Shot's Link now sends it to the trash and lets Dan Yuki & Kanan Yuki's end-of-turn effect continue.",
+    "pt-BR": "Escolher Nenhuma seleção no Link de BT24-095 Sonic Shot agora envia a carta para o lixo e permite que o efeito de fim de turno de Dan Yuki & Kanan Yuki continue."
+  },
+  "releases.1.8.5-beta.fix.linkRecipientDecline": {
+    "en": "Declining a Link recipient no longer automatically links the card to the Digimon that activated the effect, such as BT25-069 Raremon.",
+    "pt-BR": "Recusar o destinatário de um Link não vincula mais a carta automaticamente ao Digimon que ativou o efeito, como BT25-069 Raremon."
+  },
   "releases.1.8.4-beta.summary": {
     "en": "This update asks optional \"by …\" costs when their part of the effect comes up, shows only the relevant text in each choice, and explains why each pending effect triggered.",
     "pt-BR": "Esta atualização pergunta os custos opcionais \"by …\" quando a parte deles no efeito chega, mostra só o texto relevante em cada escolha e explica por que cada efeito pendente foi ativado."

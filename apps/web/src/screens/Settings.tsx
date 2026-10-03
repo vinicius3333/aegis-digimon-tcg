@@ -5,6 +5,7 @@ import { ArenaLookSettings } from "../design/ArenaLookSettings";
 import { Icons } from "../design/icons";
 import { getSoundVolume, isSoundEnabled, playSound, setSoundEnabled, setSoundVolume } from "../design/sound";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
+import { FieldLayout, setFieldLayout, useFieldLayout } from "../design/fieldLayout";
 import { CardSleevePicker } from "../design/sleevePicker";
 import { SEQUENTIAL_PACING_ENABLED } from "../features";
 import { EFFECT_SPEEDS, getEffectSpeed, setEffectSpeed, type EffectSpeed } from "../game/pacing";
@@ -45,6 +46,7 @@ export function Settings({
     normal: t("settings.effectSpeedNormal"),
     fast: t("settings.effectSpeedFast"),
   };
+  const fieldLayout = useFieldLayout();
   function confirmRename() {
     const name = nameInput.trim();
     if (!name || name === player.name) return;
@@ -238,6 +240,14 @@ export function Settings({
                 </div>
               </div>
             ) : null}
+            <div className="settings-block">
+              <Switch
+                checked={fieldLayout === FieldLayout.Organized}
+                label={t("settings.organizedField")}
+                description={t("settings.organizedFieldDesc")}
+                onChange={(next) => setFieldLayout(next ? FieldLayout.Organized : FieldLayout.Classic)}
+              />
+            </div>
           </section>
 
           <section className="settings-card settings-card--arena" aria-labelledby="settings-arena-title">

@@ -5,7 +5,7 @@
    is never clipped by the board's own overflow; the ghost that follows a held card goes
    to the document body for the same reason. */
 
-import type { PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, RefObject } from "react";
 import type { ArenaBoardLook } from "../../arenaLook";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
@@ -157,6 +157,7 @@ export function BoardStage({
   onInspectPermanent,
   onOpenCard,
   promptSourceCardId,
+  onResetScenario,
 }: {
   state: GameState;
   shownState: GameState;
@@ -196,6 +197,7 @@ export function BoardStage({
   onStartPermanentDrag: (perm: Permanent, event: ReactPointerEvent) => void;
   onInspectPermanent: { viewer: (perm: Permanent) => void; opponent: (perm: Permanent) => void };
   onOpenCard: (cardId: string, artId?: string) => void;
+  onResetScenario?: () => void;
 }) {
   const { t } = useTranslation();
   const other = otherSeat(viewerSeat);
@@ -242,6 +244,10 @@ export function BoardStage({
           ref={anchors.board}
           data-art={look.hasArt || undefined}
           style={{
+            ...({
+              "--arena-raising-width": `${layout.arenaRaisingWidth}px`,
+              "--arena-sideline-basis-width": `${layout.arenaSidelineBasisWidth}px`,
+            } as CSSProperties),
             flex: 1,
             position: "relative",
             display: "flex",
@@ -249,6 +255,7 @@ export function BoardStage({
           }}
         >
           <OpponentBar
+            onResetScenario={onResetScenario}
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponent.displayName || t("game.opponent")}
             opponentAvatarId={opponent.avatarId}
@@ -403,6 +410,7 @@ export function BoardStage({
               opponentBreeding={breedingOpponent}
               viewerPiles={layout.dockViewerPiles ? null : viewerPiles}
               pileWidth={layout.arenaPileWidth}
+              raisingWidth={layout.arenaRaisingWidth}
               compactPiles={layout.compactPiles}
               opponentSecurityRef={anchors.opponentSecurity}
               opponentEggDeckRiffling={cues.deckRiffles.has(`${other}:eggDeck`)}

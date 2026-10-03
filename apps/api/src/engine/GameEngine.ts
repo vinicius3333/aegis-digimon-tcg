@@ -143,11 +143,12 @@ export class GameEngine {
   readonly subTriggers: SubTriggerRegistry;
 
   /**
-   * Monotonic source for `windowToken` identities (KB Q2814 / BT2-053), bumped once per
-   * OUTERMOST resolving-effect window opened by {@link fireTiming} / {@link
-   * fireTimingForInstance} (see `beginResolvingWindow`/`endResolvingWindow`).
+   * Monotonic source for timing-window and individual effect-body identities
+   * (KB Q2814 / BT2-053). A timing window can resolve several separate bodies.
    */
   windowTokenSeq = 0;
+  /** One identity per resolving body, preserving its parent's identity across nested effects. */
+  readonly effectBodyTokens: number[] = [];
   /**
    * The `windowToken` for the resolving-effect window currently in progress, or
    * `undefined` when no `fireTiming`/`fireTimingForInstance` call is on the stack.

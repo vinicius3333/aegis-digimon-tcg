@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.8.4-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.8.5-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -27,8 +27,6 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "O que há de novo" })).toBeTruthy();
-    expect(
-      screen.getByText(/Esta atualização pergunta os custos opcionais "by …" quando a parte deles no efeito chega/),
-    ).toBeTruthy();
+    expect(screen.getByText("Esta atualização corrige a opção Nenhuma seleção nos efeitos de Link.")).toBeTruthy();
   });
 });

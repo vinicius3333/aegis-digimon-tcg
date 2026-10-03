@@ -62,3 +62,34 @@ are gitignored. Open a trace using its actual generated path:
 ```sh
 NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/web exec playwright show-trace test-results/<failed-test>/trace.zip
 ```
+
+## Deck-builder scenario: `deck-builder-hybrid-search`
+
+Bug: Discord `1555813766040391700`. Run the real editor with the full catalog at
+`http://127.0.0.1:4175/e2e/deck-builder.html` while the test Vite server is running.
+The entry is test-only and needs no API, account or match. Automated reproduction:
+
+```sh
+pnpm --filter @aegis/web exec playwright test deck-builder.spec.ts
+```
+
+**English:** At a mobile viewport (390 × 844), open Filters, select Red and type
+Variable in Trait / attribute: cards are available. Replace it with Hybrid:
+cards must still be available (before the fix: Show 0 cards, as in the screenshot).
+Keep all sets selected. Search BT7-011 in the separate card search to isolate
+BurningGreymon; the footer must show 1 card. Try `  hYbRiD  `, apply the filters,
+and add the card: a remove button appears. Repeat with English and Portuguese UI.
+
+**Português:** Na viewport móvel (390 × 844), abra Filtros, selecione Red e digite
+Variable em Traço / atributo: existem cartas disponíveis. Troque por Hybrid:
+ainda devem existir cartas (antes da correção: Mostrar 0 cartas, como no anexo).
+Mantenha todos os sets. Busque BT7-011 no campo separado de busca de cartas para
+isolar BurningGreymon; o botão deve indicar 1 carta. Experimente `  hYbRiD  `,
+aplique os filtros e adicione a carta: aparece o botão Remover. Repita nas duas
+línguas. Os termos impressos das cartas permanecem em inglês nas duas interfaces.
+
+The screenshot establishes the mobile trait field and zero-result symptom; Red
+is selected in this scenario from the written report, since that chip is outside
+the screenshot. Hybrid is a form and Variable an attribute, not an alias. The
+scenario uses UI actions rather than game intents because the defect occurs
+before a match. No dev arena layout or card behavior registration is involved.

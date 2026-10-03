@@ -26,7 +26,6 @@ export const compiled: CompiledCard = {
               },
               count: 1,
               to: "underTamer",
-              requiresMinRevealed: 2,
             },
           ],
           rest: "deckBottom",

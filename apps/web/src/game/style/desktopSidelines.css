@@ -1,0 +1,201 @@
+/* Laptop and wider desktops. Each side's security stands beside its raising area
+   instead of between the battle rows: the viewer's above their own raising area at
+   the bottom left, the opponent's below theirs at the top right. Security cards,
+   raising slots, Digimon and support cards all share one card size, and the battle
+   rows take back the height the centred security used. */
+/* Security drawn as shields or crests elsewhere; only this layout shows the sleeve. */
+.game-security-card__sleeve {
+  display: none;
+}
+
+@media (min-width: 1280px) and (min-height: 760px) {
+  .aegis-arena .game-board {
+    --arena-security-card-width: var(--arena-raising-width, 100px);
+    --arena-security-card-height: calc(var(--arena-security-card-width) * 1.4);
+    /* Upright cards fanned sideways: five of them span about the two raising slots. */
+    --arena-security-step-share: 0.33;
+    --arena-security-step: calc(var(--arena-security-card-width) * var(--arena-security-step-share));
+    --arena-security-footprint-width: calc(var(--arena-security-card-width) + 4 * var(--arena-security-step));
+    /* A full security fan and its count, or the two raising slots, whichever is wider,
+       at the card size before a crowded row narrows it. Following the narrowed size
+       would widen the rows and let the cards grow back. */
+    --arena-sideline-basis: var(--arena-sideline-basis-width, var(--arena-security-card-width));
+    --arena-sideline-width: max(
+      calc(var(--arena-sideline-basis) * (1 + 4 * var(--arena-security-step-share)) + 2.5rem),
+      calc(2 * var(--arena-sideline-basis) + 2rem)
+    );
+    /* A deck or trash pile in its framed zone. */
+    --arena-pile-zone-width: 4.5rem;
+    --arena-row-gutter: 1.5rem;
+    /* The opponent's eggs and raising slot, their label and their zone frame. */
+    --arena-raising-block: calc(var(--arena-security-card-width) * 1.4 + 2.5rem);
+  }
+
+  .aegis-arena .game-board .game-field {
+    /* Just under the opponent's hand. */
+    --arena-security-top: 4.5rem;
+    --arena-security-height: 0px;
+    /* Into the empty top of the hand dock, short of the raised hand cards. */
+    --arena-security-bottom: -3.5rem;
+  }
+
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+    --field-support-scale: 1;
+    --field-reserve-support: 1;
+    --field-overlap-lanes: 1;
+    --field-fit-width: 1;
+  }
+
+  /* Each row clears only what stands beside it. The opponent's row has their deck
+     and trash on the left and their raising area and security on the right; the
+     viewer's row has their security on the left and their deck and trash on the right. */
+  .aegis-arena .game-board .game-battle-zones > .game-battle-row--opp {
+    left: calc(2rem + var(--arena-pile-zone-width) + var(--arena-row-gutter));
+    right: calc(2rem + var(--arena-sideline-width) + var(--arena-row-gutter));
+  }
+
+  .aegis-arena .game-board .game-battle-zones > .game-battle-row--you {
+    left: calc(2rem + var(--arena-sideline-width) + var(--arena-row-gutter));
+    right: calc(2rem + var(--arena-pile-zone-width) + var(--arena-row-gutter));
+  }
+
+  .aegis-arena
+    .game-board
+    :is(
+      .game-utility-slot--you-eggs,
+      .game-utility-slot--you-raising,
+      .game-utility-slot--opp-eggs,
+      .game-utility-slot--opp-raising
+    ) {
+    width: calc(var(--arena-security-card-width) + 0.75rem);
+  }
+
+  .aegis-arena .game-board .game-breeding-dock {
+    width: auto !important;
+    padding: 0 2rem !important;
+  }
+
+  /* The space above the raising area now holds security, so the breeding guidance
+     sits beside the dock, short of the hand. */
+  .aegis-arena .game-player-dock > .game-breeding-dock > .game-breeding-hint {
+    top: 1rem;
+    bottom: auto;
+    left: calc(100% - 1rem);
+    right: auto;
+    width: 13rem;
+  }
+
+  .aegis-arena .game-board .game-security-shield--you,
+  .aegis-arena .game-board .game-security-shield-wrap:has(.game-security-shield--you) {
+    left: 2rem;
+    right: auto;
+    bottom: 0.5rem;
+    transform: none;
+  }
+
+  .aegis-arena .game-board .game-security-shield--opp,
+  .aegis-arena .game-board .game-security-shield-wrap:has(.game-security-shield--opp) {
+    left: auto;
+    right: 2rem;
+    top: calc(5rem + var(--arena-raising-block) + 0.75rem);
+    transform: none;
+  }
+
+  .aegis-arena .game-board .game-security-shield-wrap > .game-security-shield {
+    inset: auto;
+  }
+
+  .aegis-arena .game-board .game-security-shield {
+    width: max-content;
+    height: auto;
+    min-width: 0;
+  }
+
+  .aegis-arena .game-board .game-security-cards {
+    flex-direction: row;
+    gap: 0;
+    height: auto;
+    perspective: none;
+  }
+
+  .aegis-arena .game-board .game-security-cards i {
+    flex: none;
+    width: var(--arena-security-card-width);
+    height: var(--arena-security-card-height);
+    border-radius: var(--ds-radius-sm);
+    transform: none;
+  }
+
+  .aegis-arena .game-board .game-security-cards i + i {
+    margin-left: calc(var(--arena-security-step) - var(--arena-security-card-width));
+  }
+
+  /* The opponent's fan mirrors the viewer's: the front card at the left end, the
+     cards beneath it running right. */
+  .aegis-arena .game-board .game-security-shield--opp .game-security-cards {
+    flex-direction: row-reverse;
+  }
+
+  .aegis-arena .game-board .game-security-shield--opp .game-security-cards i + i {
+    margin-right: calc(var(--arena-security-step) - var(--arena-security-card-width));
+    margin-left: 0;
+  }
+
+  /* Hidden security wears the same sleeve as its owner's deck. */
+  .aegis-arena .game-board .game-security-cards i:not(.game-security-card--revealed) {
+    overflow: hidden;
+    border: 0;
+    background: none;
+  }
+
+  .aegis-arena .game-board .game-security-cards i:not(.game-security-card--revealed)::before,
+  .aegis-arena .game-board .game-security-cards i:not(.game-security-card--revealed)::after {
+    content: none;
+  }
+
+  .aegis-arena .game-board .game-security-card__sleeve {
+    display: block;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .aegis-arena .game-board .game-security-card__sleeve > div {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: inherit !important;
+  }
+
+  .aegis-arena .game-board .game-security-cards i.game-security-card--revealed {
+    aspect-ratio: auto;
+    height: var(--arena-security-card-height);
+  }
+
+  /* An empty stack keeps a card-sized slot, so a direct attack still has a target
+     the size of the others and its label stays centred over it, on screen. */
+  .aegis-arena .game-board .game-security-cards:empty {
+    display: block;
+    width: var(--arena-security-card-width);
+    height: var(--arena-security-card-height);
+    box-sizing: border-box;
+    border: 1px dashed color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent);
+    border-radius: var(--ds-radius-sm);
+    background: var(--arena-zone-fill);
+  }
+
+  /* Above the stack, the label ran into the raising area's caption. It rides on the
+     top of the cards, clear of the count beside their middle. */
+  .aegis-arena .game-board .game-security-shield-wrap > .game-security-shield__attack-label {
+    top: 0.75rem;
+    bottom: auto;
+  }
+
+  .aegis-arena .game-board .game-security-shield--you .game-security-shield__count {
+    left: calc(100% + 0.5rem);
+  }
+
+  .aegis-arena .game-board .game-security-shield--opp .game-security-shield__count {
+    left: auto;
+    right: calc(100% + 0.5rem);
+  }
+}

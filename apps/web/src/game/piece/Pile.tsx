@@ -83,6 +83,7 @@ export function Pile({
         securityDpDelta={securityDpDelta}
         faceUp={faceUp}
         securityCards={securityCards}
+        useSelectedSleeve={useSelectedSleeve}
         attackLabel={attackLabel}
         landing={landing}
         refEl={refEl}

@@ -108,6 +108,12 @@ export async function unsuspendForActivePhase(engine: GameEngine, seat: Seat): P
   const oppSeat = seat === 0 ? 1 : 0;
   const oppFlipped = unsuspendRebootForSeat(engine, oppSeat);
   const allFlipped = [...flipped, ...oppFlipped];
+  // Publish the simultaneous transition before its reactions can ask for input,
+  // digivolve a subject, or suspend a just-unsuspended Tamer again (EX13 Rina).
+  // Deferring these events until the hook returns shows the cause after its effects.
+  for (const permanentId of allFlipped) {
+    engine.hooks.emit({ kind: "cardsMoved", instanceIds: [permanentId], from: "suspended", to: "unsuspended" });
+  }
   await fireOncePerTurnWatchersOverSimultaneousSubjects(engine, "whenUnsuspended", allFlipped, (permanentId) => ({
     unsuspendedPermanentId: permanentId,
   }));

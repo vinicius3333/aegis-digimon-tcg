@@ -603,6 +603,77 @@ test.describe("effects lab pacing in the browser", () => {
     { name: "phone", viewport: { width: 390, height: 844 }, reduced: false },
     { name: "reduced motion", viewport: { width: 1440, height: 1000 }, reduced: true },
   ];
+  for (const phone of [false, true]) {
+    test(`a repeated Tamer lands on its physical flight destination before grouping (${phone ? "phone" : "desktop"})`, async ({
+      page,
+    }) => {
+      if (phone) await page.setViewportSize({ width: 390, height: 844 });
+      await page.addInitScript(() => {
+        localStorage.setItem("aegis:locale", "en");
+        localStorage.setItem("aegis.field-layout", "organized");
+      });
+      await page.goto("/dev/battle?scenario=field-grouping");
+      await new GamePage(page).endBreeding();
+      const row = page.locator(".game-battle-row--you");
+      await expect(row.getByRole("button", { name: "Izzy Izumi (3 copies)", exact: true })).toBeVisible();
+      await page.evaluate(() => {
+        const globals = window as unknown as {
+          __groupedArrival?: {
+            permanentId: string;
+            target: { x: number; y: number };
+            landing?: { x: number; y: number };
+          };
+        };
+        const observe = () => {
+          const flight = document.querySelector<HTMLElement>('[data-testid="confirmed-play-flight"]');
+          if (flight?.dataset.cardId === "BT1-088") {
+            const board = flight.parentElement!.getBoundingClientRect();
+            globals["__groupedArrival"] = {
+              permanentId: flight.dataset.permanentId!,
+              target: {
+                x:
+                  board.left +
+                  parseFloat(flight.style.left) +
+                  parseFloat(flight.style.getPropertyValue("--battle-flight-dx")),
+                y:
+                  board.top +
+                  parseFloat(flight.style.top) +
+                  parseFloat(flight.style.getPropertyValue("--battle-flight-dy")),
+              },
+            };
+          }
+          const arrival = globals["__groupedArrival"];
+          const landing = document.querySelector<HTMLElement>(
+            `[data-testid="confirmed-play-landing"][data-permanent-id="${arrival?.permanentId}"]`,
+          );
+          if (arrival && landing) {
+            const art = landing.querySelector("img")!.getBoundingClientRect();
+            arrival.landing = { x: art.left + art.width / 2, y: art.top + art.height / 2 };
+          }
+          requestAnimationFrame(observe);
+        };
+        observe();
+      });
+      await new GamePage(page).play(/^izzy izumi$/i);
+      await expect(row.locator('[data-testid="confirmed-play-landing"][data-card-id="BT1-088"]')).toBeVisible();
+      await expect(row.getByRole("button", { name: "Izzy Izumi (4 copies)", exact: true })).toBeVisible();
+      const arrival = await page.evaluate(
+        () =>
+          (
+            window as unknown as {
+              __groupedArrival?: {
+                permanentId: string;
+                target: { x: number; y: number };
+                landing?: { x: number; y: number };
+              };
+            }
+          )["__groupedArrival"],
+      );
+      expect(arrival?.landing, "the flight's physical copy must keep its landing cue").toBeDefined();
+      expect(Math.abs(arrival!.landing!.x - arrival!.target.x)).toBeLessThan(3);
+      expect(Math.abs(arrival!.landing!.y - arrival!.target.y)).toBeLessThan(3);
+    });
+  }
   for (const format of formats) {
     test(`the bot chain paints and settles (Stacked, ${format.name})`, async ({ page }) => {
       await page.setViewportSize(format.viewport);

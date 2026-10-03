@@ -3,6 +3,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import "../BT20/BT20-102.js";
+import "../BT20/BT20-060.js";
 
 describe("ST12-12 Sistermon Blanc", () => {
   it("may trash 1 hand card to draw exactly 2 and gains Decoy with Huckmon in play", async () => {
@@ -142,4 +144,43 @@ describe("ST12-12 Sistermon Blanc — KB Q&A rulings", () => {
       true,
     );
   });
+});
+
+it("Discord 1555876325355421716: Blanc may attack again with Rush after Ouryuken restores memory", async () => {
+  const opts = { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] as string[] };
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: ["BT20-102", "BT20-060"],
+        hand: [{ card: "ST12-12", as: "blanc" }],
+        deck: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+      1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-010"] },
+    },
+    opts,
+  );
+  opts.preferInstanceIds.push(s.inst("blanc").instanceId);
+  s.state.memory = 1;
+  await s.ready();
+  const loop = s.engine.startTurnLoop();
+  try {
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blanc").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackEnded"));
+    await advance(s.engine).waitForMainPhase(0);
+    const blanc = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("blanc").instanceId)!;
+    expect(s.state.memory).toBe(1);
+    expect(blanc.isSuspended).toBe(false);
+    expect(blanc.keywords).toContain("Rush");
+    expect(blanc.canAttackPlayer).toBe(true);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: blanc.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "attackEnded").length === 2);
+    expect(blanc.isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  } finally {
+    s.engine.applyIntent(1, { type: "surrender" });
+    await loop;
+  }
 });

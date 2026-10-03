@@ -28,6 +28,7 @@ import { GameScreen } from "../game/GameScreen";
 import { TIMINGS } from "../game/timings";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
+import { createArenaCrowdedDemoState, type CrowdedTamers } from "./arenaDemoCrowded";
 import { createArenaSecurityDemoState } from "./arenaDemoSecurity";
 import { prepareDemoCombat } from "./arenaDemoCombat";
 import { ArenaKeywordEditor } from "./ArenaKeywordEditor";
@@ -163,10 +164,13 @@ function previewRecipe(recipeId: string) {
   return recipe;
 }
 
-export function createArenaDemoState(drawCounts: readonly [number, number] = [0, 0]): GameState {
-  if (new URLSearchParams(window.location.search).get("scenario") === "security") {
-    return createArenaSecurityDemoState(drawCounts);
-  }
+export function createArenaDemoState(
+  drawCounts: readonly [number, number] = [0, 0],
+  crowdedTamers?: CrowdedTamers,
+): GameState {
+  const scenario = new URLSearchParams(window.location.search).get("scenario");
+  if (scenario === "security") return createArenaSecurityDemoState(drawCounts);
+  if (scenario === "crowded") return createArenaCrowdedDemoState(drawCounts, crowdedTamers);
   const state = new GameState();
   state.matchId = "arena-demo";
   state.phase = Phase.Main;
@@ -346,8 +350,15 @@ export function ArenaDemo() {
   const [mixedSelectionRun, setMixedSelectionRun] = useState<number | null>(null);
   const keywordLabels = useMemo(() => demoKeywordLabels(keywordGrants), [keywordGrants]);
   const events = useMemo(() => batches.flatMap((batch) => batch.events), [batches]);
+  const crowdedScenario = new URLSearchParams(window.location.search).get("scenario") === "crowded";
+  const [crowdedTamers, setCrowdedTamers] = useState<CrowdedTamers>({ turnedAmiAiba: 0, allReady: false });
+  const [deepStackSuspended, setDeepStackSuspended] = useState(false);
   const state = useMemo(() => {
-    const next = createArenaDemoState(drawCounts);
+    const next = createArenaDemoState(drawCounts, crowdedTamers);
+    if (crowdedScenario) {
+      const deepStack = next.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT25-075");
+      if (deepStack) deepStack.isSuspended = deepStackSuspended;
+    }
     next.phase = phase;
     if (imperialStep !== 0) {
       const imperial = fighter("AD1-024", "demo-imperial", 0);
@@ -407,6 +418,9 @@ export function ArenaDemo() {
     phase,
     keywordGrants,
     drawCounts,
+    crowdedTamers,
+    crowdedScenario,
+    deepStackSuspended,
     turnStartStep,
     securityScenario,
     securityFaceDownCount,
@@ -1007,6 +1021,17 @@ export function ArenaDemo() {
             securityScenario ? () => setSecurityFaceDownCount((count) => (count === 3 ? 0 : count + 1)) : undefined
           }
           securityFaceUpCount={3 - securityFaceDownCount}
+          onSuspendTamer={
+            crowdedScenario
+              ? () =>
+                  setCrowdedTamers((current) => ({
+                    turnedAmiAiba: current.allReady ? 1 : Math.min(3, current.turnedAmiAiba + 1),
+                    allReady: false,
+                  }))
+              : undefined
+          }
+          onReadyTamers={crowdedScenario ? () => setCrowdedTamers({ turnedAmiAiba: 0, allReady: true }) : undefined}
+          onToggleDeepStack={crowdedScenario ? () => setDeepStackSuspended((current) => !current) : undefined}
           onDraw={drawCard}
           onVisualPlayback={playback.controller.controls.start}
           onSecurityBattle={playback.controller.controls.startSecurityBattle}

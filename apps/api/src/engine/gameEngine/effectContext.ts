@@ -479,9 +479,11 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     artsDigivolve: (seat, instance, definition, duringAttack) =>
       engine.digivolveSupport.resolveArtsDigivolve(seat, instance, definition, duringAttack),
     beginEffectBody: () => {
+      engine.effectBodyTokens.push(++engine.windowTokenSeq);
       engine.effectResolutionDepth += 1;
     },
     finishEffectBody: () => {
+      engine.effectBodyTokens.pop();
       engine.effectResolutionDepth = Math.max(0, engine.effectResolutionDepth - 1);
     },
     drainPendingAttackTriggers: () => drainPendingAttackTriggers(engine),

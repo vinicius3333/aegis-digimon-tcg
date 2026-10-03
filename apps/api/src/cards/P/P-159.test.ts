@@ -10,27 +10,22 @@ import "../BT19/BT19-062.js";
 describe("P-159 Rook Device", () => {
   it("encodes the effect-trash trigger and Main grants with shared target", () => {
     const compiled = runtimeCompiledCard("P-159")!;
-    const reaction = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
-    expect(reaction.actions[0]).toMatchObject({
-      kind: "SubTrigger",
-      event: "whenTrashedByEffect",
-      sourceFilter: { isSelfRef: true },
-      actions: [
-        { kind: "GainKeyword", keyword: { keyword: "Reboot" }, duration: "untilOpponentTurnEnd" },
-        {
-          kind: "GainKeyword",
-          keyword: { keyword: "Blocker" },
-          duration: "untilOpponentTurnEnd",
-          target: expect.objectContaining({ sameTarget: true }),
-        },
-        {
-          kind: "ModifyDP",
-          amount: 2000,
-          duration: "untilOpponentTurnEnd",
-          target: expect.objectContaining({ sameTarget: true }),
-        },
-      ],
-    });
+    const reaction = compiled.effects.find((effect) => effect.trigger === "whenTrashedFromBattleArea")!;
+    expect(reaction.actions).toMatchObject([
+      { kind: "GainKeyword", keyword: { keyword: "Reboot" }, duration: "untilOpponentTurnEnd" },
+      {
+        kind: "GainKeyword",
+        keyword: { keyword: "Blocker" },
+        duration: "untilOpponentTurnEnd",
+        target: expect.objectContaining({ sameTarget: true }),
+      },
+      {
+        kind: "ModifyDP",
+        amount: 2000,
+        duration: "untilOpponentTurnEnd",
+        target: expect.objectContaining({ sameTarget: true }),
+      },
+    ]);
     const main = compiled.effects.find((effect) => effect.trigger === "Main")!;
     expect(main.actions).toHaveLength(4);
     expect(main.actions[3]).toEqual({ kind: "PlaceInBattleAreaSelf" });

@@ -47,38 +47,22 @@ describe("BT13-007 legal batch placement events", () => {
     });
 
     const additions = placementEvents.filter((entry) => entry.event === "onAddDigivolutionCards");
-    expect(additions).toHaveLength(3);
+    // King Drasil places the egg and all Royal Knights in one simultaneous batch.
+    expect(additions).toHaveLength(1);
     expect(additions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           event: "onAddDigivolutionCards",
           payload: expect.objectContaining({
             subjectPermanentId: drasil.permanentId,
-            addedDigivolutionCardInstanceIds: [eggId],
-            addedDigivolutionCardsPosition: "bottom",
-            byEffectSeat: 1,
-          }),
-        }),
-        expect.objectContaining({
-          event: "onAddDigivolutionCards",
-          payload: expect.objectContaining({
-            subjectPermanentId: drasil.permanentId,
-            addedDigivolutionCardInstanceIds: [knightAId],
-            addedDigivolutionCardsPosition: "bottom",
-            byEffectSeat: 1,
-          }),
-        }),
-        expect.objectContaining({
-          event: "onAddDigivolutionCards",
-          payload: expect.objectContaining({
-            subjectPermanentId: drasil.permanentId,
-            addedDigivolutionCardInstanceIds: [knightBId],
+            addedDigivolutionCardInstanceIds: expect.arrayContaining([eggId, knightAId, knightBId]),
             addedDigivolutionCardsPosition: "bottom",
             byEffectSeat: 1,
           }),
         }),
       ]),
     );
+    expect(additions[0]!.payload.addedDigivolutionCardInstanceIds).toHaveLength(3);
     expect(drasil.stack).toHaveLength(4);
     expect(drasil.stack.every((card) => card.faceUp)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

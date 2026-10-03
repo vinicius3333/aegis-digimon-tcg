@@ -16,6 +16,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-bt24-sonic-shot-decline-link": {
+    ptBR: "Encerre a fase de criação e depois o turno sem usar Sonic Shot da mão. No [Fim do Seu Turno] de Dan Yuki & Kanan Yuki, aceite suspender o Tamer e escolha BT24-095 Sonic Shot para usar sem pagar o custo. O bot não tem Digimon nem Tamer em campo. Na escolha do destinatário do Link, clique em Nenhuma seleção. Sonic Shot deve ir para o lixo, nenhum dos seus dois Digimon recebe o Link e o efeito de Dan & Kanan continua para a escolha do atacante.",
+    en: "End the breeding phase, then end your turn without using Sonic Shot from hand. On Dan Yuki & Kanan Yuki's [End of Your Turn], accept suspending the Tamer and choose BT24-095 Sonic Shot to use without paying its cost. The bot has no Digimon or Tamers in play. At the Link recipient selection, choose No Selection. Sonic Shot must go to the trash, neither of your two Digimon receives the Link, and Dan & Kanan's effect continues to the attacker selection.",
+  },
+  "arena-field-grouping-dense": {
+    ptBR: "Mesa de fim de partida: 21 permanentes por lado, 12 fontes no Vulcanusmon, 2 links e 8 cartas salvas no Watchmaker. Cada lado conserva as 50 cartas do deck principal. Role as duas fileiras, inspecione as fontes e gire a tela.",
+    en: "Late-game board: 21 permanents per side, 12 Vulcanusmon sources, 2 links and 8 saved Watchmaker cards. Each side conserves its 50-card main deck. Scroll both lanes, inspect sources and rotate the screen.",
+  },
   "arena-bt20-bakemon-violet-retroactive": {
     ptBR: "Evolua Ghostmon para BT20-068 Bakemon. Aceite jogar BT23-087 Violet Inboots da mão. Como Violet entrou depois da evolução, ela deve permanecer desuspensa e não deve oferecer Rush para esse Bakemon.",
     en: "Digivolve Ghostmon into BT20-068 Bakemon. Accept playing BT23-087 Violet Inboots from hand. Violet entered after the evolution, so it should remain unsuspended and should not offer Rush to this Bakemon.",
@@ -43,6 +51,22 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-ex12-virus-busters-effect-attack": {
     ptBR: "Encerre seu turno. A fonte EX12-001 Nyaromon oferece a DNA: aceite e junte BetelGammamon com Garurumon em EX12-032 WereGarurumon, depois aceite atacar. A escolha de ordem deve listar juntos o Virus Busters EX12-069 da segurança, o [Quando Evolui] e o [Ao Atacar] de WereGarurumon e o [Ao Atacar] herdado de Garurumon. Resolva o Virus Busters por último: ele ainda deve oferecer jogar um Digimon [VB] do mesmo nível.",
     en: "End your turn. The EX12-001 Nyaromon source offers its DNA: accept, combine BetelGammamon and Garurumon into EX12-032 WereGarurumon, then accept the attack. The order prompt must list together EX12-069 Virus Busters from security, WereGarurumon's [When Digivolving] and [When Attacking], and Garurumon's inherited [When Attacking]. Resolve Virus Busters last: it must still offer to play a same-level [VB] Digimon.",
+  },
+  "arena-bt10-taiki-x7-xros-heart": {
+    ptBR: "Entre na Fase Principal e jogue BT10-087 Taiki Kudo da mão. Na revelação de BT21-083, P-224, AD1-006 e BT8-097, escolha P-224 Kotone Amano para a mão. AD1-006 Shoutmon X7 deve ser colocado sob o Taiki jogado, mesmo sendo o único Digimon Xros Heart revelado. Ordene BT21-083 e BT8-097 para o fundo. A memória termina em 2. Reprodução da partida 802ba658, bug 1555932180322975924.",
+    en: "Enter Main and play BT10-087 Taiki Kudo from hand. From the revealed BT21-083, P-224, AD1-006 and BT8-097, choose P-224 Kotone Amano for your hand. AD1-006 Shoutmon X7 must go under the played Taiki, even though it is the only revealed Xros Heart Digimon. Order BT21-083 and BT8-097 to the bottom. Memory ends at 2. Reproduces match 802ba658, bug 1555932180322975924.",
+  },
+  "arena-ad1-adventure-tamers-security": {
+    ptBR: "Encerre a fase de criação. Ataque a segurança do bot com o primeiro Shoutmon BT19-008: AD1-019 Matt Ishida & T.K. Takaishi deve ser jogado no campo do bot pelo [Segurança], sem pagar custo. Espere o ataque terminar. Ataque a segurança com o segundo Shoutmon: AD1-022 Izzy Izumi & Tai Kamiya também deve entrar no campo do bot. A segurança fica vazia, os dois Tamers ficam desuspensos no campo, nenhum vai para a lixeira e a memória continua em 3. Não faça um terceiro ataque.",
+    en: "End breeding. Attack the bot's security with the first BT19-008 Shoutmon: AD1-019 Matt Ishida & T.K. Takaishi must be played onto the bot's field by [Security], without paying its cost. Wait for the attack to end. Attack security with the second Shoutmon: AD1-022 Izzy Izumi & Tai Kamiya must also enter the bot's field. Security is empty, both Tamers remain unsuspended in play, neither goes to trash, and memory stays at 3. Do not make a third attack.",
+  },
+  "arena-lm067-gundramon-free-option": {
+    ptBR: "Entre na Fase Principal com 5 de memória. Evolua BT10-064 Gogmamon para LM-067 Gundramon da mão (custo 4). Na revelação, escolha P-180 Bind Red Trigger: seu uso deve manter a memória em 1. P-180 descarta o topo da segurança do bot; escolha Gundramon para colocá-la como fonte do fundo. Ordene as outras 5 cartas para o fundo do deck. A memória deve continuar em 1, sem passar o turno.",
+    en: "Enter Main with 5 memory. Digivolve BT10-064 Gogmamon into LM-067 Gundramon from hand (cost 4). Choose P-180 Bind Red Trigger from the reveal: using it must keep memory at 1. P-180 trashes the bot's top security; choose Gundramon to place it as the bottom source. Order the other 5 cards to the deck bottom. Memory must remain at 1 without passing the turn.",
+  },
+  "arena-diarbbitmon-dual-option-immunity": {
+    ptBR: "Evolua EX12-051 para EX12-052 Diarbbitmon da mão. Escolha o próprio Diarbbitmon para a imunidade e +3000 DP; batalhe o primeiro BT26-061 do bot. Encerre o turno e aceite Vortex contra o segundo BT26-061: Diarbbitmon deve ficar suspenso. Os dois ST23-13 dão ao bot 5 de memória na Principal. Ele usa ST23-09 Atratusmon como Option (Eclipse Impact), escolhendo Diarbbitmon. Apesar da imunidade a efeitos de Digimon, ele deve ir ao fundo do deck: Eclipse Impact é efeito de Option. Recuse Arts Digivolve, se oferecido.",
+    en: "Digivolve EX12-051 into EX12-052 Diarbbitmon from hand. Choose Diarbbitmon for immunity and +3000 DP; battle the bot's first BT26-061. End the turn and accept Vortex against the second BT26-061: Diarbbitmon should be suspended. The two ST23-13 Tamers give the bot 5 memory in Main. It uses ST23-09 Atratusmon as an Option (Eclipse Impact), choosing Diarbbitmon. Despite Digimon-effect immunity, it must go to the deck bottom: Eclipse Impact is an Option effect. Decline Arts Digivolve if offered.",
   },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
@@ -128,6 +152,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você tem BT24-013 Fugamon em campo e outro Fugamon e um Monodramon na mão. Ataque o jogador com o Fugamon do campo e aceite o [Ao Atacar]: descarte o Monodramon e delete o Monodramon do bot. O Fugamon da mão não deve comprar carta, porque não foi ele que foi descartado.",
     en: "You have BT24-013 Fugamon in play, plus another Fugamon and a Monodramon in hand. Attack the player with the Fugamon in play and accept its [When Attacking]: trash the Monodramon and delete the bot's Monodramon. The Fugamon in hand must not draw a card, because it was not the card trashed.",
   },
+  "arena-bt2-kurisarimon-repeat-memory": {
+    ptBR: "Reproduz o bug de Oxxo: você tem 1 de memória, Infermon com Kurisarimon BT2-059 nas fontes, Arata BT5-090 em campo e Diaboromon EX6-043 na mão. Pule a criação e evolua o Infermon para Diaboromon (custo 3). Resolva primeiro o [Quando Evolui], aceitando o token, e depois aceite suspender Arata para jogar outro token. Kurisarimon deve ganhar 1 de memória por cada token: -2 → -1 → 0. Seu turno continua com dois tokens e Arata suspenso.",
+    en: "Reproduces Oxxo's bug: you have 1 memory, Infermon with BT2-059 Kurisarimon in its sources, BT5-090 Arata in play, and EX6-043 Diaboromon in hand. Skip breeding and digivolve Infermon into Diaboromon (cost 3). Resolve [When Digivolving] first, accepting its token, then accept suspending Arata to play another token. Kurisarimon must gain 1 memory for each token: -2 → -1 → 0. Your turn continues with two tokens and a suspended Arata.",
+  },
+  "arena-bt2-kurisarimon-start-main-memory": {
+    ptBR: "Você tem 3 de memória e dois Diaboromon EX6-043, um com Kurisarimon BT2-059 nas fontes. Pule a criação e aceite os dois efeitos de início da Fase Principal para jogar um token de cada vez. Resolva a herdada de Kurisarimon após cada token: a memória deve subir de 3 para 4 e depois para 5. Dois efeitos separados geram dois ganhos; dois tokens simultâneos de um único efeito geram apenas um.",
+    en: "You have 3 memory and two EX6-043 Diaboromon, one with BT2-059 Kurisarimon in its sources. Skip breeding and accept both start-of-main effects to play one token at a time. Resolve Kurisarimon's inherited effect after each token: memory must rise from 3 to 4, then to 5. Two separate effects produce two gains; two simultaneous tokens from one effect produce only one.",
+  },
   "arena-ex12-metalgarurumon-trash-then-return": {
     ptBR: "Reproduz a partida do Discord. Você tem EX12-032 WereGarurumon em campo, EX12-035 MetalGarurumon na mão e 3 de memória. O bot tem EX6-035 Cherubimon com 1 card de evolução e BT15-034 Salamon sem cards de evolução. Evolua o WereGarurumon para MetalGarurumon pela rota alternativa (custo 3). No [Quando Evolui], o único card de evolução do bot sai do Cherubimon sem escolha: o card deve descolar do Cherubimon e o painel da direita “Cartas de digivolução enviadas ao lixo” deve mostrá-lo. Só depois abre a escolha separada do Digimon que volta ao fundo do deck, com Cherubimon e Salamon. Escolha a Salamon: ela vai para o fundo do deck e o Cherubimon fica em campo.",
     en: "Reproduces the Discord match. You have EX12-032 WereGarurumon in play, EX12-035 MetalGarurumon in hand, and 3 memory. The bot has EX6-035 Cherubimon with 1 digivolution card and BT15-034 Salamon with none. Digivolve WereGarurumon into MetalGarurumon with the alternate route (cost 3). On [When Digivolving], the bot's only digivolution card leaves Cherubimon with no choice: the card must peel off Cherubimon, and the right-hand “Digivolution cards trashed” panel must show it. Only then does the separate return choice open, listing Cherubimon and Salamon. Choose Salamon: it goes to the deck bottom and Cherubimon stays in play.",
@@ -212,13 +244,25 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação. Evolua o seu Agumon para EX7-010 Deputymon da mão: custo 2, a memória vai de 5 para 3. Aceite o [Ao Digivolver] e descarte P-180 Bind Red Trigger das fontes do seu Monodramon. O efeito de Bind Red Trigger ativa e deleta o Muchomon do bot (5000 DP).",
     en: "End breeding. Digivolve your Agumon into EX7-010 Deputymon from hand: cost 2, memory goes from 5 to 3. Accept its [When Digivolving] and trash P-180 Bind Red Trigger from your Monodramon's sources. Bind Red Trigger's effect activates and deletes the bot's Muchomon (5000 DP).",
   },
+  "arena-bt22-leopardmon-king-drasil": {
+    ptBR: "A criação passa automaticamente. No início da Principal, King Drasil coloca Ouryuken ACE BT20-060 e Leopardmon ACE BT22-052 embaixo de si. Escolha Ouryuken como posição 1 (mais perto do fundo), depois Leopardmon. As duas saídas são simultâneas: Leopardmon deve ganhar 2 de memória antes de sair, de 3 para 5, em qualquer ordem das fontes. Ambos ficam embaixo de Drasil; não há Overflow.",
+    en: "Breeding skips automatically. At the start of Main, King Drasil places Ouryuken ACE BT20-060 and Leopardmon ACE BT22-052 under itself. Choose Ouryuken as position 1 (nearest the bottom), then Leopardmon. Both leave simultaneously: Leopardmon must gain 2 memory before leaving, from 3 to 5, regardless of stack order. Both stay under Drasil; no Overflow applies.",
+  },
   "arena-bt13-king-drasil-source-count": {
     ptBR: "O turno abre direto na Principal: King Drasil_7D6 já colocou o Digi-Ovo do topo embaixo de si e tem 3 fontes. Jogue Omekamon (memória 10 para 5) e, no Ao Jogar, coloque Kentaurosmon embaixo de King Drasil: agora são 4 fontes. Jogue Jesmon e aceite a redução: o custo 12 cai 4 + 4 e a memória vai de 5 para 1, não para 0.",
     en: "The turn opens in Main: King Drasil_7D6 has already placed the top Digi-Egg under itself and holds 3 sources. Play Omekamon (memory 10 to 5) and, on its On Play, place Kentaurosmon under King Drasil: it now holds 4 sources. Play Jesmon and accept the reduction: cost 12 falls by 4 + 4 and memory goes from 5 to 1, not to 0.",
   },
+  "arena-st12-blanc-rush-second-attack": {
+    ptBR: "A criação passa automaticamente. Resolva King Drasil no início da Main. Jogue Omnimon BT13-112, aceite a redução de custo e escolha jogar os Royal Knights de Drasil: Omnimon X BT20-102, Ouryuken ACE BT20-060 e Leopardmon ACE BT22-052. Resolva Leopardmon para jogar Blanc ST12-12 e descarte Tai com Blanc para comprar 2. No fim do turno, aceite Omnimon X, escolha Blanc e ataque a security sem suspender. Ouryuken ganha 3 de memória: de -1 para 2. A Main continua; Blanc mantém Rush e fica ativa. Ataque novamente com Blanc: a opção deve estar disponível, ela suspende e remove a segunda security. Ouryuken não ganha memória outra vez neste turno.",
+    en: "Breeding skips automatically. Resolve King Drasil at the start of Main. Play Omnimon BT13-112, accept the cost reduction and choose to play the Royal Knights from Drasil: Omnimon X BT20-102, Ouryuken ACE BT20-060 and Leopardmon ACE BT22-052. Resolve Leopardmon to play Blanc ST12-12, then trash Tai with Blanc to draw 2. At end of turn, accept Omnimon X, choose Blanc and attack security without suspending. Ouryuken gains 3 memory: -1 to 2. Main continues; Blanc keeps Rush and remains unsuspended. Attack again with Blanc: the action must be available, she suspends and removes the second security. Ouryuken does not gain memory again this turn.",
+  },
   "arena-bt13-omnimon-later-token-rush": {
     ptBR: "O turno abre direto na Principal: King Drasil_7D6 está na criação com EX13-014 Jesmon e o Digi-Ovo do topo embaixo. Jogue BT13-112 Omnimon e aceite a redução de King Drasil: custo 14 cai 4 + 2, a memória vai de 10 para 2. No Ao Jogar, escolha jogar os Royal Knights: Jesmon entra, King Drasil vai para a lixeira e todos os seus Digimon ganham ＜Rush＞. Depois o efeito de Jesmon dispara: delete o Monodramon do bot e jogue o Token Atho, René & Por. O Token entrou depois do efeito de Omnimon, mas também deve mostrar ＜Rush＞. Ataque o bot com o Token: o ataque é aceito e 1 carta de segurança sai.",
     en: "The turn opens in Main: King Drasil_7D6 is in breeding with EX13-014 Jesmon and the top Digi-Egg under it. Play BT13-112 Omnimon and accept King Drasil's reduction: cost 14 falls by 4 + 2, memory goes from 10 to 2. On its On Play, choose to play the Royal Knights: Jesmon enters, King Drasil goes to the trash, and all your Digimon gain ＜Rush＞. Then Jesmon's effect triggers: delete the bot's Monodramon and play the Atho, René & Por Token. The Token entered after Omnimon's effect, but it must also show ＜Rush＞. Attack the bot with the Token: the attack is accepted and 1 security card is removed.",
+  },
+  "arena-bt26-zombie-plutomon-removed-trigger": {
+    ptBR: "Encerre a criação. Ative o [Principal] herdado de BT22-044 Palmon para colocar a carta do topo no fundo das fontes e comprar 1. Aceite o herdado de BT22-004 e evolua para BT22-056 da mão. Escolha ZombiePlutomon para -3000 DP e De-Digivolve 1. BT26-079 vai para a lixeira e Plutomon permanece em campo. O efeito pendente de ZombiePlutomon não deve ativar nem pedir descarte: sua mão fica com 8 cartas e a do bot com 6.",
+    en: "End breeding. Activate BT22-044 Palmon's inherited [Main] to place the top card at the bottom of its sources and draw 1. Accept BT22-004's inherited effect and digivolve into BT22-056 from hand. Target ZombiePlutomon for -3000 DP and De-Digivolve 1. BT26-079 goes to trash while Plutomon stays in play. ZombiePlutomon's pending effect must not activate or request discards: your hand stays at 8 cards and the bot's at 6.",
   },
   "arena-bt24-hyogamon-pending-trash-digivolve": {
     ptBR: 'Encerre a criação. Jogue BT24-021 SnowGoblimon (memória 1 para -2). No Ao Jogar, adicione Plutomon e descarte o Plutomon da mão. Os herdados de Salamon e Hyogamon (embaixo de Cerberusmon) disparam juntos: resolva Salamon primeiro e evolua Cerberusmon para Plutomon da lixeira (memória -2 para -5); a evolução compra ZombiePlutomon. No Quando Evolui de Plutomon, descarte ZombiePlutomon e jogue Fugamon da lixeira, depois resolva os efeitos novos. A escolha de ordem desses efeitos novos mostra Hyogamon em "Resolvem depois destes". O herdado de Hyogamon ainda deve ser oferecido: aceite e evolua Plutomon para ZombiePlutomon da lixeira (custo 0). Antes da correção ele sumia e o turno passava.',
@@ -243,6 +287,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt11-analogman-redirect-timing": {
     ptBR: "Jogue GrapLeomon e mande Gaomon atacar o jogador. O efeito Ao Atacar de Gaomon (cada jogador compra 1) deve resolver ANTES de o Analogman do bot suspender e redirecionar o ataque.",
     en: "Play GrapLeomon and order Gaomon to attack the player. Gaomon's When Attacking effect (each player draws 1) must resolve BEFORE the bot's Analogman suspends and redirects the attack.",
+  },
+  "arena-rina-evade-unsuspend": {
+    ptBR: "Começa após Ulforce X virar Veemon, sobreviver ao Arts de Noir com Evade e receber o turno com 5 de memória (custo da Opção). Veemon e Rina EX13 devem desvirar ANTES dos efeitos das Rinas aparecerem. Resolva Rina EX13 primeiro: suspender para comprar é opcional; evoluir em Veedramon por 0 também é opcional. Rina BT11 dá +1 (6); ao entrar na Principal, Rina EX13 dá +1 (7). Se aceitar a compra, Rina EX13 deve continuar suspensa.",
+    en: "Starts after Ulforce X became Veemon, survived Noir's Arts deletion with Evade, and received the turn with 5 memory from the Option's cost. Veemon and EX13 Rina must unsuspend BEFORE the Rina effects appear. Resolve EX13 Rina first: suspending to draw is optional; digivolving into Veedramon for 0 is also optional. BT11 Rina gains 1 (6); at Main entry EX13 Rina gains 1 (7). If you accept the draw, EX13 Rina must stay suspended.",
   },
   "arena-bt11-rina-ulforce-effect-choice": {
     ptBR: "Encerre a criação e ataque a segurança com UlforceVeedramon. Resolva primeiro a Rina BT11 e aceite suspendê-la. As duas opções devem mostrar textos diferentes: mudar orientação e devolver os Digimon com menos fontes. Escolha a segunda e aceite: só BT1-013 volta ao fundo do deck; BT1-011 com uma fonte fica. Depois resolva o Ao Atacar de Ulforce.",
@@ -384,9 +432,17 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Faça a DNA digivolução de Wingdramon + Groundramon em Examon. Examon ataca a segurança e depois batalha com o Digimon do bot. O efeito de vencer a batalha não pode resolver sozinho: ele deve aparecer no mesmo prompt de ordem que o efeito de suspensão do Wingdramon e o [When Attacking] do Bebydomon, e você escolhe a ordem.",
     en: "DNA digivolve Wingdramon + Groundramon into Examon. Examon attacks security, then battles the bot's Digimon. The win-battle effect must not resolve on its own: it must appear in the same order prompt as Wingdramon's suspend effect and Bebydomon's [When Attacking], and you choose the order.",
   },
+  "arena-ex13-wisemon-witchelny-cost": {
+    ptBR: "Reprodução da sequência de Nom (13:40 UTC). Encerre a criação; evolua BT18-036 em BT19-036 Wizardmon (X Antibody) por 0. Aceite colocar BT18-098 no fundo da segurança e suspenda Kari para ganhar 1 memória (8 → 9). Jogue a segunda Kari por 4 (9 → 5). Evolua em EX13-034 Wisemon: devem aparecer o custo regular de 4 e o alternativo de 3. Escolha 3 (5 → 2) e o próprio Wisemon para receber Reboot, Blocker e proteção contra De-Digivolve.",
+    en: "Reproduce Nom's sequence (13:40 UTC). End breeding; evolve BT18-036 into BT19-036 Wizardmon (X Antibody) for 0. Accept placing BT18-098 at the bottom of security and suspend Kari to gain 1 memory (8 → 9). Play the second Kari for 4 (9 → 5). Evolve into EX13-034 Wisemon: both regular cost 4 and alternate cost 3 must appear. Choose 3 (5 → 2) and Wisemon itself to receive Reboot, Blocker and De-Digivolve protection.",
+  },
   "arena-ex13-chirinmon-cost-choice": {
     ptBR: "Digivolva o Lv.4 [DATA SQUAD] em Chirinmon. O efeito deve perguntar uma vez se você quer usá-lo e, depois, qual custo pagar: a carta do topo da segurança ou a carta virada para baixo sob o Tamer. Nenhum botão deve repetir o texto do efeito.",
     en: "Digivolve the [DATA SQUAD] Lv.4 into Chirinmon. The effect must ask once whether to use it, then which cost to pay: the top security card or the face-down card under the Tamer. No button should repeat the effect text.",
+  },
+  "arena-bt26-monimon-optional-cost": {
+    ptBR: "Ataque um Agumon suspenso com DarkKnightmon (EX10-031), que tem Monimon BT26-006 nas fontes. Recuse o custo: nenhuma das 3 fontes deve ir para a lixeira, a mão e a memória ficam iguais e o ataque continua. Reinicie o cenário e aceite: descarte Monimon e SkullKnightmon P-115. Depois você pode recusar jogar, mantendo as 2 fontes na lixeira, ou jogar Yuu Amano por 1 de memória / ChuuChuumon BT14-057 por 1. O custo exige exatamente 2 fontes; pagar consome o [Uma Vez Por Turno], mesmo sem jogar.",
+    en: "Attack a suspended Agumon with DarkKnightmon (EX10-031), which has BT26-006 Monimon in its sources. Decline the cost: none of its 3 sources should enter the trash, hand and memory stay unchanged, and the attack continues. Restart and accept: trash Monimon and P-115 SkullKnightmon. You may then decline to play, leaving both sources in the trash, or play Yuu Amano for 1 memory / BT14-057 ChuuChuumon for 1. The cost requires exactly 2 sources; paying spends [Once Per Turn] even without playing.",
   },
   "arena-ex13-flamewizardmon-optional-cost": {
     ptBR: "Evolua o BT18-030 em EX13-029 FlameWizardmon (custo 2). O [Quando Evolui] deve perguntar se você quer descartar a carta do topo da segurança: recuse. Sua segurança continua com 4 cartas e o Digimon do bot continua com 6000 DP. Depois ataque o bot com o FlameWizardmon: a mesma pergunta volta, porque a recusa não gastou o [Uma Vez Por Turno]. Aceite: o topo da segurança vai para a lixeira, o Digimon do bot cai para 2000 DP e, com 3 cartas na segurança, é deletado.",
@@ -451,6 +507,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-reboot-timing": {
     ptBR: "Seu turno começa com todos os seus Digimon com Reboot suspensos. Observe a fase de Dessuspensão.",
     en: "Your turn starts with all your Reboot Digimon suspended. Watch the Unsuspend phase.",
+  },
+  "arena-marcus-alliance": {
+    ptBR: "Pule a criação. No início da Principal, aceite pagar 1 de memória para transformar BT12-092 Marcus Damon em um Digimon de 3000 DP (a memória fica em 4). Ataque a segurança do bot com BT23-020 Seadramon. No Alliance, escolha Marcus: a resposta deve ser aceita, Marcus suspende e Seadramon fica com 8000 DP durante o ataque, checando 2 cartas. A segurança do bot cai de 5 para 3. Ao terminar o ataque, Seadramon volta a 5000 DP. Se recusar a transformação no início da Principal, Marcus não deve aparecer como aliado de Alliance.",
+    en: "Skip breeding. At the start of Main, accept paying 1 memory to treat BT12-092 Marcus Damon as a 3000 DP Digimon (memory becomes 4). Attack the bot's security with BT23-020 Seadramon. Choose Marcus for Alliance: the answer must be accepted, Marcus suspends, and Seadramon has 8000 DP during the attack and checks 2 cards. The bot's security drops from 5 to 3. Seadramon returns to 5000 DP after the attack. If you decline the transformation at the start of Main, Marcus must not appear as an Alliance ally.",
   },
   "arena-alliance-20": {
     ptBR: "Encerre a criação, ataque com Seadramon e escolha 1 dos outros 19 Digimon para Alliance.",
@@ -564,10 +624,13 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena", "Attack steps · Counter/Blocker"],
+  ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
+  ["arena-marcus-alliance", "Alliance · Marcus treated as a Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-effect-choice", "BT11 Rina · EX13 Ulforce effect choice"],
+  ["arena-rina-evade-unsuspend", "Rina · Evade → next-turn unsuspend"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],
   ["arena-bt15-leviamon-x-played-subject-left", "BT15 Leviamon X · trigger survives a deleted played Digimon"],
@@ -582,10 +645,15 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt21-davis-top-stack", "BT21 Davis · top stacked card regression"],
   ["arena-bt21-dracomon-start-main", "BT21 Dracomon X + BT20 Dracomon · start-main order"],
   ["arena-bt21-dogatchmon-link-attack", "BT21 DoGatchmon · link attack waits for pending effects"],
+  ["arena-bt24-sonic-shot-decline-link", "BT24 Sonic Shot · decline Link after Dan & Kanan"],
   ["arena-bt26-chronomon-dm-succession", "BT26 Chronomon DM · Succession When Digivolving"],
   ["arena-bt8-digimon-emperor-breeding-memory", "BT8 Digimon Emperor · breeding memory ends turn"],
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
+  ["arena-bt10-taiki-x7-xros-heart", "BT10 Taiki · Shoutmon X7 Xros Heart"],
+  ["arena-ad1-adventure-tamers-security", "AD1 Adventure Tamers · Security plays both Tamers"],
+  ["arena-lm067-gundramon-free-option", "LM-067 Gundramon · free revealed Option"],
+  ["arena-diarbbitmon-dual-option-immunity", "Diarbbitmon · Eclipse Impact / DUAL immunity"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
@@ -608,6 +676,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt26-yoshino-match-b3759aa7", "BT26 Yoshino Fujieda · production match b3759aa7 stack"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt24-fugamon-self-trash", "BT24 Fugamon · draw only when this card is trashed"],
+  ["arena-bt2-kurisarimon-repeat-memory", "BT2 Kurisarimon · Diaboromon + Arata memory"],
+  ["arena-bt2-kurisarimon-start-main-memory", "BT2 Kurisarimon · two start-of-main token effects"],
   ["arena-ex12-metalgarurumon-trash-then-return", "EX12 MetalGarurumon · trash sources, then choose the return"],
   ["arena-bt22-palmon-cs-restack", "BT22 Palmon · [CS] restack only on a [CS] host"],
   ["arena-bt22-mirei-play-cost-floor", "BT22 Mirei Mikagura · play cost 4 or higher only"],
@@ -647,6 +717,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
   ["arena-bt23-examon-opponent-turn-dna", "BT23 Examon · Delay DNA in opponent's turn, no attack"],
   ["arena-ex13-chirinmon-cost-choice", "EX13 Chirinmon · either-or cost choice"],
+  ["arena-ex13-wisemon-witchelny-cost", "EX13 Wisemon · Witchelny cost 3 / 4"],
+  ["arena-bt26-monimon-optional-cost", "BT26 Monimon · optional source-trash cost"],
   ["arena-ex13-flamewizardmon-optional-cost", "EX13 FlameWizardmon · optional security cost"],
   ["arena-sukamon-transform-digivolve", "EX13 KingSukamon · white Sukamon can't take green digivolve"],
   ["arena-sukamon-transform-digivolve-viewer", "Sukamon rewrite · your Blossomon refused"],
@@ -683,8 +755,11 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt25-beelstarmon-option-trash-trigger", "BT25 BeelStarmon · unsuspend cost fires the Option's trash effect"],
   ["arena-bt20-last-guardian-omnimon-wipe", "BT20 The Last Guardian · Delay vs Omnimon (X Antibody) wipe"],
   ["arena-ex7-deputymon-option-trash-trigger", "EX7 Deputymon · trashed Option source fires its effect"],
+  ["arena-bt22-leopardmon-king-drasil", "BT22 Leopardmon ACE · King Drasil simultaneous leave"],
   ["arena-bt13-king-drasil-source-count", "BT13 King Drasil · source count after an earlier play"],
   ["arena-bt13-omnimon-later-token-rush", "BT13 Omnimon · Rush reaches a later token"],
+  ["arena-st12-blanc-rush-second-attack", "ST12 Blanc · Rush second attack after Ouryuken"],
+  ["arena-bt26-zombie-plutomon-removed-trigger", "BT26 ZombiePlutomon · pending source removed by De-Digivolve"],
   ["arena-bt24-hyogamon-pending-trash-digivolve", "BT24 Hyogamon · pending inherited digivolve after Plutomon"],
   ["arena-ex10-darkness-bagramon-digixros-interrupt", "EX10 DarknessBagramon · DigiXros material interrupt"],
   ["arena-ex10-tactimon-digixros-material", "EX10 Tactimon · DigiXros material is not an effect"],
@@ -748,6 +823,7 @@ export function LiveArenaDemo() {
         <label className="aegis-arena-demo-field">
           <span className="aegis-arena-demo-field-label">{portuguese ? "Cenário" : "Scenario"}</span>
           <select
+            aria-label={portuguese ? "Cenário" : "Scenario"}
             value={scenario}
             onChange={(event) => {
               setScenario(event.target.value as DevScenario);
@@ -768,7 +844,7 @@ export function LiveArenaDemo() {
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}
         </a>
-        <details className="aegis-arena-live-instructions" open>
+        <details className="aegis-arena-live-instructions">
           <summary>{portuguese ? "Instruções do cenário" : "Scenario instructions"}</summary>
           <p tabIndex={0}>{portuguese ? note.ptBR : note.en}</p>
         </details>

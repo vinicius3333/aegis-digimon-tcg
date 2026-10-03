@@ -19,6 +19,7 @@ export function RightPileColumn({
   opponentBreeding,
   viewerPiles,
   pileWidth,
+  raisingWidth,
   compactPiles,
   opponentSecurityRef,
   opponentEggDeckRiffling,
@@ -44,6 +45,8 @@ export function RightPileColumn({
   /** The viewer's deck and trash, unless the bottom strip holds them. */
   viewerPiles: ReactNode;
   pileWidth: number;
+  /** The egg deck and raising slot, which can be larger than the other piles. */
+  raisingWidth: number;
   compactPiles: boolean;
   opponentSecurityRef: RefObject<HTMLDivElement | null>;
   opponentEggDeckRiffling: boolean;
@@ -86,7 +89,7 @@ export function RightPileColumn({
         <div className="game-opponent-breeding" data-testid="opponent-breeding">
           <Pile
             className="game-utility-slot game-utility-slot--opp-eggs"
-            width={pileWidth}
+            width={raisingWidth}
             compact={compactPiles}
             count={opponentBreeding.eggDeckCount}
             egg
@@ -103,7 +106,7 @@ export function RightPileColumn({
               effectSource={breedingEffectSource}
               effectLinked={breedingEffectLinked}
               highlight={breedingHighlight}
-              width={pileWidth}
+              width={raisingWidth}
               onClick={onOpenOpponentBreeding}
             />
           </div>

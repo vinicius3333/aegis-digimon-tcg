@@ -95,7 +95,7 @@ export class CombatController {
   private pendingEndOfAttackTrigger: CombatTrigger | undefined;
   /** Withdraws the End of Attack timing {@link endAttack} queued, if it has not activated yet. */
   private withdrawDeferredEndOfAttack: (() => boolean) | undefined;
-  /** Permanents that have already attacked this turn (§11-2-3). */
+  /** Attack activity bookkeeping; prior attacks do not forbid a new declaration. */
   readonly attackedThisTurn = new Set<string>();
   /** Active ＜Alliance＞ decision window. */
   private allianceDecision: AllianceDecisionWindow | undefined;

@@ -313,6 +313,10 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
     expect(s.perm("target").linked).toHaveLength(0);
     expect(s.perm("other").linked).toHaveLength(1);
+    const prevention = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID);
+    expect(prevention?.req.options?.effectText).toBe(
+      "[All Turns] When this [Vulcanusmon] would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
+    );
   });
 });
 

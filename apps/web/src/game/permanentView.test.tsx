@@ -304,7 +304,7 @@ describe("PermanentView resolved keywords", () => {
     const card = screen.getByTitle("ExTyrannomon");
     expect(card.dataset.state).toBe("suspended");
     const suspendedStyle = card.closest<HTMLElement>("[data-suspended]")?.style;
-    expect(suspendedStyle?.marginInlineStart).toBe("24px");
+    expect(suspendedStyle?.marginInlineStart).toContain("24px");
     expect(suspendedStyle?.marginInlineEnd).toBe("24px");
     expect(card.style.rotate).toBe("90deg");
     expect(screen.getByText("Blocker")).toBeTruthy();
@@ -347,10 +347,11 @@ describe("PermanentView resolved keywords", () => {
     );
 
     expect(screen.getByText("Decoy")).toBeTruthy();
-    expect(screen.getByText("Blocker")).toBeTruthy();
+    expect(screen.queryByText("Blocker")).toBeNull();
     expect(screen.queryByText("Reboot")).toBeNull();
     expect(screen.queryByText("Jamming")).toBeNull();
-    expect(screen.getByText("+2")).toBeTruthy();
+    fireEvent.click(screen.getByText("+3"));
+    expect(screen.getByRole("tooltip").textContent).toContain("Blocker · Reboot · Jamming");
   });
 });
 

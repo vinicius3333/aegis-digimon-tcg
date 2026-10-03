@@ -1,0 +1,196 @@
+/* The organized field: each side's row holds two lanes, Digimon and a smaller lane of
+   grouped Tamers and Options. The row keeps the box every breakpoint gives it; the
+   lanes share that box and each scrolls sideways on its own. The selectors outrank
+   every breakpoint's `.game-battle-zones > .game-battle-row` rule on purpose. */
+
+.game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  /* A lane needs its 44px touch frame, 22px badge strip, 10px shadow
+     clearance and the row's borders even on the shortest landscape screen. */
+  min-height: 78px !important;
+  overflow: hidden !important;
+  scroll-snap-type: none;
+}
+
+.game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane {
+  flex-shrink: 1;
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  scroll-snap-type: none;
+}
+
+/* Short-screen row rules must not replace the space the fitter reserved for sources. */
+.game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] > .game-battle-lane {
+  padding: var(--field-lane-top) 12px var(--field-lane-bottom) !important;
+}
+
+.game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane::-webkit-scrollbar {
+  display: none;
+}
+
+.game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane > div {
+  flex-shrink: 0;
+}
+
+/* A hairline between the lanes, fading at both ends, on the side facing the Digimon. */
+.game-board .game-battle-row--you[data-field-layout="organized"] > .game-battle-lane--support {
+  background: linear-gradient(90deg, transparent, rgb(160 240 251 / 45%) 20%, rgb(160 240 251 / 45%) 80%, transparent)
+    top / 100% 1px no-repeat;
+}
+
+.game-board .game-battle-row--opp[data-field-layout="organized"] > .game-battle-lane--support {
+  background: linear-gradient(90deg, transparent, rgb(255 181 171 / 40%) 20%, rgb(255 181 171 / 40%) 80%, transparent)
+    bottom / 100% 1px no-repeat;
+}
+
+.game-board
+  .game-field
+  .game-battle-zones
+  > .game-battle-row[data-field-layout="organized"]
+  > .game-battle-lane
+  + .game-battle-lane {
+  margin-top: calc(-1 * var(--field-lane-overlap, 0px));
+}
+
+/* A row too short for two lanes, like a phone on its side, lays them side by side. */
+.game-board .game-field .game-battle-zones > .game-battle-row[data-lanes="side-by-side"] {
+  flex-direction: row;
+}
+
+.game-board .game-battle-row[data-lanes="side-by-side"] > .game-battle-lane {
+  width: auto;
+}
+
+/* Both lanes take their content's width and shrink together when the row runs out,
+   the support lane never past half of it. */
+.game-board .game-battle-row[data-lanes="side-by-side"] > .game-battle-lane--support {
+  max-width: 50%;
+}
+
+.game-board .game-battle-row--you[data-lanes="side-by-side"] > .game-battle-lane--support {
+  background: linear-gradient(180deg, transparent, rgb(160 240 251 / 45%) 20%, rgb(160 240 251 / 45%) 80%, transparent)
+    left / 1px 100% no-repeat;
+}
+
+.game-board .game-battle-row--opp[data-lanes="side-by-side"] > .game-battle-lane--support {
+  background: linear-gradient(180deg, transparent, rgb(255 181 171 / 40%) 20%, rgb(255 181 171 / 40%) 80%, transparent)
+    right / 1px 100% no-repeat;
+}
+
+/* Each lane clips above its badge strip, where a fate pill over the card's top edge
+   was cut in half. The pill rides just inside the card instead, so a target
+   appearing never needs a taller lane and smaller cards. */
+.game-board .game-battle-row[data-field-layout="organized"] .game-fate-badge {
+  top: 0.35rem;
+  left: 50%;
+  translate: -50% 0;
+}
+
+/* A copy split off a group was already on the field: it slides out rather than entering. */
+.game-board .game-card-enter--quiet {
+  animation: none;
+}
+
+.game-board .game-card-enter--quiet .game-card-sparkles {
+  display: none;
+}
+
+/* The row animates positions after layout. Animated margins would keep moving the
+   destination underneath that flight, then jump when the flight finishes. */
+.game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
+  /* Selecting a hand card can remove role=button from an ineligible base.
+     Keep the frame used by the fitter stable through that interaction. */
+  min-height: var(--ds-touch-target);
+  min-width: var(--ds-touch-target);
+  transition:
+    transform 160ms,
+    opacity 160ms !important;
+}
+
+/* Upright phones keep the whole width for Digimon, then a separate support
+   shelf underneath. Compact utilities return height to those two shelves. */
+@media (width < 600px) and (orientation: portrait) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) {
+    --arena-pile-width: 44px;
+    --arena-utility-height: 90px;
+    --arena-hand-height: 104px;
+    --arena-hand-reserved: 32px;
+    --arena-hand-lift: 6px;
+    --arena-header-height: 44px;
+    --arena-memory-height: 48px;
+  }
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+    --field-prefer-stacked: 1;
+    min-height: 78px !important;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field {
+    grid-template-rows: var(--arena-utility-height) minmax(0, 1fr) var(--arena-utility-height);
+    overflow: hidden !important;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones {
+    display: grid !important;
+    grid-area: 2 / 1 / 3 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) var(--arena-memory-height) minmax(0, 1fr);
+    gap: 4px;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: clip;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones > .game-battle-row--opp {
+    grid-row: 1;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones > .game-battle-row--you {
+    grid-row: 3;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones > .game-memory-band {
+    grid-area: 2 / 1;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-utility-slot[class*="--you-"],
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-security-shield--you,
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    .game-field
+    .game-security-shield-wrap:has(.game-security-shield--you) {
+    grid-row: 3;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field::after {
+    grid-row: 3;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    .game-field:has(.game-breeding-slot .game-permanent[style*="translateY(-6px)"]) {
+    --arena-utility-height: 100px;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    .game-field:has(.game-breeding-slot .game-keyword-badges, .game-breeding-slot .game-source-badge) {
+    --arena-utility-height: 104px;
+  }
+  .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane,
+  .game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
+    touch-action: pan-x !important;
+  }
+  .game-board .game-battle-row--opp[data-field-layout="organized"] > .game-battle-lane--support {
+    background-position: top;
+  }
+}
+
+@media (width < 600px) and (height < 650px) and (orientation: portrait) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) {
+    --arena-pile-width: 44px;
+    --arena-utility-height: 90px;
+    --arena-hand-height: 76px;
+    --arena-hand-reserved: 28px;
+    --arena-hand-lift: 4px;
+  }
+}

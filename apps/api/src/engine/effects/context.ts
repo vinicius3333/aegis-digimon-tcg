@@ -313,6 +313,7 @@ export function unimplementedPrimitives(): Primitives {
     movePermanentZone: () => refuse("effect-primitives", "movePermanentZone"),
     hatch: () => refuse("effect-primitives", "hatch"),
     placeUnderFromDeck: () => refuse("effect-primitives", "placeUnderFromDeck"),
+    placeEggAndPermanentsUnder: () => refuse("effect-primitives", "placeEggAndPermanentsUnder"),
     placeUnderFromEggDeck: () => refuse("effect-primitives", "placeUnderFromEggDeck"),
     placeAsTopFromEggDeck: () => refuse("effect-primitives", "placeAsTopFromEggDeck"),
     link: () => refuse("effect-primitives", "link"),

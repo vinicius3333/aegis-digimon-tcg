@@ -173,13 +173,10 @@ export async function fireSubTrigger(
         event,
         (sub) => buildSubTriggerContext(engine, sub, payload),
         undefined,
-        // The ambient resolving-effect window (see `beginResolvingWindow`): undefined when
-        // engine fire happens outside any fireTiming/fireTimingForInstance call (no dedup —
-        // fail-open, matching SubTriggerRegistry.fire's documented default), otherwise the
-        // ID of the outermost effect resolution currently in progress, so an `oncePerTiming`
-        // watcher dedupes across multiple plays/events from ONE resolving effect (KB Q2814)
-        // while still firing once per genuinely separate top-level resolution.
-        engine.activeWindowToken,
+        // Deduplicate simultaneous plays from one body (Q2814), while allowing each
+        // separately resolving body in this timing pool to trigger the watcher again.
+        // Primitive-only callers fall back to their enclosing window identity.
+        engine.effectBodyTokens.at(-1) ?? engine.activeWindowToken,
         subTriggerTurnLedger(engine),
         (sub) => scopedOut(sub) || engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub, payload)),
         (sub, ctx) => announceSubTrigger(engine, sub, ctx),
@@ -444,6 +441,7 @@ export function armedSubTriggers(
       .filter((key, index, keys) => keys.indexOf(key) === index),
   );
   const occurrence = {
+    windowToken: engine.effectBodyTokens.at(-1) ?? engine.activeWindowToken,
     oncePerTurnSnapshotKeys,
     oncePerTurnSuccessfulKeys: new Set<string>(),
   };
@@ -628,7 +626,9 @@ function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTri
     const arrival = trashArrivalOf(engine.state, selfTrashedInstanceId);
     return arrival !== undefined && arrival === item.sourceTrashArrival;
   }
-  if (sub.event !== "onDeletionOf" && sub.event !== "whenHandTrashed") return true;
+  // Every pending field watcher loses activation when its exact source leaves or
+  // loses its placement, including nested play/digivolution snapshots (CR 15-4-4-3/4).
+  // The event subject snapshot remains valid; it does not preserve the watcher source.
   const live = buildSubTriggerSourceContext(engine, sub, item.ctx.trigger);
   if (live === undefined) return false;
   // The discard event explicitly authorizes this exact inherited source after it moved.
@@ -779,7 +779,7 @@ export async function withPendingSubTriggers(
         await engine.subTriggers.fireSnapshot(
           stillSubscribed,
           () => undefined,
-          engine.activeWindowToken,
+          engine.effectBodyTokens.at(-1) ?? engine.activeWindowToken,
           subTriggerTurnLedger(engine),
           undefined,
           (sub, ctx) => announceSubTrigger(engine, sub, ctx),
@@ -1065,7 +1065,7 @@ export async function fireOneSubTrigger(
       }
       return ctx;
     },
-    engine.activeWindowToken,
+    occurrence.windowToken,
     subTriggerTurnLedger(engine),
     undefined,
     opts.announce === false ? undefined : (fired, ctx) => announceSubTrigger(engine, fired, ctx),
@@ -1230,7 +1230,7 @@ export async function fireSubTriggerSnapshot(
     await engine.subTriggers.fireSnapshot(
       subscriptions,
       (sub) => boundContexts?.get(sub.id) ?? buildSubTriggerContext(engine, sub, payload),
-      engine.activeWindowToken,
+      engine.effectBodyTokens.at(-1) ?? engine.activeWindowToken,
       subTriggerTurnLedger(engine),
       (sub) => engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub, payload)),
       (sub, ctx) => announceSubTrigger(engine, sub, ctx),

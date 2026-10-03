@@ -61,3 +61,24 @@ describe("effectProvenanceKinds", () => {
     expect(effectProvenanceKinds(ctx, { isLinked: true })).toEqual([CardKind.Digimon]);
   });
 });
+
+describe("Discord 1555938104404348949 — DUAL effect kinds", () => {
+  it.each(["Main", "WhenDigivolving", "WhenAttacking", "Counter"])(
+    "classifies the %s face without the catalog union",
+    (timing) => {
+      const ctx = contextFor({ printedKinds: [CardKind.Digimon, CardKind.Option] });
+      Object.assign(ctx.source.definition, { isDualCard: true });
+      ctx.activeTiming = timing;
+      expect(effectProvenanceKinds(ctx)).toEqual([timing === "Main" ? CardKind.Option : CardKind.Digimon]);
+    },
+  );
+});
+
+it("1555938104404348949: an inherited effect on a DUAL host is only a Digimon effect", () => {
+  const ctx = contextFor({
+    printedKinds: [CardKind.Digimon],
+    host: { topInstanceId: "top", effectiveKinds: [CardKind.Digimon, CardKind.Option] },
+  });
+  Object.assign(ctx.game, { definitionOf: () => ({ isDualCard: true }) });
+  expect(effectProvenanceKinds(ctx)).toEqual([CardKind.Digimon]);
+});

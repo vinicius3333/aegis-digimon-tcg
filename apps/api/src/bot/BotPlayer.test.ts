@@ -95,6 +95,8 @@ function deferredIntent() {
 
 describe("BotPlayer action pacing and player attacks", () => {
   afterEach(() => {
+    // Drain spy restore callbacks while their fake clock is still installed.
+    // A later suite's restoreAllMocks must not resurrect a fake setImmediate.
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
@@ -194,6 +196,19 @@ describe("BotPlayer action pacing and player attacks", () => {
     state.pendingDecision = undefined;
     await advance(2_100);
     expect(intents).toEqual([{ type: "endPhase" }]);
+  });
+
+  it("does not reinstall fake immediates when a later suite restores mocks", () => {
+    const realImmediate = globalThis.setImmediate;
+    try {
+      // The preceding test spies on a fake timer. Restoring that stale spy after the
+      // clock is uninstalled must not put its fake function back into the next suite.
+      vi.restoreAllMocks();
+      expect(globalThis.setImmediate).toBe(realImmediate);
+      expect("clock" in globalThis.setImmediate).toBe(false);
+    } finally {
+      globalThis.setImmediate = realImmediate;
+    }
   });
 
   it("discards a Main decision that returns after the turn changes", async () => {

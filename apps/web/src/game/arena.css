@@ -6,3 +6,5 @@
 @import "./style/arenaRows.css";
 @import "./style/arenaPieces.css";
 @import "./style/redesignArena.css";
+@import "./style/desktopDensity.css";
+@import "./style/desktopSidelines.css";

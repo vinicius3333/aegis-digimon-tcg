@@ -65,6 +65,13 @@
     content: "";
   }
 
+  /* Folded notices belong to the board, below its opponent header. A viewport
+     fixed notice can cover the demo toolbar and detach when the field scrolls. */
+  .aegis-arena .game-board .narration-slot[data-slot="narration"]:has(.narration-peek) {
+    position: absolute;
+    top: calc(var(--arena-header-height) + 4px);
+  }
+
   .game-board .game-opponent-bar {
     position: relative;
     inset: auto;
@@ -282,16 +289,16 @@
   }
 
   .game-utility-slot--opp-eggs {
-    grid-area: 1 / 1;
+    grid-area: 1 / 5;
   }
   .game-utility-slot--opp-raising {
-    grid-area: 1 / 2;
-  }
-  .game-utility-slot--opp-deck {
     grid-area: 1 / 4;
   }
+  .game-utility-slot--opp-deck {
+    grid-area: 1 / 2;
+  }
   .game-utility-slot--opp-trash {
-    grid-area: 1 / 5;
+    grid-area: 1 / 1;
   }
   .game-utility-slot--you-eggs {
     grid-area: 5 / 1;

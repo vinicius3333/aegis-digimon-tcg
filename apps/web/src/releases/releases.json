@@ -1,5 +1,128 @@
 [
   {
+    "version": "1.9.0-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.9.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.9.0-beta.feature.organizedField"
+      },
+      {
+        "textKey": "releases.1.9.0-beta.feature.tabletopLayout"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.9.0-beta.fix.responsiveArena"
+      },
+      {
+        "textKey": "releases.1.9.0-beta.fix.fieldFeedback"
+      },
+      {
+        "textKey": "releases.1.9.0-beta.fix.divineArmsPrompt"
+      }
+    ]
+  },
+  {
+    "version": "1.8.10-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.10-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.10-beta.fix.monimonOptionalCost"
+      }
+    ]
+  },
+  {
+    "version": "1.8.9-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.9-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.9-beta.fix.unsuspendOrder"
+      },
+      {
+        "textKey": "releases.1.8.9-beta.fix.deviceTrash"
+      }
+    ]
+  },
+  {
+    "version": "1.8.8-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.8-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.8-beta.fix.leopardmon"
+      },
+      {
+        "textKey": "releases.1.8.8-beta.fix.marcusAlliance"
+      }
+    ]
+  },
+  {
+    "version": "1.8.7-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.7-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.7-beta.fix.kurisarimon"
+      },
+      {
+        "textKey": "releases.1.8.7-beta.fix.keramon"
+      }
+    ]
+  },
+  {
+    "version": "1.8.6-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.6-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.6-beta.fix.repeatAttack"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.removedTriggers"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.gundramon"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.hybridSearch"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.taiki"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.tamerSecurity"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.wisemon"
+      },
+      {
+        "textKey": "releases.1.8.6-beta.fix.dualImmunity"
+      }
+    ]
+  },
+  {
+    "version": "1.8.5-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.5-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.5-beta.fix.sonicShotDecline"
+      },
+      {
+        "textKey": "releases.1.8.5-beta.fix.linkRecipientDecline"
+      }
+    ]
+  },
+  {
     "version": "1.8.4-beta",
     "releasedAt": "2026-10-03",
     "summaryKey": "releases.1.8.4-beta.summary",

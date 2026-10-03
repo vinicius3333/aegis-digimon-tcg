@@ -54,7 +54,10 @@ const boardPiecesSource = readdirSync(new URL("./piece/", import.meta.url), {
 /** The phone block: narrow, or short and on its side. */
 const portraitRules = mediaRules(gameCss, "(width < 600px), (height < 520px) and (orientation: landscape)");
 /** The landscape-phone block, which re-lays the board for a short viewport. */
-const landscapeRules = mediaRules(gameCss, "(height < 520px) and (orientation: landscape)");
+const landscapeRules = mediaRules(
+  gameCss,
+  "(width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape)",
+);
 /** Where the sidebar stops being a column and becomes a strip along the bottom. */
 const stripRules = mediaRules(gameCss, "(width < 960px)");
 /** Phone portrait only: the floating stacks and the board-mode sheet. */
@@ -849,9 +852,8 @@ describe("landscape phone match layout", () => {
   it("names an explicit card width for the battle rows", () => {
     // Even the compact Digimon (106px) is taller than a row here.
     expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
-    expect(gameScreenSource).toMatch(
-      /width:\s*landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth/,
-    );
+    expect(gameScreenSource).toMatch(/: landscapePhone\s*\?[^:]*:\s*LANDSCAPE_PHONE_PERMANENT_WIDTH/);
+    expect(gameScreenSource).toMatch(/width:\s*arenaPermanentWidth,/);
   });
 });
 

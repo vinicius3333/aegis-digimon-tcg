@@ -98,6 +98,46 @@ describe("BT25-069 Raremon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === linkedId)).toBe(false);
   });
 
+  it("an empty Link recipient selection does not fall back to Raremon (match c3ab8a19 sweep)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-011", as: "recipient" }],
+          hand: [{ card: CARD_ID, as: "rare" }],
+          trash: [{ card: LINKABLE_TS, as: "linkCard" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const rareId = s.inst("rare").instanceId;
+    const linkId = s.inst("linkCard").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: rareId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)?.req).toMatchObject({
+      sourceCardId: CARD_ID,
+      options: { min: 0, max: 1 },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceInstanceId === rareId),
+    );
+
+    expect(s.state.players[0]!.battleArea.every((permanent) => permanent.linked.length === 0)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(linkId);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("When Digivolving performs the same free link after the real evolution", async () => {
     const s = setupEngine(
       {

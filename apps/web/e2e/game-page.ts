@@ -8,7 +8,11 @@ export class GamePage {
   }
   async play(name: RegExp) {
     // Copies are interchangeable before play; assertions capture the actual played instance.
-    await this.page.getByTestId("hand").getByRole("img", { name }).first().click();
+    const card = this.page.getByTestId("hand").getByRole("img", { name }).first();
+    await expect(card).toBeVisible();
+    const bounds = (await card.boundingBox())!;
+    // A compact hand overlaps cards, so click the exposed leading edge of the art.
+    await card.click({ position: { x: Math.min(8, bounds.width / 4), y: bounds.height / 2 } });
     await this.page.getByRole("button", { name: /play (digimon|tamer|option)/i }).click();
   }
   async dragCardTo(name: RegExp, target: Locator) {

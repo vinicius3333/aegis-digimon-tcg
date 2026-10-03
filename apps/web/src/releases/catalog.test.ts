@@ -5,9 +5,9 @@ import messages from "./messages.json";
 
 describe("release catalog", () => {
   it("exposes the latest beta as the current release", () => {
-    expect(currentRelease().version).toBe("1.8.4-beta");
-    expect(displayVersion(currentRelease().version)).toBe("v1.8.4-BETA");
-    expect(allReleases()).toHaveLength(29);
+    expect(currentRelease().version).toBe("1.9.0-beta");
+    expect(displayVersion(currentRelease().version)).toBe("v1.9.0-BETA");
+    expect(allReleases()).toHaveLength(36);
   });
 
   it.each(LOCALES)("resolves every release message through the %s translator", (locale) => {
@@ -19,7 +19,7 @@ describe("release catalog", () => {
         ...release.fixes.map((item) => item.textKey),
       ];
       for (const key of keys) {
-        expect(t(key as TranslationKey), key).toBe(messages[key as keyof typeof messages][locale]);
+        expect(t(key as TranslationKey)).toBe(messages[key as keyof typeof messages][locale]);
       }
     }
   });

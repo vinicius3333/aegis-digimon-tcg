@@ -17,6 +17,7 @@ export function permanentAriaLabel({
   restrictions,
   fate,
   cardName,
+  copies = 1,
   delta,
   hasDpDelta,
   t,
@@ -26,11 +27,14 @@ export function permanentAriaLabel({
   restrictions: readonly RestrictionBadge[];
   fate?: PendingFateBadge;
   cardName: string;
+  /** Identical permanents the card stands for, itself included. */
+  copies?: number;
   delta: number;
   hasDpDelta: boolean;
   t: Translate;
 }): string {
   const states = [
+    copies > 1 ? t("game.fieldCopies", { count: copies }) : undefined,
     heldSuspended || perm.isSuspended ? t("overlay.suspended") : undefined,
     perm.summoningSick ? t("overlay.summoningSick") : undefined,
     ...restrictions.map((restriction) => t(restriction.labelKey)),

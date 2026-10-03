@@ -1,6 +1,7 @@
 // Suspend state, DP, keywords, and moving a permanent.
 
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { type ActionScope, runAction } from "../dispatch.js";
 import { laterEntrantGrantClause } from "../describe.js";
@@ -369,7 +370,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         if (ids.length === 0) return false;
         const grantProvenance = {
           sourceSeat: ctx.source.ownerSeat,
-          sourceKinds: [...ctx.source.definition.kinds],
+          sourceKinds: [...(ctx.effectSourceKinds ?? effectProvenanceKinds(ctx))],
         };
         let declared = false;
         for (const id of ids) {
@@ -417,7 +418,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       const grantProvenance = {
         sourceSeat: ctx.source.ownerSeat,
-        sourceKinds: [...ctx.source.definition.kinds],
+        sourceKinds: [...(ctx.effectSourceKinds ?? effectProvenanceKinds(ctx))],
       };
       // Follow-up clauses such as EX12-015's "that Digimon ... attacks" gate on whether
       // this optional grant actually chose a recipient. Preserve that outcome explicitly;
@@ -453,7 +454,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             const futureGrantCount = action.count ?? 1;
             const futureGrantProvenance = {
               sourceSeat: subCtx.source.ownerSeat,
-              sourceKinds: [...subCtx.source.definition.kinds],
+              sourceKinds: [...(ctx.effectSourceKinds ?? effectProvenanceKinds(ctx))],
               sourceCardId: subCtx.source.cardId,
               sourceEffectText: subCtx.activeEffectText,
             };

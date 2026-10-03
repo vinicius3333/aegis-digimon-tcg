@@ -62,12 +62,12 @@ export function matchesRarityFilter(
 }
 
 export function matchesTraitOrAttributeFilter(
-  card: Pick<CardDefinition, "types" | "attributes">,
+  card: Pick<CardDefinition, "forms" | "types" | "attributes">,
   query: string,
 ): boolean {
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) return true;
-  return [...(card.types ?? []), ...(card.attributes ?? [])].some((value) =>
+  return [...(card.forms ?? []), ...(card.types ?? []), ...(card.attributes ?? [])].some((value) =>
     value.toLowerCase().includes(normalizedQuery),
   );
 }

@@ -6,6 +6,55 @@ import "./BT10-087.js";
 import "../BT5/BT5-087.js";
 
 describe("BT10-087 Taiki Kudo", () => {
+  it("Discord 1555932180322975924: places the lone AD1-006 under Taiki after adding P-224", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-087", as: "taiki" }],
+          deck: [
+            { card: "BT21-083", as: "otherTaiki" },
+            { card: "P-224", as: "kotone" },
+            { card: "AD1-006", as: "x7" },
+            "BT8-097",
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 3;
+    preferred.push(s.inst("kotone").instanceId);
+    // The production player selected Kotone before placing the remaining Digimon.
+    const pending = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("taiki").instanceId });
+    expect(pending).toEqual({ ok: true });
+    await settle();
+    const taiki = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("taiki").instanceId)!;
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("kotone").instanceId)).toBe(true);
+    expect(taiki.stack.map((c) => c.instanceId)).toContain(s.inst("x7").instanceId);
+    expect(s.state.players[0]!.deck.some((c) => c.instanceId === s.inst("x7").instanceId)).toBe(false);
+  });
+
+  it("Discord 1555932180322975924: cannot place X7 again after adding that sole qualifying card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-087", as: "taiki" }],
+          deck: [{ card: "AD1-006", as: "x7" }, "BT8-097", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("taiki").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("x7").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("taiki").instanceId)!.stack,
+    ).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("adds one Xros Heart card and places a different Xros Heart Digimon under itself on play", async () => {
     const s = setupEngine(
       {
