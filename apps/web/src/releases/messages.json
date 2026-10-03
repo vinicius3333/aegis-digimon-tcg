@@ -1,4 +1,28 @@
 {
+  "releases.1.9.0-beta.summary": {
+    "en": "This update introduces an organized battle field, a tabletop pile layout and improvements to crowded boards and smaller screens.",
+    "pt-BR": "Esta atualização traz um campo de batalha organizado, um layout de pilhas como numa mesa e melhorias para campos cheios e telas menores."
+  },
+  "releases.1.9.0-beta.feature.organizedField": {
+    "en": "The organized field keeps Digimon in their play order and places Tamers and Options in a separate row, grouping identical copies with the same available effects. Cards selected by effects step out of their group, and you can switch back to the classic field in Settings.",
+    "pt-BR": "O campo organizado mantém os Digimon na ordem em que foram jogados e coloca Tamers e Options em uma linha separada, agrupando cópias idênticas com os mesmos efeitos disponíveis. Cartas selecionadas por efeitos saem do grupo, e você pode voltar ao campo clássico nas Configurações."
+  },
+  "releases.1.9.0-beta.feature.tabletopLayout": {
+    "en": "Deck, trash, security and breeding areas now use a tabletop arrangement with mirrored opponent piles. On laptops, security sits beside the breeding area, and hidden security cards display the selected deck sleeve.",
+    "pt-BR": "Deck, lixo, security e área de criação agora usam uma disposição como numa mesa, com as pilhas do oponente espelhadas. Em notebooks, a security fica ao lado da criação, e as cartas ocultas de security mostram o sleeve escolhido para o deck."
+  },
+  "releases.1.9.0-beta.fix.responsiveArena": {
+    "en": "The arena fits portrait and landscape phones more comfortably, with card sizes that update when the window changes, clearer source and Link stacks, complete keyword labels and better access to the hand and game controls.",
+    "pt-BR": "A arena se ajusta melhor a celulares na vertical e na horizontal, com tamanhos de cartas que acompanham mudanças na janela, pilhas de fontes e Links mais claras, rótulos completos de palavras-chave e melhor acesso à mão e aos controles da partida."
+  },
+  "releases.1.9.0-beta.fix.fieldFeedback": {
+    "en": "Cards keep their position when their state changes, target cues stay inside their field lane and the phase banner remains visible above cards. During breeding, the focus highlights the breeding area, and crowded boards render more efficiently.",
+    "pt-BR": "As cartas mantêm sua posição quando mudam de estado, os indicadores de alvo ficam dentro da linha correspondente e o banner de fase permanece visível acima das cartas. Durante a criação, o destaque fica na área de criação, e campos cheios são renderizados com mais eficiência."
+  },
+  "releases.1.9.0-beta.fix.divineArmsPrompt": {
+    "en": "BT25-101 Divine Arms now shows the full All Turns effect text when offering to trash a Link card to prevent Vulcanusmon from leaving the battle area.",
+    "pt-BR": "Divine Arms BT25-101 agora mostra o texto completo do efeito All Turns ao oferecer o descarte de uma carta de Link para impedir que Vulcanusmon saia da área de batalha."
+  },
   "releases.1.8.10-beta.summary": {
     "en": "This update fixes the optional digivolution-card trash cost of BT26-006 Monimon.",
     "pt-BR": "Esta atualização corrige o custo opcional de descarte de fontes do Monimon BT26-006."

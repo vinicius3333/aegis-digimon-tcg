@@ -91,6 +91,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.9.0-beta.summary": releaseMessages["releases.1.9.0-beta.summary"]["pt-BR"],
+  "releases.1.9.0-beta.feature.organizedField": releaseMessages["releases.1.9.0-beta.feature.organizedField"]["pt-BR"],
+  "releases.1.9.0-beta.feature.tabletopLayout": releaseMessages["releases.1.9.0-beta.feature.tabletopLayout"]["pt-BR"],
+  "releases.1.9.0-beta.fix.responsiveArena": releaseMessages["releases.1.9.0-beta.fix.responsiveArena"]["pt-BR"],
+  "releases.1.9.0-beta.fix.fieldFeedback": releaseMessages["releases.1.9.0-beta.fix.fieldFeedback"]["pt-BR"],
+  "releases.1.9.0-beta.fix.divineArmsPrompt": releaseMessages["releases.1.9.0-beta.fix.divineArmsPrompt"]["pt-BR"],
   "releases.1.8.10-beta.summary": releaseMessages["releases.1.8.10-beta.summary"]["pt-BR"],
   "releases.1.8.10-beta.fix.monimonOptionalCost":
     releaseMessages["releases.1.8.10-beta.fix.monimonOptionalCost"]["pt-BR"],
