@@ -1,5 +1,6 @@
 // Arming a watcher that fires on a later game event.
 
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import type { EffectContext, SubTriggerEventName, TriggerInfo } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
@@ -1429,7 +1430,9 @@ export async function runGainTriggeredEffect(
   const attacksAtStartOfMainPhase =
     action.gainedTrigger === "StartOfYourMainPhase" && action.gainedActions.some((gained) => gained.kind === "Attack");
   const grantingSeat = ctx.source.ownerSeat;
-  const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
+  const grantingKinds = (ctx.effectSourceKinds ?? effectProvenanceKinds(ctx)).filter(
+    (kind) => kind === "Digimon" || kind === "Option",
+  );
   const arm = (targetPermanentId: string): void => {
     const anchorPermanentId = targetPermanentId;
     const grantedPerm = ctx.game.permanentById(targetPermanentId);

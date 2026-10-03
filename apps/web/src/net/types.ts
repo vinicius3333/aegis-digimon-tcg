@@ -42,6 +42,7 @@ export interface AegisJoinOptions {
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
+    | "arena-diarbbitmon-dual-option-immunity"
     | "arena-ex7-seventh-fascination-turn"
     | "arena-ad1-adventure-tamers-security"
     | "arena-lm067-gundramon-free-option"

@@ -14,8 +14,20 @@ export function effectProvenanceKinds(ctx: EffectContext, opts: { isLinked?: boo
   if (opts.isLinked === true) return [CardKind.Digimon];
   const printedKinds: readonly string[] = ctx.source?.definition?.kinds ?? [];
   const host = ctx.source?.permanent?.();
-  const hostKinds = host === undefined ? undefined : ctx.game?.effectiveKinds?.(host.permanentId);
+  const effectiveHostKinds = host === undefined ? undefined : ctx.game?.effectiveKinds?.(host.permanentId);
+  const hostIsDual = host?.topCard !== undefined && ctx.game?.definitionOf?.(host.topCard).isDualCard === true;
+  // On the field a DUAL host is a Digimon, including for its inherited effects.
+  const hostKinds = hostIsDual ? effectiveHostKinds?.filter((kind) => kind !== CardKind.Option) : effectiveHostKinds;
+  if (host !== undefined && hostKinds !== undefined && host.topCard?.instanceId !== ctx.source.instanceId) {
+    return [...hostKinds];
+  }
+  // DUAL faces have separate effect identities (manual: Dual card rules).
+  // The catalog lists both kinds so either face can be referenced; that union
+  // must not make an Option's [Main] count as an opponent's Digimon effect.
+  if (ctx.source?.definition?.isDualCard) {
+    if (ctx.activeTiming === "Main") return [CardKind.Option];
+    return [...new Set([CardKind.Digimon, ...(hostKinds ?? [])])];
+  }
   if (host === undefined || hostKinds === undefined) return [...printedKinds];
-  if (host.topCard?.instanceId !== ctx.source.instanceId) return [...hostKinds];
   return [...new Set([...printedKinds, ...hostKinds])];
 }
