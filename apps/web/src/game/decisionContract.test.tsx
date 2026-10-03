@@ -65,6 +65,7 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   purpose: null,
   assemblyCardId: "screen/layout/DecisionPrompts.tsx",
   digiXrosCardId: "screen/layout/DecisionPrompts.tsx",
+  digiXrosMaterialLimits: "screen/layout/DecisionPrompts.tsx",
 };
 
 describe("engine to UI decision contract", () => {

@@ -1,4 +1,15 @@
+import type { DecisionRequest } from "@aegis/shared";
 import type { DigiXrosCandidate } from "../types";
+
+export type DigiXrosMaterialLimits = NonNullable<DecisionRequest["options"]>["digiXrosMaterialLimits"];
+
+export function fitsDigiXrosMaterialLimits(picks: string[], limits: DigiXrosMaterialLimits): boolean {
+  return (
+    limits?.every(
+      ({ candidateInstanceIds, max }) => picks.filter((id) => candidateInstanceIds.includes(id)).length <= max,
+    ) ?? true
+  );
+}
 
 /** Drop picks whose zone limit shrank below their position (e.g. an expander was un-suspended). */
 export function pruneDigiXrosPicksForZoneLimits({
@@ -6,26 +17,30 @@ export function pruneDigiXrosPicksForZoneLimits({
   lockedCandidates,
   trashMax,
   underTamerMax,
+  materialLimits,
 }: {
   picks: string[];
   lockedCandidates: DigiXrosCandidate[];
   trashMax: number;
   underTamerMax: number;
+  materialLimits?: DigiXrosMaterialLimits;
 }): string[] {
   let nextTrash = 0;
   let nextUnderTamer = 0;
-  const next = picks.filter((id) => {
+  const next: string[] = [];
+  for (const id of picks) {
+    if (!fitsDigiXrosMaterialLimits([...next, id], materialLimits)) continue;
     const zone = lockedCandidates.find((c) => c.instanceId === id)?.zone;
     if (zone === "trash") {
-      nextTrash += 1;
-      return nextTrash <= trashMax;
+      if (nextTrash >= trashMax) continue;
+      nextTrash++;
     }
     if (zone === "underTamer") {
-      nextUnderTamer += 1;
-      return nextUnderTamer <= underTamerMax;
+      if (nextUnderTamer >= underTamerMax) continue;
+      nextUnderTamer++;
     }
-    return true;
-  });
+    next.push(id);
+  }
   return next.length === picks.length ? picks : next;
 }
 
@@ -36,15 +51,18 @@ export function toggleDigiXrosPick({
   candidateById,
   trashMax,
   underTamerMax,
+  materialLimits,
 }: {
   picks: string[];
   candidate: DigiXrosCandidate;
   candidateById: Map<string, DigiXrosCandidate>;
   trashMax: number;
   underTamerMax: number;
+  materialLimits?: DigiXrosMaterialLimits;
 }): string[] {
   const { instanceId, zone } = candidate;
   if (picks.includes(instanceId)) return picks.filter((id) => id !== instanceId);
+  if (!fitsDigiXrosMaterialLimits([...picks, instanceId], materialLimits)) return picks;
   const trashCount = picks.filter((id) => candidateById.get(id)?.zone === "trash").length;
   const underTamerCount = picks.filter((id) => candidateById.get(id)?.zone === "underTamer").length;
   if (zone === "trash" && trashCount >= trashMax) return picks;

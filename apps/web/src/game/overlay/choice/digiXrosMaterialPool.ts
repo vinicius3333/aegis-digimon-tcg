@@ -1,6 +1,7 @@
 import { getCardDefinition, type DigiXrosRequirement } from "@aegis/shared";
 import { eligibleDigiXrosCandidateIds } from "../../digiXrosMaterialSelection";
 import type { DigiXrosCandidate, DigiXrosEligibleExpander } from "../types";
+import { fitsDigiXrosMaterialLimits, type DigiXrosMaterialLimits } from "./digiXrosPicks";
 
 export interface DigiXrosMaterialPool {
   trashMax: number;
@@ -23,6 +24,7 @@ export function digiXrosMaterialPool({
   intrinsicTrashMax,
   intrinsicUnderTamerMax,
   picks,
+  materialLimits,
 }: {
   requirement: DigiXrosRequirement;
   candidates: DigiXrosCandidate[];
@@ -32,6 +34,7 @@ export function digiXrosMaterialPool({
   intrinsicTrashMax: number;
   intrinsicUnderTamerMax: number;
   picks: string[];
+  materialLimits?: DigiXrosMaterialLimits;
 }): DigiXrosMaterialPool {
   const chosenExpanders = eligibleExpanders.filter((e) => chosenExpanderPermanentIds.includes(e.permanentId));
   const underTamerMax = chosenExpanders.reduce((max, e) => Math.max(max, e.underTamerMax), intrinsicUnderTamerMax);
@@ -58,6 +61,10 @@ export function digiXrosMaterialPool({
         ];
   });
   const eligibleCandidateIds = eligibleDigiXrosCandidateIds(requirement, candidateDefinitions, picks);
+  for (const id of eligibleCandidateIds) {
+    if (!picks.includes(id) && !fitsDigiXrosMaterialLimits([...picks, id], materialLimits))
+      eligibleCandidateIds.delete(id);
+  }
   for (const picked of picks) eligibleCandidateIds.add(picked);
   const pickedTrash = picks.filter((id) => candidateById.get(id)?.zone === "trash").length;
   const pickedUnderTamer = picks.filter((id) => candidateById.get(id)?.zone === "underTamer").length;

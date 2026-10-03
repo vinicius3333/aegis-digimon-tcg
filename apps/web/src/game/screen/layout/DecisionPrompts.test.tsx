@@ -95,6 +95,62 @@ it("reuses the DigiXros material overlay for an effect-driven play", () => {
   expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["kakamon-hand"] });
 });
 
+it.each(["trash", "digivolutionCards"] as const)(
+  "enforces the engine's %s material quota while retaining hand materials and deselection",
+  (zone) => {
+    const onRespond = vi.fn<(response: DecisionResponse) => void>();
+    render(
+      <I18nProvider>
+        <DecisionPrompts
+          decision={{
+            decisionId: "limited-digixros",
+            seat: 0,
+            kind: "selectCards",
+            promptText: "MadLeomon",
+            options: {
+              candidateInstanceIds: ["skull-expanded", "axe-expanded", "skull-hand"],
+              min: 0,
+              max: 2,
+              digiXrosCardId: "BT19-063",
+              digiXrosMaterialLimits: [{ candidateInstanceIds: ["skull-expanded", "axe-expanded"], max: 1 }],
+            },
+          }}
+          answerOnBoard={false}
+          permanents={[]}
+          sourceCardId={undefined}
+          candidates={[
+            { instanceId: "skull-expanded", cardId: "EX10-026", zone },
+            { instanceId: "axe-expanded", cardId: "EX10-027", zone },
+            { instanceId: "skull-hand", cardId: "EX10-026", zone: "hand" },
+          ]}
+          allowsPick={() => true}
+          picks={[]}
+          min={0}
+          max={2}
+          triggerDetails={[]}
+          opponentSelecting={false}
+          opponentSecurityCount={5}
+          onTogglePick={() => {}}
+          onRespond={onRespond}
+          onOpenDialog={() => {}}
+        />
+      </I18nProvider>,
+    );
+    const zoneLabel = zone === "trash" ? "trash" : "under Tamer";
+    const skull = screen.getByRole("button", { name: `SkullKnightmon (${zoneLabel})` }) as HTMLButtonElement;
+    const axe = screen.getByRole("button", { name: `DeadlyAxemon (${zoneLabel})` }) as HTMLButtonElement;
+    fireEvent.click(skull);
+    expect(axe.disabled).toBe(true);
+    expect(skull.disabled).toBe(false);
+    fireEvent.click(skull);
+    expect(axe.disabled).toBe(false);
+    fireEvent.click(axe);
+    fireEvent.click(screen.getByRole("button", { name: "SkullKnightmon (hand)" }));
+    fireEvent.click(screen.getByRole("button", { name: /DigiXros \(2 cards\)/ }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["axe-expanded", "skull-hand"] });
+  },
+);
+
 it("labels a player-only attack target as an attack target instead of a hand selection", () => {
   render(
     <I18nProvider>

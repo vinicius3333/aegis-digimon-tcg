@@ -10,7 +10,12 @@ import { DigiXrosCandidateGrid } from "./DigiXrosCandidateGrid";
 import { DigiXrosExpanderList } from "./DigiXrosExpanderList";
 import { DigiXrosLockedZone } from "./DigiXrosLockedZone";
 import { digiXrosMaterialPool } from "./digiXrosMaterialPool";
-import { pruneDigiXrosPicksForZoneLimits, toggleDigiXrosPick } from "./digiXrosPicks";
+import {
+  fitsDigiXrosMaterialLimits,
+  pruneDigiXrosPicksForZoneLimits,
+  toggleDigiXrosPick,
+  type DigiXrosMaterialLimits,
+} from "./digiXrosPicks";
 import { digiXrosSlotLabel } from "./digiXrosSlotLabel";
 import { CardArt } from "../CardArt";
 import { useEffectPromptFocus } from "./useEffectPromptFocus";
@@ -32,6 +37,7 @@ export function DigiXrosMaterialOverlay({
   eligibleExpanders,
   intrinsicTrashMax = 0,
   intrinsicUnderTamerMax = 0,
+  materialLimits,
   onConfirm,
   onSkip,
   onCancel,
@@ -50,6 +56,8 @@ export function DigiXrosMaterialOverlay({
   intrinsicTrashMax?: number;
   /** Under-Tamer capacity already authorized by the resolving effect. */
   intrinsicUnderTamerMax?: number;
+  /** Source-specific quotas already authorized by an effect-driven play. */
+  materialLimits?: DigiXrosMaterialLimits;
   /** Confirm with the chosen materials and expander Tamers to suspend. */
   onConfirm: (materialInstanceIds: string[], expanderPermanentIds: string[]) => void;
   /** Play the card normally without DigiXros (full cost, no materials). */
@@ -91,11 +99,14 @@ export function DigiXrosMaterialOverlay({
     intrinsicTrashMax,
     intrinsicUnderTamerMax,
     picks,
+    materialLimits,
   });
 
   useEffect(() => {
-    setPicks((prev) => pruneDigiXrosPicksForZoneLimits({ picks: prev, lockedCandidates, trashMax, underTamerMax }));
-  }, [lockedCandidates, trashMax, underTamerMax]);
+    setPicks((prev) =>
+      pruneDigiXrosPicksForZoneLimits({ picks: prev, lockedCandidates, trashMax, underTamerMax, materialLimits }),
+    );
+  }, [lockedCandidates, trashMax, underTamerMax, materialLimits]);
 
   const toggleExpander = (permanentId: string) => {
     setChosenExpanderPermanentIds((prev) =>
@@ -104,7 +115,9 @@ export function DigiXrosMaterialOverlay({
   };
 
   const toggle = (candidate: DigiXrosCandidate) => {
-    setPicks((prev) => toggleDigiXrosPick({ picks: prev, candidate, candidateById, trashMax, underTamerMax }));
+    setPicks((prev) =>
+      toggleDigiXrosPick({ picks: prev, candidate, candidateById, trashMax, underTamerMax, materialLimits }),
+    );
   };
 
   const gridProps = {
@@ -190,7 +203,7 @@ export function DigiXrosMaterialOverlay({
           <Button
             full
             icon={Icons.Sparkles}
-            disabled={picks.length === 0}
+            disabled={picks.length === 0 || !fitsDigiXrosMaterialLimits(picks, materialLimits)}
             onClick={() => onConfirm(picks, chosenExpanderPermanentIds)}
           >
             {picks.length === 1 ? t("overlay.xrosConfirmOne") : t("overlay.xrosConfirm", { count: picks.length })}

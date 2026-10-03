@@ -213,6 +213,7 @@ export function DecisionPrompts({
       {decision?.kind === "selectCards" && digiXrosCardId && digiXrosRequirements ? (
         <DigiXrosMaterialOverlay
           playingCardId={digiXrosCardId}
+          materialLimits={decision.options?.digiXrosMaterialLimits}
           requirements={digiXrosRequirements}
           candidates={candidates.flatMap<DigiXrosCandidate>((candidate) => {
             if (!candidate.cardId || (candidate.zone !== "hand" && candidate.zone !== "battle")) return [];
