@@ -77,6 +77,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt26-rosemon-option-digivolve-lock",
   "arena-bt26-ravemon-nested-on-deletion",
   "arena-bt26-yoshino-trigger-stack",
+  "arena-bt26-yoshino-match-b3759aa7",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
   "arena-ex12-metalgarurumon-trash-then-return",
@@ -509,6 +510,108 @@ function layBt26YoshinoTriggerStackScenario(state: GameState, decks: readonly [D
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 6;
+}
+
+/**
+ * Discord 1555741214014447737, rebuilt from production match b3759aa7 at 00:36:55 UTC: the
+ * reporter's main phase with 4 memory, Agumon on Pinamon, and three Yoshino Fujieda carrying the
+ * face-down cards the log shows. GeoGreymon, Lilamon and Ravemon in hand repeat the combo that
+ * stacked every Yoshino under "Resolve after these" behind Ravemon's [On Deletion] order prompt.
+ * Peckmon waits in the trash for Pinamon, and the Crowmon in hand is what a Yoshino digivolves
+ * into once its turn comes. Boards hold card ids only; no player, room or match data.
+ */
+function layBt26YoshinoMatchScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    while (takeTop(human, Zone.Deck) !== undefined);
+    [
+      "ST24-12",
+      "BT16-082",
+      "BT26-072",
+      "BT26-065",
+      "BT13-060",
+      "ST24-15",
+      "BT26-036",
+      "BT26-082",
+      "ST24-04",
+      "ST24-12",
+      "BT26-049",
+    ].forEach((cardId, index) => insertCard(human, Zone.Deck, faceDownCard(`dev-ym-deck-${index}`, cardId, 0)));
+    while (human.security.length > 1) takeBottom(human, Zone.Security);
+    placePermanent(human, establishedDigimon(0, ["BT26-005", "ST24-04"], "-ym-agumon"));
+    const yoshinoSources: Record<string, readonly string[]> = {
+      paying: ["ST24-14", "BT26-082"],
+      second: ["ST24-14", "ST24-04", "BT26-049"],
+      third: ["BT26-091", "BT26-076"],
+    };
+    for (const [slot, sources] of Object.entries(yoshinoSources)) {
+      const yoshino = establishedDigimon(0, ["BT26-091"], `-ym-yoshino-${slot}`);
+      sources.forEach((cardId, index) =>
+        pushOnStack(yoshino, faceDownCard(`dev-ym-yoshino-${slot}-source-${index}`, cardId, 0)),
+      );
+      placePermanent(human, yoshino);
+    }
+    placePermanent(human, establishedDigimon(0, ["BT26-082"], "-ym-ravemon"));
+    [
+      ["geogreymon", "ST24-05"],
+      ["lilamon", "ST24-10"],
+      ["ravemon", "BT26-082"],
+      ["crowmon", "BT26-076"],
+      ["crowmon-2", "BT26-076"],
+      ["lalamon", "BT26-036"],
+      ["keenan", "BT26-094"],
+      ["keenan-2", "BT26-094"],
+      ["ukkomon", "BT16-082"],
+    ].forEach(([name, cardId]) => insertCard(human, Zone.Hand, faceDownCard(`dev-ym-${name}`, cardId!, 0)));
+    [
+      "BT26-072",
+      "ST24-05",
+      "ST24-05",
+      "ST24-12",
+      "BT26-036",
+      "BT26-050",
+      "BT26-050",
+      "ST24-04",
+      "BT26-094",
+      "BT26-065",
+      "BT26-005",
+      "ST24-10",
+    ].forEach((cardId, index) => insertCard(human, Zone.Trash, faceUpCard(`dev-ym-trash-${index}`, cardId, 0)));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    while (bot.security.length > 2) takeBottom(bot, Zone.Security);
+    placePermanent(bot, establishedDigimon(1, ["EX13-034", "BT18-030", "EX13-037"], "-ym-dynasmon"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-004", "BT18-030"], "-ym-candlemon"));
+    const suspended = [
+      establishedDigimon(1, ["EX13-004", "BT18-030", "EX10-041", "EX13-034"], "-ym-wisemon"),
+      establishedDigimon(1, ["EX13-033"], "-ym-mistymon"),
+      establishedDigimon(1, ["BT4-097"], "-ym-kari"),
+      establishedDigimon(1, ["BT4-097"], "-ym-kari-2"),
+    ];
+    for (const permanent of suspended) {
+      permanent.isSuspended = true;
+      placePermanent(bot, permanent);
+    }
+    setBreeding(bot, establishedDigimon(1, ["EX13-004"], "-ym-breeding"));
+    bot.breeding!.inBreeding = true;
+    for (const cardId of ["EX13-029", "ST10-15", "ST10-14", "BT18-098", "EX13-029"])
+      insertCard(bot, Zone.Hand, faceDownCard(`dev-ym-bot-hand-${bot.hand.length}`, cardId, 1));
+    ["BT25-043", "BT18-030", "BT18-098", "BT3-096", "BT15-084", "BT15-092", "BT15-092"].forEach((cardId, index) =>
+      insertCard(bot, Zone.Trash, faceUpCard(`dev-ym-bot-trash-${index}`, cardId, 1)),
+    );
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /**
@@ -4437,6 +4540,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
   "arena-bt26-ravemon-nested-on-deletion": layBt26RavemonNestedOnDeletionScenario,
   "arena-bt26-yoshino-trigger-stack": layBt26YoshinoTriggerStackScenario,
+  "arena-bt26-yoshino-match-b3759aa7": layBt26YoshinoMatchScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,
