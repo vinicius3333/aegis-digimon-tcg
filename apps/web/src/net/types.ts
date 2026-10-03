@@ -107,6 +107,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-examon-battle-win-timing"
     | "arena-bt23-examon-opponent-turn-dna"
     | "arena-ex13-chirinmon-cost-choice"
+    | "arena-ex13-wisemon-witchelny-cost"
     | "arena-ex13-flamewizardmon-optional-cost"
     | "arena-sukamon-transform-digivolve"
     | "arena-sukamon-transform-digivolve-viewer"
