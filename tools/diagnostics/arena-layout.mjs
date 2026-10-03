@@ -149,12 +149,49 @@ async function inspect(settle = true) {
   const failures = [];
   const lanes = [];
   if (document.documentElement.scrollWidth > innerWidth + 1) failures.push({ kind: "document overflow" });
+  if (innerWidth < 600 && innerHeight > innerWidth) {
+    for (const row of document.querySelectorAll('.game-battle-row[data-field-layout="organized"]')) {
+      const digimon = row.querySelector(".game-battle-lane--digimon");
+      const support = row.querySelector(".game-battle-lane--support");
+      if (digimon && support && support.getBoundingClientRect().top < digimon.getBoundingClientRect().bottom - 1)
+        failures.push({ kind: "portrait support must be below Digimon" });
+    }
+  }
   for (const lane of document.querySelectorAll(".game-battle-lane")) {
     const box = lane.getBoundingClientRect();
     const cards = [...lane.querySelectorAll("[data-field-key]")];
     const style = getComputedStyle(lane);
+    let previousFootprint;
     for (const card of cards) {
       if (getComputedStyle(card).visibility === "hidden") continue;
+      const art = card.querySelector(".game-card-enter > [data-state]");
+      const portraitPhone = innerWidth < 600 && innerHeight > innerWidth;
+      const artFloor = portraitPhone ? (lane.classList.contains("game-battle-lane--support") ? 54 : 72) : 20;
+      const footprint = [
+        art,
+        ...[...card.children].filter((part) => !part.className && part.style.position === "absolute"),
+      ]
+        .filter(Boolean)
+        .map((part) => part.getBoundingClientRect());
+      const left = Math.min(...footprint.map((rect) => rect.left));
+      const right = Math.max(...footprint.map((rect) => rect.right));
+      if (previousFootprint && left < previousFootprint.right + 3)
+        failures.push({
+          kind: "adjacent source or link overlap",
+          card: card.getAttribute("aria-label"),
+          gap: left - previousFootprint.right,
+        });
+      previousFootprint = { right };
+      for (const badge of card.querySelectorAll(".game-keyword-badge")) {
+        if (badge.scrollWidth > badge.clientWidth + 1)
+          failures.push({ kind: "truncated keyword badge", label: badge.textContent });
+      }
+      if (art && parseFloat(getComputedStyle(art).width) < artFloor)
+        failures.push({
+          kind: "art too small",
+          card: card.getAttribute("aria-label"),
+          width: getComputedStyle(art).width,
+        });
       // Include the sources and badges that extend outside the top card's layout box.
       const painted = [card, ...card.children].filter((element) => getComputedStyle(element).display !== "none");
       for (const element of painted) {
@@ -199,6 +236,27 @@ async function inspect(settle = true) {
     });
   }
   if (!lanes.length) failures.push({ kind: "missing organized lanes" });
+  if (innerWidth < 600 && innerHeight > innerWidth) {
+    const field = document.querySelector(".game-field");
+    const fieldStyle = getComputedStyle(field);
+    const utilityHeight = parseFloat(fieldStyle.getPropertyValue("--arena-utility-height"));
+    const tracks = fieldStyle.gridTemplateRows.split(" ").map(parseFloat);
+    const top = field.getBoundingClientRect().top + parseFloat(fieldStyle.paddingTop) - field.scrollTop;
+    const gap = parseFloat(fieldStyle.rowGap);
+    const ownTop = top + tracks.slice(0, -1).reduce((total, height) => total + height, 0) + gap * (tracks.length - 1);
+    for (const utility of field.querySelectorAll(".game-utility-slot")) {
+      const upper = utility.className.includes("--opp-") ? top : ownTop;
+      for (const part of utility.querySelectorAll(
+        ".game-pile, .game-breeding-slot__box, .game-breeding-slot__box .game-permanent > *",
+      )) {
+        const rect = part.getBoundingClientRect();
+        if (rect.top < upper - 1 || rect.bottom > upper + utilityHeight + 1)
+          failures.push({ kind: "utility artwork outside row", utility: utility.className, part: part.className });
+        if (part.classList.contains("game-pile") && rect.width < 44)
+          failures.push({ kind: "utility pile too small", utility: utility.className, width: rect.width });
+      }
+    }
+  }
   return { width: innerWidth, height: innerHeight, lanes, failures };
 }
 const base = "http://localhost:5183/dev/arena";
@@ -216,17 +274,31 @@ const results = [];
 let keywordCount = 0;
 function save(result) {
   results.push(result);
-  writeFileSync(join(output, "results.json"), JSON.stringify(results, null, 2));
   if (process.argv.includes("--screenshots")) {
-    try {
-      writeFileSync(
-        join(output, `${result.scenario}-${result.width}x${result.height}.png`),
-        Buffer.from(orca(["screenshot"]).data, "base64"),
-      );
-    } catch {
-      result.screenshotUnavailable = true;
-    }
+    evaluate(async () => {
+      // WKWebView can report new geometry before it has redrawn the resized surface.
+      for (let i = 0; i < 2; i++)
+        await new Promise((resolve) => {
+          const timer = setTimeout(resolve, 100);
+          requestAnimationFrame(() => {
+            clearTimeout(timer);
+            resolve();
+          });
+        });
+      return true;
+    });
+    for (let attempt = 0; attempt < 3; attempt++)
+      try {
+        writeFileSync(
+          join(output, `${result.scenario}-${result.width}x${result.height}.png`),
+          Buffer.from(orca(["screenshot"]).data, "base64"),
+        );
+        break;
+      } catch {
+        if (attempt === 2) result.screenshotUnavailable = true;
+      }
   }
+  writeFileSync(join(output, "results.json"), JSON.stringify(results, null, 2));
 }
 async function liveBatch({ scenarios, selectHand }) {
   const batchResults = [];
