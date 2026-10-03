@@ -52,6 +52,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Entre na Fase Principal e jogue BT10-087 Taiki Kudo da mão. Na revelação de BT21-083, P-224, AD1-006 e BT8-097, escolha P-224 Kotone Amano para a mão. AD1-006 Shoutmon X7 deve ser colocado sob o Taiki jogado, mesmo sendo o único Digimon Xros Heart revelado. Ordene BT21-083 e BT8-097 para o fundo. A memória termina em 2. Reprodução da partida 802ba658, bug 1555932180322975924.",
     en: "Enter Main and play BT10-087 Taiki Kudo from hand. From the revealed BT21-083, P-224, AD1-006 and BT8-097, choose P-224 Kotone Amano for your hand. AD1-006 Shoutmon X7 must go under the played Taiki, even though it is the only revealed Xros Heart Digimon. Order BT21-083 and BT8-097 to the bottom. Memory ends at 2. Reproduces match 802ba658, bug 1555932180322975924.",
   },
+  "arena-ad1-adventure-tamers-security": {
+    ptBR: "Encerre a fase de criação. Ataque a segurança do bot com o primeiro Shoutmon BT19-008: AD1-019 Matt Ishida & T.K. Takaishi deve ser jogado no campo do bot pelo [Segurança], sem pagar custo. Espere o ataque terminar. Ataque a segurança com o segundo Shoutmon: AD1-022 Izzy Izumi & Tai Kamiya também deve entrar no campo do bot. A segurança fica vazia, os dois Tamers ficam desuspensos no campo, nenhum vai para a lixeira e a memória continua em 3. Não faça um terceiro ataque.",
+    en: "End breeding. Attack the bot's security with the first BT19-008 Shoutmon: AD1-019 Matt Ishida & T.K. Takaishi must be played onto the bot's field by [Security], without paying its cost. Wait for the attack to end. Attack security with the second Shoutmon: AD1-022 Izzy Izumi & Tai Kamiya must also enter the bot's field. Security is empty, both Tamers remain unsuspended in play, neither goes to trash, and memory stays at 3. Do not make a third attack.",
+  },
   "arena-lm067-gundramon-free-option": {
     ptBR: "Entre na Fase Principal com 5 de memória. Evolua BT10-064 Gogmamon para LM-067 Gundramon da mão (custo 4). Na revelação, escolha P-180 Bind Red Trigger: seu uso deve manter a memória em 1. P-180 descarta o topo da segurança do bot; escolha Gundramon para colocá-la como fonte do fundo. Ordene as outras 5 cartas para o fundo do deck. A memória deve continuar em 1, sem passar o turno.",
     en: "Enter Main with 5 memory. Digivolve BT10-064 Gogmamon into LM-067 Gundramon from hand (cost 4). Choose P-180 Bind Red Trigger from the reveal: using it must keep memory at 1. P-180 trashes the bot's top security; choose Gundramon to place it as the bottom source. Order the other 5 cards to the deck bottom. Memory must remain at 1 without passing the turn.",
@@ -608,6 +612,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-bt10-taiki-x7-xros-heart", "BT10 Taiki · Shoutmon X7 Xros Heart"],
+  ["arena-ad1-adventure-tamers-security", "AD1 Adventure Tamers · Security plays both Tamers"],
   ["arena-lm067-gundramon-free-option", "LM-067 Gundramon · free revealed Option"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],

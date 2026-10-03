@@ -164,3 +164,36 @@ describe("BT7-088 Zoe Orimoto — KB Q&A rulings", () => {
     await settle(() => s.perm("zoe").topCard?.cardId === "BT7-036");
   });
 });
+
+describe("Discord 1555932429007593605: BT7-088 Security", () => {
+  it.each([false, true])(
+    "Discord 1555932429007593605: plays the checked instance for free (faceUp=%s)",
+    async (faceUp) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: { security: [{ card: "BT7-088", as: "checked", faceUp }] },
+      });
+      await s.ready();
+      const memoryBefore = s.state.memory;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined,
+      );
+      expect(s.events.filter((event) => event.kind === "securityRevealed")).toMatchObject([
+        { revealedCardId: "BT7-088", hasSecurityEffect: true, isDigimon: false },
+      ]);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+        s.inst("checked").instanceId,
+      );
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("checked").instanceId);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.memory).toBe(memoryBefore);
+    },
+  );
+});

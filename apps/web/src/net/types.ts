@@ -43,6 +43,7 @@ export interface AegisJoinOptions {
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
     | "arena-ex7-seventh-fascination-turn"
+    | "arena-ad1-adventure-tamers-security"
     | "arena-lm067-gundramon-free-option"
     | "arena-bt10-taiki-x7-xros-heart"
     | "arena-ex13-sampson-face-down-sources"
