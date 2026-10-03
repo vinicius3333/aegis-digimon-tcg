@@ -38,6 +38,7 @@ export interface AegisJoinOptions {
     | "arena-bt21-davis-top-stack"
     | "arena-bt21-dracomon-start-main"
     | "arena-bt21-dogatchmon-link-attack"
+    | "arena-bt24-sonic-shot-decline-link"
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"

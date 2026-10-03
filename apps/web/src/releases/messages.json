@@ -1,4 +1,16 @@
 {
+  "releases.1.8.5-beta.summary": {
+    "en": "This update fixes the No Selection choice in Link effects.",
+    "pt-BR": "Esta atualização corrige a opção Nenhuma seleção nos efeitos de Link."
+  },
+  "releases.1.8.5-beta.fix.sonicShotDecline": {
+    "en": "Choosing No Selection for BT24-095 Sonic Shot's Link now sends it to the trash and lets Dan Yuki & Kanan Yuki's end-of-turn effect continue.",
+    "pt-BR": "Escolher Nenhuma seleção no Link de BT24-095 Sonic Shot agora envia a carta para o lixo e permite que o efeito de fim de turno de Dan Yuki & Kanan Yuki continue."
+  },
+  "releases.1.8.5-beta.fix.linkRecipientDecline": {
+    "en": "Declining a Link recipient no longer automatically links the card to the Digimon that activated the effect, such as BT25-069 Raremon.",
+    "pt-BR": "Recusar o destinatário de um Link não vincula mais a carta automaticamente ao Digimon que ativou o efeito, como BT25-069 Raremon."
+  },
   "releases.1.8.4-beta.summary": {
     "en": "This update asks optional \"by …\" costs when their part of the effect comes up, shows only the relevant text in each choice, and explains why each pending effect triggered.",
     "pt-BR": "Esta atualização pergunta os custos opcionais \"by …\" quando a parte deles no efeito chega, mostra só o texto relevante em cada escolha e explica por que cada efeito pendente foi ativado."

@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.8.5-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.5-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.5-beta.fix.sonicShotDecline"
+      },
+      {
+        "textKey": "releases.1.8.5-beta.fix.linkRecipientDecline"
+      }
+    ]
+  },
+  {
     "version": "1.8.4-beta",
     "releasedAt": "2026-10-03",
     "summaryKey": "releases.1.8.4-beta.summary",

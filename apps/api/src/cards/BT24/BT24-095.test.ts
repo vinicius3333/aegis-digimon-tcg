@@ -87,6 +87,52 @@ describe("BT24-095 Sonic Shot", () => {
     expect(invalid.state.players[0]!.hand.some((card) => card.cardId === "BT24-095")).toBe(true);
   });
 
+  it("declines the Link recipient with an empty selection without an unsupported action (match c3ab8a19)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-095", as: "shot" }],
+          battleArea: [
+            { card: "BT24-009", as: "host" },
+            { card: "BT24-009", as: "otherHost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const shotId = s.inst("shot").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: shotId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)?.req).toMatchObject({
+      kind: "chooseTargets",
+      sourceCardId: "BT24-095",
+      options: {
+        min: 0,
+        max: 1,
+        candidateInstanceIds: [s.perm("host").permanentId, s.perm("otherHost").permanentId],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === shotId));
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.perm("otherHost").linked).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "BT24-095", sourceInstanceId: shotId }),
+    );
+  });
+
   it("waives color, suspends the chosen Tamer, locks that same target for its next unsuspend phase, and links free", async () => {
     const s = setupEngine(
       {
