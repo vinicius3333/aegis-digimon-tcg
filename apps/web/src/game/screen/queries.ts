@@ -35,14 +35,22 @@ export const DOCKED_VIEWER_PILES_QUERY =
  * The portrait arena: phones and tablets held upright stack each side's zones in
  * one row, and the battlefield switches to its portrait art.
  */
+/**
+ * A laptop or wider desktop with the tall arena. Each side's security stands beside its
+ * raising area instead of between the battle rows, and both match a Digimon's size.
+ * Mirrors the CSS block of the same condition in desktopSidelines.css.
+ */
+export const SIDELINE_ARENA_QUERY = "(min-width: 1280px) and (min-height: 760px)";
+
 export const PORTRAIT_ARENA_QUERY = "(max-width: 1023px) and (orientation: portrait)";
 
 /**
- * A phone on its side. Both battle rows, the memory band, the dock and the
- * header share ~390px, which is under what even a compact Digimon needs, so the
- * battle rows name their own card width.
+ * A phone on its side, or a landscape window too narrow for the tablet layout. Both
+ * battle rows, the memory band, the dock and the header share ~390px, which is under
+ * what even a compact Digimon needs, so the battle rows name their own card width.
  */
-export const LANDSCAPE_PHONE_QUERY = "(height < 520px) and (orientation: landscape)";
+export const LANDSCAPE_PHONE_QUERY =
+  "(width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape)";
 
 /** Card width in a battle row on a landscape phone. */
 export const LANDSCAPE_PHONE_PERMANENT_WIDTH = 58;

@@ -18,6 +18,8 @@ export interface AegisJoinOptions {
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
     | "battle"
+    | "field-grouping"
+    | "arena-field-grouping-dense"
     | "arena"
     | "arena-aegiochus-dark-assembly"
     | "arena-mervamon-effect-assembly"

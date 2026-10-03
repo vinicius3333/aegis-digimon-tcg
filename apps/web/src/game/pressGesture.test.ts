@@ -24,6 +24,11 @@ describe("reading a moving press", () => {
   it("reads a pull towards the board as a drag", () => {
     expect(pressGesture({ dx: 8, dy: -60, touch: true })).toBe("drag");
   });
+  it("scrolls an upright battlefield without declaring a touch attack", () => {
+    expect(pressGesture({ dx: 8, dy: -60, touch: true, panY: true })).toBe("scroll");
+    expect(pressGesture({ dx: 8, dy: -60, touch: false, panY: true })).toBe("drag");
+    expect(pressGesture({ dx: 2, dy: 5, touch: true, panY: true })).toBe("press");
+  });
 });
 
 describe("the click that follows a tap", () => {

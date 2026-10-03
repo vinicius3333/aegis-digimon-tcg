@@ -4,8 +4,8 @@
    board is a pure render of what the server sends back (ARCHITECTURE.md §4). */
 
 import { DragKind } from "./screen/enums";
-import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
+import { useFittedCardWidths } from "./screen/hooks/useFittedCardWidths";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { ownAlliancePromptCardId } from "./combatWindowModel";
 import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
@@ -111,6 +111,7 @@ export function GameScreen({
   betaBattleMode,
   onExit,
   onRematch,
+  onResetScenario,
   signedIn = false,
   demoConnection,
 }: {
@@ -126,6 +127,8 @@ export function GameScreen({
   botDeckId?: string;
   betaBattleMode?: boolean;
   onExit: (screen: Screen) => void;
+  /** Restart a server-backed development scenario from the match controls. */
+  onResetScenario?: () => void;
   /** Receives the private room code, so a private match can return to its room. */
   onRematch?: (privateRoomCode?: string) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
@@ -146,16 +149,8 @@ export function GameScreen({
 }) {
   const { t } = useTranslation();
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
-  const layout = useArenaLayout();
-  const {
-    narrowGameLayout,
-    compactPiles,
-    shortBoard,
-    landscapePhone,
-    collapseNotices,
-    arenaPileWidth,
-    arenaPermanentWidth,
-  } = layout;
+  const arenaLayout = useArenaLayout();
+  const { narrowGameLayout, compactPiles, shortBoard, collapseNotices } = arenaLayout;
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
@@ -275,6 +270,15 @@ export function GameScreen({
 
   const boardRef = useRef<HTMLDivElement | null>(null);
   const fieldRef = useRef<HTMLDivElement | null>(null);
+  const fittedWidths = useFittedCardWidths({
+    fieldRef,
+    enabled: arenaLayout.landscapePhone,
+    permanentWidth: arenaLayout.arenaPermanentWidth,
+    pileWidth: arenaLayout.arenaPileWidth,
+  });
+  const arenaPermanentWidth = fittedWidths.permanentWidth;
+  const arenaPileWidth = fittedWidths.pileWidth;
+  const layout = { ...arenaLayout, arenaPermanentWidth, arenaPileWidth };
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // Where each permanent last stood, in board coordinates. A deletion is narrated after
   // the board has already dropped the permanent, so the burst needs the last measurement
@@ -961,7 +965,7 @@ export function GameScreen({
       keywordLabels={
         breedingYou.breeding ? demoConnection?.keywordLabels?.[breedingYou.breeding.permanentId] : undefined
       }
-      pileWidth={arenaPileWidth}
+      pileWidth={arenaLayout.arenaRaisingWidth}
       compactPiles={compactPiles}
       burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
       effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
@@ -1081,7 +1085,7 @@ export function GameScreen({
   const permanentChrome: Omit<PermanentChrome, "suspendDelayMs"> = {
     keywordLabels: demoConnection?.keywordLabels,
     compact: narrowGameLayout || shortBoard,
-    width: landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth,
+    width: arenaPermanentWidth,
     permanentRefs: permRefs,
     effectSourcePermanentIds,
     effectLinkedPermanentIds,
@@ -1100,6 +1104,7 @@ export function GameScreen({
 
   return (
     <BoardStage
+      onResetScenario={onResetScenario}
       state={state}
       shownState={shownState}
       viewer={you}

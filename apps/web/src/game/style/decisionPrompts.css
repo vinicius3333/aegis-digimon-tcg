@@ -64,6 +64,12 @@
   overflow: hidden;
 }
 
+/* Revealed-card notices remain visible around a decision but cannot cover its
+   candidates or answer buttons when the phone turns to landscape. */
+body:has(.decision-overlay--selection) .narration-slot {
+  z-index: calc(var(--ds-z-dialog) - 1);
+}
+
 .decision-overlay--selection .decision-overlay__header {
   flex: none;
 }

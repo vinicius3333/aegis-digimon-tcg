@@ -21,7 +21,8 @@ it("renders public security art in its slot without exposing hidden identities",
   );
   const slots = container.querySelectorAll(".game-security-cards i");
   expect(slots).toHaveLength(2);
-  expect(slots[0]!.querySelector("img")).toBeNull();
+  // A hidden card shows only its sleeve.
+  expect(slots[0]!.querySelector("img")?.getAttribute("src")).toMatch(/^\/sleeves\//);
   expect(slots[1]!.querySelector("img")?.getAttribute("src")).toContain("BT1-009");
   expect(container.innerHTML).not.toContain("BT1-010");
 });

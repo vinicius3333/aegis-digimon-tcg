@@ -20,6 +20,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a fase de criação e depois o turno sem usar Sonic Shot da mão. No [Fim do Seu Turno] de Dan Yuki & Kanan Yuki, aceite suspender o Tamer e escolha BT24-095 Sonic Shot para usar sem pagar o custo. O bot não tem Digimon nem Tamer em campo. Na escolha do destinatário do Link, clique em Nenhuma seleção. Sonic Shot deve ir para o lixo, nenhum dos seus dois Digimon recebe o Link e o efeito de Dan & Kanan continua para a escolha do atacante.",
     en: "End the breeding phase, then end your turn without using Sonic Shot from hand. On Dan Yuki & Kanan Yuki's [End of Your Turn], accept suspending the Tamer and choose BT24-095 Sonic Shot to use without paying its cost. The bot has no Digimon or Tamers in play. At the Link recipient selection, choose No Selection. Sonic Shot must go to the trash, neither of your two Digimon receives the Link, and Dan & Kanan's effect continues to the attacker selection.",
   },
+  "arena-field-grouping-dense": {
+    ptBR: "Mesa de fim de partida: 21 permanentes por lado, 12 fontes no Vulcanusmon, 2 links e 8 cartas salvas no Watchmaker. Cada lado conserva as 50 cartas do deck principal. Role as duas fileiras, inspecione as fontes e gire a tela.",
+    en: "Late-game board: 21 permanents per side, 12 Vulcanusmon sources, 2 links and 8 saved Watchmaker cards. Each side conserves its 50-card main deck. Scroll both lanes, inspect sources and rotate the screen.",
+  },
   "arena-bt20-bakemon-violet-retroactive": {
     ptBR: "Evolua Ghostmon para BT20-068 Bakemon. Aceite jogar BT23-087 Violet Inboots da mão. Como Violet entrou depois da evolução, ela deve permanecer desuspensa e não deve oferecer Rush para esse Bakemon.",
     en: "Digivolve Ghostmon into BT20-068 Bakemon. Accept playing BT23-087 Violet Inboots from hand. Violet entered after the evolution, so it should remain unsuspended and should not offer Rush to this Bakemon.",
@@ -620,6 +624,7 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena", "Attack steps · Counter/Blocker"],
+  ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-marcus-alliance", "Alliance · Marcus treated as a Digimon"],
@@ -818,6 +823,7 @@ export function LiveArenaDemo() {
         <label className="aegis-arena-demo-field">
           <span className="aegis-arena-demo-field-label">{portuguese ? "Cenário" : "Scenario"}</span>
           <select
+            aria-label={portuguese ? "Cenário" : "Scenario"}
             value={scenario}
             onChange={(event) => {
               setScenario(event.target.value as DevScenario);
@@ -838,7 +844,7 @@ export function LiveArenaDemo() {
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}
         </a>
-        <details className="aegis-arena-live-instructions" open>
+        <details className="aegis-arena-live-instructions">
           <summary>{portuguese ? "Instruções do cenário" : "Scenario instructions"}</summary>
           <p tabIndex={0}>{portuguese ? note.ptBR : note.en}</p>
         </details>

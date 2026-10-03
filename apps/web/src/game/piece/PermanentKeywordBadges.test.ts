@@ -14,7 +14,7 @@ describe("keyword pills that fit one line", () => {
     expect(visibleKeywordCount(["Rush", "Blocker", "Jamming", "Raid"], 160)).toBe(3);
   });
 
-  it("always shows at least one pill", () => {
-    expect(visibleKeywordCount(["Security Attack +1", "Barrier"], 60)).toBe(1);
+  it("uses a count with a complete explanation when no label fits", () => {
+    expect(visibleKeywordCount(["Security Attack +1", "Barrier"], 60)).toBe(0);
   });
 });

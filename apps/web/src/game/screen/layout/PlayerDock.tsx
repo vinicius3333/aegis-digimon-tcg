@@ -68,6 +68,9 @@ export function PlayerDock({
   selectCard: (index: number) => void;
   onHoverChange: (instanceId: string | undefined) => void;
 }) {
+  const counters = (
+    <ArenaCounters side={Side.Viewer} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
+  );
   return (
     <footer
       className="game-player-dock"
@@ -107,8 +110,16 @@ export function PlayerDock({
           onHoverChange={onHoverChange}
         />
       </div>
-      {pileDock}
-      <ArenaCounters side={Side.Viewer} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
+      {pileDock ? (
+        // The counters stack under the docked deck and trash, so the column is as wide as
+        // the wider of the two and the hand never reaches under either.
+        <div className="game-viewer-pile-dock">
+          {pileDock}
+          {counters}
+        </div>
+      ) : (
+        counters
+      )}
     </footer>
   );
 }

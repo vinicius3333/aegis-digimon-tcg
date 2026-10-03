@@ -1,5 +1,6 @@
 import {
   CATALOG_DECKS,
+  CardKind,
   CardInstance,
   Permanent,
   Zone,
@@ -39,6 +40,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
+  "field-grouping",
+  "arena-field-grouping-dense",
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
@@ -343,6 +346,121 @@ function layBt26MonimonOptionalCostScenario(state: GameState, decks: readonly [D
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 5;
+}
+
+/** Repeated support cards and saved sources, controlled through real engine intents. */
+function layFieldGroupingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (!player) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    // Interleaved play order exercises grouping without changing the server array.
+    const pieces =
+      seat === 0
+        ? [
+            ["BT1-088"],
+            ["P-035"],
+            ["BT1-067", "BT1-074", "BT1-077"],
+            ["BT12-098"],
+            ["P-038"],
+            ["BT1-088"],
+            ["ST1-07"],
+            ["P-035"],
+            ["BT12-008", "BT12-098"],
+            ["BT1-088"],
+            ["P-038"],
+            ["BT1-067"],
+            ["BT12-098"],
+            ["BT1-089"],
+          ]
+        : [["BT1-088"], ["ST2-06"], ["P-035"], ["BT1-088"], ["BT1-074", "BT1-077"], ["P-035"], ["BT1-088"]];
+    pieces.forEach((stack, index) => {
+      const permanent = establishedDigimon(seat, stack, `-grouping-${index}`);
+      permanent.placedByEffect = getCardDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Option) ?? false;
+      // The bot keeps its suspended copies while the human takes the first turn.
+      permanent.isSuspended = seat === 1 && index === 3;
+      placePermanent(player, permanent);
+    });
+    const hand = seat === 0 ? ["BT1-088", "P-035", "BT1-074", "BT1-077"] : ["ST2-06", "ST2-06"];
+    hand.forEach((id, index) =>
+      insertCard(player, Zone.Hand, faceDownCard(`grouping-hand-${seat}-${index}`, id, seat)),
+    );
+    // First draw and subsequent Izzy reveals are deterministic Digimon.
+    for (let index = 0; index < 5; index++) {
+      insertCard(player, Zone.Deck, faceDownCard(`grouping-draw-${seat}-${index}`, "BT1-010", seat), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
+}
+
+/** Late-game density with a conserved 50-card main deck on each side. */
+function layDenseFieldGroupingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  const deepSources = ["BT1-010", "ST1-07", "BT1-074", "BT1-077"].flatMap((id) => Array<string>(3).fill(id));
+  const savedSources = ["BT12-008", "BT12-077"].flatMap((id) => Array<string>(4).fill(id));
+  const stacks = [
+    [...deepSources, "BT25-075"],
+    [...savedSources, "BT12-098"],
+    ...Array.from({ length: 3 }, () => ["BT1-088"]),
+    ...["P-035", "P-038"].flatMap((id) => [[id], [id]]),
+    ["BT12-098"],
+    ["BT1-089"],
+    ...Array.from({ length: 4 }, () => ["BT1-067"]),
+    ...Array.from({ length: 4 }, () => ["BT1-009"]),
+    ["BT1-011"],
+    ["BT1-011"],
+  ];
+  const links = ["BT25-101", "BT25-100"];
+  // The viewer also fields a green Lv.5, which takes a card from their draw pile.
+  const viewerStacks = [...stacks, ["BT1-079"]];
+  // Field 43 (44 for the viewer) + security 2 + hand 1 + draw pile 4 (3) = 50. No synthetic extra cards.
+  const remainder = ["BT1-014", "BT1-014", "P-035", "BT1-015", "BT1-015", "BT1-016", "BT1-016"];
+  const viewerRemainder = remainder.slice(0, -1);
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (!player) continue;
+    const seatStacks = seat === 0 ? viewerStacks : stacks;
+    const seatRemainder = seat === 0 ? viewerRemainder : remainder;
+    loadDeckInto(player, seat, {
+      mainDeck: [...seatStacks.flat(), ...links, ...seatRemainder],
+      eggDeck: decks[seat].eggDeck,
+    });
+    const take = (id: string) => {
+      const card = extractCardAt(
+        player,
+        Zone.Deck,
+        player.deck.findIndex((candidate) => candidate.cardId === id),
+      );
+      if (!card) throw new Error(`Dense arena fixture is missing ${id}`);
+      card.faceUp = true;
+      return card;
+    };
+    seatStacks.forEach((stack, index) => {
+      const permanent = new Permanent();
+      permanent.permanentId = `dense-${seat}-${index}`;
+      permanent.controllerSeat = seat;
+      const topId = stack.at(-1)!;
+      setTopCard(permanent, take(topId));
+      for (const id of stack.slice(0, -1)) pushOnStack(permanent, take(id));
+      permanent.baseDP = getCardDefinition(topId)?.dp ?? 0;
+      permanent.currentDP = permanent.baseDP;
+      permanent.enterFieldTurnCount = ESTABLISHED_TURN;
+      permanent.isSuspended = seat === 1 && index % 3 === 0;
+      permanent.placedByEffect = getCardDefinition(topId)?.kinds.includes(CardKind.Option) ?? false;
+      if (index === 0) for (const id of links) linkEstablishedCard(permanent, take(id));
+      placePermanent(player, permanent);
+    });
+    for (let index = 0; index < 2; index++) insertCard(player, Zone.Security, takeTop(player, Zone.Deck)!);
+    insertCard(player, Zone.Hand, takeTop(player, Zone.Deck)!);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 18;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
 }
 
 /** Stresses the Alliance ally picker with one attacker and 19 eligible allies. */
@@ -4918,6 +5036,8 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
+  "field-grouping": layFieldGroupingScenario,
+  "arena-field-grouping-dense": layDenseFieldGroupingScenario,
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,

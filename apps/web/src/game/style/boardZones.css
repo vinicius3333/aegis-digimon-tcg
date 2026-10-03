@@ -231,6 +231,23 @@
   margin-bottom: -1.7rem;
 }
 
+/* The opponent's fan gives way before the bar's buttons do: it shrinks and drops
+   cards off its start, keeping the count at its end readable. */
+.game-opponent-hand {
+  min-width: 0;
+  overflow: hidden;
+  justify-content: flex-end;
+}
+
+/* A hand too big for its readable slivers scrolls inside its dock on every layout,
+   rather than spilling over the piles and past the screen edge. */
+.game-player-dock [data-testid="hand"][data-hand-overflow="true"] {
+  justify-content: flex-start !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
 /* Every highlighted hand card wears the same thin rim plus soft glow and differs
    only in intensity, lift and motion. The lift rides `top` rather than a
    transform because the fan, the draw animation and the touch layout each already

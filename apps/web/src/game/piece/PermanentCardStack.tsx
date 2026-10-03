@@ -1,5 +1,6 @@
 import { getCardDefinition, type CardInstance } from "@aegis/shared";
 import { COLORS, colorKey } from "../../design/theme";
+import { sourceFanStepLimit } from "../boardModel";
 
 /**
  * The digivolution stack peeking out from under a permanent's top card, one
@@ -7,6 +8,7 @@ import { COLORS, colorKey } from "../../design/theme";
  * Tinted per card so a mixed-colour stack still reads at a glance.
  */
 export function PermanentCardStack({ stack, width }: { stack: readonly CardInstance[]; width: number }) {
+  const step = `min(var(--arena-source-step, 4px), ${sourceFanStepLimit(width, stack.length)}px)`;
   return (
     <>
       {stack.map((ci, i) => {
@@ -16,8 +18,8 @@ export function PermanentCardStack({ stack, width }: { stack: readonly CardInsta
             key={i}
             style={{
               position: "absolute",
-              left: `calc(-4px - ${i} * var(--arena-source-step, 4px))`,
-              top: `calc(var(--arena-source-top, 6px) + ${i} * var(--arena-source-step, 4px))`,
+              left: `calc(-4px - ${i} * ${step})`,
+              top: `calc(var(--arena-source-top, 6px) + ${i} * ${step})`,
               width,
               height: width * 1.4,
               borderRadius: 9,

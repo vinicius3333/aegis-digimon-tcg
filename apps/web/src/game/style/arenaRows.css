@@ -78,18 +78,11 @@
 }
 
 @media (min-width: 1024px) and (min-height: 760px) {
-  .game-battle-row {
-    perspective: 900px;
-    perspective-origin: center;
-  }
-
-  .game-battle-row > div {
-    transform-style: preserve-3d;
-  }
-
+  /* The card art carries its own contact shadow. A filter on every field card made
+     each one its own offscreen surface, which a crowded board repainted on every move;
+     only the card under the pointer takes the deeper filtered shadow. */
   .game-battle-row .game-card-enter {
     rotate: none;
-    filter: drop-shadow(0 2px 1px rgb(19 27 32 / 50%)) drop-shadow(0 8px 5px rgb(19 27 32 / 30%));
     transition:
       translate 180ms ease,
       filter 180ms ease;
@@ -149,12 +142,7 @@
 
 @media (min-width: 1024px) and (min-height: 760px) {
   .game-pile-column--left > div:first-child {
-    top: 0.75rem;
     gap: 4px !important;
-  }
-
-  .game-topbar-actions {
-    margin-right: 7.5rem;
   }
 
   .game-end-turn-orb {
@@ -226,6 +214,12 @@
   background: #172a34;
   font: 700 0.875rem/1 var(--ds-font-mono);
   text-align: center;
+}
+
+/* The banner lives in the memory band, whose stacking context sat under the field
+   cards' copy and source badges (z 9). While it plays, the band rises over the field. */
+.game-board .game-memory-band:has(.game-phase-banner) {
+  z-index: 12;
 }
 
 /* The phase ribbon crosses the memory line without intercepting board input. */
