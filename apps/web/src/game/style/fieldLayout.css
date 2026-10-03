@@ -1,0 +1,86 @@
+/* The organized field: each side's row holds two lanes, Digimon and a smaller lane of
+   grouped Tamers and Options. The row keeps the box every breakpoint gives it; the
+   lanes share that box and each scrolls sideways on its own. The selectors outrank
+   every breakpoint's `.game-battle-zones > .game-battle-row` rule on purpose. */
+
+.game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  scroll-snap-type: none;
+}
+
+.game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane {
+  flex-shrink: 1;
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  scroll-snap-type: none;
+}
+
+.game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane::-webkit-scrollbar {
+  display: none;
+}
+
+.game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane > div {
+  flex-shrink: 0;
+}
+
+/* A hairline between the lanes, fading at both ends, on the side facing the Digimon. */
+.game-board .game-battle-row--you[data-field-layout="organized"] > .game-battle-lane--support {
+  background: linear-gradient(90deg, transparent, rgb(160 240 251 / 45%) 20%, rgb(160 240 251 / 45%) 80%, transparent)
+    top / 100% 1px no-repeat;
+}
+
+.game-board .game-battle-row--opp[data-field-layout="organized"] > .game-battle-lane--support {
+  background: linear-gradient(90deg, transparent, rgb(255 181 171 / 40%) 20%, rgb(255 181 171 / 40%) 80%, transparent)
+    bottom / 100% 1px no-repeat;
+}
+
+/* A row too short for two lanes, like a phone on its side, lays them side by side. */
+.game-board .game-field .game-battle-zones > .game-battle-row[data-lanes="side-by-side"] {
+  flex-direction: row;
+}
+
+.game-board .game-battle-row[data-lanes="side-by-side"] > .game-battle-lane {
+  width: auto;
+}
+
+/* Both lanes take their content's width and shrink together when the row runs out,
+   the support lane never past half of it. */
+.game-board .game-battle-row[data-lanes="side-by-side"] > .game-battle-lane--support {
+  max-width: 50%;
+}
+
+.game-board .game-battle-row--you[data-lanes="side-by-side"] > .game-battle-lane--support {
+  background: linear-gradient(180deg, transparent, rgb(160 240 251 / 45%) 20%, rgb(160 240 251 / 45%) 80%, transparent)
+    left / 1px 100% no-repeat;
+}
+
+.game-board .game-battle-row--opp[data-lanes="side-by-side"] > .game-battle-lane--support {
+  background: linear-gradient(180deg, transparent, rgb(255 181 171 / 40%) 20%, rgb(255 181 171 / 40%) 80%, transparent)
+    right / 1px 100% no-repeat;
+}
+
+/* A copy split off a group was already on the field: it slides out rather than entering. */
+.game-board .game-card-enter--quiet {
+  animation: none;
+}
+
+.game-board .game-card-enter--quiet .game-card-sparkles {
+  display: none;
+}
+
+/* The row animates positions after layout. Animated margins would keep moving the
+   destination underneath that flight, then jump when the flight finishes. */
+.game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
+  transition:
+    transform 160ms,
+    opacity 160ms !important;
+}

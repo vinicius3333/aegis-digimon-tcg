@@ -17,6 +17,7 @@ import { permanentClassName } from "./permanentClassName";
 import { resolvePermanentKeywordEntries } from "./permanentKeywords";
 import { PermanentBlockerBadge } from "./PermanentBlockerBadge";
 import { PermanentCardStack } from "./PermanentCardStack";
+import { COPY_EDGE_STEP, copyEdgeCount, PermanentCopiesBadge, PermanentCopyEdges } from "./PermanentCopies";
 import { PermanentEffectSourceParticles } from "./PermanentEffectSourceParticles";
 import { PermanentFateBadge } from "./PermanentFateBadge";
 import { PermanentKeywordBadges } from "./PermanentKeywordBadges";
@@ -31,6 +32,9 @@ import "./fieldBadges.css";
 
 export function PermanentView({
   perm,
+  copies = 1,
+  entranceKey,
+  quietEntrance = false,
   keywordLabels,
   highlight,
   candidate,
@@ -58,6 +62,15 @@ export function PermanentView({
   onInspect,
 }: {
   perm: Permanent;
+  /** Identical permanents drawn as this one card, itself included. */
+  copies?: number;
+  /**
+   * What restarts the entrance, in place of the permanent id. A group passes its own
+   * key, so a copy leaving it does not replay the entrance on the copies that stay.
+   */
+  entranceKey?: string;
+  /** The card was already on the field (it split off a group), so it skips the entrance. */
+  quietEntrance?: boolean;
   keywordLabels?: Readonly<Record<string, string>>;
   highlight?: boolean;
   candidate?: boolean;
@@ -149,7 +162,7 @@ export function PermanentView({
       tabIndex={interactive ? 0 : undefined}
       aria-label={
         interactive
-          ? permanentAriaLabel({ perm, heldSuspended, restrictions, fate, cardName, delta, hasDpDelta, t })
+          ? permanentAriaLabel({ perm, heldSuspended, restrictions, fate, cardName, copies, delta, hasDpDelta, t })
           : undefined
       }
       className={permanentClassName({
@@ -176,10 +189,15 @@ export function PermanentView({
         transform: highlight || effectSource || effectLinked ? "translateY(-6px)" : "none",
         marginInlineStart: isVisuallySuspended ? suspendedInlineMargin : 0,
         marginInlineEnd:
-          (isVisuallySuspended ? suspendedInlineMargin : 0) + linkCardOverhang(perm.linked.length, permanentWidth),
+          (isVisuallySuspended ? suspendedInlineMargin : 0) +
+          linkCardOverhang(perm.linked.length, permanentWidth) +
+          copyEdgeCount(copies) * COPY_EDGE_STEP,
         transition: "transform 160ms, opacity 160ms, margin-inline-start 200ms, margin-inline-end 200ms",
       }}
     >
+      {copies > 1 ? (
+        <PermanentCopyEdges cardId={topId} copies={copies} width={permanentWidth} suspended={isVisuallySuspended} />
+      ) : null}
       <PermanentCardStack stack={perm.stack} width={permanentWidth} />
       <PermanentLinkedCards linked={perm.linked} width={permanentWidth} />
       {/* Re-keying on the entry signature remounts the wrapper, which is what
@@ -189,8 +207,8 @@ export function PermanentView({
           centre-screen showcase — without it the entrance ran out its whole
           duration under `visibility: hidden` and the card simply appeared. */}
       <div
-        key={`${perm.permanentId}:${perm.stack.length}:${pending ? "held" : "shown"}`}
-        className={`game-card-enter${burst ? " game-card-landing" : ""}`}
+        key={`${entranceKey ?? perm.permanentId}:${perm.stack.length}:${pending ? "held" : "shown"}`}
+        className={`game-card-enter${quietEntrance ? " game-card-enter--quiet" : ""}${burst ? " game-card-landing" : ""}`}
         style={{ position: "relative", zIndex: 1 }}
       >
         {burst ? <CardBurst key={burst.key} variant={burst.variant} color={burst.color} /> : null}
@@ -220,6 +238,7 @@ export function PermanentView({
         {dpPulse ? <DpPulseParticles key={dpPulse.key} pulse={dpPulse} /> : null}
       </div>
       {sources ? <PermanentSourceBadge sources={sources} /> : null}
+      {copies > 1 ? <PermanentCopiesBadge copies={copies} /> : null}
       {blocker ? <PermanentBlockerBadge /> : null}
       {fate ? <PermanentFateBadge fate={fate} /> : null}
       {activeKeywords.length > 0 ? (

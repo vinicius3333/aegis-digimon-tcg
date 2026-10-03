@@ -156,6 +156,7 @@ export function BoardStage({
   onStartPermanentDrag,
   onInspectPermanent,
   onOpenCard,
+  onResetScenario,
 }: {
   state: GameState;
   shownState: GameState;
@@ -193,6 +194,7 @@ export function BoardStage({
   onStartPermanentDrag: (perm: Permanent, event: ReactPointerEvent) => void;
   onInspectPermanent: { viewer: (perm: Permanent) => void; opponent: (perm: Permanent) => void };
   onOpenCard: (cardId: string, artId?: string) => void;
+  onResetScenario?: () => void;
 }) {
   const { t } = useTranslation();
   const pileLayout = usePileLayout();
@@ -248,6 +250,7 @@ export function BoardStage({
           }}
         >
           <OpponentBar
+            onResetScenario={onResetScenario}
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponent.displayName || t("game.opponent")}
             opponentAvatarId={opponent.avatarId}

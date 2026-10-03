@@ -5,6 +5,7 @@ import { ArenaLookSettings } from "../design/ArenaLookSettings";
 import { Icons } from "../design/icons";
 import { getSoundVolume, isSoundEnabled, playSound, setSoundEnabled, setSoundVolume } from "../design/sound";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
+import { FieldLayout, setFieldLayout, useFieldLayout } from "../design/fieldLayout";
 import { PileLayout, setPileLayout, usePileLayout } from "../design/pileLayout";
 import { CardSleevePicker } from "../design/sleevePicker";
 import { LOCALES, LOCALE_LABELS, useTranslation } from "../i18n";
@@ -39,6 +40,7 @@ export function Settings({
   const [volume, setVolume] = useState(Math.round(getSoundVolume() * 100));
   const [actionConfirmationsOn, setActionConfirmationsOn] = useState(areActionConfirmationsEnabled());
   const pileLayout = usePileLayout();
+  const fieldLayout = useFieldLayout();
   function confirmRename() {
     const name = nameInput.trim();
     if (!name || name === player.name) return;
@@ -210,6 +212,14 @@ export function Settings({
                 label={t("settings.tabletopLayout")}
                 description={t("settings.tabletopLayoutDesc")}
                 onChange={(next) => setPileLayout(next ? PileLayout.Tabletop : PileLayout.Classic)}
+              />
+            </div>
+            <div className="settings-block">
+              <Switch
+                checked={fieldLayout === FieldLayout.Organized}
+                label={t("settings.organizedField")}
+                description={t("settings.organizedFieldDesc")}
+                onChange={(next) => setFieldLayout(next ? FieldLayout.Organized : FieldLayout.Classic)}
               />
             </div>
           </section>

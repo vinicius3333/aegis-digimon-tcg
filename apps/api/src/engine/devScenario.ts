@@ -1,5 +1,6 @@
 import {
   CATALOG_DECKS,
+  CardKind,
   CardInstance,
   Permanent,
   Zone,
@@ -36,6 +37,7 @@ import {
  */
 export const DEV_SCENARIO_IDS = [
   "battle",
+  "field-grouping",
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
@@ -278,6 +280,56 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   // Not the rulebook's first turn: the human draws on turn 1 like any later turn.
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Repeated support cards and saved sources, controlled through real engine intents. */
+function layFieldGroupingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (!player) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    // Interleaved play order exercises grouping without changing the server array.
+    const pieces =
+      seat === 0
+        ? [
+            ["BT1-088"],
+            ["P-035"],
+            ["BT1-067", "BT1-074", "BT1-077"],
+            ["BT12-098"],
+            ["P-038"],
+            ["BT1-088"],
+            ["ST1-07"],
+            ["P-035"],
+            ["BT12-008", "BT12-098"],
+            ["BT1-088"],
+            ["P-038"],
+            ["BT1-067"],
+            ["BT12-098"],
+            ["BT1-089"],
+          ]
+        : [["BT1-088"], ["ST2-06"], ["P-035"], ["BT1-088"], ["BT1-074", "BT1-077"], ["P-035"], ["BT1-088"]];
+    pieces.forEach((stack, index) => {
+      const permanent = establishedDigimon(seat, stack, `-grouping-${index}`);
+      permanent.placedByEffect = getCardDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Option) ?? false;
+      // The bot keeps its suspended copies while the human takes the first turn.
+      permanent.isSuspended = seat === 1 && index === 3;
+      placePermanent(player, permanent);
+    });
+    const hand = seat === 0 ? ["BT1-088", "P-035", "BT1-074", "BT1-077"] : ["ST2-06", "ST2-06"];
+    hand.forEach((id, index) =>
+      insertCard(player, Zone.Hand, faceDownCard(`grouping-hand-${seat}-${index}`, id, seat)),
+    );
+    // First draw and subsequent Izzy reveals are deterministic Digimon.
+    for (let index = 0; index < 5; index++) {
+      insertCard(player, Zone.Deck, faceDownCard(`grouping-draw-${seat}-${index}`, "BT1-010", seat), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
 }
 
 /** Stresses the Alliance ally picker with one attacker and 19 eligible allies. */
@@ -3853,6 +3905,7 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
+  "field-grouping": layFieldGroupingScenario,
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,

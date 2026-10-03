@@ -6,10 +6,14 @@
    rather than tapped, so it keeps a keyboard path of its own. */
 
 import type { Permanent } from "@aegis/shared";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import { FieldLayout, useFieldLayout } from "../../../design/fieldLayout";
 import { useTranslation } from "../../../i18n";
 import { BattleRow, suspendedCardEdgeClearance } from "../../BattleRow";
 import { PermanentView, type DropAttrs } from "../../piece";
+import { arrangeField } from "../model/fieldArrangement";
+import { OrganizedBattleRow, type OrganizedCard } from "./OrganizedBattleRow";
+import { isSingledOut } from "./singledOut";
 
 import type { DropTarget } from "../../dragIntents";
 import type { PermanentChrome } from "../types";
@@ -46,6 +50,121 @@ export function ViewerBattleRow({
   onPermanentInspect: (perm: Permanent) => void;
 }) {
   const { t } = useTranslation();
+  const fieldLayout = useFieldLayout();
+  const isSuspended = (p: Permanent) => p.isSuspended || chrome.heldSuspendedIds.has(p.permanentId);
+  const playOrder = new Map(permanents.map((permanent, index) => [permanent.permanentId, index]));
+  const rowStyle: CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    gap: 26,
+    justifyContent: "safe center",
+    alignItems: "center",
+    minHeight: 110,
+    // Bottom room for the activate-effect pill, which hangs below its
+    // permanent inside a row that clips vertical overflow.
+    padding: "12px 18px 26px",
+    borderRadius: 14,
+    transition: "background 150ms, box-shadow 150ms",
+    background: dragIsPlay ? "var(--ds-primary-light)" : "transparent",
+    boxShadow: dragIsPlay ? "inset 0 0 0 2px var(--ds-primary)" : "none",
+  };
+  const emptyLabel = (
+    <span
+      style={{
+        fontSize: 12,
+        color: dragIsPlay ? "var(--ds-primary)" : "var(--ds-foreground-disabled)",
+        fontFamily: "var(--ds-font-mono)",
+      }}
+    >
+      {dragIsPlay ? t("game.dropToPlay") : t("game.noDigimon")}
+    </span>
+  );
+
+  function renderCard({ permanent: p, members, width, fieldKey, splitOff }: OrganizedCard) {
+    const canDrag = draggable(p);
+    return (
+      <PermanentView
+        key={fieldKey}
+        perm={p}
+        copies={members.length}
+        entranceKey={fieldKey}
+        quietEntrance={splitOff}
+        keywordLabels={chrome.keywordLabels?.[p.permanentId]}
+        compact={chrome.compact}
+        width={width}
+        refCb={(el) => {
+          for (const member of members) chrome.permanentRefs.current[member.permanentId] = el;
+        }}
+        candidate={isBasePermanent(p)}
+        effectSource={chrome.effectSourcePermanentIds.has(p.permanentId)}
+        effectLinked={chrome.effectLinkedPermanentIds.has(p.permanentId)}
+        // A board-mode optional prompt points at the permanent whose
+        // effect is asking, so the rail and the field read as one.
+        highlight={
+          selectedAttackerPermanentId === p.permanentId ||
+          chrome.decisionHighlightPermanentId === p.permanentId ||
+          chrome.decisionPickedInstanceIds.has(p.permanentId) ||
+          chrome.decisionPickedInstanceIds.has(p.topCard.instanceId)
+        }
+        burst={chrome.permanentBursts.get(p.permanentId)}
+        pending={chrome.pendingPermanentIds.has(p.permanentId)}
+        fate={chrome.fateBadges.get(p.permanentId)}
+        shake={chrome.combatImpactIds.has(p.permanentId)}
+        claw={chrome.combatImpactIds.has(p.permanentId)}
+        dpPulse={chrome.dpPulses.get(p.permanentId)}
+        dpBadgeSuppressed={chrome.dpBadgeSuppressedIds.has(p.permanentId)}
+        freezePulse={chrome.freezePulses.get(p.permanentId)}
+        lunge={chrome.attackLunge?.permanentId === p.permanentId ? chrome.attackLunge.direction : undefined}
+        heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
+        suspendDelayMs={chrome.suspendDelayMs(playOrder.get(p.permanentId) ?? 0)}
+        drop={{
+          "data-drop": "perm-you",
+          "data-id": p.permanentId,
+          "data-field-key": fieldKey,
+          ...baseDropIntentAttrs(p.permanentId),
+        }}
+        onClick={canDrag ? undefined : onPermanentClick(p)}
+        onPointerDown={canDrag ? (event) => onPermanentPointerDown(p, event) : undefined}
+        // Drag-only permanents still need a pointer-free path: Enter or
+        // Space selects them like a tap would.
+        onKeyboardActivate={canDrag ? onPermanentClick(p) : undefined}
+        onInspect={isDecisionCandidate(p) ? () => onPermanentInspect(p) : undefined}
+      />
+    );
+  }
+
+  if (fieldLayout === FieldLayout.Organized) {
+    const arrangement = arrangeField(permanents, {
+      isSuspended,
+      isSingledOut: (p) =>
+        isSingledOut(p, chrome) ||
+        isBasePermanent(p) ||
+        isDecisionCandidate(p) ||
+        selectedAttackerPermanentId === p.permanentId,
+    });
+    return (
+      <OrganizedBattleRow
+        arrangement={arrangement}
+        layoutWidth={chrome.width}
+        supportFirst={false}
+        digimonLabel={t("game.yourDigimonArea")}
+        supportLabel={t("game.yourSupportArea")}
+        emptyLabel={emptyLabel}
+        renderCard={renderCard}
+        isSuspended={isSuspended}
+        rowProps={{
+          "data-drop": "battle-you",
+          ...dropIntentAttrs("battle-you"),
+          className: "game-battle-row game-battle-row--you",
+          role: "group",
+          "aria-label": t("game.yourBattleArea"),
+          style: rowStyle,
+        }}
+      />
+    );
+  }
+
   return (
     <BattleRow
       data-drop="battle-you"
@@ -54,82 +173,18 @@ export function ViewerBattleRow({
       role="group"
       aria-label={t("game.yourBattleArea")}
       edgeClearance={suspendedCardEdgeClearance(chrome.width)}
-      style={{
-        flex: 1,
-        minWidth: 0,
-        display: "flex",
-        gap: 26,
-        justifyContent: "safe center",
-        alignItems: "center",
-        minHeight: 110,
-        // Bottom room for the activate-effect pill, which hangs below its
-        // permanent inside a row that clips vertical overflow.
-        padding: "12px 18px 26px",
-        borderRadius: 14,
-        transition: "background 150ms, box-shadow 150ms",
-        background: dragIsPlay ? "var(--ds-primary-light)" : "transparent",
-        boxShadow: dragIsPlay ? "inset 0 0 0 2px var(--ds-primary)" : "none",
-      }}
+      style={rowStyle}
     >
-      {permanents.length === 0 ? (
-        <span
-          style={{
-            fontSize: 12,
-            color: dragIsPlay ? "var(--ds-primary)" : "var(--ds-foreground-disabled)",
-            fontFamily: "var(--ds-font-mono)",
-          }}
-        >
-          {dragIsPlay ? t("game.dropToPlay") : t("game.noDigimon")}
-        </span>
-      ) : null}
-      {permanents.map((p, index) => {
-        const canDrag = draggable(p);
-        return (
-          <PermanentView
-            key={p.permanentId}
-            perm={p}
-            keywordLabels={chrome.keywordLabels?.[p.permanentId]}
-            compact={chrome.compact}
-            width={chrome.width}
-            refCb={(el) => {
-              chrome.permanentRefs.current[p.permanentId] = el;
-            }}
-            candidate={isBasePermanent(p)}
-            effectSource={chrome.effectSourcePermanentIds.has(p.permanentId)}
-            effectLinked={chrome.effectLinkedPermanentIds.has(p.permanentId)}
-            // A board-mode optional prompt points at the permanent whose
-            // effect is asking, so the rail and the field read as one.
-            highlight={
-              selectedAttackerPermanentId === p.permanentId ||
-              chrome.decisionHighlightPermanentId === p.permanentId ||
-              chrome.decisionPickedInstanceIds.has(p.permanentId) ||
-              chrome.decisionPickedInstanceIds.has(p.topCard.instanceId)
-            }
-            burst={chrome.permanentBursts.get(p.permanentId)}
-            pending={chrome.pendingPermanentIds.has(p.permanentId)}
-            fate={chrome.fateBadges.get(p.permanentId)}
-            shake={chrome.combatImpactIds.has(p.permanentId)}
-            claw={chrome.combatImpactIds.has(p.permanentId)}
-            dpPulse={chrome.dpPulses.get(p.permanentId)}
-            dpBadgeSuppressed={chrome.dpBadgeSuppressedIds.has(p.permanentId)}
-            freezePulse={chrome.freezePulses.get(p.permanentId)}
-            lunge={chrome.attackLunge?.permanentId === p.permanentId ? chrome.attackLunge.direction : undefined}
-            heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
-            suspendDelayMs={chrome.suspendDelayMs(index)}
-            drop={{
-              "data-drop": "perm-you",
-              "data-id": p.permanentId,
-              ...baseDropIntentAttrs(p.permanentId),
-            }}
-            onClick={canDrag ? undefined : onPermanentClick(p)}
-            onPointerDown={canDrag ? (event) => onPermanentPointerDown(p, event) : undefined}
-            // Drag-only permanents still need a pointer-free path: Enter or
-            // Space selects them like a tap would.
-            onKeyboardActivate={canDrag ? onPermanentClick(p) : undefined}
-            onInspect={isDecisionCandidate(p) ? () => onPermanentInspect(p) : undefined}
-          />
-        );
-      })}
+      {permanents.length === 0 ? emptyLabel : null}
+      {permanents.map((permanent) =>
+        renderCard({
+          permanent,
+          members: [permanent],
+          width: chrome.width,
+          fieldKey: permanent.permanentId,
+          splitOff: false,
+        }),
+      )}
     </BattleRow>
   );
 }

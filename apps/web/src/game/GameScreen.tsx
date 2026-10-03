@@ -110,6 +110,7 @@ export function GameScreen({
   betaBattleMode,
   onExit,
   onRematch,
+  onResetScenario,
   signedIn = false,
   demoConnection,
 }: {
@@ -125,6 +126,8 @@ export function GameScreen({
   botDeckId?: string;
   betaBattleMode?: boolean;
   onExit: (screen: Screen) => void;
+  /** Restart a server-backed development scenario from the match controls. */
+  onResetScenario?: () => void;
   /** Receives the private room code, so a private match can return to its room. */
   onRematch?: (privateRoomCode?: string) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
@@ -1114,6 +1117,7 @@ export function GameScreen({
 
   return (
     <BoardStage
+      onResetScenario={onResetScenario}
       state={state}
       shownState={shownState}
       viewer={you}
