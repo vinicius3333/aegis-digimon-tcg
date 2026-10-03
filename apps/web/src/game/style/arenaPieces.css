@@ -166,24 +166,16 @@
     --arena-opponent-card-width: 3rem;
     --arena-opponent-card-height: 4.2rem;
   }
-
 }
 
-/* A desktop hand that cannot fit its readable slivers becomes a bounded tray. */
+/* A desktop hand that cannot fit its readable slivers becomes a bounded tray. The
+   dock keeps its height: the security row and the piles are placed from its top edge,
+   so a shorter dock slid them down into the tray. */
 @media (min-width: 1024px) and (min-height: 760px) {
-  .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) {
-    padding-top: 0;
-  }
-
   .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) .game-hand-dock {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    padding-top: 0 !important;
-  }
-
-  .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) .game-action-bar--idle {
-    display: none !important;
   }
 
   .game-player-dock [data-testid="hand"][data-hand-overflow="true"] {
@@ -225,10 +217,11 @@
   }
 }
 
-/* Landscape has enough width to keep eggs, raising and security in one row. */
-@media (max-width: 1023px) and (height < 520px) and (orientation: landscape) {
+/* Landscape has enough width to keep eggs, raising and security in one row, and two
+   piles side by side in the other rail. */
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
   .game-field {
-    grid-template-columns: var(--game-rail) minmax(0, 1fr) 12rem;
+    grid-template-columns: 8rem minmax(0, 1fr) 12rem;
   }
 
   .game-opponent-breeding {
@@ -236,10 +229,20 @@
   }
 }
 
-/* Short desktops give the battlefield more room without shrinking phone cards. */
-@media (min-width: 1024px) and (min-height: 760px) and (max-height: 819px) {
-  .game-player-dock:has([data-testid="hand"][data-hand-overflow="true"]) {
-    height: 11.5rem;
-    min-height: 11.5rem;
+/* A docked board under 600px tall cannot stack three full piles in a rail: the field
+   is about 270px tall there, so each rail pairs its piles side by side. Narrower
+   boards keep single-file rails with smaller piles instead (useArenaLayout), since
+   two wide rails would squeeze the battle rows under them. */
+@media (min-width: 760px) and (min-height: 520px) and (max-height: 599px) and (orientation: landscape) {
+  .game-pile-column {
+    width: 8.5rem !important;
+  }
+
+  .game-pile-column--left > div:first-child {
+    flex-direction: row !important;
+  }
+
+  .game-opponent-breeding {
+    flex-direction: row;
   }
 }

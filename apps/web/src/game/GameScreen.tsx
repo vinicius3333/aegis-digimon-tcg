@@ -4,7 +4,6 @@
    board is a pure render of what the server sends back (ARCHITECTURE.md §4). */
 
 import { DragKind } from "./screen/enums";
-import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { ownAlliancePromptCardId } from "./combatWindowModel";
@@ -150,7 +149,6 @@ export function GameScreen({
     narrowGameLayout,
     compactPiles,
     shortBoard,
-    landscapePhone,
     collapseNotices,
     arenaPileWidth,
     arenaPermanentWidth,
@@ -1095,7 +1093,7 @@ export function GameScreen({
   const permanentChrome: Omit<PermanentChrome, "suspendDelayMs"> = {
     keywordLabels: demoConnection?.keywordLabels,
     compact: narrowGameLayout || shortBoard,
-    width: landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : arenaPermanentWidth,
+    width: arenaPermanentWidth,
     permanentRefs: permRefs,
     effectSourcePermanentIds,
     effectLinkedPermanentIds,

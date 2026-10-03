@@ -322,7 +322,7 @@
 
 /* The landscape dock draws a 92px card, so the column steps ~7.5rem instead of 11.25rem.
    After the rule above on purpose: the two selectors weigh the same. */
-@media (height < 520px) and (orientation: landscape) {
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
   .narration-slot[data-slot="narration-cards"][data-security-dock] {
     right: calc(max(var(--ds-space-2), env(safe-area-inset-right, 0px)) + 7.5rem);
   }

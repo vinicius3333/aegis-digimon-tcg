@@ -6,6 +6,7 @@ import {
   LANDSCAPE_PHONE_QUERY,
   NARROW_LAYOUT_QUERY,
   PORTRAIT_ARENA_QUERY,
+  LANDSCAPE_PHONE_PERMANENT_WIDTH,
   SHORT_BOARD_QUERY,
 } from "../queries";
 
@@ -50,20 +51,36 @@ export function useArenaLayout(): ArenaLayout {
   const mediumPortraitArena = useMediaQuery(
     "(max-width: 1023px) and (orientation: portrait) and (min-height: 650px) and (max-height: 759px)",
   );
-  const tabletPortraitArena = useMediaQuery("(min-width: 600px) and (max-width: 1023px) and (orientation: portrait)");
+  // The tablet sizes need a tall screen; a shorter portrait window takes the phone tiers.
+  const tabletPortraitArena = useMediaQuery(
+    "(min-width: 600px) and (max-width: 1023px) and (orientation: portrait) and (min-height: 800px)",
+  );
   const compactArena = useMediaQuery("(height < 950px)");
   // Under this height a rail cannot stack two full-size piles over a security shield.
   const shortRails = useMediaQuery("(height < 640px) and (orientation: landscape)");
   const tightArena = useMediaQuery("(height < 875px)");
+  // Just above the phone layout, full-size hand cards leave the field too short for both battle rows.
+  const shortDock = useMediaQuery("(min-height: 520px) and (max-height: 559px) and (orientation: landscape)");
+  const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
+  // A phone on its side with the browser's bars showing: two rails of piles and two battle rows
+  // share about 180px, so the pieces take one size down.
+  const shortLandscapePhone = useMediaQuery("(height < 360px) and (orientation: landscape)");
+  // A narrow docked board under 600px tall keeps its rails single file, so the piles shrink to fit.
+  const shortNarrowDock = useMediaQuery(
+    "(min-width: 600px) and (max-width: 759px) and (min-height: 520px) and (max-height: 599px) and (orientation: landscape)",
+  );
+  // A docked full-size deck is too tall for the counters that sit under it in the bottom strip.
   const arenaPileWidth = portraitArena
     ? tabletPortraitArena
       ? 62
       : shortPortraitArena
         ? 40
         : 44
-    : compactPiles || shortRails
-      ? 56
-      : 72;
+    : shortLandscapePhone || shortNarrowDock
+      ? 44
+      : compactPiles || shortRails || dockViewerPiles
+        ? 56
+        : 72;
   const arenaPermanentWidth = portraitArena
     ? tabletPortraitArena
       ? 88
@@ -72,14 +89,17 @@ export function useArenaLayout(): ArenaLayout {
         : mediumPortraitArena
           ? 60
           : 76
-    : shortBoard
-      ? 76
-      : tightArena
-        ? 84
-        : compactArena
-          ? 100
-          : 116;
-  const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
+    : landscapePhone
+      ? shortLandscapePhone
+        ? 48
+        : LANDSCAPE_PHONE_PERMANENT_WIDTH
+      : shortBoard
+        ? 76
+        : tightArena
+          ? 84
+          : compactArena
+            ? 100
+            : 116;
   const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const collapseNotices = narrowGameLayout && !landscapePhone;
   return {
@@ -101,9 +121,11 @@ export function useArenaLayout(): ArenaLayout {
           : mediumPortraitArena
             ? 60
             : 76
-      : compactPiles
-        ? HAND_CARD_WIDTH_COMPACT
-        : 112,
+      : shortDock
+        ? 76
+        : compactPiles
+          ? HAND_CARD_WIDTH_COMPACT
+          : 112,
     handMinExposure: portraitArena || compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined,
   };
 }

@@ -42,6 +42,12 @@
     padding: 1rem 2rem !important;
     border: 0 !important;
     background: transparent !important;
+    /* The bar spans the board's top edge, over the opponent's trash; only its pieces take clicks. */
+    pointer-events: none;
+  }
+
+  .game-opponent-bar > * {
+    pointer-events: auto;
   }
 
   .game-opponent-identity {
@@ -57,16 +63,20 @@
     position: absolute;
     top: 0.75rem;
     left: 49.5%;
+    /* Centered, so it keeps clear of the widest side: the counters and the truncated
+       name on the left reach about 24.5rem into the bar. */
     width: min(
       calc(
         var(--arena-opponent-hand-count) * var(--arena-opponent-card-width) + (var(--arena-opponent-hand-count) - 1) *
           0.25rem
       ),
-      43vw
+      43vw,
+      100% - 49rem
     );
     height: var(--arena-opponent-card-height);
     gap: 0 !important;
     transform: translateX(-50%);
+    overflow: visible;
   }
 
   .game-opponent-hand > div {

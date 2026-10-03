@@ -5,8 +5,9 @@
    tall screen — the fanned hand ate half of it, the board fell off the bottom
    edge and the action strip collapsed to nothing. GameScreen's
    NARROW_LAYOUT_QUERY carries the same condition, so the touch sheets and the
-   strip come along with these rules. */
-@media (height < 520px) and (orientation: landscape) {
+   strip come along with these rules. A landscape window under 600px wide joins
+   them: no other landscape layout fits it, and it is roomier than a phone. */
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
   :root {
     --game-rail: 6.25rem;
     --hand-card-width: 3.5rem;
@@ -179,7 +180,7 @@
     display: grid !important;
     max-height: none;
     flex: none;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     overflow: hidden;
   }
   .game-breeding-dock {
@@ -212,6 +213,20 @@
     min-height: calc(var(--game-hand-h) + var(--ds-space-2));
     padding: 2px var(--ds-space-2) max(2px, env(safe-area-inset-bottom)) !important;
     overflow: hidden;
+  }
+  /* The counters take their own column at the strip's end, two by two: laid over
+     the hand they hid its last cards and its scroll cue. */
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    align-content: center;
+    gap: var(--ds-space-1);
+    padding: var(--ds-space-1) var(--ds-space-2);
+  }
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] .game-arena-counter {
+    width: 2.25rem;
+    height: 2.25rem;
   }
   .game-action-bar--idle {
     display: none !important;
