@@ -179,15 +179,16 @@ export async function runPlaceUnder(
       });
     }
     const byId = new Map(candidates.map((candidate) => [candidate.instanceId, candidate]));
-    for (const instanceId of [...orderedIds].reverse()) {
-      const candidate = byId.get(instanceId);
-      if (candidate?.kind === "egg") await ctx.fx.placeUnderFromEggDeck(self.permanentId, ctx.source.ownerSeat);
-      else if (candidate?.kind === "permanent")
-        await relocateByEffect(ctx, self.permanentId, candidate.permanentId, {
-          belowTop: false,
-          shedOwnCards: true,
-        });
-    }
+    if (ctx.fx.placeEggAndPermanentsUnder === undefined)
+      return unsupported(ctx, action, "simultaneous Digi-Egg and permanent placement");
+    await ctx.fx.placeEggAndPermanentsUnder(
+      self.permanentId,
+      orderedIds.flatMap((instanceId) => {
+        const candidate = byId.get(instanceId);
+        if (candidate === undefined) return [];
+        return [{ instanceId, ...(candidate.kind === "permanent" ? { permanentId: candidate.permanentId } : {}) }];
+      }),
+    );
     return;
   }
   if (action.mixedSources !== undefined) {

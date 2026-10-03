@@ -161,6 +161,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt25-beelstarmon-option-trash-trigger",
   "arena-bt20-last-guardian-omnimon-wipe",
   "arena-ex7-deputymon-option-trash-trigger",
+  "arena-bt22-leopardmon-king-drasil",
   "arena-bt13-king-drasil-source-count",
   "arena-bt13-omnimon-later-token-rush",
   "arena-st12-blanc-rush-second-attack",
@@ -3981,6 +3982,21 @@ function layBt20SaviorHuckmonEndTurnSistermonScenario(state: GameState, decks: r
   }
 }
 
+/** Reproduce Discord 1555978091187277945: Leopardmon gains memory before both Royal Knights leave. */
+function layLeopardmonKingDrasilScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  while (human.eggDeck.length > 0) takeTop(human, Zone.EggDeck);
+  const drasil = establishedDigimon(0, ["BT13-007"], "-leopardmon-drasil");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  // Discord 1555978091187277945, match c9c25632: both ACEs leave together.
+  placePermanent(human, establishedDigimon(0, ["BT20-060"], "-leopardmon-ouryuken"));
+  placePermanent(human, establishedDigimon(0, ["BT22-052"], "-leopardmon-ace"));
+  insertCard(human, Zone.Deck, faceDownCard("dev-leopardmon-neutral-draw", "BT1-085", 0), "top");
+}
+
 /**
  * Reproduce Discord bug 1554297556551340062: Omekamon's play registers King Drasil's reducer,
  * then its On Play adds a source. Jesmon must count all four sources (cost 4), not the three
@@ -4018,14 +4034,14 @@ function laySt12BlancRushSecondAttackScenario(state: GameState, decks: readonly 
   const drasil = establishedDigimon(0, ["BT20-102", "BT20-060", "BT22-052", "BT13-007"], "-blanc-rush-drasil");
   drasil.inBreeding = true;
   setBreeding(human, drasil);
-  human.hand.clear();
-  human.eggDeck.clear();
+  while (human.hand.length > 0) takeTop(human, Zone.Hand);
+  while (human.eggDeck.length > 0) takeTop(human, Zone.EggDeck);
   insertCard(human, Zone.EggDeck, faceDownCard("dev-blanc-rush-egg", "BT13-007", 0), "top");
   insertCard(human, Zone.Hand, faceDownCard("dev-blanc-rush-omnimon", "BT13-112", 0));
   insertCard(human, Zone.Hand, faceDownCard("dev-blanc-rush-blanc", "ST12-12", 0));
   // The turn draw supplies Blanc's optional hand-trash cost without a second play target.
   insertCard(human, Zone.Deck, faceDownCard("dev-blanc-rush-draw", "BT1-085", 0), "top");
-  opponent.security.clear();
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
   for (let index = 0; index < 3; index += 1) {
     insertCard(opponent, Zone.Security, faceDownCard(`dev-blanc-rush-security-${index}`, "EX13-017", 1));
   }
@@ -4939,6 +4955,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt25-beelstarmon-option-trash-trigger": layBt25BeelStarmonOptionTrashTriggerScenario,
   "arena-bt20-last-guardian-omnimon-wipe": layBt20LastGuardianOmnimonWipeScenario,
   "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
+  "arena-bt22-leopardmon-king-drasil": layLeopardmonKingDrasilScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
   "arena-st12-blanc-rush-second-attack": laySt12BlancRushSecondAttackScenario,
