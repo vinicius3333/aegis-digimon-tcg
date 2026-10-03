@@ -7,8 +7,11 @@ import type { Permanent } from "@aegis/shared";
 import { BattleRow, suspendedCardEdgeClearance } from "../../BattleRow";
 import { carryGroupKeys, type FieldArrangement, type PreviousPlacement } from "../model/fieldArrangement";
 import "../../style/fieldLayout.css";
+import { linkCardSlots } from "../../boardModel";
 
 const CARD_ASPECT = 1.4;
+/** The design's --ds-touch-target minimum also applies to each permanent's button wrapper. */
+const MIN_PERMANENT_HEIGHT = 44;
 const LANE_GAP = 2;
 /** The smallest Digimon stacked lanes shrink to, as a share of the layout's width. */
 const MIN_STACKED_SHRINK = 0.6;
@@ -194,25 +197,77 @@ interface LaneLayout {
 interface LaneContent {
   digimonCount: number;
   supportCount: number;
+  digimonSources?: number;
+  supportSources?: number;
+  digimonLinks?: number;
+  supportLinks?: number;
+  sourceTop?: number;
+  sourceStep?: number;
+}
+
+function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { digimon: 0, support: 0 }): LaneMetrics {
+  const base = LANE_METRICS[placement];
+  const sourceBottom = (count = 0) =>
+    count ? (content.sourceTop ?? 6) + (count - 1) * (content.sourceStep ?? 4) + 4 : 4;
+  const bottom = (sources: number | undefined, links = 0, width: number) => {
+    const artworkHeight = Math.ceil(width * CARD_ASPECT);
+    const frameHeight = Math.max(MIN_PERMANENT_HEIGHT, artworkHeight);
+    // A small card's sources can use the otherwise empty part of its touch target.
+    return Math.max(
+      4,
+      sourceBottom(sources) - (frameHeight - artworkHeight),
+      ...linkCardSlots(links, width).map((slot) => slot.top + slot.height - frameHeight + 4),
+    );
+  };
+  return {
+    ...base,
+    digimonPadding: { top: 22, bottom: bottom(content.digimonSources, content.digimonLinks, widths.digimon) },
+    supportPadding: { top: 22, bottom: bottom(content.supportSources, content.supportLinks, widths.support) },
+  };
+}
+
+/** Largest integral width whose complete painted lane fits. */
+function fittedWidth(ceiling: number, fits: (width: number) => boolean): number {
+  let low = 1;
+  let high = Math.floor(ceiling);
+  while (low < high) {
+    const mid = Math.ceil((low + high) / 2);
+    if (fits(mid)) low = mid;
+    else high = mid - 1;
+  }
+  return low;
+}
+function laneHeight(width: number, padding: { top: number; bottom: number }) {
+  return Math.max(MIN_PERMANENT_HEIGHT, Math.ceil(width * CARD_ASPECT)) + padding.top + padding.bottom;
 }
 
 /** Stacked widths, or undefined when stacking would shrink the Digimon past the floor. */
-function stackedLanes(rowHeight: number, layoutWidth: number): LaneLayout | undefined {
-  const { supportScale, digimonPadding, supportPadding } = LANE_METRICS[LanePlacement.Stacked];
-  const padding = digimonPadding.top + digimonPadding.bottom + supportPadding.top + supportPadding.bottom;
-  const fitted = (rowHeight - padding - LANE_GAP) / (CARD_ASPECT * (1 + supportScale));
-  if (fitted < layoutWidth * MIN_STACKED_SHRINK) return undefined;
-  const digimon = Math.round(Math.min(layoutWidth, fitted));
-  return { placement: LanePlacement.Stacked, digimon, support: Math.round(digimon * supportScale) };
+function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout | undefined {
+  const supportScale = LANE_METRICS[LanePlacement.Stacked].supportScale;
+  const digimon = fittedWidth(layoutWidth, (width) => {
+    const support = Math.floor(width * supportScale);
+    const metrics = laneMetrics(LanePlacement.Stacked, content, { digimon: width, support });
+    return (
+      laneHeight(width, metrics.digimonPadding) + laneHeight(support, metrics.supportPadding) + LANE_GAP <= rowHeight
+    );
+  });
+  if (digimon < layoutWidth * MIN_STACKED_SHRINK) return undefined;
+  return { placement: LanePlacement.Stacked, digimon, support: Math.floor(digimon * supportScale) };
 }
 
-function sideBySideLanes(rowHeight: number, layoutWidth: number): LaneLayout {
-  const { supportScale, digimonPadding, supportPadding } = LANE_METRICS[LanePlacement.SideBySide];
-  const digimonHeight = rowHeight - digimonPadding.top - digimonPadding.bottom;
-  const supportHeight = rowHeight - supportPadding.top - supportPadding.bottom;
-  const digimon = Math.round(Math.min(layoutWidth, digimonHeight / CARD_ASPECT));
-  const support = Math.round(Math.min(digimon * supportScale, supportHeight / CARD_ASPECT));
-  return { placement: LanePlacement.SideBySide, digimon, support };
+function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout {
+  const placement = LanePlacement.SideBySide;
+  const digimon = fittedWidth(
+    layoutWidth,
+    (width) =>
+      laneHeight(width, laneMetrics(placement, content, { digimon: width, support: 0 }).digimonPadding) <= rowHeight,
+  );
+  const support = fittedWidth(
+    digimon * LANE_METRICS[placement].supportScale,
+    (width) =>
+      laneHeight(width, laneMetrics(placement, content, { digimon, support: width }).supportPadding) <= rowHeight,
+  );
+  return { placement, digimon, support };
 }
 
 /**
@@ -225,34 +280,61 @@ export function fitLanes(
   layoutWidth: number,
   content: LaneContent,
 ): LaneLayout {
-  if (content.supportCount === 0 || row.height <= 0) {
+  if (row.height <= 0) {
     return {
       placement: LanePlacement.Stacked,
       digimon: layoutWidth,
       support: Math.round(layoutWidth * LANE_METRICS[LanePlacement.Stacked].supportScale),
     };
   }
-  const stacked = stackedLanes(row.height, layoutWidth);
-  return stacked ?? sideBySideLanes(row.height, layoutWidth);
+  if (content.supportCount === 0 || content.digimonCount === 0) {
+    const placement = LanePlacement.Stacked;
+    const digimon = fittedWidth(
+      layoutWidth,
+      (width) =>
+        laneHeight(width, laneMetrics(placement, content, { digimon: width, support: 0 }).digimonPadding) <= row.height,
+    );
+    const support = fittedWidth(
+      layoutWidth * LANE_METRICS[placement].supportScale,
+      (width) =>
+        laneHeight(width, laneMetrics(placement, content, { digimon: 0, support: width }).supportPadding) <= row.height,
+    );
+    return { placement, digimon, support };
+  }
+  const stacked = stackedLanes(row.height, layoutWidth, content);
+  return stacked ?? sideBySideLanes(row.height, layoutWidth, content);
 }
 
 function useRowSize() {
   const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [size, setSize] = useState({ width: 0, height: 0, sourceTop: 6, sourceStep: 4 });
+  function measure() {
+    const row = ref.current;
+    if (!row) return;
+    const style = getComputedStyle(row);
+    const sourceTop = Number.parseFloat(style.getPropertyValue("--arena-source-top")) || 6;
+    const sourceStep = Number.parseFloat(style.getPropertyValue("--arena-source-step")) || 4;
+    setSize((previous) =>
+      previous.width === row.clientWidth &&
+      previous.height === row.clientHeight &&
+      previous.sourceTop === sourceTop &&
+      previous.sourceStep === sourceStep
+        ? previous
+        : { width: row.clientWidth, height: row.clientHeight, sourceTop, sourceStep },
+    );
+  }
+  // Media-query renders can precede ResizeObserver delivery, especially in background tabs.
+  useLayoutEffect(measure);
   useLayoutEffect(() => {
     const row = ref.current;
     if (!row) return;
-    const measure = () =>
-      setSize((previous) =>
-        previous.width === row.clientWidth && previous.height === row.clientHeight
-          ? previous
-          : { width: row.clientWidth, height: row.clientHeight },
-      );
-    measure();
-    if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(row);
-    return () => observer.disconnect();
+    const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(measure);
+    observer?.observe(row);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
   return { ref, size };
 }
@@ -295,11 +377,26 @@ export function OrganizedBattleRow({
       (!keysBefore.has(fieldKey) && members.some((member) => previous.current.has(member.permanentId))),
   });
   const hasSupport = arrangement.support.length > 0;
-  const lanes = fitLanes(size, layoutWidth, {
+  const content = {
     digimonCount: arrangement.digimon.length,
     supportCount: arrangement.support.length,
-  });
-  const metrics = LANE_METRICS[lanes.placement];
+    digimonSources: Math.max(0, ...arrangement.digimon.map((permanent) => permanent.stack.length)),
+    supportSources: Math.max(
+      0,
+      ...arrangement.support.flatMap((group) => group.members.map((permanent) => permanent.stack.length)),
+    ),
+    digimonLinks: Math.max(0, ...arrangement.digimon.map((permanent) => permanent.linked.length)),
+    supportLinks: Math.max(
+      0,
+      ...arrangement.support.flatMap((group) => group.members.map((permanent) => permanent.linked.length)),
+    ),
+    sourceTop: size.sourceTop,
+    sourceStep: size.sourceStep,
+  };
+  const lanes = fitLanes(size, layoutWidth, content);
+  const metrics = laneMetrics(lanes.placement, content, lanes);
+  const edge = (width: number, sources: number) =>
+    Math.max(suspendedCardEdgeClearance(width), sources ? 12 + (sources - 1) * size.sourceStep : 22);
   const digimonCards = arrangement.digimon.map((permanent) => card([permanent], permanent.permanentId, lanes.digimon));
   const supportCards = carryGroupKeys(arrangement.support, previous.current, isSuspended).map((group) =>
     card(group.members, group.key, lanes.support),
@@ -316,7 +413,7 @@ export function OrganizedBattleRow({
       className="game-battle-row game-battle-lane game-battle-lane--digimon"
       role="group"
       aria-label={digimonLabel}
-      edgeClearance={suspendedCardEdgeClearance(lanes.digimon)}
+      edgeClearance={edge(lanes.digimon, content.digimonSources)}
       style={{
         flex: lanes.placement === LanePlacement.Stacked ? "1 1 auto" : "0 1 auto",
         minHeight: 0,
@@ -324,7 +421,10 @@ export function OrganizedBattleRow({
         gap: Math.round(lanes.digimon * 0.2),
         justifyContent: "safe center",
         alignItems: "center",
-        padding: `${metrics.digimonPadding.top}px 12px ${metrics.digimonPadding.bottom}px`,
+        ...({
+          "--field-lane-top": `${metrics.digimonPadding.top}px`,
+          "--field-lane-bottom": `${metrics.digimonPadding.bottom}px`,
+        } as React.CSSProperties),
       }}
     >
       {arrangement.digimon.length === 0 && !hasSupport ? emptyLabel : null}
@@ -338,14 +438,17 @@ export function OrganizedBattleRow({
       className="game-battle-row game-battle-lane game-battle-lane--support"
       role="group"
       aria-label={supportLabel}
-      edgeClearance={suspendedCardEdgeClearance(lanes.support)}
+      edgeClearance={edge(lanes.support, content.supportSources)}
       style={{
         flex: "0 1 auto",
         display: "flex",
         gap: Math.round(lanes.support * 0.3),
         justifyContent: "safe center",
         alignItems: "center",
-        padding: `${metrics.supportPadding.top}px 12px ${metrics.supportPadding.bottom}px`,
+        ...({
+          "--field-lane-top": `${metrics.supportPadding.top}px`,
+          "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
+        } as React.CSSProperties),
       }}
     >
       {supportCards.map(renderCard)}
@@ -360,7 +463,9 @@ export function OrganizedBattleRow({
       data-lanes={lanes.placement}
       style={{ ...rowProps.style, gap: LANE_GAP }}
     >
-      {supportFirst ? [supportLane, digimonLane] : [digimonLane, supportLane]}
+      {supportFirst
+        ? [supportLane, content.digimonCount || !hasSupport ? digimonLane : null]
+        : [content.digimonCount || !hasSupport ? digimonLane : null, supportLane]}
     </div>
   );
 }

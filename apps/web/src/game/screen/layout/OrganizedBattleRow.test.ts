@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { fitLanes, LanePlacement } from "./OrganizedBattleRow";
+import { linkCardSlots } from "../../boardModel";
 
 const crowded = { digimonCount: 6, supportCount: 6 };
 
 describe("fitLanes", () => {
-  it("keeps the layout's width when nothing goes in the support lane", () => {
-    expect(fitLanes({ width: 900, height: 120 }, 116, { digimonCount: 6, supportCount: 0 })).toEqual({
+  it("keeps the layout's width when a single lane has enough height", () => {
+    expect(fitLanes({ width: 900, height: 200 }, 116, { digimonCount: 6, supportCount: 0 })).toMatchObject({
       placement: LanePlacement.Stacked,
       digimon: 116,
-      support: 72,
     });
   });
 
@@ -30,12 +30,42 @@ describe("fitLanes", () => {
   });
 
   it("keeps the same lanes and card sizes when copies split or merge", () => {
-    const lanes = fitLanes({ width: 1600, height: 160 }, 84, { digimonCount: 3, supportCount: 2 });
+    const lanes = fitLanes({ width: 1600, height: 180 }, 84, { digimonCount: 3, supportCount: 2 });
     expect(lanes.placement).toBe(LanePlacement.Stacked);
-    expect(lanes).toEqual(fitLanes({ width: 1600, height: 160 }, 84, crowded));
+    expect(lanes).toEqual(fitLanes({ width: 1600, height: 180 }, 84, crowded));
   });
 
   it("stays stacked when side by side would push cards out of sight", () => {
-    expect(fitLanes({ width: 778, height: 160 }, 84, crowded).placement).toBe(LanePlacement.Stacked);
+    expect(fitLanes({ width: 778, height: 180 }, 84, crowded).placement).toBe(LanePlacement.Stacked);
+  });
+
+  it("reserves the Yoshino source fan and badges in both stacked lanes", () => {
+    const lanes = fitLanes({ width: 900, height: 245 }, 116, {
+      ...crowded,
+      digimonSources: 3,
+      supportSources: 4,
+      sourceTop: 6,
+      sourceStep: 4,
+    });
+    expect(lanes.placement).toBe(LanePlacement.Stacked);
+    expect(lanes.digimon * 1.4 + lanes.support * 1.4 + 22 + 18 + 22 + 22 + 2).toBeLessThanOrEqual(245);
+  });
+
+  it("fits a short row even when it contains only Digimon", () => {
+    const lanes = fitLanes({ width: 900, height: 90 }, 116, { digimonCount: 3, supportCount: 0, digimonSources: 6 });
+    expect(lanes.digimon * 1.4 + 22 + 30).toBeLessThanOrEqual(90);
+  });
+
+  it("reserves both linked cards below Vulcanusmon in a short single lane", () => {
+    const lanes = fitLanes({ width: 900, height: 90 }, 116, {
+      digimonCount: 1,
+      supportCount: 0,
+      digimonLinks: 2,
+    });
+    const paintedBottom = Math.max(
+      lanes.digimon * 1.4,
+      ...linkCardSlots(2, lanes.digimon).map((slot) => slot.top + slot.height),
+    );
+    expect(paintedBottom + 22 + 4).toBeLessThanOrEqual(90);
   });
 });

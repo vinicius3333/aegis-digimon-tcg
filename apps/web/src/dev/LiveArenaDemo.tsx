@@ -748,6 +748,7 @@ export function LiveArenaDemo() {
         <label className="aegis-arena-demo-field">
           <span className="aegis-arena-demo-field-label">{portuguese ? "Cenário" : "Scenario"}</span>
           <select
+            aria-label={portuguese ? "Cenário" : "Scenario"}
             value={scenario}
             onChange={(event) => {
               setScenario(event.target.value as DevScenario);
@@ -768,7 +769,7 @@ export function LiveArenaDemo() {
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}
         </a>
-        <details className="aegis-arena-live-instructions" open>
+        <details className="aegis-arena-live-instructions">
           <summary>{portuguese ? "Instruções do cenário" : "Scenario instructions"}</summary>
           <p tabIndex={0}>{portuguese ? note.ptBR : note.en}</p>
         </details>

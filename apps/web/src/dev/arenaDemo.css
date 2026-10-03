@@ -290,8 +290,9 @@
 
 /* Live scenarios have long instructions and text controls, unlike visual playback. */
 .aegis-arena-live-toolbar {
+  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
   height: auto;
   gap: 0.5rem 0.75rem;
   padding: 0.75rem 1rem;
@@ -311,10 +312,7 @@
   white-space: nowrap;
 }
 .aegis-arena-live-instructions {
-  grid-column: 1 / -1;
   min-width: 0;
-  border-top: 1px solid var(--demo-border);
-  padding-top: 0.5rem;
   line-height: 1.5;
 }
 .aegis-arena-live-instructions summary {
@@ -323,8 +321,17 @@
   font-weight: 700;
 }
 .aegis-arena-live-instructions p {
+  position: absolute;
+  top: 100%;
+  left: 0.5rem;
+  right: 0.5rem;
+  z-index: 10001;
   max-height: 22dvh;
-  margin: 0.375rem 0 0;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--demo-border);
+  border-radius: var(--ds-radius-md);
+  background: #122835;
   overflow: auto;
   overflow-wrap: anywhere;
   color: var(--demo-muted);
@@ -333,14 +340,47 @@
   outline: 2px solid #f0fbff;
   outline-offset: 3px;
 }
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 519px) and (orientation: landscape) {
   .aegis-arena-live-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) repeat(3, auto);
     padding: 0.5rem;
     font-size: 0.75rem;
   }
   .aegis-arena-live-toolbar > strong,
-  .aegis-arena-live-toolbar .aegis-arena-demo-field {
-    grid-column: 1 / -1;
+  .aegis-arena-live-toolbar .aegis-arena-demo-field-label {
+    display: none;
+  }
+  .aegis-arena-live-toolbar :is(.aegis-arena-demo-replay, .aegis-arena-demo-back),
+  .aegis-arena-live-instructions summary {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: grid;
+    place-items: center;
+    font-size: 0;
+    padding: 0;
+  }
+  .aegis-arena-live-toolbar .aegis-arena-demo-replay::before {
+    content: "↻";
+    font-size: 1.25rem;
+  }
+  .aegis-arena-live-toolbar .aegis-arena-demo-back::before {
+    content: "↗";
+    font-size: 1.25rem;
+  }
+  .aegis-arena-live-instructions summary::before {
+    content: "?";
+    font-size: 1rem;
+  }
+}
+
+/* A demo toolbar shares the short landscape viewport with the real board. */
+@media (height < 360px) and (orientation: landscape) {
+  .aegis-arena-demo-toolbar {
+    height: 2.75rem;
+    padding-block: 0;
+  }
+  .aegis-arena-demo {
+    --hand-card-width: 34px;
+    --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-1));
   }
 }

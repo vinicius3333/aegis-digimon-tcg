@@ -6,6 +6,7 @@
 .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
   display: flex !important;
   flex-direction: column;
+  gap: 2px !important;
   align-items: stretch !important;
   justify-content: center !important;
   padding: 0 !important;
@@ -22,6 +23,11 @@
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   scroll-snap-type: none;
+}
+
+/* Short-screen row rules must not replace the space the fitter reserved for sources. */
+.game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] > .game-battle-lane {
+  padding: var(--field-lane-top) 12px var(--field-lane-bottom) !important;
 }
 
 .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane::-webkit-scrollbar {
@@ -80,6 +86,9 @@
 /* The row animates positions after layout. Animated margins would keep moving the
    destination underneath that flight, then jump when the flight finishes. */
 .game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
+  /* Selecting a hand card can remove role=button from an ineligible base.
+     Keep the frame used by the fitter stable through that interaction. */
+  min-height: var(--ds-touch-target);
   transition:
     transform 160ms,
     opacity 160ms !important;
