@@ -53,4 +53,21 @@ describe("demonstration labels", () => {
     expect(windows[1]!.teacher).toEqual({ action: null });
     expect(windows[0]!.teacher).toBeUndefined();
   });
+
+  it.each(["Decline Assembly", "Finish Assembly", "Finish selection"])(
+    "maps a completed selection to the reference-free %s marker",
+    (label) => {
+      const window = selection([]);
+      window.actions[2]!.label = label;
+      expect(
+        teacherActionIndex(window, {
+          type: "respondDecision",
+          decisionId: "D",
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toBe(2);
+      expect(window.actions[0]!.sourceId).toBe("A");
+      expect(window.actions[1]!.sourceId).toBe("B");
+    },
+  );
 });

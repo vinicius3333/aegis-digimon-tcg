@@ -2,21 +2,32 @@ import { describe, expect, it } from "vitest";
 import type { Seat } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { buildBotView } from "../view.js";
+import { createEvaluationPolicy, type BotPolicy } from "../policy.js";
 import { mainActionReady, mainActions } from "./actions.js";
 import { createAsyncTrainingPolicy, type TrainingWindow } from "./policy.js";
 import "../../cards/index.js";
 
 type Choose = (window: TrainingWindow) => number;
 
-async function resolveMain(setup: EngineSetup, seat: Seat, choose: Choose): Promise<TrainingWindow[]> {
+async function resolveMain(
+  setup: EngineSetup,
+  seat: Seat,
+  choose: Choose,
+  teacher?: BotPolicy,
+): Promise<TrainingWindow[]> {
   const windows: TrainingWindow[] = [];
-  const policy = createAsyncTrainingPolicy(setup.engine, seat, async (window) => {
-    await Promise.resolve();
-    windows.push(window);
-    const index = choose(window);
-    expect({ kind: window.kind, index }).not.toEqual({ kind: window.kind, index: -1 });
-    return index;
-  });
+  const policy = createAsyncTrainingPolicy(
+    setup.engine,
+    seat,
+    async (window) => {
+      await Promise.resolve();
+      windows.push(window);
+      const index = choose(window);
+      expect({ kind: window.kind, index }).not.toEqual({ kind: window.kind, index: -1 });
+      return index;
+    },
+    teacher,
+  );
   expect(setup.engine.applyIntent(seat, await policy.chooseMainAction(buildBotView(setup.state, seat)!))).toEqual({
     ok: true,
   });
@@ -252,9 +263,15 @@ describe("Assembly through the asynchronous training policy", () => {
     expect(mainActions(setup.engine, 0).map(({ label }) => label)).toEqual(["End main phase", "Play or use card"]);
   });
 
-  it.each(([0, 1] as const).flatMap((seat) => [true, false].map((assemble) => ({ seat, assemble }))))(
-    "BT26-096 effect play offers BT26-073 Assembly seat=$seat assemble=$assemble",
-    async ({ seat, assemble }) => {
+  it.each(
+    ([0, 1] as const).flatMap((seat) => [
+      { seat, assemble: true, useTeacher: false },
+      { seat, assemble: false, useTeacher: false },
+      { seat, assemble: false, useTeacher: true },
+    ]),
+  )(
+    "BT26-096 effect play offers BT26-073 Assembly seat=$seat assemble=$assemble teacher=$useTeacher",
+    async ({ seat, assemble, useTeacher }) => {
       const setup = setupEngine({
         [seat]: {
           hand: [{ card: "BT26-073", as: "played" }],
@@ -271,27 +288,36 @@ describe("Assembly through the asynchronous training policy", () => {
       await setup.ready();
       const played = setup.inst("played").instanceId;
       const material = setup.inst("material").instanceId;
-      const windows = await resolveMain(setup, seat, (window) => {
-        if (window.kind === "main") return window.actions.findIndex(({ intent }) => intent.type === "activateEffect");
-        if (materialWindows([window]).length > 0) {
-          if (!assemble) return window.actions.findIndex(({ label }) => label === "Decline Assembly");
-          return window.selected.length === 0
-            ? window.actions.findIndex(({ sourceId }) => sourceId === material)
-            : window.actions.findIndex(({ label }) => label === "Finish Assembly");
-        }
-        if (window.request?.sourceCardId === "BT26-096" && window.kind !== "optional")
-          return window.selected.length === 0
-            ? window.actions.findIndex(({ sourceId }) => sourceId === played)
-            : window.actions.findIndex(({ label }) => label === "Finish selection");
-        if (window.request?.sourceCardId === "BT26-096")
-          return window.actions.findIndex(({ label }) => label === "Accept");
-        return declineOther(window);
-      });
+      const windows = await resolveMain(
+        setup,
+        seat,
+        (window) => {
+          if (window.kind === "main") return window.actions.findIndex(({ intent }) => intent.type === "activateEffect");
+          if (materialWindows([window]).length > 0) {
+            if (useTeacher) return window.teacher?.action ?? -1;
+            if (!assemble) return window.actions.findIndex(({ label }) => label === "Decline Assembly");
+            return window.selected.length === 0
+              ? window.actions.findIndex(({ sourceId }) => sourceId === material)
+              : window.actions.findIndex(({ label }) => label === "Finish Assembly");
+          }
+          if (window.request?.sourceCardId === "BT26-096" && window.kind !== "optional")
+            return window.selected.length === 0
+              ? window.actions.findIndex(({ sourceId }) => sourceId === played)
+              : window.actions.findIndex(({ label }) => label === "Finish selection");
+          if (window.request?.sourceCardId === "BT26-096")
+            return window.actions.findIndex(({ label }) => label === "Accept");
+          return declineOther(window);
+        },
+        useTeacher ? createEvaluationPolicy() : undefined,
+      );
       expect(
         materialWindows(windows).map((window) =>
           window.actions.map(({ label, sourceId }) => (label === "Assembly material" ? sourceId : label)),
         ),
       ).toEqual(assemble ? [[material, "Decline Assembly"], ["Finish Assembly"]] : [[material, "Decline Assembly"]]);
+      expect(materialWindows(windows).map((window) => window.teacher?.action)).toEqual(
+        useTeacher ? [1] : assemble ? [undefined, undefined] : [undefined],
+      );
       const unit = setup.state.players[seat]!.battleArea.find(({ topCard }) => topCard.instanceId === played)!;
       expect(unit.stack.map(({ instanceId }) => instanceId)).toEqual(assemble ? [material] : []);
       expect(setup.state.memory).toBe(assemble ? 6 : 4);

@@ -13,7 +13,9 @@ export function teacherActionIndex(window: TrainingWindow, intent: Intent): numb
       if (window.selected.some((id, index) => id !== order[index])) return undefined;
       const next = order[window.selected.length];
       const index = window.actions.findIndex((action) =>
-        next === undefined ? action.label === "Finish selection" : action.sourceId === next,
+        // Finish and decline markers have no material reference. Assembly uses its own
+        // labels, but the teacher's empty selection has the same meaning there.
+        next === undefined ? action.sourceId === undefined : action.sourceId === next,
       );
       return index < 0 ? undefined : index;
     }
