@@ -33,6 +33,12 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
       { level: 5, texts: ["Three Musketeers"], cost: 4, isAlternate: true },
       { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
     ]);
+    for (const trigger of ["WhenDigivolving", "Counter"]) {
+      expect(ir?.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "RevealAdd",
+        add: [{ payCost: false, orDispositions: [{ to: "useOption" }] }],
+      });
+    }
   });
 
   it("digivolves off an off-color Lv.5 with the [TS] trait but not off a plain Lv.5", async () => {
@@ -129,6 +135,65 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("EX7-059");
     expect(s.state.players[0]!.deck).toHaveLength(5);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("Discord 1555848735278239744: uses revealed P-180 without paying its six-memory cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: CARD_ID, as: "gundramon" }],
+          deck: deckWith("P-180"),
+        },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, declinePrompts: ["By trashing"] },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gundramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.effectKey.includes("reveal-six"),
+        ) && s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("base").stack.some((card) => card.cardId === "P-180")).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+    expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "useOption")).toEqual([]);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("still pays P-180's six-memory cost when used normally from hand", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "gundramon" }], hand: [{ card: "P-180", as: "option" }] },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "P-180") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("gundramon").stack.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: 7, to: 1, reason: "playCard" });
     expect(s.state.memory).toBe(1);
   });
 
@@ -378,9 +443,7 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
     await settle(() => s.state.players[0]!.security.length >= 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.perm("gundramon").stack.map(({ instanceId }) => instanceId)).not.toContain(
-      s.inst("musketeer").instanceId,
-    );
+    expect(s.perm("gundramon").stack.map(({ instanceId }) => instanceId)).not.toContain(s.inst("musketeer").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("musketeer").instanceId);
   });
 
