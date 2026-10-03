@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CardColor, CardKind } from "@aegis/shared";
+import { CardColor, CardKind, allCards } from "@aegis/shared";
 import { readableEffectText } from "./CardDetailDrawer";
 import {
   matchesColorFilter,
@@ -57,12 +57,20 @@ describe("card level and trait filtering", () => {
     expect(matchesCostFilter(-1, [])).toBe(true);
   });
 
-  it("matches traits and attributes, but nothing else", () => {
+  it("matches printed traits and attributes, but not absent values", () => {
     const card = { types: ["Xros Heart"], attributes: ["Vaccine"] };
 
     expect(matchesTraitOrAttributeFilter(card, "xros")).toBe(true);
     expect(matchesTraitOrAttributeFilter(card, "VACC")).toBe(true);
     expect(matchesTraitOrAttributeFilter(card, "rookie")).toBe(false);
+  });
+
+  it("1555813766040391700: discovers every catalog form as a trait", () => {
+    for (const card of allCards()) {
+      for (const form of card.forms ?? []) {
+        expect(matchesTraitOrAttributeFilter(card, form), `${card.cardId}: ${form}`).toBe(true);
+      }
+    }
   });
 
   it("matches the selected rarity exactly", () => {
