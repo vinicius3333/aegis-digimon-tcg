@@ -41,6 +41,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-alliance-20",
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
+  "arena-bt11-rina-ulforce-effect-choice",
   "arena-ex3-wingdramon-evade-suspend-lock",
   "arena-ex13-wingdramon-evade-suspend-lock",
   "arena-bt20-grademon-redirect",
@@ -2190,6 +2191,31 @@ function layBt11RinaUlforceImmunityScenario(state: GameState, decks: readonly [D
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** Discord bug 1555770458866065499: distinguish Ulforce's two borrowed digivolution effects. */
+function layBt11RinaUlforceEffectChoiceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT11-112"], "-rina-choice-tamer"));
+    placePermanent(human, establishedDigimon(0, ["EX13-023"], "-rina-choice-ulforce"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-013"], "-rina-choice-fewest"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-001", "BT1-011"], "-rina-choice-stacked"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /**
@@ -4400,6 +4426,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
+  "arena-bt11-rina-ulforce-effect-choice": layBt11RinaUlforceEffectChoiceScenario,
   "arena-ex3-wingdramon-evade-suspend-lock": layEx3WingdramonEvadeSuspendLockScenario,
   "arena-ex13-wingdramon-evade-suspend-lock": layEx13WingdramonEvadeSuspendLockScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,

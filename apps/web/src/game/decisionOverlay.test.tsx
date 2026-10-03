@@ -39,7 +39,7 @@ it("renders each Monarchlizamon trigger's authoritative clause instead of repeat
   expect(screen.getByText(/This Digimon may battle 1 of your opponent's Digimon/)).toBeTruthy();
 });
 
-it("shows each borrowable effect as its card and full printed clause", () => {
+it("Discord 1555770458866065499: shows each borrowable effect as its full printed clause", () => {
   const { onRespond } = renderDecision({
     decisionId: "rina-activates-ulforce",
     seat: 0,
@@ -66,7 +66,12 @@ it("shows each borrowable effect as its card and full printed clause", () => {
   ).toBeTruthy();
   expect(screen.queryByText(/Until the end of your opponent's turn/)).toBeNull();
   expect(screen.getByText(/activate 1 of that Digimon's \[When Digivolving\] effects/)).toBeTruthy();
-  fireEvent.click(screen.getAllByRole("button", { name: /\[When Digivolving\], UlforceVeedramon/ })[1]!);
+  const effectButtons = screen.getAllByRole("button", { name: /\[When Digivolving\], UlforceVeedramon/ });
+  expect(within(effectButtons[0]!).getByText(/1 of your Digimon may change orientation/)).toBeTruthy();
+  expect(within(effectButtons[0]!).queryByText(/You may return all/)).toBeNull();
+  expect(within(effectButtons[1]!).getByText(/You may return all/)).toBeTruthy();
+  expect(within(effectButtons[1]!).queryByText(/1 of your Digimon may change orientation/)).toBeNull();
+  fireEvent.click(effectButtons[1]!);
   expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
 });
 
