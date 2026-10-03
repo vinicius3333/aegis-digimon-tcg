@@ -240,6 +240,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação. Evolua o seu Agumon para EX7-010 Deputymon da mão: custo 2, a memória vai de 5 para 3. Aceite o [Ao Digivolver] e descarte P-180 Bind Red Trigger das fontes do seu Monodramon. O efeito de Bind Red Trigger ativa e deleta o Muchomon do bot (5000 DP).",
     en: "End breeding. Digivolve your Agumon into EX7-010 Deputymon from hand: cost 2, memory goes from 5 to 3. Accept its [When Digivolving] and trash P-180 Bind Red Trigger from your Monodramon's sources. Bind Red Trigger's effect activates and deletes the bot's Muchomon (5000 DP).",
   },
+  "arena-bt22-leopardmon-king-drasil": {
+    ptBR: "A criação passa automaticamente. No início da Principal, King Drasil coloca Ouryuken ACE BT20-060 e Leopardmon ACE BT22-052 embaixo de si. Escolha Ouryuken como posição 1 (mais perto do fundo), depois Leopardmon. As duas saídas são simultâneas: Leopardmon deve ganhar 2 de memória antes de sair, de 3 para 5, em qualquer ordem das fontes. Ambos ficam embaixo de Drasil; não há Overflow.",
+    en: "Breeding skips automatically. At the start of Main, King Drasil places Ouryuken ACE BT20-060 and Leopardmon ACE BT22-052 under itself. Choose Ouryuken as position 1 (nearest the bottom), then Leopardmon. Both leave simultaneously: Leopardmon must gain 2 memory before leaving, from 3 to 5, regardless of stack order. Both stay under Drasil; no Overflow applies.",
+  },
   "arena-bt13-king-drasil-source-count": {
     ptBR: "O turno abre direto na Principal: King Drasil_7D6 já colocou o Digi-Ovo do topo embaixo de si e tem 3 fontes. Jogue Omekamon (memória 10 para 5) e, no Ao Jogar, coloque Kentaurosmon embaixo de King Drasil: agora são 4 fontes. Jogue Jesmon e aceite a redução: o custo 12 cai 4 + 4 e a memória vai de 5 para 1, não para 0.",
     en: "The turn opens in Main: King Drasil_7D6 has already placed the top Digi-Egg under itself and holds 3 sources. Play Omekamon (memory 10 to 5) and, on its On Play, place Kentaurosmon under King Drasil: it now holds 4 sources. Play Jesmon and accept the reduction: cost 12 falls by 4 + 4 and memory goes from 5 to 1, not to 0.",
@@ -736,6 +740,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt25-beelstarmon-option-trash-trigger", "BT25 BeelStarmon · unsuspend cost fires the Option's trash effect"],
   ["arena-bt20-last-guardian-omnimon-wipe", "BT20 The Last Guardian · Delay vs Omnimon (X Antibody) wipe"],
   ["arena-ex7-deputymon-option-trash-trigger", "EX7 Deputymon · trashed Option source fires its effect"],
+  ["arena-bt22-leopardmon-king-drasil", "BT22 Leopardmon ACE · King Drasil simultaneous leave"],
   ["arena-bt13-king-drasil-source-count", "BT13 King Drasil · source count after an earlier play"],
   ["arena-bt13-omnimon-later-token-rush", "BT13 Omnimon · Rush reaches a later token"],
   ["arena-st12-blanc-rush-second-attack", "ST12 Blanc · Rush second attack after Ouryuken"],
