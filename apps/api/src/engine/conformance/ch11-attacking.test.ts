@@ -212,44 +212,26 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
     expect(attacker.isSuspended).toBe(true);
   });
 
-  it("11-2-3: 1 Digimon can perform only 1 attack per turn — a second declaration with the same attacker is rejected", async () => {
+  it("11-2-3: one Digimon attacks per declaration; a suspended attacker cannot declare again", async () => {
     cite(
       "comprehensive-0144",
-      "11-2-3 1 Digimon can perform 1 attack for an attack declaration; multiple attacks aren't allowed",
+      "11-2-3 1 Digimon can perform 1 attack for an attack declaration; multiple Digimon cannot attack simultaneously",
       "251b9f815395e68eb7cb8e60e2415c5b1e8b2348a6a5c74d38459a29a4ca363a",
     );
-
-    // Driven directly against the pure `validateAttack` (actions/attack.ts) with a hand-built
-    // AttackDeps, rather than through the full GameEngine: a real attack's own resolution
-    // re-checks the turn-end condition immediately (checkTurnEndAfterVerb), which is an
-    // unrelated concern this test must not become entangled with. `attackedThisTurn` is the
-    // exact seam attack.ts documents for §11-2-3 ("each Digimon may attack at most once per
-    // turn"), so this drives it directly.
-    const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 5000, as: "attacker" }] } });
-    const attacker = s.perm("attacker");
-    const access = new GameStateAccess(s.state);
-    const combat = (s.engine as unknown as { combat: { isAttacking: boolean; resolveAttack: unknown } }).combat;
-    const deps = {
-      state: s.state,
-      access,
-      combat: combat as never,
-      onCombatError: () => {},
-      attackedThisTurn: new Set([attacker.permanentId]), // this permanent already attacked this turn
+    const s = setup({
+      0: { battleArea: [{ card: DIGIMON_A, dp: 5000, as: "attacker" }] },
+      1: { security: ["BT1-010", "BT1-010"] },
+    });
+    const intent = {
+      type: "attack" as const,
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" as const },
     };
-
-    const secondReason = validateAttack(deps, 0, {
-      attackerPermanentId: attacker.permanentId,
-      target: { kind: "player" },
-    });
-    expect(secondReason).toBe("illegal-target");
-
-    // The same attacker, WITHOUT the attackedThisTurn membership, is legal — isolating the cap
-    // as the actual cause of the rejection above (not suspension or any other guard).
-    const withoutCap = validateAttack({ ...deps, attackedThisTurn: new Set() }, 0, {
-      attackerPermanentId: attacker.permanentId,
-      target: { kind: "player" },
-    });
-    expect(withoutCap).toBeNull();
+    expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackEnded"));
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, intent)).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("11-2-4: a new attack declaration can't be made while another attack is mid-resolution", async () => {

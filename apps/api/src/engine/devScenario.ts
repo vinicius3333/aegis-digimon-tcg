@@ -156,6 +156,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-deputymon-option-trash-trigger",
   "arena-bt13-king-drasil-source-count",
   "arena-bt13-omnimon-later-token-rush",
+  "arena-st12-blanc-rush-second-attack",
   "arena-bt24-hyogamon-pending-trash-digivolve",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
@@ -3820,6 +3821,32 @@ function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly 
  * Drasil_7D6, and Jesmon's trigger plays an [Atho, René & Por] Token after Omnimon's effect has
  * resolved. "All of your Digimon gain <Rush> for the turn" must reach that later token too.
  */
+/**
+ * Discord 1555876325355421716, match 59c38adc, 09:33:01 UTC: Leopardmon plays
+ * Blanc after Omnimon's Royal Knights play. Omnimon X attacks with Blanc without
+ * suspending; Ouryuken returns memory and Blanc must retain a normal attack.
+ */
+function laySt12BlancRushSecondAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 5);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  const drasil = establishedDigimon(0, ["BT20-102", "BT20-060", "BT22-052", "BT13-007"], "-blanc-rush-drasil");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  human.hand.clear();
+  human.eggDeck.clear();
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-blanc-rush-egg", "BT13-007", 0), "top");
+  insertCard(human, Zone.Hand, faceDownCard("dev-blanc-rush-omnimon", "BT13-112", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-blanc-rush-blanc", "ST12-12", 0));
+  // The turn draw supplies Blanc's optional hand-trash cost without a second play target.
+  insertCard(human, Zone.Deck, faceDownCard("dev-blanc-rush-draw", "BT1-085", 0), "top");
+  opponent.security.clear();
+  for (let index = 0; index < 3; index += 1) {
+    insertCard(opponent, Zone.Security, faceDownCard(`dev-blanc-rush-security-${index}`, "EX13-017", 1));
+  }
+}
+
 function layBt13OmnimonLaterTokenRushScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 10);
   const human = state.players[0];
@@ -4702,6 +4729,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-deputymon-option-trash-trigger": layEx7DeputymonOptionTrashTriggerScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
+  "arena-st12-blanc-rush-second-attack": laySt12BlancRushSecondAttackScenario,
   "arena-bt24-hyogamon-pending-trash-digivolve": layBt24HyogamonPendingTrashDigivolveScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
