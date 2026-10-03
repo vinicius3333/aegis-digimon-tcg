@@ -13,6 +13,7 @@ import { attackTargetIdsOf } from "../../boardModel";
 import { arrangeField } from "../model/fieldArrangement";
 import { OrganizedBattleRow, type OrganizedCard } from "./OrganizedBattleRow";
 import { isSingledOut } from "./singledOut";
+import { groupChrome } from "./groupChrome";
 import type { DropTarget } from "../../dragIntents";
 import type { PermanentChrome } from "../types";
 
@@ -86,21 +87,14 @@ export function OpponentBattleRow({
           ...dropIntentAttrs("perm-opp", p.permanentId),
         }}
         candidate={isCandidate(p)}
-        effectSource={chrome.effectSourcePermanentIds.has(p.permanentId)}
-        effectLinked={chrome.effectLinkedPermanentIds.has(p.permanentId)}
+        {...groupChrome(members, chrome)}
         highlight={
           chrome.decisionHighlightPermanentId === p.permanentId ||
           chrome.decisionPickedInstanceIds.has(p.permanentId) ||
           chrome.decisionPickedInstanceIds.has(p.topCard.instanceId)
         }
-        burst={chrome.permanentBursts.get(p.permanentId)}
         pending={chrome.pendingPermanentIds.has(p.permanentId)}
         fate={chrome.fateBadges.get(p.permanentId)}
-        shake={chrome.combatImpactIds.has(p.permanentId)}
-        claw={chrome.combatImpactIds.has(p.permanentId)}
-        dpPulse={chrome.dpPulses.get(p.permanentId)}
-        dpBadgeSuppressed={chrome.dpBadgeSuppressedIds.has(p.permanentId)}
-        freezePulse={chrome.freezePulses.get(p.permanentId)}
         lunge={chrome.attackLunge?.permanentId === p.permanentId ? chrome.attackLunge.direction : undefined}
         heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
         suspendDelayMs={chrome.suspendDelayMs(playOrder.get(p.permanentId) ?? 0)}

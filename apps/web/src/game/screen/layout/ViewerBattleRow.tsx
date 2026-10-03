@@ -14,6 +14,7 @@ import { PermanentView, type DropAttrs } from "../../piece";
 import { arrangeField } from "../model/fieldArrangement";
 import { OrganizedBattleRow, type OrganizedCard } from "./OrganizedBattleRow";
 import { isSingledOut } from "./singledOut";
+import { groupChrome } from "./groupChrome";
 
 import type { DropTarget } from "../../dragIntents";
 import type { PermanentChrome } from "../types";
@@ -97,8 +98,7 @@ export function ViewerBattleRow({
           for (const member of members) chrome.permanentRefs.current[member.permanentId] = el;
         }}
         candidate={isBasePermanent(p)}
-        effectSource={chrome.effectSourcePermanentIds.has(p.permanentId)}
-        effectLinked={chrome.effectLinkedPermanentIds.has(p.permanentId)}
+        {...groupChrome(members, chrome)}
         // A board-mode optional prompt points at the permanent whose
         // effect is asking, so the rail and the field read as one.
         highlight={
@@ -107,14 +107,8 @@ export function ViewerBattleRow({
           chrome.decisionPickedInstanceIds.has(p.permanentId) ||
           chrome.decisionPickedInstanceIds.has(p.topCard.instanceId)
         }
-        burst={chrome.permanentBursts.get(p.permanentId)}
         pending={chrome.pendingPermanentIds.has(p.permanentId)}
         fate={chrome.fateBadges.get(p.permanentId)}
-        shake={chrome.combatImpactIds.has(p.permanentId)}
-        claw={chrome.combatImpactIds.has(p.permanentId)}
-        dpPulse={chrome.dpPulses.get(p.permanentId)}
-        dpBadgeSuppressed={chrome.dpBadgeSuppressedIds.has(p.permanentId)}
-        freezePulse={chrome.freezePulses.get(p.permanentId)}
         lunge={chrome.attackLunge?.permanentId === p.permanentId ? chrome.attackLunge.direction : undefined}
         heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
         suspendDelayMs={chrome.suspendDelayMs(playOrder.get(p.permanentId) ?? 0)}
