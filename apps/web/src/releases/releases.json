@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.8.10-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.10-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.10-beta.fix.monimonOptionalCost"
+      }
+    ]
+  },
+  {
     "version": "1.8.9-beta",
     "releasedAt": "2026-10-03",
     "summaryKey": "releases.1.8.9-beta.summary",

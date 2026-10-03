@@ -91,6 +91,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.8.10-beta.summary": releaseMessages["releases.1.8.10-beta.summary"]["pt-BR"],
+  "releases.1.8.10-beta.fix.monimonOptionalCost":
+    releaseMessages["releases.1.8.10-beta.fix.monimonOptionalCost"]["pt-BR"],
   "releases.1.8.9-beta.summary": releaseMessages["releases.1.8.9-beta.summary"]["pt-BR"],
   "releases.1.8.9-beta.fix.unsuspendOrder": releaseMessages["releases.1.8.9-beta.fix.unsuspendOrder"]["pt-BR"],
   "releases.1.8.9-beta.fix.deviceTrash": releaseMessages["releases.1.8.9-beta.fix.deviceTrash"]["pt-BR"],

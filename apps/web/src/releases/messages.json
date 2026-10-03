@@ -1,4 +1,12 @@
 {
+  "releases.1.8.10-beta.summary": {
+    "en": "This update fixes the optional digivolution-card trash cost of BT26-006 Monimon.",
+    "pt-BR": "Esta atualização corrige o custo opcional de descarte de fontes do Monimon BT26-006."
+  },
+  "releases.1.8.10-beta.fix.monimonOptionalCost": {
+    "en": "BT26-006 Monimon now lets you decline trashing two digivolution cards before choosing whether to play or use a Bagra Army card. Declining keeps the sources and the once-per-turn use; accepting requires exactly two sources and spends the use even if you skip playing or using a card.",
+    "pt-BR": "Monimon BT26-006 agora permite recusar o descarte de duas fontes antes de escolher se deseja jogar ou usar uma carta Bagra Army. Recusar preserva as fontes e o uso por turno; aceitar exige exatamente duas fontes e consome o uso mesmo que você não jogue ou use uma carta."
+  },
   "releases.1.8.9-beta.summary": {
     "en": "This update fixes turn-start unsuspend announcements and Device effects triggered when trashed from the battle area.",
     "pt-BR": "Esta atualização corrige a apresentação do unsuspend no início do turno e os efeitos de Device ativados quando são descartados da área de batalha."

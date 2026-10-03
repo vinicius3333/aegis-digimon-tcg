@@ -89,6 +89,8 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.8.10-beta.summary": releaseMessages["releases.1.8.10-beta.summary"]["en"],
+  "releases.1.8.10-beta.fix.monimonOptionalCost": releaseMessages["releases.1.8.10-beta.fix.monimonOptionalCost"]["en"],
   "releases.1.8.9-beta.summary": releaseMessages["releases.1.8.9-beta.summary"]["en"],
   "releases.1.8.9-beta.fix.unsuspendOrder": releaseMessages["releases.1.8.9-beta.fix.unsuspendOrder"]["en"],
   "releases.1.8.9-beta.fix.deviceTrash": releaseMessages["releases.1.8.9-beta.fix.deviceTrash"]["en"],
