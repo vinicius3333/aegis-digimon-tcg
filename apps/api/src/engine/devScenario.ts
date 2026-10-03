@@ -76,6 +76,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt26-rosemon-option-digivolve-lock",
   "arena-bt26-ravemon-nested-on-deletion",
+  "arena-bt26-yoshino-trigger-stack",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt24-fugamon-self-trash",
   "arena-ex12-metalgarurumon-trash-then-return",
@@ -465,6 +466,44 @@ function layBt26RavemonNestedOnDeletionScenario(state: GameState, decks: readonl
       const card = takeTop(bot, Zone.Deck);
       if (card !== undefined) insertCard(bot, Zone.Hand, card);
     }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
+}
+
+/**
+ * Discord 1555741214014447737: three Yoshino Fujieda watch the same events. Lilamon suspends 1 of
+ * the bot's Digimon and trashes 2 cards from under the first Yoshino in one payment, then
+ * Rosemon suspends 2 more at once. Each event triggers each Yoshino once, and the order prompt's
+ * "resolve after these" list must leave the offered effects and the resolve button in view.
+ */
+function layBt26YoshinoTriggerStackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["ST24-05"], "-yoshino-stack-geogreymon"));
+    const paying = establishedDigimon(0, ["BT26-091"], "-yoshino-stack-paying");
+    pushOnStack(paying, faceDownCard("dev-yoshino-stack-source-1", "ST24-12", 0));
+    pushOnStack(paying, faceDownCard("dev-yoshino-stack-source-2", "ST24-04", 0));
+    placePermanent(human, paying);
+    placePermanent(human, establishedDigimon(0, ["BT26-091"], "-yoshino-stack-second"));
+    placePermanent(human, establishedDigimon(0, ["BT26-091"], "-yoshino-stack-third"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-yoshino-stack-lilamon", "ST24-10", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-yoshino-stack-rosemon", "ST24-11", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-yoshino-stack-first"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-010"], "-yoshino-stack-second"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-011"], "-yoshino-stack-third"));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -4397,6 +4436,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
   "arena-bt26-ravemon-nested-on-deletion": layBt26RavemonNestedOnDeletionScenario,
+  "arena-bt26-yoshino-trigger-stack": layBt26YoshinoTriggerStackScenario,
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt24-fugamon-self-trash": layBt24FugamonSelfTrashScenario,
   "arena-ex12-metalgarurumon-trash-then-return": layEx12MetalGarurumonTrashThenReturnScenario,
