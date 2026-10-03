@@ -41,13 +41,11 @@ export interface NarrationItem {
 export const NARRATION_TICK_MS = 120;
 
 /**
- * How many moments the phone's folded slot holds. A phone has no second column to spread
- * a batch across, so a single slot meant every moment erased the one before it — on a
- * screen where the notices are also the smallest. They queue downwards instead, past the
- * height the slot is capped at: the column scrolls rather than dropping what it cannot
- * show, and the cap here is only the wall that stops an unread queue growing forever.
+ * How many recent moments a scrollable column holds on both desktop and phone. The visual
+ * height is capped separately, so an effect beyond the two visible notices stays available
+ * by scrolling. Expiry and this bound keep the recent queue from growing indefinitely.
  */
-export const COLLAPSED_NARRATION_LIMIT = 6;
+export const NARRATION_QUEUE_LIMIT = 6;
 
 /**
  * How much longer a moment reads on the phone's folded slot. The same clause is set in a
@@ -186,7 +184,7 @@ export function pushNarrationItem(
 }
 
 /** The most earlier clauses a stack keeps under the one resolving now. */
-export const STACKED_CLAUSE_LIMIT = 3;
+export const STACKED_CLAUSE_LIMIT = NARRATION_QUEUE_LIMIT - 1;
 
 /**
  * The presented items once a new effect clause is about to take the screen. Paced effects

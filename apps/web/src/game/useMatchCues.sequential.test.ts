@@ -194,7 +194,9 @@ describe("sequential pacing plays one effect at a time", () => {
 
       const active = new Map<number, number>();
       const durations: number[] = [];
+      let mostNotices = 0;
       for (let elapsed = 0; elapsed <= 12_000; elapsed += 16) {
+        mostNotices = Math.max(mostNotices, view.result.current.narration.size);
         const focused = view.result.current.effectSources.filter(
           (source) => source.linked !== true && source.site.zone === "field",
         );
@@ -209,6 +211,7 @@ describe("sequential pacing plays one effect at a time", () => {
       }
 
       expect(durations).toHaveLength(3);
+      expect(mostNotices).toBe(3);
       const readableFocus = Math.round(TIMINGS.effectSourceHold * EFFECT_SPEED_SCALE[speed]);
       for (const duration of durations) expect(duration).toBeGreaterThanOrEqual(readableFocus - 32);
     },
@@ -287,7 +290,7 @@ describe("sequential pacing plays one effect at a time", () => {
     expect(view.result.current.decisionAnimationsPending).toBe(false);
   });
 
-  it("folds the chain into a recap once both effects have played", async () => {
+  it("clears the chain once both effects have played", async () => {
     const view = renderChain("sequential");
     await advance(0);
     view.feedChain();
@@ -296,10 +299,6 @@ describe("sequential pacing plays one effect at a time", () => {
     await advance(8000);
 
     expect(view.result.current.resolutionStrip.entries).toBeNull();
-    expect(view.result.current.resolutionStrip.recap?.entries.map((entry) => entry.sourceCardId)).toEqual([
-      "AD1-002",
-      "BT18-015",
-    ]);
   });
 });
 
@@ -726,6 +725,5 @@ describe("current pacing keeps its own order", () => {
     expect(timeline.firstFlight! - timeline.firstClauseA!).toBeLessThan(activePacing().announceMs);
     expect(timeline.sourceLitB! - (timeline.flightsDoneAfterA ?? Infinity)).toBeLessThan(activePacing().settleMs);
     expect(view.result.current.resolutionStrip.entries).toBeNull();
-    expect(view.result.current.resolutionStrip.recap).toBeNull();
   });
 });

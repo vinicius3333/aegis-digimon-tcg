@@ -1340,12 +1340,7 @@ export function GameScreen({
         presentationPacing === "sequential" ? (
           <>
             {overlays}
-            <ResolutionStrip
-              entries={cues.resolutionStrip.entries}
-              recap={cues.resolutionStrip.recap}
-              folded={collapseNotices}
-              onDismissRecap={cues.dismissResolutionRecap}
-            />
+            <ResolutionStrip entries={cues.resolutionStrip.entries} folded={collapseNotices} />
           </>
         ) : (
           overlays

@@ -307,5 +307,4 @@ export interface MatchCues {
   resolutionStrip: ResolutionStripState;
   /** The viewer answered an `orderTriggers` prompt: these effects resolve next, in this order. */
   recordOwnResolutionPlan: (entries: readonly ResolutionOrderEntry[]) => void;
-  dismissResolutionRecap: () => void;
 }

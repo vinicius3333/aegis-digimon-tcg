@@ -69,8 +69,8 @@ function NarrationItemView({
 
 /**
  * A slot capped in height scrolls rather than dropping what it cannot show: the newest
- * moment is kept in view at the bottom, and older ones stay one scroll up. A chevron from
- * the shared icon set rides the top edge while there is something above it.
+ * moment stays in view until the viewer scrolls up to read. Buttons at either edge point
+ * to the notices outside the viewport and move through them one page at a time.
  */
 function Slot({
   slot,
@@ -103,28 +103,31 @@ function Slot({
   anchor?: "top" | "bottom";
 }) {
   const column = useRef<HTMLDivElement>(null);
-  const [more, setMore] = useState(false);
+  const followsNewest = useRef(true);
+  const leavingBottom = useRef(false);
+  const [more, setMore] = useState({ above: false, below: false });
   // Before paint, so a moment arriving never shows the column scrolled to the old one.
   useLayoutEffect(() => {
     const element = column.current;
     if (!element) return;
-    element.scrollTop = anchor === "top" ? 0 : element.scrollHeight;
-  }, [count, anchor]);
+    if (anchor === "bottom" && followsNewest.current) element.scrollTop = element.scrollHeight;
+  }, [count, anchor, children]);
   useEffect(() => {
     const element = column.current;
     if (!element) return;
-    // The chevron points at what is out of sight, which is the end the column is not
-    // anchored to: below a top-anchored column, above a bottom-anchored one. A remainder
-    // smaller than a line of text is not content, it is rounding and the gap under the
-    // last moment, so it does not earn a chevron promising something below.
-    const update = () =>
-      setMore(
-        anchor === "top"
-          ? element.scrollTop + element.clientHeight < element.scrollHeight - MORE_CHEVRON_SLACK_PX
-          : element.scrollTop > MORE_CHEVRON_SLACK_PX,
-      );
+    const update = () => {
+      const above = element.scrollTop > MORE_CHEVRON_SLACK_PX;
+      const below = element.scrollTop + element.clientHeight < element.scrollHeight - MORE_CHEVRON_SLACK_PX;
+      setMore((current) => (current.above === above && current.below === below ? current : { above, below }));
+    };
+    const onScroll = () => {
+      const atBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - MORE_CHEVRON_SLACK_PX;
+      if (!atBottom) leavingBottom.current = false;
+      followsNewest.current = atBottom && !leavingBottom.current;
+      update();
+    };
     update();
-    element.addEventListener("scroll", update, { passive: true });
+    element.addEventListener("scroll", onScroll, { passive: true });
     /* The column also grows and shrinks without scrolling and without a new moment: a
        card's art arrives late, a clause rewraps. Watching the box and its moments keeps
        the chevron honest about what is actually out of sight. */
@@ -134,16 +137,28 @@ function Slot({
     observer?.observe(element);
     for (const child of element.children) observer?.observe(child);
     return () => {
-      element.removeEventListener("scroll", update);
+      element.removeEventListener("scroll", onScroll);
       observer?.disconnect();
     };
-  }, [count, anchor]);
+  }, [count, anchor, children]);
+  const { t } = useTranslation();
+
+  function scrollPage(direction: -1 | 1) {
+    const element = column.current;
+    if (!element) return;
+    followsNewest.current = false;
+    leavingBottom.current = direction === -1;
+    element.scrollBy({
+      top: direction * Math.max(48, element.clientHeight * 0.8),
+      behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }
   return (
     <div
       className="narration-slot"
       data-slot={slot}
       data-security-dock={securityDockActive || undefined}
-      data-more={more || undefined}
+      data-more={more.above || more.below || undefined}
       data-anchor={anchor}
       ref={column}
       style={{ "--narration-count": count } as CSSProperties}
@@ -166,16 +181,29 @@ function Slot({
           <span className="narration-slot__peek-label">{closeLabel}</span>
         </button>
       ) : null}
-      {more && anchor === "bottom" ? (
-        <span className="narration-slot__more" aria-hidden="true">
-          <Icons.ChevronUp size={26} />
-        </span>
+      {more.above ? (
+        <button
+          className="narration-slot__more"
+          type="button"
+          onClick={() => scrollPage(-1)}
+          aria-label={t("notice.moreAbove")}
+        >
+          <Icons.ChevronUp size={20} />
+          <span>{t("notice.above")}</span>
+        </button>
       ) : null}
       {children}
-      {more && anchor === "top" ? (
-        <span className="narration-slot__more" data-below="true" aria-hidden="true">
-          <Icons.ChevronDown size={26} />
-        </span>
+      {more.below ? (
+        <button
+          className="narration-slot__more"
+          data-below="true"
+          type="button"
+          onClick={() => scrollPage(1)}
+          aria-label={t("notice.moreBelow")}
+        >
+          <Icons.ChevronDown size={20} />
+          <span>{t("notice.below")}</span>
+        </button>
       ) : null}
     </div>
   );

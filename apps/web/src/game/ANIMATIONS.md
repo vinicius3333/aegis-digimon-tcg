@@ -33,6 +33,9 @@ The focus then becomes the steady light linked to the visible clause. Announceme
 share the owner's safety ceiling, including a Security reveal before its source can focus.
 The effects lab always uses the match's stacked timing. It ignores obsolete saved tuning;
 its speed controls scale playback or Effect speed without switching the pacing style.
+Recent toast columns retain up to six moments and scroll within their bounded height.
+The edge buttons reveal notices above or below; arriving effects follow the newest only
+while the viewer stays at the bottom. The resolution strip leaves when a chain settles.
 
 | Family                                   | Recipes and visible surfaces                                                                  | Evidence harness                                                                                                     |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |

@@ -27,8 +27,6 @@ export interface PacingConfig {
   unitBudgetMs: number;
   /** The most any stretched budget may grow to (ms). */
   budgetCeilingMs: number;
-  /** How long the chain recap chip stays after a chain ends (ms). */
-  recapLifetimeMs: number;
   /** The fewest effects a chain needs before the resolution strip shows (count). */
   minChainLength: number;
   /**
@@ -82,7 +80,6 @@ const SEQUENTIAL_PACING: PacingConfig = {
   resultsMaxMs: 6000,
   unitBudgetMs: 2500,
   budgetCeilingMs: 20000,
-  recapLifetimeMs: 8000,
   minChainLength: 2,
   clauseStackMs: 0,
   shortSourceHoldMs: 720,

@@ -93,7 +93,7 @@ import {
 } from "./sidePanels";
 import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
 import { TIMINGS } from "./timings";
-import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
+import { narrationReadingTime, trimNarration, NARRATION_QUEUE_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import type { RevealShowcase } from "./match/present/revealShowcases";
@@ -124,7 +124,7 @@ export function useMatchCues({
   mulliganOpen,
   decisionPending = false,
   collapseNarration = false,
-  narrationLimit = 2,
+  narrationLimit = NARRATION_QUEUE_LIMIT,
   decisionStateVersion,
   decisionSourceCardId,
   anchors,
@@ -151,9 +151,8 @@ export function useMatchCues({
   /** The portrait phone folds both narration columns into one centred slot. */
   collapseNarration?: boolean;
   /**
-   * How many moments one column holds. Two, so a clause is not displaced the moment the
-   * other player raises one — the columns are shared by both players now. The phone's
-   * folded slot keeps one, because there is only room to read one thing at a time there.
+   * How many recent moments a column retains. Its visual height is capped separately so
+   * the reader can scroll through more than the two notices that fit at a glance.
    */
   narrationLimit?: number;
   /**
@@ -740,7 +739,7 @@ export function useMatchCues({
     setNarration((items) =>
       trimNarration(
         items,
-        collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimit,
+        collapseNarrationRef.current ? NARRATION_QUEUE_LIMIT : narrationLimit,
         collapseNarrationRef.current,
       ),
     );
@@ -853,13 +852,13 @@ export function useMatchCues({
 
   /**
    * The chain ends once the screen has caught up with no effect left to play and no question
-   * holding the server: the strip folds into its recap then.
+   * holding the server: the strip leaves then.
    */
   function endChainWhenSettled() {
     if (effectSequence.pendingCount() > 0) return;
     void queue.idle().then(() => {
       if (effectSequence.pendingCount() > 0 || decisionPendingRef.current) return;
-      dispatchResolutionStrip({ type: "settled", at: Date.now() });
+      dispatchResolutionStrip({ type: "settled" });
     });
   }
   const effectUnitHooks = {
@@ -1369,7 +1368,6 @@ export function useMatchCues({
     },
     [viewerSeat],
   );
-  const dismissResolutionRecap = useCallback(() => dispatchResolutionStrip({ type: "dismissRecap" }), []);
 
   // Refusals expire independently of the recent effect records.
   useEffect(() => {
@@ -1481,6 +1479,5 @@ export function useMatchCues({
     skipAnimations: fastForward,
     resolutionStrip,
     recordOwnResolutionPlan,
-    dismissResolutionRecap,
   };
 }

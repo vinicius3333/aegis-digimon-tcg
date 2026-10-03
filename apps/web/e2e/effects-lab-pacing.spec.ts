@@ -160,6 +160,26 @@ class EffectsLabPage {
   read() {
     return this.page.evaluate((key) => (window as unknown as Record<string, LabReader>)[key]!(), LAB_KEY);
   }
+  async readEarlierNotices() {
+    const column = this.page.locator('[data-slot="narration-text"]');
+    const above = column.getByRole("button", { name: "Show more notices above" });
+    const below = column.getByRole("button", { name: "Show more notices below" });
+    await expect(above).toBeVisible({ timeout: 40_000 });
+    const position = () => column.evaluate((element) => element.scrollTop);
+    const before = await position();
+    await above.click();
+    await expect.poll(position).toBeLessThan(before - 24);
+    await expect(below).toBeVisible();
+    const newest = () => column.locator(".narration-item").last().getAttribute("data-narration-id");
+    const reading = await newest();
+    const upper = await position();
+    await expect.poll(newest).not.toBe(reading);
+    await expect.poll(position).toBeLessThanOrEqual(upper + 24);
+    await expect(below).toBeVisible();
+    const beforeDown = await position();
+    await below.click();
+    await expect.poll(position).toBeGreaterThan(beforeDown + 24);
+  }
   async captureArrival(cardId: string, info: TestInfo) {
     await expect(this.page.locator(`[data-testid="confirmed-play-flight"][data-card-id="${cardId}"]`)).toBeVisible();
     await this.page.screenshot({ path: info.outputPath("confirmed-play-flight.png") });
@@ -569,6 +589,12 @@ test.describe("effects lab pacing in the browser", () => {
       await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
       const lab = new EffectsLabPage(page);
       await lab.start();
+      if (format.name === "desktop") {
+        // This chain's short clauses can all fit on a tall desktop. Exercise a smaller
+        // toast lane so reading position is tested while actual effects keep arriving.
+        await page.addStyleTag({ content: 'html .narration-slot[data-slot="narration-text"] { max-height: 12rem; }' });
+        await lab.readEarlierNotices();
+      }
       if (format.name === "phone")
         await page.getByRole("button", { name: "Show the full notice", exact: true }).click();
       await lab.finish(format.reduced);

@@ -1,12 +1,11 @@
-/* The resolution strip's model: which effects a chain holds, which one is on screen, which
-   are still to come, and the recap of the last chain once it is over.
+/* The resolution strip's model: which effects a chain holds, which one is on screen and
+   which are still to come.
 
    A chain starts at the first effect announced after the screen went idle, or at an order
    answer (the viewer's own resolution plan, or the opponent's `resolutionOrderChosen`). It
    ends once the presentation has settled with no effect still pending. Effects that were
    planned and never announced — an optional one answered "no" — leave with the chain. A
-   chain of one effect shows no strip: its clause says everything, and the previous chain's
-   recap stays up through it.
+   chain of one effect shows no strip: its clause says everything.
 
    Driven by presentation time, not server time: "current" is the effect whose clause the
    viewer is reading, however far ahead the server already is. Pure, so it is tested without
@@ -30,17 +29,11 @@ export interface ChainEntry {
   status: ChainEntryStatus;
 }
 
-export interface ChainRecap {
-  entries: readonly ChainEntry[];
-  endedAt: number;
-}
-
 export interface ResolutionStripState {
   /** The chain being presented, or null between chains. */
   entries: readonly ChainEntry[] | null;
   /** Seats whose upcoming order came from the viewer's own answer, which the server echo must not overwrite. */
   ownPlanSeats: readonly Seat[];
-  recap: ChainRecap | null;
   nextKey: number;
 }
 
@@ -49,8 +42,7 @@ export type PlanSource = "own" | "server";
 export type ResolutionStripAction =
   | { type: "planned"; seat: Seat; source: PlanSource; entries: readonly ResolutionOrderEntry[] }
   | { type: "announced"; seat: Seat; sourceCardId: string; timing?: string; description?: string; count?: number }
-  | { type: "settled"; at: number }
-  | { type: "dismissRecap" };
+  | { type: "settled" };
 
 /** A chain shorter than `minChainLength` needs no strip: one effect is its own clause. */
 function longEnough(entries: readonly ChainEntry[]): boolean {
@@ -60,7 +52,6 @@ function longEnough(entries: readonly ChainEntry[]): boolean {
 export const emptyResolutionStrip: ResolutionStripState = {
   entries: null,
   ownPlanSeats: [],
-  recap: null,
   nextKey: 0,
 };
 
@@ -92,11 +83,6 @@ function plannedMatch(
   );
 }
 
-/** The last chain's recap stays until the next chain is long enough to take the strip's place. */
-function replacedRecap(recap: ChainRecap | null, entries: readonly ChainEntry[]): ChainRecap | null {
-  return longEnough(entries) ? null : recap;
-}
-
 export function resolutionStripReducer(
   state: ResolutionStripState,
   action: ResolutionStripAction,
@@ -125,7 +111,6 @@ export function resolutionStripReducer(
             : startsChain
               ? []
               : state.ownPlanSeats,
-        recap: replacedRecap(state.recap, entries),
         nextKey,
       };
     }
@@ -168,24 +153,17 @@ export function resolutionStripReducer(
       return {
         entries,
         ownPlanSeats: startsChain ? [] : state.ownPlanSeats,
-        recap: replacedRecap(state.recap, entries),
         nextKey,
       };
     }
     case "settled": {
       if (state.entries === null) return state;
-      const played = state.entries
-        .filter((entry) => entry.status !== "upcoming")
-        .map((entry) => ({ ...entry, status: "done" as const }));
       return {
         entries: null,
         ownPlanSeats: [],
-        recap: longEnough(played) ? { entries: played, endedAt: action.at } : state.recap,
         nextKey: state.nextKey,
       };
     }
-    case "dismissRecap":
-      return state.recap === null ? state : { ...state, recap: null };
   }
 }
 

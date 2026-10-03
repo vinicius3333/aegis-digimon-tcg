@@ -3,7 +3,7 @@ import type { PresentationReport, Seat } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
 import {
   buildNarrationItems,
-  COLLAPSED_NARRATION_LIMIT,
+  NARRATION_QUEUE_LIMIT,
   isCardListNotice,
   pushNarrationItem,
   supersedeEffectClauses,
@@ -463,7 +463,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
                   ? supersedeEffectClauses(items, Date.now(), activePacing().clauseStackMs)
                   : items,
                 published,
-                collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
+                collapseNarrationRef.current ? NARRATION_QUEUE_LIMIT : narrationLimitRef.current,
                 collapseNarrationRef.current,
               ),
             );
@@ -524,7 +524,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
       pushNarrationItem(
         items,
         published,
-        collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
+        collapseNarrationRef.current ? NARRATION_QUEUE_LIMIT : narrationLimitRef.current,
         collapseNarrationRef.current,
       ),
     );

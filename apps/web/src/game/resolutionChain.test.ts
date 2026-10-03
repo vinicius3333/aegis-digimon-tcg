@@ -45,8 +45,6 @@ describe("resolution chain", () => {
     );
     expect(statuses(grouped)).toEqual(["ST8-10:done", "BT20-091:current"]);
     expect(grouped.entries?.[1]?.count).toBe(3);
-    const recap = run([{ type: "settled", at: 1 }], grouped).recap;
-    expect(recap?.entries.map((entry) => entry.count)).toEqual([undefined, 3]);
   });
 
   it("lists the viewer's own plan as upcoming and walks it as each effect is announced", () => {
@@ -119,7 +117,7 @@ describe("resolution chain", () => {
     ]);
   });
 
-  it("ends in a recap of what resolved, dropping planned effects that never came", () => {
+  it("clears the finished chain and planned effects that never came", () => {
     const state = run([
       {
         type: "planned",
@@ -129,26 +127,16 @@ describe("resolution chain", () => {
       },
       announced("A"),
       announced("B"),
-      { type: "settled", at: 1000 },
+      { type: "settled" },
     ]);
     expect(state.entries).toBeNull();
-    expect(state.recap?.entries.map((entry) => `${entry.sourceCardId}:${entry.status}`)).toEqual(["A:done", "B:done"]);
-    expect(state.recap?.endedAt).toBe(1000);
-    expect(run([{ type: "dismissRecap" }], state).recap).toBeNull();
+    expect(state.ownPlanSeats).toEqual([]);
   });
 
-  it("shows no strip and keeps no recap for a single effect", () => {
+  it("shows no strip for a single effect", () => {
     const state = run([announced("A")]);
     expect(resolvingProgress(state.entries)).toBeNull();
-    expect(run([{ type: "settled", at: 1 }], state).recap).toBeNull();
-  });
-
-  it("keeps the old recap through a lone effect and drops it once the next chain needs the strip", () => {
-    const ended = run([announced("A"), announced("B"), { type: "settled", at: 1 }]);
-    expect(ended.recap).not.toBeNull();
-    const lone = run([announced("C")], ended);
-    expect(lone.recap).toBe(ended.recap);
-    expect(run([announced("D")], lone).recap).toBeNull();
+    expect(run([{ type: "settled" }], state).entries).toBeNull();
   });
 
   it("reads an own plan off the prompt it answers, in the answered order", () => {
