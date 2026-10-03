@@ -22,6 +22,11 @@ export interface ActivatableEntry {
   description: string;
 }
 
+/** Deep stacks keep every source but bound the fan to a quarter of the card width. */
+export function sourceFanStepLimit(width: number, count: number): number {
+  return Math.max(4, width / 4) / Math.max(1, count - 1);
+}
+
 /** Events appended after `previous`, resilient to useRoom's rolling 100-event window. */
 export function eventsAfter(events: readonly ServerEvent[], previous?: ServerEvent): readonly ServerEvent[] {
   if (previous === undefined) return events;

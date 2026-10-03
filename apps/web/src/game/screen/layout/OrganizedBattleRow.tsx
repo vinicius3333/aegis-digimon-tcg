@@ -7,7 +7,7 @@ import type { Permanent } from "@aegis/shared";
 import { BattleRow, suspendedCardEdgeClearance } from "../../BattleRow";
 import { carryGroupKeys, type FieldArrangement, type PreviousPlacement } from "../model/fieldArrangement";
 import "../../style/fieldLayout.css";
-import { linkCardSlots } from "../../boardModel";
+import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 
 const CARD_ASPECT = 1.4;
 /** The design's --ds-touch-target minimum also applies to each permanent's button wrapper. */
@@ -77,6 +77,17 @@ interface FlightOffset {
 
 const STILL: FlightOffset = { x: 0, y: 0, angle: 0 };
 const flights = new WeakMap<Element, Animation>();
+const artFlights = new WeakMap<HTMLElement, { animation: Animation; suspended: boolean }>();
+
+function turnArtwork(art: HTMLElement, from: number, suspended: boolean) {
+  artFlights.get(art)?.animation.cancel();
+  const animation = art.animate([{ rotate: `${from}deg` }, { rotate: suspended ? "90deg" : "0deg" }], {
+    duration: MOTION_MS,
+    fill: "backwards",
+    easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+  });
+  artFlights.set(art, { animation, suspended });
+}
 
 /** The offset a running slide still applies, read from the computed transform. */
 function flightOffset(element: HTMLElement): FlightOffset {
@@ -135,6 +146,12 @@ function useFieldMotion(
     if (!row) return;
     const offsets = new Map<Element, FlightOffset>();
     for (const element of row.querySelectorAll<HTMLElement>("[data-field-key]")) {
+      const art = element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
+      const turn = art ? artFlights.get(art) : undefined;
+      const suspended = element.hasAttribute("data-suspended");
+      if (art && turn && turn.suspended !== suspended) {
+        turnArtwork(art, Number.parseFloat(getComputedStyle(art).rotate) || 0, suspended);
+      }
       offsets.set(element, flightOffset(element));
       flights.get(element)?.cancel();
     }
@@ -154,10 +171,13 @@ function useFieldMotion(
         const offset = offsets.get(before.element) ?? STILL;
         const dx = before.x + offset.x - now.x;
         const dy = before.y + offset.y - now.y;
-        // A card that kept its element turns through its own transition; a new one must be turned here.
-        const turn =
-          before.element !== now.element && before.suspended !== now.suspended ? (now.suspended ? -90 : 90) : 0;
-        const angle = (before.element === now.element ? offset.angle : 0) + turn;
+        // Turn only the art. Rotating the whole touch frame would sweep badges
+        // and its empty corners outside the lane when a copy splits off.
+        if (before.element !== now.element && before.suspended !== now.suspended) {
+          const art = now.element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
+          if (art) turnArtwork(art, before.suspended ? 90 : 0, now.suspended);
+        }
+        const angle = before.element === now.element ? offset.angle : 0;
         if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(angle) < 1) continue;
         const flight = now.element.animate(
           [
@@ -207,15 +227,19 @@ interface LaneContent {
 
 function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { digimon: 0, support: 0 }): LaneMetrics {
   const base = LANE_METRICS[placement];
-  const sourceBottom = (count = 0) =>
-    count ? (content.sourceTop ?? 6) + (count - 1) * (content.sourceStep ?? 4) + 4 : 4;
+  const sourceBottom = (count = 0, width: number) =>
+    count
+      ? (content.sourceTop ?? 6) + (count - 1) * Math.min(content.sourceStep ?? 4, sourceFanStepLimit(width, count)) + 4
+      : 4;
   const bottom = (sources: number | undefined, links = 0, width: number) => {
     const artworkHeight = Math.ceil(width * CARD_ASPECT);
     const frameHeight = Math.max(MIN_PERMANENT_HEIGHT, artworkHeight);
     // A small card's sources can use the otherwise empty part of its touch target.
     return Math.max(
       4,
-      sourceBottom(sources) - (frameHeight - artworkHeight),
+      // The card's diagonal is its tallest extent halfway through suspension.
+      Math.ceil((Math.hypot(width, artworkHeight) - frameHeight) / 2) + 4,
+      sourceBottom(sources, width) - (frameHeight - artworkHeight),
       ...linkCardSlots(links, width).map((slot) => slot.top + slot.height - frameHeight + 4),
     );
   };
@@ -396,7 +420,10 @@ export function OrganizedBattleRow({
   const lanes = fitLanes(size, layoutWidth, content);
   const metrics = laneMetrics(lanes.placement, content, lanes);
   const edge = (width: number, sources: number) =>
-    Math.max(suspendedCardEdgeClearance(width), sources ? 12 + (sources - 1) * size.sourceStep : 22);
+    Math.max(
+      suspendedCardEdgeClearance(width),
+      sources ? 12 + (sources - 1) * Math.min(size.sourceStep, sourceFanStepLimit(width, sources)) : 22,
+    );
   const digimonCards = arrangement.digimon.map((permanent) => card([permanent], permanent.permanentId, lanes.digimon));
   const supportCards = carryGroupKeys(arrangement.support, previous.current, isSuspended).map((group) =>
     card(group.members, group.key, lanes.support),

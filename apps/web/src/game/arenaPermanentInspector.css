@@ -65,6 +65,13 @@
   box-shadow: 0 18px 40px rgb(0 0 0 / 50%);
 }
 
+.arena-permanent-inspector__source {
+  display: grid;
+  place-items: center;
+  min-width: var(--ds-touch-target);
+  min-height: var(--ds-touch-target);
+}
+
 .arena-permanent-inspector__reading {
   display: flex;
   flex-direction: column;
@@ -277,7 +284,7 @@
 
 .arena-permanent-inspector__effect--source {
   display: grid;
-  grid-template-columns: 2.125rem minmax(0, 1fr);
+  grid-template-columns: var(--ds-touch-target) minmax(0, 1fr);
   align-items: start;
   gap: 0.5rem;
 }
@@ -304,7 +311,7 @@
   flex: 0 1 auto;
   min-width: 9rem;
   max-width: 16rem;
-  min-height: 2.5rem;
+  min-height: var(--ds-touch-target);
   justify-content: center;
   font-size: 0.75rem;
   overflow: hidden;
@@ -374,11 +381,11 @@
     flex: 1 1 0;
     min-width: 6rem;
     max-width: 100%;
-    min-height: 2.25rem;
+    min-height: var(--ds-touch-target);
     padding-inline: 0.5rem;
   }
   .arena-permanent-inspector__effect--source {
-    grid-template-columns: 1.5rem minmax(0, 1fr);
+    grid-template-columns: var(--ds-touch-target) minmax(0, 1fr);
   }
   .arena-permanent-inspector__source > div {
     width: 1.5rem !important;
@@ -440,7 +447,8 @@
   }
   /* One scroll for the whole reading column: nested scroll boxes a few lines tall
      cut text mid-line. The actions stay pinned under it. */
-  .arena-permanent-inspector :is(.arena-permanent-inspector__stats, .arena-permanent-inspector__state, .arena-permanent-inspector__effects) {
+  .arena-permanent-inspector
+    :is(.arena-permanent-inspector__stats, .arena-permanent-inspector__state, .arena-permanent-inspector__effects) {
     flex: none;
     max-height: none;
     overflow: visible;

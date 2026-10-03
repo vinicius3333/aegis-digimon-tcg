@@ -374,13 +374,13 @@
 }
 
 /* A demo toolbar shares the short landscape viewport with the real board. */
-@media (height < 360px) and (orientation: landscape) {
+@media (height < 400px) and (orientation: landscape) {
   .aegis-arena-demo-toolbar {
     height: 2.75rem;
     padding-block: 0;
   }
   .aegis-arena-demo {
-    --hand-card-width: 34px;
+    --hand-card-width: 28px;
     --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-1));
   }
 }
