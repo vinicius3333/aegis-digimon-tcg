@@ -1,8 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 
-// Actual dense server fixture: checks both players and the portalled arrows
-// after vertical scrolling. Run sequentially with the other Orca harnesses.
+// Actual dense server fixture: both fields and memory must stay visible without
+// vertical scrolling. Only overflowing card lanes page horizontally.
 const page = process.argv[2];
 if (!page) throw new Error("Provide an Orca page ID.");
 function orca(args) {
@@ -35,27 +35,30 @@ async function inspect(side) {
   const row = document.querySelector(`.game-battle-row--${side}[data-field-layout="organized"]`);
   const failures = [];
   const targets = [];
+  const fieldBounds = field.getBoundingClientRect();
+  if (field.scrollHeight > field.clientHeight + 1 || field.scrollTop !== 0)
+    failures.push({ kind: "arena scrolls vertically", height: field.clientHeight, content: field.scrollHeight });
+  for (const child of field.children) {
+    const rect = child.getBoundingClientRect();
+    if (rect.top < fieldBounds.top - 1 || rect.bottom > fieldBounds.bottom + 1)
+      failures.push({ kind: "field or memory outside arena", part: child.className });
+  }
   if (!row || !document.querySelector('.game-card-enter > [title="Vulcanusmon"]'))
     throw new Error("Use the real dense grouping fixture.");
   for (const lane of row.querySelectorAll(".game-battle-lane")) {
     const cards = [...lane.querySelectorAll("[data-field-key]")];
     for (const card of cards) {
-      card.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
+      const cardBounds = card.getBoundingClientRect();
+      const laneBounds = lane.getBoundingClientRect();
+      lane.scrollBy({
+        left: cardBounds.left + cardBounds.width / 2 - laneBounds.left - laneBounds.width / 2,
+        behavior: "instant",
+      });
       await settle();
       const rect = card.getBoundingClientRect();
       const bounds = field.getBoundingClientRect();
       const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
       const reachable = hit?.closest("[data-field-key]") === card;
-      for (let ancestor = card; ancestor && ancestor !== field.parentElement; ancestor = ancestor.parentElement) {
-        const touch = getComputedStyle(ancestor).touchAction;
-        if (touch !== "auto" && touch !== "manipulation" && !touch.includes("pan-y"))
-          failures.push({
-            kind: "vertical touch panning blocked",
-            name: card.getAttribute("aria-label"),
-            ancestor: ancestor.className,
-            touch,
-          });
-      }
       targets.push({ name: card.getAttribute("aria-label"), reachable, width: rect.width, height: rect.height });
       if (!reachable || rect.top < bounds.top || rect.bottom > bounds.bottom)
         failures.push({ kind: "card outside visible field", name: card.getAttribute("aria-label") });
@@ -93,7 +96,7 @@ async function inspect(side) {
     failures,
   };
 }
-const output = "apps/web/test-results/arena-interactions/portrait-scroll";
+const output = "apps/web/test-results/arena-interactions/portrait-no-scroll";
 mkdirSync(output, { recursive: true });
 const results = [];
 for (const [width, height] of [

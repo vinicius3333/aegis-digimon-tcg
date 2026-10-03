@@ -129,6 +129,17 @@ async function inspect(settle = true) {
   // CDP viewport changes in an embedded background tab can delay the native
   // resize event until paint. Deliver the same UI event before measuring it.
   window.dispatchEvent(new Event("resize"));
+  // Media-query renders and ResizeObserver deliveries in WKWebView need paint
+  // boundaries after viewport changes before geometry represents the new size.
+  if (settle)
+    for (let frame = 0; frame < 2; frame++)
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, 100);
+        requestAnimationFrame(() => {
+          clearTimeout(timer);
+          resolve();
+        });
+      });
   if (settle) {
     for (let frame = 0; frame < 4; frame++) await tick();
   } else
@@ -150,10 +161,28 @@ async function inspect(settle = true) {
   const lanes = [];
   if (document.documentElement.scrollWidth > innerWidth + 1) failures.push({ kind: "document overflow" });
   if (innerWidth < 600 && innerHeight > innerWidth) {
+    const zones = document.querySelector(".game-battle-zones");
+    const bounds = zones.getBoundingClientRect();
+    if (zones.scrollHeight > zones.clientHeight + 1 || zones.scrollTop !== 0)
+      failures.push({
+        kind: "portrait arena must not scroll vertically",
+        height: zones.clientHeight,
+        content: zones.scrollHeight,
+      });
+    for (const part of zones.children) {
+      const rect = part.getBoundingClientRect();
+      if (rect.top < bounds.top - 1 || rect.bottom > bounds.bottom + 1)
+        failures.push({ kind: "portrait field or memory outside arena", part: part.className });
+    }
     for (const row of document.querySelectorAll('.game-battle-row[data-field-layout="organized"]')) {
       const digimon = row.querySelector(".game-battle-lane--digimon");
       const support = row.querySelector(".game-battle-lane--support");
-      if (digimon && support && support.getBoundingClientRect().top < digimon.getBoundingClientRect().bottom - 1)
+      if (
+        row.dataset.lanes === "stacked" &&
+        digimon &&
+        support &&
+        support.getBoundingClientRect().top < digimon.getBoundingClientRect().bottom - 1
+      )
         failures.push({ kind: "portrait support must be below Digimon" });
     }
   }
@@ -161,12 +190,23 @@ async function inspect(settle = true) {
     const box = lane.getBoundingClientRect();
     const cards = [...lane.querySelectorAll("[data-field-key]")];
     const style = getComputedStyle(lane);
+    if (cards.length && lane.parentElement.dataset.lanes === "stacked") {
+      const cardHeight = Math.max(...cards.map((card) => card.getBoundingClientRect().height));
+      const paintedHeight = cardHeight + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      if (lane.clientHeight > paintedHeight + 2)
+        failures.push({
+          kind: "unused height separates Digimon and support",
+          lane: lane.className,
+          height: lane.clientHeight,
+          paintedHeight,
+        });
+    }
     let previousFootprint;
     for (const card of cards) {
       if (getComputedStyle(card).visibility === "hidden") continue;
       const art = card.querySelector(".game-card-enter > [data-state]");
       const portraitPhone = innerWidth < 600 && innerHeight > innerWidth;
-      const artFloor = portraitPhone ? (lane.classList.contains("game-battle-lane--support") ? 54 : 72) : 20;
+      const artFloor = portraitPhone ? (lane.classList.contains("game-battle-lane--support") ? 22 : 40) : 20;
       const footprint = [
         art,
         ...[...card.children].filter((part) => !part.className && part.style.position === "absolute"),
@@ -251,7 +291,15 @@ async function inspect(settle = true) {
       )) {
         const rect = part.getBoundingClientRect();
         if (rect.top < upper - 1 || rect.bottom > upper + utilityHeight + 1)
-          failures.push({ kind: "utility artwork outside row", utility: utility.className, part: part.className });
+          failures.push({
+            kind: "utility artwork outside row",
+            utility: utility.className,
+            part: part.className,
+            top: rect.top,
+            bottom: rect.bottom,
+            upper,
+            utilityHeight,
+          });
         if (part.classList.contains("game-pile") && rect.width < 44)
           failures.push({ kind: "utility pile too small", utility: utility.className, width: rect.width });
       }
