@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-FEATURE_VERSION = 6
+FEATURE_VERSION = 7
 TEXT_DIM = 32
 STATUS_FIELDS = (
     "summoningSick",
@@ -61,6 +61,9 @@ ACTION_TYPES = (
     "respondBarrier",
     "mulligan",
     "respondDecision",
+    "dnaDigivolve",
+    "linkCard",
+    "appFusion",
 )
 PHASES = ("None", "Unsuspend", "Draw", "Breeding", "Main", "End")
 
@@ -97,7 +100,7 @@ class FeatureEncoder:
             + self.card_dim * 6 + TEXT_DIM * 2 + 2
         )
         self.action_dim = (
-            len(ACTION_TYPES) + 8 + self.card_features * 2 + self.card_dim * 2 + TEXT_DIM
+            len(ACTION_TYPES) + 8 + self.card_features * 3 + self.card_dim * 4 + TEXT_DIM
         )
 
     @staticmethod
@@ -275,6 +278,17 @@ class FeatureEncoder:
             response = intent.get("response", {})
             source = action.get("sourceId", "")
             target = action.get("targetId", "")
+            materials = action.get("materialIds", [])
+            material_order = np.zeros(self.card_dim, dtype=np.float32)
+            material_summary = np.zeros(self.card_features, dtype=np.float32)
+            material_stacks = np.zeros(self.card_dim, dtype=np.float32)
+            for position, reference in enumerate(materials):
+                visible = known.get(reference)
+                if visible is None:
+                    raise ValueError("Compound action material lacks visible card state")
+                material_order[self.index.get(visible.get("cardId", ""), 0)] += 1 / (position + 1)
+                material_summary += self.card(visible) / (position + 1)
+                material_stacks += self.bag(stacks.get(reference, [])) / (position + 1)
             encoded_actions.append(
                 np.concatenate(
                     [
@@ -298,6 +312,9 @@ class FeatureEncoder:
                         self.card(known.get(target)),
                         self.bag(stacks.get(source, [])),
                         self.bag(stacks.get(target, [])),
+                        material_order,
+                        material_summary,
+                        material_stacks,
                         text_features(action["label"]),
                     ]
                 )

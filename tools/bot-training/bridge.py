@@ -9,10 +9,13 @@ from typing import Any
 
 
 def scheduled_episode(versions: list[str], index: int) -> tuple[list[str], int]:
-    """Cycle every ordered deck pairing, then switch the learner seat; matches decks.ts."""
+    """Balance learner deck/seat each 2N games, then rotate opponents; matches decks.ts."""
     count = len(versions)
-    pairing = index % (count * count)
-    return [versions[pairing // count], versions[pairing % count]], (index // (count * count)) % 2
+    learner = index % count
+    opponent = (learner + index // (2 * count)) % count
+    seat = (index // count) % 2
+    pair = [versions[learner], versions[opponent]]
+    return pair if seat == 0 else pair[::-1], seat
 
 
 def describe(node: str, worker: Path) -> dict[str, Any]:

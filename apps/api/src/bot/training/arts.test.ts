@@ -4,7 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { buildBotView } from "../view.js";
 import { mainActionReady } from "./actions.js";
 import { createAsyncTrainingPolicy, type TrainingWindow } from "./policy.js";
-import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
+import { PILOT_DECK_VERSIONS, trainingDeck } from "./decks.js";
 import "../../cards/index.js";
 
 const artsCardIds = ["ST23-09", "BT25-057", "BT26-031", "BT25-043"];
@@ -17,7 +17,7 @@ const cases = artsCardIds.flatMap((cardId) =>
 describe("scoped Arts Digivolve through the asynchronous policy", () => {
   it("includes every DUAL card in both pinned training decks", () => {
     const scopedCards = new Set(
-      TRAINING_DECK_VERSIONS.flatMap((version) => {
+      PILOT_DECK_VERSIONS.flatMap((version) => {
         const { deck } = trainingDeck(version);
         return [...deck.mainDeck, ...deck.eggDeck];
       }),

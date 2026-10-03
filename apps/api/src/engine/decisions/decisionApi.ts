@@ -183,6 +183,7 @@ function buildSeatScopedApi(
         distinctNames?: boolean;
         assemblyCardId?: string;
         digiXrosCardId?: string;
+        digiXrosMaterialLimits?: { candidateInstanceIds: string[]; max: number }[];
       },
     ): Promise<string[]> {
       const min = pickMinimum(ctx, opts.min, opts.max);
@@ -206,6 +207,7 @@ function buildSeatScopedApi(
           distinctNames: opts.distinctNames,
           assemblyCardId: opts.assemblyCardId,
           digiXrosCardId: opts.digiXrosCardId,
+          digiXrosMaterialLimits: opts.digiXrosMaterialLimits,
           ...provenance(ctx),
           ...backOutPurpose(min, opts.min),
         },

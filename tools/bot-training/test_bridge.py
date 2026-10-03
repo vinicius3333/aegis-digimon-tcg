@@ -5,10 +5,18 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from bridge import Episode
+from bridge import Episode, scheduled_episode
 
 
 class BridgeTests(unittest.TestCase):
+    def test_schedule_balances_all_26_learners_in_both_seats_before_rotating_opponents(self) -> None:
+        versions = [str(index) for index in range(26)]
+        first = [scheduled_episode(versions, index) for index in range(52)]
+        self.assertEqual({(pair[seat], seat) for pair, seat in first},
+                         {(version, seat) for version in versions for seat in (0, 1)})
+        cycle = [scheduled_episode(versions, index) for index in range(1352)]
+        self.assertEqual(len({(tuple(pair), seat) for pair, seat in cycle}), 1352)
+        self.assertEqual(scheduled_episode(versions, 1352), scheduled_episode(versions, 0))
     def test_initial_send_failure_closes_process_and_streams(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

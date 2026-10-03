@@ -12,6 +12,8 @@ import {
   playCardDeps,
 } from "../../engine/gameEngine/actionDeps.js";
 import { assemblyMaterialCandidates, firstAssemblyRecipe, type AssemblyMaterialCandidate } from "./assembly.js";
+import { specialMainActions } from "./specialActions.js";
+import { digiXrosMainActions } from "./digiXros.js";
 
 export interface TrainingAction {
   intent: Intent;
@@ -19,6 +21,8 @@ export interface TrainingAction {
   sourceId?: string;
   targetId?: string;
   projectedCost?: number;
+  /** Physical material identities for compound declarations; encoded only through visible card state. */
+  materialIds?: readonly string[];
   /** Materials are chosen in follow-up windows; `intent` holds one valid recipe for legality only. */
   assembly?: { cardId: string; candidates: AssemblyMaterialCandidate[] };
 }
@@ -41,7 +45,11 @@ export function mainActions(engine: GameEngine, seat: Seat): TrainingAction[] {
   const state = engine.state;
   const player = state.players[seat];
   if (player === undefined) throw new Error(`Unseated training player ${seat}`);
-  const actions: TrainingAction[] = [{ intent: { type: "endPhase" }, label: "End main phase" }];
+  const actions: TrainingAction[] = [
+    { intent: { type: "endPhase" }, label: "End main phase" },
+    ...specialMainActions(engine, seat),
+    ...digiXrosMainActions(engine, seat),
+  ];
   const bases = [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])];
   const playDeps = playCardDeps(engine);
   const evolveDeps = digivolveDeps(engine);

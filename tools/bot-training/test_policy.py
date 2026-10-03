@@ -72,6 +72,49 @@ def window() -> dict:
 
 
 class PolicyTests(unittest.TestCase):
+    def test_compound_material_order_is_visible_without_learning_instance_ids(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], [])
+        message = window()
+        message["actions"][0]["intent"] = {"type": "dnaDigivolve"}
+        message["actions"][0]["materialIds"] = ["card-17", "card-29"]
+        original_state, original_actions = encoder.encode(message)
+        renamed = json.loads(json.dumps(message).replace("card-17", "opaque-A").replace("card-29", "opaque-B"))
+        renamed_state, renamed_actions = encoder.encode(renamed)
+        np.testing.assert_array_equal(original_state, renamed_state)
+        np.testing.assert_array_equal(original_actions, renamed_actions)
+        message["actions"][0]["materialIds"].reverse()
+        reordered_state, reordered_actions = encoder.encode(message)
+        np.testing.assert_array_equal(original_state, reordered_state)
+        self.assertFalse(np.array_equal(original_actions[0], reordered_actions[0]))
+        np.testing.assert_array_equal(original_actions[1], reordered_actions[1])
+
+    def test_compound_actions_require_visible_material_references(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], [])
+        message = window()
+        message["actions"][0]["materialIds"] = ["hidden-reference"]
+        with self.assertRaisesRegex(ValueError, "lacks visible"):
+            encoder.encode(message)
+
+    def test_dna_candidates_distinguish_the_second_material_inherited_stack(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], [])
+        message = window()
+        player = message["observation"]["players"][0]
+        top = player["hand"][0]
+        player["board"] = [
+            {"permanentId": f"base-{index}", "top": {**top, "instanceId": f"top-{index}"},
+             "stack": [{"instanceId": "inherited", "cardId": "B"}] if index == 2 else [],
+             "linked": [], "dp": 2000, "suspended": False, "keywords": [], "statuses": {}}
+            for index in range(3)
+        ]
+        player["hand"] = []
+        message["actions"] = [
+            {"intent": {"type": "dnaDigivolve"}, "label": "DNA digivolve", "targetId": "base-0",
+             "materialIds": ["base-0", f"base-{index}"]}
+            for index in (1, 2)
+        ]
+        _, actions = encoder.encode(message)
+        self.assertFalse(np.array_equal(actions[0], actions[1]))
+
     def test_history_changes_state_without_changing_current_candidate_identity(self) -> None:
         encoder = FeatureEncoder(["A", "B"], [])
         message = window()

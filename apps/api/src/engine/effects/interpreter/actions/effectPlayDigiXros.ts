@@ -235,6 +235,16 @@ export async function prepareEffectPlayDigiXros(
               min: 0,
               max: materialCap,
               digiXrosCardId: playedCard.cardId,
+              digiXrosMaterialLimits: [
+                {
+                  candidateInstanceIds: scopedUnderTamerCandidates.map(({ instanceId }) => instanceId),
+                  max: Math.min(expansion.underTamerMax, materialCandidates.length),
+                },
+                {
+                  candidateInstanceIds: looseCardsInZone(ctx, ownerSeat, "trash").map(({ instanceId }) => instanceId),
+                  max: Math.min(expansion.trashMax, materialCandidates.length),
+                },
+              ],
             },
           );
           const selectedCandidates = selected

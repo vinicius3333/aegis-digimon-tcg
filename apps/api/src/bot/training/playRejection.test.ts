@@ -45,6 +45,33 @@ async function setup() {
 }
 
 describe("deferred play rejections in the training policy", () => {
+  it.each([0, 1])("preserves full DigiXros after a rejected %s-material declaration", async (count) => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT19-063", as: "result" }, "EX10-026", "EX10-027"] } });
+    s.state.memory = 10;
+    await s.ready();
+    let nextCount = count;
+    const policy = createTrainingPolicy(s.engine, 0, (window) =>
+      window.actions.findIndex(
+        ({ intent }) =>
+          intent.type === "playCard" &&
+          intent.instanceId === s.inst("result").instanceId &&
+          (intent.digiXros?.materialInstanceIds.length ?? 0) === nextCount,
+      ),
+    );
+    const original = policy.chooseMainAction(buildBotView(s.state, 0)!);
+    expect(original.type).toBe("playCard");
+    policy.onEngineRejection!(memoryRejection);
+    nextCount = 2;
+    const alternate = policy.chooseMainAction(buildBotView(s.state, 0)!);
+    expect(alternate).toMatchObject({
+      type: "playCard",
+      instanceId: s.inst("result").instanceId,
+      digiXros: {
+        materialInstanceIds: [s.state.players[0]!.hand[1]!.instanceId, s.state.players[0]!.hand[2]!.instanceId],
+      },
+    });
+    expect(policy.recoveredPlayRejections()).toBe(1);
+  });
   it("excludes the rejected play until memory changes", async () => {
     const { engine, policy, choose, playable, endPhase } = await setup();
     const played = engine.inst("played").instanceId;

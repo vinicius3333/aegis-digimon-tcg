@@ -6,7 +6,7 @@ import { buildBotView } from "../view.js";
 import { mainActionReady } from "./actions.js";
 import { trainingObservation } from "./observation.js";
 import { createAsyncTrainingPolicy, type TrainingWindow } from "./policy.js";
-import { trainingDeck, TRAINING_DECK_VERSIONS } from "./decks.js";
+import { trainingDeck, PILOT_DECK_VERSIONS } from "./decks.js";
 import "../../cards/index.js";
 
 function hasReveal(value: unknown): boolean {
@@ -24,7 +24,7 @@ describe("remaining pinned-deck reveal producers through the asynchronous policy
   it("keeps the reveal producer inventory aligned with both pinned decks", () => {
     const ids = [
       ...new Set(
-        TRAINING_DECK_VERSIONS.flatMap((version) => {
+        PILOT_DECK_VERSIONS.flatMap((version) => {
           const { deck } = trainingDeck(version);
           return [...deck.mainDeck, ...deck.eggDeck];
         }),

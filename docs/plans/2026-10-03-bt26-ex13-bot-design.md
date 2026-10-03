@@ -1,0 +1,11 @@
+# BT26 and EX13 bot expansion
+
+The requested scope is the whole BT26/EX13 bot, beyond the three-deck pilot. The current catalog contains 26 recipes: eleven BT26 lists, three official EX13 recipes, and twelve Royal Knight recipes (Gankoomon and Jesmon share a list). Training must retain all recipes and their actual cards. A global candidate scorer keeps one inference service and permits transfer between archetypes; separate per-deck models would multiply checkpoint and evaluation maintenance.
+
+The next implementation adds Main DNA digivolution, hand/field Link, App Fusion with an explicitly selected physical linked card, and Main/effect DigiXros. Candidate legality uses the same engine validators as player intents. DNA preserves both material orders. DigiXros uses the engine recipe predicate and zone/expander legality, including partial recipes. Assembly remains sequential. No missing family may be bypassed by removing its cards or lists.
+
+All catalog versions are pinned explicitly. The metadata vocabulary also includes every BT26 and EX13 card, including cards absent from these recipes. Expanding the vocabulary and adding action/material features requires a new feature version and new model; the three-deck checkpoint is not compatible. Training stays on the Tailscale desktop's RTX 4070, with Node workers and Python on the same WSL host. Source hashes, exact seeds, runtime metadata, failures and checkpoints stay in ignored artifacts.
+
+Validation requires real engine action tests for both seats, the complete training-policy suite, Python feature tests, and typechecks. A balanced schedule must visit every ordered pairing and both learner seats; the full cycle is 1,352 games. Reliability failures, truncations, missing teacher labels and payment forfeits remain separate from terminal wins. Acceptance additionally requires held-out per-deck comparisons and asynchronous room inference evidence. A completed smoke run, a nonzero weight update, or compatible metadata alone does not establish that all archetypes improved.
+
+Existing league evaluation failures (`endPhase`, seeds 5810069 and 5820186) and the Chronomon decision-limit loop (5810353) remain unresolved and must be reproduced and corrected before release claims.

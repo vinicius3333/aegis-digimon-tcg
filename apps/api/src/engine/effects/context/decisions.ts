@@ -77,6 +77,7 @@ export interface SeatScopedDecisionApi {
       distinctNames?: boolean;
       assemblyCardId?: string;
       digiXrosCardId?: string;
+      digiXrosMaterialLimits?: { candidateInstanceIds: string[]; max: number }[];
     },
   ): Promise<string[]>;
   /** Arrange every offered card in deck order; the first id is nearest the deck top. */

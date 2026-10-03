@@ -94,12 +94,12 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
   const history = createObservationHistory();
   // The engine may accept a play whose pay-time reduction later proves unavailable. After that
   // rejection the card stays in hand, so offering it again at the same memory would loop.
-  let chosenPlay: { instanceId: string; turn: number } | undefined;
+  let chosenPlay: { instanceId: string; turn: number; declaration: string } | undefined;
   const rejectedPlays = new Map<string, { turn: number; memory: number }>();
   let recovered = 0;
   const rejectedNow = (action: TrainingAction): boolean => {
     if (action.intent.type !== "playCard" || action.assembly !== undefined) return false;
-    const rejection = rejectedPlays.get(action.intent.instanceId);
+    const rejection = rejectedPlays.get(JSON.stringify(action.intent));
     return rejection?.turn === engine.state.turnCount && rejection.memory === engine.state.memory;
   };
   const observe = (request?: DecisionRequest): TrainingObservation => {
@@ -131,7 +131,11 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     if (kind === "main")
       chosenPlay =
         action.intent.type === "playCard" && action.assembly === undefined
-          ? { instanceId: action.intent.instanceId, turn: engine.state.turnCount }
+          ? {
+              instanceId: action.intent.instanceId,
+              turn: engine.state.turnCount,
+              declaration: JSON.stringify(action.intent),
+            }
           : undefined;
     if (action.assembly === undefined) return action.intent;
     const steps = assemblyMaterialSteps(action.assembly.cardId, action.assembly.candidates, false);
@@ -325,7 +329,7 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
       )
         return;
       chosenPlay = undefined;
-      rejectedPlays.set(play.instanceId, { turn: play.turn, memory: engine.state.memory });
+      rejectedPlays.set(play.declaration, { turn: play.turn, memory: engine.state.memory });
       recovered++;
     },
     recoveredPlayRejections: () => recovered,

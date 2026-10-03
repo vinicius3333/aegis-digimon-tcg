@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getCardDefinition, KEYWORDS } from "@aegis/shared";
+import { allCardIds, getCardDefinition, KEYWORDS } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { OBSERVED_STATUS_FIELDS } from "./observation.js";
 import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
@@ -10,7 +10,12 @@ import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
 /** Fingerprint executable engine/policy code and the scoped card rules, not just deck names. */
 export function trainingMetadata() {
   const scope = TRAINING_DECK_VERSIONS.map(trainingDeck);
-  const cardIds = [...new Set(scope.flatMap(({ deck }) => [...deck.mainDeck, ...deck.eggDeck]))].sort();
+  const cardIds = [
+    ...new Set([
+      ...scope.flatMap(({ deck }) => [...deck.mainDeck, ...deck.eggDeck]),
+      ...allCardIds().filter((id) => /^(BT26|EX13)-/.test(id)),
+    ]),
+  ].sort();
   const root = fileURLToPath(new URL("../../", import.meta.url));
   const hash = createHash("sha256");
   const visit = (directory: string, base = root, prefix = "api"): void => {

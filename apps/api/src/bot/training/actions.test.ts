@@ -3,7 +3,7 @@ import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { breedingActions, mainActions } from "./actions.js";
-import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
+import { PILOT_DECK_VERSIONS, trainingDeck } from "./decks.js";
 import "../../cards/index.js";
 
 describe("BT26 training main and breeding actions", () => {
@@ -61,7 +61,7 @@ describe("BT26 training main and breeding actions", () => {
 
   it("fails the scope gate if a pinned list gains an unimplemented declaration family", () => {
     const cards = new Set(
-      TRAINING_DECK_VERSIONS.flatMap((version) => {
+      PILOT_DECK_VERSIONS.flatMap((version) => {
         const { deck } = trainingDeck(version);
         return [...deck.mainDeck, ...deck.eggDeck];
       }),
@@ -99,7 +99,7 @@ describe("BT26 training main and breeding actions", () => {
       if (typeof record.trigger === "string") triggers.add(record.trigger);
       for (const child of Object.values(record)) visit(child);
     }
-    for (const version of TRAINING_DECK_VERSIONS) {
+    for (const version of PILOT_DECK_VERSIONS) {
       const { deck } = trainingDeck(version);
       for (const cardId of new Set([...deck.mainDeck, ...deck.eggDeck])) visit(runtimeCompiledCard(cardId));
     }
