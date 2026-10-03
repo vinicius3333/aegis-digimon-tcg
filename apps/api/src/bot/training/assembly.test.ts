@@ -6,6 +6,7 @@ import { createEvaluationPolicy, type BotPolicy } from "../policy.js";
 import { mainActionReady, mainActions } from "./actions.js";
 import { createAsyncTrainingPolicy, type TrainingWindow } from "./policy.js";
 import "../../cards/index.js";
+import { requireCardDefinition } from "@aegis/shared";
 
 type Choose = (window: TrainingWindow) => number;
 
@@ -58,6 +59,77 @@ const materialWindows = (windows: TrainingWindow[]) =>
   windows.filter(({ actions }) => actions.some(({ label }) => /Assembly/.test(label) && label !== "Assembly play"));
 
 describe("Assembly through the asynchronous training policy", () => {
+  it.each([0, 1] as const)("Shakamon with the 39-material timeout witness remains responsive seat=%s", async (seat) => {
+    // Actual trash candidate order at learner seed 5984189, turn 23. Repeated names used to
+    // be rejected only at complete eight-card leaves, exhausting the inference deadline.
+    const materials = [
+      "EX12-065",
+      "EX12-074",
+      "EX12-026",
+      "EX12-076",
+      "EX12-046",
+      "EX12-062",
+      "EX12-004",
+      "EX12-061",
+      "EX12-031",
+      "EX12-036",
+      "BT26-012",
+      "EX12-009",
+      "EX12-026",
+      "EX12-074",
+      "EX12-009",
+      "EX12-004",
+      "EX12-061",
+      "EX12-062",
+      "EX12-046",
+      "EX12-070",
+      "EX12-046",
+      "EX12-070",
+      "EX12-065",
+      "BT26-008",
+      "EX12-004",
+      "EX12-061",
+      "EX12-062",
+      "EX12-070",
+      "EX12-047",
+      "EX12-047",
+      "EX12-036",
+      "EX12-004",
+      "EX12-061",
+      "EX12-065",
+      "EX12-074",
+      "BT26-014",
+      "EX12-009",
+      "EX12-026",
+      "EX12-076",
+    ];
+    const setup = setupEngine({
+      [seat]: {
+        hand: [{ card: "EX12-076", as: "played" }],
+        trash: materials.map((card, index) => ({ card, as: `material-${index}` })),
+      },
+    });
+    setup.state.turnSeat = seat;
+    setup.state.memory = 8;
+    await setup.ready();
+    const started = performance.now();
+    const windows = await resolveMain(setup, seat, (window) => {
+      if (window.kind === "main") return window.actions.findIndex(({ label }) => label === "Assembly play");
+      const material = window.actions.findIndex(({ label }) => label === "Assembly material");
+      if (material >= 0) return material;
+      const finish = window.actions.findIndex(({ label }) => label === "Finish Assembly");
+      return finish >= 0 ? finish : declineOther(window);
+    });
+    expect(performance.now() - started).toBeLessThan(1000);
+    expect(materialWindows(windows)[0]!.actions.filter(({ label }) => label === "Assembly material")).toHaveLength(39);
+    const player = setup.state.players[seat]!;
+    const played = player.battleArea.find(({ topCard }) => topCard.instanceId === setup.inst("played").instanceId)!;
+    expect(played.stack).toHaveLength(8);
+    expect(new Set(played.stack.map(({ cardId }) => requireCardDefinition(cardId).nameEn)).size).toBe(8);
+    expect(player.trash).toHaveLength(31);
+    expect(setup.state.memory).toBe(1);
+  });
+
   const abbadomonRecipes = [
     { card: "EX9-047", materials: ["EX9-048", "BT7-069", "EX9-048", "BT7-069"], cost: 4 },
     { card: "EX9-055", materials: ["EX9-005", "EX9-005", "EX9-005", "EX9-005"], cost: 5 },

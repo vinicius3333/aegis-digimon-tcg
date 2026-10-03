@@ -31,6 +31,19 @@ export function assemblyRecipe(assemblyCardId: string) {
     if (selected.length > required) return false;
     if (selected.length === required) return complete(selected.map(({ cardId }) => definitionOf(cardId)));
     if (selected.length + remaining.length < required) return false;
+    // For repeated slots, a prefix that already violates distinctness can never be repaired.
+    // Reuse the engine predicate at the prefix size so names/levels/colors/card numbers agree
+    // with full-recipe validation instead of exploring every impossible remaining subset.
+    if (
+      requirement.materials.length === 1 &&
+      selected.length > 0 &&
+      !materialsSatisfyAssemblyRecipe(
+        selected.map(({ cardId }) => definitionOf(cardId)),
+        [{ ...requirement.materials[0]!, count: selected.length }],
+        destination,
+      )
+    )
+      return false;
     const tried = new Set<string>();
     return remaining.some((candidate, index) => {
       if (tried.has(candidate.cardId)) return false;
