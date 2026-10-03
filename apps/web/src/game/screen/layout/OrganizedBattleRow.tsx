@@ -12,7 +12,7 @@ import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 const CARD_ASPECT = 1.4;
 /** The design's --ds-touch-target minimum also applies to each permanent's button wrapper. */
 const MIN_PERMANENT_HEIGHT = 44;
-const LANE_GAP = 8;
+const LANE_GAP = 0;
 /** The smallest Digimon stacked lanes shrink to, as a share of the layout's width. */
 const MIN_STACKED_SHRINK = 0.6;
 
@@ -228,7 +228,8 @@ interface LaneContent {
 
 function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { digimon: 0, support: 0 }): LaneMetrics {
   const base = LANE_METRICS[placement];
-  const shadow = 10;
+  const shadow = content.preferStacked ? 8 : 10;
+  const top = content.preferStacked ? 18 : 22;
   const sourceBottom = (count = 0, width: number) =>
     count
       ? (content.sourceTop ?? 6) +
@@ -249,8 +250,8 @@ function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { 
   };
   return {
     ...base,
-    digimonPadding: { top: 22, bottom: bottom(content.digimonSources, content.digimonLinks, widths.digimon) },
-    supportPadding: { top: 22, bottom: bottom(content.supportSources, content.supportLinks, widths.support) },
+    digimonPadding: { top, bottom: bottom(content.digimonSources, content.digimonLinks, widths.digimon) },
+    supportPadding: { top, bottom: bottom(content.supportSources, content.supportLinks, widths.support) },
   };
 }
 
@@ -272,7 +273,7 @@ function laneHeight(width: number, padding: { top: number; bottom: number }) {
 /** Stacked widths, or undefined when stacking would shrink the Digimon past the floor. */
 function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout | undefined {
   const supportScale = LANE_METRICS[LanePlacement.Stacked].supportScale;
-  const supportWidth = (width: number) => (content.preferStacked ? 56 : Math.max(22, Math.floor(width * supportScale)));
+  const supportWidth = (width: number) => Math.max(22, Math.floor(width * supportScale));
   const digimon = fittedWidth(layoutWidth, (width) => {
     const support = supportWidth(width);
     const metrics = laneMetrics(LanePlacement.Stacked, content, { digimon: width, support });
@@ -280,7 +281,7 @@ function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneConte
       laneHeight(width, metrics.digimonPadding) + laneHeight(support, metrics.supportPadding) + LANE_GAP <= rowHeight
     );
   });
-  if (!content.preferStacked && digimon < layoutWidth * MIN_STACKED_SHRINK) return undefined;
+  if (digimon < (content.preferStacked ? 44 : layoutWidth * MIN_STACKED_SHRINK)) return undefined;
   return { placement: LanePlacement.Stacked, digimon, support: supportWidth(digimon) };
 }
 
@@ -393,19 +394,6 @@ export function OrganizedBattleRow({
   isSuspended: (permanent: Permanent) => boolean;
 }) {
   const { ref, size } = useRowSize();
-  const scrollInitialized = useRef(false);
-  useLayoutEffect(() => {
-    if (!size.preferStacked) {
-      scrollInitialized.current = false;
-      return;
-    }
-    if (supportFirst || scrollInitialized.current || size.height <= 0) return;
-    const zones = ref.current?.closest(".game-battle-zones");
-    if (zones && getComputedStyle(zones).overflowY === "auto") {
-      zones.scrollTop = zones.scrollHeight - zones.clientHeight;
-      scrollInitialized.current = true;
-    }
-  }, [size.preferStacked, size.height, supportFirst]);
   const previous = useRef<PreviousPlacement>(new Map());
   // A card stays split-off for as long as it is drawn: dropping the flag on a later
   // render would restart the entrance animation it skipped.
@@ -463,7 +451,7 @@ export function OrganizedBattleRow({
       aria-label={digimonLabel}
       edgeClearance={edge(lanes.digimon, content.digimonSources)}
       style={{
-        flex: lanes.placement === LanePlacement.Stacked ? "1 1 auto" : "0 1 auto",
+        flex: "0 1 auto",
         minHeight: 0,
         display: "flex",
         gap: Math.max(size.preferStacked ? 20 : 12, Math.round(lanes.digimon * 0.25)),

@@ -42,8 +42,8 @@ export function useDragPlumbing() {
         dx: e.clientX - d.ox,
         dy: e.clientY - d.oy,
         touch: d.deferred === true,
-        // Portrait battlefield cards scroll in both axes. A tap still opens
-        // their actions; a swipe must not accidentally declare an attack.
+        // Respect any vertical panning explicitly enabled by a scroll surface.
+        // A tap still opens actions; a pan must not declare an attack.
         panY: !!d.capture && (getComputedStyle(d.capture).touchAction?.includes("pan-y") ?? false),
       });
       if (!d.started && gesture === "press") {

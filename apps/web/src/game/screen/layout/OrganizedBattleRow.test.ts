@@ -5,7 +5,7 @@ import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 const crowded = { digimonCount: 6, supportCount: 6 };
 
 describe("fitLanes", () => {
-  it("keeps portrait support below Digimon and preserves visible artwork in a dense minimum-height row", () => {
+  it("keeps portrait support below Digimon when both lanes fit", () => {
     const lanes = fitLanes({ width: 288, height: 320 }, 84, {
       ...crowded,
       digimonSources: 12,
@@ -17,7 +17,21 @@ describe("fitLanes", () => {
     });
     expect(lanes.placement).toBe(LanePlacement.Stacked);
     expect(lanes.digimon).toBeGreaterThanOrEqual(72);
-    expect(lanes.support).toBe(56);
+    expect(lanes.support).toBe(52);
+  });
+  it("fits a short portrait row without forcing two overflowing shelves", () => {
+    const lanes = fitLanes({ width: 288, height: 116 }, 76, {
+      ...crowded,
+      digimonSources: 12,
+      digimonLinks: 2,
+      supportSources: 8,
+      preferStacked: true,
+      sourceTop: 2,
+      sourceStep: 1.25,
+    });
+    expect(lanes.placement).toBe(LanePlacement.SideBySide);
+    expect(lanes.digimon).toBeGreaterThanOrEqual(40);
+    expect(lanes.support).toBeGreaterThanOrEqual(22);
   });
   it("keeps the layout's width when a single lane has enough height", () => {
     expect(fitLanes({ width: 900, height: 220 }, 116, { digimonCount: 6, supportCount: 0 })).toMatchObject({
@@ -71,7 +85,9 @@ describe("fitLanes", () => {
       sourceStep: 4,
     });
     expect(lanes.placement).toBe(LanePlacement.Stacked);
-    expect(lanes.digimon * 1.4 + lanes.support * 1.4 + 22 + 24 + 22 + 28 + 2).toBeLessThanOrEqual(270);
+    expect(Math.ceil(lanes.digimon * 1.4) + Math.ceil(lanes.support * 1.4) + 22 + 24 + 22 + 28).toBeLessThanOrEqual(
+      270,
+    );
   });
 
   it("fits a short row even when it contains only Digimon", () => {
