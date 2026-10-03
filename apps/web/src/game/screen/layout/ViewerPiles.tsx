@@ -37,8 +37,7 @@ export function ViewerPiles({
       className={docked ? "game-viewer-piles game-viewer-piles--docked" : "game-viewer-piles"}
       style={
         docked
-          ? // Top-aligned so the viewer's counters fit underneath, at the strip's bottom-right.
-            { display: "flex", flexShrink: 0, alignSelf: "flex-start", gap: 8, padding: "8px 16px" }
+          ? { display: "flex", gap: 8 }
           : { display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }
       }
     >

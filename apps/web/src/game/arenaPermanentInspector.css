@@ -414,6 +414,48 @@
   }
 }
 
+/* A phone on its side: half the board is about 130px, too short for the details.
+   The panel becomes a full-height sheet along the right edge and scrolls. The
+   measured half-board rect is inline, so the sheet's own box overrides it. */
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
+  .arena-permanent-inspector {
+    top: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    right: 0 !important;
+    width: min(100%, 34rem) !important;
+    height: auto !important;
+    padding: 0;
+    background: none;
+  }
+  .arena-permanent-inspector__body {
+    height: 100%;
+    grid-template-columns: minmax(4rem, 26%) minmax(0, 1fr);
+    border-radius: var(--ds-radius-xl) 0 0 var(--ds-radius-xl);
+  }
+  .arena-permanent-inspector__reading {
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  /* One scroll for the whole reading column: nested scroll boxes a few lines tall
+     cut text mid-line. The actions stay pinned under it. */
+  .arena-permanent-inspector :is(.arena-permanent-inspector__stats, .arena-permanent-inspector__state, .arena-permanent-inspector__effects) {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+  .arena-permanent-inspector .arena-permanent-inspector__actions {
+    position: sticky;
+    bottom: 0;
+    flex: none;
+    max-height: none;
+    margin-top: auto;
+    padding-top: 0.375rem;
+    background: var(--ds-brand-ink);
+  }
+}
+
 @media (max-height: 650px) {
   .arena-permanent-inspector__reading {
     gap: 0.25rem;

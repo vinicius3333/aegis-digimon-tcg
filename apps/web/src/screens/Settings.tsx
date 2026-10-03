@@ -6,7 +6,6 @@ import { Icons } from "../design/icons";
 import { getSoundVolume, isSoundEnabled, playSound, setSoundEnabled, setSoundVolume } from "../design/sound";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { FieldLayout, setFieldLayout, useFieldLayout } from "../design/fieldLayout";
-import { PileLayout, setPileLayout, usePileLayout } from "../design/pileLayout";
 import { CardSleevePicker } from "../design/sleevePicker";
 import { LOCALES, LOCALE_LABELS, useTranslation } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
@@ -39,7 +38,6 @@ export function Settings({
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [volume, setVolume] = useState(Math.round(getSoundVolume() * 100));
   const [actionConfirmationsOn, setActionConfirmationsOn] = useState(areActionConfirmationsEnabled());
-  const pileLayout = usePileLayout();
   const fieldLayout = useFieldLayout();
   function confirmRename() {
     const name = nameInput.trim();
@@ -204,14 +202,6 @@ export function Settings({
                   setActionConfirmationsEnabled(next);
                   setActionConfirmationsOn(next);
                 }}
-              />
-            </div>
-            <div className="settings-block">
-              <Switch
-                checked={pileLayout === PileLayout.Tabletop}
-                label={t("settings.tabletopLayout")}
-                description={t("settings.tabletopLayoutDesc")}
-                onChange={(next) => setPileLayout(next ? PileLayout.Tabletop : PileLayout.Classic)}
               />
             </div>
             <div className="settings-block">

@@ -451,8 +451,6 @@ export const en = {
   "settings.cardSleeveDesc": "Choose a sleeve for your hidden cards",
   "settings.actionConfirmations": "Confirm actions",
   "settings.actionConfirmationsDesc": "Ask before playing, digivolving, or using an optional DNA digivolution",
-  "settings.tabletopLayout": "Tabletop layout",
-  "settings.tabletopLayoutDesc": "Raising area on the right, deck and trash on the left, like a real table",
   "settings.organizedField": "Organized field",
   "settings.organizedFieldDesc": "Sort Digimon by level and group identical Tamers and Options in a row of their own",
   "settings.sound": "Sound effects",

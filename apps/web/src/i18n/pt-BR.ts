@@ -463,8 +463,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.cardSleeveDesc": "Escolha uma sleeve para suas cartas ocultas",
   "settings.actionConfirmations": "Confirmar ações",
   "settings.actionConfirmationsDesc": "Perguntar antes de jogar, digievoluir ou fazer uma digievolução DNA opcional",
-  "settings.tabletopLayout": "Layout de mesa",
-  "settings.tabletopLayoutDesc": "Área de criação à direita, deck e lixo à esquerda, como numa mesa real",
   "settings.organizedField": "Campo organizado",
   "settings.organizedFieldDesc": "Ordena os Digimon por nível e agrupa Tamers e Options iguais numa fileira própria",
   "settings.sound": "Efeitos sonoros",

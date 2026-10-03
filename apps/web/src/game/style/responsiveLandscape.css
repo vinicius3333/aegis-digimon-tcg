@@ -5,8 +5,9 @@
    tall screen — the fanned hand ate half of it, the board fell off the bottom
    edge and the action strip collapsed to nothing. GameScreen's
    NARROW_LAYOUT_QUERY carries the same condition, so the touch sheets and the
-   strip come along with these rules. */
-@media (height < 520px) and (orientation: landscape) {
+   strip come along with these rules. A landscape window under 600px wide joins
+   them: no other landscape layout fits it, and it is roomier than a phone. */
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
   :root {
     --game-rail: 6.25rem;
     --hand-card-width: 3.5rem;
@@ -179,7 +180,7 @@
     display: grid !important;
     max-height: none;
     flex: none;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     overflow: hidden;
   }
   .game-breeding-dock {
@@ -212,6 +213,20 @@
     min-height: calc(var(--game-hand-h) + var(--ds-space-2));
     padding: 2px var(--ds-space-2) max(2px, env(safe-area-inset-bottom)) !important;
     overflow: hidden;
+  }
+  /* The counters take their own column at the strip's end, two by two: laid over
+     the hand they hid its last cards and its scroll cue. */
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    align-content: center;
+    gap: var(--ds-space-1);
+    padding: var(--ds-space-1) var(--ds-space-2);
+  }
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] .game-arena-counter {
+    width: 2.25rem;
+    height: 2.25rem;
   }
   .game-action-bar--idle {
     display: none !important;
@@ -463,5 +478,185 @@
 @media (width >= 960px) {
   .narration-slot[data-slot="narration-text"] {
     bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Each side's piles share a line with its own battle row, as on a real table: the
+   opponent's deck and trash left of their row, eggs, raising and security right of
+   it; the viewer's security, eggs and raising left of theirs, deck and trash right.
+   The bottom strip then only holds the hand, so the battle rows get the height.
+   The field is a subgrid over the board's middle rows, and the dock dissolves into
+   the board, so the viewer's breeding dock can sit beside the viewer's row. */
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
+  .game-board {
+    display: grid !important;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  }
+  .game-opponent-bar {
+    grid-area: 1 / 1 / 2 / 5;
+  }
+  .game-board > .game-field {
+    display: grid !important;
+    grid-area: 2 / 1 / 5 / 5;
+    grid-template-columns: subgrid !important;
+    grid-template-rows: subgrid;
+    column-gap: var(--ds-space-1);
+  }
+  .game-field > :is(.game-pile-column, .game-battle-zones) {
+    display: contents !important;
+  }
+  .game-pile-column--left > div:first-child {
+    grid-area: 1 / 1 / 2 / 3;
+    flex-direction: row !important;
+    align-self: center;
+    justify-self: start;
+    padding-inline: var(--ds-space-2);
+  }
+  .game-pile-column--left > .game-security-shield {
+    grid-area: 3 / 1;
+    align-self: center;
+    margin-inline: var(--ds-space-2);
+  }
+  /* The row fills its cell and keeps the top strip for the stack and keyword pills,
+     which sit over a card's top edge: the row scrolls sideways, so it clips them. */
+  .game-battle-row {
+    align-self: stretch;
+    align-items: center;
+    padding-block: 12px 0 !important;
+  }
+  /* The digivolution count tucks onto the card's top edge instead of floating 7px
+     above it, so it fits in the strip the row keeps for it. */
+  .game-battle-row .game-permanent .game-source-badge {
+    top: 0;
+    left: -4px;
+  }
+  .game-battle-row .game-permanent:has([data-state="suspended"]) .game-source-badge {
+    top: calc(var(--permanent-width) * 0.2);
+    left: calc(var(--permanent-width) * -0.2 - 4px);
+  }
+  .game-battle-row--opp {
+    grid-area: 1 / 3;
+  }
+  .game-memory-band {
+    grid-area: 2 / 1 / 3 / 5;
+    justify-content: center;
+  }
+  .game-battle-row--you {
+    grid-area: 3 / 3;
+  }
+  .game-pile-column--right > div:first-child {
+    grid-area: 1 / 4;
+    align-self: center;
+    padding-inline: var(--ds-space-2);
+  }
+  .game-viewer-piles {
+    grid-area: 3 / 4;
+    align-self: center;
+    justify-self: end;
+    padding-inline: var(--ds-space-2);
+  }
+  .game-board > .game-player-dock {
+    display: contents !important;
+  }
+  /* Bottom-aligned, so the raising card's stack badge clears the memory band. */
+  .game-player-dock > .game-breeding-dock {
+    z-index: 2;
+    grid-area: 4 / 2;
+    align-self: end;
+    padding: 0 var(--ds-space-1) !important;
+    overflow: visible;
+    border: 0 !important;
+    background: transparent !important;
+  }
+  /* The cards sit 4px below the hand's top edge, so the hand is that much taller
+     than a card or its last pixels fall off the bottom of the board. */
+  .game-player-dock > .game-hand-dock {
+    grid-area: 5 / 1 / 6 / 4;
+    min-height: calc(var(--game-hand-h) + var(--ds-space-1));
+    padding-block: 0 var(--ds-space-1) !important;
+  }
+  .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
+    grid-area: 5 / 4;
+    justify-content: end;
+    justify-items: end;
+  }
+  /* Counters are inline chips, icon then count: a tile with a badge hanging off
+     its corner overflowed the slim bar. */
+  .aegis-arena .game-board .game-arena-counters[data-side] .game-arena-counter {
+    display: flex;
+    width: auto;
+    min-width: 0;
+    height: 1.375rem;
+    min-height: 0;
+    padding: 0 0.375rem;
+    border-radius: 999px;
+    color: var(--ds-brand-on-ink);
+    background: var(--ds-brand-ink);
+  }
+  .aegis-arena .game-board .game-arena-counters[data-side] .game-arena-counter__icon {
+    display: flex;
+    align-items: center;
+    gap: 0.1875rem;
+  }
+  .aegis-arena .game-board .game-arena-counters[data-side] .game-arena-counter svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+  .aegis-arena .game-board .game-arena-counters[data-side] .game-arena-counter strong {
+    position: static;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: inherit;
+    font-size: 0.6875rem;
+  }
+  .game-opponent-bar > .game-arena-counters {
+    padding: 0;
+  }
+  .aegis-arena .game-opponent-bar :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-surrender) {
+    min-width: 36px;
+    width: 36px;
+    min-height: 36px;
+    height: 36px;
+  }
+  /* The orb would hang over the piles at both ends of the band; a pill fits it. */
+  .aegis-arena .game-memory-band .game-end-turn-orb {
+    width: auto;
+    min-width: 0;
+    height: 1.625rem;
+    min-height: 0;
+    margin: 0 var(--ds-space-2) 0 var(--ds-space-1);
+    padding: 0 var(--ds-space-3);
+    border-radius: 999px;
+    font-size: 0.625rem;
+    white-space: nowrap;
+  }
+  .game-memory-band .game-end-turn-orb br {
+    display: none;
+  }
+}
+
+/* With the browser's bars showing, a phone on its side leaves the board about
+   270px: the bar, the hand and the bar's buttons shrink, and the pile captions go. */
+@media (height < 360px) and (orientation: landscape) {
+  :root {
+    --hand-card-width: 2.75rem;
+  }
+  .game-opponent-bar {
+    min-height: 0;
+    padding: 1px var(--ds-space-2) !important;
+  }
+  .aegis-arena .game-opponent-bar :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-surrender) {
+    min-width: 30px;
+    width: 30px;
+    min-height: 30px;
+    height: 30px;
+  }
+  /* The piles read on their own: an egg, a card back, a face-up card. */
+  .game-board :is(.game-utility-slot, .game-utility-slot > div, .game-breeding-slot) > span {
+    display: none;
   }
 }

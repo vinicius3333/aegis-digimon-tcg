@@ -149,12 +149,7 @@
 
 @media (min-width: 1024px) and (min-height: 760px) {
   .game-pile-column--left > div:first-child {
-    top: 0.75rem;
     gap: 4px !important;
-  }
-
-  .game-topbar-actions {
-    margin-right: 7.5rem;
   }
 
   .game-end-turn-orb {

@@ -213,3 +213,18 @@
     bottom: 0.5rem;
   }
 }
+
+/* Docked deck and trash stack over the counters at the end of the strip. */
+.game-viewer-pile-dock {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem 0.75rem;
+}
+
+.game-viewer-pile-dock > .game-arena-counters {
+  align-self: auto;
+}
