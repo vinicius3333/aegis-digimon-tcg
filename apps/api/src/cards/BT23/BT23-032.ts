@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            '[When Digivolving] Until your opponent\'s turn ends, give 1 of their Digimon "[Start of Your Main Phase] This Digimon attacks."',
           kind: "GrantAuraToOpponents",
           target: {
             filter: {
@@ -36,6 +38,7 @@ export const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
         },
         {
+          effectTextPart: "Then, if DNA digivolving, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           kind: "DeDigivolve",
           target: {
             filter: {

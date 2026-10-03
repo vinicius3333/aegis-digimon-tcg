@@ -68,6 +68,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If your opponent has as many or more total Digimon and Tamers as you, delete 1 of their Tamers.",
           kind: "Delete",
           target: {
             filter: {
@@ -88,6 +90,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's level 3, 1 of their level 5 and 1 of their level 7 Digimon.",
           kind: "Delete",
           target: {
             count: 1,
@@ -99,6 +103,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's level 3, 1 of their level 5 and 1 of their level 7 Digimon.",
           kind: "Delete",
           target: {
             count: 1,
@@ -110,6 +116,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, delete 1 of your opponent's level 3, 1 of their level 5 and 1 of their level 7 Digimon.",
           kind: "Delete",
           target: {
             count: 1,

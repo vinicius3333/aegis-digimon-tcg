@@ -6,8 +6,12 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
-        { kind: "PlaceInBattleAreaSelf" },
+        {
+          effectTextPart: "[Main] Suspend 1 of your opponent's Digimon.",
+          kind: "Suspend",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        },
+        { effectTextPart: "Then, place this card in your battle area.", kind: "PlaceInBattleAreaSelf" },
       ],
     },
     {

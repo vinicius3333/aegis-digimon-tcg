@@ -89,6 +89,8 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart:
+            "[When Attacking] [Once Per Turn] Place 1 of your opponent's Digimon as the top security card.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "opponent",
@@ -102,6 +104,8 @@ const compiled: CompiledCard = {
           toTop: true,
         },
         {
+          effectTextPart:
+            "Then, if this Digimon has 4 or more colors in its digivolution cards, trash their top security card and ＜Recovery +1＞",
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",

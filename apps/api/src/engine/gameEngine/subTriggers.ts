@@ -898,6 +898,17 @@ function oncePerTurnSpentByAnotherOccurrence(engine: GameEngine, item: ArmedSubT
   );
 }
 
+/**
+ * The condition clause of a watcher ("When effects trash cards from under this Tamer"), shown
+ * beside the printed text the prompt displays. Only needed when that text is the whole printed
+ * clause, which may list several conditions that each pend separately.
+ */
+function triggerReasonOf(sub: SubTriggerSubscription): { triggerReason?: string } {
+  if (sub.printedClause === undefined || sub.description === undefined) return {};
+  const condition = /^\s*(when\b[^,]*)/i.exec(sub.description)?.[1]?.trim();
+  return condition === undefined ? {} : { triggerReason: condition };
+}
+
 /** Present a watcher to the ordering prompt as an ordinary collected effect. */
 export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence }: ArmedSubTrigger): CollectedEffect {
   return {
@@ -914,6 +925,7 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence
     discardedStackSourceProof: ctx.discardedStackSourceProof,
     timingLabel: sub.event,
     printedTiming: sub.printedTiming,
+    ...triggerReasonOf(sub),
     effect: {
       effectKey: subTriggerEffectKey(sub),
       description: sub.printedClause ?? sub.description,

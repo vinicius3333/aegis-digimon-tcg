@@ -67,8 +67,16 @@ export const compiled: CompiledCard = {
           fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
           raw: "[All Turns] [Once Per Turn] When your security stack is removed from, ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, if you have 3 or fewer security cards, 1 of their Digimon can't digivolve until their turn ends.",
           actions: [
-            { kind: "DeDigivolve", target: { filter: theirDigimon, count: 1 }, amount: 1 },
             {
+              effectTextPart:
+                "[All Turns] [Once Per Turn] When your security stack is removed from, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+              kind: "DeDigivolve",
+              target: { filter: theirDigimon, count: 1 },
+              amount: 1,
+            },
+            {
+              effectTextPart:
+                "Then, if you have 3 or fewer security cards, 1 of their Digimon can't digivolve until their turn ends.",
               kind: "Restrict",
               target: { filter: theirDigimon, count: 1 },
               restriction: "digivolve",

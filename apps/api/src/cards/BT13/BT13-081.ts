@@ -39,11 +39,13 @@ export const compiled: CompiledCard = {
       trigger: "EndOfOpponentsTurn",
       actions: [
         {
+          effectTextPart: "[End of Opponent’s Turn][Once Per Turn] ＜Draw 1＞.",
           kind: "Draw",
           controller: "mine",
           amount: 1,
         },
         {
+          effectTextPart: "Then, trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {

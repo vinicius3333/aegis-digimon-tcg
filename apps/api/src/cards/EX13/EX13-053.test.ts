@@ -57,6 +57,8 @@ describe("EX13-053 Thundermon", () => {
 
     const body = [
       {
+        effectTextPart:
+          "[On Play] [On Deletion] You may return up to 3 Digimon cards with [Mamemon] in their texts from your trash to the top of the deck.",
         kind: "Return",
         target: {
           filter: {
@@ -73,6 +75,8 @@ describe("EX13-053 Thundermon", () => {
         trackCount: "mamemonTextCardsReturned",
       },
       {
+        effectTextPart:
+          "Then, delete 1 of your opponent's Digimon with a play cost of 3 or less. For each one this effect returned, add 1 to this effect's play cost maximum.",
         kind: "Delete",
         target: {
           filter: {

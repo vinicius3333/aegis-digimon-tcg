@@ -19,6 +19,8 @@ const useHuckmonOption: Action = {
 };
 
 const playHinukamuyToken: Action = {
+  effectTextPart:
+    "[On Play] [When Digivolving] You may play 1 [Hinukamuy] Token. (Digimon/White/6000 DP/＜Alliance＞ ＜Reboot＞ ＜Blocker＞)",
   kind: "PlayToken",
   tokens: ["Hinukamuy Token"],
   count: 1,
@@ -28,6 +30,7 @@ const playHinukamuyToken: Action = {
 };
 
 const immuneWhiteDigimon: Action = {
+  effectTextPart: "Then, until your opponent's turn ends, their Digimon effects don't affect 1 of your white Digimon.",
   kind: "Restrict",
   target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["White"] }, count: 1 },
   restriction: "beAffected",

@@ -24,11 +24,14 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart: "[All Turns] When this Digimon would leave the battle area, ＜Draw 1＞.",
               kind: "Draw",
               controller: "mine",
               amount: 1,
             },
             {
+              effectTextPart:
+                "Then, you may play 1 [Veemon] from your hand or this Digimon's digivolution cards without paying the cost.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {

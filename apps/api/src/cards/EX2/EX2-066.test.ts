@@ -62,12 +62,14 @@ describe("EX2-066 Offensive Plug-In A", () => {
           isSecurity: true,
           actions: [
             {
+              effectTextPart:
+                "[Security] Reveal the top 3 cards of your deck. Add 1 Tamer card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
               kind: "RevealAdd",
               revealCount: 3,
               add: [{ filter: { controllerDefault: "mine", kind: ["Tamer"] }, count: 1, to: "hand" }],
               rest: "deckBottom",
             },
-            { kind: "AddToHandSelf" },
+            { effectTextPart: "Then, add this card to your hand.", kind: "AddToHandSelf" },
           ],
         }),
       ]),

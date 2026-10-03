@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [On Deletion] You may place 1 Digimon card with the [Angel]/[Archangel]/[Three Great Angels] trait from your hand at the bottom of your security stack.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
@@ -28,6 +30,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if you have 4 or more security cards, add the top card of your security stack to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -44,6 +48,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Play] [On Deletion] You may place 1 Digimon card with the [Angel]/[Archangel]/[Three Great Angels] trait from your hand at the bottom of your security stack.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
@@ -65,6 +71,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if you have 4 or more security cards, add the top card of your security stack to the hand.",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",

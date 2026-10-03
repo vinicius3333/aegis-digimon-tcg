@@ -28,6 +28,8 @@ describe("EX5-027 Liollmon", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Frimon"], cost: 0, isAlternate: true }]);
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toEqual([
       {
+        effectTextPart:
+          "[On Play] Search your security stack. You may add 1 card with [Leomon] in its name among them to the hand. If you added a card, ＜Recovery +1 (Deck)＞ (Place the top card of your deck on top of your security stack).",
         kind: "Search",
         controller: "mine",
         searchZone: "security",
@@ -44,7 +46,12 @@ describe("EX5-027 Liollmon", () => {
         amount: 1,
         condition: { kind: "ifThisEffectActed" },
       },
-      { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
+      {
+        effectTextPart: "Then, shuffle your security stack.",
+        kind: "SecurityManipulation",
+        op: "shuffle",
+        controller: "mine",
+      },
     ]);
     expect(compiled.effects?.find((entry) => entry.isInherited)).toEqual({
       trigger: "OnDeletion",

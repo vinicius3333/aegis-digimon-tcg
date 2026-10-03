@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Reveal the top 5 cards of your deck. Among them, add 1 card with the [Machine]/[Cyborg] trait to the hand and trash 1 such card. Return the rest to the top of the deck.",
           kind: "RevealAdd",
           revealCount: 5,
           add: [
@@ -41,6 +43,7 @@ const compiled: CompiledCard = {
           rest: "deckTop",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],
@@ -78,6 +81,8 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart:
+            "[Security] Reveal the top 5 cards of your deck. Among them, add 1 card with the [Machine]/[Cyborg] trait to the hand and trash 1 such card. Return the rest to the top of the deck.",
           kind: "RevealAdd",
           revealCount: 5,
           add: [
@@ -112,6 +117,7 @@ const compiled: CompiledCard = {
           rest: "deckTop",
         },
         {
+          effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

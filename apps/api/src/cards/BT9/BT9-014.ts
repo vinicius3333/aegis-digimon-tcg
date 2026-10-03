@@ -8,6 +8,8 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GrantAuraToOpponents",
+          effectTextPart:
+            '[When Digivolving] Until the end of your opponent\'s turn, 2 of their Digimon gain "[On Deletion] Lose 1 memory."',
           target: {
             filter: {
               controller: "opponent",
@@ -26,6 +28,8 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "DeleteByDPBudget",
+          effectTextPart:
+            "Then, if [WarGrowlmon] or [X Antibody] is in this Digimon's digivolution cards, you may choose any number of your opponent's Digimon whose total DP adds up to 6000 or less and delete them.",
           target: {
             filter: {
               controller: "opponent",

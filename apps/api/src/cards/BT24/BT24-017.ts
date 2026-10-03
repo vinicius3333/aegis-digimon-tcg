@@ -16,8 +16,14 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Delete", target: { filter: { ...opponentDigimon, superlative: "lowestDP" }, count: 1 } },
         {
+          effectTextPart: "[When Digivolving] Delete 1 of your opponent's lowest DP Digimon.",
+          kind: "Delete",
+          target: { filter: { ...opponentDigimon, superlative: "lowestDP" }, count: 1 },
+        },
+        {
+          effectTextPart:
+            "Then, by returning 2 cards from their trash to the bottom of the deck, they play 2 [Petrification] Tokens. (Digimon/White/3000 DP/[Your Turn] This Digimon can't suspend.\n[On Deletion] Trash your top security card.) After, this Digimon gets +2000 DP for each of your opponent's Digimon until their turn ends.",
           kind: "CostGatedBlock",
           cost: returnTwo,
           optional: true,

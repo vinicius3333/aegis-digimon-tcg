@@ -18,6 +18,7 @@ const compiled: CompiledCard = {
       isInherited: true,
       actions: [
         {
+          effectTextPart: "[When Attacking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",
           kind: "TrashDigivolution",
           target: {
             filter: {
@@ -31,6 +32,8 @@ const compiled: CompiledCard = {
           choose: true,
         },
         {
+          effectTextPart:
+            "Then, 1 of their Digimon with no digivolution cards gains <Security A. -1> until the end of their turn.",
           kind: "GainKeyword",
           target: {
             filter: {

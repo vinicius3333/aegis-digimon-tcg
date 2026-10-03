@@ -329,15 +329,25 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
         else if (first !== identity && !inProgress.has(key)) departed.add(key);
       }
 
-      const active = collectedThisPass.filter(
-        (c) =>
-          !declined.has(declineKey(c)) &&
-          !resolved.has(declineKey(c)) &&
-          !inProgress.has(declineKey(c)) &&
-          !departed.has(declineKey(c)) &&
+      // One pending activation per key. Two collection paths can hand in the same effect for
+      // the same trigger (an inherited [On Deletion] reached both from the deleted stack and
+      // from the window parked for it), and `resolved` retires the key after the first one
+      // runs, so the copy could only ever sit in the order prompt as a choice that never runs
+      // (Discord 1555741214014447737: BT26-005 Pinamon listed twice under Ravemon).
+      const activeKeys = new Set<string>();
+      const active = collectedThisPass.filter((c) => {
+        const key = declineKey(c);
+        if (activeKeys.has(key)) return false;
+        const activatable =
+          !declined.has(key) &&
+          !resolved.has(key) &&
+          !inProgress.has(key) &&
+          !departed.has(key) &&
           !loopStopped.has(c.effect.effectKey) &&
-          canActivate(c.effect, env.makeContext(c), env.tracker),
-      );
+          canActivate(c.effect, env.makeContext(c), env.tracker);
+        if (activatable) activeKeys.add(key);
+        return activatable;
+      });
       if (active.length === 0) return;
 
       // §18-3 Infinite Loops. The window is still handing out activatable effects after

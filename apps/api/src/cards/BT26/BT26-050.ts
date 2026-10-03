@@ -13,8 +13,19 @@ const opponentSuspendedDigimonTamers = {
   count: "all",
 } satisfies Target;
 const suspendLock = [
-  { kind: "Suspend", target: anyDigimonTamer, optional: true },
-  { kind: "Restrict", target: opponentDigimonTamer, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
+  {
+    effectTextPart: "[When Digivolving] You may suspend 2 Digimon or Tamers.",
+    kind: "Suspend",
+    target: anyDigimonTamer,
+    optional: true,
+  },
+  {
+    effectTextPart: "Then, 2 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",
+    kind: "Restrict",
+    target: opponentDigimonTamer,
+    restriction: "unsuspend",
+    duration: "untilOpponentTurnEnd",
+  },
 ] satisfies Action[];
 const securityCost = {
   kind: "Return",

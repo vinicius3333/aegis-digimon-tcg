@@ -19,6 +19,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] Reveal the top 3 cards of your deck. Among them, add 1 [Evil], [Dark Dragon], [Evil Dragon] or [Dark Knight] trait card or purple Tamer card to the hand and trash 1 such card. Return the rest to the bottom of the deck.",
           kind: "RevealAdd",
           revealCount: 3,
           add: [
@@ -27,7 +29,11 @@ export const compiled: CompiledCard = {
           ],
           rest: "deckBottom",
         },
-        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+        {
+          effectTextPart: "Then, trash 1 card in your hand.",
+          kind: "Trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        },
       ],
     },
     {

@@ -37,6 +37,7 @@ export function DecisionTriggerChooser({
   timing,
   triggerTimings,
   triggerDescriptions,
+  triggerReasons,
   triggerIsInherited,
   triggerIsOptional,
   waitingTriggers,
@@ -52,6 +53,8 @@ export function DecisionTriggerChooser({
   timing: string | undefined;
   triggerTimings: readonly string[] | undefined;
   triggerDescriptions: readonly string[] | undefined;
+  /** Aligned to `triggerKeys`: the printed condition that armed each entry, when it differs. */
+  triggerReasons: readonly string[] | undefined;
   triggerIsInherited: readonly boolean[] | undefined;
   triggerIsOptional: readonly boolean[] | undefined;
   /** Older pending effects that resolve after every offered entry. Shown, never chosen. */
@@ -194,7 +197,9 @@ export function DecisionTriggerChooser({
               <button
                 type="button"
                 className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}
-                aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel].filter(Boolean).join(", ")}
+                aria-label={[timingLabel, triggerKeyLabels[i], detail?.sourceLabel, triggerReasons?.[i]]
+                  .filter(Boolean)
+                  .join(", ")}
                 aria-pressed={chosen}
                 onClick={() => toggle(key)}
               >
@@ -215,6 +220,11 @@ export function DecisionTriggerChooser({
                     <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
                     <span className="trigger-chooser__id">{cardId}</span>
                     {detail?.sourceLabel ? <span className="trigger-chooser__source">{detail.sourceLabel}</span> : null}
+                    {triggerReasons?.[i] ? (
+                      <span className="trigger-chooser__reason">
+                        {t("overlay.triggerReason", { reason: triggerReasons[i] })}
+                      </span>
+                    ) : null}
                   </span>
                   {chosen && !acceptsResolutionPlan ? (
                     <span className="trigger-chooser__check" aria-hidden="true">

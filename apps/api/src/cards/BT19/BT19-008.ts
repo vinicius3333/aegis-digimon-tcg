@@ -40,6 +40,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
+          effectTextPart:
+            "[On Deletion] Reveal the top 3 cards of your deck. Play 1 Tamer card with the [Xros Heart] trait among them without paying the cost. Return the rest to the bottom of the deck.",
           kind: "RevealAdd",
           revealCount: 3,
           add: [
@@ -61,6 +63,7 @@ export const compiled: CompiledCard = {
           rest: "deckBottom",
         },
         {
+          effectTextPart: "Then, ＜Save＞.",
           kind: "PlaceUnder",
           target: {
             filter: {

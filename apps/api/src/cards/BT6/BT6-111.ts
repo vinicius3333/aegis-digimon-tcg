@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
+          effectTextPart: "[Security] At the end of the battle, add this card to your hand.",
           kind: "SubTrigger",
           event: "whenSecurityBattleEnded",
           once: true,
@@ -16,6 +17,8 @@ const compiled: CompiledCard = {
               kind: "AddToHandSelf",
             },
             {
+              effectTextPart:
+                "Then, if a Digimon with [Royal Knight] or [X-Antibody] in its type is in play, up to 12 of your opponent's Digimon can't attack players for the turn.",
               kind: "Restrict",
               target: {
                 filter: {

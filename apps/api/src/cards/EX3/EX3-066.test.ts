@@ -185,17 +185,6 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cannon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const optional = s.decisions.at(-1)!.req;
-    expect(optional).toMatchObject({ sourceCardId: "EX3-066", kind: "optional", options: { timing: "Main" } });
-    expect(optional.options?.effectText).toContain("by placing 1 card with [Cyborg] in its traits");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optional.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const deDigivolve = s.decisions.at(-1)!.req;
     expect(deDigivolve).toMatchObject({ sourceCardId: "EX3-066", kind: "chooseTargets", options: { timing: "Main" } });
@@ -212,6 +201,17 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
         type: "respondDecision",
         decisionId: deDigivolve.decisionId,
         response: { kind: "chooseTargets", instanceIds: [s.perm("stacked").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const optional = s.decisions.at(-1)!.req;
+    expect(optional).toMatchObject({ sourceCardId: "EX3-066", kind: "optional", options: { timing: "Main" } });
+    expect(optional.options?.effectText).toContain("by placing 1 card with [Cyborg] in its traits");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards" && s.decisions.length >= 3);
@@ -347,16 +347,6 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const optional = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: optional.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const deDigivolve = s.decisions.at(-1)!.req;
     expect(
@@ -364,6 +354,16 @@ describe("EX3-066 Hyper Infinity Cannon", () => {
         type: "respondDecision",
         decisionId: deDigivolve.decisionId,
         response: { kind: "chooseTargets", instanceIds: [stackedId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const optional = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
 

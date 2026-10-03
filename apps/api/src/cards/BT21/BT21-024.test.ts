@@ -27,6 +27,8 @@ describe("BT21-024 Cyberdramon", () => {
           trigger,
           actions: [
             {
+              effectTextPart:
+                "[On Play] [When Digivolving] If your opponent has 5 or fewer security cards, they place 1 card from their hand as the bottom security card.",
               kind: "SecurityManipulation",
               op: "addBottom",
               controller: "opponent",
@@ -41,7 +43,13 @@ describe("BT21-024 Cyberdramon", () => {
                 raw: "your opponent has 5 or fewer security cards",
               },
             },
-            { kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 },
+            {
+              effectTextPart: "Then, trash their top security card.",
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+            },
           ],
         }),
       );

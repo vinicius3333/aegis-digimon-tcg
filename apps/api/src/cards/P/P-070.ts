@@ -15,6 +15,8 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "RevealAdd",
+              effectTextPart:
+                "[Security] At the end of the battle, reveal the top card of your deck. If it’s a black Digimon card with a play cost of 4 or less, you may play it without paying its memory cost. Add the remaining cards to your hand.",
               revealCount: 1,
               add: [
                 {
@@ -36,7 +38,7 @@ const compiled: CompiledCard = {
               ],
               rest: "deckBottom",
             },
-            { kind: "AddToHandSelf" },
+            { kind: "AddToHandSelf", effectTextPart: "Then, add this card to its owner’s hand." },
           ],
         },
       ],

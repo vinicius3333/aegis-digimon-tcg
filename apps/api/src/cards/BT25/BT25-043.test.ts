@@ -292,7 +292,7 @@ describe("BT25-043 Habakirimon", () => {
     expect(s.perm("late").currentDP).toBe(5000);
   });
 
-  it("decides the later security cost before reducing DP, then deletes at zero DP", async () => {
+  it("reduces DP first, then offers the later security cost, and deletes at zero DP only after the effect", async () => {
     const s = setupEngine(
       {
         0: {
@@ -314,7 +314,7 @@ describe("BT25-043 Habakirimon", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.perm("target").currentDP).toBe(8000);
+    expect(s.perm("target").currentDP).toBe(0);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
     const cost = s.state.pendingDecision!;
     expect(

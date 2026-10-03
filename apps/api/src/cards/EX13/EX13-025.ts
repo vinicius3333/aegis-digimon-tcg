@@ -16,6 +16,8 @@ const trashTopOrBottomSecurity: Action = {
 };
 
 const placeWitchelnyTextCardAsBottomSecurity: Action = {
+  effectTextPart:
+    "Then, if you have 2 or fewer security cards, you may place 1 card with [Witchelny] in its text from your hand as the bottom security card.",
   kind: "SecurityManipulation",
   op: "addBottom",
   controller: "mine",
@@ -46,6 +48,8 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Main Phase] If you have 3 or more security cards, trash your top or bottom security card, ＜Draw 1＞ and gain 1 memory.",
           kind: "ConditionalBranch",
           condition: {
             kind: "zoneCount",

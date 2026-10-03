@@ -59,6 +59,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] Trash 1 card in your hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -69,6 +70,7 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, delete 1 of your opponent's level 4 or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {

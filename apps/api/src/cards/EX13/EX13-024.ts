@@ -9,6 +9,8 @@ const dracomonOrExamonText: Filter = {
 };
 
 const trashStackCards: Action = {
+  effectTextPart:
+    "[On Play] [When Digivolving] For each of this Digimon's digivolution cards, trash any 1 digivolution card from your opponent's Digimon.",
   kind: "TrashDigivolution",
   target: {
     filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
@@ -21,6 +23,8 @@ const trashStackCards: Action = {
 };
 
 const returnFewestStackDigimon: Action = {
+  effectTextPart:
+    "Then, you may return all of their Digimon with the fewest digivolution cards to the bottom of the deck.",
   kind: "Return",
   target: {
     filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDigivolutionCards" },

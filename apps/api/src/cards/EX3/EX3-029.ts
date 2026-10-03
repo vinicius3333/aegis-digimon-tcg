@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] Search your security stack, reveal 1 card from it, and add it to your hand. If it's a yellow card, ＜Recovery +1 (Deck)＞. (Place the top card of your deck on top of your security stack.)",
           kind: "SecurityManipulation",
           op: "toHand",
           controller: "mine",
@@ -24,6 +26,7 @@ export const compiled: CompiledCard = {
           ifTrue: [{ kind: "Recover", amount: 1 }],
         },
         {
+          effectTextPart: "Then, shuffle your security stack.",
           kind: "SecurityManipulation",
           op: "shuffle",
           controller: "mine",

@@ -611,6 +611,13 @@ export interface DecisionRequest {
      */
     triggerTimings?: string[];
     triggerDescriptions?: string[];
+    /**
+     * Aligned to `triggerKeys`: the printed trigger condition that armed a watcher entry ("When
+     * effects trash cards from under this Tamer"). A card whose one clause lists several
+     * conditions pends once per event, and the description alone cannot tell those apart. An
+     * empty string marks an entry with no separate condition.
+     */
+    triggerReasons?: string[];
     /** Whether each pending activation belongs to the inherited text box. */
     triggerIsInherited?: boolean[];
     /**

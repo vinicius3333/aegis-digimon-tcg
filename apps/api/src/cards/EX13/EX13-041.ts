@@ -2,12 +2,14 @@ import type { Action, CardEffect, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const suspendOne: Action = {
+  effectTextPart: "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers.",
   kind: "Suspend",
   target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
   raw: "Suspend 1 of your opponent's Digimon or Tamers",
 };
 
 const unsuspendLock: Action = {
+  effectTextPart: "Then, 1 of their Digimon or Tamers can't unsuspend in their next unsuspend phase.",
   kind: "Restrict",
   target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
   restriction: "unsuspendDuringOwnUnsuspendPhase",

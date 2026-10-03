@@ -26,6 +26,8 @@ describe("EX12-073 Giant Meat", () => {
       compiled.effects.find((effect) => effect.trigger === "Main" && effect.keywords === undefined)?.actions,
     ).toEqual([
       {
+        effectTextPart:
+          "[Main] Reveal the top 3 cards of your deck. Add 1 [NSp], [DS], [NSo], [WG], [ME] or [VB] trait card among them to the hand. Return the rest to the bottom of the deck.",
         kind: "RevealAdd",
         revealCount: 3,
         add: [
@@ -40,7 +42,7 @@ describe("EX12-073 Giant Meat", () => {
         ],
         rest: "deckBottom",
       },
-      { kind: "PlaceInBattleAreaSelf" },
+      { effectTextPart: "Then, place this card in the battle area.", kind: "PlaceInBattleAreaSelf" },
     ]);
     expect(
       compiled.effects.find(

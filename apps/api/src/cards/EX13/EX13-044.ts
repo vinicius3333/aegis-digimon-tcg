@@ -9,6 +9,7 @@ const dracomonOrExamonText: Filter = {
 };
 
 const suspendUpToTwo: Action = {
+  effectTextPart: "[On Play] [When Digivolving] You may suspend up to 2 Digimon or Tamers.",
   kind: "Suspend",
   target: {
     filter: { controllerDefault: "any", kind: ["Digimon", "Tamer"] },
@@ -20,6 +21,7 @@ const suspendUpToTwo: Action = {
 };
 
 const lockTwoOpponentPermanents: Action = {
+  effectTextPart: "Then, 2 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.",
   kind: "Restrict",
   target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 },
   restriction: "unsuspend",

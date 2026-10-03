@@ -76,6 +76,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "toHand",
+          effectTextPart: "[Main] Add your bottom security card to the hand.",
           controller: "mine",
           amount: 1,
           toTop: false,
@@ -83,6 +84,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
+          effectTextPart: "Then, place this card face up as the bottom security card.",
           controller: "mine",
           toTop: false,
           faceUp: true,

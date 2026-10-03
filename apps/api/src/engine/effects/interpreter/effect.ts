@@ -578,6 +578,78 @@ function paysFromHandOnly(cost: Cost): boolean {
   return zones.every((zone) => zone === "hand");
 }
 
+/**
+ * Asks a later action's optional processing condition ("Then, by X, Y") when its clause is
+ * reached, in printed order: whether to pay, or which hand card or own Digimon pays. The answer
+ * goes into the context's predecided maps, which `runAction` consumes for this action. A
+ * condition that can't be paid in full is not offered and counts as declined (§15-7-3, §15-7-4),
+ * so its payload is skipped (§15-7-2). A printed "By X" is the player's choice even when the IR
+ * payload is mandatory (§15-7-1).
+ */
+async function decideProcessingConditionAtClause(ctx: EffectContext, action: Action, index: number): Promise<void> {
+  if (index === 0 || !isPredecidableProcessingCost(action)) return;
+  const effectiveCost = borrowedProcessingCost(ctx, action.cost);
+  const selectionChoice = costIsAskedAsSelection(effectiveCost) && paysFromHandOnly(effectiveCost);
+  if (
+    !/^\s*by\b/i.test(effectiveCost.raw ?? "") &&
+    effectiveCost.optional !== true &&
+    !(selectionChoice && action.optional === true)
+  )
+    return;
+  const canPay = canPayCost(ctx, effectiveCost);
+  const costChoice =
+    effectiveCost.optional === true ||
+    action.optional !== true ||
+    action.payCostBeforeOptional === true ||
+    action.kind === "CostGatedBlock" ||
+    action.kind === "CostModifier";
+  const outerEffectTextPart = ctx.activeEffectTextPart;
+  const outerPayingCostDepth = ctx.payingCostDepth;
+  const outerTargetFate = ctx.activeTargetFate;
+  if (action.effectTextPart !== undefined) ctx.activeEffectTextPart = action.effectTextPart;
+  let chosen: boolean;
+  try {
+    if (selectionChoice && canPay) {
+      const cost = effectiveCost;
+      ctx.payingCostDepth = (outerPayingCostDepth ?? 0) + 1;
+      ctx.activeTargetFate = cost.kind === "deleteOwn" ? "delete" : "trash";
+      let selected: string[];
+      if (cost.kind === "trash" && cost.target !== undefined) {
+        const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]).map((card) => card.instanceId);
+        const want = typeof cost.target.count === "number" ? cost.target.count : 1;
+        selected = candidates.length >= want ? await ctx.ask.selectCards(ctx, { candidates, min: 0, max: want }) : [];
+      } else if (cost.kind === "deleteOwn" && cost.target !== undefined) {
+        const candidates = candidatePermanents(ctx, raiseDeletionDpCap(ctx, cost.target)).map(
+          (permanent) => permanent.permanentId,
+        );
+        const want = typeof cost.target.count === "number" ? cost.target.count : 1;
+        selected = candidates.length >= want ? await ctx.ask.chooseTargets(ctx, { candidates, min: 0, max: want }) : [];
+      } else {
+        selected = [];
+      }
+      ctx.predecidedCostSelections?.set(action, selected);
+      chosen = selected.length === (effectiveCost.target?.count ?? 1);
+    } else {
+      chosen =
+        canPay &&
+        (await ctx.ask.optional(
+          ctx,
+          costChoice ? `Pay cost: ${describeCost(effectiveCost)}?` : describeAction(action),
+        ));
+    }
+  } finally {
+    ctx.activeEffectTextPart = outerEffectTextPart;
+    ctx.payingCostDepth = outerPayingCostDepth;
+    ctx.activeTargetFate = outerTargetFate;
+  }
+  if (costChoice) ctx.predecidedOptionalCosts?.set(action, chosen);
+  else ctx.predecidedOptionalActions?.set(action, chosen);
+  if (chosen) {
+    ctx.oncePerTurnActivationChosen = true;
+    ctx.oncePerTurnActivationDeclined = false;
+  }
+}
+
 export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> {
   const declaredProcessingCondition = ctx.declaredProcessingCondition === true;
   // Consume even if this resolution fizzles before any action can run.
@@ -642,116 +714,15 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     ctxWithSelections.oncePerTurnActivationDeclined = false;
   }
   const actions = effect.actions ?? [];
-  // Decide later independent optional processing conditions before the first payload.
-  // Payment and payload targets remain at their printed positions; selected cost
-  // cards and permanents are checked again when payment occurs.
+  // Each "by" processing condition is asked when its own clause is reached, in printed order:
+  // "Suspend 1 ... Then, by trashing ..., may digivolve" resolves the suspend first and only then
+  // offers the optional digivolve (see `decideProcessingConditionAtClause`).
   const outerPredecidedOptionalActions = ctxWithSelections.predecidedOptionalActions;
   const outerPredecidedOptionalCosts = ctxWithSelections.predecidedOptionalCosts;
   const outerPredecidedCostSelections = ctxWithSelections.predecidedCostSelections;
   const predecidedOptionalActions = new Map<Action, boolean>();
   const predecidedOptionalCosts = new Map<Action, boolean>();
   const predecidedCostSelections = new Map<Action, readonly string[]>();
-  const reservedCostPayers = new Set<string>();
-  const isHandSelectionCost = (action: Action): boolean => {
-    if (!isPredecidableProcessingCost(action)) return false;
-    const cost = borrowedProcessingCost(ctxWithSelections, action.cost);
-    return costIsAskedAsSelection(cost) && paysFromHandOnly(cost);
-  };
-  const laterHandSelectionCost = actions.slice(1).some(isHandSelectionCost);
-  for (const [index, action] of actions.entries()) {
-    if (!isPredecidableProcessingCost(action)) continue;
-    const effectiveCost = borrowedProcessingCost(ctxWithSelections, action.cost);
-    // Only hand payers are preselected here; a cost that may also be paid from
-    // another zone (such as digivolution cards) keeps its yes/no question.
-    const selectionChoice = costIsAskedAsSelection(effectiveCost) && paysFromHandOnly(effectiveCost);
-    // The first action already asks its ordinary cost choice before its payload.
-    // Selection-as-choice costs still enter this pass so their payer is reserved
-    // before a later processing condition selects from the same pool; without a
-    // later hand-selection cost there is nothing to reserve against.
-    if (index === 0 && (!selectionChoice || !laterHandSelectionCost)) continue;
-    if (
-      !/^\s*by\b/i.test(effectiveCost.raw ?? "") &&
-      effectiveCost.optional !== true &&
-      !(selectionChoice && action.optional === true)
-    )
-      continue;
-    const canPay = canPayCost(ctxWithSelections, effectiveCost);
-    const costChoice =
-      effectiveCost.optional === true ||
-      action.optional !== true ||
-      action.payCostBeforeOptional === true ||
-      action.kind === "CostGatedBlock" ||
-      action.kind === "CostModifier";
-    const outerActionPath = ctxWithSelections.activeActionPath;
-    const outerEffectTextPart = ctxWithSelections.activeEffectTextPart;
-    const outerPayingCostDepth = ctxWithSelections.payingCostDepth;
-    const outerTargetFate = ctxWithSelections.activeTargetFate;
-    ctxWithSelections.activeActionPath = `${index}`;
-    if (action.effectTextPart !== undefined) ctxWithSelections.activeEffectTextPart = action.effectTextPart;
-    let chosen: boolean;
-    try {
-      if (selectionChoice && canPay) {
-        const cost = effectiveCost;
-        ctxWithSelections.payingCostDepth = (outerPayingCostDepth ?? 0) + 1;
-        ctxWithSelections.activeTargetFate = cost.kind === "deleteOwn" ? "delete" : "trash";
-        let selected: string[];
-        if (cost.kind === "trash" && cost.target !== undefined) {
-          const candidates = candidateLooseInstances(ctxWithSelections, cost.target, ["hand"])
-            .map((card) => card.instanceId)
-            .filter((id) => !reservedCostPayers.has(id));
-          const want = typeof cost.target.count === "number" ? cost.target.count : 1;
-          selected =
-            candidates.length >= want
-              ? await ctxWithSelections.ask.selectCards(ctxWithSelections, {
-                  candidates,
-                  min: 0,
-                  max: want,
-                })
-              : [];
-        } else if (cost.kind === "deleteOwn" && cost.target !== undefined) {
-          const candidates = candidatePermanents(ctxWithSelections, raiseDeletionDpCap(ctxWithSelections, cost.target))
-            .map((permanent) => permanent.permanentId)
-            .filter((id) => !reservedCostPayers.has(id));
-          const want = typeof cost.target.count === "number" ? cost.target.count : 1;
-          selected =
-            candidates.length >= want
-              ? await ctxWithSelections.ask.chooseTargets(ctxWithSelections, {
-                  candidates,
-                  min: 0,
-                  max: want,
-                })
-              : [];
-        } else {
-          selected = [];
-        }
-        predecidedCostSelections.set(action, selected);
-        const required = effectiveCost.target?.count ?? 1;
-        chosen = selected.length === required;
-        if (chosen) for (const id of selected) reservedCostPayers.add(id);
-      } else {
-        chosen =
-          canPay &&
-          (await ctxWithSelections.ask.optional(
-            ctxWithSelections,
-            costChoice ? `Pay cost: ${describeCost(effectiveCost)}?` : describeAction(action),
-          ));
-      }
-    } catch (error) {
-      ctxWithSelections.effectRestrictions = outerRestrictions;
-      throw error;
-    } finally {
-      ctxWithSelections.activeActionPath = outerActionPath;
-      ctxWithSelections.activeEffectTextPart = outerEffectTextPart;
-      ctxWithSelections.payingCostDepth = outerPayingCostDepth;
-      ctxWithSelections.activeTargetFate = outerTargetFate;
-    }
-    if (costChoice) predecidedOptionalCosts.set(action, chosen);
-    else predecidedOptionalActions.set(action, chosen);
-    if (chosen) {
-      ctxWithSelections.oncePerTurnActivationChosen = true;
-      ctxWithSelections.oncePerTurnActivationDeclined = false;
-    }
-  }
   ctxWithSelections.predecidedOptionalActions = predecidedOptionalActions;
   ctxWithSelections.predecidedOptionalCosts = predecidedOptionalCosts;
   ctxWithSelections.predecidedCostSelections = predecidedCostSelections;
@@ -850,6 +821,10 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
             declaredProcessingCondition && actionIndex === 0 && action.kind === "CostGatedBlock"
               ? { ...action, optional: false, cost: { ...action.cost, optional: false } }
               : action;
+          // Only awaited when there is a condition to decide: an extra tick before every action
+          // would let callers observe an action that has not started yet.
+          if (actionIndex > 0 && isPredecidableProcessingCost(resolvingAction))
+            await decideProcessingConditionAtClause(ctxWithSelections, resolvingAction, actionIndex);
           abort = await runAction(ctxWithSelections, resolvingAction);
         } finally {
           ctxWithSelections.activeActionPath = outerActionPath;

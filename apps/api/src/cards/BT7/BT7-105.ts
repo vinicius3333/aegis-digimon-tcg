@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] Reveal the top 3 cards of your deck. You may play 1 black Digimon card with a play cost of 4 or less among them without paying its memory cost. Trash the remaining cards.",
           kind: "RevealAdd",
           revealCount: 3,
           add: [
@@ -25,6 +27,7 @@ const compiled: CompiledCard = {
           rest: "trash",
         },
         {
+          effectTextPart: "Then, place this card in your battle area.",
           kind: "PlaceInBattleAreaSelf",
         },
       ],

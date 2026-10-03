@@ -10,6 +10,8 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
+          effectTextPart:
+            "[Security] At the end of the battle, give 2 of your opponent's Digimon ＜Security Attack -1＞for the turn.",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"] },
             count: 2,
@@ -19,6 +21,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "AddToHandSelf",
+          effectTextPart: "Then, add this card to the hand.",
         },
       ],
     },

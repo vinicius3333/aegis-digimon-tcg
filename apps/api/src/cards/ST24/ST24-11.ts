@@ -4,11 +4,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const suspendAndRestrict: { actions: Action[] } = {
   actions: [
     {
+      effectTextPart:
+        "[When Digivolving] [When Attacking] [Once Per Turn] You may suspend up to 2 of your opponent's Digimon or Tamers.",
       kind: "Suspend",
       target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2, upTo: true },
       optional: true,
     },
     {
+      effectTextPart:
+        "Then, by trashing the bottom face-down card from under any of your Tamers, none of their Digimon can unsuspend until their turn ends.",
       kind: "Restrict",
       target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
       restriction: "unsuspend",

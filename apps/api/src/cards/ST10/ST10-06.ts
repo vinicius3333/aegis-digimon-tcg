@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] Place 1 yellow or purple Digimon card from your trash on top of your security stack face down. When DNA digivolving, you may search your security stack for 1 level 5 or lower Digimon card and play it without paying its memory cost.",
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
@@ -23,6 +25,8 @@ const compiled: CompiledCard = {
           faceDown: true,
         },
         {
+          effectTextPart:
+            "[When Digivolving] Place 1 yellow or purple Digimon card from your trash on top of your security stack face down. When DNA digivolving, you may search your security stack for 1 level 5 or lower Digimon card and play it without paying its memory cost.",
           kind: "SearchSecurity",
           target: {
             filter: {
@@ -46,6 +50,7 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart: "Then, shuffle your security stack.",
           kind: "SecurityManipulation",
           op: "shuffle",
           controller: "mine",
