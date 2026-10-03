@@ -187,6 +187,20 @@ describe("pacing coverage beyond chains", () => {
     expect(effectMetrics.aloneMs + effectMetrics.railMs).toBeGreaterThan(effectMetrics.readableMs);
   });
 
+  it("counts an accepted toast while a different card asks the next question", () => {
+    const run = recording({ announceAt: 0 });
+    run.samples = run.samples.map((sample) => ({
+      ...sample,
+      promptVisible: true,
+      promptSourceCardId: "BT23-072",
+    }));
+    const accepted = measure(run).singles[0]!;
+    expect(accepted.clauseShownAt).toBe(0);
+    expect(accepted.visibleMs).toBe(48);
+    expect(accepted.readableMs).toBe(48);
+    expect(accepted.railMs).toBe(0);
+  });
+
   for (const early of [false, true]) {
     it(`attributes a hidden-seat draw to its exact batch count ${early ? "when that count leaks" : "rather than an earlier turn draw"}`, () => {
       const run = recording({ announceAt: 32 });

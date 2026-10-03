@@ -17,6 +17,7 @@ import {
   deletionPanel,
   isCardListNotice,
   narrationRemaining,
+  narrationReadingTime,
   type NarrationItem,
   type NarrationSlot,
 } from "./narration";
@@ -50,8 +51,8 @@ function NarrationItemView({
   onAdvance: () => void;
 }) {
   // Keep the running CSS duration stable when neighboring records change.
-  const [mountedAt] = useState(nowMs);
-  const remainingMs = narrationRemaining(item, mountedAt);
+  const [readingElapsedMs] = useState(() => Math.max(0, Math.min(nowMs, item.pausedAt ?? nowMs) - item.createdAt));
+  const remainingMs = Math.max(0, narrationReadingTime(item) - readingElapsedMs);
   const notice = item.notice && (half === "cards") === isCardListNotice(item.notice) ? item.notice : undefined;
   // A deletion is a titled list of cards, so it is one (`deletionPanel`) rather than a
   // second component drawing the same thing in a frame of its own.
@@ -306,7 +307,6 @@ function PeekLine({
   label,
   nowMs,
   chainProgress,
-  promptSourceCardId,
   onOpen,
   onDismiss,
 }: {
@@ -314,42 +314,28 @@ function PeekLine({
   label: string;
   nowMs: number;
   chainProgress: ChainProgress | null;
-  /**
-   * The source of the viewer's open decision. While it is set the band speaks only for that
-   * effect, as the desktop board keeps only the prompt's clause beside its rail: the band
-   * names the prompt's card, never an earlier effect of the chain.
-   */
-  promptSourceCardId?: string | undefined;
   onOpen: () => void;
   /** Swiping the band sideways clears every moment it stands for, like a phone notification. */
   onDismiss: () => void;
 }) {
   const { t } = useTranslation();
   // Frozen at arrival so the running bar keeps its duration when a neighbour expires.
-  const [mountedAt] = useState(nowMs);
+  const [remainingMs] = useState(() => {
+    const newest = items.at(-1);
+    return newest ? narrationRemaining(newest, nowMs) : 0;
+  });
   const swipe = useSwipeToDismiss(onDismiss);
-  const shown = promptSourceCardId === undefined ? items : items.filter((item) => isEffectOf(item, promptSourceCardId));
-  const newest = shown.at(-1);
-  // With no clause of its own yet, the prompt's effect is named by its card; the sheet below
-  // carries the clause.
-  const summary = newest
-    ? peekSummary(newest, t)
-    : promptSourceCardId !== undefined
-      ? {
-          label: t("overlay.effect"),
-          name: cardDisplayName(promptSourceCardId, t),
-          tone: "effect" as const,
-          cardId: promptSourceCardId,
-        }
-      : undefined;
+  const newest = items.at(-1);
+  const summary = newest ? peekSummary(newest, t) : undefined;
   if (!summary) return null;
   // The band already names one of them, so the badge counts the rest.
-  const queued = toastCount(shown) - 1;
+  const queued = toastCount(items) - 1;
   return (
     <button
       className="narration-peek"
       type="button"
       data-tone={summary.tone}
+      data-reading-paused={newest?.pausedAt !== undefined || undefined}
       data-swipe={swipe.phase}
       style={{ "--swipe-offset": `${swipe.offset}px`, "--swipe-fade": swipe.fade } as CSSProperties}
       {...swipe.handlers}
@@ -396,11 +382,7 @@ function PeekLine({
           same running clock the opened notices draw — a band with nothing running on it
           reads as a fixture of the board rather than as something that just happened. */}
       {newest ? (
-        <span
-          className="narration-peek__life"
-          style={{ animationDuration: `${narrationRemaining(newest, mountedAt)}ms` }}
-          aria-hidden="true"
-        />
+        <span className="narration-peek__life" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
       ) : null}
     </button>
   );
@@ -433,8 +415,8 @@ export function NarrationStack({
   /** Which effect of a paced chain is resolving; the folded band shows it in place of the strip. */
   chainProgress?: ChainProgress | null;
   /**
-   * The card whose effect the viewer's open decision is about. Its clause is the one a
-   * desktop board keeps beside the decision rail; the rail hides the others.
+   * The card whose effect the viewer's open decision is about. Marks its notices while
+   * keeping all previously accepted effects in the stack.
    */
   promptSourceCardId?: string | undefined;
   securityDockActive?: boolean;
@@ -466,6 +448,7 @@ export function NarrationStack({
       className="narration-item"
       key={shown.id}
       data-narration-id={shown.id}
+      data-reading-paused={shown.pausedAt !== undefined || undefined}
       data-superseded={shown.superseded || undefined}
       data-prompt-effect={isPromptEffect(shown) || undefined}
     >
@@ -484,6 +467,7 @@ export function NarrationStack({
       className="narration-item"
       key={shown.id}
       data-narration-id={shown.id}
+      data-reading-paused={shown.pausedAt !== undefined || undefined}
       data-superseded={shown.superseded || undefined}
       data-prompt-effect={isPromptEffect(shown) || undefined}
     >
@@ -510,7 +494,6 @@ export function NarrationStack({
             label={t("notice.expand")}
             nowMs={now}
             chainProgress={chainProgress}
-            promptSourceCardId={promptSourceCardId}
             onOpen={() => setExpanded(true)}
             onDismiss={() => textItems.forEach((item) => onAdvance(item.id))}
           />

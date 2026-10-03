@@ -509,6 +509,21 @@ test.describe("effects lab pacing in the browser", () => {
           await expect(page.locator('[data-testid="effect-focus"][data-source-card-id="BT23-072"]')).toHaveCount(0);
           await expect(page.locator("[data-narration-id]").filter({ hasText: "King Drasil" })).toHaveCount(0);
         }
+        if (accept && index === 1) {
+          if (phone) await page.locator(".narration-peek").click();
+          const accepted = page.locator("[data-narration-id]").filter({ hasText: "King Drasil" });
+          await expect(accepted).toHaveCount(1);
+          await expect(accepted).toBeVisible();
+          const occurrence = await accepted.getAttribute("data-narration-id");
+          await page.waitForTimeout(5500);
+          await expect(accepted).toHaveAttribute("data-narration-id", occurrence!);
+          await expect(accepted).toBeVisible();
+          if (!phone) {
+            const lane = await page.locator('[data-slot="narration-text"]').boundingBox();
+            const prompt = await page.locator(".board-prompt").boundingBox();
+            expect(lane!.y + lane!.height).toBeLessThanOrEqual(prompt!.y);
+          }
+        }
         if (accept && index === 0) {
           if (phone) await page.getByRole("button", { name: /^view board$/i }).click();
           await page.getByRole("button", { name: "‹", exact: true }).click();
@@ -522,6 +537,11 @@ test.describe("effects lab pacing in the browser", () => {
           ).toBeDefined();
           await lab.captureFocus("BT23-072", before.decision!.sourcePermanentId!, info);
         }
+      }
+      if (accept) {
+        const stack = page.locator("[data-narration-id]").filter({ hasText: "King Drasil" });
+        await expect(stack).toHaveCount(2);
+        await expect(stack.last()).toBeVisible();
       }
       await expect
         .poll(

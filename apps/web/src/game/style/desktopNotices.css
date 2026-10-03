@@ -201,14 +201,25 @@
   }
 }
 
-/* A full desktop board has the room for both on the left edge, one above the other. The
-   clauses start under the opponent's egg and breeding slots. The rail stands above the
-   viewer's own, which begin 183px above the bottom edge, and leaves one clause of room
-   (about 10.25rem) above it. While the rail is open it prints the effect being resolved,
-   so a clause about any other effect steps out, the newest one included: beside the rail
-   it would name the effect before this one. Only the prompt's own clause may stay (a field
-   selection keeps it). Hidden clauses return once the rail closes, if their clock still
-   runs. */
+/* Decisions share the left edge with the recent effects. Reserve a scrollable lane
+   above the tallest permitted rail, so accepting another effect keeps its predecessors
+   accessible without covering the decision's buttons. */
+@media (width >= 768px) and (height >= 520px) {
+  .aegis-stage:has(.board-prompt, .decision-overlay--side) .narration-slot[data-slot="narration-text"] {
+    top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    bottom: auto;
+    max-height: 8rem;
+  }
+
+  .aegis-stage .decision-overlay.decision-overlay--side {
+    top: auto;
+    bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    max-height: calc(100% - 24rem);
+    overflow-y: auto;
+    translate: none;
+  }
+}
+
 @media (width >= 1024px) and (height >= 760px) {
   .narration-slot[data-slot="narration-text"] {
     top: calc(15rem + env(safe-area-inset-top, 0px));
@@ -230,12 +241,6 @@
   .board-prompt .board-prompt__actions .aegis-button {
     min-height: 2.25rem;
     padding-block: 6px;
-  }
-
-  .aegis-stage:has(.board-prompt)
-    .narration-slot[data-slot="narration-text"]
-    .narration-item:not([data-prompt-effect]) {
-    display: none;
   }
 }
 
@@ -332,6 +337,17 @@
 @media (width >= 1024px) and (height >= 760px) {
   .narration-slot[data-slot="narration-text"] {
     max-height: min(24rem, calc(100dvh - 26rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+  }
+
+  .aegis-stage:has(.board-prompt, .decision-overlay--side) .narration-slot[data-slot="narration-text"] {
+    top: calc(15rem + env(safe-area-inset-top, 0px));
+    max-height: 10.25rem;
+  }
+
+  .aegis-stage .decision-overlay.decision-overlay--side {
+    top: auto;
+    bottom: calc(11.75rem + env(safe-area-inset-bottom, 0px));
+    max-height: calc(100% - 37.5rem);
   }
 }
 
@@ -730,4 +746,11 @@
     top: 0.15rem;
     align-self: flex-end;
   }
+}
+
+/* The visible reading clocks pause with the records while a decision is open. */
+[data-reading-paused] .match-notice__erode,
+[data-reading-paused] .side-panel__erode,
+[data-reading-paused] .narration-peek__life {
+  animation-play-state: paused;
 }

@@ -31,6 +31,15 @@ Minor effects and later effects in a chain keep that orientation time: chain acc
 shortens the clause and settle beats. The viewer's Effect speed still scales the source focus.
 The focus then becomes the steady light linked to the visible clause. Announcement consumers
 share the owner's safety ceiling, including a Security reveal before its source can focus.
+
+Decisions keep previously accepted toasts in the recent scrollable stack and pause their
+reading clocks until the answer. New effects enter the stack after acceptance; a new clause
+asking for field targets waits for that selection to be confirmed. A clause that already
+has a draw, cost, or other result stays available before its later target choices. Matching uses the
+physical source and resolving effect key, so another copy's question does not remove an
+earlier toast. Returning a clause preserves its occurrence ID. Desktop decision rails and
+side dialogs reserve a separate lane for the stack; the mobile band counts all retained
+effects and keeps their remaining reading time when opened during a long decision.
 The effects lab always uses the match's stacked timing. It ignores obsolete saved tuning;
 its speed controls scale playback or Effect speed without switching the pacing style.
 Recent toast columns retain up to six moments and scroll within their bounded height.

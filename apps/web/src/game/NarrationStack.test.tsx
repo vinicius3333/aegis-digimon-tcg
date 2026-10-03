@@ -4,10 +4,9 @@ import { afterEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
 import { NarrationStack } from "./NarrationStack";
-import type { NarrationItem } from "./narration";
+import { narrationReadingTime, type NarrationItem } from "./narration";
 import type { MatchNotice } from "./notices";
 import { Side } from "./side";
-import { mediaRules, readStylesheet } from "./style/stylesheetSource";
 import { TIMINGS } from "./timings";
 
 afterEach(cleanup);
@@ -63,6 +62,32 @@ function item(id: string): NarrationItem {
     notice: { id, side: Side.Viewer, fromSecurity: false, createdAt: 0, body: { variant: "recovery", amount: 1 } },
   };
 }
+
+it("gives notices opened during a long decision their remaining reading time after resuming", () => {
+  const original = item("paused-effect");
+  const paused = { ...original, pausedAt: 1000 };
+  const view = (entry: NarrationItem, nowMs: number) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([[entry.id, entry]])}
+        compact
+        nowMs={nowMs}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(view(paused, 12_000));
+  const expected = `${narrationReadingTime(original) - 1000}ms`;
+  expect(container.querySelector<HTMLElement>(".narration-peek__life")!.style.animationDuration).toBe(expected);
+  fireEvent.click(container.querySelector(".narration-peek")!);
+  expect(container.querySelector<HTMLElement>(".match-notice__erode")!.style.animationDuration).toBe(expected);
+  expect(container.querySelector("[data-reading-paused]")).not.toBeNull();
+  rerender(view({ ...original, createdAt: 11_000 }, 12_000));
+  expect(container.querySelector<HTMLElement>(".match-notice__erode")!.style.animationDuration).toBe(expected);
+  expect(container.querySelector("[data-reading-paused]")).toBeNull();
+});
 
 it("shows Wizardmon's End of Your Turn clause in the effect toast", () => {
   const endTurn: NarrationItem = {
@@ -271,9 +296,7 @@ it("puts the chain's position on the folded band's clause line", () => {
   expect(container.querySelector(".narration-peek__chain")).toBeNull();
 });
 
-/* Desktop keeps only the prompt's clause beside its rail; the phone's band follows the same
-   rule, so a "Use?" sheet never sits under a band naming an earlier effect of the chain. */
-it("names only the prompt's effect on the folded band while a decision is open", () => {
+it("keeps the folded band naming accepted effects and counting the whole stack during a decision", () => {
   const clause = (id: string, cardId: string): NarrationItem => ({
     id,
     side: Side.Viewer,
@@ -311,17 +334,17 @@ it("names only the prompt's effect on the folded band while a decision is open",
   expect(clauseLine()).not.toBeNull();
 
   rerender(view([earlier], "BT20-091"));
-  expect(named()).not.toBe(earlierName);
-  expect(clauseLine()).toBeNull();
+  expect(named()).toBe(earlierName);
+  expect(clauseLine()).not.toBeNull();
   expect(band()?.querySelector(".narration-peek__chain")?.textContent).toBe("6/6");
   expect(band()?.querySelector(".narration-peek__more")).toBeNull();
   expect(band()?.querySelector(".narration-peek__art")).not.toBeNull();
   const promptName = named();
 
   rerender(view([earlier, clause("prompt", "BT20-091")], "BT20-091"));
-  expect(named()).toBe(promptName);
+  expect(named()).not.toBe(promptName);
   expect(clauseLine()).not.toBeNull();
-  expect(band()?.querySelector(".narration-peek__more")).toBeNull();
+  expect(band()?.querySelector(".narration-peek__more")?.textContent).toBe("+1");
 });
 
 /* The band is a glance before it is a sentence: its accent says what kind of moment it is
@@ -440,10 +463,7 @@ it("swipes the folded band sideways to dismiss every moment it stands for, witho
   }
 });
 
-/* A desktop decision rail prints the effect being resolved. A clause about any other effect
-   beside it named the one before (the strip said Takumi Aiba, the clause said Gabumon), so
-   the rail hides every clause but the prompt's own; they return when it closes. */
-it("keeps only the prompt's own clause beside an open decision rail", () => {
+it("marks the prompt's own clause while retaining other accepted effects", () => {
   const clause = (id: string, cardId: string): NarrationItem => ({
     id,
     side: Side.Viewer,
@@ -486,9 +506,4 @@ it("keeps only the prompt's own clause beside an open decision rail", () => {
   rerender(view(undefined));
   expect(marked()).toEqual([]);
   expect(document.querySelectorAll(".narration-item")).toHaveLength(2);
-
-  const desktop = mediaRules(readStylesheet("game.css"), "(width >= 1024px) and (height >= 760px)");
-  expect(desktop).toMatch(
-    /\.aegis-stage:has\(\.board-prompt\)\s+\.narration-slot\[data-slot="narration-text"\]\s+\.narration-item:not\(\[data-prompt-effect\]\)\s*\{[^}]*display:\s*none/,
-  );
 });

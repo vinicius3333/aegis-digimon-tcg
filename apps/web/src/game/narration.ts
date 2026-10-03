@@ -25,6 +25,8 @@ export interface NarrationItem {
   source?: string;
   /** When the item was presented, which is when its reading clock started. */
   createdAt: number;
+  /** Reading stops here while a decision is open; the occurrence stays on screen. */
+  pausedAt?: number;
   /** Overrides the reading time the item's halves would earn. Set where the layout reads slower. */
   lifetimeMs?: number;
   /** A later effect's clause has taken the screen: this one stays, dimmed, until its clock ends. */
@@ -91,7 +93,33 @@ export function narrationReadingTime(item: Pick<NarrationItem, "panel" | "notice
 
 /** Milliseconds left on a presented item's clock, never negative. */
 export function narrationRemaining(item: NarrationItem, nowMs: number): number {
-  return Math.max(0, item.createdAt + narrationReadingTime(item) - nowMs);
+  return Math.max(0, item.createdAt + narrationReadingTime(item) - Math.min(nowMs, item.pausedAt ?? nowMs));
+}
+
+/** Pause each existing reading clock once, including across consecutive questions. */
+export function pauseNarration(
+  items: ReadonlyMap<string, NarrationItem>,
+  nowMs: number,
+): ReadonlyMap<string, NarrationItem> {
+  if ([...items.values()].every((item) => item.pausedAt !== undefined)) return items;
+  return new Map(
+    [...items].map(([id, item]) => [id, item.pausedAt === undefined ? { ...item, pausedAt: nowMs } : item]),
+  );
+}
+
+/** Return the time spent answering without changing IDs, order, or effect provenance. */
+export function resumeNarration(
+  items: ReadonlyMap<string, NarrationItem>,
+  nowMs: number,
+): ReadonlyMap<string, NarrationItem> {
+  if ([...items.values()].every((item) => item.pausedAt === undefined)) return items;
+  return new Map(
+    [...items].map(([id, item]) => {
+      if (item.pausedAt === undefined) return [id, item];
+      const { pausedAt, ...running } = item;
+      return [id, { ...running, createdAt: item.createdAt + Math.max(0, nowMs - pausedAt) }];
+    }),
+  );
 }
 
 /**
@@ -199,7 +227,9 @@ export function supersedeEffectClauses(
 ): ReadonlyMap<string, NarrationItem> {
   const clauses = [...items.values()].filter((item) => item.notice?.body.variant === "effect");
   if (clauses.length === 0) return items;
-  const stacked = clauses.filter((item) => nowMs - item.createdAt < stackMs).slice(-STACKED_CLAUSE_LIMIT);
+  const stacked = clauses
+    .filter((item) => (item.pausedAt ?? nowMs) - item.createdAt < stackMs)
+    .slice(-STACKED_CLAUSE_LIMIT);
   const next = new Map(items);
   for (const item of clauses) {
     if (!stacked.includes(item)) next.delete(item.id);

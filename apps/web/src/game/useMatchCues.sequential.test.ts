@@ -2,7 +2,7 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { GameState, ServerEvent } from "@aegis/shared";
+import type { DecisionRequest, GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import type { PresentationPacing } from "./presentationProbe";
@@ -312,54 +312,105 @@ describe("sequential pacing plays one effect at a time", () => {
 });
 
 describe("resumed effect results", () => {
-  it.each(["queued", "already visible"] as const)(
-    "waits for its %s clause to return after the last own-card dialog",
-    async (whenHidden) => {
-      setBasePacing(PACING_BY_STYLE.stacked);
-      const anchors = geometry();
-      const view = renderHook(
-        ({ fed, question }: { fed: readonly ServerBatch[]; question: boolean }) =>
-          useMatchCues({
-            batches: fed,
-            state: BOARD,
-            viewerSeat: VIEWER,
-            mulliganOpen: false,
-            anchors,
-            onActionRejected: vi.fn<(reason: string) => void>(),
-            presentationPacing: "sequential",
-            decisionPending: question,
-            decisionSourceCardId: question ? "AD1-002" : undefined,
-          }),
-        { initialProps: { fed: [] as readonly ServerBatch[], question: false } },
-      );
-      const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
-      if (whenHidden === "queued") act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
-      view.rerender({ fed: [first], question: whenHidden === "queued" });
-      await advance(activePacing().sourceHoldMs + 32);
-      expect(clauseShown(view, "AD1-002")).toBe(whenHidden === "already visible");
-      if (whenHidden === "already visible") {
-        act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
-        view.rerender({ fed: [first], question: true });
-      }
-      await advance(1200);
-      expect(clauseShown(view, "AD1-002")).toBe(false);
-      const results = singleServerBatch([draw("drawn-a"), resolved("AD1-002", "src-a", "a/draw")], 2);
-      act(() => view.result.current.releaseOwnEffectNotice("AD1-002"));
-      view.rerender({ fed: [first, results], question: false });
+  it("keeps a previous copy's toast while the new copy waits for target confirmation", async () => {
+    setBasePacing(PACING_BY_STYLE.stacked);
+    const anchors = geometry();
+    const board = {
+      ...BOARD,
+      players: [
+        {
+          ...BOARD.players[0]!,
+          battleArea: BOARD.players[0]!.battleArea.map((permanent) => ({
+            ...permanent,
+            topCard: { ...permanent.topCard, cardId: "AD1-002" },
+          })),
+        },
+        BOARD.players[1]!,
+      ],
+    } as unknown as GameState;
+    const target: DecisionRequest = {
+      decisionId: "second-targets",
+      seat: 0,
+      kind: "chooseTargets",
+      promptText: "Choose targets",
+      sourceCardId: "AD1-002",
+      sourceInstanceId: "src-b",
+      sourcePermanentId: "perm-b",
+      options: { effectKey: "b/draw", min: 1, max: 1 },
+    };
+    const view = renderHook(
+      ({ fed, question }: { fed: readonly ServerBatch[]; question?: DecisionRequest | undefined }) =>
+        useMatchCues({
+          batches: fed,
+          state: board,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: () => {},
+          presentationPacing: "sequential",
+          decisionPending: Boolean(question),
+          decisionSourceCardId: question?.sourceCardId,
+          targetDecision: question,
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[], question: undefined as DecisionRequest | undefined } },
+    );
+    const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
+    view.rerender({ fed: [first], question: undefined });
+    await advance(1000);
+    const original = [...view.result.current.narration.keys()][0];
+    const second = singleServerBatch(
+      [
+        resolved("AD1-002", "src-a", "a/draw"),
+        { ...triggered("AD1-002", "src-b", "b/draw"), sourcePermanentId: "perm-b" },
+      ],
+      2,
+    );
+    view.rerender({ fed: [first, second], question: target });
+    await advance(12_000);
+    expect([...view.result.current.narration.keys()]).toEqual([original]);
+    const result = singleServerBatch([draw("second-draw"), resolved("AD1-002", "src-b", "b/draw")], 3);
+    view.rerender({ fed: [first, second, result], question: undefined });
+    await advance(0);
+    expect(
+      view.result.current.notices.map((notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId),
+    ).toEqual(["src-a", "src-b"]);
+    expect([...view.result.current.narration.keys()][0]).toBe(original);
+    await advance(activePacing().resumeAnnounceMs + 16);
+    expect(view.result.current.drawFlights).toHaveLength(1);
+  });
 
-      await advance(TIMINGS.ownEffectNoticeReturn - 1);
-      expect(view.result.current.drawFlights).toHaveLength(0);
-      expect(clauseShown(view, "AD1-002")).toBe(false);
-      await advance(1);
-      expect(clauseShown(view, "AD1-002")).toBe(true);
-      expect(view.result.current.drawFlights).toHaveLength(0);
-      await advance(activePacing().resumeAnnounceMs + 16);
-      expect(view.result.current.drawFlights).toHaveLength(1);
-      await advance(1500);
-      expect(view.result.current.decisionAnimationsPending).toBe(false);
-    },
-  );
-
+  it("keeps an accepted clause visible throughout the next decision without changing its occurrence", async () => {
+    setBasePacing(PACING_BY_STYLE.stacked);
+    const anchors = geometry();
+    const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
+    const view = renderHook(
+      ({ fed, question }: { fed: readonly ServerBatch[]; question: boolean }) =>
+        useMatchCues({
+          batches: fed,
+          state: BOARD,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: () => {},
+          presentationPacing: "sequential",
+          decisionPending: question,
+          decisionSourceCardId: question ? "BT18-015" : undefined,
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[], question: false } },
+    );
+    view.rerender({ fed: [first], question: false });
+    await advance(1000);
+    const original = [...view.result.current.narration.values()][0];
+    expect(original?.notice).toBeDefined();
+    view.rerender({ fed: [first], question: true });
+    await advance(12_000);
+    expect([...view.result.current.narration.values()].map((item) => item.id)).toContain(original!.id);
+    view.rerender({ fed: [first], question: false });
+    await advance(100);
+    expect(clauseShown(view, "AD1-002")).toBe(true);
+    await advance(12_000);
+    expect(clauseShown(view, "AD1-002")).toBe(false);
+  });
   it("uses a finite resume beat when its clause stayed on screen", async () => {
     setBasePacing(PACING_BY_STYLE.stacked);
     const anchors = geometry();
@@ -388,7 +439,7 @@ describe("resumed effect results", () => {
     expect(view.result.current.drawFlights).toHaveLength(1);
   });
 
-  it("lets the next own-card question open, then waits for the clause after its final answer", async () => {
+  it("keeps the accepted clause through follow-up questions before presenting their results", async () => {
     setBasePacing(PACING_BY_STYLE.stacked);
     const anchors = geometry();
     const view = renderHook(
@@ -406,7 +457,6 @@ describe("resumed effect results", () => {
         }),
       { initialProps: { fed: [] as readonly ServerBatch[], question: false } },
     );
-    act(() => view.result.current.dismissOwnEffectNotice("AD1-002"));
     const first = singleServerBatch([triggered("AD1-002", "src-a", "a/draw")], 1);
     view.rerender({ fed: [first], question: true });
     await advance(1800);
@@ -419,11 +469,7 @@ describe("resumed effect results", () => {
     expect(view.result.current.decisionAnimationsPending).toBe(false);
 
     const finalAnswer = singleServerBatch([draw("final-draw"), resolved("AD1-002", "src-a", "a/draw")], 3);
-    act(() => view.result.current.releaseOwnEffectNotice("AD1-002"));
     view.rerender({ fed: [first, firstAnswer, finalAnswer], question: false });
-    await advance(TIMINGS.ownEffectNoticeReturn - 1);
-    expect(view.result.current.drawFlights).toHaveLength(0);
-    await advance(1);
     expect(clauseShown(view, "AD1-002")).toBe(true);
     await advance(activePacing().resumeAnnounceMs + 16);
     expect(view.result.current.drawFlights).toHaveLength(1);
@@ -519,10 +565,8 @@ describe("sequential pacing through a security check", () => {
       (item) => item.notice?.body.variant === "effect" && item.notice.body.cardId === "BT24-088",
     );
     expect(original).toBeDefined();
-    act(() => view.result.current.dismissOwnEffectNotice("BT24-088"));
-    expect(clauseShown(view, "BT24-088")).toBe(false);
-    act(() => view.result.current.releaseOwnEffectNotice("BT24-088"));
-    await advance(TIMINGS.ownEffectNoticeReturn + 16);
+    await advance(400);
+    expect(clauseShown(view, "BT24-088")).toBe(true);
     const restored = [...view.result.current.narration.values()].filter(
       (item) => item.notice?.body.variant === "effect" && item.notice.body.cardId === "BT24-088",
     );

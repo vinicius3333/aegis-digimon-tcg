@@ -160,16 +160,6 @@ export interface MatchCues {
   sidePanels: readonly SidePanel[];
   /** The notices currently on screen, the refusal included. A read-only view of {@link narration}. */
   notices: readonly MatchNotice[];
-  /**
-   * Holds back the viewer's own effect notice for a card whose decision dialog is now open —
-   * the dialog already names the card and prints the clause the notice would repeat.
-   */
-  dismissOwnEffectNotice: (cardId: string) => void;
-  /**
-   * The dialog for that card has closed. The notices it held back read out once the answer
-   * settles, unless another dialog for the same card opens first.
-   */
-  releaseOwnEffectNotice: (cardId: string) => void;
   /** Raises a notice for a refused action, which no server event narrates for the viewer. */
   raiseRejection: (reason: string) => void;
   attackAnnouncement: AttackAnnouncement | null;

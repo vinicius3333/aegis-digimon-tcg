@@ -5,6 +5,7 @@
    after its prompt has opened. Every 16 ms (one frame) the harness hands the client what
    the socket delivered, the way `useRoom` does, and samples what the screen shows. */
 
+import { isFieldTargetDecision } from "../../src/game/decisionPresentation";
 import { act, renderHook } from "@testing-library/react";
 import { useLayoutEffect } from "react";
 import { vi } from "vitest";
@@ -362,6 +363,14 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
         viewerSeat: VIEWER,
         mulliganOpen: false,
         decisionPending: viewerDecision || props.combatWindowOpen,
+        targetDecision:
+          viewerDecision &&
+          isFieldTargetDecision(
+            props.decision!,
+            [...(decodedState?.players ?? [])].flatMap((player) => [...player.battleArea]),
+          )
+            ? props.decision
+            : undefined,
         decisionStateVersion: viewerDecision ? props.decision!.stateVersion : props.combatWindowVersion,
         ...(viewerDecision && props.decision!.sourceCardId
           ? { decisionSourceCardId: props.decision!.sourceCardId }

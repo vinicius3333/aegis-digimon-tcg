@@ -758,10 +758,8 @@ export function measure(recording: Recording): RunMetrics {
       const index = clauseUnit.get(clause.itemId);
       return index === undefined ? [] : [{ index, active: clause.active, cardId: clause.cardId }];
     });
-    // Beside an open decision rail a desktop board shows only the prompt's own clause.
-    const heads = sample.promptVisible
-      ? mapped.filter((head) => head.cardId === sample.promptSourceCardId).slice(-1)
-      : mapped;
+    // Accepted clauses stay visible beside the next decision rail.
+    const heads = mapped;
     if (sample.promptSourceCardId !== undefined) {
       const asking = perUnit
         .filter((unit) => unit.sourceCardId === sample.promptSourceCardId && unit.triggeredAt <= sample.at)

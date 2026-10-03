@@ -3,11 +3,11 @@
    client owns zero rules: every action is an intent the server validates, and the
    board is a pure render of what the server sends back (ARCHITECTURE.md §4). */
 
+import { isFieldTargetDecision } from "./decisionPresentation";
 import { DragKind } from "./screen/enums";
 import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
-import { ownAlliancePromptCardId } from "./combatWindowModel";
 import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
@@ -48,7 +48,6 @@ import {
   viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
 import { actionGuards } from "./screen/model/actionGuards";
-import { dialogRepeatsEffectNotice } from "./notices";
 import { handEntriesOf } from "./screen/model/handEntries";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { visibleBoard } from "./screen/model/visibleBoard";
@@ -391,6 +390,14 @@ export function GameScreen({
       ? decision.stateVersion
       : (openCombatWindowForBarrier?.stateVersion ?? undefined),
     ...(decisionPendingForViewer && decision.sourceCardId ? { decisionSourceCardId: decision.sourceCardId } : {}),
+    targetDecision:
+      decisionPendingForViewer &&
+      isFieldTargetDecision(
+        decision,
+        [...(state?.players ?? [])].flatMap((player) => [...player.battleArea]),
+      )
+        ? decision
+        : undefined,
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
@@ -433,19 +440,6 @@ export function GameScreen({
     });
     if (visible) onBoard({ live: state, displayed, visible, viewerSeat });
   }, [state, state?.stateVersion, snapshots, cues, viewerSeat, optimisticPlayedInstanceId, presentationPacing]);
-  // The decision panel repeats the source card and its clause, field selections included, so
-  // the matching toast waits until the viewer has answered.
-  const alliancePromptCardId = state ? ownAlliancePromptCardId(state, viewerSeat) : undefined;
-  const promptedOwnEffectCardId =
-    alliancePromptCardId ??
-    (decision?.seat === viewerSeat && dialogRepeatsEffectNotice(decision.options) ? decision.sourceCardId : undefined);
-  const ownEffectNoticeRef = useRef({ dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice });
-  ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
-  useEffect(() => {
-    if (promptedOwnEffectCardId === undefined) return;
-    ownEffectNoticeRef.current.dismiss(promptedOwnEffectCardId);
-    return () => ownEffectNoticeRef.current.release(promptedOwnEffectCardId);
-  }, [promptedOwnEffectCardId]);
   const {
     attackLunge,
     combatImpactIds,

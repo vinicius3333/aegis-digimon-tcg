@@ -64,7 +64,7 @@ export const ANIMATION_FAMILIES = {
   choice: {
     label: "Effect and combat choices",
     owner: "match/queue/useDecisionBarrier.ts",
-    timings: ["dialogIn", "boardPromptIn", "ownEffectNoticeReturn"],
+    timings: ["dialogIn", "boardPromptIn"],
     sequence: "Reach requested board → ask → confirm/decline → resume",
   },
   attack: {

@@ -40,7 +40,6 @@ import { useSecurityCountWatcher } from "./match/watchers/useSecurityCountWatche
 import { narrationStream } from "./match/narration/narrationStream";
 import { createEffectSequence, type EffectUnit } from "./match/effectSequence";
 import { emptyResolutionStrip, resolutionStripReducer } from "./resolutionChain";
-import type { OwnEffectDialog } from "./match/narration/presentableNarration";
 import type {
   AttackLunge,
   DeleteBurst,
@@ -78,6 +77,7 @@ import {
   type ServerEvent,
   type PresentationReport,
   type ResolutionOrderEntry,
+  type DecisionRequest,
 } from "@aegis/shared";
 import { playSound, type SoundKind } from "../design/sound";
 import { otherSeat } from "./boardModel";
@@ -91,9 +91,15 @@ import {
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
-import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
-import { TIMINGS } from "./timings";
-import { narrationReadingTime, trimNarration, NARRATION_QUEUE_LIMIT, type NarrationItem } from "./narration";
+import { noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
+import {
+  narrationReadingTime,
+  pauseNarration,
+  resumeNarration,
+  trimNarration,
+  NARRATION_QUEUE_LIMIT,
+  type NarrationItem,
+} from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import type { RevealShowcase } from "./match/present/revealShowcases";
@@ -127,6 +133,7 @@ export function useMatchCues({
   narrationLimit = NARRATION_QUEUE_LIMIT,
   decisionStateVersion,
   decisionSourceCardId,
+  targetDecision,
   anchors,
   onActionRejected,
   onPresentationReport,
@@ -163,6 +170,8 @@ export function useMatchCues({
   decisionStateVersion?: number;
   /** The card whose effect the viewer's open decision is about, when it names one. */
   decisionSourceCardId?: string;
+  /** A new clause waits for this viewer-owned field-target selection to be confirmed. */
+  targetDecision?: DecisionRequest | undefined;
   anchors: MatchCueAnchors;
   onActionRejected: (reason: string) => void;
   onPresentationReport?: (report: PresentationReport) => void;
@@ -479,18 +488,15 @@ export function useMatchCues({
   decisionPendingRef.current = decisionPending;
   const decisionSourceCardIdRef = useRef(decisionSourceCardId);
   decisionSourceCardIdRef.current = decisionSourceCardId;
+  const targetDecisionRef = useRef(targetDecision);
+  targetDecisionRef.current = targetDecision;
+  const targetClausesRef = useRef(new Map<string, () => void>());
+  const batchesRef = useRef(batches);
+  batchesRef.current = batches;
   const liveStateVersionRef = useRef(state?.stateVersion);
   liveStateVersionRef.current = state?.stateVersion;
   /** The live revision the state watchers last compared against; updated after they run. */
   const watchedLiveVersionRef = useRef(state?.stateVersion);
-  /** Cards whose own decision dialog is open, so their clause is not read out twice. */
-  const suppressedOwnEffectsRef = useRef(new Map<string, OwnEffectDialog>());
-  useEffect(
-    () => () => {
-      for (const dialog of suppressedOwnEffectsRef.current.values()) clearTimeout(dialog.releaseTimer);
-    },
-    [],
-  );
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
@@ -667,7 +673,7 @@ export function useMatchCues({
 
   const effectNarrationTracksRef = useRef(new Map<Seat, string>());
 
-  const { narrate, publishNow, flushHeldNotices, openHeld, narrationBefore } = narrationStream({
+  const { narrate, flushHeldNotices, openHeld, narrationBefore, flushTargetClauses } = narrationStream({
     viewerSeat,
     queue,
     cardSiteRef,
@@ -692,7 +698,10 @@ export function useMatchCues({
     setNarration,
     collapseNarrationRef,
     narrationLimitRef,
-    suppressedOwnEffectsRef,
+    decisionPendingRef,
+    targetDecisionRef,
+    targetClausesRef,
+    batchesRef,
     heldNoticesRef,
     heldPanelsRef,
     readOutHeldRef,
@@ -713,10 +722,18 @@ export function useMatchCues({
     });
   }, [narration]);
 
-  // Each record expires on its own clock, including while a decision is open.
+  // Decisions preserve accepted effects and their remaining reading time. New
+  // announcements start paused too, so an immediate follow-up question cannot lose them.
+  useLayoutEffect(() => {
+    const now = Date.now();
+    setNarration((items) => (decisionPending ? pauseNarration(items, now) : resumeNarration(items, now)));
+    flushTargetClauses();
+  }, [decisionPending, targetDecision?.decisionId]);
+
+  // Each record expires on its own clock once the decision has been answered.
   // Schedule only the next expiry, and cancel on unmount or replacement.
   useEffect(() => {
-    if (narration.size === 0) return;
+    if (decisionPending || narration.size === 0) return;
     const expiresAt = Math.min(...[...narration.values()].map((item) => item.createdAt + narrationReadingTime(item)));
     const timer = setTimeout(
       () => {
@@ -731,7 +748,7 @@ export function useMatchCues({
       Math.max(0, expiresAt - Date.now()),
     );
     return () => clearTimeout(timer);
-  }, [narration]);
+  }, [narration, decisionPending]);
 
   // A tightened cap has to be applied to what is already on screen, per column: trimming
   // the map as one list would drop a clause because the other column happened to be full.
@@ -1352,6 +1369,7 @@ export function useMatchCues({
   function fastForward() {
     presentationTelemetry.countSkip();
     narrationSkipRef.current = true;
+    targetClausesRef.current.clear();
     narrationPhaseOrdersRef.current.clear();
     setNarration(new Map());
     queue.skip();
@@ -1385,48 +1403,6 @@ export function useMatchCues({
     narrationLock,
     sidePanels,
     notices,
-    dismissOwnEffectNotice: (cardId: string) => {
-      const reopened = suppressedOwnEffectsRef.current.get(cardId);
-      if (reopened !== undefined) {
-        clearTimeout(reopened.releaseTimer);
-        delete reopened.releaseTimer;
-      }
-      const dialog = reopened ?? { deferred: [] };
-      suppressedOwnEffectsRef.current.set(cardId, dialog);
-      const held = heldNoticesRef.current.filter((notice) => isOwnEffectNotice(notice, cardId));
-      heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !held.includes(notice));
-      // Already on screen: the dialog is about to print the same clause, so the item gives
-      // its notice to the dialog and keeps only its panel, if it has one.
-      const shownIds = new Set<string>();
-      for (const item of narrationRef.current.values()) {
-        if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
-        shownIds.add(item.id);
-        effectSequence.deferClause(item.notice);
-        (dialog.narrationIds ??= new Map()).set(item.notice.id, item.id);
-        dialog.deferred.push(item.notice);
-      }
-      dialog.deferred.push(...held);
-      if (shownIds.size === 0) return;
-      setNarration((slots) => {
-        const next = new Map(slots);
-        for (const [slot, item] of slots) {
-          if (!shownIds.has(item.id)) continue;
-          if (item.panel) next.set(slot, { ...item, notice: undefined });
-          else next.delete(slot);
-        }
-        return next;
-      });
-    },
-    releaseOwnEffectNotice: (cardId: string) => {
-      const dialog = suppressedOwnEffectsRef.current.get(cardId);
-      if (dialog === undefined) return;
-      clearTimeout(dialog.releaseTimer);
-      dialog.releaseTimer = setTimeout(() => {
-        if (suppressedOwnEffectsRef.current.get(cardId) !== dialog) return;
-        suppressedOwnEffectsRef.current.delete(cardId);
-        publishNow(dialog.deferred, lastBatchIdRef.current, dialog.narrationIds);
-      }, TIMINGS.ownEffectNoticeReturn);
-    },
     raiseRejection: (reason: string) => {
       noticeSequenceRef.current += 1;
       setRejection(rejectionNotice(reason, `notice-${noticeSequenceRef.current}`, Date.now()));
