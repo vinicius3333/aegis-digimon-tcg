@@ -342,6 +342,7 @@ export function DecisionOverlay({
           timing={request.options?.timing}
           triggerTimings={request.options?.triggerTimings}
           triggerDescriptions={request.options?.triggerDescriptions}
+          triggerReasons={request.options?.triggerReasons}
           triggerIsInherited={request.options?.triggerIsInherited}
           triggerIsOptional={request.options?.triggerIsOptional}
           waitingTriggers={waitingTriggersOf(request)}

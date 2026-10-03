@@ -90,6 +90,7 @@ export function createResolverDecisions(
           decisionTiming ??
           "",
       );
+      const triggerReasons = active.map((c) => c.triggerReason ?? "");
       const sharedSourceCardId = triggerCardIds.every((cardId) => cardId === triggerCardIds[0])
         ? triggerCardIds[0]
         : undefined;
@@ -102,6 +103,7 @@ export function createResolverDecisions(
           triggerKeys,
           triggerCardIds,
           triggerDescriptions: active.map((c) => c.effect.description ?? ""),
+          ...(triggerReasons.some((reason) => reason !== "") ? { triggerReasons } : {}),
           triggerIsInherited: active.map((c) => c.effect.isInherited),
           ...(plan !== undefined ? { acceptsResolutionPlan: true, triggerIsOptional: active.map(mayAskYesNo) } : {}),
           ...(triggerTimings.some((entry) => entry !== "") ? { triggerTimings } : {}),

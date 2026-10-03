@@ -860,6 +860,7 @@ export const en = {
   "overlay.waitingEffects": "Resolve after these",
   "overlay.waitingEffectsHint": "Earlier effects still pending. They resolve once the effects above are done.",
   "overlay.presetMandatory": "Mandatory",
+  "overlay.triggerReason": "Triggered by: {reason}",
   "overlay.presetLabel": "Answer for {name}'s optional choices",
   "overlay.triggerSourceField": "Field:{position}",
   "overlay.triggerSourceHand": "Hand",
