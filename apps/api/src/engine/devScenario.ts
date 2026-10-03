@@ -40,6 +40,7 @@ export const DEV_SCENARIO_IDS = [
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
+  "arena-marcus-alliance",
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
   "arena-bt11-rina-ulforce-effect-choice",
@@ -333,6 +334,28 @@ function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Marcus becomes a Digimon through his printed start-of-main effect, then pays Alliance. */
+function layMarcusAllianceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    // Low-DP security without Security effects keeps both Alliance checks deterministic.
+    // The opening draw also cannot offer Marcus an incidental Greymon digivolution.
+    loadDeckInto(player, seat, { mainDeck: Array(40).fill("BT1-009"), eggDeck: decks[seat].eggDeck });
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT23-020"], "-marcus-alliance-attacker"));
+    placePermanent(human, establishedDigimon(0, ["BT12-092"], "-marcus-alliance-tamer"));
+    placePermanent(human, establishedDigimon(0, ["BT12-034"], "-marcus-alliance-agumon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Bakemon evolves and plays a Violet that did not exist when the evolution occurred. */
@@ -4813,6 +4836,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
+  "arena-marcus-alliance": layMarcusAllianceScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt11-rina-ulforce-effect-choice": layBt11RinaUlforceEffectChoiceScenario,
