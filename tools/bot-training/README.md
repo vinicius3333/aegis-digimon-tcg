@@ -117,6 +117,18 @@ The API loads one CPU scorer before listening and closes it on shutdown. A confi
 
 This is opt-in server support. No production environment or deployment is changed by this branch.
 
+Verify all pinned bot recipes through the matching built room runtime:
+
+```sh
+node tools/bot-training/room-smoke.mjs \
+  --python /home/vinicius/aegis-bot-lab/venv/bin/python \
+  --checkpoint /absolute/path/to/matching/checkpoint.pt \
+  --output /home/vinicius/aegis-bot-lab/runs/my-room-verification \
+  --games 26 --seed 6025000
+```
+
+The verifier creates each Aegis room through an isolated local Colyseus matchmaker and seats the checkpoint bot through `addBot`, with normal presentation pacing, policy deadlines and Main-action limits. A scripted heuristic drives the human seat through the room's intent and private-decision channels; human decks rotate against each pinned bot recipe. Results include checkpoint/runtime hashes, terminal outcomes, model queries, selected action families, latency samples, synchronous refused intents, asynchronous rejection events and fallback counts. It verifies the finished-room lock and framework disposal/deregistration before writing results. Any rejection, fallback, match deadline or lifecycle failure stops the run with partial evidence preserved. This checks the in-process room boundary; it does not exercise browser/WebSocket transport or prove per-card tactical coverage. Use a fresh output directory for every run.
+
 The matching v11 checkpoint is `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v11-room-inference/imitation/checkpoint.pt`; use it with `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v11-room-inference-final`. That runtime passed 179 focused tests and a complete real-room match with 32 model queries, no rejected actions, and no fallback. The room smoke used a scripted human-side opponent and normal bot pacing; browser UI validation and exhaustive action coverage remain open.
 
 The corrected DUAL runtime and v12 checkpoint are archived under `checkouts/bt26-training-v12-dual-training` and `runs/2026-09-27-training-v12-dual-attached`. It collected 80 complete games (4,073 decisions), trained on CUDA, and completed 16 development inference games with ten wins and no errors, rejection, fallback, or truncation. Use that exact archived runtime with its `imitation/checkpoint.pt`; later builds can have a different fingerprint even after test-only changes. Its separate 1,000-game reliability run completed with 57,445 model decisions and no errors, rejection, fallback, or truncation. It won 432 games (43.2%), so stronger play remains unproven. Detailed seed, fingerprint, and matchup evidence is in the training plan.
