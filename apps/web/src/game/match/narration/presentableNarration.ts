@@ -11,6 +11,8 @@ import { isOwnEffectNotice, type MatchNotice } from "../../notices";
 export interface OwnEffectDialog {
   /** The card's notices held back until the dialog is answered, oldest first. */
   deferred: MatchNotice[];
+  /** Existing moment IDs, so returning a clause does not create a second occurrence. */
+  narrationIds?: Map<string, string>;
   /** Pending read-out of {@link deferred}; a dialog reopening for the card cancels it. */
   releaseTimer?: ReturnType<typeof setTimeout>;
 }
@@ -47,6 +49,7 @@ export function presentableNarration(item: NarrationItem, deps: PresentableNarra
   });
   const dialog = item.notice ? deferringDialog(item.notice, suppressedOwnEffects) : undefined;
   if (dialog === undefined || item.notice === undefined) return shown(item);
+  (dialog.narrationIds ??= new Map()).set(item.notice.id, item.id);
   dialog.deferred.push(item.notice);
   if (!item.panel) return null;
   return shown({ ...item, notice: undefined });

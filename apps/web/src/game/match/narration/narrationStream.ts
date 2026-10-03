@@ -558,7 +558,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
    * already printed: its card was lit and read while the dialog was open, so it only needs
    * its place in the column, ahead of anything raised after it.
    */
-  function publishNow(notices: readonly MatchNotice[], batchId: string) {
+  function publishNow(notices: readonly MatchNotice[], batchId: string, narrationIds?: ReadonlyMap<string, string>) {
     if (notices.length === 0) return;
     const items = buildNarrationItems({
       batchId,
@@ -568,6 +568,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
       nextId: () => `narration-${(narrationSequenceRef.current += 1)}`,
     });
     for (const item of items) {
+      if (item.notice) {
+        item.id = narrationIds?.get(item.notice.id) ?? item.id;
+        item.panel ??= narrationRef.current.get(item.id)?.panel;
+      }
       const shown = presentableNarration(item, {
         collapseNarration: collapseNarrationRef.current,
         suppressedOwnEffects: suppressedOwnEffectsRef.current,

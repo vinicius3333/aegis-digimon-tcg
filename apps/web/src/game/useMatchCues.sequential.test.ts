@@ -378,6 +378,106 @@ describe("resumed effect results", () => {
 });
 
 describe("sequential pacing through a security check", () => {
+  it("restores Asuna's Security toast as the same occurrence after a dialog", async () => {
+    setBasePacing(PACING_BY_STYLE.stacked);
+    const state = {
+      ...BOARD,
+      players: [
+        {
+          ...BOARD.players[0]!,
+          battleArea: [{ permanentId: "perm-a", topCard: { instanceId: "asuna", cardId: "BT24-088" }, stack: [] }],
+        },
+        BOARD.players[1]!,
+      ],
+    } as unknown as GameState;
+    const security: Extract<ServerEvent, { kind: "effectTriggered" }> = {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "BT24-088",
+      sourceInstanceId: "asuna",
+      effectKey: "BT24-088/ir-26-0",
+      timing: "Security",
+      duringSecurityCheck: true,
+      description: "[Security] Play this card without paying the cost.",
+    };
+    const batches = [
+      singleServerBatch(
+        [
+          {
+            kind: "securityRevealed",
+            seat: 0,
+            revealedCardId: "BT24-088",
+            attackerPermanentId: "attacker",
+            hasSecurityEffect: true,
+            isDigimon: false,
+          },
+          security,
+        ],
+        1,
+      ),
+      singleServerBatch(
+        [
+          { kind: "cardPlayed", seat: 0, cardId: "BT24-088", instanceId: "asuna", permanentId: "perm-a" },
+          { kind: "cardsMoved", from: "various", to: "battleArea", instanceIds: ["asuna"] },
+        ],
+        2,
+      ),
+      singleServerBatch(
+        [
+          {
+            kind: "effectResolved",
+            seat: 0,
+            sourceCardId: "BT24-088",
+            sourceInstanceId: "asuna",
+            sourcePermanentId: "perm-a",
+            effectKey: security.effectKey,
+            timing: "Security",
+            description: security.description,
+          },
+        ],
+        3,
+      ),
+      singleServerBatch([{ kind: "securityChecked", seat: 0, revealedCardId: "BT24-088", resolution: "effect" }], 4),
+    ];
+    const anchors = geometry();
+    const shield = document.createElement("div");
+    vi.spyOn(shield, "getBoundingClientRect").mockReturnValue(new DOMRect(650, 420, 80, 100));
+    anchors.yourSecurity = { current: shield };
+    const view = renderHook(
+      ({ fed }: { fed: readonly ServerBatch[] }) =>
+        useMatchCues({
+          batches: fed,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: () => {},
+          presentationPacing: "sequential",
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[] } },
+    );
+    await advance(0);
+    for (let count = 1; count <= batches.length; count++) {
+      view.rerender({ fed: batches.slice(0, count) });
+      await advance(16);
+    }
+    for (let elapsed = 0; elapsed < 12_000 && !clauseShown(view, "BT24-088"); elapsed += 16) await advance(16);
+    const original = [...view.result.current.narration.values()].find(
+      (item) => item.notice?.body.variant === "effect" && item.notice.body.cardId === "BT24-088",
+    );
+    expect(original).toBeDefined();
+    act(() => view.result.current.dismissOwnEffectNotice("BT24-088"));
+    expect(clauseShown(view, "BT24-088")).toBe(false);
+    act(() => view.result.current.releaseOwnEffectNotice("BT24-088"));
+    await advance(TIMINGS.ownEffectNoticeReturn + 16);
+    const restored = [...view.result.current.narration.values()].filter(
+      (item) => item.notice?.body.variant === "effect" && item.notice.body.cardId === "BT24-088",
+    );
+    expect(restored).toHaveLength(1);
+    expect(restored[0]?.id).toBe(original?.id);
+    expect(restored[0]?.notice).toBe(original?.notice);
+  });
+
   it("reads a security-played On Play clause before its same-batch cost panel and draws", async () => {
     setBasePacing(PACING_BY_STYLE.stacked);
     const state = {

@@ -1404,6 +1404,7 @@ export function useMatchCues({
         if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
         shownIds.add(item.id);
         effectSequence.deferClause(item.notice);
+        (dialog.narrationIds ??= new Map()).set(item.notice.id, item.id);
         dialog.deferred.push(item.notice);
       }
       dialog.deferred.push(...held);
@@ -1425,7 +1426,7 @@ export function useMatchCues({
       dialog.releaseTimer = setTimeout(() => {
         if (suppressedOwnEffectsRef.current.get(cardId) !== dialog) return;
         suppressedOwnEffectsRef.current.delete(cardId);
-        publishNow(dialog.deferred, lastBatchIdRef.current);
+        publishNow(dialog.deferred, lastBatchIdRef.current, dialog.narrationIds);
       }, TIMINGS.ownEffectNoticeReturn);
     },
     raiseRejection: (reason: string) => {
