@@ -290,3 +290,36 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi — KB Q&A rulings", () => {
     expect(withoutSt21.state.memory).toBe(10 - 2 - (5 - 1));
   });
 });
+
+describe("Discord 1555932429007593605: AD1-019 Security", () => {
+  it.each([false, true])(
+    "Discord 1555932429007593605: plays the checked instance for free (faceUp=%s)",
+    async (faceUp) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: { security: [{ card: "AD1-019", as: "checked", faceUp }] },
+      });
+      await s.ready();
+      const memoryBefore = s.state.memory;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "attackEnded") && s.state.pendingDecision === undefined,
+      );
+      expect(s.events.filter((event) => event.kind === "securityRevealed")).toMatchObject([
+        { revealedCardId: "AD1-019", hasSecurityEffect: true, isDigimon: false },
+      ]);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+        s.inst("checked").instanceId,
+      );
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("checked").instanceId);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.memory).toBe(memoryBefore);
+    },
+  );
+});

@@ -2006,6 +2006,17 @@
   "AD1-019": {
     "effects": [
       {
+        "trigger": "Security",
+        "isSecurity": true,
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "payCost": false
+          }
+        ]
+      },
+      {
         "trigger": "StartOfYourMainPhase",
         "actions": [
           {
@@ -2303,6 +2314,17 @@
   },
   "AD1-022": {
     "effects": [
+      {
+        "trigger": "Security",
+        "isSecurity": true,
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "payCost": false
+          }
+        ]
+      },
       {
         "trigger": "StartOfYourMainPhase",
         "actions": [
@@ -125231,6 +125253,17 @@
         "trigger": "OpponentsTurn",
         "actions": [{ "kind": "ModifySecurityDP", "controller": "mine", "amount": 3000, "duration": "permanent" }],
         "isInherited": true
+      },
+      {
+        "trigger": "Security",
+        "isSecurity": true,
+        "actions": [
+          {
+            "kind": "PlayWithoutCost",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "payCost": false
+          }
+        ]
       }
     ],
     "coverage": "full",

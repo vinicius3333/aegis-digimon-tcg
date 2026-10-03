@@ -58,6 +58,17 @@ export const compiled: CompiledCard = {
       ],
       isInherited: true,
     },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

@@ -60,6 +60,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-ad1-adventure-tamers-security",
   "arena-lm067-gundramon-free-option",
   "arena-ex13-sampson-face-down-sources",
   "arena-p240-arcturusmon-vb-routes",
@@ -414,6 +415,34 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Discord 1555932429007593605: real attacks must play checked Adventure Tamers. */
+function layAd1AdventureTamersSecurityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    setSecurityStack(human);
+    // Shoutmon checked AD1-019 in match 802ba658; two established copies allow both checks.
+    for (const suffix of ["-first", "-second"]) {
+      placePermanent(human, establishedDigimon(0, ["BT19-008"], `-ad1-security${suffix}`));
+    }
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    for (const cardId of ["AD1-019", "AD1-022"]) {
+      insertCard(opponent, Zone.Security, faceDownCard(`dev-security-${cardId}`, cardId, 1));
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** Discord 1555848735278239744: LM-067 reveals P-180, which must cost no memory. */
@@ -4677,6 +4706,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
