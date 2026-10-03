@@ -46,17 +46,11 @@
     --field-fit-width: 1;
   }
 
-  /* Each row clears only what stands beside it. The opponent's row has their deck
-     and trash on the left and their raising area and security on the right; the
-     viewer's row has their security on the left and their deck and trash on the right. */
-  .aegis-arena .game-board .game-battle-zones > .game-battle-row--opp {
-    left: calc(2rem + var(--arena-pile-zone-width) + var(--arena-row-gutter));
-    right: calc(2rem + var(--arena-sideline-width) + var(--arena-row-gutter));
-  }
-
-  .aegis-arena .game-board .game-battle-zones > .game-battle-row--you {
+  /* Both rows clear the wider sideline on each side, so their cards centre on the
+     board's axis instead of drifting toward the narrower deck and trash column. */
+  .aegis-arena .game-board .game-battle-zones > :is(.game-battle-row--opp, .game-battle-row--you) {
     left: calc(2rem + var(--arena-sideline-width) + var(--arena-row-gutter));
-    right: calc(2rem + var(--arena-pile-zone-width) + var(--arena-row-gutter));
+    right: calc(2rem + var(--arena-sideline-width) + var(--arena-row-gutter));
   }
 
   .aegis-arena
