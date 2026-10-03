@@ -119,6 +119,7 @@ async function ready() {
       }, 15000);
     });
   }
+  await waitForUi(() => !document.querySelector(".waiting-dialog"));
   return [...document.querySelectorAll("select option")].map((option) => ({
     value: option.value,
     name: option.textContent,

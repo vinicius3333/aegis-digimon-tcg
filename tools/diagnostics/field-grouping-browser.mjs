@@ -10,19 +10,27 @@ async function probe(deterministicClock) {
   // clock mode samples the same native keyframes at explicit elapsed times.
   const clocks = new WeakMap();
   const advanceAnimations = () => {
-    if (!deterministicClock) return;
+    const resume = [];
+    if (!deterministicClock) return resume;
     for (const element of document.querySelectorAll(".game-battle-row--you [data-field-key]")) {
       for (const animation of element.getAnimations({ subtree: true })) {
         if (animation.playState !== "running" && !animation.pending) continue;
-        const origin =
-          clocks.get(animation) ?? (animation.startTime === null ? performance.now() : Number(animation.startTime));
+        // Embedded background tabs can have a document timeline that lags
+        // performance.now(). Advance from the observed local animation time.
+        const origin = clocks.get(animation) ?? performance.now() - Math.max(0, Number(animation.currentTime ?? 0));
         clocks.set(animation, origin);
         const elapsed = Math.max(0, performance.now() - origin);
         const end = animation.effect.getComputedTiming().endTime;
+        if (!Number.isFinite(end)) continue;
+        // WebKit can defer compositing a running animation in an embedded
+        // pane. Pausing makes currentTime observable through computed layout.
+        animation.pause();
         animation.currentTime = Math.min(elapsed, end);
         if (elapsed >= end) animation.finish();
+        else resume.push(animation);
       }
     }
+    return resume;
   };
   const action = async (label) => {
     const trigger = document.querySelector(".aegis-arena-demo-keywords");
@@ -62,11 +70,31 @@ async function probe(deterministicClock) {
     let last = performance.now();
     const started = last;
     const jumps = [];
+    const clipping = new Map();
+    let samples = 0;
     let peak = 0;
     await change();
     while (performance.now() - started < 1250) {
       await frame();
-      advanceAnimations();
+      const resume = advanceAnimations();
+      samples++;
+      for (const card of document.querySelectorAll(".game-battle-row--you [data-field-key]")) {
+        const lane = card.closest(".game-battle-lane").getBoundingClientRect();
+        for (const part of [card, ...card.children, ...card.querySelectorAll("[data-state]")]) {
+          const rect = part.getBoundingClientRect();
+          if (rect.right < lane.left || rect.left > lane.right) continue;
+          if (rect.top < lane.top - 1 || rect.bottom > lane.bottom + 1) {
+            const key = `${card.getAttribute("aria-label")}: ${part.className || "frame"}`;
+            clipping.set(key, {
+              part: key,
+              top: lane.top - rect.top,
+              bottom: rect.bottom - lane.bottom,
+              at: performance.now() - started,
+              rotate: getComputedStyle(part).rotate,
+            });
+          }
+        }
+      }
       const now = performance.now();
       const next = read();
       for (const card of next) {
@@ -99,6 +127,9 @@ async function probe(deterministicClock) {
       }
       previous = next;
       last = now;
+      // Restore running state before the next real UI action, including rapid
+      // retargeting. The production motion hook reads running flight offsets.
+      for (const animation of resume) animation.play();
     }
     const elements = [...document.querySelectorAll(".game-battle-row--you [data-field-key]")];
     const unsettled = elements
@@ -127,8 +158,24 @@ async function probe(deterministicClock) {
       if (Math.abs(ami[i].x - ami[i - 1].x) < 30) overlaps.push("Ami Aiba groups overlap");
     return {
       label,
+      samples,
+      clipping: [...clipping.values()],
       correctGroups,
       unsettled,
+      pendingAnimations: elements.flatMap((element) =>
+        element
+          .getAnimations({ subtree: true })
+          .filter(
+            (animation) =>
+              Number.isFinite(animation.effect.getComputedTiming().endTime) && animation.playState === "running",
+          )
+          .map((animation) => ({
+            name: element.getAttribute("aria-label"),
+            time: animation.currentTime,
+            end: animation.effect.getComputedTiming().endTime,
+            frames: animation.effect.getKeyframes(),
+          })),
+      ),
       overlaps,
       peakPixelsPerMs: +peak.toFixed(2),
       jumps,
@@ -148,6 +195,22 @@ async function probe(deterministicClock) {
       setTimeout(() => action(/Desvirar seus Tamers|Unsuspend your Tamers/), 240);
     }),
   );
+  if (!document.querySelector('.game-battle-row--you [data-field-key] [title="Vulcanusmon"]'))
+    throw new Error("Missing deep sourced/linked motion fixture.");
+  results.push(
+    await sample("deep suspend", () => action(/Alternar suspensão da pilha profunda|Toggle deep stack suspension/)),
+  );
+  results.push(
+    await sample("deep ready", () => action(/Alternar suspensão da pilha profunda|Toggle deep stack suspension/)),
+  );
+  results.push(
+    await sample("deep rapid changes", async () => {
+      await action(/Alternar suspensão da pilha profunda|Toggle deep stack suspension/);
+      setTimeout(() => action(/Alternar suspensão da pilha profunda|Toggle deep stack suspension/), 120);
+      setTimeout(() => action(/Suspender uma Ami|Suspend one Ami/), 160);
+      setTimeout(() => action(/Desvirar seus Tamers|Unsuspend your Tamers/), 240);
+    }),
+  );
   return {
     viewport: [innerWidth, innerHeight],
     clock: deterministicClock ? "explicit native keyframe sampling" : "browser timeline",
@@ -156,6 +219,8 @@ async function probe(deterministicClock) {
     passed: results.every(
       (result) =>
         result.correctGroups &&
+        result.samples > 1 &&
+        result.clipping.length === 0 &&
         result.jumps.length === 0 &&
         result.unsettled.length === 0 &&
         result.overlaps.length === 0,
