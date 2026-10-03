@@ -32,60 +32,51 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "AllTurns",
+      trigger: "whenTrashedFromBattleArea",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenTrashedByEffect",
-          sourceFilter: {
-            isSelfRef: true,
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
           },
-          actions: [
-            {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              keyword: {
-                keyword: "Reboot",
-                raw: "＜Reboot＞",
-              },
-              duration: "untilOpponentTurnEnd",
+          keyword: {
+            keyword: "Reboot",
+            raw: "＜Reboot＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-                sameTarget: true,
-              },
-              keyword: {
-                keyword: "Blocker",
-                raw: "＜Blocker＞",
-              },
-              duration: "untilOpponentTurnEnd",
+            count: 1,
+            sameTarget: true,
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-                sameTarget: true,
-              },
-              amount: 2000,
-              duration: "untilOpponentTurnEnd",
-            },
-          ],
+            count: 1,
+            sameTarget: true,
+          },
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
         },
       ],
     },

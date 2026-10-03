@@ -21,28 +21,21 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "AllTurns",
+      trigger: "whenTrashedFromBattleArea",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenTrashedByEffect",
-          sourceFilter: { isSelfRef: true, zone: "battleArea" },
-          actions: [
-            {
-              kind: "PlaceInBattleAreaSelf",
-              target: {
-                filter: {
-                  controller: "mine",
-                  zone: "trash",
-                  kind: ["Option"],
-                  nameOrTrait: [{ tokens: ["Device"], match: "trait" }],
-                  playCostLte: 3,
-                },
-                count: 1,
-                from: ["trash"],
-              },
+          kind: "PlaceInBattleAreaSelf",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              kind: ["Option"],
+              nameOrTrait: [{ tokens: ["Device"], match: "trait" }],
+              playCostLte: 3,
             },
-          ],
+            count: 1,
+            from: ["trash"],
+          },
         },
       ],
     },

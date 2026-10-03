@@ -59,26 +59,19 @@ describe("BT19-093 Queen Device — catalog and IR", () => {
         ],
       },
       {
-        trigger: "AllTurns",
+        trigger: "whenTrashedFromBattleArea",
         actions: [
           {
-            kind: "SubTrigger",
-            event: "whenTrashedByEffect",
-            sourceFilter: { isSelfRef: true, zone: "battleArea" },
-            actions: [
-              {
-                kind: "ModifyDP",
-                target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-                amount: -3000,
-                duration: "untilOpponentTurnEnd",
-              },
-              {
-                kind: "Restrict",
-                target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
-                restriction: "cannotActivateWhenDigivolving",
-                duration: "untilOpponentTurnEnd",
-              },
-            ],
+            kind: "ModifyDP",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: -3000,
+            duration: "untilOpponentTurnEnd",
+          },
+          {
+            kind: "Restrict",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
+            restriction: "cannotActivateWhenDigivolving",
+            duration: "untilOpponentTurnEnd",
           },
         ],
       },
