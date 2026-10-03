@@ -1,5 +1,25 @@
 [
   {
+    "version": "1.8.3-beta",
+    "releasedAt": "2026-10-03",
+    "summaryKey": "releases.1.8.3-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.8.3-beta.fix.reconnect"
+      },
+      {
+        "textKey": "releases.1.8.3-beta.fix.pendingList"
+      },
+      {
+        "textKey": "releases.1.8.3-beta.fix.trashOnce"
+      },
+      {
+        "textKey": "releases.1.8.3-beta.fix.effectOrder"
+      }
+    ]
+  },
+  {
     "version": "1.8.2-beta",
     "releasedAt": "2026-10-02",
     "summaryKey": "releases.1.8.2-beta.summary",

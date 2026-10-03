@@ -1,4 +1,24 @@
 {
+  "releases.1.8.3-beta.summary": {
+    "en": "This update brings back the effect menu after a page refresh, keeps the resolve button in view when many effects are pending, and makes BT26-091 Yoshino Fujieda trigger once per event.",
+    "pt-BR": "Esta atualização traz de volta o menu de efeitos depois de recarregar a página, mantém o botão de resolver visível quando há muitos efeitos pendentes e faz BT26-091 Yoshino Fujieda ativar uma vez por evento."
+  },
+  "releases.1.8.3-beta.fix.reconnect": {
+    "en": "After you refresh the page or reconnect mid-match, the effect or choice you still have to answer now appears again instead of leaving the game stuck.",
+    "pt-BR": "Depois de recarregar a página ou reconectar no meio da partida, o efeito ou a escolha que você ainda precisa responder agora aparece de novo, em vez de deixar o jogo travado."
+  },
+  "releases.1.8.3-beta.fix.pendingList": {
+    "en": "With many pending effects, identical ones now share one row with a count, the list scrolls on its own, and the resolve button stays in view.",
+    "pt-BR": "Com muitos efeitos pendentes, os efeitos iguais agora ficam numa linha só com a contagem, a lista rola sozinha e o botão de resolver continua visível."
+  },
+  "releases.1.8.3-beta.fix.trashOnce": {
+    "en": "Effects that react when cards are trashed from under a card, such as BT26-091 Yoshino Fujieda, now activate once when one effect trashes several cards at the same time.",
+    "pt-BR": "Efeitos que reagem quando cartas são descartadas de baixo de uma carta, como BT26-091 Yoshino Fujieda, agora ativam uma vez só quando um efeito descarta várias cartas ao mesmo tempo."
+  },
+  "releases.1.8.3-beta.fix.effectOrder": {
+    "en": "When copies of the same card resolve one after another, each effect notice and its draw now play in order instead of at the same time.",
+    "pt-BR": "Quando cópias da mesma carta resolvem uma depois da outra, cada aviso de efeito e sua compra agora aparecem em ordem, e não ao mesmo tempo."
+  },
   "releases.1.8.2-beta.summary": {
     "en": "This update makes [On Deletion] effects activate right away after long digivolution chains, lets you choose which Digimon ＜Decoy＞ saves, and keeps the board in step with the effect notices.",
     "pt-BR": "Esta atualização faz os efeitos [On Deletion] ativarem na hora depois de cadeias longas de digievolução, deixa você escolher qual Digimon o ＜Decoy＞ salva e mantém o campo no ritmo dos avisos de efeito."
