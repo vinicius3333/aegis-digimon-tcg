@@ -189,20 +189,20 @@
 }
 
 .game-permanent .game-keyword-badge {
-  max-width: 100%;
-  overflow: hidden;
+  flex: 0 0 auto;
   padding: 1px 4px;
   pointer-events: auto;
   color: var(--ds-background);
   border-radius: 5px;
   background: var(--ds-foreground);
   box-shadow: var(--ds-shadow-sm);
-  font: 700 8px / 1.25 var(--ds-font-mono);
-  text-overflow: ellipsis;
+  font: 700 9px / 1.25 var(--ds-font-mono);
   white-space: nowrap;
 }
 
 .game-permanent .game-keyword-badge--more {
+  min-width: 22px;
+  text-align: center;
   background: var(--ds-foreground-muted);
 }
 

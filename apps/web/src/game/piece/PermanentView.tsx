@@ -3,7 +3,7 @@ import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { CardMini } from "../../design/cards";
 import { Icons } from "../../design/icons";
 import { useTranslation } from "../../i18n";
-import { linkCardOverhang } from "../boardModel";
+import { linkCardOverhang, sourceFanStepLimit } from "../boardModel";
 import { CardBurst } from "../CardBurst";
 import { hasBlocker, restrictionBadges, sourceCountBadge } from "../fieldBadges";
 import type { PendingFateBadge } from "../pendingFate";
@@ -187,7 +187,11 @@ export function PermanentView({
         // announcement is over, rather than flying the card across the board.
         visibility: pending ? "hidden" : undefined,
         transform: highlight || effectSource || effectLinked ? "translateY(-6px)" : "none",
-        marginInlineStart: isVisuallySuspended ? suspendedInlineMargin : 0,
+        marginInlineStart: perm.stack.length
+          ? `max(${isVisuallySuspended ? suspendedInlineMargin : 0}px, calc(4px + ${perm.stack.length - 1} * min(var(--arena-source-step, 4px), ${sourceFanStepLimit(permanentWidth, perm.stack.length)}px)))`
+          : isVisuallySuspended
+            ? suspendedInlineMargin
+            : 0,
         marginInlineEnd:
           (isVisuallySuspended ? suspendedInlineMargin : 0) +
           linkCardOverhang(perm.linked.length, permanentWidth) +
