@@ -6,10 +6,13 @@
 .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
   display: flex !important;
   flex-direction: column;
-  gap: 2px !important;
+  gap: 8px !important;
   align-items: stretch !important;
   justify-content: center !important;
   padding: 0 !important;
+  /* A lane needs its 44px touch frame, 22px badge strip, 10px shadow
+     clearance and the row's borders even on the shortest landscape screen. */
+  min-height: 78px !important;
   overflow: hidden !important;
   scroll-snap-type: none;
 }
@@ -93,4 +96,88 @@
   transition:
     transform 160ms,
     opacity 160ms !important;
+}
+
+/* Upright phones keep the whole width for Digimon, then a separate support
+   shelf underneath. Compact utilities return height to those two shelves. */
+@media (width < 600px) and (orientation: portrait) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) {
+    --arena-pile-width: 44px;
+    --arena-utility-height: 100px;
+    --arena-hand-height: 128px;
+  }
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+    --field-prefer-stacked: 1;
+    min-height: 164px !important;
+  }
+  .game-board
+    .game-field
+    .game-battle-zones
+    > .game-battle-row[data-field-layout="organized"]:has(> .game-battle-lane--digimon):has(
+      > .game-battle-lane--support
+    ) {
+    min-height: 320px !important;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field {
+    grid-template-rows: var(--arena-utility-height) minmax(0, 1fr) var(--arena-utility-height);
+    overflow: hidden !important;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones {
+    display: grid !important;
+    grid-area: 2 / 1 / 3 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(min-content, 1fr) var(--arena-memory-height) minmax(min-content, 1fr);
+    gap: 4px;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones > .game-battle-row--opp {
+    grid-row: 1;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones > .game-battle-row--you {
+    grid-row: 3;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-battle-zones > .game-memory-band {
+    grid-area: 2 / 1;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-utility-slot[class*="--you-"],
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field .game-security-shield--you,
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    .game-field
+    .game-security-shield-wrap:has(.game-security-shield--you) {
+    grid-row: 3;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field::after {
+    grid-row: 3;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    .game-field:has(.game-breeding-slot .game-permanent[style*="translateY(-6px)"]) {
+    --arena-utility-height: 112px;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    .game-field:has(.game-breeding-slot .game-keyword-badges, .game-breeding-slot .game-source-badge) {
+    --arena-utility-height: 124px;
+  }
+  .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane,
+  .game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
+    /* The lane pans sideways and its field pans vertically. Native pointer
+       cancellation keeps a scroll gesture from becoming a card action. */
+    touch-action: pan-x pan-y !important;
+  }
+  .game-board .game-battle-row--opp[data-field-layout="organized"] > .game-battle-lane--support {
+    background-position: top;
+  }
+}
+
+@media (width < 600px) and (height < 650px) and (orientation: portrait) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) {
+    --arena-pile-width: 44px;
+    --arena-utility-height: 100px;
+    --arena-hand-height: 94px;
+  }
 }

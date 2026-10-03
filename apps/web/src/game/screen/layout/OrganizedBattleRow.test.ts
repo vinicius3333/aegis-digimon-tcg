@@ -5,6 +5,20 @@ import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 const crowded = { digimonCount: 6, supportCount: 6 };
 
 describe("fitLanes", () => {
+  it("keeps portrait support below Digimon and preserves visible artwork in a dense minimum-height row", () => {
+    const lanes = fitLanes({ width: 288, height: 320 }, 84, {
+      ...crowded,
+      digimonSources: 12,
+      digimonLinks: 2,
+      supportSources: 8,
+      sourceTop: 2,
+      sourceStep: 1.25,
+      preferStacked: true,
+    });
+    expect(lanes.placement).toBe(LanePlacement.Stacked);
+    expect(lanes.digimon).toBeGreaterThanOrEqual(72);
+    expect(lanes.support).toBe(56);
+  });
   it("keeps the layout's width when a single lane has enough height", () => {
     expect(fitLanes({ width: 900, height: 220 }, 116, { digimonCount: 6, supportCount: 0 })).toMatchObject({
       placement: LanePlacement.Stacked,
@@ -13,7 +27,7 @@ describe("fitLanes", () => {
   });
 
   it("stacks the lanes when the row is tall enough", () => {
-    const lanes = fitLanes({ width: 1300, height: 245 }, 116, crowded);
+    const lanes = fitLanes({ width: 1300, height: 260 }, 116, crowded);
     expect(lanes.placement).toBe(LanePlacement.Stacked);
     expect(lanes.digimon).toBeLessThanOrEqual(116);
     expect(lanes.digimon * 1.4 + lanes.support * 1.4).toBeLessThanOrEqual(245);
@@ -30,13 +44,13 @@ describe("fitLanes", () => {
   });
 
   it("keeps the same lanes and card sizes when copies split or merge", () => {
-    const lanes = fitLanes({ width: 1600, height: 200 }, 84, { digimonCount: 3, supportCount: 2 });
+    const lanes = fitLanes({ width: 1600, height: 220 }, 84, { digimonCount: 3, supportCount: 2 });
     expect(lanes.placement).toBe(LanePlacement.Stacked);
-    expect(lanes).toEqual(fitLanes({ width: 1600, height: 200 }, 84, crowded));
+    expect(lanes).toEqual(fitLanes({ width: 1600, height: 220 }, 84, crowded));
   });
 
   it("stays stacked when side by side would push cards out of sight", () => {
-    expect(fitLanes({ width: 778, height: 200 }, 84, crowded).placement).toBe(LanePlacement.Stacked);
+    expect(fitLanes({ width: 778, height: 220 }, 84, crowded).placement).toBe(LanePlacement.Stacked);
   });
 
   it("fits the rotating artwork's diagonal in a short single lane", () => {
@@ -49,7 +63,7 @@ describe("fitLanes", () => {
   });
 
   it("reserves the Yoshino source fan and badges in both stacked lanes", () => {
-    const lanes = fitLanes({ width: 900, height: 245 }, 116, {
+    const lanes = fitLanes({ width: 900, height: 270 }, 116, {
       ...crowded,
       digimonSources: 3,
       supportSources: 4,
@@ -57,7 +71,7 @@ describe("fitLanes", () => {
       sourceStep: 4,
     });
     expect(lanes.placement).toBe(LanePlacement.Stacked);
-    expect(lanes.digimon * 1.4 + lanes.support * 1.4 + 22 + 18 + 22 + 22 + 2).toBeLessThanOrEqual(245);
+    expect(lanes.digimon * 1.4 + lanes.support * 1.4 + 22 + 24 + 22 + 28 + 2).toBeLessThanOrEqual(270);
   });
 
   it("fits a short row even when it contains only Digimon", () => {
@@ -67,7 +81,7 @@ describe("fitLanes", () => {
   });
 
   it("keeps deep sources visible without reducing the card to a one-pixel placeholder", () => {
-    const height = 71;
+    const height = 77;
     const lanes = fitLanes({ width: 900, height }, 58, { ...crowded, digimonSources: 12, supportSources: 8 });
     expect(lanes.placement).toBe(LanePlacement.SideBySide);
     expect(lanes.digimon).toBeGreaterThanOrEqual(22);

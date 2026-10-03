@@ -65,6 +65,13 @@
     content: "";
   }
 
+  /* Folded notices belong to the board, below its opponent header. A viewport
+     fixed notice can cover the demo toolbar and detach when the field scrolls. */
+  .aegis-arena .game-board .narration-slot[data-slot="narration"]:has(.narration-peek) {
+    position: absolute;
+    top: calc(var(--arena-header-height) + 4px);
+  }
+
   .game-board .game-opponent-bar {
     position: relative;
     inset: auto;

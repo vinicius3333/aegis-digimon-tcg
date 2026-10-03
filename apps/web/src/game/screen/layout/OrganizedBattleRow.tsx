@@ -12,7 +12,7 @@ import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 const CARD_ASPECT = 1.4;
 /** The design's --ds-touch-target minimum also applies to each permanent's button wrapper. */
 const MIN_PERMANENT_HEIGHT = 44;
-const LANE_GAP = 2;
+const LANE_GAP = 8;
 /** The smallest Digimon stacked lanes shrink to, as a share of the layout's width. */
 const MIN_STACKED_SHRINK = 0.6;
 
@@ -223,24 +223,28 @@ interface LaneContent {
   supportLinks?: number;
   sourceTop?: number;
   sourceStep?: number;
+  preferStacked?: boolean;
 }
 
 function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { digimon: 0, support: 0 }): LaneMetrics {
   const base = LANE_METRICS[placement];
+  const shadow = 10;
   const sourceBottom = (count = 0, width: number) =>
     count
-      ? (content.sourceTop ?? 6) + (count - 1) * Math.min(content.sourceStep ?? 4, sourceFanStepLimit(width, count)) + 4
-      : 4;
+      ? (content.sourceTop ?? 6) +
+        (count - 1) * Math.min(content.sourceStep ?? 4, sourceFanStepLimit(width, count)) +
+        shadow
+      : shadow;
   const bottom = (sources: number | undefined, links = 0, width: number) => {
     const artworkHeight = Math.ceil(width * CARD_ASPECT);
     const frameHeight = Math.max(MIN_PERMANENT_HEIGHT, artworkHeight);
     // A small card's sources can use the otherwise empty part of its touch target.
     return Math.max(
-      4,
+      shadow,
       // The card's diagonal is its tallest extent halfway through suspension.
-      Math.ceil((Math.hypot(width, artworkHeight) - frameHeight) / 2) + 4,
+      Math.ceil((Math.hypot(width, artworkHeight) - frameHeight) / 2) + shadow,
       sourceBottom(sources, width) - (frameHeight - artworkHeight),
-      ...linkCardSlots(links, width).map((slot) => slot.top + slot.height - frameHeight + 4),
+      ...linkCardSlots(links, width).map((slot) => slot.top + slot.height - frameHeight + shadow),
     );
   };
   return {
@@ -268,15 +272,16 @@ function laneHeight(width: number, padding: { top: number; bottom: number }) {
 /** Stacked widths, or undefined when stacking would shrink the Digimon past the floor. */
 function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout | undefined {
   const supportScale = LANE_METRICS[LanePlacement.Stacked].supportScale;
+  const supportWidth = (width: number) => (content.preferStacked ? 56 : Math.max(22, Math.floor(width * supportScale)));
   const digimon = fittedWidth(layoutWidth, (width) => {
-    const support = Math.floor(width * supportScale);
+    const support = supportWidth(width);
     const metrics = laneMetrics(LanePlacement.Stacked, content, { digimon: width, support });
     return (
       laneHeight(width, metrics.digimonPadding) + laneHeight(support, metrics.supportPadding) + LANE_GAP <= rowHeight
     );
   });
-  if (digimon < layoutWidth * MIN_STACKED_SHRINK) return undefined;
-  return { placement: LanePlacement.Stacked, digimon, support: Math.floor(digimon * supportScale) };
+  if (!content.preferStacked && digimon < layoutWidth * MIN_STACKED_SHRINK) return undefined;
+  return { placement: LanePlacement.Stacked, digimon, support: supportWidth(digimon) };
 }
 
 function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout {
@@ -287,7 +292,7 @@ function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneCo
       laneHeight(width, laneMetrics(placement, content, { digimon: width, support: 0 }).digimonPadding) <= rowHeight,
   );
   const support = fittedWidth(
-    digimon * LANE_METRICS[placement].supportScale,
+    Math.max(22, digimon * LANE_METRICS[placement].supportScale),
     (width) =>
       laneHeight(width, laneMetrics(placement, content, { digimon, support: width }).supportPadding) <= rowHeight,
   );
@@ -319,7 +324,7 @@ export function fitLanes(
         laneHeight(width, laneMetrics(placement, content, { digimon: width, support: 0 }).digimonPadding) <= row.height,
     );
     const support = fittedWidth(
-      layoutWidth * LANE_METRICS[placement].supportScale,
+      content.preferStacked ? 56 : layoutWidth * LANE_METRICS[placement].supportScale,
       (width) =>
         laneHeight(width, laneMetrics(placement, content, { digimon: 0, support: width }).supportPadding) <= row.height,
     );
@@ -331,20 +336,22 @@ export function fitLanes(
 
 function useRowSize() {
   const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 0, sourceTop: 6, sourceStep: 4 });
+  const [size, setSize] = useState({ width: 0, height: 0, sourceTop: 6, sourceStep: 4, preferStacked: false });
   function measure() {
     const row = ref.current;
     if (!row) return;
     const style = getComputedStyle(row);
     const sourceTop = Number.parseFloat(style.getPropertyValue("--arena-source-top")) || 6;
     const sourceStep = Number.parseFloat(style.getPropertyValue("--arena-source-step")) || 4;
+    const preferStacked = style.getPropertyValue("--field-prefer-stacked").trim() === "1";
     setSize((previous) =>
       previous.width === row.clientWidth &&
       previous.height === row.clientHeight &&
       previous.sourceTop === sourceTop &&
-      previous.sourceStep === sourceStep
+      previous.sourceStep === sourceStep &&
+      previous.preferStacked === preferStacked
         ? previous
-        : { width: row.clientWidth, height: row.clientHeight, sourceTop, sourceStep },
+        : { width: row.clientWidth, height: row.clientHeight, sourceTop, sourceStep, preferStacked },
     );
   }
   // Media-query renders can precede ResizeObserver delivery, especially in background tabs.
@@ -386,6 +393,19 @@ export function OrganizedBattleRow({
   isSuspended: (permanent: Permanent) => boolean;
 }) {
   const { ref, size } = useRowSize();
+  const scrollInitialized = useRef(false);
+  useLayoutEffect(() => {
+    if (!size.preferStacked) {
+      scrollInitialized.current = false;
+      return;
+    }
+    if (supportFirst || scrollInitialized.current || size.height <= 0) return;
+    const zones = ref.current?.closest(".game-battle-zones");
+    if (zones && getComputedStyle(zones).overflowY === "auto") {
+      zones.scrollTop = zones.scrollHeight - zones.clientHeight;
+      scrollInitialized.current = true;
+    }
+  }, [size.preferStacked, size.height, supportFirst]);
   const previous = useRef<PreviousPlacement>(new Map());
   // A card stays split-off for as long as it is drawn: dropping the flag on a later
   // render would restart the entrance animation it skipped.
@@ -416,6 +436,7 @@ export function OrganizedBattleRow({
     ),
     sourceTop: size.sourceTop,
     sourceStep: size.sourceStep,
+    preferStacked: size.preferStacked,
   };
   const lanes = fitLanes(size, layoutWidth, content);
   const metrics = laneMetrics(lanes.placement, content, lanes);
@@ -445,7 +466,7 @@ export function OrganizedBattleRow({
         flex: lanes.placement === LanePlacement.Stacked ? "1 1 auto" : "0 1 auto",
         minHeight: 0,
         display: "flex",
-        gap: Math.round(lanes.digimon * 0.2),
+        gap: Math.max(size.preferStacked ? 20 : 12, Math.round(lanes.digimon * 0.25)),
         justifyContent: "safe center",
         alignItems: "center",
         ...({
@@ -469,7 +490,7 @@ export function OrganizedBattleRow({
       style={{
         flex: "0 1 auto",
         display: "flex",
-        gap: Math.round(lanes.support * 0.3),
+        gap: Math.max(size.preferStacked ? 20 : 12, Math.round(lanes.support * 0.3)),
         justifyContent: "safe center",
         alignItems: "center",
         ...({
@@ -490,7 +511,7 @@ export function OrganizedBattleRow({
       data-lanes={lanes.placement}
       style={{ ...rowProps.style, gap: LANE_GAP }}
     >
-      {supportFirst
+      {supportFirst && !size.preferStacked
         ? [supportLane, content.digimonCount || !hasSupport ? digimonLane : null]
         : [content.digimonCount || !hasSupport ? digimonLane : null, supportLane]}
     </div>

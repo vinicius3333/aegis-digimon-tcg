@@ -14,9 +14,19 @@ export type PressGesture = "press" | "drag" | "scroll";
  * drag — unless a finger is swiping sideways, which belongs to the row the card sits
  * in (the hand and the battle rows pan on touch) and is handed back to the browser.
  */
-export function pressGesture({ dx, dy, touch }: { dx: number; dy: number; touch: boolean }): PressGesture {
+export function pressGesture({
+  dx,
+  dy,
+  touch,
+  panY = false,
+}: {
+  dx: number;
+  dy: number;
+  touch: boolean;
+  panY?: boolean;
+}): PressGesture {
   if (Math.hypot(dx, dy) <= (touch ? TOUCH_DRAG_THRESHOLD : DRAG_THRESHOLD)) return "press";
-  return touch && Math.abs(dx) > Math.abs(dy) ? "scroll" : "drag";
+  return touch && (panY || Math.abs(dx) > Math.abs(dy)) ? "scroll" : "drag";
 }
 
 /**

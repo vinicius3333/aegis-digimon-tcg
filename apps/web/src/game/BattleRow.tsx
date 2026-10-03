@@ -22,9 +22,16 @@ export function BattleRow({
     if (!row) return;
     function measure() {
       const rect = row!.getBoundingClientRect();
+      const zones = row!.closest(".game-battle-zones");
+      const field = zones && getComputedStyle(zones).overflowY === "auto" ? zones : row!.closest(".game-field");
+      const fieldRect = field?.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+      // Controls are portalled outside the scroller. Keep them within the
+      // visible field when a short portrait screen scrolls its two players.
+      const visible = !fieldRect || (center - 22 >= fieldRect.top && center + 22 <= fieldRect.bottom);
       const next = {
-        left: row!.scrollLeft > 1,
-        right: row!.scrollWidth - row!.clientWidth - row!.scrollLeft > 1,
+        left: visible && row!.scrollLeft > 1,
+        right: visible && row!.scrollWidth - row!.clientWidth - row!.scrollLeft > 1,
         x: rect.left,
         y: rect.top + rect.height / 2,
         end: rect.right,
@@ -55,7 +62,9 @@ export function BattleRow({
     if (!row) return;
     row.scrollBy({
       left: direction * row.clientWidth * 0.7,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      // A paging button immediately reveals its destination. Native swipes
+      // retain their momentum, independently of the card regrouping animation.
+      behavior: "instant",
     });
   }
 

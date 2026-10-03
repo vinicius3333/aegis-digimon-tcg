@@ -38,7 +38,14 @@ export function useDragPlumbing() {
       const d = dragRef.current;
       if (!d) return;
       // `deferred` is set for every non-mouse pointer, so it also says which slop applies.
-      const gesture = pressGesture({ dx: e.clientX - d.ox, dy: e.clientY - d.oy, touch: d.deferred === true });
+      const gesture = pressGesture({
+        dx: e.clientX - d.ox,
+        dy: e.clientY - d.oy,
+        touch: d.deferred === true,
+        // Portrait battlefield cards scroll in both axes. A tap still opens
+        // their actions; a swipe must not accidentally declare an attack.
+        panY: !!d.capture && (getComputedStyle(d.capture).touchAction?.includes("pan-y") ?? false),
+      });
       if (!d.started && gesture === "press") {
         setDrag({ ...d, x: e.clientX, y: e.clientY });
         return;

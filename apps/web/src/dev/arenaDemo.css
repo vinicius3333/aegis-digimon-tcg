@@ -374,6 +374,13 @@
 }
 
 /* A demo toolbar shares the short landscape viewport with the real board. */
+@media (height < 650px) and (orientation: portrait) {
+  .aegis-arena-demo-toolbar {
+    height: 2.75rem;
+    padding-block: 0;
+  }
+}
+
 @media (height < 400px) and (orientation: landscape) {
   .aegis-arena-demo-toolbar {
     height: 2.75rem;

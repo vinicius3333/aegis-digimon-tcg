@@ -1,4 +1,5 @@
 import { COARSE_POINTER_QUERY, useMediaQuery } from "../../../design/useMediaQuery";
+import { FieldLayout, useFieldLayout } from "../../../design/fieldLayout";
 import { HAND_CARD_WIDTH_COMPACT, HAND_MIN_EXPOSURE_TOUCH } from "../../piece";
 import {
   COMPACT_PILES_QUERY,
@@ -42,6 +43,7 @@ export type ArenaLayout = {
  * not have.
  */
 export function useArenaLayout(): ArenaLayout {
+  const organized = useFieldLayout() === FieldLayout.Organized;
   const narrowGameLayout = useMediaQuery(NARROW_LAYOUT_QUERY);
   const compactPiles = useMediaQuery(COMPACT_PILES_QUERY);
   const dockViewerPiles = useMediaQuery(DOCKED_VIEWER_PILES_QUERY);
@@ -71,20 +73,24 @@ export function useArenaLayout(): ArenaLayout {
   const arenaPileWidth = portraitArena
     ? tabletPortraitArena
       ? 62
-      : shortPortraitArena
-        ? 40
-        : 44
+      : organized
+        ? 44
+        : shortPortraitArena
+          ? 40
+          : 44
     : landscapePhone || shortNarrowDock
       ? 44
       : 56;
   const arenaPermanentWidth = portraitArena
     ? tabletPortraitArena
       ? 88
-      : shortPortraitArena
-        ? 48
-        : mediumPortraitArena
-          ? 60
-          : 76
+      : organized
+        ? 76
+        : shortPortraitArena
+          ? 48
+          : mediumPortraitArena
+            ? 60
+            : 76
     : landscapePhone
       ? shortLandscapePhone
         ? 42
