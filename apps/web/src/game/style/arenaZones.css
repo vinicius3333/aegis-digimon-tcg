@@ -141,7 +141,7 @@
   .game-pile-column--left > div:first-child {
     position: absolute;
     z-index: 6;
-    right: 3rem;
+    left: 3rem;
     top: 6rem;
   }
 
@@ -152,7 +152,7 @@
   .game-pile-column--right > div:first-child > .game-opponent-breeding {
     position: absolute;
     z-index: 6;
-    left: 3rem;
+    right: 3rem;
     top: 6rem;
     display: flex;
     align-items: flex-start;
