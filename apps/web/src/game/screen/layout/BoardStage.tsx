@@ -40,6 +40,7 @@ import { DragGhost } from "./DragGhost";
 import { FieldClashGhosts } from "./FieldClashGhosts";
 import { LeftPileColumn } from "./LeftPileColumn";
 import { LogTicker } from "./LogTicker";
+import { DecisionMatchTimer, MatchTimer } from "../../MatchTimer";
 import { MemoryBand } from "./MemoryBand";
 import { OpponentBar } from "./OpponentBar";
 import { OpponentBattleRow } from "./OpponentBattleRow";
@@ -237,6 +238,9 @@ export function BoardStage({
           className="game-board aegis-arena-surface"
           ref={anchors.board}
           data-art={look.hasArt || undefined}
+          data-timer-decision={
+            (state.matchTimer && !state.gameOver && state.pendingDecision?.seat === viewerSeat) || undefined
+          }
           style={{
             flex: 1,
             position: "relative",
@@ -267,6 +271,12 @@ export function BoardStage({
             onSkipPresentation={() => cues.skipAnimations()}
           />
 
+          <DecisionMatchTimer state={state} seat={viewerSeat} />
+          {state.matchTimer ? (
+            <div className="game-opponent-clock">
+              <MatchTimer state={state} seat={other} opponent />
+            </div>
+          ) : null}
           {/* One moment at a time. The portrait phone folds both sides into a single
               centred slot; everywhere else the viewer reads the left corner and the
               opponent's moments arrive in the right one. */}
@@ -354,6 +364,8 @@ export function BoardStage({
                 onPermanentInspect={onInspectPermanent.opponent}
               />
               <MemoryBand
+                timerState={state}
+                viewerSeat={viewerSeat}
                 phaseBanner={cues.phaseBanner}
                 memory={readouts.memory}
                 compact={layout.compactPiles}

@@ -199,6 +199,26 @@ export class CombatController {
     return false;
   }
 
+  /** Silently release parked responses after a terminal outcome. */
+  cancel(): void {
+    const block = this.openWindow;
+    const counter = this.counterWindow;
+    const alliance = this.allianceDecision;
+    const evade = this.evadeDecision;
+    const barrier = this.barrierDecision;
+    this.openWindow = undefined;
+    this.counterWindow = undefined;
+    this.allianceDecision = undefined;
+    this.evadeDecision = undefined;
+    this.barrierDecision = undefined;
+    this.access.game.combatWindow = undefined;
+    block?.resolve(null);
+    counter?.resolve();
+    alliance?.resolve(null);
+    evade?.resolve(false);
+    barrier?.resolve(false);
+  }
+
   /** True while an attack is mid-resolution (source AttackProcess.IsAttacking). */
   get isAttacking(): boolean {
     return this.resolving;
@@ -302,6 +322,7 @@ export class CombatController {
   }
 
   private async fireEndOfAttack(trigger: CombatTrigger): Promise<void> {
+    if (this.access.game.gameOver) return;
     const withdrawDeferred = this.withdrawDeferredEndOfAttack;
     this.withdrawDeferredEndOfAttack = undefined;
     this.pendingEndOfAttackTrigger = undefined;
@@ -592,6 +613,7 @@ export class CombatController {
           .map((p) => p.permanentId);
         if (allyIds.length > 0) {
           const allyId = await this.runAllianceDecision(attackerSeat, attacker.permanentId, allyIds);
+          if (this.access.game.gameOver) return;
           if (allyId !== null) {
             const ally = this.access.permanentById(allyId);
             if (ally !== undefined) {
@@ -619,6 +641,7 @@ export class CombatController {
         }
       }
 
+      if (this.access.game.gameOver) return;
       if (raidTriggeredAtDeclaration && !raidResolvedInWindow) await this.resolveRaidEffect(attacker.permanentId);
 
       // A flagged forced attack can drain the remainder of its already-open timing
@@ -646,6 +669,7 @@ export class CombatController {
       // `testkit/harness.ts`'s `settle()` gives deep async chains does not absorb that (same
       // hazard the `counterWait` comment below documents).
       const settleBetweenSteps = opts.settleBetweenSteps;
+      if (this.access.game.gameOver) return;
       await runAttackSteps(async () => {
         // Ending the attack in a When Attacking or opponent attack watcher moves
         // directly to End of Attack. Counter Timing never opens for that attack.
@@ -670,6 +694,7 @@ export class CombatController {
         // keywordBattle.test.ts all went from green to red on exactly that regression).
         const counterWait = this.runCounterWindow(attackerSeat, attacker);
         if (counterWait !== undefined) await counterWait;
+        if (this.access.game.gameOver) return;
 
         // A Counter can create new nested timing effects while an effect-directed attack is
         // paused inside its enclosing effect body. Blast Digivolve is the canonical case: its
@@ -701,6 +726,7 @@ export class CombatController {
         // 3. Block window (AttackProcess.BlockTiming, cs:322-405).
         let defender = this.currentDefender(effectiveTarget);
         const blockerId = await this.runBlockWindow(attackerSeat, attacker);
+        if (this.access.game.gameOver) return;
         if (blockerId !== null) {
           const blocker = this.access.permanentById(blockerId);
           if (blocker !== undefined) {
@@ -738,6 +764,7 @@ export class CombatController {
           this.access.isBattleAreaDigimon(attacker, this.hooks.continuous)
         ) {
           await this.resolveDigimonBattle(attacker, defender);
+          if (this.access.game.gameOver) return;
           // §11-1-4: the battle's [On Deletion] windows were parked behind the ordering
           // effect's window token; activate them before Piercing and End of Attack.
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
@@ -759,7 +786,8 @@ export class CombatController {
     } finally {
       this.cleanup();
       const completedCombat = this.takeCompletedCombat();
-      if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
+      if (completedCombat !== undefined && !this.access.game.gameOver)
+        this.hooks.emit({ kind: "combatResolved", ...completedCombat });
       // `gameOver` stays the last event of a match; it already closes everything an attack opened.
       if (!this.access.game.gameOver) {
         this.hooks.emit({ kind: "attackEnded", seat: attackerSeat, attackerPermanentId: attacker.permanentId });
@@ -1066,7 +1094,7 @@ export class CombatController {
     // Prompting an empty choice would be a decision with one answer.
     if (allyIds.length === 0) return;
     const allyId = await this.runAllianceDecision(attacker.controllerSeat, attacker.permanentId, allyIds);
-    if (allyId === null) return;
+    if (this.access.game.gameOver || allyId === null) return;
     const ally = this.access.permanentById(allyId);
     if (ally === undefined) return;
     if (!canPaySuspendCost(ally, this.hooks.continuous)) return;
@@ -1238,13 +1266,17 @@ export class CombatController {
     try {
       await this.hooks.recomputeBattleEffects?.();
       await this.resolveDigimonBattleResult(attacker, defender);
+      if (this.access.game.gameOver) {
+        if (battleScopeId !== undefined) this.hooks.endBattleScope?.(battleScopeId);
+        return;
+      }
       await this.hooks.sweepEndOfBattle?.(battleScopeId);
     } catch (error) {
       if (battleScopeId !== undefined) this.hooks.endBattleScope?.(battleScopeId);
       throw error;
     } finally {
       this.battles.pop();
-      await this.hooks.recomputeBattleEffects?.();
+      if (!this.access.game.gameOver) await this.hooks.recomputeBattleEffects?.();
     }
   }
 
@@ -1312,6 +1344,7 @@ export class CombatController {
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || !canPaySuspendCost(perm, this.hooks.continuous)) continue;
       const accepted = await this.runEvadeDecision(perm.controllerSeat, permanentId);
+      if (this.access.game.gameOver) return;
       if (accepted) {
         // Cost then prevention, with no yield between them; watchers run once the whole
         // ＜Evade＞ resolution is settled.
@@ -1337,6 +1370,7 @@ export class CombatController {
       const barrierKey = `${permanentId}/barrier`;
       if (this.hooks.barrierFired?.(barrierKey) === true) continue;
       const accepted = await this.runBarrierDecision(perm.controllerSeat, permanentId);
+      if (this.access.game.gameOver) return;
       if (accepted) {
         if (this.hooks.trashTopSecurityForBarrier !== undefined) {
           await this.hooks.trashTopSecurityForBarrier(perm.controllerSeat);
@@ -1826,6 +1860,6 @@ export class CombatController {
     this.withdrawDeferredEndOfAttack = undefined;
     this.pendingEndOfAttackTrigger = undefined;
     // Expire UntilEndAttack/UntilEndBattle modifiers and refresh the continuous tier.
-    this.hooks.sweepEndOfAttack?.();
+    if (!this.access.game.gameOver) this.hooks.sweepEndOfAttack?.();
   }
 }

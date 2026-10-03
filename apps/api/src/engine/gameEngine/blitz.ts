@@ -30,7 +30,7 @@ export async function awaitBlitzAttackDeclaration(
     ...(provenance?.sourceCardId === undefined ? {} : { sourceCardId: provenance.sourceCardId }),
     options: { promptKey: "activateBlitz" },
   });
-  if (response.kind !== "optional" || !response.accept) return undefined;
+  if (engine.state.gameOver || response.kind !== "optional" || !response.accept) return undefined;
   const targetId = await new Promise<string | undefined>((resolve) => {
     engine.pendingBlitzAttack = {
       seat,

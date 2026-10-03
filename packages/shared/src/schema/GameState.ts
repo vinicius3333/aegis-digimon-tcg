@@ -82,6 +82,14 @@ export class GameState extends Schema {
    */
   @type("uint32") stateVersion = 0;
 
+  /** Public, server-owned clock snapshots; -1 means both clocks are paused. */
+  @type("boolean") matchTimer = false;
+  @type("uint16") timerStartSeconds = 300;
+  @type("uint16") timerRefillSeconds = 30;
+  @type("uint16") timerRemaining0 = 300;
+  @type("uint16") timerRemaining1 = 300;
+  @type("int8") timerActiveSeat = -1;
+
   @type("boolean") gameOver = false;
   @type("int8") winnerSeat = -1; // -1 until decided
 }

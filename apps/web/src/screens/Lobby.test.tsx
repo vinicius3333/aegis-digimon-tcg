@@ -543,3 +543,44 @@ describe("returning to a private room", () => {
     expect(onLeavePrivateRoom).toHaveBeenCalledOnce();
   });
 });
+
+describe("optional match timer configuration", () => {
+  it("updates host settings, hides them for guests and excludes practice", () => {
+    const onTimerOptionsChange =
+      vi.fn<(options: { matchTimer: boolean; timerStartSeconds: number; timerRefillSeconds: number }) => void>();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+          onTimerOptionsChange={onTimerOptionsChange}
+        />
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "With timer" }));
+    expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
+      matchTimer: true,
+      timerStartSeconds: 300,
+      timerRefillSeconds: 30,
+    });
+    expect(screen.getByText("5 min + 30 sec / turn")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Starting time" }), { target: { value: "60" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Per-turn refill" }), { target: { value: "0" } });
+    expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
+      matchTimer: true,
+      timerStartSeconds: 60,
+      timerRefillSeconds: 0,
+    });
+    fireEvent.click(screen.getByRole("tab", { name: "Join" }));
+    expect(screen.queryByRole("button", { name: "With timer" })).toBeNull();
+    expect(screen.getByText("The host sets the timer for both players.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
+    expect(screen.queryByRole("button", { name: "With timer" })).toBeNull();
+  });
+});

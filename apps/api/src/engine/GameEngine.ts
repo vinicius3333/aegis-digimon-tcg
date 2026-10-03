@@ -656,6 +656,37 @@ export class GameEngine {
    * Validate and apply one player intent. The engine's main entry point from the room;
    * {@link applyIntent} holds the router and the per-verb handlers.
    */
+  /** The player the engine can accept input from, independent of presentation. */
+  get inputSeat(): Seat | undefined {
+    if (this.state.gameOver) return undefined;
+    if (this.state.pendingDecision) return this.state.pendingDecision.seat;
+    if (this.state.combatWindow) return this.state.combatWindow.seat;
+    if (this.pendingBlitzAttack) return this.pendingBlitzAttack.seat;
+    if (
+      this.combat.isAttacking ||
+      this.activeWindowToken !== undefined ||
+      this.effectResolutionDepth > 0 ||
+      this.optionResolutionDepth > 0 ||
+      this.mainEntryPending ||
+      this.mainVerbContinuationsInFlight > 0
+    )
+      return undefined;
+    if (this.breeding.isOpen && !this.breeding.isActionSpent) return this.breeding.seat;
+    if (this.mainPhase.isOpen) return this.mainPhase.seat;
+    return undefined;
+  }
+
+  /** A room clock expires through the same terminal pipeline as other losses. */
+  expireMatchTimer(seat: Seat): void {
+    this.win.declareLoss(seat, "timeout");
+    this.mulligan.cancel();
+    this.decisions.cancel();
+    this.pendingBlitzAttack?.settle(undefined);
+    this.combat.cancel();
+    this.mainPhase.abort();
+    this.breeding.abort();
+  }
+
   applyIntent(seat: Seat, intent: Intent): IntentResult {
     return applyIntent(this, seat, intent);
   }

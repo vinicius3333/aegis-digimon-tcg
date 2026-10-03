@@ -25,15 +25,17 @@ export async function startTestServer(): Promise<TestServer> {
   const gameServer = new ColyseusServer({
     transport: new WebSocketTransport({ server: httpServer }),
   });
-  gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false, betaBattleRoom: false });
+  gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false, betaBattleRoom: false }).filterBy(["matchTimer"]);
   gameServer.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true, betaBattleRoom: false });
   gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true, betaBattleRoom: false });
-  gameServer.define(ROOM_TYPE_BETA, AegisRoom, {
-    botRoom: false,
-    rankedRoom: false,
-    tournamentRoom: false,
-    betaBattleRoom: true,
-  });
+  gameServer
+    .define(ROOM_TYPE_BETA, AegisRoom, {
+      botRoom: false,
+      rankedRoom: false,
+      tournamentRoom: false,
+      betaBattleRoom: true,
+    })
+    .filterBy(["matchTimer"]);
   gameServer.define(ROOM_TYPE_BETA_BOT, AegisRoom, {
     botRoom: true,
     rankedRoom: false,

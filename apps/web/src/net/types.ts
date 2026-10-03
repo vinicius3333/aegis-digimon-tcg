@@ -12,6 +12,9 @@ export interface AegisJoinOptions {
   deckName?: string;
   /** Joins a private room by code, or reopens a finished one under its code. */
   roomCode?: string;
+  matchTimer?: boolean;
+  timerStartSeconds?: number;
+  timerRefillSeconds?: number;
   ranked?: boolean;
   betaBattleMode?: boolean;
   authTicket?: string;

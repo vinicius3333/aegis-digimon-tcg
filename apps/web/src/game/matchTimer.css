@@ -1,0 +1,184 @@
+.match-timer {
+  --clock-color: var(--ds-brand-accent-soft);
+  width: 8rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--clock-color) 35%, transparent);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-brand-ink);
+  color: var(--ds-brand-on-ink, #f8fafc);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.match-timer[data-active] {
+  border-color: var(--clock-color);
+}
+.match-timer[data-low] {
+  --clock-color: var(--ds-warning-border);
+}
+.match-timer__label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.match-timer__time {
+  display: block;
+  margin-top: 0.125rem;
+  font-family: var(--ds-font-mono);
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--clock-color);
+}
+.match-timer__status {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.625rem;
+}
+.match-timer__track {
+  height: 0.1875rem;
+  margin-top: 0.375rem;
+  background: color-mix(in srgb, white 15%, transparent);
+  border-radius: var(--ds-radius-pill);
+  overflow: hidden;
+}
+.match-timer__track span {
+  display: block;
+  height: 100%;
+  background: var(--clock-color);
+}
+.game-turn-clock-control--off {
+  display: contents;
+}
+.game-opponent-clock {
+  position: absolute;
+  top: 4.5rem;
+  right: 9rem;
+  z-index: 9;
+}
+.game-turn-clock-control {
+  position: relative;
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: start;
+}
+.game-turn-clock-control > .match-timer {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+}
+.game-turn-clock-control > .game-end-turn-orb {
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+}
+@media (max-width: 1023px), (max-height: 519px) {
+  .game-opponent-clock {
+    top: 4rem;
+    right: 0.5rem;
+  }
+  .game-turn-clock-control {
+    position: absolute;
+    right: 0.375rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .game-turn-clock-control > .match-timer {
+    left: auto;
+    right: 0;
+  }
+  .match-timer {
+    width: 6.75rem;
+    padding: 0.25rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.125rem 0.25rem;
+  }
+  .match-timer__label {
+    font-size: 0.5rem;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .match-timer__label svg {
+    display: none;
+  }
+  .match-timer__track {
+    grid-column: 1 / -1;
+    margin-top: 0;
+    height: 0.125rem;
+  }
+  .match-timer__time {
+    margin-top: 0;
+    font-size: 1rem;
+  }
+  .match-timer__status {
+    display: none;
+  }
+}
+@media (orientation: portrait) and (max-width: 1023px) {
+  .game-opponent-clock {
+    top: 8.375rem;
+    right: 0.5rem;
+  }
+  .game-turn-clock-control > .match-timer {
+    bottom: calc(100% + 0.25rem);
+  }
+}
+@media (orientation: portrait) and (max-width: 1023px) and (max-height: 700px) {
+  .game-opponent-clock {
+    top: 6.75rem;
+  }
+  .game-turn-clock-control > .match-timer {
+    padding: 1px 4px;
+    row-gap: 1px;
+  }
+  .game-turn-clock-control .match-timer__label {
+    display: none;
+  }
+  .game-turn-clock-control .match-timer__time {
+    grid-column: 1 / -1;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+}
+
+/* Decisions can cover the turn control; keep the required player's bank above the sheet. */
+.game-decision-clock {
+  position: fixed;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: calc(var(--ds-z-dialog) + 1);
+  pointer-events: none;
+}
+.game-board[data-timer-decision] .game-turn-clock-control > .match-timer {
+  visibility: hidden;
+}
+.game-decision-clock .match-timer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.125rem 0.375rem;
+  padding: 0.25rem 0.375rem;
+}
+.game-decision-clock .match-timer__label {
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+.game-decision-clock .match-timer__label svg,
+.game-decision-clock .match-timer__status {
+  display: none;
+}
+.game-decision-clock .match-timer__time {
+  margin: 0;
+  font-size: 1rem;
+}
+.game-decision-clock .match-timer__track {
+  grid-column: 1 / -1;
+  height: 2px;
+  margin: 0;
+}

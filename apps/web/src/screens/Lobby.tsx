@@ -7,6 +7,7 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   allCards,
+  type MatchTimerOptions,
   bannedPairViolations,
   effectiveCopyLimit as banlistLimit,
   getCardDefinition,
@@ -33,6 +34,7 @@ import { RANKED_ENABLED } from "../features";
 import { deckLegality } from "./DeckListCard";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
+import { MatchTimerSettings } from "./MatchTimerSettings";
 import "./lobby.css";
 
 /** The private room a finished match returns to. Its host reopens it under the same code. */
@@ -151,7 +153,11 @@ export function Lobby({
   invitedRoomCode,
   privateRoom,
   onLeavePrivateRoom,
+  timerOptions,
+  onTimerOptionsChange,
 }: {
+  timerOptions?: MatchTimerOptions;
+  onTimerOptionsChange?: (options: Required<MatchTimerOptions>) => void;
   player: PlayerIdentity;
   decks: DeckListing[];
   activeDeckId: string;
@@ -167,6 +173,15 @@ export function Lobby({
 }) {
   const { t } = useTranslation();
   const MODES = modesFor(t);
+  const [timer, setTimer] = useState<Required<MatchTimerOptions>>({
+    matchTimer: timerOptions?.matchTimer ?? false,
+    timerStartSeconds: timerOptions?.timerStartSeconds ?? 300,
+    timerRefillSeconds: timerOptions?.timerRefillSeconds ?? 30,
+  });
+  function changeTimer(options: Required<MatchTimerOptions>) {
+    setTimer(options);
+    onTimerOptionsChange?.(options);
+  }
   const [mode, setMode] = useState(invitedRoomCode || privateRoom ? "private" : "casual");
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
@@ -393,6 +408,11 @@ export function Lobby({
                     {deckLegal ? <Icons.Check size={13} /> : null}
                     {deckStatus.label}
                   </span>
+                  {timer.matchTimer && (mode === "casual" || (mode === "private" && privateSub === "create")) ? (
+                    <span className="lobby-timer-summary">
+                      <Icons.Clock size={13} /> {t("lobby.timer.enabled")}
+                    </span>
+                  ) : null}
                   {activeIsPreset ? (
                     <span className="lobby-active-strip__source">
                       {t("lobby.presetSource", { collection: activeCollection })}
@@ -576,6 +596,11 @@ export function Lobby({
             </div>
 
             <div className="lobby-setup__column">
+              {mode === "casual" || (mode === "private" && privateSub === "create" && !privateRoom) ? (
+                <MatchTimerSettings options={timer} onChange={changeTimer} privateRoom={mode === "private"} />
+              ) : mode === "private" ? (
+                <p className="lobby-timer-hint">{t("lobby.timer.guestHint")}</p>
+              ) : null}
               {betaOptional ? (
                 <label className="lobby-beta-option">
                   <input

@@ -26,6 +26,30 @@ all deckable catalog entries remain visible, including preview cards. A deck
 containing beta-only cards needs the checkbox in Quick Match or Practice vs AI
 before launch.
 
+## Optional match timer
+
+Casual (`aegis` and `aegis_beta`) join options include `matchTimer: boolean`.
+Both queues filter on this option, so timed and untimed players cannot meet.
+Omitting the option leaves the timer off. Public clocks start with 300 seconds
+per player and restore 30 seconds at the start of that player's subsequent turns,
+capped at the starting reserve; the opening turn does not receive a refill.
+
+Private-room creators may also choose `timerStartSeconds` (60, 180, 300, 600)
+and `timerRefillSeconds` (0, 15, 30, 60). Invalid values use the defaults.
+The creator's settings apply to both seats; guest join payloads cannot change them.
+Ranked, tournament and bot rooms ignore clock opt-in.
+
+The server owns elapsed time. `timerRemaining0` and `timerRemaining1` are rounded-up
+seconds; `timerActiveSeat` is 0 or 1 while that player must act, and -1 while paused.
+Decisions and combat responses charge their owner even during the opponent's turn.
+Automatic engine resolution pauses both banks. Visible game-event batches receive
+a fixed two-second presentation grace; client animation reports cannot extend it.
+A disconnect or reconnect never resets either reserve, and an absent player's
+required response continues to consume time. Waiting rooms do not consume time.
+Expiry is checked before accepting an intent and ends the match through the ordinary
+`gameOver` pipeline with `reason: "timeout"`, cancelling open decision/phase waits.
+Clock-only schema patches do not advance the gameplay `stateVersion`.
+
 ## Player portrait
 
 Join options may carry `avatarId`, a Digimon World portrait id from

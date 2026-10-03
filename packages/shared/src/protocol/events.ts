@@ -405,7 +405,7 @@ export type ServerEvent =
       // before it can reach a `winnerSeat`, so the type checker catches a
       // consumer that forgets the draw case instead of it shipping a UI bug.
       result: { outcome: "win"; winnerSeat: Seat } | { outcome: "draw" };
-      reason: "security" | "deckOut" | "surrender" | "effect";
+      reason: "security" | "deckOut" | "surrender" | "effect" | "timeout";
     }
   | {
       /**

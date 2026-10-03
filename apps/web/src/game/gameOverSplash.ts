@@ -8,7 +8,7 @@
 export type GameOverOutcome = "win" | "loss" | "draw";
 
 /** The `reason` codes the `gameOver` event can carry. */
-export const GAME_OVER_REASONS = ["security", "deckOut", "surrender", "effect"] as const;
+export const GAME_OVER_REASONS = ["security", "deckOut", "surrender", "effect", "timeout"] as const;
 
 export type GameOverReason = (typeof GAME_OVER_REASONS)[number];
 
@@ -27,18 +27,21 @@ const REASON_KEYS = {
     deckOut: "overlay.reason.win.deckOut",
     surrender: "overlay.reason.win.surrender",
     effect: "overlay.reason.win.effect",
+    timeout: "overlay.reason.win.timeout",
   },
   loss: {
     security: "overlay.reason.loss.security",
     deckOut: "overlay.reason.loss.deckOut",
     surrender: "overlay.reason.loss.surrender",
     effect: "overlay.reason.loss.effect",
+    timeout: "overlay.reason.loss.timeout",
   },
   draw: {
     security: "overlay.reason.draw.security",
     deckOut: "overlay.reason.draw.deckOut",
     surrender: "overlay.reason.draw.surrender",
     effect: "overlay.reason.draw.effect",
+    timeout: "overlay.reason.draw.timeout",
   },
 } as const;
 
