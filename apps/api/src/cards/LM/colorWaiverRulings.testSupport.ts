@@ -30,13 +30,13 @@ export function describeColorWaiverRuling(spec: ColorWaiverRulingSpec): void {
     it(`meets its color requirement with a Digimon or a Tamer of the extra color alone (${spec.qno})`, async () => {
       for (const source of [spec.waivedDigimon, spec.waivedTamer]) {
         const { s, result } = await useOption(spec.cardId, [source]);
-        expect(result, source).toEqual({ ok: true });
+        expect({ source, result }).toEqual({ source, result: { ok: true } });
         expect(s.state.memory).toBe(STARTING_MEMORY - OPTION_COST);
       }
 
       for (const source of [spec.unrelatedDigimon, spec.unrelatedTamer]) {
         const { s, result } = await useOption(spec.cardId, [source]);
-        expect(result, source).not.toEqual({ ok: true });
+        expect({ source, result }).not.toEqual({ source, result: { ok: true } });
         expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([spec.cardId]);
       }
     });

@@ -109,6 +109,7 @@ export function describeScrambleRulings(spec: ScrambleRulingSpec): void {
       expect(s.state.memory).toBe(STARTING_MEMORY - SCRAMBLE_COST - 1);
     });
 
+    // eslint-disable-next-line vitest/no-conditional-tests -- Only fixtures with a Burst Mode route register this ruling.
     if (spec.burst !== undefined) {
       const burst = spec.burst;
       it(`[Main] digivolves into a Burst Mode card by its normal cost, not by burst digivolution (${qno.burstOrDna})`, async () => {
@@ -171,6 +172,7 @@ export function describeScrambleRulings(spec: ScrambleRulingSpec): void {
       expect(s.perm("tamer").topCard.cardId).toBe(spec.tamer.onto);
     });
 
+    // eslint-disable-next-line vitest/no-conditional-tests -- This optional published ruling applies only to its supplied fixtures.
     if (qno.delayWithoutTarget !== undefined) {
       it(`<Delay> activates even with no matching Digimon card in the trash (${qno.delayWithoutTarget})`, async () => {
         const s = setupEngine(
