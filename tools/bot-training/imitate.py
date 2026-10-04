@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from numpy.typing import NDArray
 
-from adaptation import VocabularyAdaptation
+from adaptation import IdentityAdaptation, VocabularyAdaptation
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
 from model import CandidatePolicy
 
@@ -267,6 +267,12 @@ def save_checkpoint(output: Path, saved: dict[str, Any], *, epoch: int, selected
     is_flag=True,
     help="Learn only identities added by a saved vocabulary migration; retain other weights/moments.",
 )
+@click.option(
+    "--adapt-card-id",
+    "adapt_card_ids",
+    multiple=True,
+    help="Learn only these registered identity columns; requires a source checkpoint (repeatable).",
+)
 def main(
     dataset: Path,
     output: Path,
@@ -279,9 +285,14 @@ def main(
     compound_share: float,
     compound_only: bool,
     new_card_columns_only: bool,
+    adapt_card_ids: tuple[str, ...],
 ) -> None:
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory")
+    if adapt_card_ids and (checkpoint is None or new_card_columns_only):
+        raise click.ClickException(
+            "--adapt-card-id requires --checkpoint and cannot combine with --new-card-columns-only"
+        )
     if (
         not np.isfinite(policy_anchor)
         or not np.isfinite(compound_share)
@@ -311,13 +322,18 @@ def main(
         learning_rate=learning_rate,
         policy_anchor=policy_anchor,
     )
-    adaptation = None
+    adaptation: IdentityAdaptation | None = None
     if new_card_columns_only:
         migration = source.get("vocabularyMigration")
         if migration is None or "sourceCardIds" not in migration:
             raise click.ClickException("--new-card-columns-only requires a migrated checkpoint")
         try:
             adaptation = VocabularyAdaptation(model, optimizer, encoder, migration["sourceCardIds"])
+        except ValueError as error:
+            raise click.ClickException(str(error)) from error
+    elif adapt_card_ids:
+        try:
+            adaptation = IdentityAdaptation(model, optimizer, encoder, list(adapt_card_ids))
         except ValueError as error:
             raise click.ClickException(str(error)) from error
     output.mkdir(parents=True, exist_ok=True)
@@ -339,7 +355,10 @@ def main(
         "compoundPolicyAnchor": 0 if compound_share > 0 else policy_anchor,
         "teacherLossScope": "compound" if compound_only else "all",
         "newCardColumnsOnly": new_card_columns_only,
-        "adaptedCardIds": adaptation.added_card_ids if adaptation is not None else [],
+        "identityAdaptationScope": (
+            "migration" if new_card_columns_only else "explicit" if adapt_card_ids else None
+        ),
+        "adaptedCardIds": adaptation.adapted_card_ids if adaptation is not None else [],
         "trainableIdentityParameters": (
             adaptation.trainable_identity_parameters if adaptation is not None else None
         ),
@@ -377,6 +396,12 @@ def main(
         }
         if "vocabularyMigration" in source:
             saved["vocabularyMigration"] = source["vocabularyMigration"]
+        if adaptation is not None:
+            saved["identityAdaptation"] = {
+                "scope": config["identityAdaptationScope"],
+                "cardIds": adaptation.adapted_card_ids,
+                "trainableIdentityParameters": adaptation.trainable_identity_parameters,
+            }
         return saved
 
     save_checkpoint(output, checkpoint_state(0), epoch=0, selected=True)

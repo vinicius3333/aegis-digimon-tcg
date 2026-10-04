@@ -1,35 +1,40 @@
-"""Learn newly introduced identities while retaining every pre-existing model column."""
+"""Learn explicit identities while retaining every nonselected model column."""
 
 import torch
 
 from features import FeatureEncoder
-from migrate import column_map
 from model import CandidatePolicy
 
 
-class VocabularyAdaptation:
+class IdentityAdaptation:
     def __init__(
         self,
         model: CandidatePolicy,
         optimizer: torch.optim.Adam,
         encoder: FeatureEncoder,
-        original_card_ids: list[str],
+        card_ids: list[str],
     ) -> None:
-        if not set(original_card_ids) < set(encoder.card_ids):
-            raise ValueError("Vocabulary adaptation requires a saved, expanded card vocabulary")
-        original = FeatureEncoder(original_card_ids, list(encoder.keyword_names))
-        self.added_card_ids = sorted(set(encoder.card_ids) - set(original_card_ids))
+        selected = set(card_ids)
+        if not selected or len(selected) != len(card_ids) or not selected <= set(encoder.card_ids):
+            raise ValueError("Identity adaptation requires unique nonempty registered card IDs")
+        self.adapted_card_ids = sorted(selected)
         self.parameters = {
             name: parameter
             for name, parameter in model.named_parameters()
             if name in {"state.0.weight", "action.0.weight"}
         }
         columns = {
-            "state.0.weight": column_map(original.state_columns, encoder.state_columns),
-            "action.0.weight": column_map(original.action_columns, encoder.action_columns),
+            "state.0.weight": encoder.state_columns,
+            "action.0.weight": encoder.action_columns,
         }
         self.masks = {
-            name: torch.tensor(columns[name].added, device=parameter.device)
+            name: torch.tensor(
+                [
+                    kind.endswith(".identity") and identity in selected
+                    for kind, identity in columns[name]
+                ],
+                device=parameter.device,
+            )
             for name, parameter in self.parameters.items()
         }
         self.weights = {
@@ -77,3 +82,22 @@ class VocabularyAdaptation:
                         state[field][:, old] = original[:, old]
         # The two active parameters' scalar Adam steps advance with actual updates.
         # All other parameters, their moments and their steps remain untouched.
+
+
+class VocabularyAdaptation(IdentityAdaptation):
+    """Keep migration-only adaptation compatible with its recorded original vocabulary."""
+
+    def __init__(
+        self,
+        model: CandidatePolicy,
+        optimizer: torch.optim.Adam,
+        encoder: FeatureEncoder,
+        original_card_ids: list[str],
+    ) -> None:
+        if not set(original_card_ids) < set(encoder.card_ids):
+            raise ValueError("Vocabulary adaptation requires a saved, expanded card vocabulary")
+        FeatureEncoder(original_card_ids, list(encoder.keyword_names))
+        super().__init__(
+            model, optimizer, encoder, sorted(set(encoder.card_ids) - set(original_card_ids))
+        )
+        self.added_card_ids = self.adapted_card_ids
