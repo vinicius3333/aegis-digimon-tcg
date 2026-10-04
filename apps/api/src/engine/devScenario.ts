@@ -40,6 +40,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-taiki-digixros-any-tamer-hand",
   "arena-kotone-digixros-any-tamer-effect",
   "arena-mervamon-trash-digixros",
+  "arena-bt22-gabumon-eot-dna",
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
   "arena-bt26-monimon-optional-cost",
@@ -646,6 +647,31 @@ function layDiarbbitmonDualOptionImmunityScenario(state: GameState, decks: reado
   state.turnCount = 2;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/** Discord 1556299408700735548: match 8ca7da4d, 13:33 UTC, Nokia before MetalGarurumon. */
+function layBt22GabumonEotDnaScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-gabu-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-gabu-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-gabu-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT22-017"], "-gabu"));
+  placePermanent(human, establishedDigimon(0, ["EX13-067"], "-gabu-nokia"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-gabu-metal", "BT22-026", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-gabu-war", "BT22-013", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-gabu-agu", "BT22-008", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-gabu-omni", "AD1-025", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 function layEx7SeventhFascinationTurnScenario(
@@ -5214,6 +5240,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mervamon-trash-digixros": layMervamonTrashDigiXrosScenario,
   "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
   "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
+  "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,

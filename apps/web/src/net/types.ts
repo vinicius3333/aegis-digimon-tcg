@@ -58,6 +58,7 @@ export interface AegisJoinOptions {
     | "arena-lm067-gundramon-free-option"
     | "arena-bt10-taiki-x7-xros-heart"
     | "arena-bt10-taiki-reveal-under-self"
+    | "arena-bt22-gabumon-eot-dna"
     | "arena-ex13-sampson-face-down-sources"
     | "arena-p240-arcturusmon-vb-routes"
     | "arena-p240-arcturusmon-ordered-placement"
