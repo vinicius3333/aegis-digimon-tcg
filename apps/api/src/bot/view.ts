@@ -52,6 +52,8 @@ export interface BotHandCard {
   cardId: string;
   definition?: CardDefinition;
   activatableEffects: readonly ActivatableEffect[];
+  /** Engine-projected hand play legality, including effective colors and waivers. */
+  playableFromHand?: boolean;
   /** Authoritative Main-phase paths; an empty projection means no legal evolution. */
   digivolveRoutes?: readonly { permanentId: string; alternateRequirementIndex: number; projectedCost: number }[];
 }
@@ -79,7 +81,7 @@ export interface BotView {
   trashCount: number;
   /** Own Digimon that could still declare an attack this turn. */
   readyAttackers: readonly BotUnit[];
-  /** Opposing colors present on the board — used for Option color requirements. */
+  /** Own printed field colors, used only when hand play legality is not projected. */
   ownFieldColors: ReadonlySet<string>;
 }
 
@@ -167,6 +169,7 @@ export function buildBotView(state: GameState, seat: Seat): BotView | undefined 
     cardId: card.cardId,
     definition: getCardDefinition(card.cardId),
     activatableEffects: parseActivatable(card.activatableEffectsJson),
+    ...(card.playableFromHand === undefined ? {} : { playableFromHand: card.playableFromHand }),
     ...(card.digivolveRoutes === undefined
       ? {}
       : {
@@ -242,6 +245,7 @@ interface HandCardLike {
   instanceId: string;
   cardId: string;
   activatableEffectsJson?: string;
+  playableFromHand?: boolean;
   digivolveRoutes?: ArrayLike<{ permanentId: string; alternateRequirementIndex: number; projectedCost: number }>;
 }
 

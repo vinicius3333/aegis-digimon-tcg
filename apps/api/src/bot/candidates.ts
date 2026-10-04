@@ -8,10 +8,9 @@ import { isDigimonCard, isDigiEggCard, isOptionCard, isTamerCard, type BotUnit, 
  * The engine already projects the authoritative attack legality onto every permanent
  * (`canAttackPlayer` / `attackablePermanentIds`, resolved through the same combat
  * legality seam `applyIntent` uses), so attack candidates are read straight off state
- * and are legal by construction. Play and digivolve have no such projection, so those
- * are reconstructed here from the card data using the same predicates the engine's
- * validators use — printed evolution requirements, affordability against the memory
- * gauge, and the printed Option color requirement.
+ * and are legal by construction. Hand play and digivolve also use the engine's projections;
+ * unprojected snapshots fall back to printed card requirements. Ordinary plays still check
+ * affordability because a playable hand card may require material cost reductions.
  *
  * A candidate the engine still rejects is not a correctness bug (an unmodelled
  * continuous restriction can forbid a play), so the policy blocklists a rejected key
@@ -151,7 +150,8 @@ function playCandidates(view: BotView): Candidate[] {
 
     const kind = playKindOf(definition);
     if (kind === undefined) continue;
-    if (!colorRequirementMet(definition, kind, view)) continue;
+    if (card.playableFromHand === false) continue;
+    if (card.playableFromHand === undefined && !colorRequirementMet(definition, kind, view)) continue;
 
     candidates.push({
       kind,
@@ -183,8 +183,8 @@ function playKindOf(definition: CardDefinition): CandidateKind | undefined {
  * mode, not just the Option one. DUAL cards classify as `playOption` and use their
  * Option-side color requirements.
  *
- * Conservative by construction: it cannot see the continuous color grants the engine folds
- * in, so it may skip a play a grant would have allowed, never propose one that is illegal.
+ * Legacy fallback for unprojected snapshots. Effective color replacement, grants and waivers
+ * are represented by the engine's hand projection in live matches.
  */
 function colorRequirementMet(definition: CardDefinition, kind: CandidateKind, view: BotView): boolean {
   const required = definition.optionColorRequirements ?? (kind === "playOption" ? (definition.colors ?? []) : []);
