@@ -362,8 +362,7 @@ export interface ReplacementSubscriptionPrevent extends ReplacementSubscriptionB
    */
   yieldsToEarlierPrevention?: boolean;
   /**
-   * A stable per-turn key gating this prevention to ONCE PER TURN (e.g. ＜Barrier＞ "once per
-   * turn, negate that deletion"). The consult skips the reaction when this key has already
+   * A stable per-turn key gating a printed [Once Per Turn] prevention effect. The consult skips the reaction when this key has already
    * prevented a removal this turn, and records the key after a successful prevent. The key
    * must be stable across the continuous re-derivation that re-installs the subscription (use
    * the source permanentId + an effect tag), and it resets with the per-turn use ledger.

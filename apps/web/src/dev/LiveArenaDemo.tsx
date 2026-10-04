@@ -488,6 +488,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação sem mover Monodramon. Seu único Digimon é Monodramon (vermelho) na área de criação. Ative o ＜Delay＞ de Digital Gate Open: Tai Kamiya (vermelho) deve ser oferecido com custo reduzido em 4 e entrar em jogo; Matt Ishida (azul) não pode ser escolhido.",
     en: "End breeding without moving Monodramon. Your only Digimon is the red Monodramon in the breeding area. Activate Digital Gate Open's ＜Delay＞: the red Tai Kamiya must be offered at 4 less cost and enter play; the blue Matt Ishida can't be chosen.",
   },
+  "arena-ex13-merciful-repeat-barrier": {
+    ptBR: "Encerre a criação. Ataque Magnadramon suspenso com Omnimon: o bot paga Barrier. Digievolua Omnimon em EX13 Merciful Mode por 2, recuse o ataque opcional e escolha Battle duas vezes, sempre contra Magnadramon. O Barrier herdado de Reppamon deve ser oferecido e pago em cada batalha: Magnadramon permanece no campo e a security do bot cai de 5 para 2.",
+    en: "End breeding. Attack the suspended Magnadramon with Omnimon: the bot pays Barrier. Digivolve Omnimon into EX13 Merciful Mode for 2, decline the optional attack, then choose Battle twice, targeting Magnadramon each time. Reppamon's inherited Barrier must be offered and paid for each battle: Magnadramon stays in play and the bot's security drops from 5 to 2.",
+  },
   "arena-ex13-merciful-mode-attack-order": {
     ptBR: "Tabuleiro da partida f9505ba7 (Discord 1554922883652784198), turno 6. Encerre a criação. Jogue Omnimon: Merciful Mode com Assembly usando do lixo: WarGreymon, MetalGarurumon, WereGarurumon: Sagittarius Mode, Angemon, MegaKabuterimon e Biyomon. Aceite o ataque, escolha o próprio Merciful Mode e ataque o jogador. São 7 cores, então 3 ativações: as 3 devem resolver (Battle; Recovery só aparece com 5 cartas no lixo do bot) antes da Alliance e dos Ao Atacar herdados de Angemon, WereGarurumon, MetalGarurumon e WarGreymon. A checagem de segurança vem por último.",
     en: "Board of match f9505ba7 (Discord 1554922883652784198), turn 6. End breeding. Play Omnimon: Merciful Mode with Assembly from the trash: WarGreymon, MetalGarurumon, WereGarurumon: Sagittarius Mode, Angemon, MegaKabuterimon, and Biyomon. Accept the attack, choose Merciful Mode itself, and attack the player. Seven colors give 3 activations: all 3 must resolve (Battle; Recovery appears only once the bot has 5 trash cards) before Alliance and the inherited When Attacking effects of Angemon, WereGarurumon, MetalGarurumon, and WarGreymon. The security check comes last.",
@@ -733,6 +737,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt13-royal-purge-delay-rush", "BT13 Royal Knights of the Purge · Delay Rush"],
   ["arena-p206-digital-gate-breeding-color", "P-206 Digital Gate Open · breeding-area colour"],
   ["arena-ex13-merciful-mode-attack-order", "EX13 Merciful Mode · match f9505ba7 attack order"],
+  ["arena-ex13-merciful-repeat-barrier", "EX13 Merciful Mode · repeat inherited Barrier"],
   ["arena-ad1-gallantmon-deletion-attack-order", "AD1 Gallantmon · deletion watcher vs When Attacking order"],
   ["arena-bt20-cool-boy-stacked-omekamon", "BT20 Cool Boy · two copies play two Omekamon"],
   ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],

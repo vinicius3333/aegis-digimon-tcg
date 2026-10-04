@@ -148,6 +148,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt13-royal-purge-delay-rush",
   "arena-p206-digital-gate-breeding-color",
   "arena-ex13-merciful-mode-attack-order",
+  "arena-ex13-merciful-repeat-barrier",
   "arena-ad1-gallantmon-deletion-attack-order",
   "arena-bt20-cool-boy-stacked-omekamon",
   "arena-ex10-god-grade-raising-color",
@@ -4843,6 +4844,29 @@ function layEx13MercifulModeAttackOrderScenario(state: GameState): void {
   bot.breeding!.inBreeding = true;
 }
 
+/**
+ * Discord 1556063217623629944, production match 6e7884d6: a normal Omnimon
+ * battle paid Barrier, then Merciful Mode's immediate battle deleted the same
+ * permanent without another prompt. This reduced board also exercises inherited
+ * Barrier and two consecutive modal battles, with five security cards to pay all three.
+ */
+function layEx13MercifulRepeatBarrierScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human === undefined || bot === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["AD1-025"], "-merciful-barrier-omnimon"));
+  placePermanent(human, establishedDigimon(0, ["AD1-020"], "-merciful-barrier-colors"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-merciful-barrier-hand", "EX13-077", 0));
+  const defender = establishedDigimon(1, ["EX13-030", "BT1-057", "BT1-062"], "-merciful-barrier-defender");
+  defender.isSuspended = true;
+  placePermanent(bot, defender);
+  bot.security.clear();
+  for (let index = 0; index < 5; index++) {
+    insertCard(bot, Zone.Security, faceDownCard(`dev-merciful-barrier-security-${index}`, "BT1-009", 1));
+  }
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -5150,6 +5174,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
+  "arena-ex13-merciful-repeat-barrier": layEx13MercifulRepeatBarrierScenario,
   "arena-ad1-gallantmon-deletion-attack-order": layAd1GallantmonDeletionAttackOrderScenario,
   "arena-bt20-cool-boy-stacked-omekamon": layBt20CoolBoyStackedOmekamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,

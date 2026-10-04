@@ -115,8 +115,8 @@ async function runLinkWithGrant(opts: {
     continuous,
     ask,
     controllerSeat: () => state.turnSeat,
-    barrierFired: (key) => usedReductions.has(key),
-    markBarrierFired: (key) => usedReductions.add(key),
+    oncePerTurnFired: (key) => usedReductions.has(key),
+    markOncePerTurnFired: (key) => usedReductions.add(key),
   };
   const fx = createPrimitives(engine);
   const game = createGameAccess(

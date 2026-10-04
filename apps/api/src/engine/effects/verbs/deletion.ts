@@ -291,8 +291,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     }
     // ＜Barrier＞ keyword: when this Digimon would be deleted IN BATTLE, you MAY trash the top
     // card of your security stack to prevent that deletion (Comprehensive Rules §16-25-1/3:
-    // Barrier is battle-only), once per turn per permanent (shared `barrierFired` /
-    // `markBarrierFired` ledger with the combat path). Prompted through the same
+    // Barrier is battle-only), with no once-per-turn limit. Prompted through the same
     // barrierPrompt/respondBarrier window as the combat (battle-loss) path.
     {
       const barriered = new Set<string>();
@@ -301,8 +300,6 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         const perm = access.permanentById(permanentId);
         if (perm === undefined) continue;
         if (access.securityCount(perm.controllerSeat) === 0) continue;
-        const barrierKey = `${permanentId}/barrier`;
-        if (engine.barrierFired?.(barrierKey) === true) continue;
         if (!engine.combat) continue; // no prompt facility available; deletion proceeds
         const accepted = await engine.combat.runBarrierDecision(perm.controllerSeat, permanentId);
         if (!accepted) continue;
@@ -311,7 +308,6 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         } else {
           access.flipTopSecurityToTrash(perm.controllerSeat);
         }
-        engine.markBarrierFired?.(barrierKey);
         barriered.add(permanentId);
       }
       if (barriered.size > 0) toDelete = toDelete.filter((id) => !barriered.has(id));
