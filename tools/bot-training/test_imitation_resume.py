@@ -6,16 +6,55 @@ import unittest
 from pathlib import Path
 
 import click
+import numpy as np
 import torch
 from click.testing import CliRunner
 
 from features import FEATURE_VERSION, FeatureEncoder
-from imitate import main, policy_divergence, training_setup
+from imitate import COMPOUND_ACTIONS, epoch_order, main, policy_divergence, training_setup
 from test_migrate import checkpoint
 from test_policy import window
 
 
 class ImitationResumeTests(unittest.TestCase):
+    def test_compound_order_keeps_all_originals_and_only_duplicates_training_compounds(
+        self,
+    ) -> None:
+        kinds = ["attack"] * 100
+        for index, kind in zip((7, 19, 83), ("linkCard", "appFusion", "dnaDigivolve"), strict=True):
+            kinds[index] = kind
+        order, anchored = epoch_order(kinds, np.random.default_rng(91), 0.1)
+        repeated, repeated_anchor = epoch_order(kinds, np.random.default_rng(91), 0.1)
+        np.testing.assert_array_equal(order, repeated)
+        np.testing.assert_array_equal(anchored, repeated_anchor)
+        self.assertEqual(set(order), set(range(100)))
+        self.assertGreaterEqual(
+            sum(kinds[index] in COMPOUND_ACTIONS for index in order) / len(order), 0.1
+        )
+        for index in range(100):
+            if kinds[index] not in COMPOUND_ACTIONS:
+                self.assertEqual(sum(order == index), 1)
+        for index, active in zip(order, anchored, strict=True):
+            self.assertEqual(active, kinds[index] not in COMPOUND_ACTIONS)
+        default, default_anchor = epoch_order(kinds, np.random.default_rng(91), 0)
+        np.testing.assert_array_equal(default, np.random.default_rng(91).permutation(100))
+        self.assertTrue(default_anchor.all())
+        with self.assertRaisesRegex(click.ClickException, "training-fold compound"):
+            epoch_order(["attack", "playCard"], np.random.default_rng(91), 0.1)
+
+    def test_compound_labels_can_learn_without_the_source_anchor_opposing_them(self) -> None:
+        logits = torch.tensor([[1.0, 0, -torch.inf], [0, 1, 3]], requires_grad=True)
+        reference = torch.tensor([[0.5, -1, -torch.inf], [1, 2, 3]])
+        mask = torch.tensor([[True, True, False], [True, True, True]])
+        active = torch.tensor([False, True])
+        actual = policy_divergence(logits, reference, mask, active)
+        expected = policy_divergence(logits[1:], reference[1:], mask[1:]) / 2
+        torch.testing.assert_close(actual, expected)
+        actual.backward()
+        self.assertTrue(torch.equal(logits.grad[0], torch.zeros(3)))
+        self.assertTrue(torch.isfinite(logits.grad).all())
+        self.assertGreater(float(logits.grad[1].abs().sum()), 0)
+
     def test_restores_weights_and_adam_and_freezes_the_anchor_before_overriding_lr(self) -> None:
         saved = checkpoint()
         encoder = FeatureEncoder(saved["metadata"]["cardIds"], saved["metadata"]["keywords"])
@@ -157,6 +196,58 @@ class ImitationResumeTests(unittest.TestCase):
                 float(learned["optimizer"]["state"][0]["step"]),
                 float(saved["optimizer"]["state"][0]["step"]),
             )
+
+    def test_cli_compound_sampling_keeps_validation_unmodified(self) -> None:
+        saved = checkpoint()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dataset = root / "dataset"
+            output = root / "output"
+            dataset.mkdir()
+            path = root / "source.pt"
+            torch.save(saved, path)
+            (dataset / "config.json").write_text(
+                json.dumps({"metadata": saved["metadata"], "featureVersion": FEATURE_VERSION}),
+                encoding="utf-8",
+            )
+            sample = window()
+            sample["actions"][1]["intent"]["type"] = "appFusion"
+            validation = {"window": sample, "action": 1, "supervised": True}
+            normal = {"window": sample, "action": 0, "supervised": True}
+            (dataset / "episode-00000.jsonl").write_text(
+                json.dumps(validation) + "\n", encoding="utf-8"
+            )
+            (dataset / "episode-00001.jsonl").write_text(
+                json.dumps(validation) + "\n" + json.dumps(normal) + "\n", encoding="utf-8"
+            )
+            result = CliRunner().invoke(
+                main,
+                [
+                    "--dataset",
+                    str(dataset),
+                    "--output",
+                    str(output),
+                    "--checkpoint",
+                    str(path),
+                    "--epochs",
+                    "1",
+                    "--learning-rate",
+                    "0.00001",
+                    "--policy-anchor",
+                    "2",
+                    "--compound-share",
+                    "0.75",
+                    "--compound-only",
+                ],
+            )
+            self.assertEqual(result.exit_code, 0, result.output)
+            history = json.loads((output / "results.json").read_text(encoding="utf-8"))
+            self.assertEqual(history[1]["trainingSamples"], 4)
+            self.assertEqual(history[1]["unanchoredSamples"], 3)
+            self.assertEqual(history[1]["training"]["decisions"], 2)
+            self.assertEqual(history[1]["validation"]["decisions"], 1)
+            self.assertEqual(history[1]["validation"]["byActionType"]["appFusion"]["decisions"], 1)
+            self.assertGreater(history[1]["parameterChangeNorm"], 0)
 
 
 if __name__ == "__main__":

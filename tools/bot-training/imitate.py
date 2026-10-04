@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -16,6 +17,7 @@ from model import CandidatePolicy
 
 type Sample = tuple[NDArray[np.float32], NDArray[np.float32], int]
 type TensorBatch = tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+COMPOUND_ACTIONS = frozenset({"linkCard", "appFusion", "dnaDigivolve"})
 
 
 class ActionMetrics(TypedDict):
@@ -184,7 +186,10 @@ def training_setup(
 
 
 def policy_divergence(
-    logits: torch.Tensor, reference_logits: torch.Tensor, mask: torch.Tensor
+    logits: torch.Tensor,
+    reference_logits: torch.Tensor,
+    mask: torch.Tensor,
+    anchored: torch.Tensor | None = None,
 ) -> torch.Tensor:
     """KL(reference || learner), excluding padded candidates before subtraction."""
     current = torch.log_softmax(logits.masked_fill(~mask, -torch.inf), dim=-1)
@@ -192,7 +197,35 @@ def policy_divergence(
     probabilities = reference.exp()
     current = current.masked_fill(~mask, 0)
     reference = reference.masked_fill(~mask, 0)
-    return (probabilities * (reference - current)).sum(-1).mean()
+    divergences = (probabilities * (reference - current)).sum(-1)
+    if anchored is not None:
+        divergences = divergences * anchored
+    return divergences.mean()
+
+
+def epoch_order(
+    action_types: list[str], rng: np.random.Generator, compound_share: float
+) -> tuple[NDArray[np.int64], NDArray[np.bool_]]:
+    """Keep every original training sample; add only compound examples from that fold."""
+    order = rng.permutation(len(action_types))
+    if compound_share == 0:
+        return order, np.ones(len(order), dtype=np.bool_)
+    compounds = np.array(
+        [index for index, kind in enumerate(action_types) if kind in COMPOUND_ACTIONS],
+        dtype=np.int64,
+    )
+    if not len(compounds):
+        raise click.ClickException("--compound-share requires training-fold compound labels")
+    extra = max(
+        0,
+        math.ceil((compound_share * len(order) - len(compounds)) / (1 - compound_share)),
+    )
+    order = np.concatenate((order, rng.choice(compounds, size=extra, replace=True)))
+    rng.shuffle(order)
+    # These declarations are the behavior being introduced. Anchoring them to a source
+    # that rejects every such label would directly oppose that learning objective.
+    anchored = np.array([action_types[index] not in COMPOUND_ACTIONS for index in order])
+    return order, anchored
 
 
 def save_checkpoint(output: Path, saved: dict[str, Any], *, epoch: int, selected: bool) -> None:
@@ -215,6 +248,17 @@ def save_checkpoint(output: Path, saved: dict[str, Any], *, epoch: int, selected
 @click.option("--checkpoint", type=click.Path(path_type=Path, exists=True, dir_okay=False))
 @click.option("--learning-rate", type=click.FloatRange(min=0, min_open=True), default=None)
 @click.option("--policy-anchor", type=click.FloatRange(min=0), default=0.0)
+@click.option(
+    "--compound-share",
+    type=click.FloatRange(min=0, max=1, max_open=True),
+    default=0.0,
+    help="Reach at least this training fraction with compound resamples; anchor other types.",
+)
+@click.option(
+    "--compound-only",
+    is_flag=True,
+    help="Teach compound labels while retaining the source policy on all other label types.",
+)
 def main(
     dataset: Path,
     output: Path,
@@ -224,13 +268,21 @@ def main(
     checkpoint: Path | None,
     learning_rate: float | None,
     policy_anchor: float,
+    compound_share: float,
+    compound_only: bool,
 ) -> None:
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory")
-    if not np.isfinite(policy_anchor) or (
-        learning_rate is not None and not np.isfinite(learning_rate)
+    if (
+        not np.isfinite(policy_anchor)
+        or not np.isfinite(compound_share)
+        or (learning_rate is not None and not np.isfinite(learning_rate))
     ):
-        raise click.ClickException("Learning rate and policy anchor must be finite")
+        raise click.ClickException("Learning rate, policy anchor and compound share must be finite")
+    if compound_only and (checkpoint is None or policy_anchor <= 0 or compound_share <= 0):
+        raise click.ClickException(
+            "--compound-only requires --checkpoint, positive --policy-anchor and --compound-share"
+        )
     manifest = json.loads((dataset / "config.json").read_text(encoding="utf-8"))
     metadata = manifest["metadata"]
     if manifest["featureVersion"] != FEATURE_VERSION or metadata["statusFields"] != list(
@@ -265,6 +317,9 @@ def main(
         "learningRate": optimizer.param_groups[0]["lr"],
         "learningRateOverride": learning_rate,
         "policyAnchor": policy_anchor,
+        "compoundShare": compound_share,
+        "compoundPolicyAnchor": 0 if compound_share > 0 else policy_anchor,
+        "teacherLossScope": "compound" if compound_only else "all",
         "torchVersion": str(torch.__version__),
         "device": device,
         "encodedCacheBytes": (output / "encoded-samples.f32").stat().st_size,
@@ -302,16 +357,25 @@ def main(
     (output / "results.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
     click.echo(json.dumps(history[0]))
     for epoch in range(epochs):
-        order = rng.permutation(len(training))
+        order, anchored = epoch_order(action_types["training"], rng, compound_share)
         for start in range(0, len(order), 128):
             samples = [training[index] for index in order[start : start + 128]]
             states, actions, mask, labels = batch_tensors(samples, target)
             logits, _ = model(states, actions, mask)
-            loss = torch.nn.functional.cross_entropy(logits, labels)
+            anchored_batch = torch.from_numpy(anchored[start : start + 128]).to(target)
+            teacher_losses = torch.nn.functional.cross_entropy(logits, labels, reduction="none")
+            if compound_only:
+                teacher_losses = teacher_losses * ~anchored_batch
+            loss = teacher_losses.mean()
             if anchor is not None:
                 with torch.no_grad():
                     reference, _ = anchor(states, actions, mask)
-                loss = loss + policy_anchor * policy_divergence(logits, reference, mask)
+                loss = loss + policy_anchor * policy_divergence(
+                    logits,
+                    reference,
+                    mask,
+                    anchored_batch,
+                )
             if not torch.isfinite(loss):
                 raise RuntimeError("Nonfinite imitation loss")
             optimizer.zero_grad()
@@ -324,6 +388,8 @@ def main(
             "training": metrics(model, training, target, action_types["training"]),
             "validation": metrics(model, validation, target, action_types["validation"]),
             "updates": updates,
+            "trainingSamples": len(order),
+            "unanchoredSamples": int((~anchored).sum()),
             "parameterChangeNorm": float(
                 torch.sqrt(
                     sum(
