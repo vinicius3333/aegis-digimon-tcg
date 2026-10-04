@@ -286,3 +286,153 @@ describe("P-224 Kotone Amano — DigiXros by effect with a battle-area material"
     expect(interruptSnapshots).toEqual([{ isDigiXros: true, dxInPlay: false, memory: 10 }]);
   });
 });
+
+describe("Discord bug 1556113288599834624 — Kotone's own stored Digimon", () => {
+  it.each(["AD1-006", "BT21-021", "BT19-051"])(
+    "plays %s from under the Kotone paying the suspension cost",
+    async (cardId) => {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: "P-224", as: "kotone", under: [{ card: cardId, as: "stored" }] }] } },
+        { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true, declinePrompts: ["On Play"] },
+      );
+      s.state.memory = 20;
+      await s.ready();
+      const effect = observe(s.engine).activatableEffects(s.perm("kotone"))[0]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("kotone").instanceId,
+          effectKey: effect.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("stored").instanceId)).toBe(
+        true,
+      );
+      expect(s.perm("kotone").isSuspended).toBe(true);
+      expect(s.perm("kotone").stack).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+});
+
+describe("Discord bug 1556113288599834624 — paid DigiXros affordability", () => {
+  it.each([false, true])("offers X7 with a legal hand material (stored under another Tamer=%s)", async (otherTamer) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-015", as: "omni" }],
+          battleArea: [
+            { card: "P-224", as: "kotone", under: otherTamer ? [] : [{ card: "AD1-006", as: "x7" }] },
+            ...(otherTamer
+              ? [{ card: "BT10-087", as: "taiki", suspended: true, under: [{ card: "AD1-006", as: "x7" }] }]
+              : []),
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const effect = observe(s.engine).activatableEffects(s.perm("kotone"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("kotone").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("x7").instanceId);
+    expect(played).toBeDefined();
+    expect(played!.stack.map((card) => card.instanceId)).toEqual([s.inst("omni").instanceId]);
+    expect(s.state.memory).toBe(-10);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("Discord bug 1556113288599834624 — unavailable DigiXros materials", () => {
+  it.each(["none", "trash", "underTamer", "breeding", "opponent", "duplicate", "costReductionBlocked", "declined"])(
+    "does not play X7 when material availability is %s",
+    async (location) => {
+      const material = { card: location === "underTamer" ? "BT10-049" : "BT11-015", as: "omni" };
+      const s = setupEngine(
+        {
+          0: {
+            hand:
+              location === "duplicate"
+                ? [material, "BT11-015"]
+                : location === "costReductionBlocked" || location === "declined"
+                  ? [material]
+                  : [],
+            trash: location === "trash" ? [material] : [],
+            breeding: location === "breeding" ? material : undefined,
+            battleArea: [
+              { card: "P-224", as: "kotone", under: [{ card: "AD1-006", as: "x7" }] },
+              ...(location === "underTamer" ? [{ card: "BT10-087", suspended: true, under: [material] }] : []),
+            ],
+          },
+          1: {
+            battleArea: location === "opponent" ? [material] : location === "costReductionBlocked" ? ["BT8-071"] : [],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: location === "declined" },
+      );
+      // At -1, X7 needs TWO different recipe slots to reach the remaining nine-memory gauge.
+      s.state.memory = location === "duplicate" ? -1 : 0;
+      await s.ready();
+      const effect = observe(s.engine).activatableEffects(s.perm("kotone"))[0]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("kotone").instanceId,
+          effectKey: effect.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("x7").instanceId)).toBe(false);
+      expect(s.perm("kotone").stack.map((c) => c.instanceId)).toEqual([s.inst("x7").instanceId]);
+      expect(s.state.memory).toBe(location === "duplicate" ? -1 : 0);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it("uses Taiki's available expansion to DigiXros with a card under the suspended Kotone", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "P-224",
+              as: "kotone",
+              under: [
+                { card: "AD1-006", as: "x7" },
+                { card: "BT11-015", as: "omni" },
+              ],
+            },
+            { card: "BT10-087", as: "taiki" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const effect = observe(s.engine).activatableEffects(s.perm("kotone"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("kotone").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("x7").instanceId);
+    expect(played).toBeDefined();
+    expect(played!.stack.map((c) => c.instanceId)).toEqual([s.inst("omni").instanceId]);
+    expect(s.perm("kotone").isSuspended).toBe(true);
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-10);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
