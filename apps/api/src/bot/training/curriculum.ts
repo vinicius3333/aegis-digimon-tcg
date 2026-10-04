@@ -354,7 +354,52 @@ const RECIPES: readonly Recipe[] = [
       ["BT25-085", 2], // BeelStarmon
     ],
   },
+  {
+    version: "curriculum-appmon-charismon@1",
+    name: "Appmon Sociamon / Gossipmon / Charismon",
+    egg: "BT26-007", // Swipemon
+    main: [
+      ["BT26-010", 4], // Roleplaymon
+      ["BT26-019", 4], // Mailmon
+      ["BT26-051", 4], // Gomimon
+      ["BT26-063", 4], // Tellermon
+      ["BT26-084", 4], // Copipemon
+      ["BT21-043", 4], // Sociamon
+      ["BT21-070", 4], // Gossipmon
+      ["BT26-028", 4], // Medicmon
+      ["BT26-037", 4], // Weatherdramon
+      ["EX10-017", 4], // Mienumon
+      ["BT21-073", 4], // Charismon
+      ["BT24-099", 4], // Super Hacking
+      ["BT26-099", 2], // Training Manual
+    ],
+  },
+  {
+    version: "curriculum-appmon-mienumon@1",
+    name: "Appmon Mirrormon / Kabemon / Copipemon / Mienumon",
+    egg: "BT26-007", // Swipemon
+    main: [
+      ["EX10-016", 4], // Mirrormon
+      ["EX10-024", 4], // Kabemon
+      ["BT26-084", 4], // Copipemon
+      ["EX10-038", 4], // Copipemon
+      ["BT26-063", 4], // Tellermon
+      ["BT26-051", 4], // Gomimon
+      ["EX10-017", 4], // Mienumon
+      ["BT26-028", 4], // Medicmon
+      ["BT26-037", 4], // Weatherdramon
+      ["BT21-071", 4], // Scopemon
+      ["BT21-073", 2], // Charismon
+      ["BT24-099", 4], // Super Hacking
+      ["BT26-099", 4], // Training Manual
+    ],
+  },
 ];
+
+/** Include every complementary recipe identity in the encoder, including its named partners. */
+export function curriculumCardIds(): string[] {
+  return RECIPES.flatMap(({ egg, main }) => [egg, ...main.map(([id]) => id)]);
+}
 
 export const CURRICULUM_DECK_VERSIONS: readonly string[] = [
   ...TRAINING_DECK_VERSIONS,

@@ -66,6 +66,7 @@ ACTION_TYPES = (
     "appFusion",
 )
 PHASES = ("None", "Unsuspend", "Draw", "Breeding", "Main", "End")
+type FeatureColumn = tuple[str, str | int | None]
 
 
 def text_features(text: str) -> NDArray[np.float32]:
@@ -79,6 +80,10 @@ def text_features(text: str) -> NDArray[np.float32]:
 
 class FeatureEncoder:
     def __init__(self, card_ids: list[str], keyword_names: list[str]) -> None:
+        if any(not isinstance(card_id, str) or not card_id for card_id in card_ids) or len(
+            set(card_ids)
+        ) != len(card_ids):
+            raise ValueError("Card vocabulary requires unique nonempty identities")
         self.keyword_names = tuple(keyword_names)
         self.keyword_index = {
             self.keyword_key(name): index for index, name in enumerate(keyword_names)
@@ -89,19 +94,59 @@ class FeatureEncoder:
         self.index = {card_id: index + 1 for index, card_id in enumerate(card_ids)}
         self.card_dim = len(card_ids) + 1
         self.card_features = self.card_dim + 13 + len(STATUS_FIELDS) + len(self.keyword_names)
-        self.state_dim = (
-            16
-            + len(PHASES)
-            + len(KINDS)
-            + self.card_dim * 16
-            + 6
-            + TEXT_DIM
-            + self.card_features * 3
-            + self.card_dim * 6 + TEXT_DIM * 2 + 2
-        )
-        self.action_dim = (
-            len(ACTION_TYPES) + 8 + self.card_features * 3 + self.card_dim * 4 + TEXT_DIM
-        )
+        self.state_columns = self.input_columns(state=True)
+        self.action_columns = self.input_columns(state=False)
+        self.state_dim = len(self.state_columns)
+        self.action_dim = len(self.action_columns)
+
+    def card_columns(self, name: str, *, full: bool) -> list[FeatureColumn]:
+        columns: list[FeatureColumn] = [
+            (name + ".identity", card_id) for card_id in (None, *self.card_ids)
+        ]
+        if full:
+            columns.extend((name + ".scalar", index) for index in range(13))
+            columns.extend((name + ".status", field) for field in STATUS_FIELDS)
+            columns.extend((name + ".keyword", keyword) for keyword in self.keyword_names)
+        return columns
+
+    def input_columns(self, *, state: bool) -> tuple[FeatureColumn, ...]:
+        """Semantic identities in the exact concatenation order of feature version 7."""
+        columns: list[FeatureColumn] = []
+
+        def numeric(name: str, count: int) -> None:
+            columns.extend((name, index) for index in range(count))
+
+        if state:
+            for name in ("history.seen", "history.own", "history.opponent"):
+                columns.extend(self.card_columns(name, full=False))
+            numeric("history.own.events", TEXT_DIM)
+            numeric("history.opponent.events", TEXT_DIM)
+            numeric("history.amounts", 2)
+            for name in ("history.known.own", "history.known.opponent", "history.known.unowned"):
+                columns.extend(self.card_columns(name, full=False))
+            numeric("state.scalar", 16)
+            columns.extend(("state.phase", phase) for phase in PHASES)
+            columns.extend(("state.kind", kind) for kind in KINDS)
+            for owner in ("own", "opponent"):
+                for zone in ("hand", "trash", "delay", "security", "tops", "sources"):
+                    columns.extend(self.card_columns(owner + "." + zone, full=False))
+            for name in ("own.board", "opponent.board", "combat.target"):
+                columns.extend(self.card_columns(name, full=True))
+            for name in ("combat.stack", "selection.order", "revealed", "request.source"):
+                columns.extend(self.card_columns(name, full=False))
+            numeric("selection.scalar", 6)
+            numeric("request.text", TEXT_DIM)
+        else:
+            columns.extend(("action.type", kind) for kind in ACTION_TYPES)
+            numeric("action.scalar", 8)
+            for name in ("action.source", "action.target"):
+                columns.extend(self.card_columns(name, full=True))
+            for name in ("action.source.stack", "action.target.stack", "action.material.order"):
+                columns.extend(self.card_columns(name, full=False))
+            columns.extend(self.card_columns("action.material", full=True))
+            columns.extend(self.card_columns("action.material.stack", full=False))
+            numeric("action.text", TEXT_DIM)
+        return tuple(columns)
 
     @staticmethod
     def keyword_key(name: str) -> str:
@@ -154,7 +199,9 @@ class FeatureEncoder:
         for age, event in enumerate(reversed(history["recent"])):
             relative = 0 if event.get("seat", seat) == seat else 1
             weight = 1 / (age + 1)
-            cards[relative] += self.bag([{"cardId": card_id} for card_id in event["cardIds"]]) * weight
+            cards[relative] += (
+                self.bag([{"cardId": card_id} for card_id in event["cardIds"]]) * weight
+            )
             events[relative] += text_features(event["kind"]) * weight
             amounts[relative] += event.get("amount", 0) / 10 * weight
         known: list[list[dict[str, Any]]] = [[], [], []]
@@ -162,7 +209,9 @@ class FeatureEncoder:
             owner = card.get("ownerSeat")
             relative = 2 if owner is None else 0 if owner == seat else 1
             known[relative].append(card)
-        return np.concatenate([seen, *cards, *events, amounts, *(self.bag(group) for group in known)])
+        return np.concatenate(
+            [seen, *cards, *events, amounts, *(self.bag(group) for group in known)]
+        )
 
     def encode(self, window: dict[str, Any]) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
         observation = window["observation"]

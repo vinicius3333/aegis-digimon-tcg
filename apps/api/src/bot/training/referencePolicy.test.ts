@@ -181,5 +181,44 @@ for (const seat of [0, 1] as const) {
         target: { kind: "player" },
       });
     });
+
+    it("prepares and executes the registered Sociamon / Gossipmon Charismon fusion", async () => {
+      const s = setupEngine(
+        {
+          [seat]: {
+            battleArea: [{ card: "BT21-043", as: "host", suspended: true }],
+            hand: [
+              { card: "BT21-070", as: "partner" },
+              { card: "BT21-073", as: "result" },
+            ],
+            deck: ["BT26-063"],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.turnSeat = seat;
+      s.state.memory = 3;
+      await s.ready();
+      const teacher = createTrainingTeacher(s.engine, seat, 9);
+      const link = teacher.chooseMainAction(buildBotView(s.state, seat)!);
+      expect(link).toEqual({
+        type: "linkCard",
+        instanceId: s.inst("partner").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      });
+      expect(s.engine.applyIntent(seat, link)).toEqual({ ok: true });
+      await settle(() => s.perm("host").linked.length === 1 && mainActionReady(s.engine));
+      const fusion = teacher.chooseMainAction(buildBotView(s.state, seat)!);
+      expect(fusion).toEqual({
+        type: "appFusion",
+        instanceId: s.inst("result").instanceId,
+        permanentId: s.perm("host").permanentId,
+        linkedInstanceId: s.inst("partner").instanceId,
+      });
+      expect(s.engine.applyIntent(seat, fusion)).toEqual({ ok: true });
+      await settle(() => s.perm("host").topCard.cardId === "BT21-073" && mainActionReady(s.engine));
+      expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-043", "BT21-070"]);
+      expect(s.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
+    });
   });
 }

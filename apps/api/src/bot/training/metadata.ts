@@ -6,6 +6,7 @@ import { allCardIds, getCardDefinition, KEYWORDS } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { OBSERVED_STATUS_FIELDS } from "./observation.js";
 import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
+import { curriculumCardIds } from "./curriculum.js";
 
 /** Fingerprint executable engine/policy code and the scoped card rules, not just deck names. */
 export function trainingMetadata() {
@@ -13,6 +14,7 @@ export function trainingMetadata() {
   const cardIds = [
     ...new Set([
       ...scope.flatMap(({ deck }) => [...deck.mainDeck, ...deck.eggDeck]),
+      ...curriculumCardIds(),
       ...allCardIds().filter((id) => /^(BT26|EX13)-/.test(id)),
     ]),
   ].sort();
