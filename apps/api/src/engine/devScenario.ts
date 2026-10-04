@@ -37,6 +37,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt18-candlemon-data-selection",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
@@ -317,6 +318,34 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   // Not the rulebook's first turn: the human draws on turn 1 like any later turn.
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Nom's Candlemon reveal, reduced from match cbd3a09b (Discord 1556041043550408755). */
+function layBt18CandlemonDataSelectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-candlemon-play", "BT18-030", 0));
+    // The turn loop draws the first card, leaving the production reveal at the top.
+    for (const [id, cardId] of [
+      ["dev-candlemon-wizardmon", "BT19-036"],
+      ["dev-candlemon-revealed", "BT18-030"],
+      ["dev-candlemon-dynasmon", "EX13-037"],
+      ["dev-candlemon-draw", "BT1-009"],
+    ]) {
+      insertCard(human, Zone.Deck, faceDownCard(id!, cardId!, 0), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Monimon's By cost can be refused before sources move (Discord 1556016563600101406). */
@@ -5035,6 +5064,7 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-bt18-candlemon-data-selection": layBt18CandlemonDataSelectionScenario,
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,
