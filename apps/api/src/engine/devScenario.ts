@@ -162,6 +162,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4892-effect-digixros",
   "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
+  "arena-p224-kotone-own-source",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
@@ -4079,6 +4080,20 @@ function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Dec
   }
 }
 
+/** Discord 1556113288599834624, match 9b9ea6cc: X7 needs DigiXros at zero memory. */
+function layP224KotoneOwnSourceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-p224-kotone", "P-224", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-p224-x7", "AD1-006", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-p224-omni", "BT11-015", 0));
+  // Neither the turn draw nor Kotone's On Play draw adds another eligible material.
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-p224-draw-${index}`, "BT1-085", 0), "top");
+  }
+}
+
 /** Discord 1553600701442297956: an earlier play, Kotone's DigiXros, then EX6's nested arrival. */
 function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 20);
@@ -5164,6 +5179,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
+  "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,

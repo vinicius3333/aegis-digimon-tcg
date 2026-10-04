@@ -220,6 +220,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Monodramon. O bot faz Blast Digivolve de Zudomon para Vikemon ACE. Gomamon, com 1 fonte, fica impedido de suspender/atacar. Evolua esse Gomamon para Gorillamon: com 2 fontes, ele deve poder atacar a segurança. Jogue o outro Gomamon da mão: ele também recebe a trava, embora tenha entrado depois do efeito. A trava dura até o fim deste turno.",
     en: "End breeding and attack security with Monodramon. The bot Blast Digivolves Zudomon into Vikemon ACE. Gomamon, with 1 source, cannot suspend/attack. Evolve that Gomamon into Gorillamon: with 2 sources, it must be able to attack security. Play the other Gomamon from hand: it also receives the lock despite entering after the effect. The lock expires at the end of this turn.",
   },
+  "arena-p224-kotone-own-source": {
+    ptBR: "Entre na Principal com 3 de memória. Jogue P-224 Kotone Amano da mão e, no [Ao Jogar], coloque AD1-006 Shoutmon X7 sob ela para comprar 1. Com memória 0, ative o [Principal] da Kotone e aceite suspendê-la. X7 deve aparecer para seleção. Escolha X7 e use BT11-015 OmniShoutmon da mão como material de DigiXros. O custo é 10 (13 − 1 da Kotone − 2 do DigiXros), e o turno passa com 10 de memória para o bot. Reprodução do bug 1556113288599834624 e da condição de custo da partida 9b9ea6cc.",
+    en: "Enter Main with 3 memory. Play P-224 Kotone Amano from hand and place AD1-006 Shoutmon X7 under her with [On Play] to draw 1. At 0 memory, activate Kotone's [Main] and accept suspending her. X7 must be selectable. Choose X7 and use BT11-015 OmniShoutmon from hand as a DigiXros material. The play costs 10 (13 − 1 from Kotone − 2 from DigiXros), passing the turn with 10 memory for the bot. Reproduces bug 1556113288599834624 and the cost condition in match 9b9ea6cc.",
+  },
   "arena-kotone-digixros-pending-attack": {
     ptBR: "Encerre a criação e recuse os efeitos do início da Main. Jogue Shoutmon X7 da mão sem DigiXros e recuse seus efeitos e o ataque de Taiki. Ative Kotone para jogar Shoutmon EX6: selecione Taiki BT10-087, escolha os materiais sob ele e use OmniShoutmon + RaptorSparrowmon. Resolva o On Play de EX6 antes de Taiki e aceite jogar ShootingStarmon. Recuse o ataque de ShootingStarmon; depois aceite o ataque pendente de EX6 via Taiki BT21-083, escolha a segurança e recuse Alliance. EX6 deve atacar com Rush herdado; ambos os Taikis ficam suspensos.",
     en: "End breeding and decline the Start of Main effects. Play Shoutmon X7 from hand without DigiXros; decline its effects and Taiki's attack. Activate Kotone to play Shoutmon EX6: select Taiki BT10-087, choose the materials under it, and use OmniShoutmon + RaptorSparrowmon. Resolve EX6's On Play before Taiki and accept playing ShootingStarmon. Decline ShootingStarmon's attack, then accept EX6's pending attack through Taiki BT21-083, target security and decline Alliance. EX6 must attack with inherited Rush; both Taikis end suspended.",
@@ -749,6 +753,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-moon-pending-source-deleted", "MoonMillenniummon · pending source deleted"],
   ["arena-mirage-hidden-hand", "Mirage BM · concealed hand selection"],
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
+  ["arena-p224-kotone-own-source", "P-224 Kotone · X7 das próprias fontes / own sources"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],
   ["arena-bt20-saviorhuckmon-end-turn-sistermon", "BT20 SaviorHuckmon · end of turn with an Option-played Sistermon"],

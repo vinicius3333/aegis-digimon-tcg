@@ -141,6 +141,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4892-effect-digixros"
     | "arena-moon-pending-source-deleted"
     | "arena-mirage-hidden-hand"
+    | "arena-p224-kotone-own-source"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
     | "arena-bt20-saviorhuckmon-end-turn-sistermon"

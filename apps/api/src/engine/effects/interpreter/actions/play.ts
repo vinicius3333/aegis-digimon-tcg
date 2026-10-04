@@ -19,6 +19,7 @@ import {
 import type { Action, Scaling, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { availableEffectPlayAssembly, playEffectInstances } from "./effectPlayAssembly.js";
+import { availableEffectPlayDigiXrosReduction } from "./effectPlayDigiXrosAvailability.js";
 
 /**
  * The card kinds a play target explicitly asks for, across its filter and every alternative.
@@ -682,10 +683,16 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const canUseByColor =
             hasOption &&
             ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false;
+          // Project single-card choices only: simultaneous plays reserve other played cards
+          // and cannot use expanders that require playing exactly one Digimon.
+          const digiXrosReduction =
+            hasPermanent && playCostAdjustedTarget.count === 1
+              ? availableEffectPlayDigiXrosReduction(ctx, candidate)
+              : 0;
           const basePlayAffordable =
             hasPermanent &&
             (await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
-              costDelta: costReduction,
+              costDelta: (costReduction ?? 0) + digiXrosReduction,
               controllerSeat: ctx.source.ownerSeat,
             }));
           const assembly = basePlayAffordable
