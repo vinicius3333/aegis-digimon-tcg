@@ -37,6 +37,8 @@ export interface RevealAddAction extends ActionBase {
    * and 1 Tamer"). `to` defaults to adding to hand.
    */
   add: {
+    /** Printed selection clause for this category, shown instead of the entire reveal effect. */
+    effectTextPart?: string;
     filter: Filter;
     /**
      * "Add 1 [X] trait or 1 Y card among them": `count` cards from the UNION of `filter` and

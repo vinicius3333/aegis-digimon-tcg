@@ -5,6 +5,7 @@ import { compiled as eldradimon } from "../../../../cards/EX7/EX7-047.js";
 import { runRevealAdd } from "./reveal.js";
 import { setupEngine, settle } from "../../../testkit/harness.js";
 import "../../../../cards/P/P-104.js";
+import "../../../../cards/BT5/BT5-009.js";
 
 // Recording-port proof of the current compiled producer, not a public gameplay fixture.
 // The real EX7-047 public play/evolution witnesses remain in its colocated card suite.
@@ -100,4 +101,53 @@ describe("RevealAdd public reveal events", () => {
       expect.objectContaining({ seat: 0, cardId: "BT1-009", sourceCardId: "P-104" }),
     ]);
   });
+});
+
+// Exercise the same pre-existing multi-category action on another printed "and" search.
+it("uses successive selectCards for a sole Shoutmon/Blitz overlap without requiring a new decision shape", async () => {
+  const s = setupEngine({
+    0: {
+      hand: [{ card: "BT5-009", as: "source" }],
+      deck: [
+        { card: "BT5-019", as: "both" },
+        { card: "BT5-086", as: "blitz-only" },
+        { card: "BT1-009", as: "miss" },
+      ],
+    },
+  });
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision !== undefined);
+  const shoutmon = s.decisions.at(-1)!.req;
+  expect(shoutmon.kind).toBe("selectCards");
+  expect(shoutmon.options?.candidateInstanceIds).toEqual([s.inst("both").instanceId]);
+  expect(shoutmon.options?.min).toBe(0);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: shoutmon.decisionId,
+      response: { kind: "selectCards", instanceIds: [] },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.decisionId !== shoutmon.decisionId);
+  const blitz = s.decisions.at(-1)!.req;
+  expect(blitz.kind).toBe("selectCards");
+  expect(blitz.options?.candidateInstanceIds).toEqual([s.inst("both").instanceId]);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: blitz.decisionId,
+      response: { kind: "selectCards", instanceIds: [s.inst("blitz-only").instanceId] },
+    }).ok,
+  ).toBe(false);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: blitz.decisionId,
+      response: { kind: "selectCards", instanceIds: [s.inst("both").instanceId] },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 1);
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT5-019"]);
+  expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT5-086", "BT1-009"]);
 });

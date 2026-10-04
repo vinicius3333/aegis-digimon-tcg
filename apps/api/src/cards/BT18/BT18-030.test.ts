@@ -5,6 +5,75 @@ import { compiled } from "./BT18-030.js";
 import "./BT18-008.js";
 
 describe("BT18-030 Candlemon", () => {
+  it.each(["EX13-037", "BT23-035", "BT18-040", "AD1-017", "BT19-041", "BT6-044"])(
+    "Discord 1556041043550408755: offers %s in the yellow Data selection, then asks separately for Witchelny",
+    async (dynasmon) => {
+      // Nom vs Sweet JP, cbd3a09b at 13:39 UTC: EX13-037, BT18-030, BT19-036.
+      const s = setupEngine({
+        0: {
+          hand: [{ card: "BT18-030", as: "candlemon" }],
+          deck: [
+            { card: dynasmon, as: "dynasmon" },
+            { card: "BT18-030", as: "revealed-candlemon" },
+            { card: "BT19-036", as: "wizardmon" },
+          ],
+        },
+      });
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candlemon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision !== undefined);
+      const selection = s.decisions.at(-1)!.req;
+      expect(selection.kind).toBe("selectCards");
+      const dynasmonId = s.inst("dynasmon").instanceId;
+      const candlemonId = s.inst("revealed-candlemon").instanceId;
+      const wizardmonId = s.inst("wizardmon").instanceId;
+      expect(selection.options?.visibleCards?.map(({ cardId }) => cardId)).toEqual([dynasmon, "BT18-030", "BT19-036"]);
+      expect(selection.options?.candidateInstanceIds).toEqual([dynasmonId, candlemonId, wizardmonId]);
+      expect(selection.options?.effectTextPart).toBe("Add 1 yellow card with the [Data] trait");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }).ok,
+      ).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [dynasmonId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.decisionId !== selection.decisionId);
+      const witchelny = s.decisions.at(-1)!.req;
+      expect(witchelny.kind).toBe("selectCards");
+      expect(witchelny.options?.candidateInstanceIds).toEqual([wizardmonId]);
+      expect(witchelny.options?.visibleCards).toEqual(selection.options?.visibleCards);
+      expect(witchelny.options?.effectTextPart).toBe("1 card with the [Witchelny] trait among them to the hand.");
+      for (const id of [dynasmonId, candlemonId]) {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: witchelny.decisionId,
+            response: { kind: "selectCards", instanceIds: [id] },
+          }).ok,
+        ).toBe(false);
+      }
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: witchelny.decisionId,
+          response: { kind: "selectCards", instanceIds: [wizardmonId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 2);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([dynasmon, "BT19-036"]);
+      expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT18-030"]);
+    },
+  );
+
   it("reveals three and adds a matching Witchelny card while returning the rest to deck bottom", async () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -39,7 +108,7 @@ describe("BT18-030 Candlemon", () => {
       {
         0: {
           hand: [{ card: "BT18-030", as: "candle" }],
-          deck: [{ card: "BT18-036" }, { card: "BT1-048" }, { card: "BT1-010" }],
+          deck: [{ card: "BT18-039" }, { card: "BT1-048" }, { card: "BT1-010" }],
         },
       },
       { autoSelectCards: true },
@@ -48,11 +117,130 @@ describe("BT18-030 Candlemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candle").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-036"));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT18-036")).toBe(true);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-039"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT18-039")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-048")).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.deck[0]?.cardId).toBe("BT1-010");
+  });
+
+  it("Discord 1556041043550408755: permits a dual-category card in the Data slot without counting it twice (Q1050)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-030", as: "candlemon" }],
+          deck: [
+            { card: "EX13-037", as: "dynasmon" },
+            { card: "BT18-030", as: "revealed-candlemon" },
+            { card: "BT19-036", as: "wizardmon" },
+          ],
+        },
+      },
+      { autoOrderCards: false },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candlemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const data = s.decisions.at(-1)!.req;
+    expect(data.kind).toBe("selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: data.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("wizardmon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const order = s.decisions.at(-1)!.req;
+    expect(order.options?.effectTextPart).toBeUndefined();
+    expect(order.options?.candidateInstanceIds).toEqual([
+      s.inst("dynasmon").instanceId,
+      s.inst("revealed-candlemon").instanceId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: {
+          kind: "orderCards",
+          order: [s.inst("revealed-candlemon").instanceId, s.inst("dynasmon").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT19-036"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT18-030", "EX13-037"]);
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
+  });
+
+  it("Discord 1556041043550408755: permits the Witchelny assignment when the only Data card fits both categories (Q1985)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-030", as: "candlemon" }],
+          deck: [
+            { card: "BT19-036", as: "wizardmon" },
+            { card: "BT18-039", as: "mistymon" },
+            { card: "BT1-009", as: "nonMatch" },
+          ],
+        },
+      },
+      { autoOrderCards: false },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candlemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const selection = s.decisions.at(-1)!.req;
+    expect(selection.kind).toBe("selectCards");
+    expect(selection.options?.min).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.decisionId !== selection.decisionId);
+    const witchelny = s.decisions.at(-1)!.req;
+    expect(witchelny.kind).toBe("selectCards");
+    expect(witchelny.options?.candidateInstanceIds).toEqual([s.inst("wizardmon").instanceId]);
+    expect(witchelny.options?.min).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: witchelny.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("mistymon").instanceId] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: witchelny.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: witchelny.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("wizardmon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.decisions.at(-1)!.req.decisionId,
+        response: { kind: "orderCards", order: [s.inst("mistymon").instanceId, s.inst("nonMatch").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT19-036"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT18-039", "BT1-009"]);
   });
 
   it("inherits once-per-turn protection for a yellow Data or Witchelny host", async () => {
@@ -149,22 +337,28 @@ describe("BT18-030 Candlemon — KB Q&A rulings", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candlemon").instanceId })).toEqual({
       ok: true,
     });
-    for (let slot = 0; slot < 2; slot += 1) {
-      await settle(() => s.state.pendingDecision !== undefined || s.state.players[0]!.hand.length === 2);
-      if (s.state.pendingDecision === undefined) break;
+    for (const alias of ["sirenmon", "mistymon"]) {
+      await settle(() => s.state.pendingDecision !== undefined);
       const selection = s.decisions.at(-1)!.req;
-      const respond = (instanceIds: string[]) =>
+      expect(selection.kind).toBe("selectCards");
+      expect(selection.options?.min).toBe(1);
+      expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: selection.decisionId,
-          response: { kind: "selectCards", instanceIds },
-        });
-
-      expect(selection.options?.min).toBe(1);
-      expect(respond([]).ok).toBe(false);
-      expect(respond([selection.options!.candidateInstanceIds![0]!])).toEqual({ ok: true });
+          response: { kind: "selectCards", instanceIds: [] },
+        }).ok,
+      ).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.decisionId !== selection.decisionId);
     }
-    await settle();
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 2);
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
       [s.inst("sirenmon").instanceId, s.inst("mistymon").instanceId].sort(),

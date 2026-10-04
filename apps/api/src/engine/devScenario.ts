@@ -37,6 +37,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt18-candlemon-data-selection",
   "arena-taiki-digixros-any-tamer-hand",
   "arena-kotone-digixros-any-tamer-effect",
   "arena-mervamon-trash-digixros",
@@ -361,6 +362,34 @@ function layBt23ExamonRemovalScenario(state: GameState, decks: readonly [Decklis
         opponent,
         establishedDigimon(1, ["EX13-021", "EX13-008", "EX13-018", "EX13-041", "BT23-047"], "-examon-partition"),
       );
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
+/** Nom's Candlemon reveal, reduced from match cbd3a09b (Discord 1556041043550408755). */
+function layBt18CandlemonDataSelectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-candlemon-play", "BT18-030", 0));
+    // The turn loop draws the first card, leaving the production reveal at the top.
+    for (const [id, cardId] of [
+      ["dev-candlemon-wizardmon", "BT19-036"],
+      ["dev-candlemon-revealed", "BT18-030"],
+      ["dev-candlemon-dynasmon", "EX13-037"],
+      ["dev-candlemon-draw", "BT1-009"],
+    ]) {
+      insertCard(human, Zone.Deck, faceDownCard(id!, cardId!, 0), "top");
     }
   }
   state.turnSeat = 0;
@@ -5237,6 +5266,7 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-bt18-candlemon-data-selection": layBt18CandlemonDataSelectionScenario,
   "arena-mervamon-trash-digixros": layMervamonTrashDigiXrosScenario,
   "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
   "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
