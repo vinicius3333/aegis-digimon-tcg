@@ -1,4 +1,16 @@
 {
+  "releases.1.9.1-beta.summary": {
+    "en": "This update makes the hand and the battle field easier to use on phones.",
+    "pt-BR": "Esta atualização deixa a mão e o campo de batalha mais fáceis de usar no celular."
+  },
+  "releases.1.9.1-beta.fix.phoneHand": {
+    "en": "Hand cards on phones are larger and easier to tap. On tall phones they are almost twice as tall as before.",
+    "pt-BR": "As cartas da mão no celular estão maiores e mais fáceis de tocar. Em celulares altos, elas têm quase o dobro da altura de antes."
+  },
+  "releases.1.9.1-beta.fix.phoneField": {
+    "en": "On phones, Tamers and Options are the same size as Digimon. Tall phones keep Digimon and support cards in separate rows, and shorter phones show them in one row without scrolling sideways. Both battle rows stay centered on the board.",
+    "pt-BR": "No celular, Tamers e Options têm o mesmo tamanho dos Digimon. Celulares altos mantêm Digimon e cartas de suporte em linhas separadas, e celulares menores mostram tudo em uma linha, sem rolagem lateral. As duas linhas de batalha ficam centralizadas no tabuleiro."
+  },
   "releases.1.9.0-beta.summary": {
     "en": "This update introduces an organized battle field, a tabletop pile layout and improvements to crowded boards and smaller screens.",
     "pt-BR": "Esta atualização traz um campo de batalha organizado, um layout de pilhas como numa mesa e melhorias para campos cheios e telas menores."
