@@ -6373,7 +6373,17 @@ describe("v4 IR actions (runtime record-v2 schema additions)", () => {
       for (const e of module.effectsForTiming(EffectTiming.None, source)) await e.resolve(ctx);
       const dp = recorder.calls.filter((c) => c.verb === "modifyDP");
       expect(dp).toHaveLength(1);
-      expect(dp[0]!.args).toEqual(["SELF", 1000, expect.anything(), { continuous: true }]);
+      expect(dp[0]!.args).toEqual([
+        "SELF",
+        1000,
+        expect.anything(),
+        {
+          continuous: true,
+          sourceInstanceId: source.instanceId,
+          sourceSeat: source.ownerSeat,
+          sourceKinds: source.definition.kinds,
+        },
+      ]);
     }
   });
 });

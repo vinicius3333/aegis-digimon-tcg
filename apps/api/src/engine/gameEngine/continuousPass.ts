@@ -86,7 +86,6 @@ export async function recomputeContinuousEffects(engine: GameEngine): Promise<vo
       }
     } while (engine.recomputeQueued);
 
-    engine.modifiers.refreshReducedDp(engine.state);
     engine.projection.syncActivatableEffects();
     engine.projection.syncKeywords();
     engine.projection.syncSummoningSickness();
@@ -265,4 +264,9 @@ async function derivePass(
   // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
   for (const permanentId of seed.keys()) engine.modifiers.recomputeDP(engine.state, permanentId);
   engine.modifiers.recomputeFilteredPlayerDp(engine.state);
+  // A dpImmune restriction may be installed after the reduction it suppresses. Refresh
+  // every reduced recipient before capturing the next DP seed, including recipients absent
+  // from the previous seed. Otherwise their stale reduced DP alternates with the protected
+  // value on successive passes (EX13-035's aura against unsuspended EX13-023).
+  engine.modifiers.refreshReducedDp(engine.state);
 }

@@ -29,7 +29,10 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     // "DP can't be reduced" (§15-1-3) gates negative deltas only. The ledger suppresses a
     // reduction while `dpImmune` holds rather than dropping it, so it applies for the rest
     // of its duration once the protection ends.
-    const byOpponentEffect = pc.helpers.isOpponentEffectAgainst(permanentId);
+    const byOpponentEffect =
+      opts?.sourceSeat === undefined
+        ? pc.helpers.isOpponentEffectAgainst(permanentId)
+        : opts.sourceSeat !== before.controllerSeat;
     ledger.addDpModifier(state, permanentId, delta, durationForTarget(permanentId, duration), {
       byOpponentEffect,
       ...(opts?.continuous === undefined ? continuousOpt() : { continuous: opts.continuous }),
