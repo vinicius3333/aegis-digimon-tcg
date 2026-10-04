@@ -340,7 +340,7 @@ export async function engineConsultLeavePrevention(
             });
       },
       turnSeat: engine.state.turnSeat,
-      // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
+      // Shared once-per-turn replacement ledger, keyed in the shared per-turn UseTracker
       // (reset at each turn start alongside every other Once-Per-Turn limit).
       oncePerTurnFired: (key) => engine.tracker.count(key, "replacement") > 0,
       markOncePerTurnFired: (key) => engine.tracker.register(key, "replacement"),
@@ -739,8 +739,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     inContinuousPass: () => inContinuousPass(engine),
     inResolvingWindow: () => engine.activeWindowToken !== undefined,
     turnEndWindowSeat: () => engine.turnEndWindowSeat,
-    barrierFired: (key) => engine.tracker.count(key, "replacement") > 0,
-    markBarrierFired: (key) => engine.tracker.register(key, "replacement"),
+    oncePerTurnFired: (key) => engine.tracker.count(key, "replacement") > 0,
+    markOncePerTurnFired: (key) => engine.tracker.register(key, "replacement"),
     noteLinked: (instanceIds) => {
       for (const instanceId of instanceIds) engine.justLinked.add(instanceId);
     },

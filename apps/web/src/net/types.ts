@@ -17,6 +17,8 @@ export interface AegisJoinOptions {
   authTicket?: string;
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
+    | "arena-bt23-examon-partition-return"
+    | "arena-bt23-examon-piercing-end-turn"
     | "battle"
     | "field-grouping"
     | "arena-field-grouping-dense"
@@ -55,6 +57,7 @@ export interface AegisJoinOptions {
     | "arena-ad1-adventure-tamers-security"
     | "arena-lm067-gundramon-free-option"
     | "arena-bt10-taiki-x7-xros-heart"
+    | "arena-bt10-taiki-reveal-under-self"
     | "arena-ex13-sampson-face-down-sources"
     | "arena-p240-arcturusmon-vb-routes"
     | "arena-p240-arcturusmon-ordered-placement"
@@ -130,6 +133,7 @@ export interface AegisJoinOptions {
     | "arena-bt13-royal-purge-delay-rush"
     | "arena-p206-digital-gate-breeding-color"
     | "arena-ex13-merciful-mode-attack-order"
+    | "arena-ex13-merciful-repeat-barrier"
     | "arena-ad1-gallantmon-deletion-attack-order"
     | "arena-bt20-cool-boy-stacked-omekamon"
     | "arena-ex10-god-grade-raising-color"
@@ -144,6 +148,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4892-effect-digixros"
     | "arena-moon-pending-source-deleted"
     | "arena-mirage-hidden-hand"
+    | "arena-p224-kotone-own-source"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
     | "arena-bt20-saviorhuckmon-end-turn-sistermon"

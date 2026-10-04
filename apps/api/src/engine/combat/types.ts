@@ -274,13 +274,6 @@ export interface CombatHooks {
   /** Add Alliance's Security Attack +1 for this attack, independent of its source remaining active. */
   addSecurityAttack?: (permanentId: string) => void;
   /**
-   * Once-per-turn prevention ledger (＜Barrier＞). `barrierFired` returns true
-   * when the given per-permanent key has already prevented a removal this turn;
-   * `markBarrierFired` records it after a successful prevent.
-   */
-  barrierFired?: (key: string) => boolean;
-  markBarrierFired?: (key: string) => void;
-  /**
    * Pay Barrier's security-trash cost through the shared security primitive so
    * `whenSecurityRemoved` watchers observe the removal before battle continues.
    * Minimal combat-unit fixtures may omit this and use the direct access fallback.

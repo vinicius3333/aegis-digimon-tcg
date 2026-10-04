@@ -7,7 +7,7 @@ import { compiled } from "./BT18-061.js";
 import "./index.js";
 
 describe("BT18-061 Trailmon", () => {
-  it("reveals three and places a qualifying black level-four card under itself", async () => {
+  it("Discord 1556107827456774256 sweep: places a revealed black level-four card under itself with another Digimon in play", async () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[1]).toMatchObject({
@@ -23,6 +23,7 @@ describe("BT18-061 Trailmon", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT1-010", as: "other" }],
           hand: [{ card: "BT18-061", as: "trailmon" }],
           deck: ["BT11-040", "BT1-010", "BT18-088"],
         },
@@ -41,6 +42,8 @@ describe("BT18-061 Trailmon", () => {
     const trailmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT18-061")!;
     expect(trailmon.stack.some((card) => card.cardId === "BT11-040")).toBe(true);
     expect(trailmon.stack).toHaveLength(1);
+    expect(s.perm("other").stack).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseTargets")).toBe(false);
     expect(s.state.memory).toBe(6);
     assertNoLoudGap(s);
   });

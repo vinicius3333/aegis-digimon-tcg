@@ -26,11 +26,13 @@ const SUPPORT_GAP_SHARE = 0.3;
 
 /**
  * Stacked puts the support lane under the Digimon (above them for the opponent). A row
- * too short for two lanes, like a phone on its side, puts the lanes side by side.
+ * too short for two lanes, like a phone on its side, puts the lanes side by side. An
+ * upright phone too short to stack merges both into one lane, Digimon first.
  */
 export enum LanePlacement {
   Stacked = "stacked",
   SideBySide = "side-by-side",
+  Merged = "merged",
 }
 
 interface LaneMetrics {
@@ -52,6 +54,11 @@ const LANE_METRICS: Record<LanePlacement, LaneMetrics> = {
     supportScale: 0.8,
     digimonPadding: { top: 9, bottom: 2 },
     supportPadding: { top: 11, bottom: 2 },
+  },
+  [LanePlacement.Merged]: {
+    supportScale: 1,
+    digimonPadding: { top: 9, bottom: 2 },
+    supportPadding: { top: 9, bottom: 2 },
   },
 };
 
@@ -291,8 +298,9 @@ export function laneContentWidth(
 }
 
 /**
- * Narrows stacked lanes whose cards overflow the row's width, down to a floor. Past
- * the floor the lanes scroll rather than shrink cards past reading.
+ * Narrows lanes whose cards overflow the row's width, down to a floor. Past the
+ * floor the lanes scroll rather than shrink cards past reading. Side-by-side lanes
+ * share the row's width, so their widths add up.
  */
 export function fitLanesToWidth(
   lanes: LaneLayout,
@@ -300,14 +308,21 @@ export function fitLanesToWidth(
   cards: { digimon: readonly LaneCard[]; support: readonly LaneCard[] },
   content: LaneContent,
 ): LaneLayout {
-  if (!content.fitWidth || lanes.placement !== LanePlacement.Stacked || rowWidth <= 0) return lanes;
-  const scale = content.supportScale ?? LANE_METRICS[LanePlacement.Stacked].supportScale;
+  if (!content.fitWidth || rowWidth <= 0) return lanes;
+  const scale = content.supportScale ?? LANE_METRICS[lanes.placement].supportScale;
   const supportFor = (width: number) => Math.max(22, Math.floor(width * scale));
   const step = content.sourceStep ?? 4;
   const preferStacked = content.preferStacked ?? false;
-  const fits = (width: number) =>
-    laneContentWidth(cards.digimon, width, DIGIMON_GAP_SHARE, step, preferStacked) <= rowWidth &&
-    laneContentWidth(cards.support, supportFor(width), SUPPORT_GAP_SHARE, step, preferStacked) <= rowWidth;
+  const digimonWidth = (width: number) =>
+    laneContentWidth(cards.digimon, width, DIGIMON_GAP_SHARE, step, preferStacked);
+  const supportWidth = (width: number) =>
+    laneContentWidth(cards.support, supportFor(width), SUPPORT_GAP_SHARE, step, preferStacked);
+  const fits = {
+    [LanePlacement.Stacked]: (width: number) => digimonWidth(width) <= rowWidth && supportWidth(width) <= rowWidth,
+    [LanePlacement.SideBySide]: (width: number) => digimonWidth(width) + supportWidth(width) <= rowWidth,
+    [LanePlacement.Merged]: (width: number) =>
+      laneContentWidth([...cards.digimon, ...cards.support], width, DIGIMON_GAP_SHARE, step, preferStacked) <= rowWidth,
+  }[lanes.placement];
   if (fits(lanes.digimon)) return lanes;
   const digimon = Math.max(Math.ceil(lanes.digimon * MIN_WIDTH_SHRINK), fittedWidth(lanes.digimon, fits));
   return { ...lanes, digimon, support: supportFor(digimon) };
@@ -388,6 +403,27 @@ function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneConte
   return { placement: LanePlacement.Stacked, digimon, support: supportWidth(digimon) };
 }
 
+/** A merged lane holds both kinds of card, so it clears the larger source fan and links. */
+function mergedContent(content: LaneContent): LaneContent {
+  return {
+    ...content,
+    digimonSources: Math.max(content.digimonSources ?? 0, content.supportSources ?? 0),
+    digimonLinks: Math.max(content.digimonLinks ?? 0, content.supportLinks ?? 0),
+  };
+}
+
+/** One lane at the row's full height; support cards match the Digimon. */
+function mergedLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout {
+  const placement = LanePlacement.Merged;
+  const merged = mergedContent(content);
+  const digimon = fittedWidth(
+    layoutWidth,
+    (width) =>
+      laneHeight(width, laneMetrics(placement, merged, { digimon: width, support: 0 }).digimonPadding) <= rowHeight,
+  );
+  return { placement, digimon, support: digimon };
+}
+
 function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneContent): LaneLayout {
   const placement = LanePlacement.SideBySide;
   const digimon = fittedWidth(
@@ -396,7 +432,7 @@ function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneCo
       laneHeight(width, laneMetrics(placement, content, { digimon: width, support: 0 }).digimonPadding) <= rowHeight,
   );
   const support = fittedWidth(
-    Math.max(22, digimon * LANE_METRICS[placement].supportScale),
+    Math.max(22, digimon * (content.supportScale ?? LANE_METRICS[placement].supportScale)),
     (width) =>
       laneHeight(width, laneMetrics(placement, content, { digimon, support: width }).supportPadding) <= rowHeight,
   );
@@ -434,7 +470,10 @@ export function fitLanes(row: { width: number; height: number }, layoutWidth: nu
     return { placement, digimon, support };
   }
   const stacked = stackedLanes(row.height, layoutWidth, content);
-  return stacked ?? sideBySideLanes(row.height, layoutWidth, content);
+  if (stacked) return stacked;
+  return content.preferStacked
+    ? mergedLanes(row.height, layoutWidth, content)
+    : sideBySideLanes(row.height, layoutWidth, content);
 }
 
 function useRowSize() {
@@ -601,7 +640,8 @@ export function OrganizedBattleRow({
           support: Math.round(sharedWidth * (ownLanes.support / ownLanes.digimon)),
         }
       : ownLanes;
-  const metrics = laneMetrics(lanes.placement, content, lanes);
+  const merged = lanes.placement === LanePlacement.Merged;
+  const metrics = laneMetrics(lanes.placement, merged ? mergedContent(content) : content, lanes);
   const edge = (width: number, sources: number) => laneEdge(width, sources, size.sourceStep);
   const digimonCards = arrangement.digimon.map((permanent) => card([permanent], permanent.permanentId, lanes.digimon));
   const supportCards = carryGroupKeys(arrangement.support, previous.current, isSuspended).map((group) =>
@@ -621,7 +661,10 @@ export function OrganizedBattleRow({
       className="game-battle-row game-battle-lane game-battle-lane--digimon"
       role="group"
       aria-label={digimonLabel}
-      edgeClearance={edge(lanes.digimon, content.digimonSources)}
+      edgeClearance={edge(
+        lanes.digimon,
+        merged ? Math.max(content.digimonSources, content.supportSources) : content.digimonSources,
+      )}
       style={{
         flex: "0 1 auto",
         minHeight: keepsDigimonSlot ? laneHeight(lanes.digimon, metrics.digimonPadding) : 0,
@@ -637,32 +680,34 @@ export function OrganizedBattleRow({
     >
       {arrangement.digimon.length === 0 && !hasSupport ? emptyLabel : null}
       {digimonCards.map(renderCard)}
+      {merged ? supportCards.map(renderCard) : null}
     </BattleRow>
   );
 
-  const showsDigimonLane = content.digimonCount > 0 || !hasSupport || keepsDigimonSlot;
-  const supportLane = hasSupport ? (
-    <BattleRow
-      key="support"
-      className="game-battle-row game-battle-lane game-battle-lane--support"
-      role="group"
-      aria-label={supportLabel}
-      edgeClearance={edge(lanes.support, content.supportSources)}
-      style={{
-        flex: "0 1 auto",
-        display: "flex",
-        gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
-        justifyContent: "safe center",
-        alignItems: "center",
-        ...({
-          "--field-lane-top": `${metrics.supportPadding.top}px`,
-          "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
-        } as React.CSSProperties),
-      }}
-    >
-      {supportCards.map(renderCard)}
-    </BattleRow>
-  ) : null;
+  const showsDigimonLane = merged || content.digimonCount > 0 || !hasSupport || keepsDigimonSlot;
+  const supportLane =
+    hasSupport && !merged ? (
+      <BattleRow
+        key="support"
+        className="game-battle-row game-battle-lane game-battle-lane--support"
+        role="group"
+        aria-label={supportLabel}
+        edgeClearance={edge(lanes.support, content.supportSources)}
+        style={{
+          flex: "0 1 auto",
+          display: "flex",
+          gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
+          justifyContent: "safe center",
+          alignItems: "center",
+          ...({
+            "--field-lane-top": `${metrics.supportPadding.top}px`,
+            "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
+          } as React.CSSProperties),
+        }}
+      >
+        {supportCards.map(renderCard)}
+      </BattleRow>
+    ) : null;
 
   return (
     <div

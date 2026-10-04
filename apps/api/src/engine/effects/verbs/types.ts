@@ -302,12 +302,11 @@ export interface PrimitivesEngine {
   /** The seat whose end-of-turn window is resolving; undefined outside that window. */
   turnEndWindowSeat?(): Seat | undefined;
   /**
-   * Once-per-turn prevention ledger (＜Barrier＞). `barrierFired` returns true
-   * when the given per-permanent key has already prevented a removal this turn;
-   * `markBarrierFired` records it after a successful prevent.
+   * Shared once-per-turn replacement ledger, also used by link-cost reductions.
+   * The caller provides a stable effect key and records it after successful use.
    */
-  barrierFired?: (key: string) => boolean;
-  markBarrierFired?: (key: string) => void;
+  oncePerTurnFired?: (key: string) => boolean;
+  markOncePerTurnFired?: (key: string) => void;
   /**
    * Report cards that were JUST linked to a permanent. Comprehensive Rules §4-9-5: when
    * linking to a Digimon that has already reached its link limit, "the same number of the

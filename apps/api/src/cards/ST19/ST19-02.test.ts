@@ -2,9 +2,10 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST19-02.js";
 
-describe("ST19-02 ＜Barrier＞ is once per turn", () => {
+describe("ST19-02 Junkmon inherited ＜Barrier＞", () => {
   it("uses the catalogued Junkmon Puppet identity", () => {
     expect(getCardDefinition("ST19-02")).toMatchObject({
       nameEn: "Junkmon",
@@ -14,67 +15,42 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
     });
   });
 
-  it("prevents the first battle deletion but not the second in the same turn", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          deck: Array.from({ length: 10 }, () => "BT1-009"),
-          battleArea: [
-            { card: "BT1-009", as: "first", dp: 5000 },
-            { card: "BT1-009", as: "second", dp: 5000 },
-          ],
-        },
-        1: {
-          deck: Array.from({ length: 10 }, () => "BT1-009"),
-          battleArea: [{ card: "BT1-009", as: "barrier", dp: 1000, suspended: true, under: ["ST19-02"] }],
-          security: ["BT1-085", "BT1-085"],
-        },
+  it("can prevent two battle deletions in the same turn (Discord bug 1556063217623629944)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-023", as: "first" },
+          { card: "BT1-023", as: "second" },
+        ],
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const turn = s.engine.runOneTurn();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    await settle(() => mainPhase.isOpen);
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("first").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
-    await settle(() => combat.hasOpenBarrierDecision);
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondBarrier",
-        permanentId: s.perm("barrier").permanentId,
-        accept: true,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
-    await settle(
-      () =>
-        s.perm("first").isSuspended &&
-        s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("barrier").permanentId),
-    );
+      1: {
+        battleArea: [{ card: "BT1-051", as: "barrier", suspended: true, under: ["ST19-02"] }],
+        security: ["BT1-085", "BT1-085"],
+      },
+    });
+    await s.ready();
+    const defenderId = s.perm("barrier").permanentId;
+    const turnCount = s.state.turnCount;
+    for (const [index, alias] of ["first", "second"].entries()) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(alias).permanentId,
+          target: { kind: "permanent", permanentId: defenderId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.filter(({ kind }) => kind === "barrierPrompt").length > index);
+      expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: defenderId, accept: true })).toEqual({
+        ok: true,
+      });
+      await settle(() => !observe(s.engine).isAttacking());
+    }
+    expect(s.state.turnCount).toBe(turnCount);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(mainPhase.isOpen).toBe(true);
-
-    s.events.length = 0;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("second").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    if (mainPhase.isOpen) expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await turn;
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events.filter(({ kind }) => kind === "barrierPrompt")).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-085", "BT1-085"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses Decoy to sacrifice its host and preserve another Puppet from an effect deletion", async () => {

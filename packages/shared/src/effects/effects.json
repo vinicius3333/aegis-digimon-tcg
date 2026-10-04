@@ -8343,7 +8343,8 @@
                   "nameOrTrait": [{ "tokens": ["Xros Heart"], "match": "trait" }]
                 },
                 "count": 1,
-                "to": "underTamer"
+                "to": "underTamer",
+                "underFilter": { "isSelfRef": true }
               }
             ],
             "rest": "deckBottom"
@@ -24191,7 +24192,8 @@
                   "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "trait" }]
                 },
                 "count": 1,
-                "to": "placeUnder"
+                "to": "placeUnder",
+                "underFilter": { "isSelfRef": true }
               }
             ],
             "rest": "trash"
@@ -53549,6 +53551,7 @@
                 ],
                 "count": 1,
                 "to": "placeUnder",
+                "underFilter": { "isSelfRef": true },
                 "optional": true
               }
             ],
@@ -131906,7 +131909,8 @@
                   "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "trait" }]
                 },
                 "count": 1,
-                "to": "placeUnder"
+                "to": "placeUnder",
+                "underFilter": { "isSelfRef": true }
               }
             ],
             "rest": "trash"

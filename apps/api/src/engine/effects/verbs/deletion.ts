@@ -6,19 +6,12 @@ import {
   type Permanent,
   type Seat,
 } from "@aegis/shared";
-import {
-  decoyMatches,
-  decoySpecFromText,
-  decoySpecMatches,
-  fragmentCountOf,
-  partitionClauseMatches,
-  partitionSpecOf,
-  type PartitionClause,
-} from "../../combat/keywords.js";
+import { decoyMatches, decoySpecFromText, decoySpecMatches, fragmentCountOf } from "../../combat/keywords.js";
 import type { Primitives } from "../EffectContext.js";
 import { effectiveNames } from "../continuous.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { createPartitionReactions } from "./partition.js";
 import { isOptionPermanent } from "../../cards/cardData.js";
 import { canPaySuspendCost } from "../../combat/legality.js";
 
@@ -35,23 +28,8 @@ function permanentSource(perm: Permanent) {
   };
 }
 
-function matchPartitionSources(
-  clauses: readonly PartitionClause[],
-  sources: readonly Permanent["stack"][number][],
-): string[] | undefined {
-  if (clauses.length === 0) return [];
-  for (const [index, source] of sources.entries()) {
-    if (!partitionClauseMatches(clauses[0]!, source.cardId)) continue;
-    const rest = matchPartitionSources(
-      clauses.slice(1),
-      sources.filter((_, sourceIndex) => sourceIndex !== index),
-    );
-    if (rest !== undefined) return [source.instanceId, ...rest];
-  }
-  return undefined;
-}
-
 export function createDeletionVerbs(pc: PrimitivesContext) {
+  const partition = createPartitionReactions(pc);
   const {
     engine,
     access,
@@ -215,42 +193,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // the full endangered set BEFORE another effect can prevent the holder from leaving
     // (EX13-024 / BT23-047 Q7274). Its matched cards may later be loose in trash when the
     // holder leaves, or may still be under a holder saved by the simultaneous prevention.
-    const partitionCandidates = permanentIds
-      .map((permanentId) => {
-        if (cause === "byBattle") return undefined;
-        const perm = access.permanentById(permanentId);
-        if (perm === undefined || perm.topCard === undefined) return undefined;
-        if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
-        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
-        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
-        const topSpec = partitionSpecOf(perm.topCard.cardId);
-        const stackSource =
-          topSpec === undefined ? perm.stack.find((card) => partitionSpecOf(card.cardId) !== undefined) : undefined;
-        const spec = topSpec ?? (stackSource === undefined ? undefined : partitionSpecOf(stackSource.cardId));
-        if (spec === undefined) return undefined;
-        const matchedInstanceIds = matchPartitionSources(spec, perm.stack);
-        if (matchedInstanceIds === undefined) return undefined;
-        return {
-          holderPermanentId: permanentId,
-          seat: perm.controllerSeat,
-          matchedInstanceIds,
-          partitionSourceInstanceId: topSpec === undefined ? stackSource!.instanceId : perm.topCard.instanceId,
-          partitionSourceCardId: topSpec === undefined ? stackSource!.cardId : perm.topCard.cardId,
-          partitionSourceRole: topSpec === undefined ? ("stack" as const) : ("top" as const),
-        };
-      })
-      .filter(
-        (
-          candidate,
-        ): candidate is {
-          holderPermanentId: string;
-          seat: Seat;
-          matchedInstanceIds: string[];
-          partitionSourceInstanceId: string;
-          partitionSourceCardId: string;
-          partitionSourceRole: "top" | "stack";
-        } => candidate !== undefined,
-      );
+    const partitionCandidates = partition.capture(permanentIds, cause);
     // Leave-the-battle-area PREVENT reactions: a card may prevent some of these effect-deletions
     // by paying a cost. Consult them and drop the prevented permanents from the deletion set.
     // Default-safe: the consult returns empty unless a matching prevent-replacement is active.
@@ -291,8 +234,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     }
     // ＜Barrier＞ keyword: when this Digimon would be deleted IN BATTLE, you MAY trash the top
     // card of your security stack to prevent that deletion (Comprehensive Rules §16-25-1/3:
-    // Barrier is battle-only), once per turn per permanent (shared `barrierFired` /
-    // `markBarrierFired` ledger with the combat path). Prompted through the same
+    // Barrier is battle-only), with no once-per-turn limit. Prompted through the same
     // barrierPrompt/respondBarrier window as the combat (battle-loss) path.
     {
       const barriered = new Set<string>();
@@ -301,8 +243,6 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         const perm = access.permanentById(permanentId);
         if (perm === undefined) continue;
         if (access.securityCount(perm.controllerSeat) === 0) continue;
-        const barrierKey = `${permanentId}/barrier`;
-        if (engine.barrierFired?.(barrierKey) === true) continue;
         if (!engine.combat) continue; // no prompt facility available; deletion proceeds
         const accepted = await engine.combat.runBarrierDecision(perm.controllerSeat, permanentId);
         if (!accepted) continue;
@@ -311,7 +251,6 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         } else {
           access.flipTopSecurityToTrash(perm.controllerSeat);
         }
-        engine.markBarrierFired?.(barrierKey);
         barriered.add(permanentId);
       }
       if (barriered.size > 0) toDelete = toDelete.filter((id) => !barriered.has(id));
@@ -780,43 +719,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // ＜Partition＞ reaction: the full matched set must still be available together, either
     // loose after the holder left or under the same holder after a simultaneous prevention.
     // Playing them is a "you may" choice (§16-29-3); accepting plays all at once (§16-29-4).
-    for (const {
-      holderPermanentId,
-      seat,
-      matchedInstanceIds,
-      partitionSourceInstanceId,
-      partitionSourceCardId,
-      partitionSourceRole,
-    } of partitionCandidates) {
-      const survivingHolder = access.permanentById(holderPermanentId);
-      const allMovedToLooseZone = matchedInstanceIds.every((id) => allMoved.includes(id));
-      const partitionSourceStillInRole =
-        partitionSourceRole === "top"
-          ? survivingHolder?.topCard?.instanceId === partitionSourceInstanceId
-          : survivingHolder?.stack.some((card) => card.instanceId === partitionSourceInstanceId) === true;
-      const allStillUnderSurvivingHolder =
-        survivingHolder !== undefined &&
-        partitionSourceStillInRole &&
-        matchedInstanceIds.every((id) => survivingHolder.stack.some((card) => card.instanceId === id));
-      if (!allMovedToLooseZone && !allStillUnderSurvivingHolder) continue;
-      const chosen = await engine.ask.selectInstances(
-        seat,
-        [matchedInstanceIds[0]!],
-        0,
-        1,
-        "＜Partition＞: play the specified digivolution cards without paying their costs?",
-        { sourceCardId: partitionSourceCardId, sourceInstanceId: partitionSourceInstanceId },
-      );
-      if (chosen.length === 0) continue;
-      // Q2860: Partition plays from digivolution cards even after the holder's deletion trashed them.
-      if (engine.playForKeywordEffect) {
-        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds, {
-          playedFromZone: "digivolutionCards",
-        });
-      } else {
-        await playInstances(matchedInstanceIds, { payCost: false, playedFromZone: "digivolutionCards" });
-      }
-    }
+    await partition.resolve(partitionCandidates, allMoved);
     return deletedCount;
   };
 

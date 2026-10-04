@@ -15,6 +15,7 @@ import "../BT1/BT1-101.js";
 import "../BT4/BT4-057.js";
 import "../BT9/BT9-050.js";
 import "../AD1/AD1-025.js";
+import "./EX13-030.js";
 
 const CARD_ID = "EX13-077";
 
@@ -438,6 +439,71 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.perm("merciful").isSuspended).toBe(false);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
   });
+
+  it.each([3, 1])(
+    "offers inherited Barrier for each consecutive Battle while security remains (%i security, Discord bug 1556063217623629944)",
+    async (securityCount) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: CARD_ID, as: "merciful" }],
+            battleArea: [{ card: "AD1-020", as: "colorTamer" }],
+            deck: ["BT1-012"],
+            security: ["BT1-090"],
+          },
+          1: {
+            battleArea: [{ card: "BT1-057", as: "host", under: [{ card: "EX13-030", as: "barrierSource" }] }],
+            security: Array.from({ length: securityCount }, () => "BT1-009"),
+          },
+        },
+        {
+          autoAcceptOptional: true,
+          declinePrompts: ["Attack"],
+          autoChooseOption: true,
+          autoSelectCards: true,
+          preferOptionIndex: 0,
+        },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const hostId = s.perm("host").permanentId;
+      expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+        ok: true,
+      });
+
+      for (let battle = 0; battle < Math.min(securityCount, 2); battle++) {
+        await settle(
+          () =>
+            s.events.filter(({ kind }) => kind === "barrierPrompt").length > battle ||
+            s.events.some(
+              (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "OnPlay",
+            ),
+        );
+        expect(s.events.filter(({ kind }) => kind === "barrierPrompt")).toHaveLength(battle + 1);
+        expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+          ok: true,
+        });
+      }
+      await settle(() =>
+        s.events.some(
+          (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "OnPlay",
+        ),
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.events.filter(({ kind }) => kind === "effectOptionChosen")).toHaveLength(2);
+      expect(s.events.filter(({ kind }) => kind === "barrierPrompt")).toHaveLength(Math.min(securityCount, 2));
+      expect(s.state.players[1]!.security).toHaveLength(Math.max(0, securityCount - 2));
+      expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(securityCount > 1);
+      const survivor = s.state.players[1]!.battleArea.find(({ permanentId }) => permanentId === hostId);
+      expect(survivor?.stack.map(({ instanceId }) => instanceId)).toEqual(
+        securityCount > 1 ? [s.inst("barrierSource").instanceId] : undefined,
+      );
+      expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+        securityCount > 1 ? ["BT1-009", "BT1-009"] : ["BT1-009", "EX13-030", "BT1-057"],
+      );
+    },
+  );
 
   it("resolves Battle and Recovery before the attacker's When Attacking effect (Discord bug 1554922883652784198)", async () => {
     const preferInstanceIds: string[] = [];
