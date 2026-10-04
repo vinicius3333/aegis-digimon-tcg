@@ -7,8 +7,8 @@
   .game-board {
     --arena-header-height: 44px;
     --arena-memory-height: 52px;
-    --arena-hand-width: 60px;
-    --arena-hand-height: 132px;
+    --arena-hand-width: 64px;
+    --arena-hand-height: 144px;
     --arena-hand-reserved: 36px;
     --arena-hand-lift: 6px;
     --arena-source-step: 2px;
@@ -31,8 +31,8 @@
     --arena-pile-width: 40px;
     --arena-utility-height: 72px;
     --arena-memory-height: 48px;
-    --arena-hand-width: 44px;
-    --arena-hand-height: 104px;
+    --arena-hand-width: 52px;
+    --arena-hand-height: 124px;
     --arena-hand-reserved: 36px;
     --arena-hand-lift: 6px;
     --arena-header-height: 44px;

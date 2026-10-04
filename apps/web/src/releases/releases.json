@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.9.1-beta",
+    "releasedAt": "2026-10-04",
+    "summaryKey": "releases.1.9.1-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.9.1-beta.fix.phoneHand"
+      },
+      {
+        "textKey": "releases.1.9.1-beta.fix.phoneField"
+      }
+    ]
+  },
+  {
     "version": "1.9.0-beta",
     "releasedAt": "2026-10-03",
     "summaryKey": "releases.1.9.0-beta.summary",
