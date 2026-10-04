@@ -13,6 +13,7 @@ import { isPermanentUnaffectable, permanentMatchesFilter } from "../matching/per
 import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { candidatePermanents } from "../targeting/permanents.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
+import { fixedPlayReductionBound } from "../registration/fixedPlayReduction.js";
 import { playEffectInstances } from "./effectPlayAssembly.js";
 import { getCardDefinition } from "@aegis/shared";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
@@ -538,6 +539,7 @@ export async function runReplacement(
     ];
     const interactiveOptional =
       action.optional === true || nestedCostModifiers?.some((modifier) => modifier.optional) === true;
+    const playReductionBound = fixedPlayReductionBound(action);
     const ownerSeat = ctx.source.ownerSeat;
     ctx.fx.subscribeReplacement({
       ...replacementBudget,
@@ -595,6 +597,7 @@ export async function runReplacement(
       ...(interactiveCosts.length > 0 || interactiveOptional || amountChoices !== undefined
         ? {
             controllerSeat: ownerSeat,
+            ...(playReductionBound === undefined ? {} : { playReductionBound }),
             ...(self === undefined ? { activationContext: ctx } : {}),
             // "When THIS card would be played" (`isSelfRef`) only ever describes the bearer's own
             // play. Once the bearer is a resident on the field its subscription still exists, so

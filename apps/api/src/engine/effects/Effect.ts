@@ -1,6 +1,7 @@
 import type { Keyword } from "@aegis/shared";
 import type { EffectContext } from "./EffectContext.js";
 import type { Permanent } from "@aegis/shared";
+import type { PlayReductionBound } from "./context/replacements.js";
 
 /**
  * TS analogue of the source `ICardEffect`. Card files almost never
@@ -52,6 +53,8 @@ export interface Effect {
   potentialPlayCostReduction?(ctx: EffectContext, target?: Permanent): number;
   /** False proves this isolated reducer has no payment target; true leaves final cost unknown. */
   canAttemptPlayCostReduction?(ctx: EffectContext): boolean;
+  /** A sole compiled replacement body with a fixed result; payment safety is checked separately. */
+  playReductionBound?: PlayReductionBound;
   /** The Activate(...) body; await player decisions here. */
   resolve(ctx: EffectContext): Promise<void>;
 }

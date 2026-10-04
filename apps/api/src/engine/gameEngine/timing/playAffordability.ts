@@ -11,8 +11,8 @@ import { crossPermanentPlayReducerWatchers, pendingPlayTarget, residentPlayCostE
 
 /**
  * Prove impossibility without paying a cost or suppressing an unknown reduction route.
- * This bound covers a single self reducer. Other pay-time effects can change its
- * payment resources or memory, so those continue through authoritative resolution.
+ * Covers an isolated self reducer or certified fixed replacement bodies. Other
+ * pay-time effects can change resources or memory and retain authoritative resolution.
  */
 export function minimumDeferredPlayCost(
   engine: GameEngine,
@@ -54,12 +54,92 @@ export function minimumDeferredPlayCost(
           selections: new Map<string, string>(),
         }) === false,
     );
+  const turnBudget = {
+    hasFired: (key: string) => engine.tracker.count(key, "replacement") > 0,
+    markFired: () => {},
+  };
+  // Compiled resident clauses may install their subscription only during payment.
+  // Include their certified result before that installation, without resolving them.
+  const prospective = residentEffects.filter(({ effect }) => effect.playReductionBound !== undefined);
   const hasSubscriptions =
     engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", seat) ||
     engine.subTriggers.hasPassiveReductionsFor("wouldBePlayed");
+  const applicableSubscriptions =
+    hasSubscriptions &&
+    engine.subTriggers.hasApplicablePlayReductions(
+      seat,
+      pendingPlayTarget(instance, source),
+      source.definition,
+      turnBudget,
+      "hand",
+    );
+  if (prospective.length > 0 || applicableSubscriptions) {
+    // No other pay-time body may change memory, install reducers or alter payment resources.
+    if (
+      directEffects.length > 0 ||
+      reducers.length > 0 ||
+      residentEffects.some(
+        ({ effect, source: residentSource }) =>
+          effect.playReductionBound === undefined &&
+          effect.canAttemptPlayCostReduction?.({
+            ...buildEffectContext(engine, residentSource, trigger),
+            selections: new Map<string, string>(),
+          }) !== false,
+      )
+    )
+      return undefined;
+    const bounds = engine.subTriggers.fixedPlayReductionBounds(seat, turnBudget);
+    if (bounds === undefined) return undefined;
+    for (const { effect, source: residentSource } of prospective) {
+      const bound = effect.playReductionBound!;
+      // A no-payment registration may already exist; counting it twice is a safe
+      // overestimate. Source returns are grouped by physical card below.
+      bounds.push({
+        ...bound,
+        sourceInstanceId: residentSource.instanceId,
+        sourcePermanentId: residentSource.permanent()?.permanentId,
+      });
+    }
+    let maximum = 0;
+    const returnedSources = new Map<string, number>();
+    for (const bound of bounds) {
+      if (!bound.returnsSourceToDeck) {
+        maximum += Math.max(0, bound.maximumReduction);
+        continue;
+      }
+      // A hand-armed subscription can later acquire a resident home. Find that
+      // same physical card, rather than trusting its install-time anchor.
+      const permanent = engine.state.players[seat]?.battleArea.find(
+        (unit) => unit.topCard?.instanceId === bound.sourceInstanceId,
+      );
+      if (
+        permanent?.topCard === undefined ||
+        permanent.controllerSeat !== seat ||
+        permanent.topCard.ownerSeat !== seat ||
+        permanent.inBreeding ||
+        permanent.stack.length > 0 ||
+        permanent.linked.length > 0 ||
+        !cardSourceOf(engine, permanent.topCard).definition.kinds.includes(CardKind.Tamer) ||
+        engine.continuous.hasRestriction(permanent.permanentId, "beReturned") ||
+        engine.continuous.hasRestriction(permanent.permanentId, "leaveBattleAreaExceptByDeletion") ||
+        engine.subTriggers.replacementsFor("wouldLeavePlay").length > 0 ||
+        engine.subTriggers.subscriptionsFor("wouldBeReturned").length > 0
+      )
+        return undefined;
+      // The source leaves on its first successful return. A duplicate installation
+      // cannot pay with it again; independent clauses can choose the largest discount.
+      returnedSources.set(
+        permanent.topCard.instanceId,
+        Math.max(returnedSources.get(permanent.topCard.instanceId) ?? 0, bound.maximumReduction),
+      );
+    }
+    // A second source's pre-return recompute may arm a previously absent conditional
+    // reducer after the first source leaves. That route remains unknown.
+    if (returnedSources.size > 1) return undefined;
+    for (const reduction of returnedSources.values()) maximum += reduction;
+    return Math.max(0, baseCost - maximum);
+  }
   if (hasSubscriptions) {
-    // Automatic discounts and proven unavailable payments cannot enable a currently
-    // unrelated subscription. A payable or unknown cost still requires resolution.
     const stableReducers = reducers.every(
       (reducer) =>
         reducer.pay === undefined &&
@@ -68,20 +148,6 @@ export function minimumDeferredPlayCost(
         (reducer.cost === undefined || (reducer.cost.kind === "suspend" && !canPayCost(ctx, reducer.cost))),
     );
     if (!inertEffects || !stableReducers) return undefined;
-    const target = pendingPlayTarget(instance, source);
-    if (
-      engine.subTriggers.hasApplicablePlayReductions(
-        seat,
-        target,
-        source.definition,
-        {
-          hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
-          markFired: () => {},
-        },
-        "hand",
-      )
-    )
-      return undefined;
   }
   if (residentEffects.length > 0) {
     // Every pay-time body must be an isolated sacrifice with no candidate. If any

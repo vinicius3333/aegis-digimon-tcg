@@ -50,6 +50,7 @@ import { CardKind, compiledEffects, EffectTiming, getCardDefinition, isOption } 
 import type { Action, CardEffect, CompiledCard } from "@aegis/shared";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { candidatePermanents } from "../targeting/permanents.js";
+import { fixedPlayReductionBound } from "./fixedPlayReduction.js";
 
 function containsPlayCostReduction(actions: Action[]): boolean {
   return actions.some((action) => {
@@ -202,6 +203,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const markedBuild = (options: BuilderOptions): Effect => {
       const built = build(options);
       const onlyAction = effect.actions.length === 1 ? effect.actions[0] : undefined;
+      const playReductionBound =
+        effect.cost === undefined && !effect.keywords?.length && effect.keywordEffect === undefined
+          ? fixedPlayReductionBound(onlyAction)
+          : undefined;
       const sacrifice =
         effect.cost === undefined &&
         onlyAction?.kind === "ReducePlayCost" &&
@@ -210,6 +215,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           : undefined;
       return {
         ...built,
+        ...(playReductionBound === undefined ? {} : { playReductionBound }),
         ...(sacrifice === undefined
           ? {}
           : {

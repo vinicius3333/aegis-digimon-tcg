@@ -38,11 +38,19 @@ export interface ReplacementInstallBase {
   description: string;
 }
 
+/** A compiled fixed activation result; payment safety still needs a live-board check. */
+export interface PlayReductionBound {
+  maximumReduction: number;
+  returnsSourceToDeck: boolean;
+}
+
 /** "reduceCost": returns a cost delta at the matching cost-computation seam; no prevention gate. */
 export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
   mode: "reduceCost";
   /** Reinstallation of a resident clause, rather than a newly earned triggered grant. */
   residentReduction?: boolean;
+  /** Opt-in proof supplied by the fixed-result interpreter, never inferred from `amount`. */
+  playReductionBound?: PlayReductionBound;
   amount?: number;
   amountForInto?: (def: CardDefinition) => number;
   /**

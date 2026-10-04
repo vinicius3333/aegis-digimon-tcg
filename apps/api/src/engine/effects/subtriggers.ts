@@ -8,6 +8,7 @@ import {
 } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 import { effectProvenanceKinds } from "./effectProvenance.js";
+import type { PlayReductionBound } from "./context/replacements.js";
 
 /**
  * Sub-trigger / delayed-effect + replacement registry
@@ -247,6 +248,8 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
   mode: "reduceCost";
   /** Reinstallation of a resident clause, rather than a newly earned triggered grant. */
   residentReduction?: boolean;
+  /** A fixed compiled result, with separate live-board verification of payment safety. */
+  playReductionBound?: PlayReductionBound;
   amount?: number;
   /** Mutually-exclusive reductions selected when this replacement is activated. */
   amountChoices?: { amount: number; condition?: Condition; raw?: string }[];
@@ -828,6 +831,40 @@ export class SubTriggerRegistry {
         replacement.activate !== undefined &&
         replacement.controllerSeat === seat,
     );
+  }
+
+  /**
+   * Fixed ceilings including currently inapplicable reducers: an earlier payment
+   * may enable their predicates. Unknown callbacks retain authoritative resolution.
+   * Reads no activation, target predicate or consuming ledger operation.
+   */
+  fixedPlayReductionBounds(
+    seat: Seat,
+    turnBudget: SubTriggerTurnLedger,
+  ): Array<PlayReductionBound & { sourcePermanentId?: string; sourceInstanceId?: string }> | undefined {
+    const bounds: Array<PlayReductionBound & { sourcePermanentId?: string; sourceInstanceId?: string }> = [];
+    for (const replacement of this.replacements) {
+      if (replacement.event !== "wouldBePlayed" || replacement.mode !== "reduceCost") continue;
+      if (replacement.oncePerTurnKey !== undefined && turnBudget.hasFired(replacement.oncePerTurnKey)) continue;
+      if (replacement.activate !== undefined) {
+        if (replacement.controllerSeat !== seat) continue;
+        const bound = replacement.playReductionBound;
+        if (bound === undefined || !Number.isFinite(bound.maximumReduction)) return undefined;
+        bounds.push({
+          ...bound,
+          sourcePermanentId: replacement.sourcePermanentId,
+          sourceInstanceId: replacement.sourceInstanceId,
+        });
+      } else {
+        // A callback may read changing board state despite receiving only the
+        // destination definition. Its current value is not an absolute ceiling.
+        if (replacement.amountForInto !== undefined) return undefined;
+        const amount = replacement.amount ?? 0;
+        if (!Number.isFinite(amount)) return undefined;
+        bounds.push({ maximumReduction: Math.max(0, amount), returnsSourceToDeck: false });
+      }
+    }
+    return bounds;
   }
 
   hasInteractiveReductionForSource(
