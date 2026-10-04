@@ -16,6 +16,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-bt23-examon-partition-return": {
+    ptBR: "Entre na Principal e evolua AD1-011 Paildramon para AD1-024 Imperialdramon: Fighter Mode da mão (custo 5). O efeito obrigatório devolve o Examon BT23-047 do bot ao fundo do deck. Aceite Partition se estiver controlando esse lado: Wingdramon EX13-021 e Groundramon EX13-041 entram juntos sem pagar custo; Dracomon e Coredramon vão para a lixeira. Recuse os efeitos opcionais [Todos os Turnos] de Imperialdramon para não remover os Digimon recém-jogados. Reprodução da partida 232fad0a, às 20:21 UTC, bug 1556039867106983976.",
+    en: "Enter Main and digivolve AD1-011 Paildramon into AD1-024 Imperialdramon: Fighter Mode from hand (cost 5). Its mandatory effect returns the bot's BT23-047 Examon to deck bottom. Accept Partition if controlling that side: EX13-021 Wingdramon and EX13-041 Groundramon enter together for free; Dracomon and Coredramon go to trash. Decline Imperialdramon's optional [All Turns] effects to avoid removing the newly played Digimon. Reproduces match 232fad0a at 20:21 UTC, bug 1556039867106983976.",
+  },
+  "arena-bt23-examon-piercing-end-turn": {
+    ptBR: "Entre na Principal e encerre o turno. Aceite a DNA herdada de Dracomon e escolha Examon BT23-047 para juntar Groundramon e Wingdramon. Aceite o ataque de [Quando Evolui] e escolha o Agumon do bot. Aceite desuspender por Wingdramon. Agumon é deletado em batalha; Groundramon descarta 1 segurança e Piercing com Segurança +1 faz 2 checagens. A segurança do bot cai de 5 para 2. No log original, Wormmon voltou à mão antes da batalha, então aquele ataque não podia ativar Piercing.",
+    en: "Enter Main and end your turn. Accept Dracomon's inherited DNA and choose BT23-047 Examon to combine Groundramon and Wingdramon. Accept its [When Digivolving] attack and target the bot's Agumon. Accept Wingdramon's unsuspend. Agumon is deleted in battle; Groundramon trashes 1 security and Piercing with Security A. +1 performs 2 checks. The bot's security falls from 5 to 2. In the original log, Wormmon returned to hand before battle, so that attack could not trigger Piercing.",
+  },
   "arena-bt24-sonic-shot-decline-link": {
     ptBR: "Encerre a fase de criação e depois o turno sem usar Sonic Shot da mão. No [Fim do Seu Turno] de Dan Yuki & Kanan Yuki, aceite suspender o Tamer e escolha BT24-095 Sonic Shot para usar sem pagar o custo. O bot não tem Digimon nem Tamer em campo. Na escolha do destinatário do Link, clique em Nenhuma seleção. Sonic Shot deve ir para o lixo, nenhum dos seus dois Digimon recebe o Link e o efeito de Dan & Kanan continua para a escolha do atacante.",
     en: "End the breeding phase, then end your turn without using Sonic Shot from hand. On Dan Yuki & Kanan Yuki's [End of Your Turn], accept suspending the Tamer and choose BT24-095 Sonic Shot to use without paying its cost. The bot has no Digimon or Tamers in play. At the Link recipient selection, choose No Selection. Sonic Shot must go to the trash, neither of your two Digimon receives the Link, and Dan & Kanan's effect continues to the attacker selection.",
@@ -627,6 +635,8 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-bt23-examon-partition-return", "BT23 Examon · Partition on deck return"],
+  ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
