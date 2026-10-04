@@ -1,9 +1,10 @@
 """Behavior cloning with episode-separated validation and the same masked policy as PPO."""
 
+import copy
 import hashlib
 import json
 from pathlib import Path
-from typing import TypedDict
+from typing import Any, TypedDict
 
 import click
 import numpy as np
@@ -13,15 +14,18 @@ from numpy.typing import NDArray
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
 from model import CandidatePolicy
 
-
 type Sample = tuple[NDArray[np.float32], NDArray[np.float32], int]
 type TensorBatch = tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
 
 
-class Metrics(TypedDict):
+class ActionMetrics(TypedDict):
     accuracy: float
     loss: float
     decisions: int
+
+
+class Metrics(ActionMetrics):
+    byActionType: dict[str, ActionMetrics]
 
 
 def cache_demonstrations(
@@ -33,6 +37,7 @@ def cache_demonstrations(
     }
     split: dict[str, list[str]] = {"training": [], "validation": []}
     references: dict[str, list[tuple[int, int, int]]] = {"training": [], "validation": []}
+    action_types: dict[str, list[str]] = {"training": [], "validation": []}
     cache_path = output / "encoded-samples.f32"
     offset = 0
     with cache_path.open("wb") as cache:
@@ -52,9 +57,11 @@ def cache_demonstrations(
                 state.tofile(cache)
                 actions.tofile(cache)
                 references[name].append((offset, len(actions), row["action"]))
+                action_types[name].append(row["window"]["actions"][row["action"]]["intent"]["type"])
                 offset += state.size + actions.size
     if not references["training"] or not references["validation"]:
         raise click.ClickException("Need completed episodes in both training and validation folds")
+    (output / "sample-types.json").write_text(json.dumps(action_types), encoding="utf-8")
     features = np.memmap(cache_path, dtype=np.float32, mode="r")
 
     def samples(name: str) -> list[Sample]:
@@ -89,20 +96,114 @@ def batch_tensors(samples: list[Sample], device: torch.device) -> TensorBatch:
     )
 
 
-def metrics(model: CandidatePolicy, samples: list[Sample], device: torch.device) -> Metrics:
+def metrics(
+    model: CandidatePolicy,
+    samples: list[Sample],
+    device: torch.device,
+    action_types: list[str] | None = None,
+) -> Metrics:
+    if action_types is not None and len(action_types) != len(samples):
+        raise ValueError("Action types must match the cached sample order")
     correct = 0
     loss = 0.0
+    grouped: dict[str, dict[str, float | int]] = {}
     with torch.no_grad():
         for start in range(0, len(samples), 128):
             states, actions, mask, labels = batch_tensors(samples[start : start + 128], device)
             logits, _ = model(states, actions, mask)
-            loss += float(torch.nn.functional.cross_entropy(logits, labels, reduction="sum"))
-            correct += int((logits.argmax(-1) == labels).sum())
+            losses = torch.nn.functional.cross_entropy(logits, labels, reduction="none")
+            matches = logits.argmax(-1) == labels
+            loss += float(losses.sum())
+            correct += int(matches.sum())
+            if action_types is not None:
+                for kind, match, item_loss in zip(
+                    action_types[start : start + 128],
+                    matches.cpu().tolist(),
+                    losses.cpu().tolist(),
+                    strict=True,
+                ):
+                    row = grouped.setdefault(kind, {"correct": 0, "loss": 0.0, "decisions": 0})
+                    row["correct"] += match
+                    row["loss"] += item_loss
+                    row["decisions"] += 1
     return {
         "accuracy": correct / len(samples),
         "loss": loss / len(samples),
         "decisions": len(samples),
+        "byActionType": {
+            kind: {
+                "accuracy": row["correct"] / row["decisions"],
+                "loss": row["loss"] / row["decisions"],
+                "decisions": int(row["decisions"]),
+            }
+            for kind, row in grouped.items()
+        },
     }
+
+
+def training_setup(
+    encoder: FeatureEncoder,
+    metadata: dict[str, Any],
+    device: torch.device,
+    *,
+    checkpoint: Path | None,
+    learning_rate: float | None,
+    policy_anchor: float,
+) -> tuple[CandidatePolicy, torch.optim.Adam, CandidatePolicy | None, dict[str, Any]]:
+    if policy_anchor > 0 and checkpoint is None:
+        raise click.ClickException("--policy-anchor requires a source checkpoint")
+    saved = None
+    source: dict[str, Any] = {}
+    width = 128
+    if checkpoint is not None:
+        saved = torch.load(checkpoint, map_location=device, weights_only=True)
+        if saved.get("featureVersion") != FEATURE_VERSION or saved.get("metadata") != metadata:
+            raise click.ClickException(
+                "Checkpoint deck/observation schema differs from the dataset"
+            )
+        if "optimizer" not in saved:
+            raise click.ClickException("Warm-start imitation requires the source Adam state")
+        width = saved["model"]["state.0.weight"].shape[0]
+        with checkpoint.open("rb") as stream:
+            source = {
+                "checkpoint": str(checkpoint.resolve()),
+                "sha256": hashlib.file_digest(stream, "sha256").hexdigest(),
+                "games": saved.get("games"),
+                "imitationEpoch": saved.get("imitationEpoch"),
+            }
+    model = CandidatePolicy(encoder.state_dim, encoder.action_dim, width=width).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+    if saved is not None:
+        model.load_state_dict(saved["model"])
+        optimizer.load_state_dict(saved["optimizer"])
+    if learning_rate is not None:
+        for group in optimizer.param_groups:
+            group["lr"] = learning_rate
+    anchor = copy.deepcopy(model).eval().requires_grad_(False) if policy_anchor > 0 else None
+    return model, optimizer, anchor, source
+
+
+def policy_divergence(
+    logits: torch.Tensor, reference_logits: torch.Tensor, mask: torch.Tensor
+) -> torch.Tensor:
+    """KL(reference || learner), excluding padded candidates before subtraction."""
+    current = torch.log_softmax(logits.masked_fill(~mask, -torch.inf), dim=-1)
+    reference = torch.log_softmax(reference_logits.masked_fill(~mask, -torch.inf), dim=-1)
+    probabilities = reference.exp()
+    current = current.masked_fill(~mask, 0)
+    reference = reference.masked_fill(~mask, 0)
+    return (probabilities * (reference - current)).sum(-1).mean()
+
+
+def save_checkpoint(output: Path, saved: dict[str, Any], *, epoch: int, selected: bool) -> None:
+    temporary = output / "checkpoint.tmp"
+    torch.save(saved, temporary)
+    snapshot = output / f"checkpoint-epoch-{epoch:03d}.pt"
+    temporary.replace(snapshot)
+    if selected:
+        with snapshot.open("rb") as source, (output / "checkpoint.tmp").open("wb") as target:
+            target.write(source.read())
+        (output / "checkpoint.tmp").replace(output / "checkpoint.pt")
 
 
 @click.command()
@@ -111,24 +212,47 @@ def metrics(model: CandidatePolicy, samples: list[Sample], device: torch.device)
 @click.option("--epochs", default=20, type=click.IntRange(min=1))
 @click.option("--seed", default=420000, type=int)
 @click.option("--device", default="cpu", type=click.Choice(["cpu", "cuda"]))
-def main(dataset: Path, output: Path, epochs: int, seed: int, device: str) -> None:
+@click.option("--checkpoint", type=click.Path(path_type=Path, exists=True, dir_okay=False))
+@click.option("--learning-rate", type=click.FloatRange(min=0, min_open=True), default=None)
+@click.option("--policy-anchor", type=click.FloatRange(min=0), default=0.0)
+def main(
+    dataset: Path,
+    output: Path,
+    epochs: int,
+    seed: int,
+    device: str,
+    checkpoint: Path | None,
+    learning_rate: float | None,
+    policy_anchor: float,
+) -> None:
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory")
-    output.mkdir(parents=True, exist_ok=True)
-    manifest = json.loads((dataset / "config.json").read_text())
+    if not np.isfinite(policy_anchor) or (
+        learning_rate is not None and not np.isfinite(learning_rate)
+    ):
+        raise click.ClickException("Learning rate and policy anchor must be finite")
+    manifest = json.loads((dataset / "config.json").read_text(encoding="utf-8"))
     metadata = manifest["metadata"]
     if manifest["featureVersion"] != FEATURE_VERSION or metadata["statusFields"] != list(
         STATUS_FIELDS
     ):
         raise click.ClickException("Dataset feature schema differs from this encoder")
     encoder = FeatureEncoder(metadata["cardIds"], metadata["keywords"])
-    training, validation, source_hashes, split = cache_demonstrations(dataset, output, encoder)
     torch.manual_seed(seed)
     torch.set_num_threads(2)
     rng = np.random.default_rng(seed)
     target = torch.device(device)
-    model = CandidatePolicy(encoder.state_dim, encoder.action_dim).to(target)
-    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+    model, optimizer, anchor, source = training_setup(
+        encoder,
+        metadata,
+        target,
+        checkpoint=checkpoint,
+        learning_rate=learning_rate,
+        policy_anchor=policy_anchor,
+    )
+    output.mkdir(parents=True, exist_ok=True)
+    training, validation, source_hashes, split = cache_demonstrations(dataset, output, encoder)
+    action_types = json.loads((output / "sample-types.json").read_text(encoding="utf-8"))
     config = {
         "dataset": str(dataset.resolve()),
         "sourceHashes": source_hashes,
@@ -137,21 +261,46 @@ def main(dataset: Path, output: Path, epochs: int, seed: int, device: str) -> No
         "split": split,
         "metadata": metadata,
         "featureVersion": FEATURE_VERSION,
+        "sourceCheckpoint": source,
+        "learningRate": optimizer.param_groups[0]["lr"],
+        "learningRateOverride": learning_rate,
+        "policyAnchor": policy_anchor,
+        "torchVersion": str(torch.__version__),
+        "device": device,
         "encodedCacheBytes": (output / "encoded-samples.f32").stat().st_size,
         "implementationHashes": {
             name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
             for name in ["imitate.py", "features.py", "model.py"]
         },
     }
-    (output / "config.json").write_text(json.dumps(config, indent=2))
+    (output / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     history = [
         {
             "epoch": 0,
-            "training": metrics(model, training, target),
-            "validation": metrics(model, validation, target),
+            "training": metrics(model, training, target, action_types["training"]),
+            "validation": metrics(model, validation, target, action_types["validation"]),
         }
     ]
-    best_loss = float("inf")
+    best_loss = history[0]["validation"]["loss"]
+    updates = 0
+    initial = [parameter.detach().cpu().clone() for parameter in model.parameters()]
+
+    def checkpoint_state(epoch: int) -> dict[str, Any]:
+        return {
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "metadata": metadata,
+            "featureVersion": FEATURE_VERSION,
+            "games": len(split["training"]),
+            "seed": seed,
+            "imitationEpoch": epoch,
+            "imitationUpdates": updates,
+            "imitationSource": source,
+        }
+
+    save_checkpoint(output, checkpoint_state(0), epoch=0, selected=True)
+    (output / "results.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
+    click.echo(json.dumps(history[0]))
     for epoch in range(epochs):
         order = rng.permutation(len(training))
         for start in range(0, len(order), 128):
@@ -159,35 +308,37 @@ def main(dataset: Path, output: Path, epochs: int, seed: int, device: str) -> No
             states, actions, mask, labels = batch_tensors(samples, target)
             logits, _ = model(states, actions, mask)
             loss = torch.nn.functional.cross_entropy(logits, labels)
+            if anchor is not None:
+                with torch.no_grad():
+                    reference, _ = anchor(states, actions, mask)
+                loss = loss + policy_anchor * policy_divergence(logits, reference, mask)
             if not torch.isfinite(loss):
                 raise RuntimeError("Nonfinite imitation loss")
             optimizer.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5, error_if_nonfinite=True)
             optimizer.step()
+            updates += 1
         record = {
             "epoch": epoch + 1,
-            "training": metrics(model, training, target),
-            "validation": metrics(model, validation, target),
+            "training": metrics(model, training, target, action_types["training"]),
+            "validation": metrics(model, validation, target, action_types["validation"]),
+            "updates": updates,
+            "parameterChangeNorm": float(
+                torch.sqrt(
+                    sum(
+                        (parameter.detach().cpu() - original).square().sum()
+                        for parameter, original in zip(model.parameters(), initial, strict=True)
+                    )
+                )
+            ),
         }
         history.append(record)
-        if record["validation"]["loss"] < best_loss:
+        selected = record["validation"]["loss"] < best_loss
+        if selected:
             best_loss = record["validation"]["loss"]
-            temporary = output / "checkpoint.tmp"
-            torch.save(
-                {
-                    "model": model.state_dict(),
-                    "optimizer": optimizer.state_dict(),
-                    "metadata": metadata,
-                    "featureVersion": FEATURE_VERSION,
-                    "games": len(split["training"]),
-                    "seed": seed,
-                    "imitationEpoch": epoch + 1,
-                },
-                temporary,
-            )
-            temporary.replace(output / "checkpoint.pt")
-        (output / "results.json").write_text(json.dumps(history, indent=2))
+        save_checkpoint(output, checkpoint_state(epoch + 1), epoch=epoch + 1, selected=selected)
+        (output / "results.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
         click.echo(json.dumps(record))
 
 
