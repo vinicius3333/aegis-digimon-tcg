@@ -32,6 +32,12 @@ export async function firePlayEntryWindows(
   // Whatever a play-cost deletion or an interrupt inside the play procedure triggered rides
   // into engine play's own window (Q5131; CR §15-4-3-2, §15-8-3-2).
   const costDeletionEffects = [...engine.pendingPlayCostDeletionEffects.splice(0), ...(opts.procedurePending ?? [])];
+  if (timing === EffectTiming.OnUseOption) {
+    // A used Option's Main and post-use routing finish before payment reactions activate (CR §9-1).
+    engine.pendingNestedTimingEffects.push(...costDeletionEffects);
+    await engine.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
+    return;
+  }
   if (timing !== EffectTiming.OnPlay) {
     await engine.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
     return;

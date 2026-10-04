@@ -139,6 +139,10 @@ export async function fireSubTrigger(
     engine.digivolveCostSubTriggers.push(...armWithTriggerTimeContexts());
     return;
   }
+  if (engine.playCostSubTriggers !== undefined && event !== "wouldBeReturned" && event !== "onDeletionOf") {
+    engine.playCostSubTriggers.push(...armWithTriggerTimeContexts());
+    return;
+  }
   // A would-be-returned reaction interrupts the causing effect before its target moves
   // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
   if (event !== "wouldBeReturned" && shouldDeferNestedTiming(engine) && !engine.resolvingBarrierSecurityCost) {
@@ -866,6 +870,7 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
  * rest of the window any effect that drops out of its pool once (CR §15-4-4-5).
  */
 export function subTriggerStillPending(engine: GameEngine, item: ArmedSubTrigger): boolean {
+  if (!pendingWatcherSourceStillResident(engine, item)) return false;
   const ctx = item.contextAtFireTime();
   if (ctx === undefined) return false;
   if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;

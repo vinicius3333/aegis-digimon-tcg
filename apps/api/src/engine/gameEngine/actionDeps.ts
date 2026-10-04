@@ -63,6 +63,69 @@ import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
 import { minimumDeferredPlayCost } from "./timing/playAffordability.js";
+import { shouldDeferNestedTiming } from "./windows.js";
+import type { PlayCostTriggers } from "../actions/playCard.js";
+
+/** Keep cost reactions in the play's entry pool, with independent queues for nested plays. */
+function holdPlayCostTriggers(engine: GameEngine, instanceId: string): PlayCostTriggers {
+  const enclosing = engine.playCostSubTriggers;
+  const enclosingDeletions = engine.pendingPlayCostDeletionEffects;
+  const held: ArmedSubTrigger[] = [];
+  const deletions: CollectedEffect[] = [];
+  engine.playCostSubTriggers = held;
+  engine.pendingPlayCostDeletionEffects = deletions;
+  let holding = true;
+  let activated = false;
+  const stopHolding = (): void => {
+    if (!holding) return;
+    holding = false;
+    engine.playCostSubTriggers = enclosing;
+  };
+  return {
+    stopHolding,
+    activate: async (window) => {
+      if (activated) return window?.();
+      activated = true;
+      stopHolding();
+      if (window === undefined) {
+        engine.pendingPlayReducerPlacements.delete(instanceId);
+        engine.pendingSelfReducerRelocations.delete(instanceId);
+      }
+      let resolutionError: unknown;
+      try {
+        await withPendingSubTriggers(
+          engine,
+          [],
+          undefined,
+          async () => {
+            try {
+              await window?.();
+            } catch (error) {
+              resolutionError = error;
+              engine.pendingPlayReducerPlacements.delete(instanceId);
+              engine.pendingSelfReducerRelocations.delete(instanceId);
+            }
+            // A rejected/throwing attempt has no entry window, but its paid costs still happened.
+            if (window === undefined || deletions.length > 0 || resolutionError !== undefined) {
+              if (shouldDeferNestedTiming(engine)) engine.pendingNestedTimingEffects.push(...deletions.splice(0));
+              else await drainPendingOptionEntryTriggers(engine, deletions.splice(0));
+            }
+          },
+          {
+            onlyInitiallyArmed: true,
+            alsoArmed: held,
+            parkArmedToEnclosingWindow: () => shouldDeferNestedTiming(engine),
+          },
+        );
+      } finally {
+        engine.pendingPlayCostDeletionEffects = enclosingDeletions;
+        engine.pendingPlayReducerPlacements.delete(instanceId);
+        engine.pendingSelfReducerRelocations.delete(instanceId);
+      }
+      if (resolutionError !== undefined) throw resolutionError;
+    },
+  };
+}
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -559,6 +622,7 @@ async function placePendingReducerCards(
 export function playCardDeps(engine: GameEngine): PlayCardDeps {
   const mem = memoryDepsFromGauge(engine.memory);
   return {
+    holdCostTriggers: (instanceId) => holdPlayCostTriggers(engine, instanceId),
     maxAffordable: mem.maxAffordable,
     minimumDeferredPlayCost: (instance, baseCost) => minimumDeferredPlayCost(engine, instance, baseCost),
     payMemory: mem.payMemory,
@@ -763,6 +827,7 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
   const mem = memoryDepsFromGauge(engine.memory);
   const materialInterruptPending: CollectedEffect[] = [];
   return {
+    holdCostTriggers: (instanceId) => holdPlayCostTriggers(engine, instanceId),
     maxAffordable: mem.maxAffordable,
     payMemory: mem.payMemory,
     adjustedPlayCost: (_state, seat, definition, base) =>

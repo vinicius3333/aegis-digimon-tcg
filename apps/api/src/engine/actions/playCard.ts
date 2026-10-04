@@ -91,6 +91,11 @@ export type PlayCardEvent =
   | { kind: "memoryChanged"; from: number; to: number; reason: string }
   | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string; optionUsed?: true };
 
+export interface PlayCostTriggers {
+  stopHolding(): void;
+  activate(window?: () => Promise<void>): Promise<void>;
+}
+
 /**
  * Injected side-effect dependencies. Each is owned by a sibling subsystem; the
  * defaults (`defaultPlayCardDeps`) keep play-card runnable and unit-testable in
@@ -99,6 +104,8 @@ export type PlayCardEvent =
  * that keeps package boundaries clean (ARCHITECTURE.md section 3).
  */
 export interface PlayCardDeps {
+  /** Hold ordinary payment reactions until entry/use completes, including failed attempts. */
+  holdCostTriggers?(instanceId: string): PlayCostTriggers;
   /**
    * Max memory the active seat may spend right now (source Player.MaxMemoryCost):
    * how far the gauge can still travel toward the opponent's side for this seat.
@@ -344,6 +351,22 @@ export async function applyPlayCard(
   const check = validatePlayCard(state, seat, intent, deps);
   if (!check.ok) return check;
 
+  const costTriggers = deps.holdCostTriggers?.(intent.instanceId);
+  try {
+    return await playDeclared(state, seat, deps, check, costTriggers);
+  } finally {
+    costTriggers?.stopHolding();
+    await costTriggers?.activate();
+  }
+}
+
+async function playDeclared(
+  state: GameState,
+  seat: Seat,
+  deps: PlayCardDeps,
+  check: Extract<PlayCardCheck, { ok: true }>,
+  costTriggers: PlayCostTriggers | undefined,
+): Promise<{ ok: false; reason: PlayCardRejection } | { ok: true; outcome: PlayCardOutcome }> {
   const { instanceIndex, definition, mode, cost: passiveCost } = check;
   const player = state.players[seat]!;
 
@@ -379,6 +402,14 @@ export async function applyPlayCard(
     return { ok: false, reason: "insufficient-memory" };
   }
 
+  // Re-locate the declared card before charging memory. The stable instanceId is needed: the BeforePayCost payment may
+  //     have mutated the hand (a trashed-from-hand cost shifts indices), so the validated index is
+  //     stale — find the card we are playing by its stable id.
+  const playIndex = player.hand.findIndex((c) => c.instanceId === handInstance.instanceId);
+  if (playIndex < 0) {
+    return { ok: false, reason: "card-not-in-zone" };
+  }
+
   // (1) Pay the (possibly reduced) memory cost (shared memory gauge moves toward the opponent).
   if (cost > 0) {
     const memoryBefore = state.memory;
@@ -386,13 +417,7 @@ export async function applyPlayCard(
     deps.emit?.({ kind: "memoryChanged", from: memoryBefore, to: state.memory, reason: "playCard" });
   }
 
-  // (2) Remove the played card from hand. Re-locate by instanceId: the BeforePayCost payment may
-  //     have mutated the hand (a trashed-from-hand cost shifts indices), so the validated index is
-  //     stale — find the card we are playing by its stable id.
-  const playIndex = player.hand.findIndex((c) => c.instanceId === handInstance.instanceId);
-  if (playIndex < 0) {
-    return { ok: false, reason: "card-not-in-zone" };
-  }
+  // (2) Remove the declared physical card from hand.
   const instance = takeFromHand(player, playIndex);
   if (instance === undefined) {
     // Unreachable after the findIndex above; treated as a card-not-in-zone race.
@@ -426,7 +451,10 @@ export async function applyPlayCard(
     // `whenPlayed` bus after On Play resolves. Publishing that bus here as well would make one
     // hand play one event twice (the second pass is especially visible to once-per-turn
     // watchers after an optional decline).
-    await deps.fireTiming(state, seat, ON_PLAY_TIMING, instance.instanceId);
+    costTriggers?.stopHolding();
+    const entry = () => deps.fireTiming(state, seat, ON_PLAY_TIMING, instance.instanceId);
+    if (costTriggers === undefined) await entry();
+    else await costTriggers.activate(entry);
 
     return {
       ok: true,
@@ -440,6 +468,31 @@ export async function applyPlayCard(
     };
   }
 
+  costTriggers?.stopHolding();
+  const use = () => resolvePlayedOption(state, seat, instance, definition, deps, optionUseCost);
+  if (costTriggers === undefined) await use();
+  else await costTriggers.activate(use);
+
+  return {
+    ok: true,
+    outcome: {
+      cardId: instance.cardId,
+      instanceId: instance.instanceId,
+      mode,
+      cost,
+    },
+  };
+}
+
+async function resolvePlayedOption(
+  state: GameState,
+  seat: Seat,
+  instance: CardInstance,
+  definition: CardDefinition,
+  deps: PlayCardDeps,
+  optionUseCost: number,
+): Promise<void> {
+  const player = state.players[seat]!;
   // (3b) Option: never becomes a permanent. Resolve its effect, then route it:
   //      ＜Delay＞ keyword → face-down in delay zone (KB §16-17); otherwise → trash.
   deps.emit?.({
@@ -533,16 +586,6 @@ export async function applyPlayCard(
   // already produced `passiveCost`, while BeforePayCost changes only payment.
   // This distinction implements BT10-032 Q1956/Q1957.
   await deps.fireOptionUsed?.(instance.instanceId, optionUseCost);
-
-  return {
-    ok: true,
-    outcome: {
-      cardId: instance.cardId,
-      instanceId: instance.instanceId,
-      mode,
-      cost,
-    },
-  };
 }
 
 /**

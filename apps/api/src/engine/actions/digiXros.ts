@@ -16,6 +16,7 @@ import {
   type PlayerState,
   type Seat,
 } from "@aegis/shared";
+import type { PlayCostTriggers } from "./playCard.js";
 import { cardHasTrait, definitionOf, dpOf } from "../cards/cardData.js";
 import { extractCardAt, placePermanent as appendPermanent, setTopCard } from "../state/access.js";
 import { digiXrosZoneExpanderFor } from "../digiXros/zoneExpanders.js";
@@ -101,6 +102,7 @@ export type DigiXrosCheck =
     };
 
 export interface DigiXrosDeps {
+  holdCostTriggers?(instanceId: string): PlayCostTriggers;
   maxAffordable(state: GameState, seat: Seat): number;
   payMemory(state: GameState, seat: Seat, cost: number): void;
   /** Apply continuous play-cost modifiers to the printed cost (before the DigiXros reduction). */
@@ -375,6 +377,22 @@ export async function applyDigiXros(
   const check = validateDigiXros(state, seat, intent, deps);
   if (!check.ok) return check;
 
+  const costTriggers = deps.holdCostTriggers?.(intent.instanceId);
+  try {
+    return await digiXrosDeclared(state, seat, deps, check, costTriggers);
+  } finally {
+    costTriggers?.stopHolding();
+    await costTriggers?.activate();
+  }
+}
+
+async function digiXrosDeclared(
+  state: GameState,
+  seat: Seat,
+  deps: DigiXrosDeps,
+  check: Extract<DigiXrosCheck, { ok: true }>,
+  costTriggers: PlayCostTriggers | undefined,
+): Promise<{ ok: false; reason: DigiXrosRejection } | { ok: true; outcome: DigiXrosOutcome }> {
   const { definition, materials, expanderPermanentIds } = check;
   let cost = deps.finalizePlayCost
     ? await deps.finalizePlayCost(state, seat, check.instance, definition, check.cost)
@@ -401,6 +419,9 @@ export async function applyDigiXros(
   ).length;
   cost += interruptedMaterialCount * check.perMaterialReduction;
 
+  const playIndex = player.hand.findIndex((c) => c.instanceId === check.instance.instanceId);
+  if (playIndex < 0) return { ok: false, reason: "card-not-in-zone" };
+
   // (3) Pay the (reduced) memory cost.
   if (cost > 0) {
     const memoryBefore = state.memory;
@@ -409,8 +430,6 @@ export async function applyDigiXros(
   }
 
   // (4) Remove the played card from hand and place it as a new battle-area permanent.
-  const playIndex = player.hand.findIndex((c) => c.instanceId === check.instance.instanceId);
-  if (playIndex < 0) return { ok: false, reason: "card-not-in-zone" };
   const instance = extractCardAt(player, Zone.Hand, playIndex);
   if (instance === undefined) return { ok: false, reason: "card-not-in-zone" };
   instance.faceUp = true;
@@ -481,7 +500,10 @@ export async function applyDigiXros(
   }
 
   // (6) Fire On Play, carrying the material count so `digiXrosCount` conditions can gate on it.
-  await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, placedIds.length);
+  costTriggers?.stopHolding();
+  const entry = () => deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, placedIds.length);
+  if (costTriggers === undefined) await entry();
+  else await costTriggers.activate(entry);
 
   return {
     ok: true,

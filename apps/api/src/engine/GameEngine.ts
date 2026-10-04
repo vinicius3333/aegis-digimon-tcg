@@ -246,6 +246,8 @@ export class GameEngine {
    * (Discord 1555674174369042583).
    */
   digivolveCostSubTriggers: ArmedSubTrigger[] | undefined = undefined;
+  /** Ordinary payment reactions wait for the declared play/use procedure to finish. */
+  playCostSubTriggers: ArmedSubTrigger[] | undefined = undefined;
   /**
    * [On Deletion] effects collected from a play-cost deletion, waiting for that play's entry
    * window so the turn player orders them against the played card's [On Play] (Q5131). Kept
