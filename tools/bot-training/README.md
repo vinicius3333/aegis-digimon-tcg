@@ -17,7 +17,7 @@ pnpm --filter @aegis/api build
 
 `--workers N` runs N episodes at once; each batch of `--batch-games` finishes before its PPO update, and every episode samples from its own seeded generator, so results do not depend on thread scheduling. Use four workers for the expanded desktop runs and finish builds/typechecks before starting training. The WSL instance has about 8 GB of RAM; six rollout workers combined with runtime preparation caused worker timeouts and temporary WSL unresponsiveness. `--snapshot-games N` also keeps `checkpoint-<games>.pt` every N trained games for later selection. The collector accepts the same `--workers` option. Every 52-game block visits all 26 learner decks in both seats, then rotates the opponent offset. A full 1,352-game cycle covers every ordered pairing and seat equally.
 
-`collect.py --curriculum` and `train.py --curriculum` opt into 16 complementary learning recipes, for 42 total. Their separate manifest records recipe versions, SHA-256 pins and runtime fingerprint; the worker must deal those exact recipes in the recorded seat order. All 181 BT26/EX13 cards occur in these recipes, using the existing 475-card encoder vocabulary. An 84-game block covers every learner recipe in both seats; 3,528 games cover every ordered pairing and seat. The recipes are learning contexts, not tournament-tuned recommendations. Default training/evaluation still uses the 26 catalog decks, and current room routing accepts those catalog recipes. Recipe inclusion and visible exposure do not prove card activation or improved strength.
+`collect.py --curriculum` and `train.py --curriculum` opt into 18 complementary learning recipes, for 44 total. Their separate manifest records recipe versions, SHA-256 pins and runtime fingerprint; the worker must deal those exact recipes in the recorded seat order. All 181 BT26/EX13 cards occur in these recipes, using a 479-card encoder vocabulary that includes Sociamon, Gossipmon, Mirrormon and Kabemon for the Charismon/Mienumon learning recipes. An 88-game block covers every learner recipe in both seats; 3,872 games cover every ordered pairing and seat. The recipes are learning contexts, not tournament-tuned recommendations. Default training/evaluation still uses the 26 catalog decks, and current room routing accepts those catalog recipes. Recipe inclusion and visible exposure do not prove card activation or improved strength.
 
 Python 3.12 and dependencies are specified in `pyproject.toml`. The existing desktop environment has PyTorch 2.7.1+cu128, NumPy 2.2.6, and Click 8.1.8. Use a new output directory for each run. Checkpoints and logs stay outside Git.
 
@@ -64,7 +64,7 @@ Feature version 7 adds the three new action types and ordered compound-material 
 
 ## Demonstrations and imitation initialization
 
-Collect trajectories from the existing balanced heuristic through the same complete candidate interface:
+Collect trajectories from the training teacher through the same complete candidate interface. It augments balanced heuristic choices with validated compound declarations and useful Link preparations; the fixed heuristic strength opponent retains its original policy:
 
 ```sh
 /home/vinicius/aegis-bot-lab/venv/bin/python tools/bot-training/collect.py \
@@ -81,9 +81,41 @@ Teacher mode adds a label, never removes legal actions. If the heuristic's inten
 
 Imitation uses cross-entropy over the same masked candidate scorer. Every fifth complete episode by its original collection index belongs to validation; no decisions from that episode enter training. Single-action windows are omitted from the loss and accuracy metrics. Checkpoint selection uses validation loss, and the configuration records the exact SHA-256 of each input file. Validation accuracy measures agreement with this heuristic, not match win rate or human strength. Teacher labels are excluded from model features and are absent during ordinary PPO/evaluation. Evaluate the resulting `checkpoint.pt` using the command above on separate seeds; use it with PPO's `--checkpoint` to continue training.
 
-Encoded imitation features are stored in `encoded-samples.f32` and accessed through read-only memory maps. The full expanded cycle would occupy roughly 7 GB if all features stayed in RAM; optimization now copies only its current batch. The cache is reproducible from the hashed source episodes and encoder. Configuration records cache size and trainer/encoder/model implementation hashes. A frozen baseline comparison reproduces all epoch metrics and the selected model/optimizer tensors exactly after this storage change.
+Encoded imitation features are stored in `encoded-samples.f32` and accessed through read-only memory maps. Large curriculum cycles exceed the desktop's available RAM if all features remain resident; optimization copies only its current batch. The cache is reproducible from the hashed source episodes and encoder. Configuration records cache size and trainer/encoder/model implementation hashes. A frozen baseline comparison reproduces all epoch metrics and the selected model/optimizer tensors exactly after this storage change.
 
 The first imitation run is archived under `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v4/`: 80 complete demonstration games, 4,097 decisions, zero missing teacher labels; 64/16 episode split; 75.2% validation agreement after 20 epochs. Its checkpoint won four of 16 separate development-evaluation games, with all games completing. PPO successfully continued from it and reloaded the updated checkpoint exactly. These small runs do not meet the release strength or full-coverage gates.
+
+## Continue imitation from a selected checkpoint
+
+Use an exact feature/schema/runtime match to retain a selected policy and its Adam state while learning new demonstrations:
+
+```sh
+/home/vinicius/aegis-bot-lab/venv/bin/python tools/bot-training/imitate.py \
+  --dataset /home/vinicius/aegis-bot-lab/runs/my-demonstrations \
+  --checkpoint /home/vinicius/aegis-bot-lab/runs/my-selected/checkpoint.pt \
+  --output /home/vinicius/aegis-bot-lab/runs/my-warm-start-imitation \
+  --device cuda --epochs 3 --seed 420100 \
+  --learning-rate 0.00001 --policy-anchor 2
+```
+
+`--learning-rate` intentionally overrides the restored Adam learning rate; omitting it retains the source setting. `--policy-anchor` adds KL from a frozen copy of the source policy and requires a checkpoint. Configuration records the source hash, implementation hashes and explicit overrides. Results record actual updates, parameter changes and per-action-type training/validation metrics. `checkpoint-epoch-000.pt` captures the source before learning; every later epoch has its own snapshot. `checkpoint.pt` selects the lowest validation loss, including epoch zero. Playing-strength selection still requires separate match comparisons; use an explicit epoch snapshot when evaluating a candidate.
+
+`--compound-share 0.1` retains every original training choice once and adds training-fold Link/App Fusion/DNA samples until they make up at least that fraction. Source KL applies to other label types; compound rows learn their teacher labels without that anchor. `--compound-only` additionally restricts teacher cross-entropy to those compound rows and requires a source checkpoint, positive anchor and positive compound share. Validation episodes remain unchanged and never enter resampling. Check the training-fold label counts before using these flags: a compound family absent from that fold supplies no teacher signal.
+
+When adding registered card identities to an older vocabulary, create a separate expanded artifact first:
+
+```sh
+/home/vinicius/aegis-bot-lab/venv/bin/python tools/bot-training/migrate.py \
+  --worker "$PWD/apps/api/dist/bot/training/cli.js" \
+  --checkpoint /home/vinicius/aegis-bot-lab/runs/my-old-vocabulary/checkpoint.pt \
+  --output /home/vinicius/aegis-bot-lab/runs/my-expanded-vocabulary
+```
+
+Migration requires identical deck/keyword/status/schema metadata and feature version, permits the recorded runtime fingerprint to change, and only adds identities. It maps inputs by semantic column identity, retains old weights and Adam state, initializes new identity weights from the old unknown-card column and zeros new identity moments. Its receipt records source/target hashes and zero migration learning updates. Dimension expansion can alter floating-point near-ties; compare frozen windows and matches before further learning. The original checkpoint is never overwritten.
+
+`imitate.py --new-card-columns-only` requires that migration receipt and trains only the added identities' first-layer input columns. All other weights and old Adam moment columns remain exact; the two active matrices' scalar steps advance. For the current four-card expansion at width 128 this exposes 16,384 coefficients. It preserves old-input behavior when the added identity inputs stay zero, while permitting behavior to change when the new cards are visible. It does not teach a compound route whose features contain none of those identities. Combine it with the compound flags only when that limited phase fits the learning task, then evaluate real games on the relevant recipes. The migration receipt's zero-update field describes migration itself; subsequent `imitationUpdates` records actual learning.
+
+The recorded v8/v9 imitation comparisons regress below the selected 69/104 development baseline. Restricted v10 executes 891 CUDA updates, retains every old catalog outcome/choice count in three comparisons and has exact CPU/CUDA parity across 4,064 old windows. Its single validation Link/Fusion examples improve, but broader learned compound play and held-out per-deck strength remain unverified. See the [expanded training evidence](../../docs/plans/2026-10-03-bt26-ex13-bot-design.md#conservative-imitation-and-isolated-identity-adaptation) for exact sources, seeds, folds, archives and open gates.
 
 ## Evaluate through the asynchronous checkpoint worker
 
