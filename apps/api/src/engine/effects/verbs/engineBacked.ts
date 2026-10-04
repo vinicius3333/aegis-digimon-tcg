@@ -24,8 +24,8 @@ export function createEngineBackedVerbs(
 
   return {
     setTurnEndMinMemory: (seat: Seat, minimum: number) => engine.memory.setTurnEndMinMemory?.(seat, minimum),
-    linkCostReductionUsed: (key) => engine.barrierFired?.(`link-cost/${key}`) ?? false,
-    markLinkCostReductionUsed: (key) => engine.markBarrierFired?.(`link-cost/${key}`),
+    linkCostReductionUsed: (key) => engine.oncePerTurnFired?.(`link-cost/${key}`) ?? false,
+    markLinkCostReductionUsed: (key) => engine.markOncePerTurnFired?.(`link-cost/${key}`),
     customEffectGrants: (permanentId) =>
       continuous
         .listCustomEffectGrants()

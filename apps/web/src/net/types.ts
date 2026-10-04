@@ -129,6 +129,7 @@ export interface AegisJoinOptions {
     | "arena-bt13-royal-purge-delay-rush"
     | "arena-p206-digital-gate-breeding-color"
     | "arena-ex13-merciful-mode-attack-order"
+    | "arena-ex13-merciful-repeat-barrier"
     | "arena-ad1-gallantmon-deletion-attack-order"
     | "arena-bt20-cool-boy-stacked-omekamon"
     | "arena-ex10-god-grade-raising-color"

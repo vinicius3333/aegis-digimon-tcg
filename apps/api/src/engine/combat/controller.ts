@@ -1325,17 +1325,14 @@ export class CombatController {
     const resolvedDeletedIds = finalDeletedIds.filter((id) => !evadedIds.has(id));
 
     // ＜Barrier＞ (§16-25): when this Digimon would be deleted in battle, by
-    // trashing the top card of your security stack, prevent that deletion (once
-    // per turn per permanent — that gate is deferred to the leave-prevention
-    // system).
+    // trashing the top card of your security stack, prevent that deletion. Each
+    // separate battle deletion can trigger it; there is no once-per-turn limit.
     const barrieredIds = new Set<string>();
     for (const permanentId of resolvedDeletedIds) {
       if (!this.hasKeyword(permanentId, "Barrier")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined) continue;
       if (this.access.securityCount(perm.controllerSeat) === 0) continue;
-      const barrierKey = `${permanentId}/barrier`;
-      if (this.hooks.barrierFired?.(barrierKey) === true) continue;
       const accepted = await this.runBarrierDecision(perm.controllerSeat, permanentId);
       if (accepted) {
         if (this.hooks.trashTopSecurityForBarrier !== undefined) {
@@ -1343,7 +1340,6 @@ export class CombatController {
         } else {
           this.access.flipTopSecurityToTrash(perm.controllerSeat);
         }
-        this.hooks.markBarrierFired?.(barrierKey);
         barrieredIds.add(permanentId);
       }
     }
