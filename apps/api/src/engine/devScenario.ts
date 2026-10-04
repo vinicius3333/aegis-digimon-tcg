@@ -37,6 +37,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt23-examon-partition-return",
+  "arena-bt23-examon-piercing-end-turn",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
@@ -317,6 +319,47 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   // Not the rulebook's first turn: the human draws on turn 1 like any later turn.
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1556039867106983976: Partition return and a successful end-turn Piercing attack. */
+function layBt23ExamonRemovalScenario(state: GameState, decks: readonly [Decklist, Decklist], piercing = false): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-examon-neutral-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(player, Zone.Hand, []);
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) => faceDownCard(`dev-examon-security-${seat}-${index}`, "BT1-009", seat)),
+    );
+  }
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human !== undefined && opponent !== undefined) {
+    if (piercing) {
+      placePermanent(human, establishedDigimon(0, ["EX13-008", "EX13-018", "EX13-041"], "-examon-groundramon"));
+      placePermanent(human, establishedDigimon(0, ["EX13-021"], "-examon-wingdramon"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-examon-dna", "BT23-047", 0));
+      placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-examon-victim"));
+    } else {
+      placePermanent(human, establishedDigimon(0, ["AD1-011"], "-examon-imperialdramon"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-examon-fighter", "AD1-024", 0));
+      placePermanent(
+        opponent,
+        establishedDigimon(1, ["EX13-021", "EX13-008", "EX13-018", "EX13-041", "BT23-047"], "-examon-partition"),
+      );
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Monimon's By cost can be refused before sources move (Discord 1556016563600101406). */
@@ -5042,6 +5085,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
+  "arena-bt23-examon-partition-return": layBt23ExamonRemovalScenario,
+  "arena-bt23-examon-piercing-end-turn": (state, decks) => layBt23ExamonRemovalScenario(state, decks, true),
   "arena-bt26-monimon-optional-cost": layBt26MonimonOptionalCostScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,

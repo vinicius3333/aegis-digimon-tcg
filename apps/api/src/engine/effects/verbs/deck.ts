@@ -11,12 +11,14 @@ import { applyOverflow, extractCardAt, insertCard, popFromStack, setTopCard } fr
 import { collectForReturn } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { createPartitionReactions } from "./partition.js";
 
 /**
  * Revealing, searching and adding to a security stack.
  */
 
 export function createDeckVerbs(pc: PrimitivesContext) {
+  const partition = createPartitionReactions(pc);
   const { engine, continuous, dropPermanentLedgers, effectSeatStack, ledger, player, state } = pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
@@ -143,7 +145,23 @@ export function createDeckVerbs(pc: PrimitivesContext) {
     // filterBouncePrevented only matches battle-area permanent top-cards, so ids sourced
     // from hand/deck/trash (not leaving the battle area) pass through untouched.
     if (opts?.detachPermanentTop !== true) {
+      const targetedPermanentByInstance = new Map(
+        instanceIds.flatMap((instanceId) => {
+          const permanentId = permanentByTopInstance(instanceId);
+          return permanentId === undefined ? [] : [[instanceId, permanentId] as const];
+        }),
+      );
+      const partitionCandidates = partition.captureReturns(instanceIds);
       instanceIds = await filterBouncePrevented(instanceIds);
+      await partition.resolve(partitionCandidates);
+      // A Partition play can replace the holder; placement cannot chase its old top into a new stack.
+      instanceIds = instanceIds.filter((instanceId) => {
+        const originalPermanentId = targetedPermanentByInstance.get(instanceId);
+        return (
+          originalPermanentId === undefined ||
+          pc.access.permanentById(originalPermanentId)?.topCard?.instanceId === instanceId
+        );
+      });
       await fireWhenReturnedPermanentsLeave(instanceIds);
     }
     const p = player(seat);

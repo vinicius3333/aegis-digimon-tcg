@@ -17,6 +17,8 @@ export interface AegisJoinOptions {
   authTicket?: string;
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
+    | "arena-bt23-examon-partition-return"
+    | "arena-bt23-examon-piercing-end-turn"
     | "battle"
     | "field-grouping"
     | "arena-field-grouping-dense"
