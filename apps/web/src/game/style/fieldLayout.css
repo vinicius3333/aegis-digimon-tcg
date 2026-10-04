@@ -130,16 +130,17 @@
    shelf underneath. Compact utilities return height to those two shelves. */
 @media (width < 600px) and (orientation: portrait) {
   .aegis-arena .game-board:has([data-field-layout="organized"]) {
-    --arena-pile-width: 44px;
-    --arena-utility-height: 90px;
-    --arena-hand-height: 104px;
-    --arena-hand-reserved: 32px;
-    --arena-hand-lift: 6px;
+    --arena-pile-width: 36px;
+    --arena-utility-height: 64px;
     --arena-header-height: 44px;
-    --arena-memory-height: 48px;
+    --arena-memory-height: 36px;
   }
   .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
     --field-prefer-stacked: 1;
+    --field-support-scale: 1;
+    --field-reserve-support: 1;
+    --field-overlap-lanes: 1;
+    --field-fit-width: 1;
     min-height: 78px !important;
   }
   .aegis-arena .game-board:has([data-field-layout="organized"]) .game-field {
@@ -179,12 +180,12 @@
   .aegis-arena
     .game-board:has([data-field-layout="organized"])
     .game-field:has(.game-breeding-slot .game-permanent[style*="translateY(-6px)"]) {
-    --arena-utility-height: 100px;
+    --arena-utility-height: 74px;
   }
   .aegis-arena
     .game-board:has([data-field-layout="organized"])
     .game-field:has(.game-breeding-slot .game-keyword-badges, .game-breeding-slot .game-source-badge) {
-    --arena-utility-height: 104px;
+    --arena-utility-height: 78px;
   }
   .game-board .game-battle-row[data-field-layout="organized"] > .game-battle-lane,
   .game-board .game-battle-row[data-field-layout="organized"] [data-field-key] {
@@ -192,15 +193,5 @@
   }
   .game-board .game-battle-row--opp[data-field-layout="organized"] > .game-battle-lane--support {
     background-position: top;
-  }
-}
-
-@media (width < 600px) and (height < 650px) and (orientation: portrait) {
-  .aegis-arena .game-board:has([data-field-layout="organized"]) {
-    --arena-pile-width: 44px;
-    --arena-utility-height: 90px;
-    --arena-hand-height: 76px;
-    --arena-hand-reserved: 28px;
-    --arena-hand-lift: 4px;
   }
 }

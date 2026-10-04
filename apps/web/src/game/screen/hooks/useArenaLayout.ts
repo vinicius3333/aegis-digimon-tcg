@@ -80,7 +80,7 @@ export function useArenaLayout(): ArenaLayout {
     ? tabletPortraitArena
       ? 62
       : organized
-        ? 44
+        ? 36
         : shortPortraitArena
           ? 40
           : 44
@@ -129,9 +129,9 @@ export function useArenaLayout(): ArenaLayout {
       ? tabletPortraitArena
         ? 104
         : shortPortraitArena
-          ? 44
+          ? 52
           : mediumPortraitArena
-            ? 60
+            ? 64
             : 76
       : shortDock
         ? 76
