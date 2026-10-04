@@ -153,6 +153,7 @@ export interface RemovalPrimitives {
     opts?: {
       byEffectSeat?: Seat;
       byEffectCardId?: string;
+      effectSourceKinds?: readonly string[];
       deferTriggers?: boolean;
       suppressWhenEffectSuspends?: boolean;
     },
@@ -169,6 +170,8 @@ export interface RemovalPrimitives {
    * primitives in tests need no change.
    */
   canUnsuspend?(permanentId: string): boolean;
+  /** Whether effect-driven suspension can turn the permanent, retaining effect provenance. */
+  canSuspend?(permanentId: string, opts?: { byEffectSeat?: Seat; effectSourceKinds?: readonly string[] }): boolean;
   /**
    * Return cards to their owners' hands. Async because a permanent bounce consults the
    * leave-the-battle-area PREVENT reactions first (a "would leave" reaction voids hand

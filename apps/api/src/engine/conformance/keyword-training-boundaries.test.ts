@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration } from "@aegis/shared";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import { observe } from "../testkit/observe.js";
+import { internalsOf } from "../testkit/internals.js";
 import { cite } from "./_kb.js";
 import "../../cards/EX9/index.js";
+import "../../cards/BT26/BT26-040.js";
 
 const TRAINING_FINGERPRINT = "b7603283456371a6ab6f29c64ef1a78e2afe6094bf01b1706c0f3fa73f927cf7";
 
@@ -16,6 +19,79 @@ function citeTraining(): void {
 }
 
 describe("Training public boundaries", () => {
+  it.each(["beAffected", "beSuspended"] as const)(
+    "can pay its own Training under opponent-only %s protection",
+    async (restriction) => {
+      citeTraining();
+      const s = setupEngine({ 0: { battleArea: [{ card: "BT26-040", as: "trainer" }], deck: ["BT1-010"] } });
+      await s.ready();
+      const trainer = s.perm("trainer");
+      internalsOf(s.engine).continuous.addRestriction(trainer.permanentId, restriction, EffectDuration.Permanent, {
+        byOpponentEffectsOnly: true,
+      });
+      const entry = observe(s.engine).activatableEffects(trainer)[0];
+      expect(entry).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: trainer.topCard.instanceId,
+          effectKey: entry!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => trainer.isSuspended && trainer.stack.length === 1);
+      expect(trainer.stack[0]!.cardId).toBe("BT1-010");
+      expect(s.state.players[0]!.deck).toHaveLength(0);
+    },
+  );
+
+  it("still pays Training by suspending its source in breeding", async () => {
+    citeTraining();
+    const s = setupEngine({
+      0: { breeding: { card: "EX9-008", as: "trainer", under: ["EX9-001"] }, deck: ["BT1-010"] },
+    });
+    await s.ready();
+    const trainer = s.perm("trainer");
+    const entry = observe(s.engine).activatableEffects(trainer)[0];
+    expect(entry).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: trainer.topCard.instanceId,
+        effectKey: entry!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => trainer.isSuspended && trainer.stack.length === 2);
+    expect(trainer.inBreeding).toBe(true);
+    expect(trainer.stack[0]!.cardId).toBe("BT1-010");
+    expect(trainer.stack[0]!.faceUp).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it.each(["BT26-040", "EX9-008"])(
+    "does not advertise or accept %s Training while suspension is prohibited",
+    async (card) => {
+      citeTraining();
+      const s = setupEngine({ 0: { battleArea: [{ card, as: "trainer" }], deck: ["BT1-010"] } });
+      await s.ready();
+      const trainer = s.perm("trainer");
+      const entry = observe(s.engine).activatableEffects(trainer)[0];
+      expect(entry).toBeDefined();
+      internalsOf(s.engine).continuous.addRestriction(trainer.permanentId, "suspend", EffectDuration.Permanent);
+      expect(observe(s.engine).activatableEffects(trainer)).toEqual([]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: trainer.topCard.instanceId,
+          effectKey: entry!.effectKey,
+        }).ok,
+      ).toBe(false);
+      expect(trainer.isSuspended).toBe(false);
+      expect(trainer.stack).toHaveLength(0);
+      expect(s.state.players[0]!.deck).toHaveLength(1);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("places the exact face-down deck instance during a natural main phase", async () => {
     citeTraining();
     const s = setupEngine({

@@ -350,8 +350,16 @@ export function createSharedHelpers(pc: PrimitivesContext) {
    * Shared gate for effect-driven mutations. In addition to the operation-specific rule,
    * honor `beAffected` against the physical kind(s) of the currently resolving source.
    */
-  const isRestricted = (permanentId: string, restriction: Restriction): boolean => {
-    const byOpponentEffect = isOpponentEffectAgainst(permanentId);
+  const isRestricted = (
+    permanentId: string,
+    restriction: Restriction,
+    opts?: { byEffectSeat?: Seat; effectSourceKinds?: readonly string[] },
+  ): boolean => {
+    const permanent = access.permanentById(permanentId);
+    const byOpponentEffect =
+      opts?.byEffectSeat === undefined || permanent === undefined
+        ? isOpponentEffectAgainst(permanentId)
+        : opts.byEffectSeat !== permanent.controllerSeat;
     if (continuous.hasRestriction(permanentId, restriction, undefined, { byOpponentEffect })) return true;
     if (byOpponentEffect === undefined) return false;
     // Target selection may preserve an immune target so downstream clauses can observe
@@ -362,7 +370,7 @@ export function createSharedHelpers(pc: PrimitivesContext) {
       engine.combat?.currentAttackerId === permanentId
     )
       return true;
-    const sourceKinds = effectSourceKindsStack.at(-1) ?? [];
+    const sourceKinds = opts?.effectSourceKinds ?? effectSourceKindsStack.at(-1) ?? [];
     if (sourceKinds.length === 0) {
       return continuous.hasRestriction(permanentId, "beAffected", undefined, { byOpponentEffect });
     }

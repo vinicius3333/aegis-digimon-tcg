@@ -1,7 +1,8 @@
 import type { EffectContext } from "../../EffectContext.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { runDigivolve } from "../actions/digivolve.js";
 import { raiseDeletionDpCap, resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
-import { canUnsuspendForCost } from "./canPay.js";
+import { canSuspendForCost, canUnsuspendForCost } from "./canPay.js";
 import type { Action, Cost } from "@aegis/shared";
 
 /**
@@ -64,11 +65,14 @@ export async function paySuspendCost(
   ctx.lastSuspendedPermanentIds = [];
   const ids = cost.target
     ? await resolvePermanentTargets(ctx, cost.target, {
-        eligible: (permanentId) => ctx.game.permanentById(permanentId)?.isSuspended === false,
+        eligible: (permanentId) => {
+          const permanent = ctx.game.permanentById(permanentId);
+          return permanent !== undefined && canSuspendForCost(ctx, permanent);
+        },
       })
     : (() => {
         const self = ctx.source.permanent();
-        return self !== undefined && !self.isSuspended ? [self.permanentId] : [];
+        return self !== undefined && canSuspendForCost(ctx, self) ? [self.permanentId] : [];
       })();
   if (ids.length === 0) return false;
   // Effect targeting may return the available subset, but a fixed-count cost
@@ -80,6 +84,7 @@ export async function paySuspendCost(
   const suspendedIds = await ctx.fx.suspend(ids, {
     byEffectSeat: ctx.source.ownerSeat,
     byEffectCardId: ctx.source.cardId,
+    effectSourceKinds: ctx.effectSourceKinds ?? effectProvenanceKinds(ctx),
     deferTriggers: opts?.deferSuspendTriggers,
   });
   // A cost is atomic from the effect's point of view: selecting N candidates is

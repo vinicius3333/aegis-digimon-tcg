@@ -14,6 +14,11 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
   const isRestricted: PrimitivesContext["helpers"]["isRestricted"] = (...args) => pc.helpers.isRestricted(...args);
   const trash: Primitives["trash"] = (...args) => pc.fx.trash(...args);
 
+  const canSuspend: NonNullable<Primitives["canSuspend"]> = (permanentId, opts) => {
+    const permanent = access.permanentById(permanentId);
+    return permanent !== undefined && !permanent.isSuspended && !isRestricted(permanentId, "beSuspended", opts);
+  };
+
   /**
    * Report the orientation change the way the Active phase reports its own sweep. The state
    * patch alone leaves the client guessing WHEN a permanent turned: its board is frozen while
@@ -61,6 +66,7 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
     opts?: {
       byEffectSeat?: Seat;
       byEffectCardId?: string;
+      effectSourceKinds?: readonly string[];
       deferTriggers?: boolean;
       suppressWhenEffectSuspends?: boolean;
     },
@@ -74,14 +80,13 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
         // effect" (KB ST18-10), so it opens no OnTappedAnyone / whenSuspended window. Gating
         // here is also what terminates a "when an opponent becomes suspended, suspend 1 of
         // their Digimon" loop (BT13-057 Rosemon) once every opponent is already suspended.
-        if (permanent.isSuspended) continue;
         // A continuous "can't BE suspended" restriction (BT19-101, LM-041) blocks
         // effect-driven suspension only. This primitive IS the effect-suspend seam
         // (combat self-suspend to attack calls access.suspend directly and never routes
         // here — KB BT19-101 Q3185: a "can't be suspended" Digimon may still attack via
         // <Overclock>). Skip the restricted permanent; it stays unsuspended and opens no
         // whenSuspended/OnTappedAnyone window.
-        if (isRestricted(permanentId, "beSuspended")) continue;
+        if (!canSuspend(permanentId, opts)) continue;
         access.suspend(permanent);
         suspendedPermanentIds.push(permanentId);
       }
@@ -175,5 +180,13 @@ export function createSuspendVerbs(pc: PrimitivesContext) {
     }
   };
 
-  return { fireSuspensionTriggers, suspend, canPayActivationCost, payActivationCost, canUnsuspend, unsuspend };
+  return {
+    fireSuspensionTriggers,
+    suspend,
+    canSuspend,
+    canPayActivationCost,
+    payActivationCost,
+    canUnsuspend,
+    unsuspend,
+  };
 }

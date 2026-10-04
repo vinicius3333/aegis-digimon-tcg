@@ -1,5 +1,6 @@
 import { MEMORY_MIN } from "../../../MemoryGauge.js";
 import type { EffectContext } from "../../EffectContext.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { canAttemptDigivolve } from "../actions/digivolve.js";
 import { definitionMatches } from "../matching/definition.js";
 import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
@@ -26,6 +27,20 @@ export function canUnsuspendForCost(
   permanent: { permanentId: string; isSuspended: boolean },
 ): boolean {
   return permanent.isSuspended && ctx.fx.canUnsuspend?.(permanent.permanentId) !== false;
+}
+
+/** Interpreted costs can suspend an eligible breeding source, such as Training. */
+export function canSuspendForCost(
+  ctx: EffectContext,
+  permanent: { permanentId: string; isSuspended: boolean },
+): boolean {
+  return (
+    !permanent.isSuspended &&
+    ctx.fx.canSuspend?.(permanent.permanentId, {
+      byEffectSeat: ctx.source.ownerSeat,
+      effectSourceKinds: ctx.effectSourceKinds ?? effectProvenanceKinds(ctx),
+    }) !== false
+  );
 }
 
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
@@ -140,10 +155,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "suspend") {
     const candidates = cost.target
-      ? candidatePermanents(ctx, cost.target).filter((permanent) => !permanent.isSuspended)
+      ? candidatePermanents(ctx, cost.target).filter((permanent) => canSuspendForCost(ctx, permanent))
       : (() => {
           const self = ctx.source.permanent();
-          return self !== undefined && !self.isSuspended ? [self] : [];
+          return self !== undefined && canSuspendForCost(ctx, self) ? [self] : [];
         })();
     // "By suspending up to N ..." is payable with any non-zero number of candidates: the player
     // chooses how many and the parent action scales by what was paid. Zero candidates stays
