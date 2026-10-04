@@ -148,6 +148,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt13-royal-purge-delay-rush",
   "arena-p206-digital-gate-breeding-color",
   "arena-ex13-merciful-mode-attack-order",
+  "arena-st17-magnamon-merciful-colors",
   "arena-ad1-gallantmon-deletion-attack-order",
   "arena-bt20-cool-boy-stacked-omekamon",
   "arena-ex10-god-grade-raising-color",
@@ -5034,6 +5035,24 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
   state.memory = 7;
 }
 
+/** Issue #4905, match d20f9c5d: Merciful's six Assembly sources grant six distinct colors. */
+function laySt17MagnamonMercifulColorsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-magnamon-colors-veemon", "P-117", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-magnamon-colors-magnamon", "ST17-13", 0));
+  placePermanent(
+    opponent,
+    establishedDigimon(
+      1,
+      ["ST20-06", "ST21-08", "ST20-02", "BT21-061", "EX9-019", "AD1-025", "EX13-077"],
+      "-magnamon-colors-merciful",
+    ),
+  );
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
@@ -5150,6 +5169,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
+  "arena-st17-magnamon-merciful-colors": laySt17MagnamonMercifulColorsScenario,
   "arena-ad1-gallantmon-deletion-attack-order": layAd1GallantmonDeletionAttackOrderScenario,
   "arena-bt20-cool-boy-stacked-omekamon": layBt20CoolBoyStackedOmekamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
