@@ -80,6 +80,7 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
           AEGIS_DEPLOYMENT_START_DRAINING: "false",
           AEGIS_LOG_DIR: "/logs",
           AEGIS_LOG_MAX_BYTES: String(256 * 1024 * 1024),
+          NODE_OPTIONS: "--max-old-space-size=1100 --report-on-fatalerror --report-directory=/logs",
         }).map(([key, value]) => [key, typeof value === "string" ? value.replaceAll("$", () => "$$") : value]),
       ),
       volumes: [`${state}/routing:/deployment:ro`, `${state}/logs:/logs`],
