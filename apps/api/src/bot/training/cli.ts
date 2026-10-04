@@ -36,7 +36,7 @@ process.on("unhandledRejection", fatal);
 process.on("uncaughtException", fatal);
 
 const { runBotMatch } = await import("../matchHarness.js");
-const { createEvaluationPolicy } = await import("../policy.js");
+const { createTrainingTeacher } = await import("./referencePolicy.js");
 const { createTrainingPolicy, unexplainedRejections } = await import("./policy.js");
 const { mainActionReady } = await import("./actions.js");
 const { episodeDeck, curriculumManifest } = await import("./curriculum.js");
@@ -149,7 +149,7 @@ const configurations = decks.map(({ deck, version }, index) => ({
               controller?.observeChoice(window, actionIndex);
               return actionIndex;
             },
-            input.teacher === true ? createEvaluationPolicy({ seed }) : undefined,
+            input.teacher === true ? createTrainingTeacher(engine, seat, seed) : undefined,
           );
           learnerPolicy = policy;
           if (controller !== undefined) {

@@ -50,6 +50,8 @@ export type AllianceContext = Extract<ServerEvent, { kind: "alliancePrompt" }>;
 export interface EvaluationPolicyOptions {
   profile?: BotProfile;
   seed?: number;
+  /** Explicit teaching extension; the fixed benchmark opponent keeps its original candidates. */
+  additionalMainCandidates?: (view: BotView) => readonly Candidate[];
 }
 
 /**
@@ -72,7 +74,7 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
   const jitter = (): number => random.next() * 0.01;
 
   function bestCandidate(view: BotView): Candidate {
-    const candidates = enumerateMainPhaseCandidates(view);
+    const candidates = [...enumerateMainPhaseCandidates(view), ...(options.additionalMainCandidates?.(view) ?? [])];
     let best: Candidate | undefined;
     let bestScore = Number.NEGATIVE_INFINITY;
     for (const candidate of candidates) {
@@ -199,6 +201,12 @@ function candidateKeyOf(intent: Intent): string | undefined {
         : `attackDigimon:${intent.attackerPermanentId}:${intent.target.permanentId}`;
     case "digivolve":
       return `digivolve:${intent.instanceId}:${intent.permanentId}`;
+    case "dnaDigivolve":
+      return `dnaDigivolve:${intent.instanceId}:${intent.materialPermanentIds.join(":")}`;
+    case "appFusion":
+      return `appFusion:${intent.instanceId}:${intent.permanentId}:${intent.linkedInstanceId}`;
+    case "linkCard":
+      return `linkCard:${intent.instanceId}:${intent.targetPermanentId}`;
     case "playCard":
       // The play kind is not recoverable from the intent, so all three spellings are
       // blocklisted; an instance only ever produces one of them anyway.

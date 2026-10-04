@@ -224,6 +224,50 @@ function scorePlayDigimon(view: BotView, candidate: Candidate, profile: BotProfi
   return profile.weights.playBody * definitionBodyValue(definition) - memoryPenalty(view, candidate.cost, profile);
 }
 
+function scoreDnaDigivolve(view: BotView, candidate: Candidate, profile: BotProfile): number {
+  const materials = candidate.materials ?? [];
+  if (candidate.base === undefined || candidate.definition === undefined || materials.length < 2)
+    return Number.NEGATIVE_INFINITY;
+  // DNA resets suspension and attack restrictions, but merges several bodies into one.
+  // Credit an additional attack only when none of those bodies could already attack.
+  const result: BotUnit = {
+    ...candidate.base,
+    dp: candidate.definition.dp,
+    level: candidate.definition.level ?? 0,
+    suspended: false,
+    canAttackPlayer: true,
+  };
+  const futureView = {
+    ...view,
+    readyAttackers: [...view.readyAttackers.filter((unit) => !materials.includes(unit)), result],
+  };
+  const reset =
+    materials.every((unit) => !unit.canAttackPlayer) &&
+    candidate.cost <= view.freeMemory &&
+    !(
+      view.opponentSecurityCount === 0 &&
+      unsuspendedBlockers(view).length === 0 &&
+      view.readyAttackers.some((unit) => unit.canAttackPlayer)
+    )
+      ? Math.max(0, scoreAttackPlayer(futureView, result, profile))
+      : 0;
+  const lostBodies = materials
+    .filter((unit) => unit !== candidate.base)
+    .reduce((sum, unit) => sum + bodyValue(unit), 0);
+  return scoreDigivolve(view, candidate, profile) + reset - profile.weights.loss * lostBodies;
+}
+
+function scoreLinkCard(view: BotView, candidate: Candidate, profile: BotProfile): number {
+  if (candidate.followUp === undefined || candidate.cost > view.freeMemory) return Number.NEGATIVE_INFINITY;
+  const cost = candidate.cost + candidate.followUp.cost;
+  if (cost > view.freeMemory) return Number.NEGATIVE_INFINITY;
+  const lostBodies = (candidate.materials ?? []).reduce((sum, unit) => sum + bodyValue(unit), 0);
+  return (
+    scoreDigivolve(view, { ...candidate, definition: candidate.followUp.definition, cost }, profile) -
+    profile.weights.loss * lostBodies
+  );
+}
+
 function scorePlayTamer(view: BotView, candidate: Candidate, profile: BotProfile): number {
   return profile.weights.tamer - memoryPenalty(view, candidate.cost, profile);
 }
@@ -248,7 +292,12 @@ export function scoreCandidate(view: BotView, candidate: Candidate, profile: Bot
         ? Number.NEGATIVE_INFINITY
         : scoreAttackDigimon(view, candidate.attacker, candidate.target, profile);
     case "digivolve":
+    case "appFusion":
       return scoreDigivolve(view, candidate, profile);
+    case "dnaDigivolve":
+      return scoreDnaDigivolve(view, candidate, profile);
+    case "linkCard":
+      return scoreLinkCard(view, candidate, profile);
     case "playDigimon":
       return scorePlayDigimon(view, candidate, profile);
     case "playTamer":

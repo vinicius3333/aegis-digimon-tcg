@@ -1,4 +1,4 @@
-"""Collect legal-action demonstrations from the existing frozen heuristic."""
+"""Collect legal-action demonstrations from the engine-backed training teacher."""
 
 import json
 from concurrent.futures import ThreadPoolExecutor

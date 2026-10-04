@@ -22,6 +22,9 @@ export type CandidateKind =
   | "attackPlayer"
   | "attackDigimon"
   | "digivolve"
+  | "dnaDigivolve"
+  | "appFusion"
+  | "linkCard"
   | "playDigimon"
   | "playTamer"
   | "playOption"
@@ -39,6 +42,10 @@ export interface Candidate {
   target?: BotUnit;
   base?: BotUnit;
   definition?: CardDefinition;
+  /** Board bodies merged by DNA or consumed by a Link declaration. */
+  materials?: readonly BotUnit[];
+  /** A Link setup is useful only when it prepares a known evolution in our hand. */
+  followUp?: { definition: CardDefinition; cost: number };
 }
 
 /** Every action the bot may take in its own Main phase, including passing. */
