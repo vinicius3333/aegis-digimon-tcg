@@ -16,7 +16,7 @@ import torch
 from numpy.typing import NDArray
 from torch.distributions import Categorical
 
-from bridge import Episode, describe, scheduled_episode
+from bridge import Episode, describe, episode_scope, scheduled_episode, verify_recipe_pins
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
 from model import CandidatePolicy
 
@@ -146,6 +146,7 @@ def episode(
             or ready["engineSha256"] != config["engineSha256"]
         ):
             raise RuntimeError("Unexpected worker handshake")
+        verify_recipe_pins(ready, config)
         while True:
             message = bridge.receive()
             if message["type"] == "decision" and message.get("role") == "opponent":
@@ -168,7 +169,7 @@ def episode(
                     **message,
                     "seed": config["seed"],
                     "learnerSeat": config["learnerSeat"],
-                    "decks": config["decks"],
+                    **{key: config[key] for key in ("decks", "deckPins") if key in config},
                     "opponentName": config.get("opponentName", "heuristic"),
                     "usable": False,
                     "actionCoverage": coverage.snapshot(),
@@ -191,7 +192,7 @@ def episode(
             if not message["terminated"]:
                 return [], {
                     **message,
-                    "decks": config["decks"],
+                    **{key: config[key] for key in ("decks", "deckPins") if key in config},
                     "opponentName": config.get("opponentName", "heuristic"),
                     "usable": False,
                     "actionCoverage": coverage.snapshot(),
@@ -213,7 +214,7 @@ def episode(
                 following_value = transition.value
             return transitions, {
                 **message,
-                "decks": config["decks"],
+                **{key: config[key] for key in ("decks", "deckPins") if key in config},
                 "opponentName": config.get("opponentName", "heuristic"),
                 "usable": True,
                 "reward": reward,
@@ -241,7 +242,7 @@ def tolerated_episode(
             failure.write_text(json.dumps({"config": config, "error": str(error)}, indent=2))
         return [], {
             "seed": config["seed"],
-            "decks": config["decks"],
+            **{key: config[key] for key in ("decks", "deckPins") if key in config},
             "learnerSeat": config["learnerSeat"],
             "decisions": 0,
             "usable": False,
@@ -403,6 +404,7 @@ def action_coverage(records: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
     help="Only schedule episodes where the learner pilots this deck version (repeatable).",
 )
 @click.option("--max-decisions", default=4000, type=click.IntRange(min=1))
+@click.option("--curriculum", is_flag=True, help="Include complementary BT26/EX13 learning recipes.")
 @click.option("--seed", default=260001, type=int)
 @click.option("--device", default="cpu", type=click.Choice(["cpu", "cuda"]))
 @click.option("--checkpoint", type=click.Path(path_type=Path, exists=True, dir_okay=False))
@@ -426,11 +428,13 @@ def main(
     device: str,
     checkpoint: Path | None,
     evaluate: bool,
+    curriculum: bool,
 ) -> None:
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory so prior evidence is preserved")
     output.mkdir(parents=True, exist_ok=True)
     metadata = describe(node, worker)
+    scope = episode_scope(node, worker, metadata, curriculum)
     if metadata.get("statusFields") != list(STATUS_FIELDS):
         raise click.ClickException("Worker public-status schema differs from this encoder")
     random.seed(seed)
@@ -508,12 +512,18 @@ def main(
         "torchVersion": str(torch.__version__),
         "parameters": sum(parameter.numel() for parameter in model.parameters()),
     }
+    if curriculum:
+        config["curriculum"] = scope
     (output / "config.json").write_text(json.dumps(config, indent=2))
     records = []
     failures = 0
     started = time.monotonic()
 
-    versions = [deck["version"] for deck in metadata["decks"]]
+    versions = [deck["version"] for deck in scope["decks"]]
+    pins = {
+        deck["version"]: {key: deck[key] for key in ("version", "sha256")}
+        for deck in scope["decks"]
+    }
     unknown = set(learner_decks) - set(versions)
     if unknown:
         raise click.ClickException(f"Learner decks outside the worker scope: {sorted(unknown)}")
@@ -545,6 +555,7 @@ def main(
         return {
             "seed": seed + index,
             "decks": decks,
+            "deckPins": [pins[version] for version in decks],
             "learnerSeat": learner_seat,
             "maxDecisions": max_decisions,
             "turnLimit": 60,

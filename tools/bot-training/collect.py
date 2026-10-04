@@ -7,7 +7,7 @@ from typing import Any
 
 import click
 
-from bridge import Episode, describe, scheduled_episode
+from bridge import Episode, describe, episode_scope, scheduled_episode, verify_recipe_pins
 from features import FEATURE_VERSION
 
 
@@ -18,11 +18,15 @@ from features import FEATURE_VERSION
 @click.option("--games", default=80, type=click.IntRange(min=1))
 @click.option("--seed", default=410000, type=int)
 @click.option("--workers", default=1, type=click.IntRange(min=1))
-def main(worker: Path, output: Path, node: str, games: int, seed: int, workers: int) -> None:
+@click.option("--curriculum", is_flag=True, help="Include complementary BT26/EX13 learning recipes.")
+def main(
+    worker: Path, output: Path, node: str, games: int, seed: int, workers: int, curriculum: bool
+) -> None:
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory")
     output.mkdir(parents=True, exist_ok=True)
     metadata = describe(node, worker)
+    scope = episode_scope(node, worker, metadata, curriculum)
     manifest = {
         "metadata": metadata,
         "featureVersion": FEATURE_VERSION,
@@ -30,14 +34,21 @@ def main(worker: Path, output: Path, node: str, games: int, seed: int, workers: 
         "games": games,
         "workers": workers,
     }
+    if curriculum:
+        manifest["curriculum"] = scope
     (output / "config.json").write_text(json.dumps(manifest, indent=2))
-    versions = [deck["version"] for deck in metadata["decks"]]
+    versions = [deck["version"] for deck in scope["decks"]]
+    pins = {
+        deck["version"]: {key: deck[key] for key in ("version", "sha256")}
+        for deck in scope["decks"]
+    }
 
     def collect(index: int) -> dict[str, Any]:
         decks, learner_seat = scheduled_episode(versions, index)
         config = {
             "seed": seed + index,
             "decks": decks,
+            "deckPins": [pins[version] for version in decks],
             "learnerSeat": learner_seat,
             "teacher": True,
             "maxDecisions": 4000,
@@ -55,6 +66,7 @@ def main(worker: Path, output: Path, node: str, games: int, seed: int, workers: 
                     or ready.get("engineSha256") != metadata["engineSha256"]
                 ):
                     raise RuntimeError("Unexpected worker handshake")
+                verify_recipe_pins(ready, config)
                 while True:
                     message: dict[str, Any] = bridge.receive()
                     if message["type"] == "decision":

@@ -39,13 +39,17 @@ const { runBotMatch } = await import("../matchHarness.js");
 const { createEvaluationPolicy } = await import("../policy.js");
 const { createTrainingPolicy, unexplainedRejections } = await import("./policy.js");
 const { mainActionReady } = await import("./actions.js");
-const { trainingDeck } = await import("./decks.js");
+const { episodeDeck, curriculumManifest } = await import("./curriculum.js");
 const { trainingMetadata } = await import("./metadata.js");
 const { costRefusalForfeit } = await import("./costRefusal.js");
 const metadata = trainingMetadata();
 
 if (process.argv.includes("--describe")) {
   send(metadata);
+  process.exit(0);
+}
+if (process.argv.includes("--describe-curriculum")) {
+  send(curriculumManifest(metadata.engineSha256));
   process.exit(0);
 }
 
@@ -87,7 +91,7 @@ let opponentPolicy: ReturnType<typeof createTrainingPolicy> | undefined;
 if (input.engineSha256 !== undefined && input.engineSha256 !== metadata.engineSha256)
   fatal(new Error("Worker code changed since training configuration was recorded"));
 const learnerSeat = input.learnerSeat as Seat;
-const decks = input.decks!.map(trainingDeck);
+const decks = input.decks!.map(episodeDeck);
 const maxDecisions = input.maxDecisions ?? 4000;
 const turnLimit = input.turnLimit ?? 60;
 if (!Number.isSafeInteger(maxDecisions) || maxDecisions < 1 || !Number.isSafeInteger(turnLimit) || turnLimit < 1)

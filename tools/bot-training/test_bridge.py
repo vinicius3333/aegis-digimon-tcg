@@ -1,3 +1,4 @@
+import copy
 import subprocess
 import sys
 import tempfile
@@ -5,10 +6,63 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from bridge import Episode, scheduled_episode
+from bridge import Episode, episode_scope, scheduled_episode, verify_recipe_pins
 
 
 class BridgeTests(unittest.TestCase):
+    def test_handshake_rejects_changed_hash_or_swapped_seats_before_play(self) -> None:
+        pins = [
+            {"version": "catalog@1", "sha256": "a" * 64},
+            {"version": "curriculum@1", "sha256": "b" * 64},
+        ]
+        config = {"deckPins": pins}
+        verify_recipe_pins({"decks": pins}, config)
+        for actual in (pins[::-1], [{**pins[0], "sha256": "c" * 64}, pins[1]], None):
+            with self.subTest(actual=actual), self.assertRaises(RuntimeError):
+                verify_recipe_pins({"decks": actual}, config)
+
+    def test_curriculum_balances_42_learners_and_all_ordered_opponents_in_both_seats(self) -> None:
+        versions = [str(index) for index in range(42)]
+        first = [scheduled_episode(versions, index) for index in range(84)]
+        self.assertEqual(
+            {(pair[seat], seat) for pair, seat in first},
+            {(version, seat) for version in versions for seat in (0, 1)},
+        )
+        cycle = [scheduled_episode(versions, index) for index in range(3528)]
+        self.assertEqual(len({(tuple(pair), seat) for pair, seat in cycle}), 3528)
+        self.assertEqual(scheduled_episode(versions, 3528), scheduled_episode(versions, 0))
+
+    def test_curriculum_records_extra_pins_without_mutating_checkpoint_metadata(self) -> None:
+        catalog = {"version": "catalog@1", "name": "Catalog", "sha256": "a" * 64}
+        extra = {"version": "curriculum@1", "name": "Curriculum", "sha256": "b" * 64}
+        metadata = {"engineSha256": "runtime", "decks": [catalog], "cardIds": ["BT26-002"]}
+        original = copy.deepcopy(metadata)
+        manifest = {"schemaVersion": 1, "engineSha256": "runtime", "decks": [catalog, extra]}
+        with patch("bridge._describe", return_value=manifest) as worker:
+            self.assertIs(episode_scope("node", Path("worker.js"), metadata, False), metadata)
+            worker.assert_not_called()
+            self.assertEqual(episode_scope("node", Path("worker.js"), metadata, True), manifest)
+            worker.assert_called_once_with("node", Path("worker.js"), "--describe-curriculum")
+        self.assertEqual(metadata, original)
+
+    def test_curriculum_rejects_changed_runtime_catalog_duplicate_versions_and_bad_pins(self) -> None:
+        catalog = {"version": "catalog@1", "name": "Catalog", "sha256": "a" * 64}
+        extra = {"version": "curriculum@1", "name": "Curriculum", "sha256": "b" * 64}
+        metadata = {"engineSha256": "runtime", "decks": [catalog]}
+        base = {"schemaVersion": 1, "engineSha256": "runtime", "decks": [catalog, extra]}
+        invalid = [
+            {**base, "engineSha256": "other"},
+            {**base, "decks": [extra, catalog]},
+            {**base, "decks": [catalog, extra, extra]},
+            {**base, "decks": [catalog, {**extra, "sha256": "not-a-hash"}]},
+            {**base, "decks": [catalog]},
+            {**base, "decks": [catalog, None]},
+        ]
+        for manifest in invalid:
+            with self.subTest(manifest=manifest), patch("bridge._describe", return_value=manifest):
+                with self.assertRaises(ValueError):
+                    episode_scope("node", Path("worker.js"), metadata, True)
+
     def test_schedule_balances_all_26_learners_in_both_seats_before_rotating_opponents(self) -> None:
         versions = [str(index) for index in range(26)]
         first = [scheduled_episode(versions, index) for index in range(52)]

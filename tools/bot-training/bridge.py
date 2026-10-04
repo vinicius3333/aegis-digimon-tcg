@@ -19,12 +19,58 @@ def scheduled_episode(versions: list[str], index: int) -> tuple[list[str], int]:
 
 
 def describe(node: str, worker: Path) -> dict[str, Any]:
+    return _describe(node, worker, "--describe")
+
+
+def _describe(node: str, worker: Path, flag: str) -> dict[str, Any]:
     if not worker.is_file():
         raise ValueError(f"Build the API first; missing worker: {worker}")
     result = subprocess.run(
-        [node, str(worker), "--describe"], check=True, capture_output=True, text=True, timeout=30
+        [node, str(worker), flag], check=True, capture_output=True, text=True, timeout=30
     )
     return json.loads(result.stdout)
+
+
+def episode_scope(
+    node: str, worker: Path, metadata: dict[str, Any], curriculum: bool
+) -> dict[str, Any]:
+    """Record additional recipe pins separately so the checkpoint encoder scope stays compatible."""
+    if not curriculum:
+        return metadata
+    scope = _describe(node, worker, "--describe-curriculum")
+    decks = scope.get("decks")
+    if (
+        scope.get("schemaVersion") != 1
+        or scope.get("engineSha256") != metadata["engineSha256"]
+        or not isinstance(decks, list)
+        or decks[: len(metadata["decks"])] != metadata["decks"]
+        or len(decks) <= len(metadata["decks"])
+    ):
+        raise ValueError("Curriculum manifest differs from this worker's catalog or runtime")
+    versions = []
+    for deck in decks:
+        if not isinstance(deck, dict):
+            raise ValueError("Malformed curriculum recipe")
+        version = deck.get("version")
+        digest = deck.get("sha256")
+        if (
+            not isinstance(version, str)
+            or not version
+            or not isinstance(deck.get("name"), str)
+            or not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+            or version in versions
+        ):
+            raise ValueError("Curriculum requires unique versions and SHA-256 recipe pins")
+        versions.append(version)
+    return scope
+
+
+def verify_recipe_pins(ready: dict[str, Any], config: dict[str, Any]) -> None:
+    """Check the dealt recipes against the run's recorded manifest, including seat order."""
+    if "deckPins" in config and ready.get("decks") != config["deckPins"]:
+        raise RuntimeError("Worker dealt recipes that differ from the recorded manifest")
 
 
 class Episode:

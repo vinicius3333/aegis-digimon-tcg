@@ -41,7 +41,12 @@ class LeagueTests(unittest.TestCase):
     def run_episode(self, messages: list[dict], opponent: CandidatePolicy | None):
         bridge = MagicMock()
         bridge.receive.side_effect = [
-            {"type": "ready", "seed": 11, "engineSha256": "test-engine"},
+            {
+                "type": "ready",
+                "seed": 11,
+                "engineSha256": "test-engine",
+                "decks": self.config.get("deckPins", []),
+            },
             *messages,
         ]
         bridge.process.wait.return_value = 0
@@ -76,6 +81,18 @@ class LeagueTests(unittest.TestCase):
         self.assertEqual(result["opponentName"], "league-1")
         self.assertEqual(result["reward"], 1.0)
         self.assertEqual(wins_by_opponent([result]), {"league-1": [1, 1]})
+
+    def test_verified_recipe_pins_remain_in_terminal_and_truncated_records(self) -> None:
+        self.config["deckPins"] = [
+            {"version": "deck-a", "sha256": "a" * 64},
+            {"version": "deck-b", "sha256": "b" * 64},
+        ]
+        terminal = self.result
+        truncated = {"type": "truncated", "reason": "decisionLimit", "decisions": 4001}
+        for result in (terminal, truncated):
+            with self.subTest(result=result):
+                (_, record), _ = self.run_episode([result], None)
+                self.assertEqual(record["deckPins"], self.config["deckPins"])
 
     def test_opponent_decision_without_a_league_model_fails(self) -> None:
         messages = [
