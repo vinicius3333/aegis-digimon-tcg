@@ -12,6 +12,7 @@ import numpy as np
 import torch
 from numpy.typing import NDArray
 
+from adaptation import VocabularyAdaptation
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
 from model import CandidatePolicy
 
@@ -173,6 +174,8 @@ def training_setup(
                 "games": saved.get("games"),
                 "imitationEpoch": saved.get("imitationEpoch"),
             }
+        if "vocabularyMigration" in saved:
+            source["vocabularyMigration"] = copy.deepcopy(saved["vocabularyMigration"])
     model = CandidatePolicy(encoder.state_dim, encoder.action_dim, width=width).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
     if saved is not None:
@@ -259,6 +262,11 @@ def save_checkpoint(output: Path, saved: dict[str, Any], *, epoch: int, selected
     is_flag=True,
     help="Teach compound labels while retaining the source policy on all other label types.",
 )
+@click.option(
+    "--new-card-columns-only",
+    is_flag=True,
+    help="Learn only identities added by a saved vocabulary migration; retain other weights/moments.",
+)
 def main(
     dataset: Path,
     output: Path,
@@ -270,6 +278,7 @@ def main(
     policy_anchor: float,
     compound_share: float,
     compound_only: bool,
+    new_card_columns_only: bool,
 ) -> None:
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory")
@@ -302,6 +311,15 @@ def main(
         learning_rate=learning_rate,
         policy_anchor=policy_anchor,
     )
+    adaptation = None
+    if new_card_columns_only:
+        migration = source.get("vocabularyMigration")
+        if migration is None or "sourceCardIds" not in migration:
+            raise click.ClickException("--new-card-columns-only requires a migrated checkpoint")
+        try:
+            adaptation = VocabularyAdaptation(model, optimizer, encoder, migration["sourceCardIds"])
+        except ValueError as error:
+            raise click.ClickException(str(error)) from error
     output.mkdir(parents=True, exist_ok=True)
     training, validation, source_hashes, split = cache_demonstrations(dataset, output, encoder)
     action_types = json.loads((output / "sample-types.json").read_text(encoding="utf-8"))
@@ -320,12 +338,17 @@ def main(
         "compoundShare": compound_share,
         "compoundPolicyAnchor": 0 if compound_share > 0 else policy_anchor,
         "teacherLossScope": "compound" if compound_only else "all",
+        "newCardColumnsOnly": new_card_columns_only,
+        "adaptedCardIds": adaptation.added_card_ids if adaptation is not None else [],
+        "trainableIdentityParameters": (
+            adaptation.trainable_identity_parameters if adaptation is not None else None
+        ),
         "torchVersion": str(torch.__version__),
         "device": device,
         "encodedCacheBytes": (output / "encoded-samples.f32").stat().st_size,
         "implementationHashes": {
             name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-            for name in ["imitate.py", "features.py", "model.py"]
+            for name in ["imitate.py", "features.py", "model.py", "adaptation.py", "migrate.py"]
         },
     }
     (output / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
@@ -341,7 +364,7 @@ def main(
     initial = [parameter.detach().cpu().clone() for parameter in model.parameters()]
 
     def checkpoint_state(epoch: int) -> dict[str, Any]:
-        return {
+        saved = {
             "model": model.state_dict(),
             "optimizer": optimizer.state_dict(),
             "metadata": metadata,
@@ -352,6 +375,9 @@ def main(
             "imitationUpdates": updates,
             "imitationSource": source,
         }
+        if "vocabularyMigration" in source:
+            saved["vocabularyMigration"] = source["vocabularyMigration"]
+        return saved
 
     save_checkpoint(output, checkpoint_state(0), epoch=0, selected=True)
     (output / "results.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
@@ -382,6 +408,8 @@ def main(
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5, error_if_nonfinite=True)
             optimizer.step()
+            if adaptation is not None:
+                adaptation.restore_existing_columns(optimizer)
             updates += 1
         record = {
             "epoch": epoch + 1,
