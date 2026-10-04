@@ -158,7 +158,7 @@ describe("BT10-087 Taiki Kudo", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it("does not mix materials under two different Tamers", async () => {
+  it("Discord 1556119607822254110: mixes materials under two different Tamers", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -182,10 +182,14 @@ describe("BT10-087 Taiki Kudo", () => {
           underTamerHostPermanentId: s.perm("firstTamer").permanentId,
         },
       }),
-    ).toEqual({ ok: false, reason: "invalid-material" });
-    expect(s.perm("taiki").isSuspended).toBe(false);
-    expect(s.perm("firstTamer").stack).toHaveLength(1);
-    expect(s.perm("secondTamer").stack).toHaveLength(1);
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.perm("firstTamer").stack).toHaveLength(0);
+    expect(s.perm("secondTamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT10-024")!.stack).toHaveLength(2);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("cannot reuse a suspended Taiki as a DigiXros material expander", async () => {

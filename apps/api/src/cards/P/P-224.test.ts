@@ -286,3 +286,51 @@ describe("P-224 Kotone Amano — DigiXros by effect with a battle-area material"
     expect(interruptSnapshots).toEqual([{ isDigiXros: true, dxInPlay: false, memory: 10 }]);
   });
 });
+
+describe("Discord 1556119607822254110 — Taiki uses materials under any Tamer", () => {
+  it("plays EX6 through Kotone using materials split between Taiki and Kotone", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-224", as: "kotone", under: [{ card: "BT21-021", as: "omni" }] },
+            {
+              card: "BT10-087",
+              as: "taiki",
+              under: [
+                { card: "BT19-014", as: "ex6" },
+                { card: "AD1-013", as: "zeig" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("ex6").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const effect = observe(s.engine).activatableEffects(s.perm("kotone"))[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("kotone").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("ex6").instanceId);
+    expect(played).toBeDefined();
+    expect(played!.stack.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("omni").instanceId, s.inst("zeig").instanceId]),
+    );
+    expect(played!.stack).toHaveLength(2);
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.perm("kotone").isSuspended).toBe(true);
+    expect(s.perm("taiki").stack).toHaveLength(0);
+    expect(s.perm("kotone").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

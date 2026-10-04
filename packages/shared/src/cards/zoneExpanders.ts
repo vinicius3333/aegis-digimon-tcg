@@ -38,26 +38,22 @@ function cardHasTrait(def: CardDefinition, trait: string): boolean {
 const hasAnyTrait = (def: CardDefinition, traits: string[]): boolean => traits.some((t) => cardHasTrait(def, t));
 
 export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
-  // BT10-087 (Taiki Kudo): "[Your Turn] When you would play 1 Digimon card with DigiXros
-  // requirements, by suspending this Tamer, you may place cards from under one of your Tamers as
-  // DigiXros materials." The DigiXros subsystem has already verified the played card has a
-  // DigiXros requirement before consulting expanders, so this applies to any such Digimon, but
-  // the selected materials must share one Tamer host.
+  // BT10-087 (Taiki Kudo): when playing 1 Digimon with DigiXros requirements,
+  // suspending this Tamer permits cards from under any of your Tamers (Q2011/Q2012).
+  // The DigiXros subsystem checks the played card's requirement before consulting expanders.
   "BT10-087": {
     appliesTo: () => true,
     underTamerMax: 100,
-    underTamerHostScope: "single",
+    underTamerHostScope: "any",
     trashMax: 0,
     requiresSinglePlay: true,
   },
-  // BT10-088 (Kiriha Aonuma): "[Your Turn] When you play 1 Digimon with DigiXros requirements, by
-  // suspending this Tamer, you may place cards from under one of your Tamers as digivolution cards
-  // for a DigiXros." As with BT10-087, the selected materials must come from one Tamer host (KB
-  // Q2016/Q2017); there is no trait gate and the under-Tamer maximum remains unlimited.
+  // BT10-088 (Kiriha Aonuma): the same unrestricted under-your-Tamers permission
+  // as Taiki, with no trait gate (Q2016/Q2017).
   "BT10-088": {
     appliesTo: () => true,
     underTamerMax: 100,
-    underTamerHostScope: "single",
+    underTamerHostScope: "any",
     trashMax: 0,
     requiresSinglePlay: true,
   },

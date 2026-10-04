@@ -2022,6 +2022,30 @@ export function digiXrosTrashNameAllowanceFor(cardId: string): readonly string[]
   return DIGIXROS_TRASH_NAME_ALLOWANCES[cardId];
 }
 
+/** Unconditional self allowances, such as Mervamon's, need no Tamer or replacement cost. */
+export function digiXrosAllowsTrashWithoutCostFor(cardId: string): boolean {
+  return (
+    compiledEffects[cardId]?.effects.some(
+      (effect) =>
+        effect.trigger === "Static" &&
+        !effect.isInherited &&
+        !effect.isLinked &&
+        !effect.isSecurity &&
+        effect.condition === undefined &&
+        effect.cost === undefined &&
+        effect.actions.some(
+          (action) =>
+            action.kind === "Replacement" &&
+            action.event === "wouldBePlayed" &&
+            action.condition === undefined &&
+            action.cost === undefined &&
+            (action.actions?.length ?? 0) === 0 &&
+            action.additionalEffects?.some((extra) => extra.kind === "AllowDigiXrosMaterialsFromTrash"),
+        ),
+    ) ?? false
+  );
+}
+
 /**
  * The DigiXros requirement(s) for a played card: the hand-authored override when one exists,
  * otherwise whatever the compiler emitted. Read by the server's DigiXros play subsystem and the

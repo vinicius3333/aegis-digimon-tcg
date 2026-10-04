@@ -37,6 +37,9 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-taiki-digixros-any-tamer-hand",
+  "arena-kotone-digixros-any-tamer-effect",
+  "arena-mervamon-trash-digixros",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
@@ -630,6 +633,69 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Discord 1556119607822254110: Mervamon offers Xros Heart materials from trash. */
+function layMervamonTrashDigiXrosScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-trash-xros-played", "BT11-086", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-trash-xros-mervamon", "BT11-086", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-trash-xros-ignitemon", "BT11-076", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-trash-xros-invalid", "BT1-010", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-trash-xros-draw", "BT1-010", 0), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** Discord 1556119607822254110: Taiki unlocks materials under multiple Tamers. */
+function layTaikiAnyTamerDigiXrosScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  effectPlay = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    const kotone = establishedDigimon(0, ["P-224"], "-any-tamer-kotone");
+    setTopCard(kotone, faceUpCard("dev-any-tamer-kotone", "P-224", 0));
+    const taiki = establishedDigimon(0, ["BT10-087"], "-any-tamer-taiki");
+    setTopCard(taiki, faceUpCard("dev-any-tamer-taiki", "BT10-087", 0));
+    const kotoneMaterials = effectPlay ? ["BT21-021"] : ["BT19-051", "BT19-038"];
+    const taikiMaterials = effectPlay ? ["AD1-013"] : ["BT19-035", "BT19-061", "BT21-021"];
+    kotoneMaterials.forEach((cardId, index) =>
+      pushOnStack(kotone, faceUpCard(`dev-any-tamer-kotone-material-${index}`, cardId, 0)),
+    );
+    taikiMaterials.forEach((cardId, index) =>
+      pushOnStack(taiki, faceUpCard(`dev-any-tamer-taiki-material-${index}`, cardId, 0)),
+    );
+    if (effectPlay) pushOnStack(taiki, faceUpCard("dev-any-tamer-played", "BT19-014", 0));
+    else insertCard(human, Zone.Hand, faceDownCard("dev-any-tamer-played", "AD1-006", 0));
+    placePermanent(human, kotone);
+    placePermanent(human, taiki);
+    // A neutral turn draw keeps Kotone's start-of-main placement from consuming materials.
+    insertCard(human, Zone.Deck, faceDownCard("dev-any-tamer-draw", "BT1-010", 0), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Discord 1555932180322975924, match 802ba658: Kotone to hand, lone X7 under Taiki. */
@@ -5035,6 +5101,9 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-mervamon-trash-digixros": layMervamonTrashDigiXrosScenario,
+  "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
+  "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,

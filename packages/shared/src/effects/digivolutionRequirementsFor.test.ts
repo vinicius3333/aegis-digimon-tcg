@@ -1,7 +1,14 @@
 import { describe, it, expect } from "vitest";
 import cards from "../cards/data/cards.json" with { type: "json" };
 import { digivolutionRequirementsFor, dnaDigivolutionRequirementsFor, tamerOntoDigivolveLevel } from "./data.js";
-import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor } from "./data.js";
+import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor, digiXrosAllowsTrashWithoutCostFor } from "./data.js";
+
+it("projects Mervamon's trash allowance without granting allowances that require a Shoutmon cost", () => {
+  expect(digiXrosAllowsTrashWithoutCostFor("BT11-086")).toBe(true);
+  for (const cardId of ["BT12-112", "BT21-030", "BT18-065", "AD1-006", "missing"]) {
+    expect(digiXrosAllowsTrashWithoutCostFor(cardId)).toBe(false);
+  }
+});
 
 // Regression for the corresponding regression coverage finding 1: BT26 is hand-implemented
 // and has no effects.json entry, so its printed `[Digivolve] ...: Cost N` alternate paths only

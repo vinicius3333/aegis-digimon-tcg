@@ -68,6 +68,18 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Evolua EX12-051 para EX12-052 Diarbbitmon da mão. Escolha o próprio Diarbbitmon para a imunidade e +3000 DP; batalhe o primeiro BT26-061 do bot. Encerre o turno e aceite Vortex contra o segundo BT26-061: Diarbbitmon deve ficar suspenso. Os dois ST23-13 dão ao bot 5 de memória na Principal. Ele usa ST23-09 Atratusmon como Option (Eclipse Impact), escolhendo Diarbbitmon. Apesar da imunidade a efeitos de Digimon, ele deve ir ao fundo do deck: Eclipse Impact é efeito de Option. Recuse Arts Digivolve, se oferecido.",
     en: "Digivolve EX12-051 into EX12-052 Diarbbitmon from hand. Choose Diarbbitmon for immunity and +3000 DP; battle the bot's first BT26-061. End the turn and accept Vortex against the second BT26-061: Diarbbitmon should be suspended. The two ST23-13 Tamers give the bot 5 memory in Main. It uses ST23-09 Atratusmon as an Option (Eclipse Impact), choosing Diarbbitmon. Despite Digimon-effect immunity, it must go to the deck bottom: Eclipse Impact is an Option effect. Decline Arts Digivolve if offered.",
   },
+  "arena-taiki-digixros-any-tamer-hand": {
+    ptBR: "Recuse a colocação da Kotone no início da fase principal. Jogue AD1-006 Shoutmon X7 da mão com DigiXros. Suspenda BT10-087 Taiki e selecione os 5 materiais sob Taiki e Kotone. A jogada deve ser aceita: Taiki suspende, X7 fica com os 5 materiais e a memória cai de 10 para 7. Kotone continua ativa.",
+    en: "Decline Kotone's placement at the start of the main phase. Play AD1-006 Shoutmon X7 from hand with DigiXros. Suspend BT10-087 Taiki and select all 5 materials under Taiki and Kotone. The play succeeds: Taiki suspends, X7 has all 5 materials, and memory falls from 10 to 7. Kotone stays unsuspended.",
+  },
+  "arena-kotone-digixros-any-tamer-effect": {
+    ptBR: "Recuse a colocação da Kotone no início da fase principal. Ative o [Principal] da P-224 Kotone, aceite suspendê-la e escolha BT19-014 Shoutmon EX6 sob Taiki. Na seleção de DigiXros, suspenda Taiki e escolha OmniShoutmon sob Kotone e ZeigGreymon sob Taiki. Não deve haver escolha de um único Tamer. EX6 entra com os 2 materiais, ambos os Tamers suspendem e a memória cai de 10 para 4.",
+    en: "Decline Kotone's placement at the start of the main phase. Activate P-224 Kotone's [Main], accept suspending her, and choose BT19-014 Shoutmon EX6 under Taiki. For DigiXros, suspend Taiki and select OmniShoutmon under Kotone and ZeigGreymon under Taiki. There must be no single-Tamer choice. EX6 enters with both materials, both Tamers suspend, and memory falls from 10 to 4.",
+  },
+  "arena-mervamon-trash-digixros": {
+    ptBR: "Encerre a fase de criação e jogue BT11-086 Mervamon da mão. A seleção de DigiXros deve oferecer Mervamon e BT11-076 Ignitemon da lixeira sem exigir um Tamer. Escolha apenas 1 deles; Agumon não é material válido. Confirme o DigiXros e recuse o [Ao Jogar] da Mervamon, se oferecido. Ela entra com 1 material e a memória cai de 10 para 2. Reinicie para testar a outra opção.",
+    en: "End breeding and play BT11-086 Mervamon from hand. DigiXros must offer Mervamon and BT11-076 Ignitemon from trash without requiring a Tamer. Choose just 1; Agumon is not a valid material. Confirm DigiXros and decline Mervamon's [On Play], if offered. She enters with 1 material and memory falls from 10 to 2. Reset to test the other option.",
+  },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
@@ -654,6 +666,9 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ad1-adventure-tamers-security", "AD1 Adventure Tamers · Security plays both Tamers"],
   ["arena-lm067-gundramon-free-option", "LM-067 Gundramon · free revealed Option"],
   ["arena-diarbbitmon-dual-option-immunity", "Diarbbitmon · Eclipse Impact / DUAL immunity"],
+  ["arena-taiki-digixros-any-tamer-hand", "Taiki · DigiXros from hand under any Tamer"],
+  ["arena-kotone-digixros-any-tamer-effect", "Kotone · effect DigiXros under any Tamer"],
+  ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
