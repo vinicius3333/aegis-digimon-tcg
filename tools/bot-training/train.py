@@ -1,6 +1,9 @@
 """A bounded, reproducible PPO pilot against the frozen Aegis heuristic opponent."""
 
+import hashlib
+import io
 import json
+import math
 import random
 import shutil
 import threading
@@ -404,11 +407,19 @@ def action_coverage(records: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
     help="Only schedule episodes where the learner pilots this deck version (repeatable).",
 )
 @click.option("--max-decisions", default=4000, type=click.IntRange(min=1))
-@click.option("--curriculum", is_flag=True, help="Include complementary BT26/EX13 learning recipes.")
+@click.option(
+    "--curriculum", is_flag=True, help="Include complementary BT26/EX13 learning recipes."
+)
 @click.option("--seed", default=260001, type=int)
 @click.option("--device", default="cpu", type=click.Choice(["cpu", "cuda"]))
 @click.option("--checkpoint", type=click.Path(path_type=Path, exists=True, dir_okay=False))
 @click.option("--evaluate", is_flag=True, help="Greedy held-out evaluation; never updates weights.")
+@click.option(
+    "--learning-rate",
+    type=click.FloatRange(min=0, min_open=True),
+    default=None,
+    help="Override training Adam's learning rate after restoring its state; omitted retains it.",
+)
 def main(
     worker: Path,
     output: Path,
@@ -428,8 +439,14 @@ def main(
     device: str,
     checkpoint: Path | None,
     evaluate: bool,
+    learning_rate: float | None,
     curriculum: bool,
 ) -> None:
+    if learning_rate is not None:
+        if not math.isfinite(learning_rate):
+            raise click.ClickException("Learning rate must be positive and finite")
+        if evaluate:
+            raise click.ClickException("--learning-rate is only supported for training")
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory so prior evidence is preserved")
     output.mkdir(parents=True, exist_ok=True)
@@ -463,8 +480,15 @@ def main(
             return True
         return False
 
+    source_checkpoint = None
     if checkpoint is not None:
-        saved = torch.load(checkpoint, map_location=target_device, weights_only=True)
+        contents = checkpoint.read_bytes()
+        saved = torch.load(io.BytesIO(contents), map_location=target_device, weights_only=True)
+        source_checkpoint = {
+            "path": str(checkpoint),
+            "sha256": hashlib.sha256(contents).hexdigest(),
+        }
+        del contents
         if not compatible(saved, checkpoint, learner=True):
             raise click.ClickException(
                 "Checkpoint deck/observation schema differs from this worker"
@@ -474,6 +498,17 @@ def main(
             optimizer.load_state_dict(saved["optimizer"])
     elif evaluate:
         raise click.ClickException("Evaluation requires --checkpoint")
+
+    initial_learning_rate = optimizer.param_groups[0]["lr"]
+    if learning_rate is not None:
+        for group in optimizer.param_groups:
+            group["lr"] = learning_rate
+    continuation = {
+        "sourceCheckpoint": source_checkpoint,
+        "initialLearningRate": None if evaluate else initial_learning_rate,
+        "learningRate": None if evaluate else optimizer.param_groups[0]["lr"],
+        "learningRateOverride": learning_rate,
+    }
 
     def frozen(path: Path) -> CandidatePolicy:
         saved = torch.load(path, map_location=target_device, weights_only=True)
@@ -511,6 +546,7 @@ def main(
         "forfeitOnCostRefusal": not evaluate,
         "torchVersion": str(torch.__version__),
         "parameters": sum(parameter.numel() for parameter in model.parameters()),
+        **continuation,
     }
     if curriculum:
         config["curriculum"] = scope
@@ -584,6 +620,7 @@ def main(
                     "featureVersion": FEATURE_VERSION,
                     "games": indexes[-1] + 1,
                     "seed": seed,
+                    "trainingContinuation": continuation,
                 }
                 temporary = output / "checkpoint.tmp"
                 torch.save(saved, temporary)
@@ -638,6 +675,11 @@ def main(
                 "checkpointReloadExact": not evaluate,
                 "completeEpisodes": sum(record["usable"] for record in records),
                 "paymentForfeits": sum("trainingForfeit" in record for record in records),
+                "sourceCheckpointSha256": (
+                    source_checkpoint["sha256"] if source_checkpoint is not None else None
+                ),
+                "learningRate": continuation["learningRate"],
+                "learningRateOverride": learning_rate,
             },
             indent=2,
         )
