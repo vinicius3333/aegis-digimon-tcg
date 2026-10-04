@@ -41,11 +41,14 @@ describe("BT9-064 Grademon", () => {
     });
   });
 
-  it("adds Alphamon, places an X Antibody card under itself, and trashes the rest", async () => {
+  it("Discord 1556107827456774256 sweep: adds Alphamon and places X Antibody under itself with another Digimon in play", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-061", as: "base" }],
+          battleArea: [
+            { card: "BT1-010", as: "other" },
+            { card: "BT10-061", as: "base" },
+          ],
           hand: [{ card: "BT9-064", as: "evolving" }],
           deck: [
             { card: "BT6-111", as: "alphamon" },
@@ -67,6 +70,8 @@ describe("BT9-064 Grademon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("rest").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("alphamon").instanceId)).toBe(true);
     expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("xAntibody").instanceId)).toBe(true);
+    expect(s.perm("other").stack).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseTargets")).toBe(false);
   });
 
   it("deletes a cost-5-or-less Digimon at end of attack while inherited by Alphamon", async () => {

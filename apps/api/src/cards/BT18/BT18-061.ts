@@ -27,6 +27,7 @@ export const compiled: CompiledCard = {
               ],
               count: 1,
               to: "placeUnder",
+              underFilter: { isSelfRef: true },
               optional: true,
             },
           ],

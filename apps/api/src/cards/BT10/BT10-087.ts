@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
               },
               count: 1,
               to: "underTamer",
+              underFilter: { isSelfRef: true },
             },
           ],
           rest: "deckBottom",

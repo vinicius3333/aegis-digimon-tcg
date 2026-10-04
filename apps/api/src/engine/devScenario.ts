@@ -73,6 +73,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ad1-adventure-tamers-security",
   "arena-lm067-gundramon-free-option",
   "arena-bt10-taiki-x7-xros-heart",
+  "arena-bt10-taiki-reveal-under-self",
   "arena-ex13-sampson-face-down-sources",
   "arena-p240-arcturusmon-vb-routes",
   "arena-p240-arcturusmon-ordered-placement",
@@ -699,6 +700,33 @@ function layBt10TaikiX7XrosHeartScenario(state: GameState, decks: readonly [Deck
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 5;
+}
+
+/** Discord 1556107827456774256, match 9b9ea6cc: only the played Taiki receives the reveal. */
+function layBt10TaikiRevealUnderSelfScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["P-224"], "-taiki-reveal-kotone"));
+    placePermanent(human, establishedDigimon(0, ["BT10-087"], "-taiki-reveal-first"));
+    placePermanent(human, establishedDigimon(0, ["BT10-087"], "-taiki-reveal-second"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-taiki-reveal-played", "BT10-087", 0));
+    // Turn draw, then the four cards revealed at 00:29:58 UTC in production.
+    const top = ["BT1-009", "BT21-021", "BT21-083", "AD1-006", "AD1-013"];
+    for (let index = top.length - 1; index >= 0; index -= 1) {
+      insertCard(human, Zone.Deck, faceDownCard(`dev-taiki-reveal-deck-${index}`, top[index]!, 0), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /** Discord 1555932429007593605: real attacks must play checked Adventure Tamers. */
@@ -5153,6 +5181,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-bt10-taiki-x7-xros-heart": layBt10TaikiX7XrosHeartScenario,
+  "arena-bt10-taiki-reveal-under-self": layBt10TaikiRevealUnderSelfScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-p240-arcturusmon-ordered-placement": layP240ArcturusmonOrderedPlacementScenario,
