@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import Any
 
 import click
+import torch
 
 from bridge import Episode, describe, episode_scope, scheduled_episode, verify_recipe_pins
 from features import FEATURE_VERSION
+from inference import CheckpointScorer
 
 
 @click.command()
@@ -18,21 +20,48 @@ from features import FEATURE_VERSION
 @click.option("--games", default=80, type=click.IntRange(min=1))
 @click.option("--seed", default=410000, type=int)
 @click.option("--workers", default=1, type=click.IntRange(min=1))
-@click.option("--curriculum", is_flag=True, help="Include complementary BT26/EX13 learning recipes.")
+@click.option(
+    "--curriculum", is_flag=True, help="Include complementary BT26/EX13 learning recipes."
+)
+@click.option("--checkpoint", type=click.Path(path_type=Path, exists=True, dir_okay=False))
+@click.option("--device", type=click.Choice(["cpu", "cuda"]), default=None)
 def main(
-    worker: Path, output: Path, node: str, games: int, seed: int, workers: int, curriculum: bool
+    worker: Path,
+    output: Path,
+    node: str,
+    games: int,
+    seed: int,
+    workers: int,
+    curriculum: bool,
+    checkpoint: Path | None,
+    device: str | None,
 ) -> None:
+    if device is not None and checkpoint is None:
+        raise click.ClickException("--device requires --checkpoint")
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory")
-    output.mkdir(parents=True, exist_ok=True)
     metadata = describe(node, worker)
     scope = episode_scope(node, worker, metadata, curriculum)
+    scorer = None
+    if checkpoint is not None:
+        torch.set_num_threads(2)
+        scorer = CheckpointScorer(checkpoint, device or "cpu")
+        if scorer.metadata != metadata:
+            raise click.ClickException("Checkpoint deck/observation schema differs from the worker")
+    output.mkdir(parents=True, exist_ok=True)
     manifest = {
         "metadata": metadata,
         "featureVersion": FEATURE_VERSION,
         "seed": seed,
         "games": games,
         "workers": workers,
+        "learnerDriver": "teacher" if scorer is None else "greedy-checkpoint",
+        "device": None if scorer is None else str(scorer.device),
+        "sourceCheckpoint": (
+            None
+            if scorer is None
+            else {"path": str(checkpoint), "sha256": scorer.checkpoint_sha256}
+        ),
     }
     if curriculum:
         manifest["curriculum"] = scope
@@ -57,60 +86,84 @@ def main(
         }
         count = 0
         unavailable = 0
+        agreements = 0
         temporary = output / f"episode-{index:05d}.partial"
-        with temporary.open("w") as trajectory:
-            with Episode(node, worker, config, output / f"episode-{index:05d}.log") as bridge:
-                ready = bridge.receive()
-                if (
-                    ready.get("type") != "ready"
-                    or ready.get("engineSha256") != metadata["engineSha256"]
-                ):
-                    raise RuntimeError("Unexpected worker handshake")
-                verify_recipe_pins(ready, config)
-                while True:
-                    message: dict[str, Any] = bridge.receive()
-                    if message["type"] == "decision":
-                        if "teacher" not in message:
-                            raise RuntimeError("Worker did not supply requested teacher labels")
-                        label = message["teacher"]["action"]
-                        if label is not None and (
-                            not isinstance(label, int) or not 0 <= label < len(message["actions"])
-                        ):
-                            raise RuntimeError("Teacher returned an invalid action label")
-                        # Keep fallback states for diagnosis, but never supervise their arbitrary action.
-                        action = 0 if label is None else label
-                        count += 1
-                        unavailable += label is None
-                        trajectory.write(
-                            json.dumps(
-                                {
-                                    "window": message,
-                                    "action": action,
-                                    "supervised": label is not None,
-                                }
-                            )
-                            + "\n"
-                        )
-                        bridge.send({"decisionId": message["decisionId"], "action": action})
-                        continue
-                    if message["type"] not in ("result", "truncated"):
-                        raise RuntimeError(f"Demonstration failed: {message}")
-                    if (
-                        message.get("errors")
-                        or message.get("rejections")
-                        or message.get("asyncRejections")
+        with (
+            temporary.open("w") as trajectory,
+            Episode(node, worker, config, output / f"episode-{index:05d}.log") as bridge,
+        ):
+            ready = bridge.receive()
+            if (
+                ready.get("type") != "ready"
+                or ready.get("engineSha256") != metadata["engineSha256"]
+            ):
+                raise RuntimeError("Unexpected worker handshake")
+            verify_recipe_pins(ready, config)
+            while True:
+                message: dict[str, Any] = bridge.receive()
+                if message["type"] == "decision":
+                    if "teacher" not in message:
+                        raise RuntimeError("Worker did not supply requested teacher labels")
+                    label = message["teacher"]["action"]
+                    if label is not None and (
+                        type(label) is not int or not 0 <= label < len(message["actions"])
                     ):
-                        raise RuntimeError(f"Demonstration engine error: {message}")
-                    complete = message["type"] == "result" and message.get("terminated")
-                    record = {
-                        "index": index,
-                        "config": config,
-                        "complete": bool(complete),
-                        "decisions": count,
-                        "unavailable": unavailable,
-                        "result": message,
-                    }
-                    break
+                        raise RuntimeError("Teacher returned an invalid action label")
+                    # Keep fallback states for diagnosis, but never supervise their arbitrary action.
+                    target = 0 if label is None else label
+                    action = target if scorer is None else scorer.choose(message)
+                    count += 1
+                    unavailable += label is None
+                    agreements += label is not None and action == label
+                    trajectory.write(
+                        json.dumps(
+                            {
+                                "window": message,
+                                "action": target,
+                                "executedAction": action,
+                                "driver": manifest["learnerDriver"],
+                                "supervised": label is not None,
+                            }
+                        )
+                        + "\n"
+                    )
+                    bridge.send({"decisionId": message["decisionId"], "action": action})
+                    continue
+                if message["type"] not in ("result", "truncated"):
+                    raise RuntimeError(f"Demonstration failed: {message}")
+                if message["type"] == "result" and (
+                    type(message.get("terminated")) is not bool
+                    or type(message.get("truncated")) is not bool
+                    or any(
+                        not isinstance(message.get(key), list)
+                        for key in ("errors", "rejections", "asyncRejections")
+                    )
+                ):
+                    raise RuntimeError("Demonstration has an incomplete terminal ledger")
+                if (
+                    message.get("errors")
+                    or message.get("rejections")
+                    or message.get("asyncRejections")
+                    or "trainingForfeit" in message
+                ):
+                    raise RuntimeError(f"Demonstration engine error: {message}")
+                if bridge.process.wait(timeout=5) != 0:
+                    raise RuntimeError("Demonstration worker exited unsuccessfully")
+                complete = (
+                    message["type"] == "result"
+                    and message.get("terminated")
+                    and not message.get("truncated")
+                )
+                record = {
+                    "index": index,
+                    "config": config,
+                    "complete": bool(complete),
+                    "decisions": count,
+                    "unavailable": unavailable,
+                    "teacherAgreements": agreements,
+                    "result": message,
+                }
+                break
         if complete:
             temporary.replace(output / f"episode-{index:05d}.jsonl")
         return record
