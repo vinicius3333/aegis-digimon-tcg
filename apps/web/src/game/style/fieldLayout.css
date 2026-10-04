@@ -130,8 +130,8 @@
    shelf underneath. Compact utilities return height to those two shelves. */
 @media (width < 600px) and (orientation: portrait) {
   .aegis-arena .game-board:has([data-field-layout="organized"]) {
-    --arena-pile-width: 44px;
-    --arena-utility-height: 90px;
+    --arena-pile-width: 28px;
+    --arena-utility-height: 78px;
     --arena-hand-height: 104px;
     --arena-hand-reserved: 32px;
     --arena-hand-lift: 6px;
@@ -197,10 +197,169 @@
 
 @media (width < 600px) and (height < 650px) and (orientation: portrait) {
   .aegis-arena .game-board:has([data-field-layout="organized"]) {
-    --arena-pile-width: 44px;
-    --arena-utility-height: 90px;
+    --arena-pile-width: 28px;
+    --arena-utility-height: 78px;
     --arena-hand-height: 76px;
     --arena-hand-reserved: 28px;
     --arena-hand-lift: 4px;
+  }
+}
+
+/* Fit the entire phone field, rather than hiding cards outside a scrolling lane. */
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
+  .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+    --field-fit-all: 1;
+    min-height: 0 !important;
+  }
+  .game-board .game-battle-row[data-fit-all="true"] > .game-battle-lane {
+    zoom: var(--field-scale);
+    width: 100%;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .aegis-arena .game-board .game-player-dock [data-testid="hand"] {
+    container-type: inline-size;
+    justify-content: center !important;
+    gap: 4px !important;
+    overflow: hidden !important;
+  }
+  .aegis-arena .game-board .game-player-dock [data-testid="hand"] > .game-hand-card {
+    --mobile-hand-width: min(
+      calc(var(--arena-hand-card-height, calc(var(--hand-card-width, 56px) * 1.4)) / 1.4),
+      calc((100cqw - (var(--hand-card-count) - 1) * 4px) / var(--hand-card-count))
+    );
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-left: 0 !important;
+    transform: none !important;
+  }
+  .aegis-arena .game-board .game-player-dock [data-testid="hand"] > .game-hand-card > div {
+    width: var(--mobile-hand-width) !important;
+    height: calc(var(--mobile-hand-width) * 1.4) !important;
+  }
+}
+
+/* Security shares the raising corner, above its cards, leaving the centre clear. */
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) :is(.game-security-shield, .game-security-shield-wrap) {
+    align-self: start;
+    min-height: 22px;
+    height: 22px;
+    width: 100%;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-cards {
+    position: absolute;
+    top: 0;
+    left: 0;
+    justify-content: flex-start;
+    padding: 0;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-cards i {
+    min-width: 10px;
+    width: 14px;
+    height: 18px;
+    flex-basis: 14px;
+    margin-left: -5px;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-cards i:first-child {
+    margin-left: 0;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-shield__count {
+    position: absolute;
+    top: 0;
+    left: auto;
+    right: 0;
+    transform: none;
+    min-width: 18px;
+    padding: 1px 3px;
+    font-size: 10px;
+    line-height: 14px;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-shield__label {
+    position: absolute;
+    display: block;
+    width: auto;
+    height: auto;
+    bottom: 0;
+    left: auto;
+    font-size: 6px;
+    line-height: 6px;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    :is(.game-security-shield__attack-label, .game-security-shield__dp-label) {
+    position: absolute;
+    inset: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    padding: 1px 2px;
+    translate: none;
+    transform: none;
+    font-size: 8px;
+    line-height: 10px;
+    white-space: normal;
+    text-align: center;
+    background: var(--arena-plate, #142d38);
+    pointer-events: none;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-shield__dp-label {
+    top: auto;
+    bottom: 0;
+  }
+}
+
+@media (width < 600px) and (orientation: portrait) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-utility-slot {
+    align-self: end;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-breeding-slot__box {
+    min-height: 28px;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    :is(.game-security-shield--you, .game-security-shield-wrap:has(.game-security-shield--you)) {
+    grid-area: 3 / 1 / 4 / 3;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    :is(.game-security-shield--opp, .game-security-shield-wrap:has(.game-security-shield--opp)) {
+    grid-area: 1 / 4 / 2 / 6;
+  }
+}
+
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
+  .aegis-arena .game-board:has([data-field-layout="organized"]) :is(.game-security-shield, .game-security-shield-wrap) {
+    display: block;
+    position: relative;
+    inset: auto;
+    width: auto;
+    min-width: 76px;
+    aspect-ratio: auto;
+    clip-path: none;
+    transform: none;
+    background: transparent;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-shield::before {
+    content: none;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-security-cards {
+    display: flex;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-pile-column--right > div:first-child {
+    flex-direction: column-reverse !important;
+    align-self: end;
+    gap: 4px !important;
+  }
+  .aegis-arena
+    .game-board:has([data-field-layout="organized"])
+    .game-pile-column--left
+    > :is(.game-security-shield, .game-security-shield-wrap:has(.game-security-shield--you)) {
+    grid-area: 3 / 1 / 4 / 3;
+    justify-self: stretch;
+    align-self: start;
+  }
+  .aegis-arena .game-board:has([data-field-layout="organized"]) .game-player-dock > .game-breeding-dock {
+    grid-area: 4 / 1 / 5 / 3;
   }
 }

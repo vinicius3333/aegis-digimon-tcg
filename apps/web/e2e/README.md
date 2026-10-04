@@ -45,9 +45,15 @@ limited to 2048 MB; Chromium consumes additional memory. No CI is configured.
   printed source order, zero cost, hand consumption, and visible sources.
 - `reconnect.spec.ts`: real page reload while Yuuki has an open decision; same room
   and decision resume, then UI actions pay exactly one card and resolve the effect.
+- `mobile-board.spec.ts`: the visual arena fixture at five phone viewports, including
+  landscape, with crowded fields and 12/30-card hands. Checks complete card bounds,
+  overflow, security above raising, and clicking an attack target beneath its
+  compact label. Runs without the API:
+  `pnpm --filter @aegis/web exec playwright test mobile-board.spec.ts`.
 
-These cover desktop Chromium. They do not claim full lobby/account coverage,
-mobile-device validation, cross-browser parity, or screenshot baseline comparison.
+These cover desktop and phone viewports in Chromium. They do not claim full
+lobby/account coverage, physical-device validation, cross-browser parity, or
+screenshot baseline comparison.
 Card artwork uses the application's normal external image URLs.
 
 Failure screenshots, traces, and DOM context are in `apps/web/test-results/` and

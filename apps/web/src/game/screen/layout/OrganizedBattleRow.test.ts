@@ -1,22 +1,54 @@
 import { describe, expect, it } from "vitest";
-import { fitLanes, fitLanesToWidth, laneContentWidth, LanePlacement } from "./OrganizedBattleRow";
+import { fitLanes, fitLanesToWidth, fitMobileLanes, laneContentWidth, LanePlacement } from "./OrganizedBattleRow";
 import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 
 const crowded = { digimonCount: 6, supportCount: 6 };
 
 describe("fitLanes", () => {
+  it.each([288, 358, 398, 812])("keeps every crowded phone card within a %ipx row", (width) => {
+    const upright = { suspended: false, sources: 0, links: 0, copies: 1 };
+    const cards = {
+      digimon: [{ ...upright, sources: 12, links: 2, suspended: true }, ...Array.from({ length: 19 }, () => upright)],
+      support: Array.from({ length: 6 }, () => ({ ...upright, copies: 3, suspended: true })),
+    };
+    const content = { digimonCount: 20, supportCount: 6, fitAll: true, sourceStep: 3, preferStacked: true };
+    const initial = { placement: LanePlacement.SideBySide, digimon: 44, support: 28 };
+    const fitted = fitMobileLanes(initial, { width, height: 80 }, cards, content);
+    expect(fitted.placement).toBe(LanePlacement.Stacked);
+    expect(fitted.scale).toBeGreaterThan(0);
+    expect(fitted.scale).toBeLessThan(1);
+    for (const [lane, cardWidth, gap] of [
+      [cards.digimon, fitted.digimon, 0.25],
+      [cards.support, fitted.support, 0.3],
+    ] as const) {
+      expect(laneContentWidth(lane, cardWidth, gap, 3, true) * fitted.scale!).toBeLessThan(width);
+    }
+    expect(fitMobileLanes(initial, { width, height: 80 }, cards, { ...content, fitAll: false })).toBe(initial);
+  });
+  it("scales the badges and both shelves into a short phone row", () => {
+    const card = { suspended: false, sources: 0, links: 0, copies: 1 };
+    const fitted = fitMobileLanes(
+      { placement: LanePlacement.SideBySide, digimon: 44, support: 28 },
+      { width: 400, height: 50 },
+      { digimon: [card], support: [card] },
+      { digimonCount: 1, supportCount: 1, preferStacked: true, fitAll: true },
+    );
+    // 62px artwork + 18px badges + 15px swing clearance, then a 44px
+    // support frame with its 18px badges and 8px shadow.
+    expect((62 + 18 + 15 + 44 + 18 + 8) * fitted.scale!).toBeLessThan(50);
+  });
   it("shrinks a crowded lane to fit the row before it scrolls, down to a floor", () => {
     const upright = { suspended: false, sources: 0, links: 0, copies: 1 };
     const suspended = { ...upright, suspended: true };
-    const crowded = { digimon: [...Array(7).fill(upright), ...Array(4).fill(suspended)], support: [upright] };
+    const cards = { digimon: [...Array(7).fill(upright), ...Array(4).fill(suspended)], support: [upright] };
     const lanes = { placement: LanePlacement.Stacked, digimon: 87, support: 87 };
     const content = { digimonCount: 11, supportCount: 1, supportScale: 1, sourceStep: 2, fitWidth: true };
-    const fitted = fitLanesToWidth(lanes, 1260, crowded, content);
+    const fitted = fitLanesToWidth(lanes, 1260, cards, content);
     expect(fitted.digimon).toBeLessThan(87);
     expect(fitted.digimon).toBe(fitted.support);
-    expect(laneContentWidth(crowded.digimon, fitted.digimon, 0.25, 2)).toBeLessThanOrEqual(1260);
-    expect(fitLanesToWidth(lanes, 400, crowded, content).digimon).toBe(66);
-    expect(fitLanesToWidth(lanes, 1260, crowded, { ...content, fitWidth: false })).toBe(lanes);
+    expect(laneContentWidth(cards.digimon, fitted.digimon, 0.25, 2)).toBeLessThanOrEqual(1260);
+    expect(fitLanesToWidth(lanes, 400, cards, content).digimon).toBe(66);
+    expect(fitLanesToWidth(lanes, 1260, cards, { ...content, fitWidth: false })).toBe(lanes);
   });
   it("sizes a sideline row the same before and after its first Tamer", () => {
     const sideline = { supportScale: 1, reserveSupport: true, overlapLanes: true };

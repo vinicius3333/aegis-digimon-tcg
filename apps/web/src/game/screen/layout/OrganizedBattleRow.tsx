@@ -112,13 +112,14 @@ function flightOffset(element: HTMLElement): FlightOffset {
 /** A card's centre in its lane's scrolled content, so a scroll between two renders is not read as a move. */
 function measureCards(row: HTMLElement): Map<string, DrawnCard> {
   const rowRect = row.getBoundingClientRect();
+  const scale = Number.parseFloat(row.style.getPropertyValue("--field-scale")) || 1;
   const drawn = new Map<string, DrawnCard>();
   for (const element of row.querySelectorAll<HTMLElement>("[data-field-key]")) {
     const rect = element.getBoundingClientRect();
     const scroll = element.closest(".game-battle-lane")?.scrollLeft ?? 0;
     drawn.set(element.dataset.fieldKey!, {
-      x: rect.left + rect.width / 2 - rowRect.left + scroll,
-      y: rect.top + rect.height / 2 - rowRect.top,
+      x: (rect.left + rect.width / 2 - rowRect.left) / scale + scroll,
+      y: (rect.top + rect.height / 2 - rowRect.top) / scale,
       suspended: element.hasAttribute("data-suspended"),
       element,
     });
@@ -140,7 +141,7 @@ function useFieldMotion(
   rowSize: { width: number; height: number },
 ) {
   const drawnBefore = useRef(new Map<string, DrawnCard>());
-  const sizeBefore = useRef({ width: 0, height: 0 });
+  const sizeBefore = useRef({ width: 0, height: 0, scale: 1 });
   const signature = JSON.stringify([
     rowSize,
     cards.map((card) => [
@@ -164,8 +165,15 @@ function useFieldMotion(
       flights.get(element)?.cancel();
     }
     const drawn = measureCards(row);
-    const size = { width: row.clientWidth, height: row.clientHeight };
-    const resized = size.width !== sizeBefore.current.width || size.height !== sizeBefore.current.height;
+    const size = {
+      width: row.clientWidth,
+      height: row.clientHeight,
+      scale: Number.parseFloat(row.style.getPropertyValue("--field-scale")) || 1,
+    };
+    const resized =
+      size.width !== sizeBefore.current.width ||
+      size.height !== sizeBefore.current.height ||
+      size.scale !== sizeBefore.current.scale;
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     if (!resized && !reduceMotion) {
       for (const card of cards) {
@@ -220,6 +228,7 @@ export interface LaneLayout {
   placement: LanePlacement;
   digimon: number;
   support: number;
+  scale?: number;
 }
 
 interface LaneContent {
@@ -240,6 +249,7 @@ interface LaneContent {
   overlapLanes?: boolean;
   /** Shrink crowded lanes' cards, down to a floor, before they scroll. */
   fitWidth?: boolean;
+  fitAll?: boolean;
 }
 
 /** What a card adds to its lane's width beyond the card itself. */
@@ -311,6 +321,30 @@ export function fitLanesToWidth(
   if (fits(lanes.digimon)) return lanes;
   const digimon = Math.max(Math.ceil(lanes.digimon * MIN_WIDTH_SHRINK), fittedWidth(lanes.digimon, fits));
   return { ...lanes, digimon, support: supportFor(digimon) };
+}
+
+/** Phone lanes scale their complete footprint, including badges, sources and links. */
+export function fitMobileLanes(
+  lanes: LaneLayout,
+  row: { width: number; height: number },
+  cards: { digimon: readonly LaneCard[]; support: readonly LaneCard[] },
+  content: LaneContent,
+): LaneLayout {
+  if (!content.fitAll || row.width <= 0 || row.height <= 0) return lanes;
+  const stacked = { ...lanes, placement: LanePlacement.Stacked };
+  const metrics = laneMetrics(stacked.placement, content, stacked);
+  const step = content.sourceStep ?? 4;
+  const width = Math.max(
+    laneContentWidth(cards.digimon, stacked.digimon, DIGIMON_GAP_SHARE, step, content.preferStacked),
+    laneContentWidth(cards.support, stacked.support, SUPPORT_GAP_SHARE, step, content.preferStacked),
+  );
+  const height =
+    (cards.digimon.length ? laneHeight(stacked.digimon, metrics.digimonPadding) : 0) +
+    (cards.support.length ? laneHeight(stacked.support, metrics.supportPadding) : 0);
+  // Round downward and leave a pixel for integer scrollWidth rounding.
+  const scale =
+    Math.floor(Math.min(1, (row.width - 1) / Math.max(1, width), (row.height - 1) / Math.max(1, height)) * 1000) / 1000;
+  return { ...stacked, scale };
 }
 
 function laneMetrics(placement: LanePlacement, content: LaneContent, widths = { digimon: 0, support: 0 }): LaneMetrics {
@@ -449,6 +483,7 @@ function useRowSize() {
     reserveSupport: false,
     overlapLanes: false,
     fitWidth: false,
+    fitAll: false,
   });
   function measure() {
     const row = ref.current;
@@ -461,6 +496,7 @@ function useRowSize() {
     const reserveSupport = style.getPropertyValue("--field-reserve-support").trim() === "1";
     const overlapLanes = style.getPropertyValue("--field-overlap-lanes").trim() === "1";
     const fitWidth = style.getPropertyValue("--field-fit-width").trim() === "1";
+    const fitAll = style.getPropertyValue("--field-fit-all").trim() === "1";
     setSize((previous) =>
       previous.width === row.clientWidth &&
       previous.height === row.clientHeight &&
@@ -470,7 +506,8 @@ function useRowSize() {
       previous.supportScale === supportScale &&
       previous.reserveSupport === reserveSupport &&
       previous.overlapLanes === overlapLanes &&
-      previous.fitWidth === fitWidth
+      previous.fitWidth === fitWidth &&
+      previous.fitAll === fitAll
         ? previous
         : {
             width: row.clientWidth,
@@ -482,6 +519,7 @@ function useRowSize() {
             reserveSupport,
             overlapLanes,
             fitWidth,
+            fitAll,
           },
     );
   }
@@ -559,6 +597,7 @@ export function OrganizedBattleRow({
     reserveSupport: size.reserveSupport,
     overlapLanes: size.overlapLanes,
     fitWidth: size.fitWidth,
+    fitAll: size.fitAll,
   };
   const laneCard = (members: readonly Permanent[]): LaneCard => ({
     suspended: isSuspended(members[0]!),
@@ -567,15 +606,12 @@ export function OrganizedBattleRow({
     copies: members.length,
   });
   const heightFitted = fitLanes(size, layoutWidth, content);
-  const ownLanes = fitLanesToWidth(
-    heightFitted,
-    size.width,
-    {
-      digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
-      support: arrangement.support.map((group) => laneCard(group.members)),
-    },
-    content,
-  );
+  const laneCards = {
+    digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
+    support: arrangement.support.map((group) => laneCard(group.members)),
+  };
+  const widthFitted = fitLanesToWidth(heightFitted, size.width, laneCards, content);
+  const ownLanes = fitMobileLanes(widthFitted, size, laneCards, content);
   const rowKey = useId();
   const reports = size.reserveSupport && size.height > 0;
   const reportedHeightFitted = reports ? heightFitted.digimon : undefined;
@@ -670,11 +706,13 @@ export function OrganizedBattleRow({
       ref={ref}
       data-field-layout="organized"
       data-lanes={lanes.placement}
+      data-fit-all={size.fitAll ? "true" : undefined}
       style={{
         ...rowProps.style,
         gap: LANE_GAP,
         ...({
           "--field-lane-overlap": `${hasSupport ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
+          "--field-scale": lanes.scale ?? 1,
         } as React.CSSProperties),
       }}
     >

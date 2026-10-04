@@ -80,12 +80,16 @@ export function useArenaLayout(): ArenaLayout {
     ? tabletPortraitArena
       ? 62
       : organized
-        ? 44
+        ? narrowGameLayout
+          ? 28
+          : 44
         : shortPortraitArena
           ? 40
           : 44
     : landscapePhone || shortNarrowDock
-      ? 44
+      ? landscapePhone && organized
+        ? 28
+        : 44
       : 56;
   const arenaPermanentWidth = portraitArena
     ? tabletPortraitArena

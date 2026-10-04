@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../../design/cards";
 import { Icons } from "../../design/icons";
@@ -82,6 +82,7 @@ export function Hand({
         data-hand-overflow={handOverflows ? "true" : undefined}
         className={selection ? "game-hand game-hand--selecting" : "game-hand"}
         style={{
+          ...({ "--hand-card-count": Math.max(1, n) } as CSSProperties),
           position: "relative",
           boxSizing: "border-box",
           height: handRowHeight(cardWidth),
