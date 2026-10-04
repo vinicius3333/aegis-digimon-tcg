@@ -570,6 +570,7 @@ export function GameScreen({
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
     heldDeletions: cues.heldDeletions,
+    heldStackStrips: cues.heldStackStrips,
     heldTrashArrivals: cues.heldTrashArrivals,
     optimisticPlayedInstanceId,
   });

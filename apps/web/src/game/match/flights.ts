@@ -3,6 +3,7 @@ import type { Seat } from "@aegis/shared";
 import type { AnimationQueue, AnimationStepContext } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
+import { waitForStackStrips } from "./stackStripBarrier";
 import { TIMINGS } from "../timings";
 import { CueTrack } from "./enums";
 import type { DrawBurst, DrawFlight, DrawFlightCard, MatchCueAnchors } from "./types";
@@ -106,7 +107,13 @@ export function cueFlights(deps: CueFlightsDeps) {
    * centre-stage track behind it instead of flying into the hand while the reveal is still
    * being read.
    */
-  function launchDrawFlight(side: Side, turnStart = false, waitBeforeMs = 0, card?: DrawFlightCard) {
+  function launchDrawFlight(
+    side: Side,
+    turnStart = false,
+    waitBeforeMs = 0,
+    card?: DrawFlightCard,
+    afterStackStripKey?: number,
+  ) {
     // A turn's own draw is not the consequence of any clause; every other draw is.
     const causingEffectGate = turnStart ? null : causingEffectGateRef.current;
     const board = anchors.board.current;
@@ -153,6 +160,11 @@ export function cueFlights(deps: CueFlightsDeps) {
           waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "drawFlight/causingEffect"),
           waitBeforeMs > 0 ? context.wait(waitBeforeMs) : Promise.resolve(),
         ]);
+        // A hand-count fallback can be a bounce resolved in the same patch as source
+        // trashing. Its flight must follow the peels, just like the presented hand count.
+        if (afterStackStripKey !== undefined) {
+          await waitForStackStrips({ queue, context, throughKey: afterStackStripKey, side });
+        }
         if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);

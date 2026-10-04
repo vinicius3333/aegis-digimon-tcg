@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { ServerEvent } from "@aegis/shared";
-import type { AnimationStep } from "../../animationQueue";
-import type { DeleteBurst, MatchCueAnchors } from "../types";
+import type { GameState, ServerEvent } from "@aegis/shared";
+import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import type { StateSnapshot } from "../../../net/presentedState";
+import type { DeleteBurst, HeldStackStrip, MatchCueAnchors } from "../types";
 import { enqueueStackStripPeels } from "./stackStripPeels";
 
 const anchors = {
@@ -25,10 +26,18 @@ const deDigivolved: ServerEvent = {
   strippedStackTops: { permanentId: "perm-1", reason: "deDigivolve", sourceCardId: "BT25-025" },
 };
 
-function collect(fresh: readonly ServerEvent[]) {
+function collect(fresh: readonly ServerEvent[], snapshots: readonly StateSnapshot[] = []) {
   const steps: AnimationStep[] = [];
   let bursts: readonly DeleteBurst[] = [];
+  let held: ReadonlyMap<number, HeldStackStrip> = new Map();
   enqueueStackStripPeels({
+    queue: { idle: () => new Promise<void>(() => {}) } as AnimationQueue,
+    snapshots,
+    stateVersion: 1,
+    viewerSeat: 0,
+    setHeldStackStrips: (next) => {
+      held = typeof next === "function" ? next(held) : next;
+    },
     fresh,
     anchors,
     deleteBurstKeyRef: { current: 0 },
@@ -38,7 +47,7 @@ function collect(fresh: readonly ServerEvent[]) {
     },
     enqueue: (step) => steps.push(step),
   });
-  return { steps, bursts: () => bursts };
+  return { steps, bursts: () => bursts, held: () => held };
 }
 
 describe("enqueueStackStripPeels", () => {
@@ -103,6 +112,58 @@ describe("enqueueStackStripPeels", () => {
     ]);
     expect(bursts()).toEqual([]);
   });
+
+  it.each(["sources", "tops"] as const)(
+    "keeps successive %s peels on the same host progressing through a coalesced patch",
+    async (kind) => {
+      const cards = ["ST20-06", "ST21-08", "AD1-025"].map((cardId, index) => ({ instanceId: `card-${index}`, cardId }));
+      const permanent = { permanentId: "perm-1", topCard: cards[2]!, stack: cards.slice(0, 2) };
+      const snapshots = [
+        {
+          stateVersion: 0,
+          state: {
+            players: [
+              { battleArea: [permanent], trash: [] },
+              { battleArea: [], trash: [] },
+            ],
+          } as unknown as GameState,
+        },
+      ];
+      const fresh = [kind === "tops" ? cards[2]! : cards[1]!, kind === "tops" ? cards[1]! : cards[0]!].map((card) => ({
+        kind: "cardsMoved",
+        instanceIds: [card.instanceId],
+        cardIds: [card.cardId],
+        seat: 0,
+        from: "various",
+        to: "trash",
+        ...(kind === "tops"
+          ? { strippedStackTops: { permanentId: "perm-1", reason: "deDigivolve" } }
+          : { trashedSources: { permanentId: "perm-1", hostCardId: cards[2]!.cardId } }),
+      })) as ServerEvent[];
+      const { steps, held } = collect(fresh, snapshots);
+      const observed: { stack: string[]; top: string }[] = [];
+      for (const step of steps)
+        await step.run({
+          mode: "live",
+          cancelled: false,
+          skipping: false,
+          wait: async () => {
+            // The board overlays every hold; queued holds must agree with the active one.
+            for (const strip of held().values())
+              observed.push({
+                stack: strip.permanent.stack.map((card) => card.cardId),
+                top: strip.permanent.topCard.cardId,
+              });
+          },
+        });
+      expect(observed).toEqual([
+        { stack: ["ST20-06", "ST21-08"], top: "AD1-025" },
+        { stack: ["ST20-06", "ST21-08"], top: "AD1-025" },
+        { stack: ["ST20-06"], top: kind === "tops" ? "ST21-08" : "AD1-025" },
+      ]);
+      expect(held().size).toBe(0);
+    },
+  );
 
   it.each([
     ["a replay", { mode: "replay", skipping: false }],
