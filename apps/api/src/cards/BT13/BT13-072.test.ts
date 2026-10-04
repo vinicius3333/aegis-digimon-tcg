@@ -61,11 +61,14 @@ describe("BT13-072 DoruGreymon", () => {
     expect(s.perm("doru").topCard?.cardId).toBe("BT13-072");
   });
 
-  it("places one revealed X Antibody card under itself and applies DP immunity", async () => {
+  it("Discord 1556107827456774256 sweep: places X Antibody under itself with another Digimon in play and applies DP immunity", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-066", as: "base" }],
+          battleArea: [
+            { card: "BT1-010", as: "other" },
+            { card: "BT13-066", as: "base" },
+          ],
           hand: [{ card: "BT13-072", as: "doru" }],
           deck: ["BT1-009", "BT9-055", "BT1-010", "BT1-011"],
         },
@@ -83,13 +86,12 @@ describe("BT13-072 DoruGreymon", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(
-      () =>
-        s.perm("base").topCard?.cardId === "BT13-072" && s.perm("base").stack.some((card) => card.cardId === "BT9-055"),
-    );
+    await settle();
 
     expect(s.perm("base").topCard?.cardId).toBe("BT13-072");
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT9-055");
+    expect(s.perm("other").stack).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseTargets")).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
     expect(observe(s.engine).isRestricted(s.perm("base"), "dpImmune")).toBe(true);

@@ -56,6 +56,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Entre na Fase Principal e jogue BT10-087 Taiki Kudo da mão. Na revelação de BT21-083, P-224, AD1-006 e BT8-097, escolha P-224 Kotone Amano para a mão. AD1-006 Shoutmon X7 deve ser colocado sob o Taiki jogado, mesmo sendo o único Digimon Xros Heart revelado. Ordene BT21-083 e BT8-097 para o fundo. A memória termina em 2. Reprodução da partida 802ba658, bug 1555932180322975924.",
     en: "Enter Main and play BT10-087 Taiki Kudo from hand. From the revealed BT21-083, P-224, AD1-006 and BT8-097, choose P-224 Kotone Amano for your hand. AD1-006 Shoutmon X7 must go under the played Taiki, even though it is the only revealed Xros Heart Digimon. Order BT21-083 and BT8-097 to the bottom. Memory ends at 2. Reproduces match 802ba658, bug 1555932180322975924.",
   },
+  "arena-bt10-taiki-reveal-under-self": {
+    ptBR: "Entre na Fase Principal com Kotone e dois Taikis já em campo. Jogue o BT10-087 Taiki Kudo da mão. Dos quatro cards revelados (BT21-021, BT21-083, AD1-006 e AD1-013), adicione AD1-006 Shoutmon X7 à mão e escolha AD1-013 ShootingStarmon para colocar sob o Taiki. ShootingStarmon deve entrar automaticamente sob o Taiki recém-jogado, sem escolha de Tamer. Os três Tamers antigos ficam sem novas fontes. Ordene BT21-021 e BT21-083 para o fundo; a memória termina em 1. Reprodução da partida 9b9ea6cc, bug 1556107827456774256.",
+    en: "Enter Main with Kotone and two Taikis already in play. Play BT10-087 Taiki Kudo from hand. From the four revealed cards (BT21-021, BT21-083, AD1-006 and AD1-013), add AD1-006 Shoutmon X7 to hand and choose AD1-013 ShootingStarmon to place under Taiki. ShootingStarmon must automatically go under the newly played Taiki, with no Tamer destination choice. The three older Tamers receive no new cards. Order BT21-021 and BT21-083 to the bottom; memory ends at 1. Reproduces match 9b9ea6cc, bug 1556107827456774256.",
+  },
   "arena-ad1-adventure-tamers-security": {
     ptBR: "Encerre a fase de criação. Ataque a segurança do bot com o primeiro Shoutmon BT19-008: AD1-019 Matt Ishida & T.K. Takaishi deve ser jogado no campo do bot pelo [Segurança], sem pagar custo. Espere o ataque terminar. Ataque a segurança com o segundo Shoutmon: AD1-022 Izzy Izumi & Tai Kamiya também deve entrar no campo do bot. A segurança fica vazia, os dois Tamers ficam desuspensos no campo, nenhum vai para a lixeira e a memória continua em 3. Não faça um terceiro ataque.",
     en: "End breeding. Attack the bot's security with the first BT19-008 Shoutmon: AD1-019 Matt Ishida & T.K. Takaishi must be played onto the bot's field by [Security], without paying its cost. Wait for the attack to end. Attack security with the second Shoutmon: AD1-022 Izzy Izumi & Tai Kamiya must also enter the bot's field. Security is empty, both Tamers remain unsuspended in play, neither goes to trash, and memory stays at 3. Do not make a third attack.",
@@ -651,6 +655,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-bt10-taiki-x7-xros-heart", "BT10 Taiki · Shoutmon X7 Xros Heart"],
+  ["arena-bt10-taiki-reveal-under-self", "BT10 Taiki · revelar sob este Tamer"],
   ["arena-ad1-adventure-tamers-security", "AD1 Adventure Tamers · Security plays both Tamers"],
   ["arena-lm067-gundramon-free-option", "LM-067 Gundramon · free revealed Option"],
   ["arena-diarbbitmon-dual-option-immunity", "Diarbbitmon · Eclipse Impact / DUAL immunity"],
