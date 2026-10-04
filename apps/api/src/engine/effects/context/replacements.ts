@@ -130,6 +130,8 @@ export interface ReplacementInstallInstead extends ReplacementInstallBase {
  */
 export interface ReplacementInstallPrevent extends ReplacementInstallBase {
   mode: "prevent";
+  /** Necessary controller scope certified by the compiled protection filter; other gates remain unknown. */
+  protectedControllerSeat?: Seat;
   /** Does this guard `leavingPermanentId`? (self-reaction => only its own source.) */
   protects?: (ctx: EffectContext, leavingPermanentId: string) => boolean;
   /** Prompt + pay the cost; true => the removal is prevented. */

@@ -122,7 +122,14 @@ export function minimumDeferredPlayCost(
         !cardSourceOf(engine, permanent.topCard).definition.kinds.includes(CardKind.Tamer) ||
         engine.continuous.hasRestriction(permanent.permanentId, "beReturned") ||
         engine.continuous.hasRestriction(permanent.permanentId, "leaveBattleAreaExceptByDeletion") ||
-        engine.subTriggers.replacementsFor("wouldLeavePlay").length > 0 ||
+        engine.subTriggers
+          .replacementsFor("wouldLeavePlay")
+          .some(
+            (replacement) =>
+              replacement.mode !== "prevent" ||
+              replacement.protectedControllerSeat === undefined ||
+              replacement.protectedControllerSeat === permanent.controllerSeat,
+          ) ||
         engine.subTriggers.subscriptionsFor("wouldBeReturned").length > 0
       )
         return undefined;

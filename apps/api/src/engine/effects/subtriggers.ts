@@ -346,6 +346,8 @@ export interface ReplacementSubscriptionInstead extends ReplacementSubscriptionB
  */
 export interface ReplacementSubscriptionPrevent extends ReplacementSubscriptionBase {
   mode: "prevent";
+  /** Necessary controller scope certified by the compiled protection filter; other gates remain unknown. */
+  protectedControllerSeat?: Seat;
   /**
    * Does this replacement protect the permanent `leavingPermanentId` from leaving/being
    * deleted? (self-reaction => only its own source; a filtered reaction => any matching

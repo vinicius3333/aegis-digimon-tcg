@@ -321,6 +321,15 @@ export async function runReplacement(
       activationIdentity,
       ...(action.requiresDelayArmed === true || requiresIntrinsicDelay ? { preventionKeyword: "Delay" as const } : {}),
       mode: "prevent",
+      protectedControllerSeat: protectsSelf
+        ? undefined
+        : protectsFilter?.controller === "mine"
+          ? ownerSeat
+          : protectsFilter?.controller === "opponent"
+            ? ownerSeat === 0
+              ? 1
+              : 0
+            : undefined,
       exceptDigiXros: action.exceptDigiXros,
       affectsAll: action.affectsAll,
       description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
