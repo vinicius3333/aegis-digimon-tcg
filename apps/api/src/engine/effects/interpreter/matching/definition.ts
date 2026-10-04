@@ -7,6 +7,7 @@ import {
   CardColor,
   CardKind,
   digiXrosRequirementFor,
+  dnaDigivolutionRequirementsFor,
   effectiveExactNames,
   effectiveStaticNames,
   nameIncludesToken,
@@ -114,7 +115,9 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   }
   if (filter.hasDnaDigivolutionRequirement === true) {
     const compiled = def.cardId !== undefined ? runtimeCompiledCard(def.cardId) : undefined;
-    if ((compiled?.dnaDigivolveRequirement?.length ?? 0) === 0) return false;
+    const requirements =
+      compiled?.dnaDigivolveRequirement ?? (def.cardId !== undefined ? dnaDigivolutionRequirementsFor(def.cardId) : []);
+    if (requirements.length === 0) return false;
   }
   if (filter.excludeKind && filter.excludeKind.length > 0) {
     const banned = filter.excludeKind
