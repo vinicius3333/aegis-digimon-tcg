@@ -428,7 +428,7 @@ describe("ContinuousEffectLedger", () => {
     const optionDef = def({ kinds: [CardKind.Option] });
     const digimon5000 = def({ kinds: [CardKind.Digimon], dp: 5000 });
     const digimon7000 = def({ kinds: [CardKind.Digimon], dp: 7000 });
-    const tokenOption = def({ kinds: [CardKind.Option], isToken: true });
+    const tokenDigimon = def({ kinds: [CardKind.Digimon], dp: 6000, isToken: true });
 
     it("blocks the restricted seat from playing a matching card (EX1-072: Option)", () => {
       const ledger = new ContinuousEffectLedger();
@@ -472,25 +472,25 @@ describe("ContinuousEffectLedger", () => {
       expect(ledger.isPlayBlocked(0 as Seat, optionDef, "play")).toBe(false);
     });
 
-    it("exempts token plays (Q3834)", () => {
+    it("blocks matching token plays for the restricted seat but permits the source seat (Q3834)", () => {
       const ledger = new ContinuousEffectLedger();
       ledger.addPlayProhibition(
         1 as Seat,
         0 as Seat,
-        { kinds: ["Option"] },
+        { kinds: ["Digimon"] },
         "play",
         EffectDuration.UntilOpponentTurnEnd,
       );
-      expect(ledger.isPlayBlocked(1 as Seat, tokenOption, "play")).toBe(false);
+      expect(ledger.isPlayBlocked(1 as Seat, tokenDigimon, "play")).toBe(true);
+      expect(ledger.isPlayBlocked(0 as Seat, tokenDigimon, "play")).toBe(false);
     });
 
-    it("allows a ruling-specific prohibition to include matching Digimon tokens (BT14-017/Q2381)", () => {
+    it("includes matching Digimon tokens by default (BT14-017/Q2381)", () => {
       const ledger = new ContinuousEffectLedger();
-      const tokenDigimon = def({ kinds: [CardKind.Digimon], dp: 6000, isToken: true });
       ledger.addPlayProhibition(
         1 as Seat,
         0 as Seat,
-        { kinds: ["Digimon"], dpAtMost: 6000, allowTokens: true },
+        { kinds: ["Digimon"], dpAtMost: 6000 },
         "play",
         EffectDuration.UntilOpponentTurnEnd,
       );

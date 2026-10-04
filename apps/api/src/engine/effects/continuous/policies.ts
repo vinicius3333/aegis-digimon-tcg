@@ -110,8 +110,8 @@ export interface PlayMatch {
   /** Upper DP bound for the "Digimon with N DP or less" form (printed DP). */
   dpAtMost?: number;
   /**
-   * Treat synthetic Digimon tokens as matching the Digimon kind. Most play prohibitions
-   * exempt tokens, but cards whose ruling explicitly includes them (BT14-017/Q2381) opt in.
+   * Legacy authored flag. Digimon tokens match Digimon play prohibitions by default
+   * (BT14-017/Q2381); Q3834 is an effect-controller exception, not a token exemption.
    */
   allowTokens?: boolean;
   /** Loose-card origin zones matched by the prohibition; undefined means every origin. */

@@ -72,7 +72,8 @@ function sameNameRestrictedOwnDigimonNames(ctx: EffectContext): Set<string> | un
 
 /**
  * The tokens a PlayToken may still create. A token in play is a Digimon with that token's name
- * (Q1033), so under `cannotPlaySameNameAsOwnDigimon` a token whose name is already on your field
+ * (Q1033), and cannot bypass the resolving player's play prohibitions. Under
+ * `cannotPlaySameNameAsOwnDigimon`, a token whose name is already on your field
  * cannot be played — the same ban Q5224 applies to the play-from-zone route (BT23-013).
  */
 export function playableTokenRefs<T extends string | { name: string }>(
@@ -80,13 +81,13 @@ export function playableTokenRefs<T extends string | { name: string }>(
   tokenRefs: readonly T[],
 ): T[] {
   const bannedNames = sameNameRestrictedOwnDigimonNames(ctx);
-  if (bannedNames === undefined) return [...tokenRefs];
   return tokenRefs.filter((tokenRef) => {
     const registryName = tokenRegistryName(tokenRef);
     const cardId = resolveTokenCardId(registryName);
     const definition = cardId === undefined ? undefined : getCardDefinition(cardId);
+    if (cardId !== undefined && ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, cardId, "play") === true) return false;
     const names = definition === undefined ? [registryName] : effectiveStaticNames(definition);
-    return !names.some((name) => bannedNames.has(name));
+    return bannedNames === undefined || !names.some((name) => bannedNames.has(name));
   });
 }
 

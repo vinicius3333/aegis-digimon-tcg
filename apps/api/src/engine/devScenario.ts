@@ -87,6 +87,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-leopardmon-unsuspend-lock",
   "arena-ex13-breakdramon-zero-security-check",
   "arena-decoy-protect-choice",
+  "arena-crimson-blaze-jesmon-token",
   "arena-p245-kakkinmon-full-hand-suspend",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
@@ -1157,6 +1158,35 @@ function layDecoyProtectChoiceScenario(state: GameState, decks: readonly [Deckli
   if (bot !== undefined) {
     insertCard(bot, Zone.Security, faceDownCard("dev-decoy-crimson-blaze", "BT8-097", 1));
     insertCard(bot, Zone.Security, faceDownCard("dev-decoy-last-security", "BT1-009", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1556299783898005544: Decoy must not let Jesmon bypass Crimson Blaze next turn. */
+function layCrimsonBlazeJesmonTokenScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT1-010"], "-crimson-red-source"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-crimson-blaze", "BT8-097", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT23-013"], "-crimson-jesmon"));
+    placePermanent(bot, establishedDigimon(1, ["BT23-006"], "-crimson-protected-huckmon"));
+    placePermanent(bot, establishedDigimon(1, ["TOKEN-AthoRenePor-Token"], "-crimson-decoy-token"));
+    for (let index = 0; index < 3; index += 1) {
+      placePermanent(bot, establishedDigimon(1, ["BT1-009"], `-crimson-victim-${index}`));
+    }
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -5196,6 +5226,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
+  "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,

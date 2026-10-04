@@ -100,6 +100,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX13-040 Mikemon da mão (custo 4). O [Ao Jogar] escolhe o EX13-043 Leopardmon suspenso do bot: ele não pode desuspender até o fim do turno dele. Depois ataque o Leopardmon com o seu BT10-055 Gryphonmon (13000 contra 12000). O Leopardmon não pode pagar a prevenção, porque nenhum Digimon do bot pode desuspender: ele é deletado e vai para a lixeira.",
     en: "Play EX13-040 Mikemon from hand (cost 4). Its [On Play] picks the bot's suspended EX13-043 Leopardmon: it can't unsuspend until the end of the bot's turn. Then attack Leopardmon with your BT10-055 Gryphonmon (13000 vs 12000). Leopardmon can't pay its leave prevention, because no bot Digimon can unsuspend: it is deleted and goes to the trash.",
   },
+  "arena-crimson-blaze-jesmon-token": {
+    ptBR: "Use o BT8-097 Crimson Blaze da mão: o bot tem 6 Digimon, então o custo é 0. O token Atho, René & Por pode usar Decoy para salvar um Digimon vermelho e é deletado. O Jesmon (12000 DP) sobrevive. Encerre seu turno. No turno do bot, o ataque do BT23-013 Jesmon não pode jogar outro token nem uma Sistermon por efeito: o bloqueio continua até o fim desse turno. Jogadas normais da mão continuam permitidas.",
+    en: "Use BT8-097 Crimson Blaze from hand: the bot has 6 Digimon, so the cost is 0. The Atho, René & Por token can use Decoy to save a red Digimon and is deleted. Jesmon (12000 DP) survives. End your turn. During the bot's turn, BT23-013 Jesmon's attack cannot play another token or a Sistermon by effect: the restriction lasts until the end of that turn. Normal hand plays remain legal.",
+  },
   "arena-decoy-protect-choice": {
     ptBR: "A carta do topo da segurança do bot é BT8-097 Crimson Blaze. Ataque a segurança com o BT1-080 Titamon (12000 DP). O [Segurança] do Crimson Blaze tenta deletar todos os seus Digimon com 6000 DP ou menos: Gotsumon (preto), Monodramon (vermelho), Agumon (vermelho) e o token Atho, René & Por. O jogo pergunta se o token usa ＜Decoy (Vermelho/Preto)＞: aceite. Depois ele pede para escolher 1 Digimon para proteger entre Gotsumon, Monodramon e Agumon. Escolha o Monodramon: o token é deletado, o Monodramon fica em campo e o Gotsumon e o Agumon vão para a lixeira.",
     en: "The top card of the bot's security is BT8-097 Crimson Blaze. Attack security with BT1-080 Titamon (12000 DP). Crimson Blaze's [Security] tries to delete all your Digimon with 6000 DP or less: Gotsumon (Black), Monodramon (Red), Agumon (Red), and the Atho, René & Por token. The game asks whether the token uses ＜Decoy (Red/Black)＞: accept. It then asks you to choose 1 Digimon to protect among Gotsumon, Monodramon, and Agumon. Choose Monodramon: the token is deleted, Monodramon stays in play, and Gotsumon and Agumon go to the trash.",
@@ -689,6 +693,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-leopardmon-unsuspend-lock", "EX13 Leopardmon · locked Digimon can't pay the unsuspend cost"],
   ["arena-ex13-breakdramon-zero-security-check", "EX13 Breakdramon · Security Attack -1 attack checks no card"],
   ["arena-decoy-protect-choice", "Decoy · choose which Digimon to protect"],
+  ["arena-crimson-blaze-jesmon-token", "Crimson Blaze · Jesmon token play lock"],
   ["arena-p245-kakkinmon-full-hand-suspend", "P-245 Kakkinmon · suspend with a full hand to trigger Craniamon"],
   ["arena-ex13-alphamon-end-turn-attack", "EX13 Alphamon · end-of-turn Rush attack on security"],
   ["arena-bt20-dragon-gene-skip-play", "BT20 Unleash the Dragon Gene · skip the play"],
