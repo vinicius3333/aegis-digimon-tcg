@@ -614,8 +614,7 @@ export class ContinuousEffectLedger {
    * own ACTION or EFFECT is performing the play/move — for a manual play that is the playing
    * player; for an effect-driven play it is the seat the resolving effect is attributed to
    * (so a "your opponent can't play" effect blocks the opponent's actions and effects, but
-   * NOT the source player's effects: KB EX7-014 Q4675/Q4676). Token plays are exempt by default
-   * (Q3834), unless the active match explicitly opts into them.
+   * NOT the source player's effects: KB EX7-014 Q4675/Q4676, including tokens (Q3834).
    * `requestedMode` is "play" (play / enter-field, incl. breeding) or "move" (effect-driven
    * or breeding move); a "playOrMove" prohibition matches either.
    * `effectPlay` true means the caller is an effect-driven play path — prohibitions with
