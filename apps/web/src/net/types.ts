@@ -202,6 +202,7 @@ export interface AegisJoinOptions {
     | "arena-vortexdramon"
     | "card-bugs"
     | "counter-blast-dna"
+    | "arena-mobile-blast-counter-tap"
     | "security-battle"
     | "security-chain";
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { pressGesture } from "../pressGesture";
+import { pressGesture, swallowNextClick } from "../pressGesture";
 import type { HandSelection } from "./types";
 
 /** How long a still press must last before it reads the card instead of picking it. */
@@ -77,6 +77,8 @@ export function useHandPickGesture(selection: HandSelection | undefined) {
     const gesture = pressGesture({ dx: event.clientX - press.x, dy: event.clientY - press.y, touch: press.touch });
     if (gesture !== "press") return;
     pointerPicked.current = instanceId;
+    // The pick can move the prompt over the hand; the trailing click would land on it.
+    if (press.touch && selection?.selectableInstanceIds.includes(instanceId)) swallowNextClick();
     tapSelection(instanceId);
   };
 

@@ -224,6 +224,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-vortexdramon",
   "card-bugs",
   "counter-blast-dna",
+  "arena-mobile-blast-counter-tap",
   "security-battle",
   "security-chain",
 ] as const;
@@ -5470,6 +5471,41 @@ function layCounterBlastDnaScenario(state: GameState, decks: readonly [Decklist,
 }
 
 /**
+ * Discord 1556418465231806535 and 1556335019209793638: on a phone, the badges on a small
+ * card swallowed the tap meant for the card, so a lone Blast Digivolve host could not be
+ * chosen. The bot attacks while the viewer holds EX10-010 BlackWarGreymon; the only host is
+ * BT13-071 Giromon, which wears a digivolution count, a Blocker badge and a DP change.
+ */
+function layMobileBlastCounterTapScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    // An empty-handed bot has nothing to play first, so its only move is the attack.
+    for (let n = 0; n < OPENING_HAND_SIZE - 1; n += 1) {
+      const card = takeTop(human, Zone.Deck);
+      if (card !== undefined) insertCard(human, Zone.Hand, card);
+    }
+    const host = establishedDigimon(0, ["BT13-061", "BT13-065", "BT13-071"], "-blast-host");
+    host.currentDP = host.baseDP + 2000;
+    placePermanent(human, host);
+    placePermanent(human, establishedDigimon(0, ["BT13-062"], "-blast-bystander"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-blast-blackwargreymon", "EX10-010", 0), "top");
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) placePermanent(bot, establishedDigimon(1, ["ST1-10"], "-blast-attacker"));
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/**
  * Discord 1555244967428100348: during the bot's turn, BT20-093's ＜Delay＞ DNA digivolves
  * Breakdramon and the suspended Slayerdramon into BT23-047 Examon. Only the turn player can
  * attack (CR 11-1-2, KB Q2891), so Examon's "this Digimon may attack" must not be offered.
@@ -5719,6 +5755,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,
   "counter-blast-dna": layCounterBlastDnaScenario,
+  "arena-mobile-blast-counter-tap": layMobileBlastCounterTapScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
 };
