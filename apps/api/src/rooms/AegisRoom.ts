@@ -828,6 +828,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
     this.matchStartRequested = true;
     this.readyTimeout?.clear();
     this.readyTimeout = undefined;
+    // A started match never takes a new player, even if a reconnect left the room unlocked.
+    void this.lock().catch((error: unknown) => this.debugError("[AegisRoom] failed to lock started room", error));
     // Advertise that the game is genuinely under way, so a scheduler can tell a room that never
     // started apart from one that started and stopped reporting.
     if (this.tournamentGameId)
@@ -857,6 +859,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
       if (!this.matchStartRequested) {
         this.readyTimeout?.clear();
         this.readyTimeout = undefined;
+        // A reconnect into a full room keeps the explicit lock, which Colyseus never lifts on its own.
+        await this.unlock();
       } else {
         await this.lock();
       }
@@ -883,7 +887,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.debug(`[AegisRoom] reconnected sessionId=${client.sessionId} seat=${seat}`);
       this.withBatch(() => this.engine.handleReconnect(seat));
       if (!this.matchStartRequested) {
-        await this.unlock();
+        // Unlocking a full room lists it in matchmaking, where every join fails with "already full".
+        if (this.clients.length < this.maxClients) await this.unlock();
         if (this.clients.length === 2)
           this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
       }
