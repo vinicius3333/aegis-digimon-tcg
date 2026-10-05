@@ -42,8 +42,8 @@ describe("BT9-054 Fujinmon", () => {
             {
               kind: "Restrict",
               target: { filter: {}, count: 1, fromSelectionRef: "suspendedTarget" },
-              restriction: "unsuspend",
-              duration: "untilOpponentTurnEnd",
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
+              duration: "untilOpponentNextUnsuspendPhase",
             },
           ],
         },
@@ -95,8 +95,8 @@ describe("BT9-054 Fujinmon", () => {
     );
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("low").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("low"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("low"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     expect(s.perm("high").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("high"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("high"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 });

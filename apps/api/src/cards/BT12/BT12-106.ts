@@ -5,6 +5,8 @@ const compiled = structuredClone(getCompiledCard("BT12-106")!);
 const main = compiled.effects.find((effect) => effect.trigger === "Main");
 const restrict = main?.actions.find((action) => action.kind === "Restrict");
 if (restrict?.kind === "Restrict" && restrict.target.count === "all") {
+  restrict.restriction = "unsuspendDuringOwnUnsuspendPhase";
+  restrict.duration = "untilOpponentNextUnsuspendPhase";
   (restrict as typeof restrict & { whileMatchesTargetFilter: boolean }).whileMatchesTargetFilter = true;
 }
 

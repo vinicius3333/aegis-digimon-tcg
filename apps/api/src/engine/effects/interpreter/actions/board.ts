@@ -108,7 +108,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         // The printed "that Digimon doesn't unsuspend" still resolves in that state (EX4-013,
         // Q3451); only "if this effect suspended" conditions use the transition receipt.
         for (const id of ids) {
-          ctx.fx.restrict(id, "unsuspend", toDuration("untilOpponentNextUnsuspendPhase"));
+          ctx.fx.restrict(id, "unsuspendDuringOwnUnsuspendPhase", toDuration("untilOpponentNextUnsuspendPhase"));
         }
       }
       ctx.lastSuspendedPermanentIds = suspendedIds;

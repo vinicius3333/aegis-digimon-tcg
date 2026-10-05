@@ -27,21 +27,17 @@ describe("BT24-045 Ogremon", () => {
     });
   });
 
-  it("requires the hand-trash cost and locks the suspended target until opponent turn end", () => {
+  it("requires the hand-trash cost and locks the suspended target only during its next unsuspend phase", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
       const effect = BT24_045.effects?.find((entry) => entry.trigger === trigger);
-      const suspend = effect?.actions?.[0] as unknown as { optional: boolean; abortOnDecline: boolean };
-      const restrict = effect?.actions?.[1] as unknown as {
-        kind: string;
-        restriction: string;
-        duration: string;
-        target: { sameTarget: boolean };
-      };
-      expect(suspend).toMatchObject({ optional: true, abortOnDecline: true });
+      const branch = effect?.actions?.[0];
+      if (branch?.kind !== "ConditionalBranch") throw new Error("expected hand-trash cost branch");
+      expect(branch).toMatchObject({ optional: true, abortOnDecline: true, cost: { kind: "trash" } });
+      const restrict = branch.ifTrue[1];
       expect(restrict).toMatchObject({
         kind: "Restrict",
-        restriction: "unsuspend",
-        duration: "untilOpponentTurnEnd",
+        restriction: "unsuspendDuringOwnUnsuspendPhase",
+        duration: "untilOpponentNextUnsuspendPhase",
         target: { sameTarget: true },
       });
     }
@@ -68,7 +64,7 @@ describe("BT24-045 Ogremon", () => {
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 
   it("resolves the hand cost and target lock from a public play intent", async () => {
@@ -92,12 +88,16 @@ describe("BT24-045 Ogremon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogremon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(
+      () =>
+        s.perm("target").isSuspended &&
+        observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"),
+    );
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("cost").instanceId);
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 
   it("may decline the hand-trash activation without suspending anything", async () => {
@@ -117,7 +117,7 @@ describe("BT24-045 Ogremon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("target").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 
   it("resolves the hand-trash cost and lock from a public attack", async () => {
@@ -139,10 +139,74 @@ describe("BT24-045 Ogremon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(
+      () =>
+        s.perm("target").isSuspended &&
+        observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"),
+    );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+  });
+
+  it("Discord 1556333425395372163: Ulforce unsuspends by its effect after Ogremon locks its next unsuspend phase", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-045", as: "ogremon" }, "BT1-009"], deck: ["BT1-009", "BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT11-032", as: "ulforce" }],
+          hand: [{ card: "BT1-086", as: "tamer" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    s.state.turnCount = 2;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogremon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("ulforce").isSuspended).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("ulforce").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("ulforce").isSuspended).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("Discord 1556333425395372163: the attack lock allows a security effect to unsuspend before the next phase", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-045", as: "ogremon" }], hand: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT11-032", as: "ulforce" }], security: ["BT1-095"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogremon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await settle();
+    expect(s.perm("ulforce").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("ulforce"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-095");
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("Q5635: only the first of two trashed copies draws after the hand rises above five", async () => {

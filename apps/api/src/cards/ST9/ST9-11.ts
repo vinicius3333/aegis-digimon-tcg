@@ -32,8 +32,8 @@ const compiled: CompiledCard = {
             count: 1,
             fromSelectionRef: "dinobeemonTarget",
           },
-          restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
+          duration: "untilOpponentNextUnsuspendPhase",
           condition: {
             kind: "isDnaDigivolving",
             raw: "When DNA digivolving",

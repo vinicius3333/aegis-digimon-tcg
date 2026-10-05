@@ -118,6 +118,6 @@ describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
     await settle(() => oppDigimon.isSuspended, 600);
 
     expect(oppDigimon.isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(oppDigimon, "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(oppDigimon, "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 });

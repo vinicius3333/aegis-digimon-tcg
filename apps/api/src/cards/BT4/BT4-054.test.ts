@@ -8,7 +8,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT4-054.js";
 
 describe("BT4-054 Sunflowmon", () => {
-  it("Digi-Bursts 2 to stop a suspended opposing Digimon from unsuspending", async () => {
+  it("Digi-Bursts 2 to lock only the next phase while allowing effect unsuspension", async () => {
     const s = setupEngine(
       {
         0: {
@@ -32,14 +32,14 @@ describe("BT4-054 Sunflowmon", () => {
         effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"));
 
     expect(s.perm("sun").stack).toHaveLength(0);
     expect(s.perm("ally").topCard?.cardId).toBe("BT4-053");
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
 
     await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
-    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(false);
   });
 
   it("does not restrict an unsuspended opposing Digimon", async () => {
@@ -64,7 +64,7 @@ describe("BT4-054 Sunflowmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("sun").stack.length === 2, 5000);
 
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 });
 
@@ -96,13 +96,13 @@ describe("BT4-054 Sunflowmon — KB Q&A rulings", () => {
         effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("sleeper"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("sleeper"), "unsuspendDuringOwnUnsuspendPhase"));
 
     const offeredTargets = s.decisions
       .filter(({ req }) => req.kind === "chooseTargets")
       .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
     expect(offeredTargets).not.toContain(s.perm("awake").permanentId);
-    expect(observe(s.engine).isRestricted(s.perm("awake"), "unsuspend")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("sleeper"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("awake"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("sleeper"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 });

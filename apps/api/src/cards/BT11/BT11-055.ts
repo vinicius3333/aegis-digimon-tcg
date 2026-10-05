@@ -18,8 +18,8 @@ const actions: Action[] = [
     effectTextPart:
       "Then, 1 of your opponent's suspended Digimon can't unsuspend during your opponent's next unsuspend phase.",
     target: { filter: { controller: "opponent", suspended: true, kind: ["Digimon"] }, count: 1 },
-    restriction: "unsuspend",
-    duration: "untilOpponentTurnEnd",
+    restriction: "unsuspendDuringOwnUnsuspendPhase",
+    duration: "untilOpponentNextUnsuspendPhase",
   },
 ];
 export const compiled: CompiledCard = {

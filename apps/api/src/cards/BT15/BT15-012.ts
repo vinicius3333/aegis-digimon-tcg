@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: { filter: {}, count: 1, fromSelectionRef: "suspendedTarget" },
-          restriction: "unsuspend",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
           duration: "untilOpponentNextUnsuspendPhase",
           condition: { kind: "digiXrosCount", minimum: 2, raw: "if DigiXrosing with 2 cards" },
         },

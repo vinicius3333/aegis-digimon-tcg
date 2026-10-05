@@ -30,8 +30,8 @@ export const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 },
-          restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
+          duration: "untilOpponentNextUnsuspendPhase",
         },
       ],
     },

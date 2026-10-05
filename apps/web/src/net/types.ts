@@ -69,6 +69,7 @@ export interface AegisJoinOptions {
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-ex13-leopardmon-suspended-target"
     | "arena-ex13-leopardmon-unsuspend-lock"
+    | "arena-bt24-ogremon-ulforce-unsuspend"
     | "arena-ex13-breakdramon-zero-security-check"
     | "arena-decoy-protect-choice"
     | "arena-crimson-blaze-jesmon-token"

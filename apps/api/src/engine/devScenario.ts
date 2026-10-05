@@ -90,6 +90,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-leopardmon-suspended-target",
   "arena-ex13-leopardmon-unsuspend-lock",
+  "arena-bt24-ogremon-ulforce-unsuspend",
   "arena-ex13-breakdramon-zero-security-check",
   "arena-decoy-protect-choice",
   "arena-crimson-blaze-jesmon-token",
@@ -1190,6 +1191,34 @@ function layEx13LeopardmonSuspendedTargetScenario(state: GameState, decks: reado
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 12;
+}
+
+/** Discord 1556333425395372163: security plays Ogremon during Ulforce's own turn. */
+function layBt24OgremonUlforceUnsuspendScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    setSecurityStack(human);
+    placePermanent(human, establishedDigimon(0, ["BT11-032"], "-ogremon-ulforce"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ogremon-blue-tamer", "BT1-086", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ogremon-ex13-ulforce", "EX13-023", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-ogremon-security-play", "BT24-045", 1));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-ogremon-trash-cost", "BT1-009", 1));
+    insertCard(bot, Zone.Security, faceDownCard("dev-ogremon-security-option", "BT24-098", 1));
+    insertCard(bot, Zone.Security, faceDownCard("dev-ogremon-security-last", "BT1-009", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 20;
 }
 
 /**
@@ -5369,6 +5398,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-leopardmon-suspended-target": layEx13LeopardmonSuspendedTargetScenario,
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
+  "arena-bt24-ogremon-ulforce-unsuspend": layBt24OgremonUlforceUnsuspendScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,

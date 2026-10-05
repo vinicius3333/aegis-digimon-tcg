@@ -18,7 +18,7 @@ describe("BT2-049 Puppetmon", () => {
             expect.objectContaining({ kind: "Suspend" }),
             expect.objectContaining({
               kind: "Restrict",
-              restriction: "unsuspend",
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
               duration: "untilOpponentNextUnsuspendPhase",
             }),
           ]),
@@ -50,8 +50,8 @@ describe("BT2-049 Puppetmon", () => {
     await settle(
       () =>
         s.perm("chosen").isSuspended &&
-        observe(s.engine).isRestricted(s.perm("chosen"), "unsuspend") &&
-        observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspend"),
+        observe(s.engine).isRestricted(s.perm("chosen"), "unsuspendDuringOwnUnsuspendPhase") &&
+        observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspendDuringOwnUnsuspendPhase"),
     );
 
     const unsuspend = (
@@ -65,7 +65,7 @@ describe("BT2-049 Puppetmon", () => {
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(unsuspendedIds).toContain(s.perm("tamer").permanentId);
     expect(unsuspendedIds).not.toContain(s.perm("chosen").permanentId);
-    expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 
   it("CR 15-11-2-2: also keeps an opposing Digimon that entered after On Play suspended", async () => {
@@ -137,7 +137,7 @@ describe("BT2-049 Puppetmon — KB Q&A rulings", () => {
     await settle(
       () =>
         s.perm("suspendedByPuppetmon").isSuspended &&
-        observe(s.engine).isRestricted(s.perm("leftUnsuspended"), "unsuspend"),
+        observe(s.engine).isRestricted(s.perm("leftUnsuspended"), "unsuspendDuringOwnUnsuspendPhase"),
     );
     expect(s.perm("leftUnsuspended").isSuspended).toBe(false);
 
