@@ -85,7 +85,7 @@ describe("authored original bank", () => {
       expect(example.current.duration).toBe(AUDIO_CUES[example.key]!.duration);
       expect(example.current.duration).toBeLessThan(example.previous.duration);
       expect(example.current.metrics.peak).toBeLessThanOrEqual(example.previous.metrics.peak);
-      const energy = (clip: { duration: number; metrics: { rms: number } }) => clip.metrics.rms ** 2 * clip.duration;
+      const energy = (entry: { duration: number; metrics: { rms: number } }) => entry.metrics.rms ** 2 * entry.duration;
       expect(energy(example.current)).toBeLessThan(energy(example.previous));
     }
   });
