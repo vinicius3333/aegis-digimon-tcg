@@ -36,7 +36,7 @@ function renderPanel(shown: SidePanel = panel(), onDismiss: (id: string) => void
 describe("SidePanelStack", () => {
   it("titles the panel and numbers its cards", () => {
     renderPanel();
-    expect(screen.getByText("Discarded cards")).toBeTruthy();
+    expect(screen.getByText("Discarded cards from hand")).toBeTruthy();
     expect(screen.getByText("1")).toBeTruthy();
     expect(screen.getByText("2")).toBeTruthy();
   });
@@ -86,7 +86,7 @@ describe("SidePanelStack", () => {
   it("advances to the next moment through its close button", () => {
     const onDismiss = vi.fn<(id: string) => void>();
     renderPanel(panel(), onDismiss);
-    fireEvent.click(screen.getByRole("button", { name: "Dismiss Discarded cards" }));
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss Discarded cards from hand" }));
     expect(onDismiss).toHaveBeenCalledWith("p1");
   });
 });

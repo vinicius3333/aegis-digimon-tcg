@@ -1,10 +1,16 @@
-/* Compact versions of the desktop columns; their dimensions stay stable during decisions. */
+/* A permanent mobile gutter keeps transient notices away from the playable board. */
+.game-board:has(.narration-slot--compact) .game-field {
+  margin-top: 3rem;
+}
 .game-board .narration-slot.narration-slot--compact {
   position: absolute;
-  top: calc(var(--arena-header-height, 3.5rem) + var(--ds-space-2));
+  top: var(--arena-header-height, 3.5rem);
   bottom: auto;
-  width: min(13rem, calc(50% - var(--ds-space-3)));
-  height: 8.25rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  width: calc(50% - var(--ds-space-3));
+  height: 3rem;
   max-height: none;
   gap: var(--ds-space-1);
   overflow: visible;
@@ -18,33 +24,34 @@
   right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
   left: auto;
 }
-.compact-toast {
+.narration-slot--compact .compact-toast {
+  --compact-notice-accent: var(--battle-panel-border);
   position: relative;
   flex: none;
-  height: 4rem;
+  height: 3rem;
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--battle-panel-border);
-  border-radius: var(--ds-space-1);
+  border-radius: 0.65rem;
   background: var(--battle-panel);
-  color: #eaf1ff;
+  color: var(--ds-brand-on-ink);
   pointer-events: auto;
-  animation: battle-dialog-in 180ms ease-out both;
+  animation: compact-toast-in 120ms ease-out both;
 }
 .compact-toast[data-tone="deletion"],
 .compact-toast[data-tone="rejection"] {
-  border-color: var(--ds-danger);
+  --compact-notice-accent: var(--ds-danger);
 }
 .compact-toast[data-tone="gain"] {
-  border-color: var(--ds-success);
+  --compact-notice-accent: var(--ds-success);
 }
 .compact-toast__open {
   display: flex;
   width: 100%;
   height: 100%;
-  align-items: center;
+  align-items: stretch;
   gap: var(--ds-space-1);
-  padding: var(--ds-space-1) 1.5rem var(--ds-space-1) var(--ds-space-1);
+  padding: 3px 6px;
   border: 0;
   background: none;
   color: inherit;
@@ -53,7 +60,7 @@
 }
 .compact-toast__art {
   flex: none;
-  width: 24px;
+  width: 16px;
   line-height: 0;
   pointer-events: none;
 }
@@ -64,43 +71,35 @@
   flex-direction: column;
   gap: 1px;
 }
-.compact-toast__label,
-.compact-toast__name {
+.compact-toast__heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--ds-space-1);
+  overflow: hidden;
+}
+.compact-toast__label {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .compact-toast__label {
+  flex: 0 1 auto;
   font-size: 0.5625rem;
-  color: #c6d4ef;
-}
-.compact-toast__name {
-  font-size: 0.6875rem;
+  color: var(--ds-brand-on-ink);
 }
 .compact-toast__clause {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   font-size: 0.6875rem;
+  font-weight: 700;
   line-height: 1.2;
 }
-.compact-toast__dismiss {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 2.75rem;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #c6d4ef;
-  cursor: pointer;
-}
 .compact-toast__open:focus-visible,
-.compact-toast__dismiss:focus-visible {
+.notice-details__close:focus-visible,
+.notice-details__dismiss:focus-visible {
   outline: 2px solid var(--ds-focus-color);
   outline-offset: -2px;
 }
@@ -109,8 +108,8 @@
   right: 0;
   bottom: 0;
   left: 0;
-  height: 2px;
-  background: var(--battle-panel-border);
+  height: 1px;
+  background: var(--compact-notice-accent);
   transform-origin: left;
   animation: compact-toast-life linear forwards;
   pointer-events: none;
@@ -121,6 +120,14 @@
 @keyframes compact-toast-life {
   to {
     transform: scaleX(0);
+  }
+}
+@keyframes compact-toast-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 .notice-details.aegis-dialog {
@@ -199,18 +206,67 @@
 }
 .notice-details__source {
   margin: 0 0 var(--ds-space-2);
-  color: #c6d4ef;
+  padding: var(--ds-space-2);
+  border-inline-start: 3px solid var(--battle-panel-border);
+  color: var(--ds-brand-on-ink);
+  background: var(--battle-panel);
   font-size: 0.875rem;
 }
 .compact-toast__art > div {
   border-radius: 3px !important;
 }
 .notice-details__body .match-notice__erode,
-.notice-details__body .side-panel__erode {
+.notice-details__body .side-panel__erode,
+.notice-details__body .match-notice__close,
+.notice-details__body .side-panel__close {
   display: none;
 }
+.notice-details__dismiss {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: var(--ds-space-3);
+  border: 1px solid var(--battle-panel-border);
+  border-radius: var(--ds-space-1);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
 @media (prefers-reduced-motion: reduce) {
-  .compact-toast {
+  .narration-slot--compact .compact-toast,
+  .compact-toast__life {
     animation: none;
+  }
+}
+
+/* Reclaim row padding first. Only an unusually short field needs local vertical
+   scrolling; the hand, raising dock layout and notice gutter retain their sizes. */
+@media (max-width: 1023px) and (orientation: portrait) and (height < 650px) {
+  .game-board:has(.narration-slot--compact) .game-battle-zones > .game-battle-row:not([data-field-layout="organized"]) {
+    padding-block: 2px !important;
+  }
+  .game-board:has(.narration-slot--compact) .game-field {
+    grid-template-rows: var(--arena-utility-height) minmax(72px, 1fr) var(--arena-memory-height) minmax(72px, 1fr) var(
+        --arena-utility-height
+      );
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-y: contain;
+  }
+}
+
+@media (width < 600px) and (orientation: portrait) and (height < 650px) {
+  .aegis-arena .game-board:has(.narration-slot--compact):has([data-field-layout="organized"]) .game-field {
+    grid-template-rows: var(--arena-utility-height) minmax(calc(164px + var(--arena-memory-height)), 1fr) var(
+        --arena-utility-height
+      );
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  .aegis-arena
+    .game-board:has(.narration-slot--compact):has([data-field-layout="organized"])
+    .game-field
+    .game-battle-zones {
+    grid-template-rows: minmax(78px, 1fr) var(--arena-memory-height) minmax(78px, 1fr);
   }
 }

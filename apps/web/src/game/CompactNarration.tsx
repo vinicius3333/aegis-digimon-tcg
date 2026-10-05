@@ -1,4 +1,4 @@
-import { useId, useState, type CSSProperties } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { Dialog } from "../design/primitives";
@@ -22,14 +22,12 @@ function CompactToast({
   selected,
   prompt,
   onOpen,
-  onDismiss,
 }: {
   item: NarrationItem;
   nowMs: number;
   selected: boolean;
   prompt: boolean;
-  onOpen: () => void;
-  onDismiss: () => void;
+  onOpen: (button: HTMLButtonElement) => void;
 }) {
   const { t } = useTranslation();
   const summary = narrationSummary(item, t);
@@ -40,32 +38,37 @@ function CompactToast({
       className="narration-item compact-toast"
       data-narration-id={item.id}
       data-tone={summary.tone}
+      data-side={item.side}
       data-prompt-effect={prompt || undefined}
       data-reading-paused={item.pausedAt !== undefined || undefined}
     >
       <button
         type="button"
         className="compact-toast__open"
-        onClick={onOpen}
-        aria-label={`${t("notice.expand")}: ${summary.name || summary.label}`}
+        onClick={(event) => onOpen(event.currentTarget)}
+        aria-label={`${t("notice.expand")}: ${t(item.side === "you" ? "panel.yours" : "panel.opponents")}, ${summary.label}${summary.name ? `, ${summary.name}` : ""}`}
         aria-haspopup="dialog"
         aria-expanded={selected}
       >
-        {summary.cardId ? (
-          <span className="compact-toast__art" aria-hidden="true">
-            <CardMini cardId={summary.cardId} artId={summary.artId ?? cards[0]?.artId} width={24} zoomOnHover={false} />
-          </span>
-        ) : null}
         <span className="compact-toast__copy">
-          <span className="compact-toast__label">{summary.label}</span>
-          {summary.name ? <strong className="compact-toast__name">{summary.name}</strong> : null}
+          <span className="compact-toast__heading">
+            {summary.cardId ? (
+              <span className="compact-toast__art" aria-hidden="true">
+                <CardMini
+                  cardId={summary.cardId}
+                  artId={summary.artId ?? cards[0]?.artId}
+                  width={16}
+                  zoomOnHover={false}
+                />
+              </span>
+            ) : null}
+            <span className="compact-toast__label">{summary.label}</span>
+          </span>
           <span className="compact-toast__clause">
-            {summary.clause || (cards.length ? t("notice.cardCount", { count: cards.length }) : t("notice.details"))}
+            {summary.clause?.replace(/^\[[^\]]+\]\s*/, "") ||
+              (cards.length ? t("notice.cardCount", { count: cards.length }) : summary.name || summary.label)}
           </span>
         </span>
-      </button>
-      <button type="button" className="compact-toast__dismiss" aria-label={t("notice.dismiss")} onClick={onDismiss}>
-        <Icons.X size={12} />
       </button>
       <span
         className="compact-toast__life"
@@ -97,6 +100,11 @@ export function CompactNarration({
   const { t } = useTranslation();
   const titleId = useId();
   const [selected, setSelected] = useState<NarrationItem | null>(null);
+  const openedFrom = useRef<HTMLButtonElement | null>(null);
+  const openedLane = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!selected && openedFrom.current && !openedFrom.current.isConnected) openedLane.current?.focus();
+  }, [selected]);
   const items = [...narration.values()];
   const left = items
     .filter((item) => item.notice && !isCardListNotice(item.notice))
@@ -129,26 +137,29 @@ export function CompactNarration({
     const body = narration.get(item.id)?.notice?.body;
     return body?.variant === "effect" && body.cardId === promptSourceCardId;
   };
-  const column = (entries: readonly NarrationItem[], slot: "narration-text" | "narration-cards") =>
-    entries.length ? (
-      <div
-        className="narration-slot narration-slot--compact"
-        data-slot={slot}
-        data-security-dock={securityDockActive || undefined}
-      >
-        {entries.map((item) => (
-          <CompactToast
-            key={`${item.id}:${item.panel ? "panel" : "notice"}`}
-            item={item}
-            nowMs={nowMs}
-            selected={selected?.id === item.id}
-            prompt={isPromptEffect(item)}
-            onOpen={() => setSelected(narration.get(item.id) ?? item)}
-            onDismiss={() => dismiss(item)}
-          />
-        ))}
-      </div>
-    ) : null;
+  const column = (entries: readonly NarrationItem[], slot: "narration-text" | "narration-cards") => (
+    <div
+      className="narration-slot narration-slot--compact"
+      data-slot={slot}
+      data-security-dock={securityDockActive || undefined}
+      tabIndex={-1}
+    >
+      {entries.map((item) => (
+        <CompactToast
+          key={`${item.id}:${item.panel ? "panel" : "notice"}`}
+          item={item}
+          nowMs={nowMs}
+          selected={selected?.id === item.id}
+          prompt={isPromptEffect(item)}
+          onOpen={(button) => {
+            openedFrom.current = button;
+            openedLane.current = button.closest(".narration-slot");
+            setSelected(narration.get(item.id) ?? item);
+          }}
+        />
+      ))}
+    </div>
+  );
   const deletion = selected?.notice ? deletionPanel(selected.notice) : undefined;
   const selectedSummary = selected ? narrationSummary(selected, t) : undefined;
   return (
@@ -182,6 +193,9 @@ export function CompactNarration({
             ) : null}
             {deletion ? <SidePanelStack panel={deletion} remainingMs={0} onDismiss={() => dismiss(selected)} /> : null}
           </div>
+          <button type="button" className="notice-details__dismiss" onClick={() => dismiss(selected)}>
+            {t("notice.dismiss")}
+          </button>
         </Dialog>
       ) : null}
     </>

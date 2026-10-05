@@ -1144,7 +1144,7 @@ export const en = {
   "showcase.opponentRevealed": "Opponent revealed",
   "showcase.opponentRevealedWith": "Opponent revealed with {source}",
 
-  "panel.discardedCards": "Discarded cards",
+  "panel.discardedCards": "Discarded cards from hand",
   "panel.cardsAddedToHand": "Cards added to hand",
   "panel.selectedCards": "Selected Cards",
   "panel.deckBottomCard": "Returned to the deck bottom",
