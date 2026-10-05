@@ -3,6 +3,7 @@
 import type { CardSource } from "../../CardSource.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { printedKeywordsOf } from "../../../combat/keywords.js";
+import { hasPlayCost } from "../../../cards/cardData.js";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
@@ -249,6 +250,20 @@ export function permanentMatchesFilter(
   opts?: { allowPendingRotationHost?: boolean },
 ): boolean {
   if (permanent.topCard === undefined) return false;
+  const def = ctx.game.definitionOf(permanent.topCard);
+  // DUAL stores its Option use cost in the catalog's cost field. On the field it
+  // has no play cost to compare, even if a modifier would change that number.
+  const referencesPlayCost =
+    filter.playCost !== undefined ||
+    filter.playCostLte !== undefined ||
+    filter.playCostGte !== undefined ||
+    (filter.playCostOneOf?.length ?? 0) > 0 ||
+    filter.playCostLteTriggerSource === true ||
+    filter.playCostLteAttackerLevel === true ||
+    filter.playCostLteSourceDigivolutionCards === true ||
+    filter.playCostLteScaling !== undefined ||
+    filter.relativeTo?.attr === "playCost";
+  if (referencesPlayCost && !hasPlayCost(def)) return false;
   // Controller is a live permanent property, not part of the card definition. Keep
   // watcher-side matching (for example, a later entrant to an opponent-only aura)
   // subject to the same source-relative seat scope used during target enumeration.
@@ -309,6 +324,7 @@ export function permanentMatchesFilter(
     const boundId = bound?.values().next().value as string | undefined;
     const boundPermanent = boundId === undefined ? undefined : ctx.game.permanentById(boundId);
     if (boundPermanent?.topCard === undefined) return false;
+    if (!hasPlayCost(ctx.game.definitionOf(boundPermanent.topCard))) return false;
     const maximum = ctx.game.definitionOf(boundPermanent.topCard).playCost;
     const candidateCost = ctx.game.definitionOf(permanent.topCard).playCost;
     if (maximum === undefined || candidateCost === undefined || candidateCost > maximum) return false;
@@ -349,7 +365,6 @@ export function permanentMatchesFilter(
     const { or: _or, ...rest } = filter;
     filter = rest;
   }
-  const def = ctx.game.definitionOf(permanent.topCard);
 
   if (filter.colorMatchesAnyDigivolutionCard === true) {
     // Iterated rather than flatMapped: the stack is an ArraySchema, which implements the array
@@ -467,7 +482,7 @@ export function permanentMatchesFilter(
       if (rel.attr === "digivolutionCount") return p.stack.length;
       const cardDef = p.topCard ? ctx.game.definitionOf(p.topCard) : undefined;
       if (rel.attr === "level") return cardDef?.level ?? undefined;
-      if (rel.attr === "playCost") return cardDef?.playCost ?? undefined;
+      if (rel.attr === "playCost") return cardDef !== undefined && hasPlayCost(cardDef) ? cardDef.playCost : undefined;
       return undefined;
     };
     // The bound permanent may already have left the board — the same clause often deletes it
@@ -547,6 +562,7 @@ export function permanentMatchesFilter(
     const triggerPermanent = triggerPermanentId === undefined ? undefined : ctx.game.permanentById(triggerPermanentId);
     const triggerDefinition =
       triggerPermanent?.topCard === undefined ? undefined : ctx.game.definitionOf(triggerPermanent.topCard);
+    if (triggerDefinition !== undefined && !hasPlayCost(triggerDefinition)) return false;
     const bound = ctx.trigger.playedPlayCost ?? triggerDefinition?.playCost;
     if (bound === undefined || def.playCost > bound) return false;
     const { playCostLteTriggerSource: _bound, ...rest } = filter;

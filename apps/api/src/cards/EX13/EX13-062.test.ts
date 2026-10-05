@@ -675,6 +675,42 @@ describe("EX13-062 Craniamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("ignores Siriusmon DUAL when deleting the lowest play cost (Discord 1556424046827282472)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "craniamon" }], deck: DECK, security: [FILLER] },
+        1: {
+          battleArea: [
+            { card: "EX12-018", as: "siriusmon" },
+            { card: "EX12-013", as: "betel" },
+            { card: "P-240", as: "arcturusmon", suspended: true },
+          ],
+          deck: DECK,
+          security: [FILLER, FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const siriusmonId = s.perm("siriusmon").permanentId;
+    const arcturusmonId = s.perm("arcturusmon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("craniamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    await settle();
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([siriusmonId, arcturusmonId]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("EX12-013");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).not.toContain("EX12-018");
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("may decline the sweep, leaving every opposing Digimon alive", async () => {
     const s = setupEngine(
       {

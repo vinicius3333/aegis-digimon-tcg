@@ -1,6 +1,7 @@
 // Deleting, trashing, and returning cards.
 
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
+import { hasPlayCost } from "../../../cards/cardData.js";
 import type { ActionScope } from "../dispatch.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { CardColor, CardKind } from "@aegis/shared";
@@ -333,6 +334,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         permanent.topCard === undefined ? 0 : (ctx.game.definitionOf(permanent.topCard).playCost ?? 0);
       // Cheapest first, so an auto-responder or timeout default fits the most Digimon.
       const affordable = candidatePermanents(ctx, { filter: action.filter, count: "all" } as Target)
+        .filter((candidate) => candidate.topCard !== undefined && hasPlayCost(ctx.game.definitionOf(candidate.topCard)))
         .filter((candidate) => printedPlayCost(candidate) <= effectiveBudget)
         .sort((first, second) => printedPlayCost(first) - printedPlayCost(second));
       const minimum = action.minimum ?? 0;
@@ -368,7 +370,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         ...(hasColor("Black") ? [action.blackFilter] : []),
       ];
       if (filters.length === 0) return false;
-      const candidates = candidatePermanents(ctx, { filter: { or: filters }, count: "all" } as Target);
+      const candidates = candidatePermanents(ctx, { filter: { or: filters }, count: "all" } as Target).filter(
+        (candidate) => candidate.topCard !== undefined && hasPlayCost(ctx.game.definitionOf(candidate.topCard)),
+      );
       const selected = await ctx.ask.selectPermanents(ctx, {
         candidates: candidates.map((candidate) => candidate.permanentId),
         min: 0,

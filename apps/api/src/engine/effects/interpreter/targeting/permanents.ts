@@ -1,6 +1,7 @@
 // Resolving a Target into battle-area permanent ids.
 
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
+import { hasPlayCost } from "../../../cards/cardData.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { evaluateCondition } from "../conditions.js";
@@ -214,7 +215,9 @@ function narrowToSuperlative(
   const withCost: { permanent: Permanent; cost: number }[] = [];
   for (const permanent of pool) {
     if (permanent.topCard === undefined) continue;
-    const cost = ctx.game.definitionOf(permanent.topCard).playCost;
+    const definition = ctx.game.definitionOf(permanent.topCard);
+    if (!hasPlayCost(definition)) continue;
+    const cost = definition.playCost;
     if (cost === undefined || cost <= 0) continue;
     withCost.push({ permanent, cost });
   }
@@ -307,6 +310,7 @@ export async function resolveTotalPlayCostBudgetTargets(ctx: EffectContext, targ
   const budget = target.totalPlayCostBudget;
   if (budget === undefined) return [];
   const candidates = candidatePermanents(ctx, target, { includeUnaffectable: true })
+    .filter((permanent) => permanent.topCard !== undefined && hasPlayCost(ctx.game.definitionOf(permanent.topCard)))
     .map((permanent) => ({
       permanentId: permanent.permanentId,
       cost: permanent.topCard === undefined ? undefined : (ctx.game.definitionOf(permanent.topCard).playCost ?? 0),
@@ -396,6 +400,7 @@ export async function resolvePermanentTargets(
   if (budgetSelectionRef !== undefined) {
     const selectedId = ctx.selections?.get(budgetSelectionRef);
     const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
+    if (selected?.topCard === undefined || !hasPlayCost(ctx.game.definitionOf(selected.topCard))) return [];
     const budget = selected?.topCard === undefined ? undefined : ctx.game.definitionOf(selected.topCard).playCost;
     if (budget === undefined) return [];
     const budgetTarget = { ...target } as Target & { totalPlayCostBudgetFromSelectionRef?: string };
