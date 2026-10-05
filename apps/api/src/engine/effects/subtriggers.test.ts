@@ -155,7 +155,10 @@ describe("SubTriggerRegistry", () => {
           },
         });
       }
-      const context = {} as EffectContext;
+      const context = {
+        game: { state: { turnSeat: activationTiming === "OpponentsTurn" ? 1 : 0 } },
+        source: { ownerSeat: 0 },
+      } as EffectContext;
       const activate = () =>
         registry.activateInteractiveReductionsFor(
           "wouldBePlayed",
@@ -165,6 +168,13 @@ describe("SubTriggerRegistry", () => {
           undefined,
           () => context,
         );
+      if (activationTiming === "YourTurn" || activationTiming === "OpponentsTurn") {
+        const correctTurn = context.game.state.turnSeat;
+        context.game.state.turnSeat = correctTurn === 0 ? 1 : 0;
+        expect(await activate()).toBe(0);
+        expect(attempts).toEqual([]);
+        context.game.state.turnSeat = correctTurn;
+      }
       expect(await activate()).toBe(0);
       expect(attempts).toEqual(["first", "second"]);
       accept = true;
