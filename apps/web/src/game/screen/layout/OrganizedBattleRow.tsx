@@ -185,6 +185,8 @@ function useFieldMotion(
   const drawnBefore = useRef(new Map<string, DrawnCard>());
   const sizeBefore = useRef({ width: 0, height: 0 });
   const returns = useRef(new Map<HTMLElement, GroupReturn>());
+  const heldOffsets = useRef(new Map<HTMLElement, FlightOffset>());
+  const measuredSignature = useRef("");
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     const stop = () => {
@@ -195,6 +197,11 @@ function useFieldMotion(
         copy.remove();
       }
       returns.current.clear();
+      for (const element of heldOffsets.current.keys()) {
+        element.style.translate = "";
+        element.style.rotate = "";
+      }
+      heldOffsets.current.clear();
       for (const { element } of drawnBefore.current.values()) {
         flights.get(element)?.animation.cancel();
         const art = element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
@@ -229,6 +236,12 @@ function useFieldMotion(
   useLayoutEffect(() => {
     const row = rowRef.current;
     if (!row) return;
+    const heldKeys = [...row.querySelectorAll<HTMLElement>("[data-field-key][data-stationary-departure]")].map(
+      (element) => element.dataset.fieldKey!,
+    );
+    const nextSignature = JSON.stringify([signature, heldKeys]);
+    if (measuredSignature.current === nextSignature) return;
+    measuredSignature.current = nextSignature;
     const size = { width: row.clientWidth, height: row.clientHeight };
     const resized = size.width !== sizeBefore.current.width || size.height !== sizeBefore.current.height;
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -243,8 +256,15 @@ function useFieldMotion(
       } else if (art && turn && turn.suspended !== suspended) {
         turnArtwork(art, Number.parseFloat(getComputedStyle(art).rotate) || 0, suspended);
       }
-      offsets.set(element, flightOffset(element));
+      offsets.set(element, heldOffsets.current.get(element) ?? flightOffset(element));
       flights.get(element)?.animation.cancel();
+      // Measure the new layout without our previous static hold. Its offset is
+      // reapplied below, keeping the painted position through later field changes.
+      if (heldOffsets.current.has(element)) {
+        element.style.translate = "";
+        element.style.rotate = "";
+        heldOffsets.current.delete(element);
+      }
     }
     const drawn = measureCards(row);
     const returningPositions = new Map<string, { x: number; y: number; angle: number }>();
@@ -324,6 +344,14 @@ function useFieldMotion(
           if (art) turnArtwork(art, before!.suspended ? 90 : 0, now.suspended);
         }
         const angle = !returning && before!.element === now.element ? offset.angle : 0;
+        if (now.element.hasAttribute("data-stationary-departure")) {
+          // A destruction target can be selected halfway through a layout slide.
+          // Keep its current painted pose instead of finishing or restarting it.
+          now.element.style.translate = `${dx}px ${dy}px`;
+          now.element.style.rotate = `${angle}deg`;
+          heldOffsets.current.set(now.element, { x: dx, y: dy, angle });
+          continue;
+        }
         if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(angle) < 1) continue;
         const flight = now.element.animate(
           [
@@ -417,6 +445,9 @@ function useFieldMotion(
         animation.oncancel = remove;
       }
     }
+    for (const element of heldOffsets.current.keys()) {
+      if (!row.contains(element)) heldOffsets.current.delete(element);
+    }
     drawnBefore.current = drawn;
     sizeBefore.current = size;
     previous.current = new Map(
@@ -426,7 +457,7 @@ function useFieldMotion(
         ),
       ),
     );
-  }, [rowRef, previous, signature]);
+  });
 }
 
 export interface LaneLayout {

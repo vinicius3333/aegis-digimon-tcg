@@ -193,6 +193,7 @@ export function PermanentView({
         threatened: fate?.fate === "effectTarget",
       })}
       {...(drop ?? {})}
+      data-stationary-departure={stationaryDeparture || undefined}
       data-suspended={isVisuallySuspended || undefined}
       data-tap-target={candidate || highlight || !!onPointerDown || undefined}
       data-combat-impact={(shake && claw) || undefined}
