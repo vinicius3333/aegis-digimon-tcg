@@ -89,8 +89,13 @@ export function CounterOverlay({
     ? eligibleCounters.filter((choice) => sourceKeyOf(choice.instanceId) === selectedSource)
     : [];
   const selectedBlast = choices.some((choice) => counterTargetIds(choice.effectKey));
+  const blastHostIds = new Set(choices.map((choice) => counterTargetIds(choice.effectKey)?.permanentId));
+  // A lone host gets a rail button: tapping a small card on a phone board is unreliable.
+  // Several hosts stay on the board, where identical names are told apart by position.
+  const blastTargetPermanentId =
+    selectedTargetPermanentId ?? (blastHostIds.size === 1 ? [...blastHostIds][0] : undefined);
   const inlineChoices = selectedBlast
-    ? choices.filter((choice) => counterTargetIds(choice.effectKey)?.permanentId === selectedTargetPermanentId)
+    ? choices.filter((choice) => counterTargetIds(choice.effectKey)?.permanentId === blastTargetPermanentId)
     : choices;
   const blastLabel = choices.some((choice) => choice.effectKey.startsWith("blast-dna-digivolve:"))
     ? "Blast DNA Digivolve"
@@ -129,8 +134,14 @@ export function CounterOverlay({
       (target ? getPermanentCardId(target.permanentId) : getCardId(choice.instanceId)) ?? "",
       t,
     );
-    if (partner) return `${name} + ${cardDisplayName(partner, t)} (${partner})`;
-    return target ? name : `${name} · ${choice.description}`;
+    if (partner)
+      return t("overlay.counterBlastOnto", {
+        blast: blastLabel,
+        card: `${name} + ${cardDisplayName(partner, t)} (${partner})`,
+      });
+    return target
+      ? t("overlay.counterBlastOnto", { blast: blastLabel, card: name })
+      : `${name} · ${choice.description}`;
   };
   return (
     <BoardPromptRail

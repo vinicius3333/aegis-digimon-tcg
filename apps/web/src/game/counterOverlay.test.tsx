@@ -455,6 +455,43 @@ it("distinguishes identical Blast hosts and preserves each exact target", () => 
   expect(activate).toHaveBeenLastCalledWith("ace", "blast-digivolve:ready");
 });
 
+it("offers a lone Blast host as a rail button, so a phone never has to hit the card (Discord 1556418465231806535)", () => {
+  const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
+  render(
+    <I18nProvider>
+      <CounterHandHarness
+        eligibleCounters={[{ instanceId: "ace", effectKey: "blast-digivolve:one", description: "Blast Digivolve" }]}
+        getCardId={() => "EX10-023"}
+        getPermanentCardId={() => "ST1-07"}
+        onActivate={activate}
+        onPass={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  chooseHandAce();
+  fireEvent.click(within(screen.getByRole("region")).getByRole("button", { name: "Blast Digivolve onto Greymon" }));
+  expect(activate).toHaveBeenCalledWith("ace", "blast-digivolve:one");
+});
+
+it("leaves several Blast hosts to the board, where identical names stay distinguishable", () => {
+  render(
+    <I18nProvider>
+      <CounterHandHarness
+        eligibleCounters={[
+          { instanceId: "ace", effectKey: "blast-digivolve:one", description: "Blast Digivolve" },
+          { instanceId: "ace", effectKey: "blast-digivolve:two", description: "Blast Digivolve" },
+        ]}
+        getCardId={() => "EX10-023"}
+        getPermanentCardId={() => "ST1-07"}
+        onActivate={() => undefined}
+        onPass={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  chooseHandAce();
+  expect(within(screen.getByRole("region")).queryByRole("button", { name: /onto/ })).toBeNull();
+});
+
 it("asks a lone field counter as a yes/no question beside its card art, without the effect text", () => {
   const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
   const pass = vi.fn<() => void>();

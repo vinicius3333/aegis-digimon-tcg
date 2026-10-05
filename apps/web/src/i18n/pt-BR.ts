@@ -795,6 +795,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.counterChooseCard": "Escolha seu Counter",
   "overlay.counterChooseHand": "Escolha uma carta destacada na sua mão para usar Counter.",
   "overlay.counterChooseField": "Escolha uma carta destacada no seu campo para fazer Blast.",
+  "overlay.counterBlastOnto": "{blast} em {card}",
   "overlay.passCounterShort": "Passar Counter",
   "overlay.counterActivatePrompt": "Ativar o [Counter] de {card}?",
   "overlay.activateCounter": "Ativar",

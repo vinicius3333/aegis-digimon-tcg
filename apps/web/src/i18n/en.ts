@@ -778,6 +778,7 @@ export const en = {
   "overlay.counterChooseCard": "Choose your counter",
   "overlay.counterChooseHand": "Choose a highlighted card in your hand to counter.",
   "overlay.counterChooseField": "Choose a highlighted card on your field to Blast Digivolve.",
+  "overlay.counterBlastOnto": "{blast} onto {card}",
   "overlay.passCounterShort": "Pass Counter",
   "overlay.counterActivatePrompt": "Activate the [Counter] of {card}?",
   "overlay.activateCounter": "Activate",
