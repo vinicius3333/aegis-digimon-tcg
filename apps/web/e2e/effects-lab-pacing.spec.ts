@@ -11,6 +11,7 @@ import {
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
+  KEYWORD_ATTACK_PACING_SCENARIOS,
   getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -49,6 +50,9 @@ interface LabState {
     timing?: string;
     printedTiming?: string;
     effectKey?: string;
+    revealedCardId?: string;
+    redirected?: boolean;
+    target?: { kind: string; permanentId?: string };
     batch?: string;
   }[];
   decision?: { kind: string; sourceCardId?: string; sourcePermanentId?: string; options?: { min?: number } };
@@ -151,7 +155,7 @@ class EffectsLabPage {
   button(name: RegExp) {
     return this.page.getByRole("button", { name }).filter({ visible: true });
   }
-  async start(scenario = "effects-lab-opponent-chain", endTurn = true, speed = "normal") {
+  async start(scenario = "effects-lab-opponent-chain", endTurn = true, speed = "normal", observePaint = true) {
     await this.page.addInitScript((initialSpeed) => {
       localStorage.setItem("aegis:locale", "en");
       // Obsolete tuning must not shorten effects or switch the lab out of stacked.
@@ -168,72 +172,77 @@ class EffectsLabPage {
     await this.button(/^Collapse/i).click();
     await this.button(/END BREEDING/i).click();
     await expect(this.button(/END PHASE/i)).toBeEnabled({ timeout: 20_000 });
-    await this.page.evaluate((key) => {
-      const globals = window as unknown as Record<string, unknown>;
-      (globals[key] as LabReader).reset();
-      globals.__labPaintedNotices = new Set<string>();
-      globals.__labNoticeAt = new Map<string, number>();
-      globals.__labFocusedSources = new Set<string>();
-      globals.__labFocusAt = new Map<string, number>();
-      globals["__labFocusDurations"] = [] as { cardId: string; ms: number }[];
-      globals.__labArrivals = new Map<string, ArrivalPaint>();
-      let focused: { key: string; cardId: string; at: number } | undefined;
-      const record = () => {
-        for (const element of document.querySelectorAll<HTMLElement>("[data-narration-id]")) {
-          const bounds = element.getBoundingClientRect();
-          const style = getComputedStyle(element);
-          if (bounds.width > 0 && bounds.height > 0 && style.visibility !== "hidden" && Number(style.opacity) > 0) {
-            (globals.__labPaintedNotices as Set<string>).add(element.dataset.narrationId!);
-            const noticeAt = globals.__labNoticeAt as Map<string, number>;
-            if (!noticeAt.has(element.dataset.narrationId!))
-              noticeAt.set(element.dataset.narrationId!, performance.now());
+    await this.page.evaluate(
+      ({ key, observePaint }) => {
+        const globals = window as unknown as Record<string, unknown>;
+        (globals[key] as LabReader).reset();
+        // The pacing capture already owns these DOM observations for attack scenarios.
+        if (!observePaint) return;
+        globals.__labPaintedNotices = new Set<string>();
+        globals.__labNoticeAt = new Map<string, number>();
+        globals.__labFocusedSources = new Set<string>();
+        globals.__labFocusAt = new Map<string, number>();
+        globals["__labFocusDurations"] = [] as { cardId: string; ms: number }[];
+        globals.__labArrivals = new Map<string, ArrivalPaint>();
+        let focused: { key: string; cardId: string; at: number } | undefined;
+        const record = () => {
+          for (const element of document.querySelectorAll<HTMLElement>("[data-narration-id]")) {
+            const bounds = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            if (bounds.width > 0 && bounds.height > 0 && style.visibility !== "hidden" && Number(style.opacity) > 0) {
+              (globals.__labPaintedNotices as Set<string>).add(element.dataset.narrationId!);
+              const noticeAt = globals.__labNoticeAt as Map<string, number>;
+              if (!noticeAt.has(element.dataset.narrationId!))
+                noticeAt.set(element.dataset.narrationId!, performance.now());
+            }
           }
-        }
-        for (const element of document.querySelectorAll<SVGElement>('[data-testid="effect-focus"]'))
-          if (element.getBoundingClientRect().width > 0 && Number(getComputedStyle(element).opacity) > 0) {
-            (globals.__labFocusedSources as Set<string>).add(element.dataset.sourceCardId!);
-            const focusAt = globals.__labFocusAt as Map<string, number>;
-            if (!focusAt.has(element.dataset.sourceCardId!))
-              focusAt.set(element.dataset.sourceCardId!, performance.now());
+          for (const element of document.querySelectorAll<SVGElement>('[data-testid="effect-focus"]'))
+            if (element.getBoundingClientRect().width > 0 && Number(getComputedStyle(element).opacity) > 0) {
+              (globals.__labFocusedSources as Set<string>).add(element.dataset.sourceCardId!);
+              const focusAt = globals.__labFocusAt as Map<string, number>;
+              if (!focusAt.has(element.dataset.sourceCardId!))
+                focusAt.set(element.dataset.sourceCardId!, performance.now());
+            }
+          const source = document.querySelector<SVGElement>('[data-testid="effect-focus"]');
+          const focusKey = source?.dataset.sourcePermanentId;
+          if (focused && focused.key !== focusKey) {
+            (globals["__labFocusDurations"] as { cardId: string; ms: number }[]).push({
+              cardId: focused.cardId,
+              ms: performance.now() - focused.at,
+            });
+            focused = undefined;
           }
-        const source = document.querySelector<SVGElement>('[data-testid="effect-focus"]');
-        const focusKey = source?.dataset.sourcePermanentId;
-        if (focused && focused.key !== focusKey) {
-          (globals["__labFocusDurations"] as { cardId: string; ms: number }[]).push({
-            cardId: focused.cardId,
-            ms: performance.now() - focused.at,
-          });
-          focused = undefined;
-        }
-        if (source && focusKey && !focused)
-          focused = { key: focusKey, cardId: source.dataset.sourceCardId!, at: performance.now() };
-        const reveals = (globals.__labRevealTimes ??= new Map<string, { at: number; exitAt?: number }>()) as Map<
-          string,
-          { at: number; exitAt?: number }
-        >;
-        const showcase = document.querySelector<HTMLElement>('[data-testid="zone-showcase"]');
-        for (const [cardId, reveal] of reveals)
-          if (cardId !== showcase?.dataset.cardId) reveal.exitAt ??= performance.now();
-        if (showcase?.dataset.cardId && !reveals.has(showcase.dataset.cardId))
-          reveals.set(showcase.dataset.cardId, { at: performance.now() });
-        for (const element of document.querySelectorAll<HTMLElement>('[data-testid="confirmed-play-landing"]')) {
-          if (element.getBoundingClientRect().width <= 0) continue;
-          const { cardId, permanentId } = element.dataset;
-          if (!cardId || !permanentId) continue;
-          const arrivals = globals.__labArrivals as Map<string, ArrivalPaint>;
-          const reveal = reveals.get(cardId);
-          const entry = arrivals.get(permanentId) ?? { cardId, permanentId };
-          entry.revealAt = reveal?.at;
-          entry.revealExitAt = reveal?.exitAt;
-          entry.landingAt ??= performance.now();
-          const art = (element.querySelector("img") ?? element).getBoundingClientRect();
-          entry.landedAt = { x: art.left + art.width / 2, y: art.top + art.height / 2 };
-          arrivals.set(permanentId, entry);
-        }
-        globals.__labPaintFrame = requestAnimationFrame(record);
-      };
-      record();
-    }, LAB_KEY);
+          if (source && focusKey && !focused)
+            focused = { key: focusKey, cardId: source.dataset.sourceCardId!, at: performance.now() };
+          const reveals = (globals.__labRevealTimes ??= new Map<string, { at: number; exitAt?: number }>()) as Map<
+            string,
+            { at: number; exitAt?: number }
+          >;
+          const showcase = document.querySelector<HTMLElement>('[data-testid="zone-showcase"]');
+          for (const [cardId, reveal] of reveals)
+            if (cardId !== showcase?.dataset.cardId) reveal.exitAt ??= performance.now();
+          if (showcase?.dataset.cardId && !reveals.has(showcase.dataset.cardId))
+            reveals.set(showcase.dataset.cardId, { at: performance.now() });
+          for (const element of document.querySelectorAll<HTMLElement>('[data-testid="confirmed-play-landing"]')) {
+            if (element.getBoundingClientRect().width <= 0) continue;
+            const { cardId, permanentId } = element.dataset;
+            if (!cardId || !permanentId) continue;
+            const arrivals = globals.__labArrivals as Map<string, ArrivalPaint>;
+            const reveal = reveals.get(cardId);
+            const entry = arrivals.get(permanentId) ?? { cardId, permanentId };
+            entry.revealAt = reveal?.at;
+            entry.revealExitAt = reveal?.exitAt;
+            entry.landingAt ??= performance.now();
+            const art = (element.querySelector("img") ?? element).getBoundingClientRect();
+            entry.landedAt = { x: art.left + art.width / 2, y: art.top + art.height / 2 };
+            arrivals.set(permanentId, entry);
+          }
+          globals.__labPaintFrame = requestAnimationFrame(record);
+        };
+        record();
+      },
+      { key: LAB_KEY, observePaint },
+    );
     if (endTurn) await this.button(/END PHASE/i).click();
   }
   read() {
@@ -1004,6 +1013,212 @@ test.describe("effects lab pacing in the browser", () => {
               ),
             ).toBe(true);
           } else expect(peels).toHaveLength(0);
+        }
+      });
+    }
+  }
+
+  for (const scenario of KEYWORD_ATTACK_PACING_SCENARIOS) {
+    for (const format of [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+      { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+    ]) {
+      test(`real keyword pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, format.speed, false);
+        const before = await lab.read();
+        await startPacingCapture(page);
+        const actions: { name: string; observedAt: number }[] = [];
+        const boundary = async (name: string) =>
+          actions.push({ name, observedAt: await page.evaluate(() => performance.now()) });
+        if (scenario.flow === "rush") {
+          for (const cardId of [scenario.attackerCardIds[0], scenario.controlCardId]) {
+            await boundary(`play-${cardId}`);
+            await new GamePage(page).play(new RegExp(`^${getCardDefinition(cardId)!.nameEn}$`, "i"));
+            await expect
+              .poll(
+                async () => {
+                  const state = await lab.read();
+                  return (
+                    state.board?.visible.players[0]!.battleArea.some((p) => p.topCard.cardId === cardId) &&
+                    state.queueIdle &&
+                    state.board.live.stateVersion === state.board.displayed.stateVersion
+                  );
+                },
+                { timeout: 40_000 },
+              )
+              .toBe(true);
+          }
+        }
+        const ready = await lab.read();
+        const attacker = ready.board!.visible.players[0]!.battleArea.find(
+          (p) => p.topCard.cardId === scenario.attackerCardIds.at(-1),
+        )!;
+        await boundary("attack-security");
+        await new GamePage(page).attack(attacker.permanentId, page.locator('[data-drop="opp-security"]'));
+        if (scenario.flow === "raid") {
+          const prompt = page.getByRole("region", { name: "Confirm targets", exact: true });
+          await expect(prompt).toBeVisible();
+          await waitForDecisionPaint(page, "Confirm targets");
+          await boundary(scenario.accept ? "accept-raid" : "decline-raid");
+          if (scenario.accept) {
+            await clickFieldArtwork(page, "dev-perm-1-keyword-attack-defender-1", "Monodramon");
+            await prompt.getByRole("button", { name: "Confirm targets", exact: true }).click();
+          } else await prompt.getByRole("button", { name: "Pass", exact: true }).click();
+        }
+        await expect
+          .poll(
+            async () => {
+              const state = await lab.read();
+              expect(state.gateExpiries).toEqual([]);
+              expect(state.steps.filter((step) => step.failed)).toEqual([]);
+              return (
+                state.events.some((event) => event.kind === "attackEnded") &&
+                state.queueIdle &&
+                state.pendingSteps === 0 &&
+                state.board?.live.stateVersion === state.board?.displayed.stateVersion
+              );
+            },
+            { timeout: 40_000 },
+          )
+          .toBe(true);
+        await expect(lab.button(/END PHASE/i)).toBeEnabled();
+        const capture = await finishPacingCapture(page);
+        const state = await lab.read();
+        await info.attach("real-keyword-pacing.json", {
+          body: Buffer.from(
+            JSON.stringify({ scenario, speed: format.speed, format, actions, capture, state }, null, 2),
+          ),
+          contentType: "application/json",
+        });
+        expect(capture.truncated || state.truncated).toBe(false);
+        expect(errors).toEqual([]);
+        expectOnlyCompletedDpReplacements(state.steps);
+        const checked = state.events.filter((event) => event.kind === "securityChecked");
+        const securityIds = ["BT1-011", "BT1-010", "BT1-009", "BT1-014"];
+        expect(checked.map((event) => event.revealedCardId)).toEqual(securityIds.slice(0, scenario.securityRemoved));
+        expect(state.board!.visible.players[1]!.securityCount).toBe(4 - scenario.securityRemoved);
+        expect(state.board!.visible.players[0]!.securityCount).toBe(4);
+        expect(state.board!.visible.players[1]!.hand).toEqual([]);
+        expect(
+          state.board!.visible.players[0]!.battleArea.find((p) => p.permanentId === attacker.permanentId)?.isSuspended,
+        ).toBe(true);
+        expect(state.events.filter((event) => event.kind === "attackDeclared" && !event.redirected)).toHaveLength(1);
+        for (const seat of [0, 1])
+          expect(
+            state.board!.visible.players[seat]!.battleArea.find(
+              (p) => p.permanentId === `dev-perm-${seat}-keyword-attack-control`,
+            ),
+          ).toMatchObject(before.board!.visible.players[seat]!.battleArea[0]!);
+        if (scenario.flow === "rush") {
+          expect(
+            state.board!.visible.players[0]!.battleArea.find((p) => p.topCard.cardId === scenario.controlCardId)
+              ?.isSuspended,
+          ).toBe(false);
+          expect(state.board!.visible.turn!.count).toBe(before.board!.visible.turn!.count);
+        }
+        if (scenario.flow === "raid") {
+          const remaining = state
+            .board!.visible.players[1]!.battleArea.filter((p) => p.topCard.cardId !== "BT1-089")
+            .map((p) => p.permanentId);
+          expect(remaining).toEqual(
+            [0, ...(scenario.accept ? [] : [1]), 2].map((index) => `dev-perm-1-keyword-attack-defender-${index}`),
+          );
+          expect(state.events.filter((event) => event.redirected)).toHaveLength(scenario.accept ? 1 : 0);
+          expect(
+            capture.decisions.some(
+              (decision) => decision.label === "Confirm targets" && decision.closedAt !== undefined,
+            ),
+          ).toBe(true);
+          if (scenario.accept && !format.reduced) {
+            const decision = capture.decisions.find((item) => item.label === "Confirm targets")!;
+            const original = capture.arrows.find(
+              (arrow) => arrow.source === attacker.permanentId && arrow.target === "security-opp",
+            );
+            const redirected = capture.arrows.find(
+              (arrow) =>
+                arrow.source === attacker.permanentId &&
+                arrow.target === "dev-perm-1-keyword-attack-defender-1" &&
+                arrow.at >= decision.closedAt!,
+            );
+            expect(original).toBeDefined();
+            expect(redirected?.key).toBe(original!.key);
+            expect(redirected!.at).toBeGreaterThan(original!.at);
+            const blows = capture.motion.animations.filter((animation) => animation.name === "battle-claw");
+            expect(blows).toHaveLength(1);
+            expect(redirected!.at).toBeLessThanOrEqual(blows[0]!.firstAt);
+            expect(
+              capture.poses.some(
+                (pose) =>
+                  pose.permanentId === "dev-perm-1-keyword-attack-defender-0" &&
+                  pose.at > redirected!.at &&
+                  pose.cardName === "Monodramon",
+              ),
+            ).toBe(true);
+            const relayout = capture.timings.find(
+              (timing) =>
+                timing.permanentId === "dev-perm-1-keyword-attack-defender-2" &&
+                timing.at >= decision.closedAt! &&
+                timing.duration === 420 &&
+                timing.properties.includes("translate"),
+            );
+            expect(relayout, "the unchosen Agumon repositions after the duplicate target leaves").toBeDefined();
+            expect(relayout!.endMs).toBe(420);
+            expect(relayout!.nativeMs).toBeGreaterThanOrEqual(
+              relayout!.endMs! - 34 * Math.max(1, Math.abs(relayout!.playbackRate)),
+            );
+            const poses = capture.poses.filter(
+              (pose) => pose.permanentId === "dev-perm-1-keyword-attack-defender-2" && pose.at >= relayout!.at,
+            );
+            const settled = poses.at(-1)!;
+            expect(settled).toMatchObject({ cardName: "Agumon", currentDP: 2000 });
+            expect(poses.some((pose) => Math.hypot(pose.x - settled.x, pose.y - settled.y) > 2)).toBe(true);
+          }
+        }
+        if (!format.reduced) {
+          expect(capture.motion.captureQuality).toBe("usable");
+          expect(capture.securityChecks.map((check) => check.cardName)).toEqual(
+            securityIds.slice(0, scenario.securityRemoved).map((id) => getCardDefinition(id)!.nameEn),
+          );
+          for (const [index, check] of capture.securityChecks.entries()) {
+            expect(check.attackerName).toBe(getCardDefinition(scenario.attackerCardIds.at(-1)!)!.nameEn);
+            expect(check.outcomeAt).toBeDefined();
+            expect(check.exitAt).toBeGreaterThanOrEqual(check.outcomeAt!);
+            expect(check.removedAt).toBeDefined();
+            const reveal = check.poses.filter(
+              (pose) =>
+                pose.revealMs !== undefined && pose.revealEndMs !== undefined && pose.revealMs < pose.revealEndMs - 1,
+            );
+            expect(reveal.some((pose) => pose.painted)).toBe(true);
+            expect(
+              check.poses.some((pose) => pose.painted && pose.artLoaded && pose.attackerArtLoaded),
+              `loaded card artwork in security check ${check.key}`,
+            ).toBe(true);
+            for (const pose of reveal)
+              expect(pose.securityCount, `count during native reveal ${check.key} at ${pose.revealMs}ms`).toBe(
+                4 - index,
+              );
+            expect(check.poses.some((pose) => pose.securityCount === 3 - index)).toBe(true);
+            const disposal = check.poses.filter((pose) => pose.disposalMs !== undefined);
+            expect(disposal.length).toBeGreaterThan(2);
+            expect(disposal.at(-1)!.disposalMs).toBeGreaterThanOrEqual(disposal.at(-1)!.disposalEndMs! - 34);
+            const next = capture.securityChecks[index + 1];
+            if (next) expect(next.firstAt).toBeGreaterThanOrEqual(check.removedAt!);
+          }
+          const clips = capture.motion.animations.filter(
+            (animation) =>
+              animation.visibleFrames > 0 &&
+              ["battle-security-reveal", "battle-security-exit", "battle-claw", "battle-arrow-extend"].includes(
+                animation.name,
+              ),
+          );
+          expect(clips.every((animation) => !animation.undersampled && !animation.cutShort)).toBe(true);
         }
       });
     }

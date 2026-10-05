@@ -3,6 +3,7 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { parseArgs } from "node:util";
+import { gunzipSync } from "node:zlib";
 import { KEYWORDS } from "../../packages/shared/dist/index.js";
 
 const { values, positionals } = parseArgs({
@@ -19,7 +20,8 @@ const runs = [];
 const captures = [];
 const sourceReports = [];
 for (const path of positionals) {
-  const text = await readFile(resolve(path), "utf8");
+  const bytes = await readFile(resolve(path));
+  const text = (path.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8");
   // pnpm can prepend an engine warning and append its failed-command summary.
   const start = text.search(/\{\s*"config"\s*:/);
   const end = text.lastIndexOf("\n}");
@@ -152,6 +154,7 @@ for (const path of positionals) {
               ...landing,
               observedMs: landing.lastAt - landing.firstAt,
             })),
+            securityChecks: capture.securityChecks ?? [],
             sourceFocuses: capture.sourceFocuses ?? [],
             notices: capture.notices ?? [],
             stackPeels: (capture.peels ?? []).map((peel) => ({ ...peel, observedMs: peel.lastAt - peel.firstAt })),

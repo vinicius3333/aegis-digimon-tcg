@@ -16,6 +16,10 @@ interface CardPose {
 }
 interface AnimationTiming {
   at: number;
+  lastAt: number;
+  nativeMs?: number;
+  endMs?: number;
+  playbackRate: number;
   fieldKey: string | undefined;
   permanentId: string | undefined;
   returning: boolean;
@@ -57,6 +61,33 @@ interface Capture {
   handArrivals: { instanceId: string; cardId: string; firstAt: number }[];
   securityPaints: { at: number; counts: number[]; landing: boolean[]; faceUpCards: number[] }[];
   securityLandings: { side: string; key: string; firstAt: number; lastAt: number; frames: number }[];
+  securityChecks: {
+    key: string;
+    cardName: string;
+    attackerName: string;
+    firstAt: number;
+    lastAt: number;
+    removedAt?: number;
+    readyAt?: number;
+    outcomeAt?: number;
+    exitAt?: number;
+    poses: {
+      at: number;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      opacity: number;
+      painted: boolean;
+      artLoaded: boolean;
+      attackerArtLoaded: boolean;
+      revealMs?: number;
+      revealEndMs?: number;
+      disposalMs?: number;
+      disposalEndMs?: number;
+      securityCount: number;
+    }[];
+  }[];
   sourceFocuses: { cardId: string; firstAt: number }[];
   notices: { id: string; firstAt: number }[];
   phaseRibbons: { at: number; label: string; side: string | undefined }[];
@@ -106,6 +137,7 @@ export async function startPacingCapture(page: Page) {
       handArrivals: [],
       securityPaints: [],
       securityLandings: [],
+      securityChecks: [],
       sourceFocuses: [],
       notices: [],
       phaseRibbons: [],
@@ -114,6 +146,7 @@ export async function startPacingCapture(page: Page) {
     };
     globals["__keywordPacingCapture"] = capture;
     const seen = new WeakSet<Animation>();
+    const timingObservations = new WeakMap<Animation, AnimationTiming>();
     const returnIds = new WeakMap<Element, number>();
     let returnSequence = 0;
     let decision: { element: Element; observation: Capture["decisions"][number] } | undefined;
@@ -124,6 +157,7 @@ export async function startPacingCapture(page: Page) {
     const arrived = new Set<string>();
     const landingObservations = new Map<string, Capture["securityLandings"][number]>();
     let securityKey = "";
+    const checkObservations = new Map<string, Capture["securityChecks"][number]>();
     const focusElements = new WeakSet<Element>();
     const noticeIds = new Set<string>();
     let ribbonElement: Element | null = null;
@@ -241,6 +275,65 @@ export async function startPacingCapture(page: Page) {
           visibleStyle(element)
         );
       };
+      const scenes = [...document.querySelectorAll<HTMLElement>('[data-testid="security-clash"][data-cause="check"]')];
+      const sceneKeys = new Set(scenes.map((scene) => scene.dataset.sceneKey!));
+      for (const observation of capture.securityChecks)
+        if (observation.removedAt === undefined && !sceneKeys.has(observation.key)) observation.removedAt = at;
+      for (const scene of scenes) {
+        const face = scene.querySelector<HTMLElement>('[data-role="revealed"] .battle-clash__art');
+        if (!face) continue;
+        const key = scene.dataset.sceneKey!;
+        let observation = checkObservations.get(key);
+        if (!observation) {
+          if (!isPainted(scene)) continue;
+          observation = {
+            key,
+            cardName: face.querySelector("img[alt]")?.getAttribute("alt") ?? "",
+            attackerName: scene.querySelector('[data-role="attacker"] img[alt]')?.getAttribute("alt") ?? "",
+            firstAt: at,
+            lastAt: at,
+            poses: [],
+          };
+          checkObservations.set(key, observation);
+          capture.securityChecks.push(observation);
+        }
+        observation.lastAt = at;
+        if (scene.dataset.revealedReady === "true") observation.readyAt ??= at;
+        if (scene.dataset.resolution !== "pending") observation.outcomeAt ??= at;
+        if (scene.dataset.exiting === "true") observation.exitAt ??= at;
+        const bounds = face.getBoundingClientRect();
+        const clocks = face.getAnimations();
+        const nativeClock = (name: string) => {
+          const native = clocks.find((animation) => "animationName" in animation && animation.animationName === name);
+          const end = native?.effect?.getComputedTiming().endTime;
+          return {
+            age: typeof native?.currentTime === "number" ? native.currentTime : undefined,
+            end: typeof end === "number" && Number.isFinite(end) ? end : undefined,
+          };
+        };
+        const reveal = nativeClock("battle-security-reveal");
+        const disposal = nativeClock("battle-security-exit");
+        const image = face.querySelector<HTMLImageElement>("img[alt]");
+        const attackerImage = scene.querySelector<HTMLImageElement>('[data-role="attacker"] img[alt]');
+        observation.poses.push({
+          at,
+          x: bounds.x,
+          y: bounds.y,
+          width: bounds.width,
+          height: bounds.height,
+          opacity: Number(getComputedStyle(face).opacity),
+          painted: isPainted(face),
+          artLoaded: !!image?.complete && image.naturalWidth > 0,
+          attackerArtLoaded: !!attackerImage?.complete && attackerImage.naturalWidth > 0,
+          revealMs: reveal.age,
+          revealEndMs: reveal.end,
+          disposalMs: disposal.age,
+          disposalEndMs: disposal.end,
+          securityCount: Number(
+            document.querySelector(".game-security-shield--opp .game-security-shield__count")?.textContent,
+          ),
+        });
+      }
       for (const focus of document.querySelectorAll<SVGElement>('[data-testid="effect-focus"]')) {
         if (focusElements.has(focus) || !isPainted(focus)) continue;
         focusElements.add(focus);
@@ -439,14 +532,27 @@ export async function startPacingCapture(page: Page) {
       for (const animation of document.getAnimations()) {
         const effect = animation.effect as KeyframeEffect | null;
         const target = effect?.target;
-        if (!(target instanceof HTMLElement) || seen.has(animation)) continue;
+        if (!(target instanceof HTMLElement)) continue;
+        const observation = timingObservations.get(animation);
+        if (observation) {
+          observation.lastAt = at;
+          observation.nativeMs = typeof animation.currentTime === "number" ? animation.currentTime : undefined;
+          observation.playbackRate = animation.playbackRate;
+          continue;
+        }
+        if (seen.has(animation)) continue;
         seen.add(animation);
         const field = target.closest<HTMLElement>("[data-field-key]");
         const returning = target.dataset.testid === "field-group-return";
         if (!field && !returning) continue;
         const timing = effect!.getTiming();
-        capture.timings.push({
+        const endMs = effect!.getComputedTiming().endTime;
+        const recorded: AnimationTiming = {
           at,
+          lastAt: at,
+          nativeMs: typeof animation.currentTime === "number" ? animation.currentTime : undefined,
+          endMs: typeof endMs === "number" && Number.isFinite(endMs) ? endMs : undefined,
+          playbackRate: animation.playbackRate,
           fieldKey: field?.dataset.fieldKey,
           permanentId: field?.dataset.id,
           returning,
@@ -455,7 +561,9 @@ export async function startPacingCapture(page: Page) {
           duration: typeof timing.duration === "number" ? timing.duration : String(timing.duration),
           delayMs: timing.delay ?? 0,
           easing: timing.easing ?? "linear",
-        });
+        };
+        timingObservations.set(animation, recorded);
+        capture.timings.push(recorded);
       }
       for (const element of document.querySelectorAll<HTMLElement>(
         '[data-field-key], [data-testid="field-group-return"]',
