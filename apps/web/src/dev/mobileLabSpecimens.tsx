@@ -153,9 +153,9 @@ function NarrationSpecimen({
   const layout = useArenaLayout();
   const root = useRef<HTMLDivElement>(null);
   const [narration] = useState(() => new Map(items.map((item) => [item.id, item])));
-  // The detail specimen opens the same individual toast control as a touch on the board.
+  // The detail specimen opens the same row control as a touch on the board.
   useEffect(() => {
-    if (expand) root.current?.querySelector<HTMLButtonElement>(".compact-toast__open")?.click();
+    if (expand) root.current?.querySelector<HTMLButtonElement>(".compact-row__open")?.click();
   }, [expand]);
   return (
     <div ref={root} className={`mobile-lab-fill${decision ? " aegis-stage" : ""}`}>

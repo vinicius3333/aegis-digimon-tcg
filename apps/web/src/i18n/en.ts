@@ -1189,6 +1189,8 @@ export const en = {
   "notice.details": "Notice details",
   "notice.cardCount": "{count} cards",
   "notice.expand": "Show the full notice",
+  "notice.more": "Show {count} more recent notices",
+  "notice.recent": "Recent notices",
   "notice.collapse": "Fold the notice back",
   "notice.close": "Close",
   "notice.moreAbove": "Show more notices above",

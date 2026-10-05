@@ -1210,6 +1210,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "notice.details": "Detalhes do aviso",
   "notice.cardCount": "{count} cartas",
   "notice.expand": "Mostrar o aviso completo",
+  "notice.more": "Mostrar mais {count} avisos recentes",
+  "notice.recent": "Avisos recentes",
   "notice.collapse": "Recolher o aviso",
   "notice.close": "Fechar",
   "notice.moreAbove": "Mostrar mais avisos acima",

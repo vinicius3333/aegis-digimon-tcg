@@ -1,109 +1,128 @@
-/* A permanent mobile gutter keeps transient notices away from the playable board. */
-.game-board:has(.narration-slot--compact) .game-field {
-  margin-top: 3rem;
-}
-.game-board .narration-slot.narration-slot--compact {
+/* One floating line. The host takes no layout space and lets every pointer through;
+   only the row's own buttons take taps. CompactNarration measures the board and sets
+   the top and height, so these are only the fallback before the first measurement. */
+.game-board .narration-slot.narration-slot--compact[data-slot="narration-row"] {
   position: absolute;
-  top: var(--arena-header-height, 3.5rem);
+  top: calc(var(--arena-header-height, 3.5rem) + var(--ds-space-1));
+  right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
   bottom: auto;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  width: calc(50% - var(--ds-space-3));
-  height: 3rem;
+  left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  display: block;
+  width: auto;
+  height: 1.75rem;
   max-height: none;
-  gap: var(--ds-space-1);
   overflow: visible;
   transform: none;
+  pointer-events: none;
 }
-.game-board .narration-slot--compact[data-slot="narration-text"] {
-  left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
-  right: auto;
+.compact-row {
+  display: flex;
+  height: 100%;
+  gap: var(--ds-space-1);
+  pointer-events: none;
+  animation: compact-toast-in 120ms ease-out both;
 }
-.game-board .narration-slot--compact[data-slot="narration-cards"] {
-  right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
-  left: auto;
-}
-.narration-slot--compact .compact-toast {
-  --compact-notice-accent: var(--battle-panel-border);
-  position: relative;
-  flex: none;
-  height: 3rem;
-  min-width: 0;
-  overflow: hidden;
+/* The global touch floor would push the buttons out of a row that has to fit the gap
+   CompactNarration measured; the row itself grows to 44px wherever that gap allows. */
+.compact-row__open,
+.compact-row__more {
+  height: 100%;
+  min-height: 0;
   border: 1px solid var(--battle-panel-border);
   border-radius: 0.65rem;
   background: var(--battle-panel);
   color: var(--ds-brand-on-ink);
-  pointer-events: auto;
-  animation: compact-toast-in 120ms ease-out both;
-}
-.compact-toast[data-tone="deletion"],
-.compact-toast[data-tone="rejection"] {
-  --compact-notice-accent: var(--ds-danger);
-}
-.compact-toast[data-tone="gain"] {
-  --compact-notice-accent: var(--ds-success);
-}
-.compact-toast__open {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: stretch;
-  gap: var(--ds-space-1);
-  padding: 3px 6px;
-  border: 0;
-  background: none;
-  color: inherit;
-  text-align: left;
+  font: inherit;
   cursor: pointer;
+  pointer-events: auto;
 }
-.compact-toast__art {
-  flex: none;
-  width: 16px;
-  line-height: 0;
-  pointer-events: none;
-}
-.compact-toast__copy {
+.compact-row__open {
+  --compact-notice-accent: var(--battle-panel-border);
+  position: relative;
   display: flex;
   min-width: 0;
   flex: 1;
-  flex-direction: column;
-  gap: 1px;
-}
-.compact-toast__heading {
-  display: flex;
-  min-width: 0;
   align-items: center;
   gap: var(--ds-space-1);
-  overflow: hidden;
-}
-.compact-toast__label {
+  padding: 0 var(--ds-space-2);
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  text-align: left;
 }
-.compact-toast__label {
-  flex: 0 1 auto;
+.compact-row[data-tone="deletion"] .compact-row__open,
+.compact-row[data-tone="rejection"] .compact-row__open {
+  --compact-notice-accent: var(--ds-danger);
+}
+.compact-row[data-tone="gain"] .compact-row__open {
+  --compact-notice-accent: var(--ds-success);
+}
+.compact-row[data-prompt-effect] .compact-row__open {
+  border-color: var(--ds-focus-color);
+}
+.compact-row__owner,
+.compact-row__label {
+  flex: none;
   font-size: 0.5625rem;
+  color: var(--ds-brand-on-ink-muted);
+}
+.compact-row__owner {
+  font-weight: 700;
   color: var(--ds-brand-on-ink);
 }
-.compact-toast__clause {
-  display: -webkit-box;
+.compact-row__label {
+  max-width: 28%;
   overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+  text-overflow: ellipsis;
+}
+.compact-row__action,
+.compact-row__result-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 0.6875rem;
   font-weight: 700;
-  line-height: 1.2;
 }
-.compact-toast__open:focus-visible,
+.compact-row__action {
+  flex: 1 1 0;
+}
+.compact-row__result {
+  display: flex;
+  min-width: 0;
+  max-width: 34%;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+}
+.compact-row__arrow {
+  flex: none;
+  font-size: 0.6875rem;
+  color: var(--ds-brand-on-ink-muted);
+}
+.compact-row__art {
+  flex: none;
+  width: 14px;
+  line-height: 0;
+  pointer-events: none;
+}
+.compact-row__art > div {
+  border-radius: 2px !important;
+}
+.compact-row__more {
+  flex: none;
+  min-width: 2.25rem;
+  padding: 0 var(--ds-space-2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.compact-row__open:focus-visible,
+.compact-row__more:focus-visible,
+.notice-details__entry:focus-visible,
 .notice-details__close:focus-visible,
 .notice-details__dismiss:focus-visible {
   outline: 2px solid var(--ds-focus-color);
   outline-offset: -2px;
 }
-.compact-toast__life {
+.compact-row__life {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -114,7 +133,7 @@
   animation: compact-toast-life linear forwards;
   pointer-events: none;
 }
-.compact-toast[data-reading-paused] .compact-toast__life {
+.compact-row[data-reading-paused] .compact-row__life {
   animation-play-state: paused;
 }
 @keyframes compact-toast-life {
@@ -130,9 +149,17 @@
     opacity: 1;
   }
 }
+/* The dialog layer sizes its rows to content, so a tall sheet overflowed the board and
+   lost its title off the top. A single shrinkable row keeps the whole sheet on screen. */
+.aegis-dialog-layer:has(> .notice-details) {
+  grid-template-rows: minmax(0, 1fr);
+}
 .notice-details.aegis-dialog {
   width: min(32rem, calc(100% - var(--ds-space-4)));
-  max-height: calc(100dvh - var(--ds-space-8) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  max-height: min(
+    100%,
+    calc(100dvh - var(--ds-space-8) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
   padding: var(--ds-space-3);
   overflow-y: auto;
   color: #eaf1ff;
@@ -160,6 +187,30 @@
   color: inherit;
   background: none;
   cursor: pointer;
+}
+.notice-details__entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--ds-space-1);
+  margin-bottom: var(--ds-space-2);
+}
+.notice-details__entry {
+  min-height: 2.75rem;
+  padding: var(--ds-space-1) var(--ds-space-2);
+  overflow: hidden;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: var(--ds-space-1);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.notice-details__entry[aria-pressed="true"] {
+  background: var(--battle-panel-border);
 }
 .notice-details__body {
   display: grid;
@@ -212,9 +263,6 @@
   background: var(--battle-panel);
   font-size: 0.875rem;
 }
-.compact-toast__art > div {
-  border-radius: 3px !important;
-}
 .notice-details__body .match-notice__erode,
 .notice-details__body .side-panel__erode,
 .notice-details__body .match-notice__close,
@@ -233,40 +281,8 @@
   cursor: pointer;
 }
 @media (prefers-reduced-motion: reduce) {
-  .narration-slot--compact .compact-toast,
-  .compact-toast__life {
+  .compact-row,
+  .compact-row__life {
     animation: none;
-  }
-}
-
-/* Reclaim row padding first. Only an unusually short field needs local vertical
-   scrolling; the hand, raising dock layout and notice gutter retain their sizes. */
-@media (max-width: 1023px) and (orientation: portrait) and (height < 650px) {
-  .game-board:has(.narration-slot--compact) .game-battle-zones > .game-battle-row:not([data-field-layout="organized"]) {
-    padding-block: 2px !important;
-  }
-  .game-board:has(.narration-slot--compact) .game-field {
-    grid-template-rows: var(--arena-utility-height) minmax(72px, 1fr) var(--arena-memory-height) minmax(72px, 1fr) var(
-        --arena-utility-height
-      );
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    overscroll-behavior-y: contain;
-  }
-}
-
-@media (width < 600px) and (orientation: portrait) and (height < 650px) {
-  .aegis-arena .game-board:has(.narration-slot--compact):has([data-field-layout="organized"]) .game-field {
-    grid-template-rows: var(--arena-utility-height) minmax(calc(164px + var(--arena-memory-height)), 1fr) var(
-        --arena-utility-height
-      );
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-  }
-  .aegis-arena
-    .game-board:has(.narration-slot--compact):has([data-field-layout="organized"])
-    .game-field
-    .game-battle-zones {
-    grid-template-rows: minmax(78px, 1fr) var(--arena-memory-height) minmax(78px, 1fr);
   }
 }
