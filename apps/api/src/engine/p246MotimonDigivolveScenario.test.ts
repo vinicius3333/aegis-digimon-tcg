@@ -104,8 +104,8 @@ describe("P-246 Motimon dev scenarios", () => {
   });
 
   it("stages the bot's turn with Aegiochusmon: Blue in hand and the memory to play it", async () => {
-    const state = new GameState();
-    state.players.push(new PlayerState(), new PlayerState());
+    const s = setupEngine({ 0: {}, 1: {} });
+    const state = s.state;
     layDevScenario("arena-de-digivolve-visibility", state, [BLUE_DECK, RED_DECK]);
 
     expect(state.turnSeat).toBe(1);
@@ -113,13 +113,22 @@ describe("P-246 Motimon dev scenarios", () => {
     expect(state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX13-035");
     expect(state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual(["dev-p246-aegiochusmon-blue"]);
 
-    state.turnCount = 1;
-    state.phase = Phase.Main;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await settle(() => state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     const botView = buildBotView(state, 1);
+    expect(botView!.hand.find(({ instanceId }) => instanceId === "dev-p246-aegiochusmon-blue")?.playableFromHand).toBe(
+      true,
+    );
     expect(createEvaluationPolicy({ seed: 1 }).chooseMainAction(botView!)).toMatchObject({
       type: "playCard",
       instanceId: "dev-p246-aegiochusmon-blue",
     });
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
   it("de-digivolves KingEtemon with a named, face-up, public movement, then lets Motimon take MetalEtemon", async () => {
