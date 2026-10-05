@@ -120,9 +120,10 @@ describe("real autonomous phase pacing boards", () => {
             (event): event is Extract<ServerEvent, { kind: "cardPlayed" }> =>
               event.kind === "cardPlayed" && event.seat === 1,
           );
-          expect(played.map((event) => event.cardId)).toEqual(["BT1-009", "BT1-009"]);
+          expect(played.map((event) => event.cardId)).toEqual(scenario.handCardIds);
           expect(new Set(played.map((event) => event.permanentId)).size).toBe(2);
-          expect(state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "BT1-009")).toHaveLength(2);
+          expect(state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "ST1-12")).toHaveLength(2);
+          expect(getCardDefinition("ST1-12")?.kinds).toContain(CardKind.Tamer);
           expect(state.players[1]!.breeding!.topCard.cardId).toBe("BT1-007");
         } else {
           expect(intents.filter((intent) => intent.type === "moveFromBreeding")).toEqual([

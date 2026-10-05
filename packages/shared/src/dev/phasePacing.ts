@@ -14,7 +14,7 @@ export const PHASE_PACING_SCENARIOS = [
     id: "phase-pacing-bot-play-grouping",
     flow: "play-grouping",
     label: "Play · two physical copies",
-    handCardIds: ["BT1-009", "BT1-009"],
+    handCardIds: ["ST1-12", "ST1-12"],
     breedingCardIds: [],
     fieldCardIds: [],
     eggCardId: "BT1-007",
