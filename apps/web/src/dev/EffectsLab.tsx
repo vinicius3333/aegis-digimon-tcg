@@ -1,5 +1,10 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
-import { CATALOG_DECKS, KEYWORD_PACING_SCENARIOS, type KeywordPacingScenario } from "@aegis/shared";
+import {
+  CATALOG_DECKS,
+  KEYWORD_PACING_SCENARIOS,
+  KEYWORD_TURN_PACING_SCENARIOS,
+  type KeywordPacingScenario,
+} from "@aegis/shared";
 import { colorKey } from "../design/theme";
 import { GameScreen } from "../game/GameScreen";
 import type { AnimationStep } from "../game/animationQueue";
@@ -43,6 +48,13 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...KEYWORD_TURN_PACING_SCENARIOS.map(
+    (scenario) =>
+      [
+        scenario.id,
+        `Keyword pacing · ${scenario.keyword}${scenario.flow === "block" ? ` · ${scenario.accept ? "accept" : "decline"}` : ""}`,
+      ] as const,
+  ),
   ...keywordScenarios.map(
     (scenario) =>
       [
@@ -70,6 +82,20 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  ...Object.fromEntries(
+    KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      scenario.flow === "block"
+        ? {
+            en: `End breeding and your turn. When Phoenixmon attacks, ${scenario.accept ? "click Kokatorimon to block" : "choose Take the attack, no block"}. Watch the arrow change target before battle, or continue to security.`,
+            ptBR: `Encerre a criação e seu turno. Quando Phoenixmon atacar, ${scenario.accept ? "clique em Kokatorimon para bloquear" : "escolha receber o ataque sem bloquear"}. Acompanhe a troca de alvo da seta antes da batalha ou a continuação até a segurança.`,
+          }
+        : {
+            en: "End breeding. Attack each suspended Agumon with Meteormon, BlackWarGreymon and Monodramon, then end your turn. During the opponent's unsuspend phase, only the two Reboot holders turn upright.",
+            ptBR: "Encerre a criação. Ataque cada Agumon suspenso com Meteormon, BlackWarGreymon e Monodramon e encerre seu turno. Na fase de desvirar do oponente, só as duas cartas com Reboot desviram.",
+          },
+    ]),
+  ),
   "effects-lab-field-grouping": {
     en: "End breeding and activate each Izzy Izumi's Main effect. The first suspended copy leaves the group; the second rejoins it. Watch the artwork turn separately from the group movement.",
     ptBR: "Encerre a criação e ative o efeito Principal de cada Izzy Izumi. A primeira cópia suspensa sai do grupo; a segunda volta a se agrupar com ela. A rotação da carta tem seu próprio tempo, separado do deslocamento.",

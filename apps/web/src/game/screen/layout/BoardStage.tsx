@@ -106,7 +106,7 @@ export interface BoardTargeting {
 /** The per-permanent and per-drop-area chrome both halves of the field read. */
 export interface BoardChrome {
   permanentChrome: Omit<PermanentChrome, "suspendDelayMs">;
-  unsuspendStagger: (seat: Seat, index: number) => number;
+  unsuspendStagger: (index: number) => number;
   dropIntentAttrs: (target: DropTarget, id?: string) => DropAttrs;
   baseDropIntentAttrs: (permanentId: string) => DropAttrs;
   /** The class an effect resolving from a seat's trash marks the pile with. */
@@ -371,7 +371,7 @@ export function BoardStage({
                 permanents={shownOpponent.battleArea}
                 chrome={{
                   ...chrome.permanentChrome,
-                  suspendDelayMs: (index) => chrome.unsuspendStagger(other, index),
+                  suspendDelayMs: chrome.unsuspendStagger,
                 }}
                 attackerPermanent={targeting.attackerPermanent}
                 draggedAttackerPermanent={targeting.draggedAttackerPermanent}
@@ -396,7 +396,7 @@ export function BoardStage({
                 permanents={shownViewer.battleArea}
                 chrome={{
                   ...chrome.permanentChrome,
-                  suspendDelayMs: (index) => chrome.unsuspendStagger(viewerSeat, index),
+                  suspendDelayMs: chrome.unsuspendStagger,
                 }}
                 dragIsPlay={drag.isPlay}
                 selectedAttackerPermanentId={selection.selPerm}

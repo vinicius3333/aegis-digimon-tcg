@@ -1,6 +1,7 @@
 import {
   CATALOG_DECKS,
   KEYWORD_PACING_SCENARIOS,
+  KEYWORD_TURN_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -10,6 +11,7 @@ import {
   type Seat,
   type KeywordPacingScenario,
   type KeywordPacingScenarioId,
+  type KeywordTurnPacingScenario,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -53,6 +55,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
   ...KEYWORD_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => scenario.id),
   "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -5887,6 +5890,29 @@ function layKeywordPacingScenario(
   startEffectsLabTurn(state, 3);
 }
 
+function layKeywordTurnPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordTurnPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  if (scenario.flow === "block") {
+    placePermanent(state.players[0]!, establishedDigimon(0, [scenario.blockerCardId], "-keyword-blocker"));
+    placePermanent(state.players[1]!, establishedDigimon(1, [scenario.attackerCardId], "-keyword-attacker"));
+    stackEffectsLabSecurity(state, 0, [scenario.securityCardId]);
+  } else {
+    const ownCards = [...scenario.holderCardIds, scenario.controlCardId];
+    for (const [index, cardId] of ownCards.entries()) {
+      // They begin active and suspend through attacks, rather than a forged keyword move.
+      placePermanent(state.players[0]!, establishedDigimon(0, [cardId], `-keyword-reboot-${index}`));
+      const defender = establishedDigimon(1, [scenario.defenderCardId], `-keyword-reboot-target-${index}`);
+      defender.isSuspended = true;
+      placePermanent(state.players[1]!, defender);
+    }
+  }
+  startEffectsLabTurn(state, 3);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
@@ -5897,12 +5923,16 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
   "arena-bt11-hades-force-target-selection": layBt11HadesForceTargetSelectionScenario,
   "effects-lab-field-grouping": layEffectsLabFieldGroupingScenario,
-  ...(Object.fromEntries(
-    KEYWORD_PACING_SCENARIOS.map((scenario) => [
+  ...(Object.fromEntries([
+    ...KEYWORD_PACING_SCENARIOS.map((scenario) => [
       scenario.id,
       (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordPacingScenario(state, decks, scenario),
     ]),
-  ) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
+    ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordTurnPacingScenario(state, decks, scenario),
+    ]),
+  ]) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,

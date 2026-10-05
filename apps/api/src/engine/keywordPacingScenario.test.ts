@@ -1,4 +1,9 @@
-import { KEYWORD_PACING_SCENARIOS, Phase, type KeywordPacingScenario } from "@aegis/shared";
+import {
+  KEYWORD_PACING_SCENARIOS,
+  KEYWORD_TURN_PACING_SCENARIOS,
+  Phase,
+  type KeywordPacingScenario,
+} from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../cards/index.js";
 import { BLUE_DECK, RED_DECK } from "./testDecks.js";
@@ -7,6 +12,81 @@ import { setupEngine, settle } from "./testkit/harness.js";
 import { observe } from "./testkit/observe.js";
 
 describe("real keyword pacing boards", () => {
+  for (const scenario of KEYWORD_TURN_PACING_SCENARIOS) {
+    it(`${scenario.id} resolves through public attacks and a turn handoff`, async () => {
+      const s = setupEngine({ 0: {}, 1: {} });
+      s.engine.stagedDecks[0] = BLUE_DECK;
+      s.engine.stagedDecks[1] = RED_DECK;
+      s.engine.startDevScenario(scenario.id);
+      try {
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        if (scenario.flow === "reboot") {
+          for (let index = 0; index < 3; index++) {
+            const attacker = s.state.players[0]!.battleArea[index]!;
+            expect(observe(s.engine).hasKeyword(attacker, "Reboot")).toBe(index < 2);
+            expect(
+              s.engine.applyIntent(0, {
+                type: "attack",
+                attackerPermanentId: attacker.permanentId,
+                target: { kind: "permanent", permanentId: `dev-perm-1-keyword-reboot-target-${index}` },
+              }),
+            ).toEqual({ ok: true });
+            await settle(() => !observe(s.engine).isAttacking());
+            expect(attacker.isSuspended).toBe(true);
+          }
+          expect(s.state.players[1]!.battleArea).toHaveLength(0);
+        }
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1);
+        if (scenario.flow === "reboot") {
+          expect(s.state.players[0]!.battleArea.map((permanent) => permanent.isSuspended)).toEqual([
+            false,
+            false,
+            true,
+          ]);
+          const moves = s.events.filter(
+            (event) => event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended",
+          );
+          expect(moves.flatMap((event) => event.instanceIds)).toEqual(
+            expect.arrayContaining(["dev-perm-0-keyword-reboot-0", "dev-perm-0-keyword-reboot-1"]),
+          );
+          expect(moves.flatMap((event) => event.instanceIds)).not.toContain("dev-perm-0-keyword-reboot-2");
+        } else {
+          const blocker = s.state.players[0]!.battleArea[0]!;
+          expect(observe(s.engine).hasKeyword(blocker, "Blocker")).toBe(true);
+          expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+          await advance(s.engine).waitForMainPhase(1);
+          expect(
+            s.engine.applyIntent(1, {
+              type: "attack",
+              attackerPermanentId: "dev-perm-1-keyword-attacker",
+              target: { kind: "player" },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+          expect(
+            s.engine.applyIntent(
+              0,
+              scenario.accept
+                ? { type: "declareBlock", blockerPermanentId: blocker.permanentId }
+                : { type: "declineBlock" },
+            ),
+          ).toEqual({ ok: true });
+          await settle(() => !observe(s.engine).isAttacking());
+          expect(
+            s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === blocker.permanentId),
+          ).toBe(!scenario.accept);
+          expect(s.state.players[0]!.security).toHaveLength(scenario.accept ? 5 : 4);
+          expect(s.events.filter((event) => event.kind === "blocked")).toHaveLength(scenario.accept ? 1 : 0);
+          expect(s.events.filter((event) => event.kind === "battleCompared")).toHaveLength(scenario.accept ? 1 : 0);
+        }
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      }
+    });
+  }
   it("compares a printed tie once before either Barrier payment, then preserves both cards", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-041", as: "attacker" }], security: ["BT1-010", "BT1-010"] },

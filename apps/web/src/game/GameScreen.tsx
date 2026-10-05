@@ -490,11 +490,10 @@ export function GameScreen({
 
   /**
    * The unsuspend phase sweeps a board rather than snapping it: each slot starts its
-   * rotation a little after the one before it. Only the sweeping seat is staggered — a
-   * single card suspending to declare an attack must turn immediately.
+   * rotation a little after the one before it. Both boards participate: Reboot turns
+   * cards on the other board during this same phase. Outside the sweep an attack turns immediately.
    */
-  const unsuspendStagger = (seat: Seat, index: number) =>
-    unsuspendSweep?.seat === seat ? index * TIMINGS.suspendStagger : 0;
+  const unsuspendStagger = (index: number) => (unsuspendSweep ? index * TIMINGS.suspendStagger : 0);
 
   const trackingArrow = useTrackingArrow({
     state,

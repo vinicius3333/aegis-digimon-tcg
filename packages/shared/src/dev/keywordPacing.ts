@@ -84,5 +84,30 @@ export const KEYWORD_PACING_SCENARIOS = [
   ),
 ] as const satisfies readonly KeywordPacingBoard[];
 
-export type KeywordPacingScenarioId = (typeof KEYWORD_PACING_SCENARIOS)[number]["id"];
-export type KeywordPacingScenario = KeywordPacingBoard & { id: KeywordPacingScenarioId };
+/** Defensive and turn-transition cases use public actions on both sides of the field. */
+export const KEYWORD_TURN_PACING_SCENARIOS = [
+  ...([true, false] as const).map(
+    (accept) =>
+      ({
+        id: accept ? "keyword-pacing-blocker-accept" : "keyword-pacing-blocker-decline",
+        keyword: "Blocker",
+        flow: "block",
+        blockerCardId: "ST18-07",
+        attackerCardId: "ST1-10",
+        securityCardId: "BT1-010",
+        accept,
+      }) as const,
+  ),
+  {
+    id: "keyword-pacing-reboot",
+    keyword: "Reboot",
+    flow: "reboot",
+    holderCardIds: ["BT4-070", "BT5-069"],
+    controlCardId: "BT1-009",
+    defenderCardId: "BT1-010",
+  },
+] as const;
+
+export type KeywordTurnPacingScenario = (typeof KEYWORD_TURN_PACING_SCENARIOS)[number];
+export type KeywordPacingScenarioId = (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] | KeywordTurnPacingScenario["id"];
+export type KeywordPacingScenario = KeywordPacingBoard & { id: (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] };
