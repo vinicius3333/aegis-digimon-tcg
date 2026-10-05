@@ -149,7 +149,7 @@ describe("presentedSeats live projection", () => {
     other.handCount = 8;
     other.deckCount = 24;
     const opaque = other.toJSON();
-    delete opaque.hand;
+    delete (opaque as Partial<typeof opaque>).hand;
     const opponent = opaque as unknown as PlayerState;
     const shownState = {
       stateVersion: 4,

@@ -2,6 +2,7 @@ import { CardInstance, GameState, Permanent, PlayerState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { visibleBoard } from "./visibleBoard";
 import { snapshotGameState } from "../../../net/presentedState";
+import type { HeldStackStrip } from "../../match/types";
 
 function card(instanceId: string, cardId: string) {
   const value = new CardInstance();
@@ -59,7 +60,9 @@ describe("visibleBoard", () => {
     promoted.stack.clear();
     const live = board(15, [promoted]);
     const holds = cues();
-    holds.heldStackStrips.set(1, {
+    const strips = new Map<number, HeldStackStrip>();
+    holds.heldStackStrips = strips;
+    strips.set(1, {
       seat: 1,
       permanent: armor,
       index: 0,
@@ -69,7 +72,7 @@ describe("visibleBoard", () => {
     const held = visibleBoard({ live, displayed: live, viewerSeat: 0, cues: holds })!;
     expect(held.players[1].battleArea[0]!.topCard.cardId).toBe("BT8-012");
     expect(held.players[1].battleArea[0]!.stack.map((value) => value.cardId)).toEqual(["BT1-009"]);
-    holds.heldStackStrips.clear();
+    strips.clear();
     const complete = visibleBoard({ live, displayed: live, viewerSeat: 0, cues: holds })!;
     expect(complete.players[1].battleArea[0]!.topCard.cardId).toBe("BT1-009");
     expect(complete.players[1].battleArea[0]!.stack).toEqual([]);

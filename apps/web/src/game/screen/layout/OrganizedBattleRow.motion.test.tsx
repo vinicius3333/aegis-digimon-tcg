@@ -164,7 +164,7 @@ it("turns only the artwork when a suspended copy leaves its group", () => {
       startTime: null,
       playState: "running",
       effect: { getComputedTiming: () => ({ progress: nativeProgress }) },
-      cancel() {
+      cancel(this: { playState: AnimationPlayState }) {
         cancelTurn();
         this.playState = "idle";
       },
