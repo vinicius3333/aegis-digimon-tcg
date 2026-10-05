@@ -7,6 +7,8 @@ interface CardPose {
   permanentId: string | undefined;
   returning: boolean;
   cardName?: string;
+  /** The number printed by TokenInfo's DP chip in this sampled DOM pose. */
+  currentDP?: number;
   returnId?: number;
   x: number;
   y: number;
@@ -313,14 +315,21 @@ export async function startPacingCapture(page: Page) {
             : element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
         if (!art) continue;
         const rect = art.getBoundingClientRect();
-        if (rect.width <= 0 || rect.height <= 0) continue;
+        const style = getComputedStyle(art);
+        if (rect.width <= 0 || rect.height <= 0 || style.visibility === "hidden" || Number(style.opacity) <= 0.01)
+          continue;
+        const cardName = art.getAttribute("title") ?? undefined;
+        const name = [...art.querySelectorAll("span")].find((span) => span.textContent?.trim() === cardName);
+        const chip = name?.nextElementSibling?.textContent?.trim().match(/^(\d+(?:\.\d+)?)\s*(K)?$/i);
+        const currentDP = chip ? Number(chip[1]) * (chip[2] ? 1000 : 1) : undefined;
         capture.poses.push({
           at,
           fieldKey: element.dataset.fieldKey ?? element.dataset.returnTargetFieldKey,
           permanentId: element.dataset.id,
           returning: element.dataset.testid === "field-group-return",
           returnId: returnId(element),
-          cardName: art.getAttribute("title") ?? undefined,
+          cardName,
+          currentDP,
           x: rect.x + rect.width / 2,
           y: rect.y + rect.height / 2,
           angle: Number.parseFloat(getComputedStyle(art).rotate) || 0,

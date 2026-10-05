@@ -9,6 +9,7 @@ import {
   KEYWORD_PACING_SCENARIOS,
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
+  KEYWORD_STACK_PACING_SCENARIOS,
   type KeywordPacingScenario,
 } from "@aegis/shared";
 import { startPacingCapture, finishPacingCapture } from "./pacing-capture";
@@ -62,7 +63,13 @@ interface LabState {
       turn?: { seat: number; count: number };
       players: {
         securityCount: number;
-        battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean; currentDP: number }[];
+        battleArea: {
+          permanentId: string;
+          topCard: { cardId: string };
+          stack: { cardId: string }[];
+          isSuspended: boolean;
+          currentDP: number;
+        }[];
       }[];
     };
   };
@@ -113,6 +120,25 @@ async function waitForDecisionPaint(page: Page, label: string) {
       }, label),
     )
     .toBe(true);
+}
+
+async function clickFieldArtwork(page: Page, permanentId: string, cardName: string) {
+  const art = page.locator(`[data-drop][data-id="${permanentId}"]`).locator(`[title="${cardName}"][data-state]`);
+  const position = await art.evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    for (const [x, y] of [
+      [0.85, 0.35],
+      [0.5, 0.5],
+      [0.25, 0.75],
+    ]) {
+      const point = { x: bounds.width * x!, y: bounds.height * y! };
+      const hit = document.elementFromPoint(bounds.left + point.x, bounds.top + point.y);
+      if (hit && element.contains(hit) && !hit.closest("[data-badge-hint], button")) return point;
+    }
+    return null;
+  });
+  expect(position, "the field card has exposed clickable art").not.toBeNull();
+  await art.click({ position: position! });
 }
 
 class EffectsLabPage {
@@ -973,6 +999,196 @@ test.describe("effects lab pacing in the browser", () => {
               ),
             ).toBe(true);
           } else expect(peels).toHaveLength(0);
+        }
+      });
+    }
+  }
+
+  for (const scenario of KEYWORD_STACK_PACING_SCENARIOS) {
+    for (const format of [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+      { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+    ]) {
+      test(`real keyword pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, format.speed);
+        await expect.poll(async () => (await lab.read()).queueIdle).toBe(true);
+        await startPacingCapture(page);
+        const actions = [
+          {
+            label: scenario.flow === "de-digivolve" ? "play-option" : "activate-digi-burst",
+            observedAt: await page.evaluate(() => performance.now()),
+          },
+        ];
+        let decisionLabel: string;
+        if (scenario.flow === "de-digivolve") {
+          await new GamePage(page).play(
+            new RegExp(scenario.optionCardId === "BT2-105" ? "Spider Shooter" : "Infinity Cannon"),
+          );
+          if (scenario.optionCardId === "BT2-106") {
+            await expect.poll(async () => (await lab.read()).decision?.kind).toBe("chooseOption");
+            const amountPrompt = page.getByRole("dialog", { name: "Infinity Cannon · effect", exact: true });
+            await expect(amountPrompt).toBeVisible();
+            await waitForDecisionPaint(page, "Infinity Cannon · effect");
+            await amountPrompt.getByRole("button", { name: "4 cards", exact: true }).click();
+          }
+          await expect.poll(async () => (await lab.read()).decision?.kind).toBe("chooseTargets");
+          const prompt = page.locator('[data-testid="board-prompt"], [role="dialog"]').filter({ visible: true }).last();
+          await expect(prompt).toBeVisible();
+          decisionLabel = (await prompt.getAttribute("aria-label"))!;
+          await waitForDecisionPaint(page, decisionLabel);
+          actions.push({ label: "select-stack", observedAt: await page.evaluate(() => performance.now()) });
+          if ((await prompt.getAttribute("role")) === "dialog")
+            await prompt
+              .getByRole("button", { name: /^Phoenixmon/ })
+              .first()
+              .click();
+          else await clickFieldArtwork(page, "dev-perm-1-keyword-stack-0", "Phoenixmon");
+          await prompt.getByRole("button", { name: "Confirm targets", exact: true }).click();
+        } else {
+          await clickFieldArtwork(page, "dev-perm-0-keyword-stack-0", "WarGrowlmon");
+          await page.getByRole("button", { name: /^Activate effect:/i }).click();
+          const prompt = page.getByRole("dialog", { name: "WarGrowlmon · effect", exact: true });
+          await expect(prompt).toBeVisible();
+          decisionLabel = "WarGrowlmon · effect";
+          await waitForDecisionPaint(page, decisionLabel);
+          await prompt.getByRole("button", { name: /^Cupimon/ }).click();
+          await prompt.getByRole("button", { name: /^Salamon/ }).click();
+          actions.push({ label: "pay-source-cost", observedAt: await page.evaluate(() => performance.now()) });
+          await prompt.getByRole("button", { name: "Confirm targets", exact: true }).click();
+        }
+        await expect
+          .poll(
+            async () => {
+              const state = await lab.read();
+              expect(state.gateExpiries).toEqual([]);
+              expect(state.steps.filter((step) => step.failed || step.phase === "dropped")).toEqual([]);
+              return (
+                state.events.some((event) => event.kind === "effectResolved") &&
+                state.queueIdle &&
+                state.pendingSteps === 0 &&
+                !state.decision &&
+                state.board?.live.stateVersion === state.board?.displayed.stateVersion
+              );
+            },
+            { timeout: 40_000 },
+          )
+          .toBe(true);
+        const capture = await finishPacingCapture(page);
+        const state = await lab.read();
+        await info.attach("real-keyword-pacing.json", {
+          body: Buffer.from(
+            JSON.stringify({ scenario, format, speed: format.speed, actions, capture, state }, null, 2),
+          ),
+          contentType: "application/json",
+        });
+        await info.attach("stack-field.png", { body: await page.screenshot(), contentType: "image/png" });
+        expect(errors).toEqual([]);
+        expect(capture.truncated || state.truncated).toBe(false);
+        expect(capture.motion.captureQuality).toBe("usable");
+        expectOnlyCompletedDpReplacements(state.steps);
+        const seat = scenario.flow === "de-digivolve" ? 1 : 0;
+        const hostId = `dev-perm-${seat}-keyword-stack-0`;
+        const host = state.board!.visible.players[seat]!.battleArea.find((card) => card.permanentId === hostId)!;
+        const control = state.board!.visible.players[seat]!.battleArea.find(
+          (card) => card.permanentId === `dev-perm-${seat}-keyword-stack-1`,
+        )!;
+        const peels = capture.peels.filter((peel) => peel.permanentId === hostId);
+        const removed = scenario.flow === "de-digivolve" ? scenario.removedCount : 2;
+        expect(peels).toHaveLength(format.reduced ? 0 : removed);
+        for (const family of ["lift", "sway", "fade", "rim"]) {
+          const clocks = capture.motion.animations.filter(
+            (animation) => animation.name === `battle-stack-strip-${family}`,
+          );
+          expect(clocks).toHaveLength(peels.length);
+          expect(
+            clocks.every((animation) => animation.durationMs === 595 && !animation.cutShort && !animation.undersampled),
+          ).toBe(true);
+        }
+        const decision = capture.decisions.find(
+          (candidate) => candidate.label === decisionLabel && candidate.closedAt !== undefined,
+        )!;
+        expect(decision).toBeDefined();
+        for (const [index, peel] of peels.entries()) {
+          expect(peel.frames).toBeGreaterThan(2);
+          expect(peel.firstAt).toBeGreaterThanOrEqual(index === 0 ? decision.closedAt! : peels[index - 1]!.lastAt);
+        }
+        if (scenario.flow === "de-digivolve") {
+          expect(host.topCard.cardId).toBe(scenario.expectedTopCardId);
+          expect(host.stack).toHaveLength(4 - removed);
+          expect(host.stack[0]!.cardId).toBe("BT1-001");
+          expect(control.topCard.cardId).toBe("ST1-10");
+          expect(control.stack).toHaveLength(4);
+          expect(peels.map((peel) => peel.cardId)).toEqual(
+            format.reduced ? [] : ["ST1-10", "ST1-08", "ST1-07"].slice(0, removed),
+          );
+          if (!format.reduced) {
+            const expected = [
+              { cardId: "ST1-08", cardName: "Garudamon", stackCount: 3, currentDP: 7000 },
+              { cardId: "ST1-07", cardName: "Greymon", stackCount: 2, currentDP: 4000 },
+              { cardId: "BT1-009", cardName: "Monodramon", stackCount: 1, currentDP: 3000 },
+            ];
+            for (const [index, promotion] of expected.slice(0, removed).entries()) {
+              const board = capture.boards.find((sample) =>
+                sample.permanents.some((card) => card.permanentId === hostId && card.cardId === promotion.cardId),
+              );
+              expect(board, `the ${promotion.cardId} handoff was projected`).toBeDefined();
+              expect(board!.at).toBeGreaterThanOrEqual(peels[index]!.lastAt);
+              expect(board!.permanents.find((card) => card.permanentId === hostId)).toMatchObject({
+                cardId: promotion.cardId,
+                stackCount: promotion.stackCount,
+                currentDP: promotion.currentDP,
+              });
+              const artwork = capture.poses.find(
+                (pose) => pose.permanentId === hostId && pose.cardName === promotion.cardName,
+              );
+              expect(artwork, `the ${promotion.cardName} artwork was painted`).toBeDefined();
+              expect(artwork!.currentDP).toBe(promotion.currentDP);
+              expect(artwork!.at).toBe(board!.at);
+              expect(artwork!.at).toBeGreaterThanOrEqual(peels[index]!.lastAt);
+              if (index + 1 < peels.length) expect(artwork!.at).toBeLessThanOrEqual(peels[index + 1]!.firstAt);
+            }
+          }
+        } else {
+          expect(host.topCard.cardId).toBe("BT4-046");
+          expect(host.stack.map((card) => card.cardId)).toEqual(["BT1-051"]);
+          expect(control.stack).toHaveLength(3);
+          const target = state.board!.visible.players[1]!.battleArea.find(
+            (card) => card.permanentId === "dev-perm-1-keyword-stack-target",
+          );
+          expect(Boolean(target)).toBe(!scenario.deletesTarget);
+          if (target) expect(target.currentDP).toBe(8000);
+          expect(peels.map((peel) => peel.cardId)).toEqual(format.reduced ? [] : ["BT1-006", "ST3-02"]);
+          if (!format.reduced) {
+            const result = capture.boards.find((sample) =>
+              scenario.deletesTarget
+                ? !sample.permanents.some((card) => card.permanentId === "dev-perm-1-keyword-stack-target")
+                : sample.permanents.some(
+                    (card) => card.permanentId === "dev-perm-1-keyword-stack-target" && card.currentDP === 8000,
+                  ),
+            );
+            expect(result, "the paid effect's result was painted").toBeDefined();
+            expect(result!.at).toBeGreaterThanOrEqual(peels.at(-1)!.lastAt);
+            if (!scenario.deletesTarget) {
+              const resultPose = capture.poses.find(
+                (pose) => pose.permanentId === "dev-perm-1-keyword-stack-target" && pose.currentDP === 8000,
+              );
+              expect(resultPose, "the paid effect's DP was painted in the card chip").toBeDefined();
+              expect(resultPose!.at).toBeGreaterThanOrEqual(peels.at(-1)!.lastAt);
+            }
+            const dpPulses = capture.dpPulses.filter(
+              (pulse) => pulse.permanentId === "dev-perm-1-keyword-stack-target",
+            );
+            // A zero-DP rule deletion can remove the target before its decoration paints.
+            if (!scenario.deletesTarget) expect(dpPulses.length).toBeGreaterThan(0);
+            expect(dpPulses.every((pulse) => pulse.firstAt >= peels.at(-1)!.lastAt)).toBe(true);
+          }
         }
       });
     }
