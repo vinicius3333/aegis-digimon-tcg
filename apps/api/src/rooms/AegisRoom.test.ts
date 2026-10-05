@@ -849,3 +849,36 @@ describe("AegisRoom full state sync guard", () => {
     expect(room.disconnect).toHaveBeenCalledWith(CloseCode.WITH_ERROR);
   });
 });
+
+describe("AegisRoom StateView lifecycle", () => {
+  it("disposes every issued view with the room so a finished match can be collected", () => {
+    const room = makeRoom();
+    const [a, b] = joinBothSeats(room);
+    const views = [a.view!, b.view!];
+    const disposals = views.map((view) => vi.spyOn(view, "dispose"));
+
+    room.onDispose();
+
+    for (const dispose of disposals) expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it("disposes a replaced view instead of leaving it registered", async () => {
+    const room = makeRoom();
+    const [a] = joinBothSeats(room);
+    const staleView = a.view!;
+    const disposeStale = vi.spyOn(staleView, "dispose");
+    const reconnected = fakeClient("session-a");
+    reconnected.view = staleView;
+    room.allowReconnection = vi.fn(async () => reconnected) as unknown as AegisRoom["allowReconnection"];
+    room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => false);
+    room.lock = vi.fn(async () => undefined) as AegisRoom["lock"];
+    room.unlock = vi.fn(async () => undefined) as AegisRoom["unlock"];
+
+    await room.onLeave(a, CloseCode.ABNORMAL_CLOSURE);
+
+    expect(disposeStale).toHaveBeenCalledOnce();
+    expect(reconnected.view).not.toBe(staleView);
+    room.onDispose();
+    expect(disposeStale).toHaveBeenCalledOnce();
+  });
+});

@@ -212,6 +212,7 @@ export function DecisionPrompts({
 
       {decision?.kind === "selectCards" && digiXrosCardId && digiXrosRequirements ? (
         <DigiXrosMaterialOverlay
+          key={decision.decisionId}
           playingCardId={digiXrosCardId}
           materialLimits={decision.options?.digiXrosMaterialLimits}
           requirements={digiXrosRequirements}

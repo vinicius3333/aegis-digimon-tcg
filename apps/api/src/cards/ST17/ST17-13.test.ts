@@ -9,6 +9,70 @@ function primitivesOf(s: EngineSetup): Primitives {
 }
 
 describe("ST17-13 Magnamon [When Digivolving] — trash digi-cards per color, bounce no-stack Digimon", () => {
+  it("issue #4905: trashes seven top sources using Merciful Mode's gained colors at resolution", async () => {
+    const sources = ["BT1-009", "BT1-029", "BT1-045", "BT1-067", "BT2-069", "AD1-009", "BT1-009", "BT1-029"];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-023", as: "veemon" }], hand: [{ card: "ST17-13", as: "magnamon" }] },
+        1: { battleArea: [{ card: "EX13-077", as: "merciful", under: sources }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const target = s.perm("merciful");
+    expect(new Set(observe(s.engine).effectiveColors(target)).size).toBe(7);
+    const originalSources = target.stack.map((card) => card.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("magnamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST17-13"));
+
+    expect(target.stack.map((card) => card.instanceId)).toEqual(originalSources.slice(0, 1));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(originalSources.slice(1).reverse());
+    expect(new Set(observe(s.engine).effectiveColors(target))).toEqual(new Set(["White", "Red"]));
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each(["BT1-020", "BT8-084"])(
+    "issue #4905: does not count source colors without an active color grant on %s",
+    async (card) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT11-023", as: "veemon" }], hand: [{ card: "ST17-13", as: "magnamon" }] },
+          1: { battleArea: [{ card, as: "target", under: ["BT1-029", "BT1-045", "BT1-067"] }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const target = s.perm("target");
+      expect(observe(s.engine).effectiveColors(target)).toHaveLength(1);
+      const originalSources = target.stack.map((source) => source.instanceId);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("veemon").permanentId,
+          instanceId: s.inst("magnamon").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST17-13"));
+
+      // Kimeramon gains its sources' colors only during its controller's turn.
+      expect(target.stack.map((source) => source.instanceId)).toEqual(originalSources.slice(0, -1));
+      expect(s.state.players[1]!.trash.map((source) => source.instanceId)).toEqual(originalSources.slice(-1));
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("uses the alternate Veemon route for 3 memory, draws, and preserves physical stack identity", async () => {
     const s = setupEngine(
       {

@@ -532,6 +532,19 @@ describe("primitives: playToken (PlayToken IR kind)", () => {
     expect(h.events.some((e) => e.kind === "cardsMoved" && e.to === "battleArea")).toBe(true);
   });
 
+  it("blocks token creation before placement or play watchers (Discord 1556299783898005544)", async () => {
+    const h = harness();
+    h.continuous.addPlayProhibition(1, 0, { kinds: ["Digimon"] }, "play", EffectDuration.UntilOpponentTurnEnd, {
+      byEffectOnly: true,
+    });
+    expect(await h.fx.playToken(1, "AthoRenePor Token", { payCost: false })).toBeUndefined();
+    expect(h.state.players[1]!.battleArea).toHaveLength(0);
+    expect(h.events).toHaveLength(0);
+    expect(h.fireTimings).toHaveLength(0);
+    expect(h.subTriggerFires).toHaveLength(0);
+    expect(await h.fx.playToken(0, "AthoRenePor Token", { payCost: false })).toBeDefined();
+  });
+
   it("preserves descriptor keyword metadata on Atho, René & Por", async () => {
     const h = harness();
     const permanent = await h.fx.playToken(0, "AthoRenePor Token", {

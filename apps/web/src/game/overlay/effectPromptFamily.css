@@ -1,4 +1,11 @@
 /* Card-first effect selection, including the generic Decoy decision. */
+/* Keep the board visible while reserving a Tamer, but block competing play/phase clicks. */
+.digi-xros-expander-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+}
+
 .game-modal__panel.effect-prompt-family {
   border: 0 !important;
   border-radius: 18px;

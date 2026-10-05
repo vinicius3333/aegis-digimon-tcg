@@ -8,7 +8,8 @@
    area on its own clock. A security-effect hold keeps the battle area and trash as they were
    at the reveal until the card's [Security] clause has been read. A deletion hold keeps a deleted permanent in its slot until the
    shatter that takes it has begun. A trash-arrival hold keeps a card out of the trash until
-   the batch that moved it there is narrated.
+   the batch that moved it there is narrated. A source-strip hold keeps its host in place
+   and its return out of the hand until the last source has peeled away.
 
    The viewer's hand count also drops the card an optimistic play has already taken out
    of the hand, so the readout matches the cards on screen. */
@@ -22,9 +23,11 @@ import {
   phaseField,
   securityEffectField,
   trashArrivalField,
+  stackStripField,
 } from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
-import type { HeldDeletion, HeldTrashArrival } from "../../match/types";
+import { stackStripHand } from "../../match/heldStackStrip";
+import type { HeldDeletion, HeldStackStrip, HeldTrashArrival } from "../../match/types";
 
 export function presentedSeats({
   shownState,
@@ -37,6 +40,7 @@ export function presentedSeats({
   heldDrawState,
   heldBreedingState,
   heldDeletions,
+  heldStackStrips = new Map(),
   heldTrashArrivals,
   optimisticPlayedInstanceId,
 }: {
@@ -50,48 +54,58 @@ export function presentedSeats({
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   heldBreedingState: { seat: Seat; player: PlayerState } | undefined;
   heldDeletions: ReadonlyMap<number, HeldDeletion>;
+  heldStackStrips?: ReadonlyMap<number, HeldStackStrip>;
   heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
   /** A card a play has already taken out of the hand, pending the server's word. */
   optimisticPlayedInstanceId: string | undefined;
 }) {
+  const heldStripsOf = (seat: Seat) => [...heldStackStrips.values()].filter((strip) => strip.seat === seat);
+  viewer = stackStripHand(viewer, heldStripsOf(viewerSeat));
+  opponent = stackStripHand(opponent, heldStripsOf(otherSeat(viewerSeat)));
   const heldDeletionsOf = (seat: Seat) => [...heldDeletions.values()].filter((deletion) => deletion.seat === seat);
   const heldTrashArrivalsOf = (seat: Seat) =>
     [...heldTrashArrivals.values()].filter((arrival) => arrival.seat === seat);
   const presentedViewer = liveProjectionFields({
-    player: trashArrivalField({
-      player: deletionField({
-        player: blowField({
-          player: securityEffectField({
-            player: phaseField({
-              player: shownState.players[viewerSeat] ?? viewer,
-              held: heldPhaseState?.players[viewerSeat],
+    player: stackStripField({
+      player: trashArrivalField({
+        player: deletionField({
+          player: blowField({
+            player: securityEffectField({
+              player: phaseField({
+                player: shownState.players[viewerSeat] ?? viewer,
+                held: heldPhaseState?.players[viewerSeat],
+              }),
+              held: heldSecurityEffectState?.players[viewerSeat],
             }),
-            held: heldSecurityEffectState?.players[viewerSeat],
+            held: heldBlowState?.players[viewerSeat],
           }),
-          held: heldBlowState?.players[viewerSeat],
+          held: heldDeletionsOf(viewerSeat),
         }),
-        held: heldDeletionsOf(viewerSeat),
+        held: heldTrashArrivalsOf(viewerSeat),
       }),
-      held: heldTrashArrivalsOf(viewerSeat),
+      held: heldStripsOf(viewerSeat),
     }),
     live: viewer,
   });
   const presentedOpponent = liveProjectionFields({
-    player: trashArrivalField({
-      player: deletionField({
-        player: blowField({
-          player: securityEffectField({
-            player: phaseField({
-              player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
-              held: heldPhaseState?.players[otherSeat(viewerSeat)],
+    player: stackStripField({
+      player: trashArrivalField({
+        player: deletionField({
+          player: blowField({
+            player: securityEffectField({
+              player: phaseField({
+                player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
+                held: heldPhaseState?.players[otherSeat(viewerSeat)],
+              }),
+              held: heldSecurityEffectState?.players[otherSeat(viewerSeat)],
             }),
-            held: heldSecurityEffectState?.players[otherSeat(viewerSeat)],
+            held: heldBlowState?.players[otherSeat(viewerSeat)],
           }),
-          held: heldBlowState?.players[otherSeat(viewerSeat)],
+          held: heldDeletionsOf(otherSeat(viewerSeat)),
         }),
-        held: heldDeletionsOf(otherSeat(viewerSeat)),
+        held: heldTrashArrivalsOf(otherSeat(viewerSeat)),
       }),
-      held: heldTrashArrivalsOf(otherSeat(viewerSeat)),
+      held: heldStripsOf(otherSeat(viewerSeat)),
     }),
     live: opponent,
   });
@@ -100,10 +114,10 @@ export function presentedSeats({
     heldDrawState?.seat === otherSeat(viewerSeat) ? heldDrawState.state.players[otherSeat(viewerSeat)] : undefined;
   const shownViewer: PresentedPlayer = heldViewer
     ? { ...presentedViewer, hand: heldViewer.hand, handCount: heldViewer.handCount, deckCount: heldViewer.deckCount }
-    : presentedViewer;
+    : { ...presentedViewer, hand: viewer.hand, handCount: viewer.handCount };
   const shownOpponent: PresentedPlayer = heldOpponent
     ? { ...presentedOpponent, handCount: heldOpponent.handCount, deckCount: heldOpponent.deckCount }
-    : presentedOpponent;
+    : { ...presentedOpponent, handCount: opponent.handCount };
   return {
     shownViewer,
     shownOpponent,
@@ -119,7 +133,8 @@ export function presentedSeats({
           : 0),
     ),
     shownOpponentHandCount: heldOpponent?.handCount ?? opponent.handCount,
-    /** True while a draw hold is keeping the viewer's hand behind the server's. */
-    handHeld: heldViewer !== undefined,
+    /** True while a draw or source-strip hold keeps the viewer's hand behind the server's. */
+    handHeld:
+      heldViewer !== undefined || heldStripsOf(viewerSeat).some((strip) => strip.returnedInstanceId !== undefined),
   };
 }

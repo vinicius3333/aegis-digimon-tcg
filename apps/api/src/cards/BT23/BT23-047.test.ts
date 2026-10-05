@@ -401,6 +401,107 @@ describe("BT23-047 Examon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-047")).toBe(true);
   });
 
+  it("Discord 1556039867106983976: partitions its EX13 Lv.5 sources when returned to deck bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-047", as: "examon", under: ["EX13-021", "EX13-008", "EX13-018", "EX13-041"] }],
+          deck: [PLAIN_LV3],
+        },
+        1: {
+          battleArea: [{ card: "AD1-011", as: "imperialdramon" }],
+          hand: [{ card: "AD1-024", as: "fighter" }],
+          deck: [PLAIN_LV3],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Activate this triggered effect?"] },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const examonId = s.perm("examon").topCard!.instanceId;
+    const sourceIds = s
+      .perm("examon")
+      .stack.filter(({ cardId }) => cardId === "EX13-021" || cardId === "EX13-041")
+      .map(({ instanceId }) => instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("imperialdramon").permanentId,
+        instanceId: s.inst("fighter").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "AD1-024"),
+    );
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard!.instanceId).sort()).toEqual(sourceIds.sort());
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(examonId);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["EX13-008", "EX13-018"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([false, true])(
+    "Discord 1556039867106983976: end-turn DNA attack with scheduled Wormmon return %s",
+    async (scheduledReturn) => {
+      const preferred: string[] = [];
+      const declinePrompts: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: scheduledReturn ? [{ card: "BT16-085", as: "tamer" }] : [{ card: "BT12-047", as: "wormmon" }],
+            hand: [...(scheduledReturn ? [{ card: "BT12-047", as: "wormmon" }] : []), PLAIN_LV3],
+            deck: [PLAIN_LV3, PLAIN_LV3, PLAIN_LV3, PLAIN_LV3, PLAIN_LV3],
+            security: [PLAIN_LV3, PLAIN_LV3, PLAIN_LV3, PLAIN_LV3, PLAIN_LV3],
+          },
+          1: {
+            battleArea: [
+              { card: "EX13-041", as: "groundramon", under: ["EX13-008", "EX13-018"] },
+              { card: "EX13-021", as: "wingdramon" },
+            ],
+            hand: [{ card: "BT23-047", as: "examon" }],
+            deck: [PLAIN_LV3, PLAIN_LV3, PLAIN_LV3, PLAIN_LV3],
+            security: [PLAIN_LV3, PLAIN_LV3, PLAIN_LV3],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred, declinePrompts },
+      );
+      const wormmonId = s.inst("wormmon").instanceId;
+      s.state.memory = 3;
+      const loop = s.engine.startTurnLoop();
+      try {
+        await advance(s.engine).waitForMainPhase(0);
+        const wormmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === wormmonId)!;
+        expect(wormmon).toBeDefined();
+        preferred.push(wormmon.permanentId);
+        // Refuse the next start-of-main replay so the returned Wormmon stays in hand.
+        declinePrompts.push("Play without paying the cost");
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(1);
+        expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+
+        const attack = s.events.find((event) => event.kind === "attackDeclared" && event.attackerCardId === "BT23-047");
+        expect(attack).toMatchObject({ target: { kind: "permanent", permanentId: wormmon.permanentId } });
+        expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === wormmon.permanentId)).toBe(
+          false,
+        );
+        expect(s.state.players[0]![scheduledReturn ? "hand" : "trash"].map(({ instanceId }) => instanceId)).toContain(
+          wormmonId,
+        );
+        // Without the pending bounce, Groundramon trashes one and Piercing checks two.
+        expect(s.state.players[0]!.security).toHaveLength(scheduledReturn ? 5 : 2);
+        expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(scheduledReturn ? 0 : 2);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+        await loop;
+      }
+    },
+  );
+
   async function dnaIntoExamonThenPassTurn(
     s: ReturnType<typeof setupEngine>,
     options: { autoAcceptOptional?: boolean; autoDeclineOptional?: boolean; autoSelectCards?: boolean },

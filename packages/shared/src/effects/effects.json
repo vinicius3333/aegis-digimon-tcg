@@ -8343,7 +8343,8 @@
                   "nameOrTrait": [{ "tokens": ["Xros Heart"], "match": "trait" }]
                 },
                 "count": 1,
-                "to": "underTamer"
+                "to": "underTamer",
+                "underFilter": { "isSelfRef": true }
               }
             ],
             "rest": "deckBottom"
@@ -8361,7 +8362,7 @@
               {
                 "kind": "PlaceUnder",
                 "target": { "filter": { "controller": "mine", "zone": "underTamer" }, "count": "all" },
-                "underTamerHostScope": "single",
+                "underTamerHostScope": "any",
                 "underFilter": { "isTriggerSource": true },
                 "asDigiXrosMaterial": true,
                 "cost": {
@@ -8407,7 +8408,7 @@
               {
                 "kind": "PlaceUnder",
                 "target": { "filter": { "controller": "mine", "zone": "underTamer" }, "count": "all" },
-                "underTamerHostScope": "single",
+                "underTamerHostScope": "any",
                 "underFilter": { "isTriggerSource": true },
                 "asDigiXrosMaterial": true,
                 "cost": {
@@ -24191,7 +24192,8 @@
                   "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "trait" }]
                 },
                 "count": 1,
-                "to": "placeUnder"
+                "to": "placeUnder",
+                "underFilter": { "isSelfRef": true }
               }
             ],
             "rest": "trash"
@@ -51713,18 +51715,20 @@
             "revealCount": 3,
             "add": [
               {
+                "effectTextPart": "Add 1 yellow card with the [Data] trait",
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Witchelny"], "match": "trait" }]
+                  "colors": ["Yellow"],
+                  "nameOrTrait": [{ "tokens": ["Data"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
               },
               {
+                "effectTextPart": "1 card with the [Witchelny] trait among them to the hand.",
                 "filter": {
                   "controllerDefault": "mine",
-                  "colors": ["Yellow"],
-                  "nameOrTrait": [{ "tokens": ["Data"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Witchelny"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -53549,6 +53553,7 @@
                 ],
                 "count": 1,
                 "to": "placeUnder",
+                "underFilter": { "isSelfRef": true },
                 "optional": true
               }
             ],
@@ -131906,7 +131911,8 @@
                   "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "trait" }]
                 },
                 "count": 1,
-                "to": "placeUnder"
+                "to": "placeUnder",
+                "underFilter": { "isSelfRef": true }
               }
             ],
             "rest": "trash"

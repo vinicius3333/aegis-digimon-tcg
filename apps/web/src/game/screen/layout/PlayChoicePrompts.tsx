@@ -64,6 +64,7 @@ export function PlayChoicePrompts({
   memory: number;
   assemblyPick: { cardId: string; requirements: AssemblyRequirement[]; candidates: AssemblyCandidate[] } | null;
   digiXrosPick: {
+    instanceId: string;
     cardId: string;
     requirements: DigiXrosRequirement[];
     candidates: DigiXrosCandidate[];
@@ -163,6 +164,7 @@ export function PlayChoicePrompts({
 
       {digiXrosPick ? (
         <DigiXrosMaterialOverlay
+          key={digiXrosPick.instanceId}
           playingCardId={digiXrosPick.cardId}
           requirements={digiXrosPick.requirements}
           candidates={digiXrosPick.candidates}

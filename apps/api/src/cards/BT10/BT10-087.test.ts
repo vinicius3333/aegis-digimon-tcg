@@ -6,6 +6,49 @@ import "./BT10-087.js";
 import "../BT5/BT5-087.js";
 
 describe("BT10-087 Taiki Kudo", () => {
+  it.each(["P-224", "BT10-087"])(
+    "Discord 1556107827456774256: places the revealed Digimon under the played Taiki with %s already in play",
+    async (otherTamer) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: otherTamer, as: "otherTamer" }],
+            hand: [{ card: "BT10-087", as: "taiki" }],
+            deck: [
+              { card: "BT21-021", as: "shoutmon" },
+              { card: "BT21-083", as: "revealedTaiki" },
+              { card: "AD1-006", as: "x7" },
+              { card: "AD1-013", as: "shootingStarmon" },
+            ],
+          },
+        },
+        { autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      s.state.memory = 4;
+      preferred.push(s.inst("x7").instanceId, s.inst("shootingStarmon").instanceId);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("taiki").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+
+      const taiki = s.state.players[0]!.battleArea.find(
+        (permanent) => permanent.topCard.instanceId === s.inst("taiki").instanceId,
+      )!;
+      expect(taiki.stack.map((card) => card.instanceId)).toEqual([s.inst("shootingStarmon").instanceId]);
+      expect(s.perm("otherTamer").stack).toHaveLength(0);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("x7").instanceId]);
+      expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+        s.inst("shoutmon").instanceId,
+        s.inst("revealedTaiki").instanceId,
+      ]);
+      expect(s.decisions.some(({ req }) => req.kind === "chooseTargets")).toBe(false);
+      expect(s.state.memory).toBe(1);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("Discord 1555932180322975924: places the lone AD1-006 under Taiki after adding P-224", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -158,7 +201,7 @@ describe("BT10-087 Taiki Kudo", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it("does not mix materials under two different Tamers", async () => {
+  it("Discord 1556119607822254110: mixes materials under two different Tamers", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -182,10 +225,14 @@ describe("BT10-087 Taiki Kudo", () => {
           underTamerHostPermanentId: s.perm("firstTamer").permanentId,
         },
       }),
-    ).toEqual({ ok: false, reason: "invalid-material" });
-    expect(s.perm("taiki").isSuspended).toBe(false);
-    expect(s.perm("firstTamer").stack).toHaveLength(1);
-    expect(s.perm("secondTamer").stack).toHaveLength(1);
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.perm("firstTamer").stack).toHaveLength(0);
+    expect(s.perm("secondTamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT10-024")!.stack).toHaveLength(2);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("cannot reuse a suspended Taiki as a DigiXros material expander", async () => {

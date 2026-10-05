@@ -2,6 +2,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
 import type { StateSnapshot } from "../../../net/presentedState";
+import { waitForStackStrips } from "../stackStripBarrier";
 import { heldDeletionFrom } from "../heldDeletion";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
 import { joinRemovalChain, startRemoval, waitForRemovalTurn, type RemovalLink } from "../removalChain";
@@ -67,6 +68,8 @@ export function enqueueDeckReturns({
           try {
             if (context.mode !== "live") return;
             await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "deckReturn/causingEffect");
+            if (context.cancelled) return;
+            await waitForStackStrips({ queue, context, throughKey: key, permanentId });
             if (context.cancelled) return;
             await waitForRemovalTurn(removal, context);
             if (context.cancelled) return;

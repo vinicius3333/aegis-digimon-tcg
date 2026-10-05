@@ -31,7 +31,7 @@ export const compiled: CompiledCard = {
             {
               kind: "PlaceUnder",
               target: { filter: { controller: "mine", zone: "underTamer" }, count: "all" },
-              underTamerHostScope: "single",
+              underTamerHostScope: "any",
               underFilter: { isTriggerSource: true },
               asDigiXrosMaterial: true,
               cost: {

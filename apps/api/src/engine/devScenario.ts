@@ -37,6 +37,13 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt18-candlemon-data-selection",
+  "arena-taiki-digixros-any-tamer-hand",
+  "arena-kotone-digixros-any-tamer-effect",
+  "arena-mervamon-trash-digixros",
+  "arena-bt22-gabumon-eot-dna",
+  "arena-bt23-examon-partition-return",
+  "arena-bt23-examon-piercing-end-turn",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
@@ -71,6 +78,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ad1-adventure-tamers-security",
   "arena-lm067-gundramon-free-option",
   "arena-bt10-taiki-x7-xros-heart",
+  "arena-bt10-taiki-reveal-under-self",
   "arena-ex13-sampson-face-down-sources",
   "arena-p240-arcturusmon-vb-routes",
   "arena-p240-arcturusmon-ordered-placement",
@@ -84,6 +92,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-leopardmon-unsuspend-lock",
   "arena-ex13-breakdramon-zero-security-check",
   "arena-decoy-protect-choice",
+  "arena-crimson-blaze-jesmon-token",
   "arena-p245-kakkinmon-full-hand-suspend",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
@@ -148,6 +157,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt13-royal-purge-delay-rush",
   "arena-p206-digital-gate-breeding-color",
   "arena-ex13-merciful-mode-attack-order",
+  "arena-ex13-merciful-repeat-barrier",
+  "arena-st17-magnamon-merciful-colors",
   "arena-ad1-gallantmon-deletion-attack-order",
   "arena-bt20-cool-boy-stacked-omekamon",
   "arena-ex10-god-grade-raising-color",
@@ -162,6 +173,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4892-effect-digixros",
   "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
+  "arena-p224-kotone-own-source",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
@@ -317,6 +329,75 @@ function layBattleScenario(state: GameState, decks: readonly [Decklist, Decklist
   // Not the rulebook's first turn: the human draws on turn 1 like any later turn.
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1556039867106983976: Partition return and a successful end-turn Piercing attack. */
+function layBt23ExamonRemovalScenario(state: GameState, decks: readonly [Decklist, Decklist], piercing = false): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-examon-neutral-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(player, Zone.Hand, []);
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) => faceDownCard(`dev-examon-security-${seat}-${index}`, "BT1-009", seat)),
+    );
+  }
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human !== undefined && opponent !== undefined) {
+    if (piercing) {
+      placePermanent(human, establishedDigimon(0, ["EX13-008", "EX13-018", "EX13-041"], "-examon-groundramon"));
+      placePermanent(human, establishedDigimon(0, ["EX13-021"], "-examon-wingdramon"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-examon-dna", "BT23-047", 0));
+      placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-examon-victim"));
+    } else {
+      placePermanent(human, establishedDigimon(0, ["AD1-011"], "-examon-imperialdramon"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-examon-fighter", "AD1-024", 0));
+      placePermanent(
+        opponent,
+        establishedDigimon(1, ["EX13-021", "EX13-008", "EX13-018", "EX13-041", "BT23-047"], "-examon-partition"),
+      );
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
+/** Nom's Candlemon reveal, reduced from match cbd3a09b (Discord 1556041043550408755). */
+function layBt18CandlemonDataSelectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-candlemon-play", "BT18-030", 0));
+    // The turn loop draws the first card, leaving the production reveal at the top.
+    for (const [id, cardId] of [
+      ["dev-candlemon-wizardmon", "BT19-036"],
+      ["dev-candlemon-revealed", "BT18-030"],
+      ["dev-candlemon-dynasmon", "EX13-037"],
+      ["dev-candlemon-draw", "BT1-009"],
+    ]) {
+      insertCard(human, Zone.Deck, faceDownCard(id!, cardId!, 0), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Monimon's By cost can be refused before sources move (Discord 1556016563600101406). */
@@ -599,6 +680,31 @@ function layDiarbbitmonDualOptionImmunityScenario(state: GameState, decks: reado
   state.memory = 10;
 }
 
+/** Discord 1556299408700735548: match 8ca7da4d, 13:33 UTC, Nokia before MetalGarurumon. */
+function layBt22GabumonEotDnaScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-gabu-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-gabu-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-gabu-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT22-017"], "-gabu"));
+  placePermanent(human, establishedDigimon(0, ["EX13-067"], "-gabu-nokia"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-gabu-metal", "BT22-026", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-gabu-war", "BT22-013", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-gabu-agu", "BT22-008", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-gabu-omni", "AD1-025", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
 function layEx7SeventhFascinationTurnScenario(
   state: GameState,
   decks: readonly [Decklist, Decklist],
@@ -632,6 +738,69 @@ function layEx7SeventhFascinationTurnScenario(
   state.memory = fromTrash ? 10 : 7;
 }
 
+/** Discord 1556119607822254110: Mervamon offers Xros Heart materials from trash. */
+function layMervamonTrashDigiXrosScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-trash-xros-played", "BT11-086", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-trash-xros-mervamon", "BT11-086", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-trash-xros-ignitemon", "BT11-076", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-trash-xros-invalid", "BT1-010", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-trash-xros-draw", "BT1-010", 0), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** Discord 1556119607822254110: Taiki unlocks materials under multiple Tamers. */
+function layTaikiAnyTamerDigiXrosScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  effectPlay = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    const kotone = establishedDigimon(0, ["P-224"], "-any-tamer-kotone");
+    setTopCard(kotone, faceUpCard("dev-any-tamer-kotone", "P-224", 0));
+    const taiki = establishedDigimon(0, ["BT10-087"], "-any-tamer-taiki");
+    setTopCard(taiki, faceUpCard("dev-any-tamer-taiki", "BT10-087", 0));
+    const kotoneMaterials = effectPlay ? ["BT21-021"] : ["BT19-051", "BT19-038"];
+    const taikiMaterials = effectPlay ? ["AD1-013"] : ["BT19-035", "BT19-061", "BT21-021"];
+    kotoneMaterials.forEach((cardId, index) =>
+      pushOnStack(kotone, faceUpCard(`dev-any-tamer-kotone-material-${index}`, cardId, 0)),
+    );
+    taikiMaterials.forEach((cardId, index) =>
+      pushOnStack(taiki, faceUpCard(`dev-any-tamer-taiki-material-${index}`, cardId, 0)),
+    );
+    if (effectPlay) pushOnStack(taiki, faceUpCard("dev-any-tamer-played", "BT19-014", 0));
+    else insertCard(human, Zone.Hand, faceDownCard("dev-any-tamer-played", "AD1-006", 0));
+    placePermanent(human, kotone);
+    placePermanent(human, taiki);
+    // A neutral turn draw keeps Kotone's start-of-main placement from consuming materials.
+    insertCard(human, Zone.Deck, faceDownCard("dev-any-tamer-draw", "BT1-010", 0), "top");
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 /** Discord 1555932180322975924, match 802ba658: Kotone to hand, lone X7 under Taiki. */
 function layBt10TaikiX7XrosHeartScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -654,6 +823,33 @@ function layBt10TaikiX7XrosHeartScenario(state: GameState, decks: readonly [Deck
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 5;
+}
+
+/** Discord 1556107827456774256, match 9b9ea6cc: only the played Taiki receives the reveal. */
+function layBt10TaikiRevealUnderSelfScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["P-224"], "-taiki-reveal-kotone"));
+    placePermanent(human, establishedDigimon(0, ["BT10-087"], "-taiki-reveal-first"));
+    placePermanent(human, establishedDigimon(0, ["BT10-087"], "-taiki-reveal-second"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-taiki-reveal-played", "BT10-087", 0));
+    // Turn draw, then the four cards revealed at 00:29:58 UTC in production.
+    const top = ["BT1-009", "BT21-021", "BT21-083", "AD1-006", "AD1-013"];
+    for (let index = top.length - 1; index >= 0; index -= 1) {
+      insertCard(human, Zone.Deck, faceDownCard(`dev-taiki-reveal-deck-${index}`, top[index]!, 0), "top");
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 4;
 }
 
 /** Discord 1555932429007593605: real attacks must play checked Adventure Tamers. */
@@ -1084,6 +1280,35 @@ function layDecoyProtectChoiceScenario(state: GameState, decks: readonly [Deckli
   if (bot !== undefined) {
     insertCard(bot, Zone.Security, faceDownCard("dev-decoy-crimson-blaze", "BT8-097", 1));
     insertCard(bot, Zone.Security, faceDownCard("dev-decoy-last-security", "BT1-009", 1));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1556299783898005544: Decoy must not let Jesmon bypass Crimson Blaze next turn. */
+function layCrimsonBlazeJesmonTokenScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT1-010"], "-crimson-red-source"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-crimson-blaze", "BT8-097", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT23-013"], "-crimson-jesmon"));
+    placePermanent(bot, establishedDigimon(1, ["BT23-006"], "-crimson-protected-huckmon"));
+    placePermanent(bot, establishedDigimon(1, ["TOKEN-AthoRenePor-Token"], "-crimson-decoy-token"));
+    for (let index = 0; index < 3; index += 1) {
+      placePermanent(bot, establishedDigimon(1, ["BT1-009"], `-crimson-victim-${index}`));
+    }
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -4079,6 +4304,20 @@ function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Dec
   }
 }
 
+/** Discord 1556113288599834624, match 9b9ea6cc: X7 needs DigiXros at zero memory. */
+function layP224KotoneOwnSourceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-p224-kotone", "P-224", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-p224-x7", "AD1-006", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-p224-omni", "BT11-015", 0));
+  // Neither the turn draw nor Kotone's On Play draw adds another eligible material.
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-p224-draw-${index}`, "BT1-085", 0), "top");
+  }
+}
+
 /** Discord 1553600701442297956: an earlier play, Kotone's DigiXros, then EX6's nested arrival. */
 function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 20);
@@ -4843,6 +5082,29 @@ function layEx13MercifulModeAttackOrderScenario(state: GameState): void {
   bot.breeding!.inBreeding = true;
 }
 
+/**
+ * Discord 1556063217623629944, production match 6e7884d6: a normal Omnimon
+ * battle paid Barrier, then Merciful Mode's immediate battle deleted the same
+ * permanent without another prompt. This reduced board also exercises inherited
+ * Barrier and two consecutive modal battles, with five security cards to pay all three.
+ */
+function layEx13MercifulRepeatBarrierScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human === undefined || bot === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["AD1-025"], "-merciful-barrier-omnimon"));
+  placePermanent(human, establishedDigimon(0, ["AD1-020"], "-merciful-barrier-colors"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-merciful-barrier-hand", "EX13-077", 0));
+  const defender = establishedDigimon(1, ["EX13-030", "BT1-057", "BT1-062"], "-merciful-barrier-defender");
+  defender.isSuspended = true;
+  placePermanent(bot, defender);
+  bot.security.clear();
+  for (let index = 0; index < 5; index++) {
+    insertCard(bot, Zone.Security, faceDownCard(`dev-merciful-barrier-security-${index}`, "BT1-009", 1));
+  }
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -5034,7 +5296,30 @@ function layBt23ExamonOpponentTurnDnaScenario(state: GameState, decks: readonly 
   state.memory = 7;
 }
 
+/** Issue #4905, match d20f9c5d: Merciful's six Assembly sources grant six distinct colors. */
+function laySt17MagnamonMercifulColorsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-magnamon-colors-veemon", "P-117", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-magnamon-colors-magnamon", "ST17-13", 0));
+  placePermanent(
+    opponent,
+    establishedDigimon(
+      1,
+      ["ST20-06", "ST21-08", "ST20-02", "BT21-061", "EX9-019", "AD1-025", "EX13-077"],
+      "-magnamon-colors-merciful",
+    ),
+  );
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-bt18-candlemon-data-selection": layBt18CandlemonDataSelectionScenario,
+  "arena-mervamon-trash-digixros": layMervamonTrashDigiXrosScenario,
+  "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
+  "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
+  "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,
@@ -5042,6 +5327,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
+  "arena-bt23-examon-partition-return": layBt23ExamonRemovalScenario,
+  "arena-bt23-examon-piercing-end-turn": (state, decks) => layBt23ExamonRemovalScenario(state, decks, true),
   "arena-bt26-monimon-optional-cost": layBt26MonimonOptionalCostScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
@@ -5069,6 +5356,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
   "arena-bt10-taiki-x7-xros-heart": layBt10TaikiX7XrosHeartScenario,
+  "arena-bt10-taiki-reveal-under-self": layBt10TaikiRevealUnderSelfScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-p240-arcturusmon-ordered-placement": layP240ArcturusmonOrderedPlacementScenario,
@@ -5083,6 +5371,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-leopardmon-unsuspend-lock": layEx13LeopardmonUnsuspendLockScenario,
   "arena-ex13-breakdramon-zero-security-check": layEx13BreakdramonZeroSecurityCheckScenario,
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
+  "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
@@ -5150,6 +5439,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
+  "arena-ex13-merciful-repeat-barrier": layEx13MercifulRepeatBarrierScenario,
+  "arena-st17-magnamon-merciful-colors": laySt17MagnamonMercifulColorsScenario,
   "arena-ad1-gallantmon-deletion-attack-order": layAd1GallantmonDeletionAttackOrderScenario,
   "arena-bt20-cool-boy-stacked-omekamon": layBt20CoolBoyStackedOmekamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
@@ -5164,6 +5455,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
+  "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,

@@ -190,6 +190,12 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private rankedByClient = new Map<string, boolean>();
   private deckByClient = new Map<string, DeckSnapshot>();
   /**
+   * Every StateView this room handed out, disposed with the room. @colyseus/schema's GC
+   * backstop for undisposed views holds the state Root strongly, and the Root reaches this
+   * room through the visibility port, so an undisposed view keeps the whole match alive.
+   */
+  private issuedViews = new Set<NonNullable<Client["view"]>>();
+  /**
    * Bot drivers by seat. An array rather than one field because a tournament confrontation between
    * two bots has to run with nobody connected at all, so both seats can be driven at once.
    */
@@ -747,9 +753,20 @@ export class AegisRoom extends Room<{ state: GameState }> {
         .releaseTournamentRoom(this.tournamentMatchId, this.roomId)
         .catch((error) => this.debugError("[AegisRoom] failed to release tournament room", error));
     roomRegistry.delete(this.roomId);
+    for (const view of this.issuedViews) view.dispose();
+    this.issuedViews.clear();
     if (this.state.roomCode) {
       roomCodes.release(this.state.roomCode, this.roomId);
     }
+  }
+
+  private assignView(client: Client, seat: Seat): void {
+    if (client.view) {
+      client.view.dispose();
+      this.issuedViews.delete(client.view);
+    }
+    client.view = this.engine.makeStateView(seat);
+    if (client.view) this.issuedViews.add(client.view);
   }
 
   override onJoin(client: Client, options: AegisJoinOptions): void {
@@ -783,7 +800,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       );
       this.seatByClient.set(client.sessionId, seat);
       this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
-      client.view = this.engine.makeStateView(seat);
+      this.assignView(client, seat);
     } else {
       this.debug(
         `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map((c) => c.sessionId).join(", ")}]`,
@@ -791,7 +808,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.seatByClient.set(client.sessionId, seat);
       this.withBatch(() => this.engine.seatPlayer(seat, client.sessionId, options));
       // Per-client visibility: hide hidden zones from the other seat.
-      client.view = this.engine.makeStateView(seat);
+      this.assignView(client, seat);
     }
     const accountId = this.accountByClient.get(client.sessionId);
     if (this.tournamentGameId && accountId) this.tournamentSeatHolders[seat] = { accountId };
@@ -879,7 +896,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // Colyseus hands the reconnected socket a NEW Client carrying the old view. That view
       // missed every card that reached the hand while the seat was offline, so the fresh view
       // must go on the new Client; assigning it to `client` left the socket on the stale one.
-      reconnectedClient.view = this.engine.makeStateView(seat);
+      this.assignView(reconnectedClient, seat);
       this.resendOpenPrompts(reconnectedClient, seat);
     } catch {
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
@@ -1001,7 +1018,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       if (client.view) {
         this.engine.refreshStateView(client.view, seat);
       } else {
-        client.view = this.engine.makeStateView(seat);
+        this.assignView(client, seat);
       }
     }
   }
@@ -1197,7 +1214,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       }
       try {
         const seat = this.seatByClient.get(client.sessionId);
-        if (seat !== undefined) client.view = this.engine.makeStateView(seat);
+        if (seat !== undefined) this.assignView(client, seat);
         sendFullState(client);
       } catch (error) {
         this.debugError(`[AegisRoom] full state sync failed again sessionId=${client.sessionId}; closing room`, error);

@@ -32,6 +32,7 @@ import type {
   DeleteBurst,
   DrawFlightCard,
   HeldDeletion,
+  HeldStackStrip,
   MatchCueAnchors,
   RevealOnStage,
   SecurityBreakCue,
@@ -188,6 +189,7 @@ export function presentServerBatch({
   setCombatImpactIds,
   setDeleteBursts,
   setHeldDeletions,
+  setHeldStackStrips,
 }: {
   batchId: string;
   stateVersion: number;
@@ -300,6 +302,7 @@ export function presentServerBatch({
   setCombatImpactIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
+  setHeldStackStrips: Dispatch<SetStateAction<ReadonlyMap<number, HeldStackStrip>>>;
 }) {
   const phaseSegments: ServerEvent[][] = [];
   for (const event of fresh) {
@@ -767,6 +770,19 @@ export function presentServerBatch({
     enqueue,
   });
   const optionResolving = optionDockRef.current !== null && !optionDockRef.current.closed;
+  enqueueStackStripPeels({
+    queue,
+    snapshots,
+    stateVersion,
+    viewerSeat,
+    setHeldStackStrips,
+    fresh,
+    anchors,
+    deleteBurstKeyRef,
+    causingEffectGate: causingEffectGateRef.current,
+    setDeleteBursts,
+    enqueue,
+  });
   enqueueDeletionBursts({
     queue,
     fresh,
@@ -801,14 +817,6 @@ export function presentServerBatch({
     enqueue,
   });
 
-  enqueueStackStripPeels({
-    fresh,
-    anchors,
-    deleteBurstKeyRef,
-    causingEffectGate: causingEffectGateRef.current,
-    setDeleteBursts,
-    enqueue,
-  });
   /**
    * A [Security] effect that PLAYS its own card leaves the dock nothing to show: the card
    * is on the field now, so the dock goes at that play rather than waiting for the eventual

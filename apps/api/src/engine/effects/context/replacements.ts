@@ -138,7 +138,7 @@ export interface ReplacementInstallPrevent extends ReplacementInstallBase {
   preventCheck: (ctx: EffectContext, leavingPermanentId: string) => Promise<boolean>;
   /** One activation prevents ALL matching permanents. */
   affectsAll?: boolean;
-  /** Stable per-turn key gating this prevention to once per turn (＜Barrier＞). */
+  /** Stable per-turn key gating this prevention to a printed once-per-turn limit. */
   oncePerTurnKey?: string;
 }
 
