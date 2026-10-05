@@ -113,6 +113,7 @@ export async function fireEnteredByEffectTiming(
     isDnaDigivolve?: boolean;
     digivolvedFromZone?: ZoneRef;
     baseWasDigimon?: boolean;
+    previousDigivolutionLevel?: number;
     playedFromZone?: ZoneRef;
     digiXrosMaterialCount?: number;
     playedByEffectSourceCardId?: string;
@@ -186,6 +187,9 @@ export async function fireEnteredByEffectTiming(
     const watcherTrigger = {
       subjectPermanentId,
       enteredByEffect: ownerSeat,
+      ...(opts?.previousDigivolutionLevel === undefined
+        ? {}
+        : { previousDigivolutionLevel: opts.previousDigivolutionLevel }),
       ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       ...(tamerDigivolved ? { tamerDigivolved: true } : {}),

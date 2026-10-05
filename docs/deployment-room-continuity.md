@@ -1,6 +1,6 @@
 # Production deployment: the installed Dokploy command
 
-Production runs three fixed API slots—blue, red, and green—behind a stable gateway. A release starts in an empty slot, then an atomically replaced manifest routes new rooms to it. The previous slot stops accepting new rooms and remains available for existing rooms, joins, and reconnects until cleanup proves that all three API processes have zero rooms and clients.
+Production prefers three reusable API slots—blue, red, and green—behind a stable gateway. When all three are occupied, a release can start an additional isolated generation named `g-<12 hex>` if host memory permits. An atomically replaced manifest routes new rooms to the new deployment. The previous deployment stops accepting new rooms and remains available for existing rooms, joins, and reconnects until cleanup proves that all three API processes have zero rooms and clients.
 
 Each slot has three API processes and a dedicated Redis service and volume. The stable gateway serves immutable web releases and routes HTTP and WebSocket traffic to the exact process path advertised by Colyseus. Postgres and the outer edge Caddy remain outside routine releases.
 
@@ -18,7 +18,9 @@ The controller rotates in this order:
 - After red: green, then blue, then red.
 - After green: blue, then red, then green.
 
-A slot in active or draining cannot be reused. A leftover unreferenced slot is reused only after admission is closed and all three processes report zero rooms and zero clients. If all fixed slots are active, draining, busy, or unverifiable, deploy stops without replacing any process. Run status and cleanup, then retry when an old slot is proven empty.
+A slot in active or draining cannot be reused. A leftover unreferenced slot is reused only after admission is closed and every running API process reports zero rooms and zero clients. Deploy first attempts cleanup of draining and orphan deployments, then selects a free fixed slot. If none is free, it allocates a unique additional generation without changing any existing deployment. Both kinds use three API processes and their own Redis, and support the same status, rollback, and verified-empty cleanup operations. Repeating the currently active revision is a no-op, including for an additional generation.
+
+Before allocating an additional generation, deploy requires at least **6932 MiB of host MemAvailable**: the three API limits (1500 MiB each), Redis (384 MiB), and 2048 MiB of build/host headroom. The deployer mounts `/proc/meminfo` read-only at `/host/meminfo`. Missing, malformed, or insufficient capacity stops the deployment while existing services remain online. Generation growth is limited by available host memory rather than a fixed slot count. Empty generations are reclaimed automatically on subsequent deploys; `cleanup` can also be run separately.
 
 Dokploy's custom command starts at compose because Dokploy prefixes docker:
 
@@ -65,9 +67,9 @@ In local development, Vite proxies `/assets/card-images` to the upstream bucket.
 
 ## Migration from revision-named generations
 
-The controller and gateway continue to read and route existing g-<12 hex> identifiers so those processes can drain. New deploys always choose a fixed blue, red, or green slot. Do not edit the manifest or remove a generation's state directory by hand.
+The controller and gateway continue to read and route existing g-<12 hex> identifiers so those processes can drain. New deploys prefer a fixed blue, red, or green slot and use an additional generation when all fixed slots remain occupied. Do not edit the manifest or remove a generation's state directory by hand.
 
-Before the first fixed-slot deploy, run status and inspect the installed manifest and every active or draining process. Confirm that the installed gateway routes both its current g-... identifiers and all three fixed names. The controller publishes a fixed slot as active and retains old g-... owners in draining. cleanup removes a retired generation only when admission is closed and all three processes report zero rooms and clients; unavailable or unverifiable processes block removal. The compatibility code remains until all g-... entries have been cleaned.
+Before the first fixed-slot deploy, run status and inspect the installed manifest and every active or draining process. Confirm that the installed gateway routes both its current g-... identifiers and all three fixed names. The controller publishes a fixed slot as active and retains old g-... owners in draining. cleanup removes a retired generation only when admission is closed and all three processes report zero rooms and clients; unavailable or unverifiable processes block removal. Generation identifiers remain supported for both retained deployments and new additional generations.
 
 Replacing the sole gateway disconnects established WebSockets. Upgrade gateway routing for red during a verified empty-room window, or bring up the compatible gateway alongside the old one and switch the outer proxy before stopping the old gateway. Routine manifest cutovers do not recreate the gateway.
 

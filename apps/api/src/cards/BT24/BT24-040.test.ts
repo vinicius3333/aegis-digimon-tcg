@@ -816,3 +816,35 @@ describe("BT24-040 Venusmon — KB Q&A rulings", () => {
     await opponentTurn;
   });
 });
+
+describe("GitHub #4930 — Venusmon opponent cost", () => {
+  it("places an opponent's source-free Digimon into its owner's bottom security to protect TS", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-040", as: "venus", under: ["BT24-033"] },
+            { card: "BT24-034", as: "victim" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT6-007", as: "cost" }],
+          hand: [{ card: "BT6-095", as: "blaze" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("cost").permanentId);
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("blaze").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT6-095"));
+    await s.ready();
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("victim").instanceId);
+    expect(s.state.players[1]!.security.at(-1)?.instanceId).toBe(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});

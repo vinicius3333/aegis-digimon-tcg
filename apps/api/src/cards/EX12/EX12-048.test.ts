@@ -35,7 +35,7 @@ describe("EX12-048 SeitenGokuumon", () => {
     ]);
     expect(compiled.assemblyRequirement).toEqual([
       {
-        materials: [{ count: 3, names: ["Gokuumon", "Sangomon", "Cho-Hakkaimon", "Sanzomon"], differentNames: true }],
+        materials: [{ count: 3, names: ["Gokuumon", "Sagomon", "Cho-Hakkaimon", "Sanzomon"], differentNames: true }],
         reduceCost: 6,
       },
     ]);
@@ -163,7 +163,7 @@ describe("EX12-048 SeitenGokuumon", () => {
           hand: [{ card: "EX12-048", as: "source" }],
           trash: [
             { card: "EX12-015", as: "gokuumon" },
-            { card: "BT4-022", as: "sangomon" },
+            { card: "EX12-029", as: "sangomon" },
             { card: "BT12-041", as: "choHakkaimon" },
           ],
         },
@@ -189,7 +189,7 @@ describe("EX12-048 SeitenGokuumon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX12-015", "BT4-022", "BT12-041"]),
+      expect.arrayContaining(["EX12-015", "EX12-029", "BT12-041"]),
     );
     expect(
       s.engine.applyIntent(0, {
@@ -354,5 +354,40 @@ describe("EX12-048 SeitenGokuumon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("GitHub #4923 — Sagomon Assembly", () => {
+  it("accepts EX12 Sagomon alongside Gokuumon and Cho-Hakkaimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX12-048", as: "seiten" }],
+          trash: [
+            { card: "EX12-015", as: "gokuu" },
+            { card: "EX12-029", as: "sago" },
+            { card: "BT12-041", as: "cho" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("seiten").instanceId,
+        assembly: {
+          materialInstanceIds: [s.inst("gokuu").instanceId, s.inst("sago").instanceId, s.inst("cho").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "EX12-048"));
+    await s.ready();
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((c) => c.cardId)).toEqual(
+      expect.arrayContaining(["EX12-015", "EX12-029", "BT12-041"]),
+    );
   });
 });

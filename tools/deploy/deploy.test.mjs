@@ -5,7 +5,20 @@ import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { FIXED_SLOTS, assertEmptySlot, validateManifest } from "./shared.mjs";
-import { buildSlotCompose, fixedSlotRotation, restoreComposeEnvironment } from "./deploy.mjs";
+import { assertOverflowCapacity, buildSlotCompose, fixedSlotRotation, restoreComposeEnvironment } from "./deploy.mjs";
+
+test("additional generation capacity requires verifiable host memory and build headroom", () => {
+  assert.doesNotThrow(() => assertOverflowCapacity("MemAvailable: 7098368 kB\n"));
+  assert.throws(() => assertOverflowCapacity("MemAvailable: 7098367 kB\n"), /requires at least 6932 MiB/);
+  for (const input of [
+    "MemFree: 14000000 kB\n",
+    "MemAvailable: -1 kB\n",
+    "MemAvailable: 14000000 MB\n",
+    "MemAvailable: 99999999999999999999 kB\n",
+  ]) {
+    assert.throws(() => assertOverflowCapacity(input), /unverifiable/);
+  }
+});
 
 test("deployer image copies every local runtime module imported by deploy.mjs", () => {
   const deploySource = readFileSync(new URL("./deploy.mjs", import.meta.url), "utf8");
@@ -385,6 +398,109 @@ if(args[0]==='cp'){const destination=args.at(-1);fs.mkdirSync(destination+'/asse
     .map((line) => JSON.parse(line));
   assert.equal(
     calls.some((args) => args.includes("up") || args.includes("down") || args.includes("exec")),
+    false,
+  );
+});
+
+test("deploy adds an isolated generation when every fixed slot owns rooms", (t) => {
+  const root = mkdtempSync(`${tmpdir()}/aegis-overflow-`);
+  t.after(() => rmSync(root, { recursive: true }));
+  mkdirSync(`${root}/bin`);
+  mkdirSync(`${root}/source`);
+  writeFileSync(`${root}/source/.env`, "");
+  mkdirSync(`${root}/state/routing`, { recursive: true });
+  writeFileSync(`${root}/state/admin-token`, "test-private-token-at-least-32-characters");
+  const before = {
+    version: 1,
+    webRevision: "old-blue",
+    active: { slot: "blue", revision: "old-blue" },
+    draining: [
+      { slot: "red", revision: "old-red" },
+      { slot: "green", revision: "old-green" },
+    ],
+  };
+  writeFileSync(`${root}/state/routing/manifest.json`, JSON.stringify(before));
+  for (const slot of FIXED_SLOTS) {
+    mkdirSync(`${root}/state/slots/${slot}`, { recursive: true });
+    writeFileSync(`${root}/state/slots/${slot}/compose.json`, "{}");
+  }
+  writeFileSync(`${root}/meminfo`, "MemAvailable: 14000000 kB\n");
+  writeFileSync(
+    `${root}/bin/docker`,
+    `#!/usr/bin/env node
+const fs=require('node:fs');const args=process.argv.slice(2);fs.appendFileSync(process.env.TEST_DOCKER_LOG,JSON.stringify(args)+'\\n');
+if(args.includes('config'))console.log(JSON.stringify({services:{api:{environment:{AEGIS_API_URL:'https://aegis.test'}}},networks:{default:{name:'aegis_default'}}}));
+if(args[0]==='create')console.log('web-extractor');
+if(args[0]==='cp'){const dest=args.at(-1);fs.mkdirSync(dest+'/assets',{recursive:true});fs.writeFileSync(dest+'/index.html','new web');}
+if(args.includes('exec')){const script=args[args.indexOf('-e')+1]||'';if(script.includes('/deployment/')){const slot=args[args.indexOf('-p')+1].slice(6);const manifest=JSON.parse(fs.readFileSync(process.env.TEST_STATE+'/routing/manifest.json','utf8'));const old=['blue','red','green'].includes(slot);const accepting=script.includes('/deployment/activate')?true:script.includes('/deployment/drain')?false:manifest.active.slot===slot;console.log(JSON.stringify({slot,revision:old?'old-'+slot:'new-revision',acceptingNewRooms:accepting,activeRooms:old?1:0,connectedClients:old?1:0}));}}
+`,
+    { mode: 0o755 },
+  );
+  const invoke = () =>
+    spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL("./deploy.mjs", import.meta.url)),
+        "deploy",
+        "--source",
+        `${root}/source`,
+        "--env-file",
+        `${root}/source/.env`,
+        "--state",
+        `${root}/state`,
+        "--revision",
+        "new-revision",
+        "--meminfo",
+        `${root}/meminfo`,
+      ],
+      {
+        env: {
+          ...process.env,
+          PATH: `${root}/bin:${process.env.PATH}`,
+          TEST_STATE: `${root}/state`,
+          TEST_DOCKER_LOG: `${root}/calls.jsonl`,
+        },
+        encoding: "utf8",
+      },
+    );
+  for (const meminfo of ["MemAvailable: 1000 kB\n", "MemFree: 14000000 kB\n"]) {
+    writeFileSync(`${root}/meminfo`, meminfo);
+    const rejected = invoke();
+    assert.equal(rejected.status, 1);
+    assert.match(rejected.stderr, /requires at least|unverifiable/);
+    assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")), before);
+    const rejectedCalls = readFileSync(`${root}/calls.jsonl`, "utf8").trim().split("\n").map(JSON.parse);
+    assert.equal(
+      rejectedCalls.some((args) => args.includes("build") || args.includes("up") || args.includes("down")),
+      false,
+    );
+  }
+  writeFileSync(`${root}/meminfo`, "MemAvailable: 14000000 kB\n");
+  const result = invoke();
+  assert.equal(result.status, 0, result.stderr);
+  const after = JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8"));
+  assert.match(after.active.slot, /^g-[a-f0-9]{12}$/);
+  assert.equal(after.active.revision, "new-revision");
+  assert.equal(after.webRevision, "new-revision");
+  assert.deepEqual(after.draining, [before.active, ...before.draining]);
+  const generation = JSON.parse(readFileSync(`${root}/state/slots/${after.active.slot}/compose.json`, "utf8"));
+  assert.equal(generation.services.api1.environment.AEGIS_PROCESS_PATH, `api/${after.active.slot}/p1`);
+  assert.equal(generation.services.api1.environment.AEGIS_REDIS_URL, `redis://aegis-${after.active.slot}-redis:6379`);
+  for (const slot of FIXED_SLOTS) assert.equal(readFileSync(`${root}/state/slots/${slot}/compose.json`, "utf8"), "{}");
+  const calls = () => readFileSync(`${root}/calls.jsonl`, "utf8").trim().split("\n").map(JSON.parse);
+  assert.equal(
+    calls().some((args) => args.includes("down")),
+    false,
+  );
+  assert.equal(calls().filter((args) => args.includes("up")).length, 1);
+  assert.equal(invoke().status, 0);
+  assert.equal(
+    calls().filter((args) => args.includes("up")).length,
+    1,
+    "same active revision must not create another generation",
+  );
+  assert.equal(
+    calls().some((args) => args.includes("aegis-gateway")),
     false,
   );
 });

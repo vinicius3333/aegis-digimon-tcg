@@ -105,7 +105,7 @@ async function runMainEffect(compiled: CompiledCard): Promise<RunResult> {
 function withoutPlay(compiled: CompiledCard): CompiledCard {
   const clone: CompiledCard = JSON.parse(JSON.stringify(compiled));
   for (const eff of clone.effects ?? []) {
-    eff.actions = (eff.actions ?? []).filter((a) => (a as { kind?: string }).kind !== "PlayWithoutCost");
+    eff.actions = (eff.actions ?? []).filter((a) => (a as { kind?: string }).kind !== "SearchSecurity");
   }
   return clone;
 }
@@ -127,7 +127,7 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
     expect(r.battleAreaCount).toBe(1);
   });
 
-  it("goes inert when the PlayWithoutCost wiring is reverted (fails-when-reverted)", async () => {
+  it("goes inert when the SearchSecurity wiring is reverted (fails-when-reverted)", async () => {
     const r = await runMainEffect(withoutPlay(BT15_092));
     expect(r.playedFromSecurity).toBe(false);
     expect(r.battleAreaCount).toBe(0);
@@ -333,5 +333,124 @@ describe("BT15-092 Revelation of Light — later-played opposing Digimon", () =>
     expect(s.perm("late").currentDP).toBe(10000);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("GitHub #4924 — Revelation of Light private security search", () => {
+  it("provides every inspected security face only to the searching player", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-045"],
+          hand: [{ card: "BT15-092", as: "light" }],
+          security: [
+            { card: "BT15-033", as: "eligible" },
+            { card: "BT1-009", as: "other" },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("light").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const pick = s.decisions.at(-1)!;
+    expect(pick.seat).toBe(0);
+    expect(pick.req.options?.visibleCards).toEqual(
+      expect.arrayContaining([
+        { instanceId: s.inst("eligible").instanceId, cardId: "BT15-033" },
+        { instanceId: s.inst("other").instanceId, cardId: "BT1-009" },
+      ]),
+    );
+    expect(s.state.players[0]!.security.every((c) => !c.faceUp)).toBe(true);
+    expect(s.events.filter((e) => e.kind === "cardRevealed")).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT15-092"));
+  });
+});
+
+describe("GitHub #4924 — mandatory inspection without a playable card", () => {
+  it("shows an entirely ineligible stack and accepts no play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-045"],
+          hand: [{ card: "BT15-092", as: "light" }],
+          security: [
+            { card: "BT1-009", as: "red" },
+            { card: "BT1-010", as: "alsoRed" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("light").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const pick = s.decisions.at(-1)!;
+    expect(pick.req.options).toMatchObject({
+      candidateInstanceIds: [],
+      min: 0,
+      max: 0,
+      visibleCards: [
+        { instanceId: s.inst("red").instanceId, cardId: "BT1-009" },
+        { instanceId: s.inst("alsoRed").instanceId, cardId: "BT1-010" },
+      ],
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT15-092"));
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security.every((c) => !c.faceUp)).toBe(true);
+  });
+});
+
+describe("GitHub #4924 — security inspection preserves play legality", () => {
+  it("shows a DUAL card but only offers the playable Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-045"],
+          hand: [{ card: "BT15-092", as: "light" }],
+          security: [
+            { card: "EX13-065", as: "dual" },
+            { card: "BT15-033", as: "legal" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("light").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const pick = s.decisions.at(-1)!;
+    expect(pick.req.options?.candidateInstanceIds).toEqual([s.inst("legal").instanceId]);
+    expect(pick.req.options?.visibleCards).toEqual(
+      expect.arrayContaining([{ instanceId: s.inst("dual").instanceId, cardId: "EX13-065" }]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("legal").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("legal").instanceId));
+    expect(s.state.players[0]!.security.map((c) => c.instanceId)).toEqual([s.inst("dual").instanceId]);
   });
 });

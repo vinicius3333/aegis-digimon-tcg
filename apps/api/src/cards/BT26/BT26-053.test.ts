@@ -19,9 +19,8 @@ async function resolveRedirectedAttack(s: ReturnType<typeof setupEngine>, repeat
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
+    // The redirected target is not eligible to block the attack again (CR 12-1-5).
+    await advance(s.engine).finishAttack();
   }
   advance(s.engine).endMainPhaseIfOpen(1);
   await advance(s.engine).waitForMainPhase(0);

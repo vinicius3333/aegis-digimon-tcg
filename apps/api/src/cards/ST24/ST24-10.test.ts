@@ -158,3 +158,30 @@ describe("ST24-10 Lilamon — KB Q&A rulings", () => {
     );
   });
 });
+
+describe("GitHub #4933 — Lilamon inherited protection", () => {
+  it("protects only its host when Crimson Blaze deletes another DATA SQUAD Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST24-11", as: "host", under: ["ST24-10"] },
+            { card: "ST24-03", as: "other" },
+            { card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT6-007" }], hand: [{ card: "BT6-095", as: "blaze" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("blaze").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT6-095"));
+    await s.ready();
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("other").instanceId);
+    expect(s.perm("host").stack.map((c) => c.cardId)).toContain("ST24-10");
+    expect(s.perm("tamer").stack.map((c) => c.instanceId)).toContain(s.inst("cost").instanceId);
+  });
+});

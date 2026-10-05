@@ -101,11 +101,12 @@ describe("EX13-066 compiled fidelity", () => {
             count: 1,
           },
         },
+        { kind: "SelectBind", target: { bindAs: "noirOpponent", count: 1 } },
         {
           kind: "DeDigivolve",
           amount: 1,
           scaling: { per: 1, unit: "cards", filter: { controller: "mine", kind: ["Digimon"] } },
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          target: { fromSelectionRef: "noirOpponent", count: 1 },
         },
       ],
     });
@@ -812,5 +813,37 @@ describe("EX13-066 Option side — Mickey Bullet (Awakened)", () => {
     expect(s.state.memory).toBe(5);
     expect(board(s, 0)).not.toContain(CARD_ID);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
+  });
+});
+
+describe("GitHub #4929 — Noir repeated De-Digivolve", () => {
+  it("asks for one opponent and finishes when none of their Digimon have sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-082" }, { card: "ST12-12" }, { card: "BT6-084" }],
+          hand: [{ card: "EX13-066", as: "noir" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX5-021", as: "first" },
+            { card: "EX5-025", as: "second" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("noir").instanceId, useAs: "option" }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "EX13-066" && e.timing === "OnUseOption"),
+    );
+    expect(s.decisions.filter((d) => d.req.sourceCardId === "EX13-066" && d.req.kind === "chooseTargets")).toHaveLength(
+      1,
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

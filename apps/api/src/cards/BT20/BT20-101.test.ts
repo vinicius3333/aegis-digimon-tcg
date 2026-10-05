@@ -227,8 +227,8 @@ describe("BT20-101 Zephagamon", () => {
         target: { kind: "permanent", permanentId: s.perm("zepha").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    // Zephagamon is already the attack target and cannot block that attack (CR 12-1-5).
+    await advance(s.engine).finishAttack();
     await settle(() => !observe(s.engine).isAttacking());
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.perm("zepha").isSuspended).toBe(false);

@@ -614,6 +614,14 @@ export async function runReplacement(
             appliesTo: (target: Permanent, originZone?: ZoneRef) =>
               target.controllerSeat === ownerSeat &&
               !target.inBreeding &&
+              // The base remains on the field; an into-zone constraint describes
+              // the evolving card, whose exact origin must reach this cost seam.
+              (event !== "wouldDigivolve" ||
+                intoFilter?.zone === undefined ||
+                (originZone !== undefined &&
+                  (Array.isArray(intoFilter.zone)
+                    ? intoFilter.zone.includes(originZone)
+                    : intoFilter.zone === originZone))) &&
               (target.permanentId.startsWith("pending-play-") && target.topCard !== undefined
                 ? (replacementSourceFilter?.isSelfRef !== true ||
                     target.topCard.instanceId === ctx.source.instanceId) &&

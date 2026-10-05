@@ -1156,7 +1156,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // first, then offer the payload choice (e.g. Q6255: trash, then decline return).
   // `payCostBeforeOptional` reaches the same place from the other direction: a MANDATORY
   // activation cost under an optional payload (Q2813, Q2853, Q2804).
-  if (action.kind !== "RawUnparsed" && action.optional && actionCost?.optional === true) {
+  if (
+    action.kind !== "RawUnparsed" &&
+    action.optional &&
+    actionCost?.optional === true &&
+    !paysProcessingCostBeforeOptional
+  ) {
     const yes = await ctx.ask.optional(ctx, describeAction(action));
     if (!yes) {
       ctx.lastEffectActed = false;

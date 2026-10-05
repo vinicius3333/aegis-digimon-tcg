@@ -109,8 +109,7 @@ export function describeScrambleRulings(spec: ScrambleRulingSpec): void {
       expect(s.state.memory).toBe(STARTING_MEMORY - SCRAMBLE_COST - 1);
     });
 
-    if (spec.burst !== undefined) {
-      const burst = spec.burst;
+    for (const burst of spec.burst !== undefined ? [spec.burst] : []) {
       it(`[Main] digivolves into a Burst Mode card by its normal cost, not by burst digivolution (${qno.burstOrDna})`, async () => {
         const s = setupEngine(
           {
@@ -171,8 +170,8 @@ export function describeScrambleRulings(spec: ScrambleRulingSpec): void {
       expect(s.perm("tamer").topCard.cardId).toBe(spec.tamer.onto);
     });
 
-    if (qno.delayWithoutTarget !== undefined) {
-      it(`<Delay> activates even with no matching Digimon card in the trash (${qno.delayWithoutTarget})`, async () => {
+    for (const delayWithoutTarget of qno.delayWithoutTarget !== undefined ? [qno.delayWithoutTarget] : []) {
+      it(`<Delay> activates even with no matching Digimon card in the trash (${delayWithoutTarget})`, async () => {
         const s = setupEngine(
           {
             0: {

@@ -1042,3 +1042,39 @@ describe("EX13-062 Craniamon — KB Q&A rulings", () => {
     expect(s.perm("craniamon").currentDP).toBe(3000);
   });
 });
+
+describe("GitHub #4916 — Raid target cannot block itself", () => {
+  it("does not open a block window for the lone Digimon already targeted by Raid", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-008", as: "gallant", dp: 17000 }] },
+        1: { hand: [{ card: "EX13-062", as: "crania" }], security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("crania").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "EX13-062" && e.timing === "OnPlay"),
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gallant").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    expect(
+      s.events.some((e) => e.kind === "attackDeclared" && e.redirected === true && e.target.kind === "permanent"),
+    ).toBe(true);
+    expect(s.events.filter((e) => e.kind === "blockWindowOpened")).toHaveLength(0);
+  });
+});

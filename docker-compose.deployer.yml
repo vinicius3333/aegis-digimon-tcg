@@ -20,6 +20,8 @@ services:
     volumes:
       # The controller builds images and starts immutable generation stacks on the host daemon.
       - /var/run/docker.sock:/var/run/docker.sock
+      # Read host availability before starting an additional generation.
+      - /proc/meminfo:/host/meminfo:ro
       # The checked-out source and its environment file, read-only.
       - /etc/dokploy:/etc/dokploy:ro
       # Rollout state: the routing manifest, releases and generation records.

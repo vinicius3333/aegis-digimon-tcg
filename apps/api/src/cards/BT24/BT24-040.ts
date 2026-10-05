@@ -142,7 +142,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 digivolutionCards: "none",
-                controllerDefault: "mine",
+                controller: "any",
                 excludeLeavingSubject: true,
                 kind: ["Digimon"],
               },

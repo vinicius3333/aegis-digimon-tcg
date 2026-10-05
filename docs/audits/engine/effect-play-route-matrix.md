@@ -94,6 +94,22 @@ report includes all 30 route cells; eight reviewed absences are not counted as
 executed tests. Expected failures, skipped tests, missing names, missing cells,
 unrelated rule references and stale source/catalog reviews are rejected.
 
+## Catalog revalidation — 2026-10-05
+
+The player-fix patch changes only two catalog effect-text fields relative to
+`dd930061b`: AD1-018's play-cost reduction condition and EX12-048's Assembly
+material name from Sangomon to Sagomon. The first changes no play/digivolution
+provider or recipient source zone. The second changes material eligibility,
+while retaining the Assembly mechanic and every recipient route. Neither
+introduces a DNA, App Fusion, or Burst effect provider. The eight reviewed
+absence lists and all 30 route-cell classifications therefore remain unchanged.
+
+After reviewing this bounded catalog delta, the matrix catalog fingerprint was
+updated to `0cc982b8fd7d52beeef31950bd8555b8c9ded33fbc79ca37f3df918ea210d310`.
+No obligation status, rule-source fingerprint, scenario link, exclusion rationale,
+or candidate list was changed. The real `verify-rule-scenarios.mjs effect-play-routes`
+run passed with no gaps or errors, including its engine and UI dependency scopes.
+
 All Node processes retain the 2 GB heap limit and test workers are serialized.
 Full API typecheck exceeds this limit; a temporary TypeScript configuration
 covering the changed modules/tests and their import graph is checked separately.
