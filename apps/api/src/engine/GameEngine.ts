@@ -723,8 +723,17 @@ export class GameEngine {
     return recomputeContinuousEffects(this);
   }
 
-  runContinuousPass(noPromptAsk: DecisionApi, seed: ReadonlyMap<string, number> = new Map()): Promise<void> {
-    return runContinuousPass(this, noPromptAsk, seed);
+  /** Rebuild passive ledgers inside an atomic stack change without publishing affordances. */
+  recomputeContinuousDerivedEffects(): Promise<void> {
+    return recomputeContinuousEffects(this, false);
+  }
+
+  runContinuousPass(
+    noPromptAsk: DecisionApi,
+    seed: ReadonlyMap<string, number> = new Map(),
+    publishMemory = true,
+  ): Promise<void> {
+    return runContinuousPass(this, noPromptAsk, seed, publishMemory);
   }
 
   /**

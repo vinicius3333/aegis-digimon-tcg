@@ -66,6 +66,7 @@ export type {
 export { CueTrack, AttackDirection, SecurityBreakPhase } from "./match/enums";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createStackTopResolutions } from "./match/stackTopResolutions";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import {
   type GameState,
@@ -568,6 +569,7 @@ export function useMatchCues({
   const fieldClashKeyRef = useRef(0);
   const drawFlightKeyRef = useRef(0);
   const deleteBurstKeyRef = useRef(0);
+  const topResolutions = useMemo(createStackTopResolutions, []);
   const showcaseKeyRef = useRef(0);
   const revealShowcaseKeyRef = useRef(0);
   const dpPulseKeyRef = useRef(0);
@@ -642,7 +644,13 @@ export function useMatchCues({
     };
   }, [queue]);
 
-  useEffect(() => () => queue.clear(), [queue]);
+  useEffect(
+    () => () => {
+      queue.clear();
+      topResolutions.clear();
+    },
+    [queue, topResolutions],
+  );
 
   const fastForwardRef = useRef<() => void>(() => {});
   useEffect(() => {
@@ -974,6 +982,7 @@ export function useMatchCues({
       securityAttackerRef,
       pendingDestructionsRef,
       deleteBurstKeyRef,
+      topResolutions,
       deletionReadyAtRef,
       deletionBurstPresentedRef,
       removalChainRef,
@@ -1050,6 +1059,9 @@ export function useMatchCues({
     lastPresentedSeqRef.current = pending.at(-1)!.events.at(-1)?.seq ?? lastPresentedSeqRef.current;
     // Each batch is its own moment, in order, even when several arrive in one render.
     for (const batch of pending) {
+      // Receive passive data before effect-unit gates can stage its scene. A peel may
+      // already be running, so its DP handoff cannot wait for another presentation step.
+      if (!replayingHistory) topResolutions.record(batch.events);
       try {
         devProbeRef.current?.onBatch?.(batch);
       } catch {

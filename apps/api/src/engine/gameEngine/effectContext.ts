@@ -582,6 +582,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     fireSubTrigger: (event, payload, sourceScope) => engine.fireSubTrigger(event, payload, sourceScope),
     trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat),
     recomputeContinuousEffects: () => engine.recomputeContinuousEffects(),
+    recomputeContinuousDerivedEffects: () => engine.recomputeContinuousDerivedEffects(),
     forgetCardUses: (instanceIds) => {
       for (const instanceId of instanceIds) engine.tracker.forgetInstance(instanceId);
     },

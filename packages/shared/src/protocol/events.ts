@@ -398,6 +398,8 @@ export type ServerEvent =
       strippedStackTops?: {
         permanentId: string;
         reason: "deDigivolve" | "trashTop" | "armorPurge";
+        /** One atomic stripping invocation; each move waits for its matching resolved top. */
+        sequenceId?: string;
         /** The card whose effect stripped the stack, when an effect did. */
         sourceCardId?: string;
       };
@@ -449,6 +451,16 @@ export type ServerEvent =
        * they joined (an effect adding to security, whose face-down cards stay unnamed).
        */
       seat?: Seat;
+    }
+  | {
+      /** Passive derivation after one physical peel, without a new effect/rules window. */
+      kind: "stackTopResolved";
+      sequenceId: string;
+      permanentId: string;
+      strippedInstanceId: string;
+      topInstanceId: string;
+      baseDP: number;
+      currentDP: number;
     }
   | { kind: "turnEnded"; endingSeat: Seat; nextSeat: Seat; turnCount: number } // turn transition overlay
   | {
@@ -544,6 +556,7 @@ export const SERVER_EVENT_KINDS = [
   "effectResolved",
   "dpModifierApplied",
   "cardsMoved",
+  "stackTopResolved",
   "turnEnded",
   "actionRejected",
   "gameOver",

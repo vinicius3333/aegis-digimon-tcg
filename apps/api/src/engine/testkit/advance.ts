@@ -219,6 +219,10 @@ export function advance(engine: GameEngine) {
      * permanents are armed, exactly as they would be mid-resolution.
      */
     verb: {
+      async deDigivolve(permanentId: string, count: number): Promise<void> {
+        await internals.recomputeContinuousEffects();
+        await internals.primitives.deDigivolve(permanentId, count);
+      },
       async trash(instanceIds: string[], byEffectSeat?: Seat): Promise<void> {
         await internals.recomputeContinuousEffects();
         await internals.primitives.trash(instanceIds, {

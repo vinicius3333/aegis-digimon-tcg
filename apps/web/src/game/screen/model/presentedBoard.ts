@@ -15,12 +15,14 @@ export function liveProjectionFields({ player, live }: { player: PlayerState; li
   const battleArea = player.battleArea.map((permanent) => {
     const current = live.battleArea.find((candidate) => candidate.permanentId === permanent.permanentId);
     if (current === undefined) return permanent;
+    const currentDP =
+      permanent.topCard.instanceId === current.topCard.instanceId ? current.currentDP : permanent.currentDP;
     if (
       permanent.keywords === current.keywords &&
       permanent.grantedKeywords === current.grantedKeywords &&
       permanent.summoningSick === current.summoningSick &&
       permanent.securityAttackModifier === current.securityAttackModifier &&
-      permanent.currentDP === current.currentDP &&
+      permanent.currentDP === currentDP &&
       permanent.immuneToOpponentDigimonEffects === current.immuneToOpponentDigimonEffects
     )
       return permanent;
@@ -31,7 +33,7 @@ export function liveProjectionFields({ player, live }: { player: PlayerState; li
       grantedKeywords: current.grantedKeywords,
       summoningSick: current.summoningSick,
       securityAttackModifier: current.securityAttackModifier,
-      currentDP: current.currentDP,
+      currentDP,
       immuneToOpponentDigimonEffects: current.immuneToOpponentDigimonEffects,
     } as Permanent;
   });

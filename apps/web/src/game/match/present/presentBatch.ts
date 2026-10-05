@@ -197,6 +197,7 @@ export function presentServerBatch({
   securityAttackerRef,
   pendingDestructionsRef,
   deleteBurstKeyRef,
+  topResolutions,
   deletionReadyAtRef,
   deletionBurstPresentedRef,
   removalChainRef,
@@ -323,6 +324,7 @@ export function presentServerBatch({
   securityAttackerRef: MutableRefObject<SecurityClashAttacker | undefined>;
   pendingDestructionsRef: MutableRefObject<number>;
   deleteBurstKeyRef: MutableRefObject<number>;
+  topResolutions: import("../stackTopResolutions").StackTopResolutions;
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   deletionBurstPresentedRef: MutableRefObject<Set<string>>;
   /** The latest card an effect took off the field, which the next one follows. */
@@ -1020,6 +1022,7 @@ export function presentServerBatch({
   });
   const optionResolving = optionDockRef.current !== null && !optionDockRef.current.closed;
   enqueueStackStripPeels({
+    topResolutions,
     queue,
     snapshots,
     stateVersion,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CardInstance, Permanent, PlayerState } from "@aegis/shared";
-import { blowField, deletionField, phaseField } from "./presentedBoard";
+import { blowField, deletionField, phaseField, liveProjectionFields } from "./presentedBoard";
 import type { HeldDeletion } from "../../match/types";
 
 function permanent(permanentId: string, isSuspended = false): Permanent {
@@ -14,6 +14,16 @@ function permanent(permanentId: string, isSuspended = false): Permanent {
 function player(battleArea: readonly Permanent[], trash: readonly CardInstance[] = []): PlayerState {
   return { battleArea, trash } as unknown as PlayerState;
 }
+
+it("preserves the held top's resolved DP while the live board has advanced to another top", () => {
+  const shown = { ...permanent("host"), currentDP: 7000 } as Permanent;
+  const live = { ...shown, topCard: { instanceId: "rookie", cardId: "BT1-009" }, currentDP: 3000 } as Permanent;
+  expect(liveProjectionFields({ player: player([shown]), live: player([live]) }).battleArea[0]!.currentDP).toBe(7000);
+  expect(
+    liveProjectionFields({ player: player([shown]), live: player([{ ...shown, currentDP: 8000 } as Permanent]) })
+      .battleArea[0]!.currentDP,
+  ).toBe(8000);
+});
 
 describe("deletionField", () => {
   const trashedCard = { cardId: "BT1-010", instanceId: "b-top" } as CardInstance;

@@ -118,6 +118,8 @@ export interface PrimitivesEngine {
   forgetCardUses?: (instanceIds: readonly string[]) => void;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
+  /** Derive passive intermediate values while keeping the enclosing rule/effect boundary atomic. */
+  recomputeContinuousDerivedEffects?: () => Promise<void>;
   /** Complete a rule check before an effect-driven digivolution's own timing window. */
   processRulesBeforeWhenDigivolving?: () => Promise<void>;
   /** Resolve the normal When Digivolving window for a public digivolution-like entry. */

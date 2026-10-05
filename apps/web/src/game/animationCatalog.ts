@@ -282,6 +282,7 @@ export const EVENT_ANIMATIONS = {
   effectResolved: { families: ["effect"], changesBoard: false },
   dpModifierApplied: { families: ["dp"], changesBoard: true },
   cardsMoved: { families: ["zone"], changesBoard: true },
+  stackTopResolved: { families: ["removal", "dp"], changesBoard: true },
   turnEnded: { families: ["phase"], changesBoard: true },
   actionRejected: { families: ["refusal"], changesBoard: true },
   gameOver: { families: ["result"], changesBoard: true },

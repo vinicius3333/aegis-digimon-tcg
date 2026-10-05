@@ -85,7 +85,10 @@ export function presentedSeats({
       held: [...heldStackStrips.values()].filter((strip) => !paced || strip.stateVersion <= shownState.stateVersion),
     });
   }
-  const heldStripsOf = (seat: Seat) => [...heldStackStrips.values()].filter((strip) => strip.seat === seat);
+  const heldStripsOf = (seat: Seat) =>
+    [...heldStackStrips.values()].filter(
+      (strip) => strip.seat === seat && (!paced || strip.stateVersion <= shownState.stateVersion),
+    );
   viewer = stackStripHand(viewer, heldStripsOf(viewerSeat));
   opponent = stackStripHand(opponent, heldStripsOf(otherSeat(viewerSeat)));
   const heldDeletionsOf = (seat: Seat) => [...heldDeletions.values()].filter((deletion) => deletion.seat === seat);

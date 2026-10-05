@@ -1,4 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { flushSync } from "react-dom";
 import type { Permanent, Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
 import { TIMINGS } from "../../timings";
@@ -10,6 +11,7 @@ import type { DeleteBurst, HeldStackStrip, MatchCueAnchors } from "../types";
 
 import { burstColorFor } from "../../showcases";
 import { waitForStackStripClock } from "./stackStripClock";
+import type { StackTopResolutions } from "../stackTopResolutions";
 
 /**
  * The top card a ＜De-Digivolve＞ (or any effect trashing stack tops) stripped, or the
@@ -32,6 +34,7 @@ export function enqueueStackStripPeels({
   causingEffectGate,
   setDeleteBursts,
   enqueue,
+  topResolutions,
 }: {
   queue: AnimationQueue;
   snapshots: readonly StateSnapshot[];
@@ -45,6 +48,7 @@ export function enqueueStackStripPeels({
   causingEffectGate: PresentationGate | null;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   enqueue: (step: AnimationStep) => void;
+  topResolutions?: StackTopResolutions;
 }) {
   for (const event of fresh) {
     if (event.kind !== "cardsMoved" || event.seat === undefined) continue;
@@ -109,6 +113,7 @@ export function enqueueStackStripPeels({
       id: `stack-strip-peel-${peels[0]!.key}`,
       track: "stackStripPeel",
       side: event.seat === viewerSeat ? Side.Viewer : Side.Opponent,
+      onDiscard: release,
       async run(context) {
         try {
           if (context.mode !== "live" || context.skipping) return;
@@ -124,35 +129,52 @@ export function enqueueStackStripPeels({
             peel.permanentId = permanentId;
             peel.x = position.x - width / 2;
             peel.y = position.y - height / 2;
+            let resolved: Extract<ServerEvent, { kind: "stackTopResolved" }> | undefined;
             try {
               setDeleteBursts((bursts) => [...bursts, peel]);
               await context.wait(TIMINGS.stackStripPeel);
               await waitForStackStripClock(anchors.board.current, peel.key, context);
+              if (event.strippedStackTops?.sequenceId && topResolutions) {
+                const departed = peeledIds[index]!;
+                resolved = await topResolutions.take({
+                  sequenceId: event.strippedStackTops.sequenceId,
+                  strippedInstanceId: departed,
+                  permanentId,
+                  context,
+                });
+              }
             } finally {
               setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== peel.key));
-              setHeldStackStrips((current) => {
-                const strip = current.get(key);
-                if (!strip) return current;
-                const permanent = strip.permanent;
-                const top = event.strippedStackTops ? permanent.stack.at(-1) : undefined;
-                const progressed = {
-                  ...permanent,
-                  ...(top ? { topCard: top } : {}),
-                  stack: top
-                    ? permanent.stack.slice(0, -1)
-                    : permanent.stack.filter((card) => card.instanceId !== peeledIds[index]),
-                } as Permanent;
-                // Several strips can share one patch. Queued peels must inherit the
-                // active peel's progress rather than restoring the old snapshot again.
-                return new Map(
-                  [...current].map(([heldKey, candidate]) => [
-                    heldKey,
-                    candidate.permanent.permanentId === permanentId
-                      ? { ...candidate, permanent: progressed }
-                      : candidate,
-                  ]),
-                );
-              });
+              // The next peel can start in the same queue turn. Commit its host's
+              // promoted artwork and engine DP together before that peel mounts.
+              flushSync(() =>
+                setHeldStackStrips((current) => {
+                  const strip = current.get(key);
+                  if (!strip) return current;
+                  const permanent = strip.permanent;
+                  const top = event.strippedStackTops ? permanent.stack.at(-1) : undefined;
+                  const progressed = {
+                    ...permanent,
+                    ...(top ? { topCard: top } : {}),
+                    ...(resolved && top?.instanceId === resolved.topInstanceId
+                      ? { baseDP: resolved.baseDP, currentDP: resolved.currentDP }
+                      : {}),
+                    stack: top
+                      ? permanent.stack.slice(0, -1)
+                      : permanent.stack.filter((card) => card.instanceId !== peeledIds[index]),
+                  } as Permanent;
+                  // Several strips can share one patch. Queued peels must inherit the
+                  // active peel's progress rather than restoring the old snapshot again.
+                  return new Map(
+                    [...current].map(([heldKey, candidate]) => [
+                      heldKey,
+                      candidate.permanent.permanentId === permanentId
+                        ? { ...candidate, permanent: progressed }
+                        : candidate,
+                    ]),
+                  );
+                }),
+              );
             }
           }
         } finally {

@@ -11,6 +11,7 @@ import type { PrimitivesContext } from "./context.js";
  */
 
 export function createStackTopsVerbs(pc: PrimitivesContext) {
+  let stripSequence = 0;
   const { engine, access, continuous, effectSeatStack, ledger, player, promotedTopNeedsInvalidRuleTrash, state } = pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
@@ -34,6 +35,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     }
     const controllerSeat = permanent.controllerSeat;
     const moved: CardInstance[] = [];
+    const sequenceId = engine.recomputeContinuousDerivedEffects ? `${permanentId}/strip/${++stripSequence}` : undefined;
     const levelFloor = opts?.stopAtLevel ?? 3;
     for (let i = 0; i < n; i++) {
       if (permanent.stack.length === 0) break; // no source to revert to
@@ -71,27 +73,42 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
       permanent.baseDP = dp;
       if (opts?.stackedCards) permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
       ledger.recomputeDP(state, permanent.permanentId);
+      if (oldTop !== undefined) {
+        // Publish the real physical move before yielding. An intermediate patch must
+        // not expose the promoted artwork before the client can hold the departing top.
+        engine.emit({
+          kind: "cardsMoved",
+          instanceIds: [oldTop.instanceId],
+          cardIds: [oldTop.cardId],
+          artIds: [oldTop.artId || oldTop.cardId],
+          seat: controllerSeat,
+          from: Zone.BattleArea,
+          to: Zone.Trash,
+          strippedStackTops: {
+            permanentId,
+            reason: opts?.stackedCards ? "trashTop" : "deDigivolve",
+            ...(sequenceId !== undefined ? { sequenceId } : {}),
+            ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
+          },
+        });
+        if (sequenceId !== undefined) {
+          await engine.recomputeContinuousDerivedEffects!();
+          engine.emit({
+            kind: "stackTopResolved",
+            sequenceId,
+            permanentId,
+            strippedInstanceId: oldTop.instanceId,
+            topInstanceId: newTop.instanceId,
+            baseDP: permanent.baseDP,
+            currentDP: permanent.currentDP,
+          });
+        }
+      }
     }
     // <Overflow> (CR §4-18): each demoted `oldTop` just left the field for the trash —
     // a genuine leave (it was the top card, not moving to under-a-card; it's being REPLACED
     // by the promoted stack card, not stacked itself).
     applyOverflow(engine.memory, moved, state.turnSeat);
-    if (moved.length > 0) {
-      engine.emit({
-        kind: "cardsMoved",
-        instanceIds: moved.map((c) => c.instanceId),
-        cardIds: moved.map((c) => c.cardId),
-        artIds: moved.map((c) => c.artId || c.cardId),
-        seat: controllerSeat,
-        from: Zone.BattleArea,
-        to: Zone.Trash,
-        strippedStackTops: {
-          permanentId,
-          reason: opts?.stackedCards ? "trashTop" : "deDigivolve",
-          ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
-        },
-      });
-    }
     if (moved.length > 0) await engine.recomputeContinuousEffects?.();
     for (const card of moved) {
       if (!requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon)) continue;
