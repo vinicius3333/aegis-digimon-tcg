@@ -97,6 +97,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-decoy-protect-choice",
   "arena-crimson-blaze-jesmon-token",
   "arena-p245-kakkinmon-full-hand-suspend",
+  "arena-ex13-craniamon-dual-play-cost",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt26-rosemon-option-digivolve-lock",
@@ -1387,6 +1388,37 @@ function layCrimsonBlazeJesmonTokenScenario(state: GameState, decks: readonly [D
     for (let index = 0; index < 3; index += 1) {
       placePermanent(bot, establishedDigimon(1, ["BT1-009"], `-crimson-victim-${index}`));
     }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1556424046827282472: Craniamon must ignore Siriusmon DUAL's Option use cost. */
+function layEx13CraniamonDualPlayCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    for (let index = 0; index < 7; index += 1) {
+      insertCard(human, Zone.Hand, faceDownCard(`dev-dual-cost-hand-${index}`, "BT1-009", 0));
+    }
+    placePermanent(human, establishedDigimon(0, ["P-245", "EX13-062"], "-dual-cost-craniamon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(
+      bot,
+      establishedDigimon(1, ["BT21-002", "EX12-014", "BT21-022", "EX12-018"], "-dual-cost-siriusmon"),
+    );
+    placePermanent(bot, establishedDigimon(1, ["EX12-013"], "-dual-cost-betelgammamon"));
+    placePermanent(bot, establishedDigimon(1, ["P-240"], "-dual-cost-arcturusmon"));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -5507,6 +5539,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
+  "arena-ex13-craniamon-dual-play-cost": layEx13CraniamonDualPlayCostScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
