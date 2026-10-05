@@ -1,6 +1,44 @@
 # Mobile notice layout options — 2026-10-05
 
-## Recommendation
+## Implemented: R — floating full-width row
+
+The user chose "one whole line, without taking the height space itself". This is now the mobile component (`CompactNarration`, `compactNarration.css`). The options below stay as the comparison history, including A Large, which the user asked for earlier.
+
+**What it does**
+
+- One continuous row across the usable width. It floats over the board and takes no layout height: the 48px `.game-field` top margin and its short-screen compensation rules are removed.
+- The host lets every pointer through (`pointer-events: none`). Only the row's own buttons take taps.
+- The row shows the newest moment on one line: owner (You / Opponent), source art, label, action with ellipsis, and "→" with the result card when the clause moved cards. A clause and its result stay in one record, never split.
+- "+N" opens the details sheet with every retained moment. Retention follows the desktop lanes: the two newest clauses (a refusal takes one place) and the two newest card lists, each moment listed once. Nothing is dismissed to make room; older records stay in the queue until their own clocks end.
+- A refusal leads the row and keeps its own dismissal. Reading clocks, narration IDs, paused decisions and the selected-after-expiry details are unchanged. Close keeps a notice, Dismiss removes it, Escape closes, and focus returns to the row (or its host if the row expired).
+- The details sheet can no longer lose its title: it is capped to the dialog layer, which is shorter than `100dvh` on the board.
+
+**Placement.** `CompactNarration` measures the live board and places the row in the gap between the opponent's upper controls and the top of their battle cards (including source badges). The row is 44px where the gap allows it and shrinks to the gap, never below 24px. When the gap is shorter than 24px, the row keeps the cards clear and overlaps the bottom edge of the controls above. It never takes a control's centre.
+
+**Measured** (`floating-row/capture.json`, production components on the real Arena board; "before" is the reserved-gutter build on the parent server):
+
+| Viewport | Row | Field top margin | Field card art before → after | Field scroll before → after | Controls partly under the row |
+| --- | --- | --- | --- | --- | --- |
+| 320×568 | 304×24 at y113 | 48px → 0 | 32×45 → **44×62** | 12px → 0 | opponent trash 4px, opponent security 6px (label edge) |
+| 320×740 | 304×40 at y121 | 48px → 0 | 65×91 → 65×91 | 0 → 0 | none |
+| 390×844 | 374×44 at y130 | 48px → 0 | 65×91 → 65×91 | 0 → 0 | none |
+| 844×390 | 828×24 at y44 | 48px → 0 | 22×31 → **44×62** | 0 → 0 | none (edges touch) |
+
+The probe (`tools/diagnostics/probe-mobile-notices.mjs`) asserts at each viewport:
+
+- Every field, row, card, memory, end-phase, raising, utility, hand, dock and header box is identical across empty, live, both decision kinds, refusal and expiry.
+- The row spans the usable width, stays on one line with an ellipsis, shows the linked result, and never says "1 cards".
+- Real pointer hit tests: no board control's centre is under the row. End phase, raising, hand, permanents, piles, counters and the menu are all reachable. At 320×740 two clipped cards in the overflowing opponent lane sit under the existing lane edge. That is pre-existing, recorded, and not caused by the row.
+- Decision buttons stay reachable. The details title is on screen, focus stays inside, Escape closes, focus returns, and details survive expiry. Reduced motion stops the row animation. No horizontal page overflow.
+
+**Limits**
+
+- At 320×568 and 844×390 the row is 24px tall: it meets WCAG 2.2 AA (2.5.8, 24px) but not the enhanced 44px target. At 320×740 it is 40px; at 390×844, 44px.
+- Only the newest moment is readable in the row; the others need the "+N" sheet.
+- Geometry evidence only: not native performance proof, and not engine-rule evidence. The probe uses supplemental notification records on the dev Arena board.
+- In the prototype, option R shows these captures; it does not re-implement the row.
+
+## Earlier recommendation (before the user chose R)
 
 Adopt **A2, moment cards**:
 
