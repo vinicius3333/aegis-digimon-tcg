@@ -1,5 +1,14 @@
 # Animation comparison harness
 
+Current closeout scope, 2026-10-05: the user excluded the remaining 28 keyword
+validations and replaced exhaustive frame review with representative high-value
+sequence comparisons. Historical checkpoints below retain their original evidence
+and limits; their references to remaining keyword work are superseded by this scope.
+See [focused visual closeout](plans/2026-10-05-visual-reference-closeout.md) for the
+new raising interval, prioritized findings and leased desktop/mobile/Fast/reduced
+checks. Earlier cumulative coverage remains 756/40,622; this closeout records its
+31 inspected raising frames separately without claiming a new cumulative count.
+
 Primary-source research and implementation, 2026-10-03. Inspected the current Aegis checkout, the user-supplied [gameplay reference](https://www.youtube.com/watch?v=kYBHuw7ItSg). The recorded client and our renderer use different layouts. Video observations and source constants are separated below.
 
 The user explicitly requires preserving Aegis's own layout and visual design, including colours, typography, components, slot geometry and resting card sizes. The external reference guides card motion, timing and effects only. Compare travel relative to the actual Aegis source and destination, and check that the card settles into its existing slot at its existing size. Project text and commit messages use neutral descriptions of the reference.
