@@ -379,7 +379,7 @@ export function DeckEditor({
 
       {artPickerCard ? (
         <DeckArtworkPicker
-          key={artPickerCard}
+          key={`artwork-${artPickerCard}`}
           cardId={artPickerCard}
           arts={arts[artPickerCard] ?? []}
           count={main[artPickerCard] ?? egg[artPickerCard] ?? 0}
