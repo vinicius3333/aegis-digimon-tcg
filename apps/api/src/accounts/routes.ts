@@ -695,19 +695,28 @@ function parseBanlistPolicy(value: unknown): BanlistPolicy | undefined {
 
 const MAX_PREFERENCE_LENGTH = 64;
 
-/** Accepts a partial set of known keys. The web client owns the valid locale and sleeve ids. */
+/**
+ * Accepts a partial set of known keys. The web client owns the valid locale, sleeve and
+ * sort ids, and clamps the deck panel share to its own layout limits.
+ */
 function parsePreferences(value: unknown): AccountPreferences | undefined {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
-  const { darkMode, locale, sleeve, ...unknownKeys } = value as Record<string, unknown>;
+  const { darkMode, locale, sleeve, deckShare, deckView, deckSort, ...unknownKeys } = value as Record<string, unknown>;
   if (Object.keys(unknownKeys).length > 0) return undefined;
   const isShortText = (text: unknown) => typeof text === "string" && text.length <= MAX_PREFERENCE_LENGTH;
   if (darkMode !== undefined && typeof darkMode !== "boolean") return undefined;
   if (locale !== undefined && !isShortText(locale)) return undefined;
   if (sleeve !== undefined && !isShortText(sleeve)) return undefined;
+  if (deckShare !== undefined && !(typeof deckShare === "number" && deckShare > 0 && deckShare < 1)) return undefined;
+  if (deckView !== undefined && deckView !== "grid" && deckView !== "list") return undefined;
+  if (deckSort !== undefined && !isShortText(deckSort)) return undefined;
   return {
     ...(darkMode !== undefined && { darkMode }),
     ...(locale !== undefined && { locale: locale as string }),
     ...(sleeve !== undefined && { sleeve: sleeve as string }),
+    ...(deckShare !== undefined && { deckShare: deckShare as number }),
+    ...(deckView !== undefined && { deckView: deckView as "grid" | "list" }),
+    ...(deckSort !== undefined && { deckSort: deckSort as string }),
   };
 }
 

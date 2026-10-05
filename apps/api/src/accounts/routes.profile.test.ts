@@ -145,9 +145,24 @@ describe("/account/preferences", () => {
     expect(await getPreferences()).toEqual({ darkMode: false, locale: "pt-BR", sleeve: "omnimon" });
   });
 
+  it("stores the deck builder layout", async () => {
+    const layout = { deckShare: 0.6, deckView: "list", deckSort: "level" };
+    expect((await putPreferences(layout)).status).toBe(200);
+    expect(await getPreferences()).toEqual(layout);
+  });
+
   it("rejects wrong types, unknown keys and long values without changing anything", async () => {
     await putPreferences({ darkMode: true });
-    for (const invalid of [{ darkMode: "yes" }, { theme: "dark" }, { locale: "x".repeat(65) }, ["darkMode"]]) {
+    for (const invalid of [
+      { darkMode: "yes" },
+      { theme: "dark" },
+      { locale: "x".repeat(65) },
+      ["darkMode"],
+      { deckShare: 2 },
+      { deckShare: "0.5" },
+      { deckView: "table" },
+      { deckSort: "x".repeat(65) },
+    ]) {
       const rejected = await putPreferences(invalid);
       expect(rejected.status).toBe(400);
       expect(await rejected.json()).toEqual({ error: "invalid preferences" });

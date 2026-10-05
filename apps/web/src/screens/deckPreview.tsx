@@ -1,28 +1,59 @@
-import {
-  effectiveCopyLimit as banlistLimit,
-  getCardDefinition,
-  getCardArts,
-  isBanned,
-  restrictionLabel,
-} from "@aegis/shared";
+import { effectiveCopyLimit as banlistLimit, getCardDefinition, isBanned, restrictionLabel } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { ColorDot } from "../design/primitives";
 import { colorKey, kindOf } from "../design/theme";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { sortCardIds } from "./cardSorting";
+import { setDeckBuilderPreferences, useDeckBuilderPreferences, type DeckView } from "./deckBuilderPreferences";
 import "./deckBuilder.css";
 
 type CountMap = Record<string, number>;
 
+const GRID_CARD_WIDTH = 92;
+const LIST_ART_WIDTH = 40;
+
+/** Grid or list, saved as a deck builder preference. */
+export function useDeckView() {
+  const { deckView: view } = useDeckBuilderPreferences();
+  const setView = (deckView: DeckView) => setDeckBuilderPreferences({ deckView });
+  return { view, setView };
+}
+
+export function DeckViewToggle({ view, onView }: { view: DeckView; onView: (view: DeckView) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="deck-segmented" role="group" aria-label={t("deck.viewLabel")}>
+      <button
+        type="button"
+        aria-pressed={view === "grid"}
+        aria-label={t("deck.viewGrid")}
+        title={t("deck.viewGrid")}
+        onClick={() => onView("grid")}
+      >
+        <Icons.LayoutGrid size={14} />
+      </button>
+      <button
+        type="button"
+        aria-pressed={view === "list"}
+        aria-label={t("deck.viewList")}
+        title={t("deck.viewList")}
+        onClick={() => onView("list")}
+      >
+        <Icons.List size={14} />
+      </button>
+    </div>
+  );
+}
+
 interface DeckPreviewSectionsProps {
+  view: DeckView;
   arts?: Record<string, string[]>;
-  onEditArt?: (cardId: string, copy: number) => void;
   main: CountMap;
   egg: CountMap;
   coverCardId?: string;
   pairConflictCardIds?: ReadonlySet<string>;
-  onSetCover?: (cardId: string) => void;
+  onOpen: (cardId: string) => void;
   onAdd: (cardId: string) => void;
   onRemove: (cardId: string) => void;
 }
@@ -30,6 +61,7 @@ interface DeckPreviewSectionsProps {
 interface DeckSection {
   id: string;
   label: string;
+  cards: CountMap;
   cardIds: string[];
 }
 
@@ -39,13 +71,13 @@ function countCards(cards: CountMap): number {
 
 /** Current-deck preview, arranged around how a player builds an evolution line. */
 export function DeckPreviewSections({
+  view,
   main,
   egg,
   arts,
-  onEditArt,
   coverCardId,
   pairConflictCardIds = new Set<string>(),
-  onSetCover,
+  onOpen,
   onAdd,
   onRemove,
 }: DeckPreviewSectionsProps) {
@@ -71,71 +103,61 @@ export function DeckPreviewSections({
     } else other.push(cardId);
   }
 
-  const eggCardIds = sortCardIds(Object.keys(egg));
   const sections: DeckSection[] = [
+    {
+      id: "eggs",
+      label: t("deck.eggSection", { count: countCards(egg) }),
+      cards: egg,
+      cardIds: sortCardIds(Object.keys(egg)),
+    },
     ...[...byLevel.entries()]
       .sort(([a], [b]) => a - b)
       .map(([level, cardIds]) => ({
         id: `level-${level}`,
         label: t("deck.levelSection", { level, count: countCardsFromIds(main, cardIds) }),
+        cards: main,
         cardIds: sortCardIds(cardIds),
       })),
     {
       id: "tamers",
       label: t("deck.tamerSection", { count: countCardsFromIds(main, tamers) }),
+      cards: main,
       cardIds: sortCardIds(tamers),
     },
     {
       id: "options",
       label: t("deck.optionSection", { count: countCardsFromIds(main, options) }),
+      cards: main,
       cardIds: sortCardIds(options),
     },
     {
       id: "other",
       label: t("deck.otherSection", { count: countCardsFromIds(main, other) }),
+      cards: main,
       cardIds: sortCardIds(other),
     },
   ].filter((section) => section.cardIds.length > 0);
 
+  if (sections.length === 0) {
+    return <div className="deck-preview__empty">{t("deck.addFromPool")}</div>;
+  }
+
+  const Entry = view === "grid" ? DeckGridCard : DeckListRow;
   return (
-    <div className="deck-preview">
-      <section>
-        <DeckPreviewLabel>{t("deck.eggSection", { count: countCards(egg) })}</DeckPreviewLabel>
-        {eggCardIds.length === 0 ? (
-          <DeckPreviewEmpty>{t("deck.noEggs")}</DeckPreviewEmpty>
-        ) : (
-          <div className="deck-preview__list">
-            {eggCardIds.map((cardId) => (
-              <DeckPreviewCard
-                key={cardId}
-                cardId={cardId}
-                arts={arts?.[cardId]}
-                onEditArt={onEditArt ? (copy) => onEditArt(cardId, copy) : undefined}
-                count={egg[cardId]!}
-                isCover={coverCardId === cardId}
-                pairConflict={pairConflictCardIds.has(cardId)}
-                onSetCover={onSetCover ? () => onSetCover(cardId) : undefined}
-                onAdd={() => onAdd(cardId)}
-                onRemove={() => onRemove(cardId)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+    <div className="deck-preview" data-view={view}>
       {sections.map((section) => (
-        <section key={section.id}>
-          <DeckPreviewLabel>{section.label}</DeckPreviewLabel>
-          <div className="deck-preview__list">
+        <section key={section.id} className="deck-preview__section">
+          <div className="deck-preview__label">{section.label}</div>
+          <div className="deck-preview__cards">
             {section.cardIds.map((cardId) => (
-              <DeckPreviewCard
+              <Entry
                 key={cardId}
                 cardId={cardId}
-                arts={arts?.[cardId]}
-                onEditArt={onEditArt ? (copy) => onEditArt(cardId, copy) : undefined}
-                count={(section.id === "eggs" ? egg : main)[cardId]!}
+                artId={arts?.[cardId]?.[0]}
+                count={section.cards[cardId]!}
                 isCover={coverCardId === cardId}
                 pairConflict={pairConflictCardIds.has(cardId)}
-                onSetCover={onSetCover ? () => onSetCover(cardId) : undefined}
+                onOpen={() => onOpen(cardId)}
                 onAdd={() => onAdd(cardId)}
                 onRemove={() => onRemove(cardId)}
               />
@@ -143,7 +165,6 @@ export function DeckPreviewSections({
           </div>
         </section>
       ))}
-      {sections.length === 0 ? <DeckPreviewEmpty>{t("deck.addFromPool")}</DeckPreviewEmpty> : null}
     </div>
   );
 }
@@ -152,105 +173,146 @@ function countCardsFromIds(cards: CountMap, cardIds: readonly string[]): number 
   return cardIds.reduce((sum, cardId) => sum + (cards[cardId] ?? 0), 0);
 }
 
-function DeckPreviewLabel({ children }: { children: React.ReactNode }) {
-  return <div className="deck-preview__label">{children}</div>;
-}
-
-function DeckPreviewEmpty({ children }: { children: React.ReactNode }) {
-  return <div className="deck-preview__empty">{children}</div>;
-}
-
-function DeckPreviewCard({
-  cardId,
-  arts,
-  onEditArt,
-  count,
-  isCover,
-  pairConflict,
-  onSetCover,
-  onAdd,
-  onRemove,
-}: {
+interface DeckEntryProps {
   cardId: string;
-  arts?: string[];
-  onEditArt?: (copy: number) => void;
+  artId?: string;
   count: number;
   isCover: boolean;
   pairConflict: boolean;
-  onSetCover?: () => void;
+  onOpen: () => void;
+  onAdd: () => void;
+  onRemove: () => void;
+}
+
+function entryLimits(cardId: string, count: number, pairConflict: boolean, pairLabel: string) {
+  const definition = getCardDefinition(cardId)!;
+  const cap = Math.min(definition.maxCountInDeck, banlistLimit(cardId));
+  const banned = isBanned(cardId) || pairConflict;
+  return {
+    definition,
+    banLabel: pairConflict ? pairLabel : restrictionLabel(cardId),
+    banned,
+    addDisabled: banned || count >= cap,
+  };
+}
+
+export function DeckStepper({
+  name,
+  count,
+  addDisabled,
+  onAdd,
+  onRemove,
+}: {
+  name: string;
+  count: number;
+  addDisabled: boolean;
   onAdd: () => void;
   onRemove: () => void;
 }) {
   const { t } = useTranslation();
-  const definition = getCardDefinition(cardId);
-  if (!definition) return null;
-  const kind = kindOf(definition);
-  const cap = Math.min(definition.maxCountInDeck, banlistLimit(cardId));
-  const banLabel = pairConflict ? t("deck.pairBadge") : restrictionLabel(cardId);
-  const disabled = isBanned(cardId) || pairConflict;
-  const typeLabel = kind === "Digimon" && definition.level != null ? `Lv. ${definition.level}` : kind;
-  const StarIcon = isCover ? Icons.Star : Icons.StarOutline;
-
   return (
-    <div className="deck-preview-card">
-      <div className="deck-preview-card__art">
-        <CardFull cardId={cardId} artId={arts?.[0]} width={38} />
-      </div>
-      <div className="deck-preview-card__body">
-        <div className="deck-preview-card__name">
-          <ColorDot color={colorKey(definition.colors[0])} size={8} />
-          <span>{definition.nameEn}</span>
-        </div>
-        <div className="deck-preview-card__tags">
-          <span className="deck-tag">{typeLabel}</span>
-          {banLabel ? (
-            <span className="deck-tag" data-tone={disabled ? "danger" : "warning"}>
-              {banLabel}
-            </span>
-          ) : null}
-        </div>
-        {onEditArt && getCardArts(cardId).length > 1 ? (
-          <button
-            type="button"
-            className="deck-choose-art"
-            aria-label={`${definition.nameEn} · ${t("deck.editArtwork")}`}
-            onClick={() => onEditArt(0)}
-          >
-            {t("deck.editArtwork")}
-          </button>
+    <div className="deck-stepper">
+      <button type="button" onClick={onRemove} aria-label={`${t("common.remove")} ${name}`}>
+        –
+      </button>
+      <span aria-label={t("deck.copiesInDeck", { count })}>{count}</span>
+      <button type="button" onClick={onAdd} disabled={addDisabled} aria-label={`${t("common.add")} ${name}`}>
+        +
+      </button>
+    </div>
+  );
+}
+
+function DeckGridCard({ cardId, artId, count, isCover, pairConflict, onOpen, onAdd, onRemove }: DeckEntryProps) {
+  const { t } = useTranslation();
+  if (!getCardDefinition(cardId)) return null;
+  const { definition, banLabel, banned, addDisabled } = entryLimits(cardId, count, pairConflict, t("deck.pairBadge"));
+  return (
+    <div className="deck-grid-card" data-copies={Math.min(count, 3)}>
+      <button
+        type="button"
+        className="deck-grid-card__open"
+        aria-label={t("deck.openCard", { name: definition.nameEn, count })}
+        onClick={onOpen}
+      >
+        <CardFull cardId={cardId} artId={artId} width={GRID_CARD_WIDTH} count={count} />
+        {banLabel ? (
+          <span className="deck-grid-card__restriction" data-tone={banned ? "danger" : "warning"}>
+            {banLabel}
+          </span>
         ) : null}
-      </div>
-      <div className="deck-preview-card__stepper">
-        {onSetCover ? (
-          <button
-            onClick={onSetCover}
-            aria-label={isCover ? t("deck.coverCard") : t("deck.setAsCover")}
-            title={isCover ? t("deck.coverCard") : t("deck.setAsCover")}
-            className="deck-step-button deck-step-button--cover"
-            data-cover={isCover}
-          >
-            <StarIcon size={11} />
-          </button>
+        {isCover ? (
+          <span className="deck-grid-card__cover" title={t("deck.coverCard")}>
+            <Icons.Star size={11} />
+          </span>
         ) : null}
-        <button onClick={onRemove} aria-label={t("common.remove")} className="deck-step-button">
-          –
-        </button>
-        <span className="deck-preview-card__count">{count}</span>
-        <button
-          onClick={onAdd}
-          aria-label={t("common.add")}
-          disabled={disabled || count >= cap}
-          className="deck-step-button"
-        >
-          +
-        </button>
-      </div>
+      </button>
+      <DeckStepper name={definition.nameEn} count={count} addDisabled={addDisabled} onAdd={onAdd} onRemove={onRemove} />
+    </div>
+  );
+}
+
+function DeckListRow({ cardId, artId, count, isCover, pairConflict, onOpen, onAdd, onRemove }: DeckEntryProps) {
+  const { t } = useTranslation();
+  if (!getCardDefinition(cardId)) return null;
+  const { definition, banLabel, banned, addDisabled } = entryLimits(cardId, count, pairConflict, t("deck.pairBadge"));
+  const kind = kindOf(definition);
+  const typeLabel = kind === "Digimon" && definition.level != null ? `Lv.${definition.level}` : kind;
+  return (
+    <div className="deck-list-row">
+      <button
+        type="button"
+        className="deck-list-row__open"
+        aria-label={t("deck.openCard", { name: definition.nameEn, count })}
+        onClick={onOpen}
+      >
+        <span className="deck-list-row__art" aria-hidden="true">
+          <CardFull cardId={cardId} artId={artId} width={LIST_ART_WIDTH} />
+        </span>
+        <ColorDot color={colorKey(definition.colors[0])} size={8} />
+        <span className="deck-list-row__type">{typeLabel}</span>
+        <span className="deck-list-row__name">
+          {definition.nameEn}
+          {isCover ? <Icons.Star size={11} /> : null}
+        </span>
+        {banLabel ? (
+          <span className="deck-tag" data-tone={banned ? "danger" : "warning"}>
+            {banLabel}
+          </span>
+        ) : null}
+        <span className="deck-list-row__id">{cardId}</span>
+      </button>
+      <DeckStepper name={definition.nameEn} count={count} addDisabled={addDisabled} onAdd={onAdd} onRemove={onRemove} />
+    </div>
+  );
+}
+
+/** Main-deck card counts by kind: Digimon, Tamer, Option. */
+export function DeckKindCounts({ main }: { main: CountMap }) {
+  const { t } = useTranslation();
+  const counts = { Digimon: 0, Tamer: 0, Option: 0 };
+  for (const [cardId, count] of Object.entries(main)) {
+    const definition = getCardDefinition(cardId);
+    const kind = definition ? kindOf(definition) : null;
+    if (kind === "Digimon" || kind === "Tamer" || kind === "Option") counts[kind] += count;
+  }
+  return (
+    <div className="deck-kind-counts">
+      <span>
+        {t("deck.kindDigimon")} <strong>{counts.Digimon}</strong>
+      </span>
+      <span>
+        {t("deck.kindTamer")} <strong>{counts.Tamer}</strong>
+      </span>
+      <span>
+        {t("deck.kindOption")} <strong>{counts.Option}</strong>
+      </span>
     </div>
   );
 }
 
 /** Evolution curve: only Digimon are represented, never play cost. */
-export function DeckLevelCurve({ main }: { main: CountMap }) {
+export function DeckLevelCurve({ main, compact = false }: { main: CountMap; compact?: boolean }) {
   const { t } = useTranslation();
   const counts = new Map<number, number>();
   for (const [cardId, count] of Object.entries(main)) {
@@ -260,11 +322,12 @@ export function DeckLevelCurve({ main }: { main: CountMap }) {
   }
   const levels = [...new Set([2, 3, 4, 5, 6, 7, ...counts.keys()])].sort((a, b) => a - b);
   const peak = Math.max(1, ...counts.values());
+  const tallestBar = compact ? 14 : 52;
 
   return (
-    <div>
-      <div className="deck-stat-label">{t("deck.levelCurve")}</div>
-      <div className="deck-level-curve">
+    <div className="deck-level-curve-stat" data-compact={compact}>
+      <div className={compact ? "aegis-sr-only" : "deck-stat-label"}>{t("deck.levelCurve")}</div>
+      <div className="deck-level-curve" title={compact ? t("deck.levelCurve") : undefined}>
         {levels.map((level) => {
           const count = counts.get(level) ?? 0;
           return (
@@ -273,7 +336,7 @@ export function DeckLevelCurve({ main }: { main: CountMap }) {
               <div
                 className="deck-level-curve__bar"
                 data-empty={count === 0}
-                style={{ height: `${(count / peak) * 52}px` }}
+                style={{ height: `${(count / peak) * tallestBar}px` }}
               />
               <span>Lv.{level}</span>
             </div>

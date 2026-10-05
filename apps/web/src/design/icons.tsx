@@ -223,6 +223,37 @@ const LayoutDashboard = (p: IconProps) => (
     <rect x="3" y="16" width="7" height="5" />
   </Svg>
 );
+const LayoutGrid = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+  </Svg>
+);
+const List = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+  </Svg>
+);
+const PanelPool = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M15 4v16" />
+  </Svg>
+);
+const PanelSplit = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M12 4v16" />
+  </Svg>
+);
+const PanelDeck = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M9 4v16" />
+  </Svg>
+);
 const Bell = (p: IconProps) => (
   <Svg {...p}>
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -565,6 +596,11 @@ export const Icons = {
   UserPlus,
   Swords,
   LayoutDashboard,
+  LayoutGrid,
+  List,
+  PanelPool,
+  PanelSplit,
+  PanelDeck,
   Bell,
   Search,
   Plus,

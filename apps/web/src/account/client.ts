@@ -11,7 +11,14 @@ export type RemoteAccount = {
   avatarId: DigimonWorldAvatarId | null;
   isAdmin: boolean;
 };
-export type AccountPreferences = { darkMode?: boolean; locale?: string; sleeve?: string };
+export type AccountPreferences = {
+  darkMode?: boolean;
+  locale?: string;
+  sleeve?: string;
+  deckShare?: number;
+  deckView?: "grid" | "list";
+  deckSort?: string;
+};
 export type AccountProfile = {
   account: RemoteAccount;
   stats: {

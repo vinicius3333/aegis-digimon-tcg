@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import {} from "./deckCounts";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getCardArts } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
@@ -53,19 +53,20 @@ describe("card artwork choices", () => {
         />
       </I18nProvider>,
     );
+    fireEvent.click(screen.getByRole("button", { name: "Agumon, 2 in deck" }));
     const opener = screen.getByRole("button", { name: "Agumon · Choose artwork" });
     opener.focus();
     fireEvent.click(opener);
-    expect(screen.getByRole("dialog", { name: "Choose artwork" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Alternate 1" }));
+    const picker = within(screen.getByRole("dialog", { name: "Choose artwork" }));
+    fireEvent.click(picker.getByRole("button", { name: "Alternate 1" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), alternate()]));
-    fireEvent.click(screen.getByRole("button", { name: "Copy 2" }));
-    fireEvent.click(screen.getByRole("button", { name: "Original" }));
+    fireEvent.click(picker.getByRole("button", { name: "Copy 2" }));
+    fireEvent.click(picker.getByRole("button", { name: "Original" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), cardId]));
-    fireEvent.click(screen.getByRole("button", { name: "Use on all copies" }));
+    fireEvent.click(picker.getByRole("button", { name: "Use on all copies" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([cardId, cardId]));
-    fireEvent.click(screen.getByRole("button", { name: "Alternate 1" }));
-    fireEvent.click(screen.getByRole("button", { name: "Use on all copies" }));
+    fireEvent.click(picker.getByRole("button", { name: "Alternate 1" }));
+    fireEvent.click(picker.getByRole("button", { name: "Use on all copies" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), alternate()]));
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "Choose artwork" })).toBeNull();

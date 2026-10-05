@@ -99,7 +99,14 @@ export interface CardFilter {
 /** Search + color + kind + level + trait/attribute + set filter state over a card list. */
 export function useCardFilter(
   all: readonly CardDefinition[],
-  { colorFilterMode = "any" }: { colorFilterMode?: ColorFilterMode } = {},
+  {
+    colorFilterMode = "any",
+    savedSort,
+  }: {
+    colorFilterMode?: ColorFilterMode;
+    /** Keeps the sort in a store owned by the caller, such as a saved preference. */
+    savedSort?: { sort: CardSort; setSort: (sort: CardSort) => void };
+  } = {},
 ): CardFilter {
   const [query, setQuery] = useState("");
   const [colors, setColors] = useState<ColorName[]>([]);
@@ -107,7 +114,9 @@ export function useCardFilter(
   const [levels, setLevels] = useState<LevelFilter[]>([]);
   const [costs, setCosts] = useState<CostFilter[]>([]);
   const [rarities, setRarities] = useState<RarityFilter[]>([]);
-  const [sort, setSort] = useState<CardSort>("releaseDate");
+  const [localSort, setLocalSort] = useState<CardSort>("releaseDate");
+  const sort = savedSort?.sort ?? localSort;
+  const setSort = savedSort?.setSort ?? setLocalSort;
   const [traitQuery, setTraitQuery] = useState("");
   const [set, setSet] = useState("");
 
