@@ -8,6 +8,8 @@ import {
   type TrackingArrow,
 } from "../../trackingArrow";
 import type { FieldClashScene } from "../../fieldClash";
+import type { SecurityClashScene } from "../../securityClash";
+import { readAttackArrowClock, type AttackArrowClock } from "../../attackArrowClock";
 import { DragKind } from "../enums";
 import { permanentVisualElement } from "../dropZones";
 import type { TrackingArrowGeometry } from "../types";
@@ -30,6 +32,7 @@ export function useTrackingArrow({
   picks,
   viewerSeat,
   fieldClash,
+  securityClash,
   effectSelection,
   boardRef,
   permRefs,
@@ -43,6 +46,7 @@ export function useTrackingArrow({
   picks: readonly string[];
   viewerSeat: Seat;
   fieldClash: FieldClashScene | null;
+  securityClash?: SecurityClashScene | null;
   effectSelection?: { sourcePermanentId: string; targetPermanentIds: readonly string[] };
   boardRef: RefObject<HTMLDivElement | null>;
   permRefs: MutableRefObject<Record<string, HTMLDivElement | null>>;
@@ -79,6 +83,7 @@ export function useTrackingArrow({
         }
       : null) ??
     fieldClashArrow ??
+    (securityClash && !securityClash.departing && !securityClash.exiting ? securityClash.attackArrow : null) ??
     openAttackArrow ??
     effectTargetArrow({
       decision,
@@ -93,6 +98,8 @@ export function useTrackingArrow({
   trackingArrowRef.current = trackingArrowRequest;
   const arrowClockRef = useRef(fieldClash?.arrowClock);
   arrowClockRef.current = fieldClash?.arrowClock;
+  const paintedArrowRef = useRef<{ key: string; permanentId: string } | null>(null);
+  const retainedClockRef = useRef<AttackArrowClock | undefined>(undefined);
   const trackingArrowActive = trackingArrowRequest !== null;
   useEffect(() => {
     if (!trackingArrowActive) {
@@ -126,6 +133,14 @@ export function useTrackingArrow({
       frame = window.requestAnimationFrame(solve);
       const request = trackingArrowRef.current;
       const board = boardRef.current;
+      // Security disposal temporarily removes the arrow between checks. Capture its
+      // native clock while it is painted so the same declaration cannot sweep again.
+      const painted = paintedArrowRef.current;
+      const retained = retainedClockRef.current;
+      if (painted && (retained?.key !== painted.key || retained.remainingMs > 0)) {
+        const clock = readAttackArrowClock({ board, ...painted });
+        if (clock) retainedClockRef.current = clock;
+      }
       if (!request || !board) return;
       // A confirmed attack shows its arrow after the card has finished suspending.
       // Read the actual rotation: attacks without a tap and reduced motion need no delay.
@@ -174,13 +189,18 @@ export function useTrackingArrow({
         .join(";")}`;
       if (signature === applied) return;
       applied = signature;
+      // A temporary effect-selection beam must not replace the attack's clock.
+      if (request.kind === "attack")
+        paintedArrowRef.current = { key: request.key, permanentId: request.from.permanentId };
       setTrackingArrow({
         key: request.key,
         kind: request.kind,
         from,
         to,
         sourcePermanentId: request.from.permanentId,
-        clock: arrowClockRef.current,
+        clock:
+          arrowClockRef.current ??
+          (retainedClockRef.current?.key === request.key ? retainedClockRef.current : undefined),
       });
     };
     frame = window.requestAnimationFrame(solve);

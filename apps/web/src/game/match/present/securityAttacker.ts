@@ -1,6 +1,7 @@
 import type { MutableRefObject } from "react";
 import type { ServerEvent } from "@aegis/shared";
 import type { SecurityClashAttacker } from "../../securityClash";
+import { activeAttackArrow } from "../../trackingArrow";
 
 /**
  * An attack on the player: remember the physical card the security
@@ -23,6 +24,7 @@ export function presentSecurityAttack({
 }) {
   if (securityAttack?.kind === "attackDeclared") {
     securityAttackerRef.current = {
+      ...(securityAttack.target.kind === "player" ? { attackArrow: activeAttackArrow([securityAttack])! } : {}),
       seat: securityAttack.seat,
       cardId: securityAttack.attackerCardId,
       artId: securityAttack.attackerArtId,

@@ -6,6 +6,7 @@
 import { getCardDefinition, isDigimon, type SecurityBattleResult, type Seat, type ServerEvent } from "@aegis/shared";
 import { Side } from "./side";
 import type { ParticleLightOwner } from "./independentParticleLight";
+import type { TrackingArrow } from "./trackingArrow";
 import {
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_AT_MS,
@@ -25,6 +26,8 @@ export type SecurityClashResolution = "pending" | "battle" | "effect" | "trashed
 
 /** The attack the check belongs to, remembered from the last `attackDeclared`. */
 export interface SecurityClashAttacker {
+  /** A rapid declaration can close in the server log before its check is painted. */
+  attackArrow?: TrackingArrow;
   seat: Seat;
   cardId: string;
   artId?: string;
@@ -43,6 +46,8 @@ export interface SecurityClashFighter {
 }
 
 export interface SecurityClashScene {
+  /** The original player-target declaration, owned by this presented check. */
+  attackArrow?: TrackingArrow;
   /** Increments per check so a new scene restarts the animations instead of resuming them. */
   key: number;
   resolution: SecurityClashResolution;
@@ -309,6 +314,7 @@ export function buildSecurityRevealScene({
     },
     ...(facing
       ? {
+          ...(facing.attackArrow ? { attackArrow: facing.attackArrow } : {}),
           attacker: {
             cardId: facing.cardId,
             ...(facing.artId ? { artId: facing.artId } : {}),

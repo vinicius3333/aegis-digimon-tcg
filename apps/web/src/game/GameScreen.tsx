@@ -502,6 +502,7 @@ export function GameScreen({
     picks,
     viewerSeat,
     fieldClash,
+    securityClash,
     effectSelection: effectSources
       .flatMap((source) =>
         source.targetPermanentIds && source.site.zone === "field"
