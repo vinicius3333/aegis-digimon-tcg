@@ -1,5 +1,61 @@
 [
   {
+    "version": "1.10.3-beta",
+    "releasedAt": "2026-10-05",
+    "summaryKey": "releases.1.10.3-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.10.3-beta.feature.arenaScenarios"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.10.3-beta.fix.burstOwnership",
+        "issue": 4964
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.burstPrompts"
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.nokiaWarp",
+        "issue": 4953
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.paladinComparison",
+        "issue": 4949
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.rewrittenEvolution",
+        "issue": 4948
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.assemblyOrder",
+        "issue": 4946
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.lilithCost",
+        "issue": 4940
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.diaboromonCost"
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.ownHandTargets"
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.cardImages",
+        "issue": 4958
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.browserTranslation",
+        "issue": 4943
+      },
+      {
+        "textKey": "releases.1.10.3-beta.fix.faceUpSecurity"
+      }
+    ]
+  },
+  {
     "version": "1.10.2-beta",
     "releasedAt": "2026-10-05",
     "summaryKey": "releases.1.10.2-beta.summary",

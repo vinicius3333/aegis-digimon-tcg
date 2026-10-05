@@ -83,6 +83,23 @@ export const ptBR: Record<keyof typeof en, string> = {
   "home.footer.github": "GitHub",
   "home.footer.legal":
     "Projeto de f\u00e3s gratuito, sem afilia\u00e7\u00e3o com a Bandai. Digimon, o Digimon Card Game e as imagens das cartas pertencem \u00e0 Bandai e aos seus detentores. Se voc\u00ea curte o Aegis, apoie o jogo oficial.",
+  "releases.1.10.3-beta.summary": releaseMessages["releases.1.10.3-beta.summary"]["pt-BR"],
+  "releases.1.10.3-beta.fix.burstOwnership": releaseMessages["releases.1.10.3-beta.fix.burstOwnership"]["pt-BR"],
+  "releases.1.10.3-beta.fix.burstPrompts": releaseMessages["releases.1.10.3-beta.fix.burstPrompts"]["pt-BR"],
+  "releases.1.10.3-beta.fix.nokiaWarp": releaseMessages["releases.1.10.3-beta.fix.nokiaWarp"]["pt-BR"],
+  "releases.1.10.3-beta.fix.paladinComparison": releaseMessages["releases.1.10.3-beta.fix.paladinComparison"]["pt-BR"],
+  "releases.1.10.3-beta.fix.rewrittenEvolution":
+    releaseMessages["releases.1.10.3-beta.fix.rewrittenEvolution"]["pt-BR"],
+  "releases.1.10.3-beta.fix.assemblyOrder": releaseMessages["releases.1.10.3-beta.fix.assemblyOrder"]["pt-BR"],
+  "releases.1.10.3-beta.fix.lilithCost": releaseMessages["releases.1.10.3-beta.fix.lilithCost"]["pt-BR"],
+  "releases.1.10.3-beta.fix.diaboromonCost": releaseMessages["releases.1.10.3-beta.fix.diaboromonCost"]["pt-BR"],
+  "releases.1.10.3-beta.fix.ownHandTargets": releaseMessages["releases.1.10.3-beta.fix.ownHandTargets"]["pt-BR"],
+  "releases.1.10.3-beta.fix.cardImages": releaseMessages["releases.1.10.3-beta.fix.cardImages"]["pt-BR"],
+  "releases.1.10.3-beta.fix.browserTranslation":
+    releaseMessages["releases.1.10.3-beta.fix.browserTranslation"]["pt-BR"],
+  "releases.1.10.3-beta.fix.faceUpSecurity": releaseMessages["releases.1.10.3-beta.fix.faceUpSecurity"]["pt-BR"],
+  "releases.1.10.3-beta.feature.arenaScenarios":
+    releaseMessages["releases.1.10.3-beta.feature.arenaScenarios"]["pt-BR"],
   "releases.nav": "Novidades",
   "releases.eyebrow": "Atualiza\u00e7\u00f5es do Aegis",
   "releases.title": "O que h\u00e1 de novo",

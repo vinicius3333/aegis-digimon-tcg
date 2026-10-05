@@ -1,4 +1,60 @@
 {
+  "releases.1.10.3-beta.summary": {
+    "en": "This patch fixes card effects, evolution choices, Assembly ordering, images and browser translation.",
+    "pt-BR": "Este patch corrige efeitos de cartas, opções de evolução, a ordem do Assembly, imagens e a tradução do navegador."
+  },
+  "releases.1.10.3-beta.fix.burstOwnership": {
+    "en": "ShineGreymon: Burst Mode only offers Tamers from your own hand when its Option effect plays a Tamer.",
+    "pt-BR": "ShineGreymon: Burst Mode oferece apenas Tamers da sua própria mão quando seu efeito de Opção joga um Tamer."
+  },
+  "releases.1.10.3-beta.fix.burstPrompts": {
+    "en": "Burst Mode's selections show the activated Option Main text, and Burst Digivolve is offered only when its required Tamer is in your battle area.",
+    "pt-BR": "As seleções de Burst Mode mostram o texto Main da Opção ativada, e Burst Digivolve só é oferecido quando o Tamer exigido está no seu campo."
+  },
+  "releases.1.10.3-beta.fix.nokiaWarp": {
+    "en": "Nokia Shiramine can suspend to reduce qualifying WarGreymon and MetalGarurumon warp digivolution costs.",
+    "pt-BR": "Nokia Shiramine pode suspender para reduzir o custo das evoluções warp válidas de WarGreymon e MetalGarurumon."
+  },
+  "releases.1.10.3-beta.fix.paladinComparison": {
+    "en": "Imperialdramon: Paladin Mode compares digivolution-card counts in its effect battle without gaining Ice Clad.",
+    "pt-BR": "Imperialdramon: Paladin Mode compara a quantidade de fontes na batalha por seu efeito sem ganhar Ice Clad."
+  },
+  "releases.1.10.3-beta.fix.rewrittenEvolution": {
+    "en": "Digivolution and Blast Digivolution respect names and colors rewritten by KingSukamon, including their displayed cost choices.",
+    "pt-BR": "Evolução e Blast Digivolve respeitam nomes e cores alterados por KingSukamon, incluindo as opções de custo exibidas."
+  },
+  "releases.1.10.3-beta.fix.assemblyOrder": {
+    "en": "Assembly places its materials in the printed order, including when you select them in reverse or play through an effect.",
+    "pt-BR": "Assembly coloca os materiais na ordem impressa, inclusive quando você os seleciona ao contrário ou joga por efeito."
+  },
+  "releases.1.10.3-beta.fix.lilithCost": {
+    "en": "Lilithmon prevents deletion only after its deletion cost succeeds; saving the payment Digimon with Detach does not pay that cost.",
+    "pt-BR": "Lilithmon só impede a deleção após pagar seu custo de deleção; salvar o Digimon usado como pagamento com Detach não paga esse custo."
+  },
+  "releases.1.10.3-beta.fix.diaboromonCost": {
+    "en": "Diaboromon's deletion protection also requires a successful deletion cost.",
+    "pt-BR": "A proteção contra deleção de Diaboromon também exige que o custo de deleção seja pago com sucesso."
+  },
+  "releases.1.10.3-beta.fix.ownHandTargets": {
+    "en": "Plutomon and Kumbhiramon offer only your own hand cards for their free-play effects.",
+    "pt-BR": "Plutomon e Kumbhiramon oferecem apenas cartas da sua mão para seus efeitos de jogo gratuito."
+  },
+  "releases.1.10.3-beta.fix.cardImages": {
+    "en": "Card art can load from an independent official image source when the normal image mirror is unavailable.",
+    "pt-BR": "As imagens das cartas podem carregar de uma fonte oficial independente quando o espelho de imagens habitual está indisponível."
+  },
+  "releases.1.10.3-beta.fix.browserTranslation": {
+    "en": "The game continues updating when browser translation replaces text on the page, preventing the reported blank-screen crash.",
+    "pt-BR": "O jogo continua atualizando quando a tradução do navegador substitui textos da página, evitando a falha de tela branca relatada."
+  },
+  "releases.1.10.3-beta.fix.faceUpSecurity": {
+    "en": "Security counters include face-up cards and remain visible on short landscape screens.",
+    "pt-BR": "Os contadores de segurança incluem cartas viradas para cima e continuam visíveis em telas horizontais baixas."
+  },
+  "releases.1.10.3-beta.feature.arenaScenarios": {
+    "en": "Development arena scenarios now cover all 33 verified reports, including 22 reports whose behavior already works correctly.",
+    "pt-BR": "Os cenários da arena de desenvolvimento agora cobrem os 33 relatos verificados, incluindo 22 cujo comportamento já funciona corretamente."
+  },
   "releases.1.10.2-beta.summary": {
     "en": "This patch corrects card costs, protection scopes, battle priority and development scenario links.",
     "pt-BR": "Este patch corrige custos de cartas, o alcance das proteções, a prioridade em batalha e os links dos cenários de desenvolvimento."
