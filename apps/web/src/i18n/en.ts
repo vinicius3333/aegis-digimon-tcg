@@ -89,6 +89,13 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.10.1-beta.summary": releaseMessages["releases.1.10.1-beta.summary"]["en"],
+  "releases.1.10.1-beta.fix.faceDownDeletion": releaseMessages["releases.1.10.1-beta.fix.faceDownDeletion"]["en"],
+  "releases.1.10.1-beta.fix.trashVisibility": releaseMessages["releases.1.10.1-beta.fix.trashVisibility"]["en"],
+  "releases.1.10.1-beta.fix.cerberusmonOptionalCost":
+    releaseMessages["releases.1.10.1-beta.fix.cerberusmonOptionalCost"]["en"],
+  "releases.1.10.1-beta.fix.digimonSuspensionTriggers":
+    releaseMessages["releases.1.10.1-beta.fix.digimonSuspensionTriggers"]["en"],
   "releases.1.10.0-beta.summary": releaseMessages["releases.1.10.0-beta.summary"]["en"],
   "releases.1.10.0-beta.fix.blastCounters": releaseMessages["releases.1.10.0-beta.fix.blastCounters"]["en"],
   "releases.1.10.0-beta.fix.digixros": releaseMessages["releases.1.10.0-beta.fix.digixros"]["en"],

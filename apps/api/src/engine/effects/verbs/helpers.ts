@@ -109,7 +109,16 @@ export function createSharedHelpers(pc: PrimitivesContext) {
       const permanent = access.permanentById(permanentId);
       return permanent?.topCard === undefined
         ? []
-        : [{ permanentId, controllerSeat: permanent.controllerSeat, topCardId: permanent.topCard.cardId }];
+        : [
+            {
+              permanentId,
+              controllerSeat: permanent.controllerSeat,
+              topCardId: permanent.topCard.cardId,
+              faceDownSourceInstanceIds: [...permanent.stack, ...permanent.linked]
+                .filter((card) => !card.faceUp)
+                .map((card) => card.instanceId),
+            },
+          ];
     });
 
   const filterBouncePrevented = async (instanceIds: string[]): Promise<string[]> => {

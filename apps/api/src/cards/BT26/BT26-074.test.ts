@@ -203,7 +203,12 @@ describe("BT26-074 Cerberusmon", () => {
     expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
 
-    expect(selectCards).toHaveBeenCalledOnce();
+    expect(selectCards).toHaveBeenCalledTimes(2);
+    expect(selectCards).toHaveBeenNthCalledWith(1, expect.anything(), {
+      candidates: [handCost.instanceId],
+      min: 0,
+      max: 1,
+    });
     expect(selectCards).toHaveBeenCalledWith(expect.anything(), {
       candidates: [titanOption.instanceId],
       min: 0,
@@ -465,4 +470,93 @@ describe("BT26-074 Cerberusmon", () => {
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toContain("BT26-075");
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-062", "BT26-060"]);
   });
+});
+
+describe("Discord 1556544429438013471: optional Cerberusmon By cost", () => {
+  it.each(["OnPlay", "WhenDigivolving", "WhenAttacking"] as const)(
+    "%s lets the player decline the hand-trash cost without spending cards or memory",
+    async (timing) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: timing === "WhenAttacking" ? CARD_ID : "BT26-038", as: "host" }],
+          hand: [
+            { card: CARD_ID, as: "cerberusmon" },
+            { card: "BT1-009", as: "cost" },
+            { card: "BT1-010", as: "otherCost" },
+          ],
+          trash: [{ card: "BT24-098", as: "option" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      });
+      s.state.memory = 10;
+      await s.ready();
+      const intent =
+        timing === "OnPlay"
+          ? { type: "playCard" as const, instanceId: s.inst("cerberusmon").instanceId }
+          : timing === "WhenDigivolving"
+            ? {
+                type: "digivolve" as const,
+                permanentId: s.perm("host").permanentId,
+                instanceId: s.inst("cerberusmon").instanceId,
+                useAlternateCost: true,
+              }
+            : {
+                type: "attack" as const,
+                attackerPermanentId: s.perm("host").permanentId,
+                target: { kind: "player" as const },
+              };
+      expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision !== undefined);
+      const decision = s.decisions.at(-1)!.req;
+      expect(decision.kind).toBe("selectCards");
+      expect(decision.options?.min).toBe(0);
+      const hand = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
+      const trash = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+      const memory = s.state.memory;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(hand);
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(trash);
+      expect(s.state.memory).toBe(memory);
+    },
+  );
+});
+
+it("Discord 1556544429438013471 offers refusal even with exactly one hand card left", async () => {
+  const s = setupEngine({
+    0: {
+      hand: [
+        { card: CARD_ID, as: "cerberusmon" },
+        { card: "BT1-009", as: "cost" },
+      ],
+      trash: ["BT26-056"],
+    },
+  });
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cerberusmon").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.pendingDecision !== undefined);
+  expect(s.state.pendingDecision!.kind).toBe("selectCards");
+  expect(s.decisions.at(-1)!.req.options?.min).toBe(0);
+  expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: s.state.pendingDecision!.decisionId,
+      response: { kind: "selectCards", instanceIds: [] },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision === undefined);
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+  expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT26-056"]);
+  expect(s.state.memory).toBe(3);
 });

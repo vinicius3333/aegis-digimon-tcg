@@ -106064,6 +106064,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
+            "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "ModifyDP",
@@ -147567,6 +147568,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
+            "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "effectTextPart": "[All Turns] When any Digimon suspend, by suspending this Tamer, if effects suspended those Digimon, ＜Draw 1＞.",
             "actions": [
               {
@@ -227844,10 +227846,11 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
-            "payCostBeforeOptional": true,
+            "abortOnDecline": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
+              "optional": true,
               "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
               "raw": "by trashing 1 card in your hand"
             }
@@ -227880,10 +227883,11 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
-            "payCostBeforeOptional": true,
+            "abortOnDecline": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
+              "optional": true,
               "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
               "raw": "by trashing 1 card in your hand"
             }
@@ -227916,10 +227920,11 @@
             "payCost": true,
             "reduceCostBy": 2,
             "optional": true,
-            "payCostBeforeOptional": true,
+            "abortOnDecline": true,
             "condition": { "kind": "isYourTurn", "raw": "if it is your turn" },
             "cost": {
               "kind": "trash",
+              "optional": true,
               "target": { "filter": { "controllerDefault": "mine", "zone": "hand" }, "count": 1 },
               "raw": "by trashing 1 card in your hand"
             }
