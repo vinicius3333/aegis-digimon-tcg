@@ -28,25 +28,42 @@
 
 /* The punch is over and the clause is on screen: the card holds a steady light for as long
    as the toast that names it, so the two read as one moment. It breathes rather than sits,
-   because a static outline on a board full of outlines is just another border. */
+   because a static outline on a board full of outlines is just another border.
+   The filter stays still and only a halo's opacity breathes: an animated filter repaints
+   the card on the main thread every frame, while opacity runs on the compositor. */
 .game-permanent--effect-linked {
+  filter: drop-shadow(0 0 6px var(--battle-arrow-effect-glow)) brightness(1.1);
+}
+
+.game-permanent--effect-linked::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 13px 2px var(--battle-arrow-effect);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
   animation: battle-effect-linked-hold var(--t-effect-linked-breath, 1600ms) ease-in-out infinite;
 }
 
-@keyframes battle-effect-linked-hold {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 6px var(--battle-arrow-effect-glow)) brightness(1.06);
-  }
+/* A turned card lies across its upright frame, so the halo turns with it. */
+.game-permanent--effect-linked[data-suspended]::before {
+  inset: calc(var(--permanent-width, 76px) * 0.2) calc(var(--permanent-width, 76px) * -0.2);
+}
 
+@keyframes battle-effect-linked-hold {
   50% {
-    filter: drop-shadow(0 0 13px var(--battle-arrow-effect)) brightness(1.16);
+    opacity: 0.85;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .game-permanent--effect-linked {
     filter: drop-shadow(0 0 8px var(--battle-arrow-effect-glow)) brightness(1.08);
+  }
+
+  .game-permanent--effect-linked::before {
     animation: none;
   }
 }
