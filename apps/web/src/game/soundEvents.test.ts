@@ -26,6 +26,8 @@ describe("soundForEvent", () => {
         event: { kind: "securityRevealed", seat: 0, revealedCardId: "BT1-030", attackerPermanentId: "perm-1" },
         cue: "securityHit",
       },
+      { event: { kind: "cardsMoved", instanceIds: ["i1"], from: "hand", to: "trash" }, cue: "handTrash" },
+      { event: { kind: "movedFromBreeding", seat: 0, permanentId: "p1", cardId: "BT1-002" }, cue: "move" },
       { event: { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 4 }, cue: "turnChange" },
     ];
     for (const { event, cue } of cases) expect(soundForEvent(event, 0)).toBe(cue);
@@ -61,8 +63,6 @@ describe("soundForEvent", () => {
       { kind: "phaseChanged", phase: "main", turnSeat: 0, turnCount: 1 },
       { kind: "memoryChanged", from: 0, to: 3, reason: "playCard" },
       { kind: "actionRejected", intent: "playCard", reason: "notEnoughMemory" },
-      { kind: "cardsMoved", instanceIds: ["i1"], from: "hand", to: "trash" },
-      { kind: "movedFromBreeding", seat: 0, permanentId: "p1", cardId: "BT1-002" },
     ];
     for (const event of silent) expect(soundForEvent(event, 0)).toBeNull();
   });

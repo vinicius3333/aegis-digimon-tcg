@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { installAudioLifecycle } from "./design/sound";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
 import { AegisEmblem } from "./design/AegisLogo";
 import { CircuitBackdrop } from "./design/CircuitBackdrop";
@@ -113,6 +114,7 @@ export function initialAppRoute({
 }
 
 export function App() {
+  useEffect(installAudioLifecycle, []);
   const pathname = window.location.pathname;
   const labCardId = cardEffectsLabCardId(pathname);
   return (

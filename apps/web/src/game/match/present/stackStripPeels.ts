@@ -76,6 +76,7 @@ export function enqueueStackStripPeels({
         stackStripDirection: event.seat === viewerSeat ? 1 : -1,
         ...(artId && artId !== cardId ? { artId } : {}),
         stackStrip: true,
+        stackStripKind: event.strippedStackTops ? "top" : "source",
       });
     }
     if (peels.length === 0) continue;
