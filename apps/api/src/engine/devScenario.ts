@@ -1,3 +1,4 @@
+import { ISSUE_REPRO_SCENARIO_IDS, layIssueReproScenario } from "./issueReproScenarios.js";
 import {
   CATALOG_DECKS,
   CardKind,
@@ -40,6 +41,7 @@ import {
 export const DEV_SCENARIO_IDS = [
   "arena-ex12-thetismon-mistymon-deletion",
   "arena-ex12-thetismon-jamming-control",
+  ...ISSUE_REPRO_SCENARIO_IDS,
   "arena-bt18-candlemon-data-selection",
   "arena-bt5-koromon-attack-draw",
   "arena-taiki-digixros-any-tamer-hand",
@@ -5620,6 +5622,16 @@ function laySt17MagnamonMercifulColorsScenario(state: GameState, decks: readonly
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
+  ...(Object.fromEntries(
+    ISSUE_REPRO_SCENARIO_IDS.map((id) => [
+      id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layIssueReproScenario(id, state, decks),
+    ]),
+  ) as Record<
+    import("./issueReproScenarios.js").IssueReproScenarioId,
+    (state: GameState, decks: readonly [Decklist, Decklist]) => void
+  >),
+
   "arena-bt18-candlemon-data-selection": layBt18CandlemonDataSelectionScenario,
   "arena-mervamon-trash-digixros": layMervamonTrashDigiXrosScenario,
   "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,

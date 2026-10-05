@@ -24,6 +24,99 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Thetismon EX12-030. Resolva a compra de Jellymon LM-002, depois TeslaJellymon EX12-027 (compre e descarte 1 carta); recuse o custo de Puyoyomon RB1-002, se oferecido. Mistymon é revelada da segurança, mas não há Mistymon em campo para ativar o efeito de remoção da segurança. Thetismon sobrevive à batalha de 7000 contra 7000 graças a Jamming, com suas 3 fontes; o Digimon de segurança vai para a lixeira. Compare com o cenário de deleção por Mistymon.",
     en: "End breeding and attack security with EX12-030 Thetismon. Resolve LM-002 Jellymon's draw, then EX12-027 TeslaJellymon (draw and trash 1 card); decline RB1-002 Puyoyomon's cost if offered. Mistymon is revealed from security, but there is no field Mistymon to trigger the security-removal effect. Thetismon survives the 7000 vs 7000 battle thanks to Jamming, keeping all 3 sources; the security Digimon goes to trash. Compare with the Mistymon deletion scenario.",
   },
+  "arena-issue-4938-ruli-optional-reduction": {
+    en: "#4938: Digivolve SymbareAngoramon into Lamortmon. Decline Ruli: pay 3 and leave her unsuspended. Accept instead: suspend her and pay 2.",
+    ptBR: "#4938: Evolua SymbareAngoramon em Lamortmon. Recuse Ruli: pague 3 e deixe-a ativa. Ao aceitar, suspenda-a e pague 2.",
+  },
+  "arena-issue-4937-grademon-dual-immunity": {
+    en: "#4937: Attack with Raptordramon and evolve into EX13 Grademon during the attack. Play Rosemon to pass 6 memory. On the opponent's turn, decline the Sistermon play and Arts Digivolve when using Blanc or Noir as an Option: Blanc reduces Grademon's DP by 3000; Noir removes its top card. Its Digimon-effect immunity remains active and does not stop either Option.",
+    ptBR: "#4937: Ataque com Raptordramon e evolua em Grademon EX13 durante o ataque. Jogue Rosemon para passar 6 de memória. No turno adversário, recuse jogar Sistermon e Arts Digivolve ao usar Blanc ou Noir como Opção: Blanc reduz 3000 DP de Grademon; Noir remove sua carta do topo. A imunidade a efeitos de Digimon continua ativa e permite ambas as Opções.",
+  },
+  "arena-issue-4937-bt20-grademon-dual-immunity": {
+    en: "#4937: Attack with Raptordramon and evolve into BT20 Grademon during the attack; decline its breeding-area play. Play Rosemon to pass 6 memory. The opponent can use Blanc's DP reduction or Noir's De-Digivolve as an Option despite Grademon's active Digimon-effect immunity. Decline the Sistermon play and Arts Digivolve.",
+    ptBR: "#4937: Ataque com Raptordramon e evolua em Grademon BT20 durante o ataque; recuse jogar na criação. Jogue Rosemon para passar 6 de memória. O adversário pode usar a redução de DP de Blanc ou De-Digivolve de Noir como Opção, mesmo com a imunidade de Grademon ativa. Recuse jogar Sistermon e Arts Digivolve.",
+  },
+  "arena-issue-4936-examon-repeat-barrier": {
+    en: "#4936: DNA digivolve Titamon and Plesiomon into Examon. Target the suspended Alphamon for both the attack and the immediate battle. Decline the free Dragon play/use. Accept inherited Barrier for the first battle: the ordinary attack battle must offer Barrier again. You may accept it again or decline and lose Alphamon.",
+    ptBR: "#4936: Faça DNA de Titamon e Plesiomon em Examon. Escolha Alphamon suspenso como alvo do ataque e da batalha imediata. Recuse jogar/usar Dragão sem custo. Aceite Barrier herdado na primeira batalha: a batalha normal do ataque deve oferecer Barrier novamente. Você pode aceitar outra vez ou recusar e perder Alphamon.",
+  },
+  "arena-issue-4935-blanc-arts-guard": {
+    en: "#4935: Use Blanc as an Option, decline the Sistermon play, then Arts Digivolve the existing Blanc. Pass the turn. Use Gaia Force on Titamon: Guard may delete awakened Blanc to protect Titamon. Gaia Force targeting awakened Blanc itself cannot be stopped by its own Guard; battle deletion also does not offer Guard.",
+    ptBR: "#4935: Use Blanc como Opção, recuse jogar Sistermon e faça Arts Digivolve da Blanc em campo. Passe o turno. Use Gaia Force em Titamon: Guard pode deletar Blanc desperta para proteger Titamon. Gaia Force na própria Blanc desperta não pode ser impedido pelo Guard dela; deleção por batalha também não oferece Guard.",
+  },
+  "arena-issue-4933-lilamon-host": {
+    en: "#4933: Use Crimson Blaze. Lilamon protects only its Rosemon host; the other TS Digimon is deleted and no protection cost is paid for it.",
+    ptBR: "#4933: Use Crimson Blaze. Lilamon protege apenas seu Rosemon; o outro Digimon TS é deletado, sem pagar custo de proteção por ele.",
+  },
+  "arena-issue-4932-kentaurosmon-security": {
+    en: "#4932: Digivolve Lilamon into Kentaurosmon. Pay the security cost, decline security placement: both opposing Digimon lose 7000 DP with six or fewer total security cards.",
+    ptBR: "#4932: Evolua Lilamon em Kentaurosmon. Pague o custo de segurança e recuse colocar Digimon na segurança: ambos os adversários perdem 7000 DP com até seis seguranças no total.",
+  },
+  "arena-issue-4931-lordknightmon-reduction": {
+    en: "#4931: Play AD1-018 while Knightmon is in your battle area: the cost is reduced by 5. Cards in trash do not satisfy this condition.",
+    ptBR: "#4931: Jogue AD1-018 com Knightmon em seu campo: o custo diminui em 5. Cartas na lixeira não satisfazem essa condição.",
+  },
+  "arena-issue-4930-venusmon-opponent-cost": {
+    en: "#4930: Use Crimson Blaze. Venusmon may place your source-free Digimon at the bottom of YOUR security to protect its other TS Digimon.",
+    ptBR: "#4930: Use Crimson Blaze. Venusmon pode colocar seu Digimon sem fontes no fundo da SUA segurança para proteger o outro Digimon TS dela.",
+  },
+  "arena-issue-4929-noir-single-target": {
+    en: "#4929: Use Noir as an Option and decline the Sistermon play. Choose one opponent once: all three De-Digivolve 1 applications stay on that same Digimon.",
+    ptBR: "#4929: Use Noir como Opção e recuse jogar Sistermon. Escolha um adversário uma única vez: as três aplicações de De-Digivolve 1 atingem esse mesmo Digimon.",
+  },
+  "arena-issue-4926-battle-priority": {
+    en: "#4926: Attack the suspended Knightmon with Examon. Groundramon trashes security; Examon deletes suspended Rie before she can activate her deletion watcher.",
+    ptBR: "#4926: Ataque Knightmon suspenso com Examon. Groundramon descarta segurança; Examon deleta Rie suspensa antes que ela ative seu efeito de deleção.",
+  },
+  "arena-issue-4924-revelation-security-faces": {
+    en: "#4924: Use Revelation of Light. You see the fronts of all three security cards privately; only the two yellow Digimon are selectable.",
+    ptBR: "#4924: Use Revelation of Light. Você vê as frentes das três seguranças de forma privada; apenas os dois Digimon amarelos podem ser escolhidos.",
+  },
+  "arena-issue-4923-seiten-assembly": {
+    en: "#4923: Play SeitenGokuumon using Gokuumon, Sagomon and Cho-Hakkaimon from trash for Assembly: pay 7 and place all three beneath it.",
+    ptBR: "#4923: Jogue SeitenGokuumon usando Gokuumon, Sagomon e Cho-Hakkaimon da lixeira em Assembly: pague 7 e coloque os três sob ele.",
+  },
+  "arena-issue-4921-homeros-late-arrival": {
+    en: "#4921: End your turn. Accept Kanan using Jupitermon as an Option, then Arts Digivolve and play Homeros. Homeros enters after the end-turn boundary and does not trigger retroactively.",
+    ptBR: "#4921: Encerre o turno. Aceite Kanan usando Jupitermon como Opção, faça Arts Digivolve e jogue Homeros. Ele entra depois do início do fim de turno e não ativa retroativamente.",
+  },
+  "arena-issue-4919-seventh-lightning-cost": {
+    en: "#4919: Digivolve into Leviamon X. Accept Seventh Lightning: it returns to deck bottom before deleting the level 6, even though there is no level 4.",
+    ptBR: "#4919: Evolua para Leviamon X. Aceite Seventh Lightning: ela volta ao fundo do deck antes de deletar o nível 6, mesmo sem um nível 4 no campo.",
+  },
+  "arena-issue-4918-lordknightmon-player-attack": {
+    en: "#4918: Use Rie to digivolve into LordKnightmon. Its evolution attack offers only the opponent player, even with a suspended opposing Digimon.",
+    ptBR: "#4918: Use Rie para evoluir em LordKnightmon. O ataque de evolução permite apenas o jogador adversário, mesmo havendo um Digimon adversário suspenso.",
+  },
+  "arena-issue-4917-biting-crush-placement": {
+    en: "#4917: Use Biting Crush and discard Leviamon. With no opposing deletion target, the cost can still be paid and Biting Crush stays in the battle area.",
+    ptBR: "#4917: Use Biting Crush e descarte Leviamon. Mesmo sem alvo adversário para deletar, o custo pode ser pago e Biting Crush permanece no campo.",
+  },
+  "arena-issue-4916-raid-target-block": {
+    en: "#4916: End your turn and let the opponent play Craniamon. On your next turn attack with Gallantmon and accept Raid: the Craniamon already targeted cannot block itself.",
+    ptBR: "#4916: Encerre o turno e deixe o oponente jogar Craniamon. No próximo turno ataque com Gallantmon e aceite Raid: Craniamon já é o alvo e não pode bloquear a si mesmo.",
+  },
+  "arena-issue-4915-junomon-homeros": {
+    en: "#4915: Attack the opponent security. Junomon may play Homeros from hand. The printed limit is one card with play cost 8 or less.",
+    ptBR: "#4915: Ataque a segurança adversária. Junomon pode jogar Homeros da mão. O limite impresso é uma carta com custo de jogo até 8.",
+  },
+  "arena-issue-4913-cool-boy-proto-form": {
+    en: "#4913: Use Proto Form to digivolve MetalSeadramon into GigaSeadramon. Cool Boy may suspend, gain 1 memory and draw: both Digimon are level 6.",
+    ptBR: "#4913: Use Proto Form para evoluir MetalSeadramon em GigaSeadramon. Cool Boy pode suspender, ganhar 1 memória e comprar: ambos são nível 6.",
+  },
+  "arena-issue-4912-deep-savers-battle": {
+    en: "#4912: Digivolve into Examon, paying 5 from 4 memory, then accept battling MetalSeadramon. Its owner now has 1 memory, so face-up Deep Savers prevents battle deletion. Decline Examon playing a card afterwards to isolate the battle.",
+    ptBR: "#4912: Evolua em Examon pagando 5 a partir de 4 memórias e aceite batalhar MetalSeadramon. Seu dono agora tem 1 memória, então Deep Savers aberta impede a deleção em batalha. Recuse jogar uma carta depois com Examon para isolar a batalha.",
+  },
+  "arena-issue-4911-mervamon-multiple-checks": {
+    en: "#4911: Attack with each Mervamon. For each attack, use the other Iliad allies for both Alliance choices: three security checks finish. Alliance prompts require your own response, not the bot.",
+    ptBR: "#4911: Ataque com cada Mervamon. Em cada ataque, use os outros aliados Iliad nas duas escolhas de Alliance: três checagens terminam. As escolhas de Alliance exigem sua resposta, não a do bot.",
+  },
+  "arena-issue-4907-takato-end-turn": {
+    en: "#4907: End your turn and resolve Kurata deleting Gallantmon. Decode can play Guilmon; decline Guilmon's hand-discard effect. Takato may decline the whole placement cost; if paid, the warp itself remains optional.",
+    ptBR: "#4907: Encerre o turno e resolva Kurata deletando Gallantmon. Decode pode jogar Guilmon; recuse o descarte de mão do Guilmon. Takato pode recusar todo o custo de colocação; se pago, a evolução continua opcional.",
+  },
+
   "arena-bt11-hades-force-target-selection": {
     ptBR: "Entre na Principal e use Hades Force (custo 5 com X Antibody nas fontes). WarGreymon tem custo 12. A seleção deve oferecer Thomas (3), Gaomon (3) e Hexeblaumon (12) juntos. Escolha apenas Hexeblaumon e confirme: os dois alvos baratos permanecem. Também é possível escolher os dois baratos ou nenhuma carta. Depois, recuse o ataque opcional para inspecionar o resultado. Baseado na partida c8383f3a, 15:02 UTC, bug 1556322403456520223.",
     en: "Enter Main and use Hades Force (cost 5 with X Antibody in the sources). WarGreymon's play cost is 12. The target selection must offer Thomas (3), Gaomon (3), and Hexeblaumon (12) together. Select only Hexeblaumon and confirm: both cheap targets remain. You can also select both cheap targets or no cards. Then decline the optional attack to inspect the result. Based on match c8383f3a at 15:02 UTC, bug 1556322403456520223.",
@@ -711,6 +804,30 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-issue-4938-ruli-optional-reduction", "#4938 · Ruli · optional reduction"],
+  ["arena-issue-4937-grademon-dual-immunity", "#4937 · EX13 Grademon · DUAL Options"],
+  ["arena-issue-4937-bt20-grademon-dual-immunity", "#4937 · BT20 Grademon · DUAL Options"],
+  ["arena-issue-4936-examon-repeat-barrier", "#4936 · Examon / Alphamon · repeat Barrier"],
+  ["arena-issue-4935-blanc-arts-guard", "#4935 · Blanc · Guard after Arts Digivolve"],
+  ["arena-issue-4933-lilamon-host", "#4933 · Lilamon · host protection"],
+  ["arena-issue-4932-kentaurosmon-security", "#4932 · Kentaurosmon · security DP"],
+  ["arena-issue-4931-lordknightmon-reduction", "#4931 · LordKnightmon AD1 · reduction"],
+  ["arena-issue-4930-venusmon-opponent-cost", "#4930 · Venusmon · opponent protection cost"],
+  ["arena-issue-4929-noir-single-target", "#4929 · Noir · one De-Digivolve target"],
+  ["arena-issue-4926-battle-priority", "#4926 · Examon / Rie · battle priority"],
+  ["arena-issue-4924-revelation-security-faces", "#4924 · Revelation · security card faces"],
+  ["arena-issue-4923-seiten-assembly", "#4923 · SeitenGokuumon · Sagomon Assembly"],
+  ["arena-issue-4921-homeros-late-arrival", "#4921 · Homeros · end-turn arrival"],
+  ["arena-issue-4919-seventh-lightning-cost", "#4919 · Seventh Lightning · trash cost"],
+  ["arena-issue-4918-lordknightmon-player-attack", "#4918 · LordKnightmon · player-only attack"],
+  ["arena-issue-4917-biting-crush-placement", "#4917 · Biting Crush · battle placement"],
+  ["arena-issue-4916-raid-target-block", "#4916 · Raid · target cannot block"],
+  ["arena-issue-4915-junomon-homeros", "#4915 · Junomon · Homeros selection"],
+  ["arena-issue-4913-cool-boy-proto-form", "#4913 · Cool Boy · Proto Form evolution"],
+  ["arena-issue-4912-deep-savers-battle", "#4912 · Deep Savers · memory protection"],
+  ["arena-issue-4911-mervamon-multiple-checks", "#4911 · Mervamon · consecutive large attacks"],
+  ["arena-issue-4907-takato-end-turn", "#4907 · Takato · end-turn cost choice"],
+
   ["arena-bt20-ouryuken-blast-dna-counter", "BT20 Ouryuken ACE · Blast DNA Counter with duplicate hand cards"],
   ["arena-bt11-hades-force-target-selection", "BT11 Hades Force · escolha dos alvos"],
   ["arena-bt23-examon-partition-return", "BT23 Examon · Partition on deck return"],
