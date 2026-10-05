@@ -234,6 +234,96 @@ describe("EX13-045 Examon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("Discord 1556502418941018123: DNA boosts Digimon without giving Options or Tamers DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: GREEN_MATERIAL, as: "green" },
+            { card: BLUE_MATERIAL, as: "blue" },
+            { card: NON_MATCH, as: "ally" },
+            { card: "LM-051", as: "memoryBoost" },
+            { card: "BT20-093", as: "dragonGene" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          hand: [{ card: cardId, as: "examon" }],
+        },
+        1: {
+          battleArea: [{ card: "P-036", as: "opponentBoost" }],
+          security: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(dnaIntent(s)).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const examon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === cardId)!;
+    expect(examon.currentDP).toBe(25_000);
+    expect(s.perm("ally").currentDP).toBe(15_000);
+    for (const alias of ["memoryBoost", "dragonGene", "tamer", "opponentBoost"]) {
+      expect(s.perm(alias).currentDP).toBe(0);
+    }
+  });
+
+  it("Discord 1556502418941018123: excludes a Memory Boost used after DNA while buffing a later Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: GREEN_MATERIAL, as: "green" },
+            { card: BLUE_MATERIAL, as: "blue" },
+          ],
+          hand: [
+            { card: cardId, as: "examon" },
+            { card: "LM-051", as: "memoryBoost" },
+            { card: NON_MATCH, as: "laterDigimon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(dnaIntent(s)).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryBoost").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "LM-051") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("laterDigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === NON_MATCH) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("memoryBoost").currentDP).toBe(0);
+    expect(s.perm("laterDigimon").currentDP).toBe(15_000);
+  });
+
   it("keeps the 10000 DP bonus active for an own Digimon played after Examon resolves", async () => {
     const s = setupEngine(
       {

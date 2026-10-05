@@ -3470,7 +3470,7 @@ describe("untilOpponentNextTurnEnd DP scope is loud", () => {
           0,
           3000,
           EffectDuration.UntilOpponentTurnEnd,
-          { ownerSeat: 0, skipsCurrentOpponentTurnEnd: !isOwnersTurn },
+          { ownerSeat: 0, skipsCurrentOpponentTurnEnd: !isOwnersTurn, matches: expect.any(Function) },
         ],
       },
     ]);
