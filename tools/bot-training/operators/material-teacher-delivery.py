@@ -338,7 +338,12 @@ def whole(ctx: dict[str, Any], phase: str, identity_sha: str, *, closed: bool) -
             "prepareIdentity": Path(ctx["request"]["phaseBindings"][phase]["identity"]),
         },
     }
-    ctx["runtime"].whole(selected, "prepare", identity_sha, closed=closed)
+    require(
+        "_adapterRuntime" in runtime_ctx
+        and callable(getattr(runtime_ctx["_adapterRuntime"], "whole", None)),
+        "Actual source-adapter context must bind the original whole mechanism",
+    )
+    runtime_ctx["_adapterRuntime"].whole(selected, "prepare", identity_sha, closed=closed)
 
 
 def go(
