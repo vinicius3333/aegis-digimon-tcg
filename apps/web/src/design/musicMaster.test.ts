@@ -16,6 +16,9 @@ describe("original musical source mastering", () => {
     expect(manifest.runtimeUrl).toBe(selected.url);
     expect(selected.bpm).toBe(112);
     expect(selected.role).toBe("selected");
+    expect(selected.finishedAnalysis.sha256).toBe(selected.sha256);
+    expect(selected.finishedAnalysis.estimatedBpm).toBeCloseTo(112, 0);
+    expect(selected.finishedAnalysis.normalizedAutocorrelation).toBeGreaterThan(0.6);
     for (const candidate of provenance.candidates) {
       const source = gunzipSync(readFileSync(new URL(`music-candidates/${candidate.sourceFile}`, root)));
       expect(createHash("sha256").update(source).digest("hex")).toBe(candidate.sourceSha256);
@@ -48,8 +51,8 @@ describe("original musical source mastering", () => {
       expect(rms(channel.slice(0, frames))).toBeGreaterThan(0.004);
       expect(rms(channel.slice(-frames))).toBeGreaterThan(0.004);
     }
-    expect(selected.boundaryChromaCosine).toBeGreaterThan(0.9);
-    expect(selected.tempoConfidence).toBeGreaterThan(0.6);
+    expect(selected.sourceAnalysis.boundaryChromaCosine).toBeGreaterThan(0.9);
+    expect(selected.sourceAnalysis.tempoConfidence).toBeGreaterThan(0.6);
   });
   it("supports deterministic 44.1 kHz mastering from the same committed original source", () => {
     const candidate = provenance.candidates[0];
@@ -59,6 +62,26 @@ describe("original musical source mastering", () => {
     const metrics = musicMetrics(pcm);
     expect(metrics.peak).toBeCloseTo(0.075, 6);
     expect(metrics.boundaryStep).toBeLessThan(0.000001);
+  });
+  it("increases offline pace without shifting a known instrument pitch", () => {
+    const rate = 48000;
+    const tone = Float32Array.from({ length: rate * 2 }, (_, i) => Math.sin((2 * Math.PI * 440 * i) / rate) * 0.05);
+    const pcm = tempoOriginalMusic({ sampleRate: rate, channels: [tone] }, 104, 112);
+    expect(pcm.channels[0]!.length).toBe(Math.round((tone.length * 104) / 112));
+    const data = pcm.channels[0]!.slice(rate / 4, (rate * 3) / 4);
+    const amplitude = (hz: number) => {
+      let real = 0,
+        imaginary = 0;
+      for (let i = 0; i < data.length; i++) {
+        const phase = (2 * Math.PI * hz * i) / rate;
+        real += data[i]! * Math.cos(phase);
+        imaginary += data[i]! * Math.sin(phase);
+      }
+      return Math.hypot(real, imaginary) / data.length;
+    };
+    expect(amplitude(440)).toBeGreaterThan(0.025);
+    expect(amplitude((440 * 112) / 104)).toBeLessThan(amplitude(440) * 0.03);
+    expect(musicMetrics(pcm).boundaryStep).toBeLessThan(0.000001);
   });
   it("rejects incomplete phrases, missing pre-roll and unsafe headroom without yielding a broken loop", () => {
     const candidate = provenance.candidates[0];

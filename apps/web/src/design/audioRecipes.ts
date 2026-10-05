@@ -94,19 +94,22 @@ export function audioRecipe(
     values.forEach((note, index) => add(texture, at + index * gap, 0.38, gain, midi(note)));
   switch (kind) {
     case "draw":
-      paper(0, 0.16);
-      paper(0.055, 0.065, 0.08);
+      paper(0, 0.115, 0.16);
+      paper(0.048, 0.045, 0.065);
+      add("body", 0.012, 0.055, 0.035, 330, 260);
       break;
     case "move":
       paper(0, 0.23, 0.13);
       add("body", 0.16, 0.1, 0.07, 210, 160);
       break;
     case "handTrash":
-      paper(0, 0.24, 0.18);
-      add("grain", 0.12, 0.2, 0.09, 1000);
+      paper(0, 0.17, 0.15);
+      add("grain", 0.075, 0.085, 0.045, 700);
+      add("pluck", 0.06, 0.15, 0.035, midi(57), midi(50));
       break;
     case "sourceTrash":
-      [0, 0.055, 0.115].forEach((at) => paper(at, 0.095, 0.11));
+      [0, 0.042, 0.087].forEach((at) => paper(at, 0.07, 0.1));
+      add("body", 0.11, 0.065, 0.04, 230, 180);
       break;
     case "shuffle":
       [0, 0.07, 0.14, 0.23, 0.31].forEach((at, i) => paper(at, 0.095, 0.13 - i * 0.009));
@@ -119,8 +122,9 @@ export function audioRecipe(
     case "cardPlay": {
       const weight = finite(details.cost, 5, 0, 15) / 15;
       paper(0, 0.1, 0.17);
-      add("body", 0.035, 0.22 + weight * 0.22, 0.16 + weight * 0.13, 190 - weight * 85, 65 - weight * 20);
-      add("grain", 0.04, 0.13 + weight * 0.12, 0.13 + weight * 0.07, 950);
+      add("body", 0.035, 0.18 + weight * 0.18, 0.15 + weight * 0.12, 190 - weight * 85, 65 - weight * 20);
+      add("grain", 0.025, 0.075 + weight * 0.065, 0.09 + weight * 0.05, 950);
+      add("pluck", 0.025, 0.14, 0.028, midi(55));
       if (details.assembly) {
         add("body", 0.12, 0.12, 0.08, 310, 210);
         notes([55, 62, 67], 0.06, 0.065, 0.16, "glass");
@@ -132,10 +136,11 @@ export function audioRecipe(
         target = finite(details.targetLevel, 4, 2, 7);
       const jump = Math.max(1, target - source),
         root = 45 + target * 2;
-      add("air", 0, 0.32 + jump * 0.025, 0.13, 1700);
-      notes([root - 7 - jump, root - 3, root, root + 7], 0.08 + jump * 0.012, 0.095, 0.06);
-      add("pad", 0.25 + jump * 0.035, 0.55 + target * 0.025, 0.075, midi(root));
-      add("glass", 0.32 + jump * 0.035, 0.45, 0.055, midi(root + 12));
+      paper(0, 0.09, 0.085);
+      add("air", 0, 0.24 + jump * 0.018, 0.075, 1700);
+      notes([root - 7 - jump, root - 3, root, root + 7], 0.065 + jump * 0.01, 0.085, 0.06);
+      add("pad", 0.25 + jump * 0.035, 0.38 + target * 0.02, 0.06, midi(root));
+      add("glass", 0.32 + jump * 0.035, 0.32, 0.045, midi(root + 12));
       break;
     }
     case "attackDeclare":
@@ -157,16 +162,19 @@ export function audioRecipe(
       add("air", 0.12, 0.48, 0.06, 1800);
       break;
     case "deDigivolve":
-      notes([69, 64, 57, 50], 0.075, 0.09);
-      add("grain", 0.12, 0.35, 0.11, 1300);
+      [69, 64, 57, 50].forEach((note, i) => add("pluck", i * 0.06, 0.22, 0.075, midi(note)));
+      [0, 0.055].forEach((at) => paper(at, 0.08, 0.1));
+      add("body", 0.15, 0.08, 0.045, 180, 120);
       break;
     case "effectActivate":
-      add("air", 0, 0.22, 0.085, 2300);
-      notes([67, 74], 0.065, 0.085, 0.02, "glass");
+      paper(0, 0.055, 0.06);
+      add("air", 0, 0.12, 0.045, 2300);
+      [67, 74].forEach((note, i) => add("glass", 0.012 + i * 0.065, 0.25, 0.075, midi(note)));
       break;
     case "effectFocus":
-      add("air", 0, 0.19, 0.06, 1700);
-      add("glass", 0.035, 0.28, 0.07, midi(62));
+      paper(0, 0.045, 0.045);
+      add("pluck", 0.006, 0.16, 0.045, midi(62));
+      add("glass", 0.035, 0.2, 0.055, midi(62));
       break;
     case "hatch":
       paper(0, 0.1, 0.11);
@@ -177,8 +185,9 @@ export function audioRecipe(
       add("glass", 0.07, 0.34, 0.075, midi(69));
       break;
     case "endTurn":
-      notes([62, 57], 0.13, 0.085);
-      add("body", 0.04, 0.18, 0.06, 120, 100);
+      paper(0, 0.055, 0.055);
+      [62, 57].forEach((note, i) => add("pluck", i * 0.11, 0.27, 0.075, midi(note)));
+      add("body", 0.025, 0.11, 0.05, 120, 100);
       break;
     case "turnChange":
       notes([50, 57, 62], 0.11, 0.09);
@@ -230,8 +239,8 @@ export function audioRecipe(
       texture: "recording",
       source: "impact",
       at: 0.012,
-      duration: direction === "warm" ? 0.3 : 0.23,
-      gain: 0.28,
+      duration: kind === "cardPlay" ? 0.2 : direction === "warm" ? 0.3 : 0.23,
+      gain: kind === "cardPlay" ? 0.22 : 0.28,
       hz: 1,
     });
   if (["effectActivate", "digivolve", "hatch", "securityHit", "reveal"].includes(kind))
@@ -239,8 +248,8 @@ export function audioRecipe(
       texture: "recording",
       source: "crystal",
       at: 0.025,
-      duration: kind === "digivolve" ? 0.55 : 0.3,
-      gain: direction === "warm" ? 0.32 : 0.25,
+      duration: kind === "digivolve" ? 0.4 : kind === "effectActivate" ? 0.22 : 0.3,
+      gain: ["digivolve", "effectActivate"].includes(kind) ? 0.26 : direction === "warm" ? 0.32 : 0.25,
       hz: 1,
     });
   return {
