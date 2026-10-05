@@ -81,6 +81,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt26-chronomon-dm-succession",
   "arena-bt8-digimon-emperor-breeding-memory",
   "arena-face-up-security",
+  "arena-bt20-invisimon-security-count",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
   "arena-ad1-adventure-tamers-security",
@@ -2418,6 +2419,30 @@ function layFaceUpSecurityScenario(state: GameState, decks: readonly [Decklist, 
   const opponent = state.players[1];
   if (opponent === undefined) return;
   for (const card of opponent.security.slice(0, 2)) card.faceUp = true;
+}
+
+/** Discord 1556677140253249656: Kargalargus's four-card stack after Invisimon reveals Jesmon. */
+function layBt20InvisimonSecurityCountScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    for (const [index, cardId] of ["BT20-017", "BT1-010", "BT1-010", "BT1-010"].entries()) {
+      const card = faceDownCard(`dev-invisimon-security-${seat}-${index}`, cardId, seat);
+      card.faceUp = seat === 0 && index === 0;
+      insertCard(player, Zone.Security, card);
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["ST5-09"], "-invisimon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-invisimon-count-hand", "BT20-055", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /**
@@ -5768,6 +5793,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
   "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
+  "arena-bt20-invisimon-security-count": layBt20InvisimonSecurityCountScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
   "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,

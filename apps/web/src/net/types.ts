@@ -50,6 +50,7 @@ export interface AegisJoinOptions {
     | "arena-bt24-sonic-shot-decline-link"
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
+    | "arena-bt20-invisimon-security-count"
     | "arena-ex13-grademon-immunity"
     | "arena-diarbbitmon-dual-option-immunity"
     | "arena-taiki-digixros-any-tamer-hand"
