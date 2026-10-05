@@ -90,6 +90,14 @@ h1 { font: 700 20px/1.2 var(--ds-font-display); margin: 0 0 4px; }
 .ledger-cards { flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 2px; height: 100%; padding-left: 5px; border-left: 1px solid #3b5c9e66; font-size: 9px; color: var(--ds-brand-on-ink-muted); }
 .ledger-text { display: flex; align-items: baseline; gap: 4px; min-width: 0; flex: 1; }
 
+/* A2: moment cards */
+.moment-body { position: absolute; inset: 0 0 1px; display: flex; align-items: center; gap: 5px; padding: 3px 6px 3px 9px; }
+.moment-text { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 1px; }
+.moment-text .two { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; font-size: 11px; line-height: 1.15; }
+.moment-owner { color: var(--ds-brand-on-ink); font-weight: 700; }
+.moment-result { flex: none; display: flex; align-items: center; gap: 2px; }
+.tabs button[data-earlier] { border-style: dashed; color: var(--ds-brand-on-ink-muted); }
+
 /* B: spotlight + stubs */
 .stub { position: absolute; top: 0; bottom: 0; width: 44px; display: grid; place-items: center; }
 .stub .art { width: 22px; height: 31px; }
@@ -107,8 +115,8 @@ h1 { font: 700 20px/1.2 var(--ds-font-display); margin: 0 0 4px; }
 .sheet h2 { margin: 0; font: 700 16px/1.2 var(--ds-font-body); }
 .icon-btn { display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: inherit; cursor: pointer; border-radius: 6px; }
 .icon-btn:focus-visible, .sheet button:focus-visible { outline: 2px solid var(--ds-focus-color); outline-offset: -2px; }
-.tabs { display: flex; gap: 6px; padding: 0 12px 8px; }
-.tabs button { flex: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--battle-panel-border); border-radius: 8px; background: transparent; color: inherit; font: 600 12px var(--ds-font-body); cursor: pointer; text-align: left; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.tabs button { flex: 1 1 calc(50% - 6px); min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--battle-panel-border); border-radius: 8px; background: transparent; color: inherit; font: 600 12px var(--ds-font-body); cursor: pointer; text-align: left; }
 .tabs button[aria-selected="true"] { background: #1b2d52; box-shadow: inset 0 -2px 0 var(--ds-focus-color); }
 .tabs span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sheet-body { overflow-y: auto; padding: 0 12px 12px; display: grid; gap: 8px; }
@@ -184,14 +192,14 @@ const VIEWPORTS = {
 };
 
 const OPTIONS = {
+  A2: { name: "A2 · Moment cards (recommended)", band: true },
   current: { name: "Current", band: true },
   A: { name: "A · Lane ledger", band: true },
-  Ashort: { name: "A′ · Ledger in header", band: false },
   B: { name: "B · Spotlight", band: false },
   C: { name: "C · Edge rails", band: false },
 };
 
-const state = { option: "A", size: "large", viewport: "320x568", scenario: "worst", measure: "on", selected: null, tab: 0 };
+const state = { option: "A2", size: "large", viewport: "320x568", scenario: "paired", measure: "on", selected: null, tab: 0 };
 const params = new URLSearchParams(location.search);
 for (const key of Object.keys(state)) if (params.has(key)) state[key] = params.get(key);
 
@@ -239,7 +247,22 @@ function render() {
   phone.append(el("img", { class: "strip", src: `board/dock-${v}.webp`, alt: "", style: { top: vp.h - vp.dock + "px", height: vp.dock + "px" } }));
   let rowTops;
   const band = bandHeight();
-  if (band === 48) {
+  if (state.option === "A2" && v === "320x568") {
+    /* Recommended field floor: battle rows keep their measured no-gutter 96px, so art stays
+       44×62; the field scrolls locally instead (≈48px here, an estimate). Scroll it. */
+    const field = el("div", { class: "field-scroll", style: { position: "absolute", left: 0, right: 0, top: "92px", height: vp.field + "px", overflowY: "auto", overscrollBehavior: "contain" } });
+    const parts = [["util-opp", 82, false], ["battle-opp", 96, true], ["memory", 44, false], ["battle-you", 96, true], ["util-you", 82, false]];
+    const inner = el("div", { style: { position: "relative", height: parts.reduce((sum, part) => sum + part[1], 0) + "px", overflow: "hidden" } });
+    let top = 0;
+    rowTops = [];
+    for (const [name, height, scaled] of parts) {
+      if (name.startsWith("battle")) rowTops.push(92 + top);
+      inner.append(el("img", { class: "strip" + (scaled ? " scaled" : ""), src: `board/${name}-320x568.webp`, alt: "", style: { top: top + "px", height: height + "px" } }));
+      top += height;
+    }
+    field.append(inner);
+    phone.append(field);
+  } else if (band === 48) {
     phone.append(el("img", { class: "strip", src: `board/field-${v}.webp`, alt: "", style: { top: "92px", height: vp.field + "px" } }));
     rowTops = vp.rows.gutter;
   } else if (v === "320x568") {
@@ -268,7 +291,7 @@ function render() {
 
   const paused = Boolean(scenario.decision);
   const ctx = { vp, scenario, paused, rowTops, phone };
-  ({ current: renderCurrent, A: renderLedgerBand, Ashort: renderLedgerHeader, B: renderSpotlight, C: renderRails })[state.option](ctx);
+  ({ current: renderCurrent, A2: renderMomentCards, A: renderLedgerBand, B: renderSpotlight, C: renderRails })[state.option](ctx);
 
   if (scenario.decision === "order") {
     phone.append(el("div", { class: "decision", style: { height: Math.round(vp.h * 0.62) + "px" } },
@@ -322,7 +345,6 @@ function ledgerRows(moments) {
 const SIZES = {
   large: { band: 64, rowH: 30, gap: 4, art: [20, 28], thumb: [18, 25], text: 12, label: 10 },
   compact: { band: 48, rowH: 22, gap: 4, art: [14, 20], thumb: [13, 18], text: 11, label: 9 },
-  header: { band: 40, rowH: 19, gap: 2, art: [12, 17], thumb: [12, 17], text: 10.5, label: 8.5 },
 };
 const cardsText = (m) => m.cards.length === 1 ? cap(m.cards[0]) : `${m.cards.length} cards`;
 const cap = (key) => key[0].toUpperCase() + key.slice(1);
@@ -382,8 +404,49 @@ function ledger({ scenario, paused, phone }, box, size) {
   });
 }
 
+/* A2: the two newest moments as complete cards. Each card is one event and one 44px+ target.
+   A moment carries at most one clause and one card list, so two cards never exceed two per lane.
+   A card keeps the slot it appeared in; a new moment replaces the oldest. Older moments stay
+   in the queue until their own clocks end and are listed under "Earlier" in the sheet. */
+function renderMomentCards({ vp, scenario, paused, phone }) {
+  const all = scenario.moments.map((id) => MOMENT[id]);
+  const visible = all.slice(-2);
+  const slotW = Math.floor((vp.w - 16 - 4) / 2);
+  if (!visible.length) {
+    phone.append(el("div", { class: "empty-outline", style: { left: "8px", top: "44px", width: vp.w - 16 + "px", height: "48px" } }, el("span", {}, "empty: band reserved, nothing drawn")));
+  }
+  const promptId = scenario.decision === "order" ? "reveal" : null;
+  visible.forEach((m) => {
+    const slot = all.indexOf(m) % 2;
+    const owner = m.side === "you" ? "You" : "Opp";
+    const title = m.clause ? m.label : m.panelTitle;
+    const action = m.clause ?? cardsText(m);
+    const resultCard = m.clause && m.cards.length ? m.cards[0] : null;
+    const leadArt = m.art ?? m.cards[0] ?? null;
+    phone.append(el("div", { class: "panel moment" + (paused ? " paused" : "") + (m.id === promptId ? " prompt" : ""), "data-tone": m.tone,
+        style: { left: 8 + slot * (slotW + 4) + "px", top: "44px", width: slotW + "px", height: "48px" } },
+      el("span", { class: "owner", "data-side": m.side }),
+      el("div", { class: "moment-body" },
+        leadArt ? art(leadArt, 18, 25) : null,
+        el("span", { class: "moment-text" },
+          el("span", { class: "label" }, el("strong", { class: "moment-owner" }, owner), ` · ${title}`),
+          el("span", { class: "clause two" }, action)),
+        resultCard ? el("span", { class: "moment-result" }, el("span", { class: "label" }, "→"), art(resultCard, 16, 22), m.cards.length > 1 ? el("span", { class: "label" }, `×${m.cards.length}`) : null) : null,
+        !m.clause && m.cards.length > 1 ? el("span", { class: "moment-result" }, el("span", { class: "label" }, `×${m.cards.length}`)) : null),
+      el("span", { class: "life" }),
+      el("button", { class: "hit", "aria-haspopup": "dialog",
+        "aria-label": `${ownerName(m.side)} ${title}${m.source ? `, ${m.source}` : ""}: ${action}${resultCard ? `. Result: ${m.panelTitle}, ${cardsText(m)}` : ""}. Show the full notice`,
+        onclick: () => open(m.id, [...visible].reverse().map((v) => v.id).concat(all.slice(0, -2).reverse().map((v) => v.id))) })));
+  });
+  requestAnimationFrame(() => {
+    const widths = [...phone.querySelectorAll(".moment .clause")].map((n) => Math.round(n.getBoundingClientRect().width));
+    phone.append(measure(`${visible.length || 2} targets ${slotW}×48 · action text ${widths.join("/") || "–"}px × 2 lines`, { left: "8px", top: "94px" }));
+  });
+  phone.append(measure(`field art ${state.viewport === "320x568" ? "44×62 floor (field scrolls ≈48px e)" : vp.art.gutter + " m"}`, { left: "8px", top: (state.viewport === "320x568" ? 92 + 82 : vp.rows.gutter[0]) + 2 + "px" }));
+}
+
 function bandHeight() {
-  if (state.option === "current") return 48;
+  if (state.option === "current" || state.option === "A2") return 48;
   if (state.option === "A") return SIZES[state.size].band;
   return 0;
 }
@@ -394,11 +457,6 @@ function renderLedgerBand(ctx) {
   ctx.phone.append(measure(`field art ${fieldArt(vp)}`, { left: "8px", top: ctx.rowTops[0] + 2 + "px" }));
 }
 
-function renderLedgerHeader(ctx) {
-  const { vp } = ctx;
-  ledger(ctx, { left: "4px", top: "2px", width: vp.header.region + "px" }, SIZES.header);
-  ctx.phone.append(measure(`field art ${vp.art.none}`, { left: "8px", top: ctx.rowTops[0] + 2 + "px" }));
-}
 function fieldArt(vp) {
   const band = bandHeight();
   if (band === 48) return vp.art.gutter + " m";
@@ -487,9 +545,10 @@ function renderSheet({ phone }) {
   const group = state.group.map((id) => MOMENT[id]);
   const m = MOMENT[state.selected];
   phone.append(el("div", { class: "scrim", onclick: () => close(false) }));
-  const tabs = group.length > 1 ? el("div", { class: "tabs", role: "tablist", "aria-label": "Visible notices" },
-    ...group.map((g) => el("button", { role: "tab", "aria-selected": String(g.id === m.id), onclick: () => { state.selected = g.id; render(); document.querySelector(".tabs [aria-selected=true]")?.focus(); } },
-      art(g.art ?? g.cards[0], 16, 22), el("span", {}, `${g.side === "you" ? "You" : "Opp"} · ${g.clause ? g.label : g.panelTitle}`)))) : null;
+  const visibleIds = new Set(state.option === "A2" ? SCENARIOS[state.scenario].moments.slice(-2) : group.map((g) => g.id));
+  const tabs = group.length > 1 ? el("div", { class: "tabs", role: "tablist", "aria-label": "Notices" },
+    ...group.map((g) => el("button", { "data-earlier": visibleIds.has(g.id) ? undefined : "true", role: "tab", "aria-selected": String(g.id === m.id), onclick: () => { state.selected = g.id; render(); document.querySelector(".tabs [aria-selected=true]")?.focus(); } },
+      art(g.art ?? g.cards[0], 16, 22), el("span", {}, `${visibleIds.has(g.id) ? "" : "Earlier · "}${g.side === "you" ? "You" : "Opp"} · ${g.clause ? g.label : g.panelTitle}`)))) : null;
   const body = el("div", { class: "sheet-body" },
     m.source ? el("p", { class: "source" }, el("strong", {}, m.source), " ", el("small", {}, m.code), el("br"), el("small", {}, ownerName(m.side))) : el("p", { class: "source" }, el("small", {}, ownerName(m.side))),
     m.clause ? el("div", { class: "notice" }, el("div", {}, m.tone === "effect" ? el("span", { class: "timing" }, `[${m.label}]`) : el("strong", {}, `${m.label} · `), m.clause), art(m.art, 44, 62)) : null,
@@ -512,9 +571,9 @@ function renderSheet({ phone }) {
 }
 
 const NOTES = {
+  A2: ["A2 · Moment cards (recommended)", "The existing 48px band holds the two newest moments as complete cards, about 150×48 each at 320: twice the per-event width of today. Each card is one event and one 44px+ target. It shows the owner in words (You / Opp), the label, two lines of action text, and the result card when the clause moved cards. Cause and result stay in one card. The opponent header is untouched. At 320×568 the battle rows keep their 96px floor, so field art stays 44×62 and the field scrolls locally; scroll the field to try it. Older moments stay in the queue and are listed under Earlier in the sheet."],
   current: ["Current checkpoint (9f366325f)", "Four 72×48 targets in a permanent 48px gutter. One moment that carries a clause and its revealed cards is split into two toasts, so four slots show two moments. Text area is about 40px wide: roughly six characters (\"Reveal 5…\", \"1 cards\"). 16px art is not recognisable. Owner is not shown."],
-  A: ["A · Lane ledger (recommended)", "Two columns keep the lanes: clauses left, moved cards right, at most two entries each, so 2 left + 2 right are visible at once (see '4 unrelated items'). A clause and the cards it moved share a row and render joined; unrelated entries sit in separate cells. Each lane column is one target at least 44px tall; the tapped row selects its tab in the sheet. The opponent header stays untouched. Large (64px band, 30px rows, 12px text, 20×28 art) is the requested bigger size; Compact keeps today's 48px."],
-  Ashort: ["A′ · Ledger hosted in the opponent header (short-screen tier)", "Same ledger, hosted over the opponent name and counters (the fan of card backs and the menu stay visible). Returns the 48px gutter: at 320×568 field art goes back from 32×45 to 44×62 (capture.json, without gutter). While a notice lives, the opponent name and duplicate egg/deck/trash counts are covered; hand count stays readable from the fan."],
+  A: ["A · Lane ledger (exploration)", "Two columns keep the lanes: clauses left, moved cards right, at most two entries each, so 2 left + 2 right are visible at once (see '4 unrelated items'). A clause and the cards it moved share a row and render joined; unrelated entries sit in separate cells. Each lane column is one target at least 44px tall; the tapped row selects its tab in the sheet. The opponent header stays untouched. Large (64px band, 30px rows, 12px text, 20×28 art) is the requested bigger size; Compact keeps today's 48px."],
   B: ["B · Spotlight + stubs in the header", "Newest moment gets a two-line spotlight with art and its result card; the older clause and older card list become 44×44 art stubs at each end. Every item is its own 44×44 target. No reserved band. Downside: at 320 the header leaves about 74px of text per line, so the older entries carry no text at all."],
   C: ["C · Edge rails beside the battle rows", "Desktop places clauses left and moved cards right; the rails mirror that. Two slots per rail, aligned so a clause and its result sit at the same height. Tiles show 32×45 art and a one-word label. No gutter, but battle lanes lose 60px of width permanently, the lower slot is covered by bottom-sheet decisions, and action text disappears."],
 };
@@ -525,13 +584,14 @@ function renderNotes() {
     el("h2", {}, title), el("p", {}, body),
     el("h2", {}, "Tradeoffs at 320×568"),
     table([
-      ["", "Current", "A Large", "A Compact", "A′", "B", "C"],
-      ["Reserved height", "48px", "64px", "48px", "0", "0", "0"],
-      ["Field art", "32×45 m", "≈26×37 e", "32×45 m", "44×62 m", "44×62 m", "44×62 m"],
-      ["Visible entries", "2L+2R (4 toasts)", "2L+2R", "2L+2R", "2L+2R", "1 + 2 stubs", "2L+2R"],
-      ["Targets", "4 × 72×48", "2 lanes × 64", "2 lanes × 48", "2 lanes × 44", "142×44 + 2 × 44×44", "≤4 × 40×88"],
-      ["Clause text", "≈40px", "live in overlay", "live in overlay", "live in overlay", "≈78px ×2", "label only"],
-      ["Covers", "nothing", "nothing", "nothing", "opp name + counters", "opp name + counters", "lane edges"],
+      ["", "Current", "A2", "A Large", "B", "C"],
+      ["Reserved height", "48px", "48px", "64px", "0", "0"],
+      ["Field art", "32×45 m", "44×62 floor", "≈26×37 e", "44×62 m", "44×62 m"],
+      ["Field scroll", "12px m", "≈50px e", "more e", "≈0 e", "≈0 e"],
+      ["Events visible", "2 (as 4 toasts)", "2", "2L+2R", "1 + 2 stubs", "2"],
+      ["Own 44px target per event", "yes", "yes", "no (lane)", "no (40px)", "yes"],
+      ["Action text", "≈40px × 1", "≈95px × 2 p", "≈90px × 1 p", "≈78px × 2", "label only"],
+      ["Covers", "nothing", "nothing", "nothing", "opp name + counters", "lane edges"],
     ]),
     el("p", {}, el("span", { class: "tag" }, "m"), " measured in capture.json · ", el("span", { class: "tag" }, "e"), " estimated from measured heights; needs the browser probe."),
   );
