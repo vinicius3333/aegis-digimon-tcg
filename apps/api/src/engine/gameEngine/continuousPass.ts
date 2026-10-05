@@ -261,8 +261,17 @@ async function derivePass(
   engine.projection.recomputeExpiredAffectationRecipients();
   engine.modifiers.recomputeFilteredPlayerDp(engine.state);
 
-  // A seed is only an input to engine pass. Recompute every seeded permanent from the rebuilt
+  // A seed is only an input to this pass. Recompute seeded and newly modified permanents from the rebuilt
   // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
-  for (const permanentId of seed.keys()) engine.modifiers.recomputeDP(engine.state, permanentId);
+  // A DP aura can run before its target reinstalls its immunity in this pass. Refresh
+  // every live recipient after all protections exist, including newly affected targets
+  // absent from the previous seed; otherwise their provisional reduction oscillates.
+  for (const player of engine.state.players) {
+    const permanents = player.breeding === undefined ? player.battleArea : [...player.battleArea, player.breeding];
+    for (const permanent of permanents) {
+      if (seed.has(permanent.permanentId) || engine.modifiers.hasContinuousDp(permanent.permanentId))
+        engine.modifiers.recomputeDP(engine.state, permanent.permanentId);
+    }
+  }
   engine.modifiers.recomputeFilteredPlayerDp(engine.state);
 }

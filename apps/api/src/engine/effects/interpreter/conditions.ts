@@ -26,6 +26,7 @@ import {
   CardColor,
   CardKind,
   getCardDefinition,
+  effectiveStaticNames,
   isDigimon,
   nameIncludesToken,
   requireCardDefinition,
@@ -1070,10 +1071,17 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             ? ctx.game.definitionOf({ cardId: ctx.trigger.deletedTopCardId } as never)
             : undefined;
       if (definition === undefined) return false;
-      const topName = (definition.nameEn ?? "").toLowerCase();
+      const live = ctx.source.permanent();
+      const topNames =
+        live === undefined
+          ? effectiveStaticNames(definition)
+          : (ctx.game.effectiveNames?.(live) ?? effectiveStaticNames(definition));
       const names = cond.names ?? [];
       const excluded = cond.excludeNames ?? [];
-      return names.some((n) => nameIncludesToken(topName, n)) && !excluded.some((n) => nameIncludesToken(topName, n));
+      return (
+        names.some((n) => topNames.some((name) => nameIncludesToken(name, n))) &&
+        !excluded.some((n) => topNames.some((name) => nameIncludesToken(name, n)))
+      );
     }
     case "raw":
       {

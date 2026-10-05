@@ -24,12 +24,13 @@ export enum CardKind {
   DigiEgg = "DigiEgg",
 }
 
-// Turn phases match documented behavior enum phase.
+// The four game phases, plus idle/cleanup markers retained by the wire protocol.
 export enum Phase {
   Active = "Active",
   Draw = "Draw",
   Breeding = "Breeding",
   Main = "Main",
+  /** Legacy cleanup/input-closed marker, not a fifth game phase (CR 6-1-2 / 6-6). */
   End = "End",
   None = "None",
 }

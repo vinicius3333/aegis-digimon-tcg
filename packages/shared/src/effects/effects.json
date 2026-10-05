@@ -216697,8 +216697,7 @@
             "effectTextPart": "[On Play] [When Digivolving] [When Attacking] You may suspend 1 Digimon.",
             "kind": "Suspend",
             "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
-            "optional": true,
-            "abortOnDecline": true
+            "optional": true
           },
           {
             "effectTextPart": "Then, this Digimon gains +3000 DP for the turn.",
@@ -216716,8 +216715,7 @@
             "effectTextPart": "[On Play] [When Digivolving] [When Attacking] You may suspend 1 Digimon.",
             "kind": "Suspend",
             "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
-            "optional": true,
-            "abortOnDecline": true
+            "optional": true
           },
           {
             "effectTextPart": "Then, this Digimon gains +3000 DP for the turn.",
@@ -216735,8 +216733,7 @@
             "effectTextPart": "[On Play] [When Digivolving] [When Attacking] You may suspend 1 Digimon.",
             "kind": "Suspend",
             "target": { "filter": { "controller": "any", "kind": ["Digimon"] }, "count": 1 },
-            "optional": true,
-            "abortOnDecline": true
+            "optional": true
           },
           {
             "effectTextPart": "Then, this Digimon gains +3000 DP for the turn.",

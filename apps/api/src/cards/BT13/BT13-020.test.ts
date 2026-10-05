@@ -50,12 +50,12 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     ]);
   });
 
-  it("does not accept a near-name Marcus Damon as the Burst Digivolve return cost", () => {
+  it("does not accept an unrelated Tamer as the Burst Digivolve return cost", () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT13-018", as: "shine" },
-          { card: "AD1-021", as: "nearMarcus" },
+          { card: "BT1-085", as: "nearMarcus" },
         ],
         hand: [{ card: "BT13-020", as: "burst" }],
       },

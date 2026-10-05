@@ -7,6 +7,29 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-086 compiled behavior", () => {
+  it.each([5, 7])("#4981/#4987 keeps %s link cards and Link +6 across a turn change", async (count) => {
+    const cards = ["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-086", as: "dante", linked: cards.slice(0, count) }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).linkMaxDelta(s.perm("dante"))).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).linkMaxDelta(s.perm("dante"))).toBe(6);
+    expect(s.perm("dante").linked).toHaveLength(count);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("rejects the VPS duplicate-name link response without consuming the decision", async () => {
     const s = setupEngine(
       {

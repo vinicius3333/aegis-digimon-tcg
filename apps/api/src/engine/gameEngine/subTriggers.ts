@@ -914,7 +914,11 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence
   return {
     source: ctx.source,
     activationIdentity: occurrence,
-    ...(sub.event === "onDeletionOf" || sub.event === "whenLeavesPlay"
+    ...(sub.event === "onDeletionOf" ||
+    sub.event === "whenLeavesPlay" ||
+    sub.event === "whenLinked" ||
+    sub.event === "whenAnyDigivolves" ||
+    sub.event === "whenOneOfYoursDigivolves"
       ? { triggerOccurrence: subTriggerIdentity(sub, ctx.trigger) }
       : {}),
     ...(sub.orderedByTurnPlayer === true ? { orderingSeat: engine.state.turnSeat } : {}),

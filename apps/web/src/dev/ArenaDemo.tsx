@@ -1,4 +1,5 @@
 /* Visual preview of the current arena, using the real match screen without a server. */
+import { PHASES } from "../game/screen/constants";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   CATALOG_DECKS,
@@ -993,7 +994,7 @@ export function ArenaDemo() {
             value={phase}
             onChange={(event) => previewPhase(event.target.value as Phase)}
           >
-            {[Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End].map((item) => (
+            {PHASES.map((item) => (
               <option key={item} value={item}>
                 {t(`game.phase.${item}`)}
               </option>

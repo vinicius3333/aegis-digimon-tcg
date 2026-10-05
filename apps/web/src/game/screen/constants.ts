@@ -1,6 +1,7 @@
 import { Phase } from "@aegis/shared";
 
-export const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
+/** CR 6-1-2: turn-end processing is not a fifth phase. */
+export const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main];
 
 /** A battle loser's stand-in card, sized to the shatter that takes over from it. */
 export const FIELD_CLASH_GHOST_WIDTH = 72;

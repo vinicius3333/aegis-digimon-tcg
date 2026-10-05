@@ -18,6 +18,15 @@ export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: Trigge
     sub.oncePerTurnKey ?? "",
     sub.dedupeKey ?? "",
   ].join("|");
+  if (trigger !== undefined && sub.event === "whenLinked") {
+    const linked = trigger.linkedCardInstanceIds ?? trigger.linkedInstanceIds ?? [];
+    if (linked.length > 0)
+      return `${identity}|link:${trigger.subjectPermanentId ?? ""}:${[...linked].sort().join(",")}`;
+  }
+  if (trigger !== undefined && (sub.event === "whenAnyDigivolves" || sub.event === "whenOneOfYoursDigivolves")) {
+    if (trigger.digivolvedInstanceId !== undefined)
+      return `${identity}|digivolve:${trigger.subjectPermanentId ?? ""}:${trigger.digivolvedInstanceId}`;
+  }
   // Entry windows and their trailing bus publish the same play twice. Deduplicate
   // that publication, not every play inside the enclosing effect: a nested On Play
   // can play another Digimon while the original arrival watcher is still pending.
@@ -47,7 +56,17 @@ export function uniqueOncePerTurnWatcherOccurrences(items: readonly ArmedSubTrig
   const seen = new Set<string>();
   return items.filter((item) => {
     if (item.sub.oncePerTurnKey === undefined) return true;
-    const identity = subTriggerIdentity(item.sub);
+    // A later Link or digivolution inside the same outer window is a new event.
+    // Preserve it while an older occurrence waits; the OPT ledger still prevents
+    // both from activating successfully in the same turn.
+    const identity = subTriggerIdentity(
+      item.sub,
+      item.sub.event === "whenLinked" ||
+        item.sub.event === "whenAnyDigivolves" ||
+        item.sub.event === "whenOneOfYoursDigivolves"
+        ? item.ctx.trigger
+        : undefined,
+    );
     if (seen.has(identity)) return false;
     seen.add(identity);
     return true;

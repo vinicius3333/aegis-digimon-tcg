@@ -85,12 +85,13 @@ export function matchIntents({
     intents.playCard(activeRoom, instanceId, targetSlot, digiXros, assembly, useAs);
   };
 
-  const playCard = (instanceId: string, confirmDrop = false) => {
+  const playCard = (instanceId: string, confirmDrop = false, preferDna = false) => {
     if (mainActionBlocked) return;
     const prompt = prePlayPromptFor({
       entry: handEntries.find((h) => h.instanceId === instanceId),
       viewer,
       confirmDrop,
+      preferDna,
       actionConfirmationsEnabled,
     });
     if (prompt?.kind === "dual") {

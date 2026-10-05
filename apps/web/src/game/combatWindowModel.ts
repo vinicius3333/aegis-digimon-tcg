@@ -187,6 +187,8 @@ export interface OpenCombatWindow {
   key: string;
   /** The room state revision the window's opening event was emitted under, if known. */
   stateVersion?: number;
+  /** Identifies successive prompt occurrences for the same permanent. */
+  promptSeq?: number;
 }
 
 /**
@@ -217,19 +219,39 @@ export function openCombatWindow(
         // (a Blast Digivolve answering the attack, say) before they reach the screen.
         if (state.turnSeat === viewerSeat) return null;
         if (event.eligibleBlockerIds.length === 0) return null;
-        return { key: `block:${event.attackerPermanentId}`, stateVersion: event.stateVersion };
+        return {
+          key: `block:${event.attackerPermanentId}`,
+          stateVersion: event.stateVersion,
+          ...(event.seq === undefined ? {} : { promptSeq: event.seq }),
+        };
       case "counterWindowOpened":
         if (event.defendingSeat !== viewerSeat || event.eligibleCounters.length === 0) return null;
-        return { key: `counter:${event.attackerPermanentId}`, stateVersion: event.stateVersion };
+        return {
+          key: `counter:${event.attackerPermanentId}`,
+          stateVersion: event.stateVersion,
+          ...(event.seq === undefined ? {} : { promptSeq: event.seq }),
+        };
       case "alliancePrompt":
         if (findPermanentInState(state, event.permanentId)?.controllerSeat !== viewerSeat) return null;
-        return { key: `alliance:${event.permanentId}`, stateVersion: event.stateVersion };
+        return {
+          key: `alliance:${event.permanentId}`,
+          stateVersion: event.stateVersion,
+          ...(event.seq === undefined ? {} : { promptSeq: event.seq }),
+        };
       case "evadePrompt":
         if (findPermanentInState(state, event.permanentId)?.controllerSeat !== viewerSeat) return null;
-        return { key: `evade:${event.permanentId}`, stateVersion: event.stateVersion };
+        return {
+          key: `evade:${event.permanentId}`,
+          stateVersion: event.stateVersion,
+          ...(event.seq === undefined ? {} : { promptSeq: event.seq }),
+        };
       case "barrierPrompt":
         if (findPermanentInState(state, event.permanentId)?.controllerSeat !== viewerSeat) return null;
-        return { key: `barrier:${event.permanentId}`, stateVersion: event.stateVersion };
+        return {
+          key: `barrier:${event.permanentId}`,
+          stateVersion: event.stateVersion,
+          ...(event.seq === undefined ? {} : { promptSeq: event.seq }),
+        };
       case "blocked":
       case "blockDeclined":
       case "counterResolved":

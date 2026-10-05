@@ -186,6 +186,7 @@ export async function fireEnteredByEffectTiming(
     const tamerDigivolved = digivolvedFromTamerBase(subjectPermanent) && opts?.baseWasDigimon !== true;
     const watcherTrigger = {
       subjectPermanentId,
+      digivolvedInstanceId: instanceId,
       enteredByEffect: ownerSeat,
       ...(opts?.previousDigivolutionLevel === undefined
         ? {}

@@ -297,6 +297,8 @@ export interface TriggerInfo {
    * distinguish "this digivolved from the trash" (BT17-065).
    */
   digivolvedFromZone?: ZoneRef;
+  /** Physical card entering through this evolution, fixed before nested evolutions. */
+  digivolvedInstanceId?: string;
   /**
    * True when the card the WhenDigivolving window's subject digivolved FROM is a Tamer
    * (BT23-101's "digivolve from a Tamer" requirement), read from the printed card kind so an

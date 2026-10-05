@@ -350,9 +350,8 @@ it.each([0, 1] as const)(
     // Both land first, and the burst then plays every ribbon it carries, in order.
     await advance(flightMs + 32);
     expect(result.current.drawFlights).toHaveLength(0);
-    expect(result.current.phaseBanner?.phase).toBe("End");
-    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 32);
-    expect(result.current.turnTransition).not.toBeNull();
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.turnTransition?.endingSeat).toBe(0);
     await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap + 32);
     expect(result.current.phaseBanner?.phase).toBe("Active");
     await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + 32);
@@ -772,12 +771,10 @@ describe("match cues", () => {
     expect(result.current.permanentBursts.size).toBe(1);
     expect(result.current.phaseBanner).toBeNull();
     await advance(TIMINGS.cardBurst + 16);
-    expect(result.current.phaseBanner?.phase).toBe("End");
-    await advance(TIMINGS.phaseBanner);
     expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.turnTransition?.endingSeat).toBe(1);
+    await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
     expect(result.current.turnTransition).toBeNull();
-    await advance(TIMINGS.phaseBannerGap);
-    expect(result.current.turnTransition).not.toBeNull();
   });
 
   it("waits for a raw play event's batch before showing the end banner", async () => {
@@ -914,7 +911,7 @@ describe("match cues", () => {
   it("announces unrelated phases in order when they arrive in one batch", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
-    const phases = ["Active", "Draw", "Breeding", "Main", "End"];
+    const phases = ["Active", "Draw", "Breeding", "Main"];
     rerender(
       phases.map((phase) => ({
         kind: "phaseChanged",
@@ -1330,7 +1327,7 @@ describe("match cues", () => {
     expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
   });
 
-  it("releases an end-of-turn unsuspend that arrived before the End phase in an earlier patch", async () => {
+  it("releases an end-of-turn unsuspend that arrived before turn handoff in an earlier patch", async () => {
     const state = {
       phase: Phase.Main,
       turnSeat: 0,
@@ -1612,7 +1609,7 @@ describe("match cues", () => {
     expect(turnDrawStarted()).toBe(false);
 
     // It stays held through the viewer's own flight and every ribbon that precedes its
-    // own: the End ribbon, the turn change, then Active.
+    // own: the turn change, then Active.
     const seen: string[] = [];
     while (result.current.phaseBanner?.phase !== "Draw") {
       expect(turnDrawStarted()).toBe(false);
@@ -1620,7 +1617,7 @@ describe("match cues", () => {
       if (shown && seen.at(-1) !== shown) seen.push(shown);
       await advance(100);
     }
-    expect(seen).toEqual(["End", "Active"]);
+    expect(seen).toEqual(["Active"]);
     expect(result.current.turnTransition).toBeNull();
     expect(result.current.heldDrawState).toBeUndefined();
     expect(turnDrawStarted()).toBe(true);
@@ -1808,21 +1805,14 @@ describe("match cues", () => {
     ]);
     await advance(0);
 
-    // The ending seat's End ribbon opens the burst.
+    // Turn handoff is its own ribbon; no fifth phase precedes it.
     expect(result.current.drawFlights).toHaveLength(0);
-    expect(result.current.turnTransition).toBeNull();
-    expect(result.current.phaseBanner?.phase).toBe("End");
-    expect(result.current.phaseBanner?.side).toBe("opp");
-
-    // The ribbon then names the seats of the turn that ended, and holds its own time.
-    // Both prerequisite waits poll, so every checkpoint below allows a poll of slack.
-    await advance(TIMINGS.phaseBanner + TIMINGS.phaseBannerGap + POLL_MS);
+    expect(result.current.phaseBanner).toBeNull();
     expect(result.current.turnTransition).toEqual({
       endingSeat: 1,
       nextSeat: VIEWER,
       turnCount: 4,
     });
-    expect(result.current.phaseBanner).toBeNull();
     await advance(TIMINGS.turnBanner - POLL_MS * 4);
     expect(result.current.turnTransition).not.toBeNull();
 
@@ -1848,15 +1838,14 @@ describe("match cues", () => {
 
     const banners = reports.filter((report) => report.track === "phaseBanner" && report.phase === "started");
     expect(banners.map((report) => report.stepId)).toEqual([
-      "phase-banner-1",
       "turn-banner-4",
+      "phase-banner-1",
       "phase-banner-2",
       "phase-banner-3",
-      "phase-banner-4",
     ]);
     // The report says which side each once-per-side cue was drawn on, so a log can tell
     // the viewer's turn-start draw from the opponent's.
-    expect(banners.map((report) => report.side)).toEqual(["opp", "you", "you", "you", "you"]);
+    expect(banners.map((report) => report.side)).toEqual(["you", "you", "you", "you"]);
     const draws = reports.filter((report) => report.track.startsWith("turnDrawFlight-"));
     expect(draws).not.toHaveLength(0);
     expect(new Set(draws.map((report) => report.side))).toEqual(new Set(["you"]));
@@ -2141,9 +2130,10 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.optionBranch?.state).toBe("docked");
 
-    rerender([OPTION_USE, { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 1 }]);
+    rerender([OPTION_USE, { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 }]);
     await advance(32);
-    expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.turnTransition?.endingSeat).toBe(0);
     expect(result.current.optionBranch?.state).toBe("docked");
   });
 
@@ -4342,7 +4332,8 @@ describe("the narration feed", () => {
     expect(cards(result.current.narration)).toEqual(["BT1-001"]);
 
     await advance(200 + 16);
-    expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.turnTransition?.endingSeat).toBe(0);
     expect(cards(result.current.narration)).toEqual(["BT1-001"]);
 
     // Still its own clock, not the ribbon's: it goes when its reading time is up.
@@ -4358,7 +4349,8 @@ describe("the narration feed", () => {
       { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 },
     ]);
     await advance(16);
-    expect(result.current.phaseBanner?.phase).toBe("End");
+    expect(result.current.phaseBanner).toBeNull();
+    expect(result.current.turnTransition?.endingSeat).toBe(0);
   });
 
   it("expires each batch independently without resetting the earlier record", async () => {

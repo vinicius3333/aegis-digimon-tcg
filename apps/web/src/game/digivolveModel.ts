@@ -348,7 +348,13 @@ function altRequirementMatches(
     req.burstDigivolve &&
     !viewer?.battleArea.some((permanent) => {
       const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
-      return def !== undefined && req.burstDigivolve!.returnTamerNamesExact.includes(def.nameEn);
+      return (
+        def !== undefined &&
+        def.kinds.includes(CardKind.Tamer) &&
+        effectiveExactNames(def).some((name) =>
+          req.burstDigivolve!.returnTamerNamesExact.some((wanted) => wanted.toLowerCase() === name.toLowerCase()),
+        )
+      );
     })
   )
     return false;

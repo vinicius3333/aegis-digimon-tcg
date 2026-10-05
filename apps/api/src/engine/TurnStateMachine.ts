@@ -9,7 +9,7 @@ import { MemoryGauge, PASS_TURN_MEMORY } from "./MemoryGauge.js";
 export type BreedingChoice = "hatch" | "move" | "none";
 
 /**
- * Why the main phase ended, so the End phase can apply the right memory rule.
+ * Why the main phase ended, so turn-end processing can apply the right memory rule.
  *
  * - `crossed`: the gauge already crossed to the opponent during play (a paid action
  *   pushed it over); the turn ends with the gauge as-is.
@@ -114,7 +114,7 @@ const noopHooks: TurnFlowHooks = {
 };
 
 /**
- * Phase progression Active -> Draw -> Breeding -> Main -> End with turn passing
+ * Four phases Active -> Draw -> Breeding -> Main, followed by turn-end processing
  * (subsystem: turn-phase-state-machine; source: documented behavior,
  * documented behavior).
  *
@@ -175,7 +175,7 @@ export class TurnStateMachine {
     }
   }
 
-  /** One full turn: Active -> Draw -> Breeding -> Main -> End. Visible for testing. */
+  /** One full turn: four phases followed by turn-end processing. Visible for testing. */
   async runTurn(): Promise<void> {
     await this.activePhase();
     if (this.hooks.isGameOver()) return;
@@ -286,7 +286,7 @@ export class TurnStateMachine {
     return ending;
   }
 
-  // --- End phase ----------------------------------------------------------------
+  // --- Turn-end processing -------------------------------------------------------
   // source turn-end is split across the engine.EndTurnProcess (fires OnEndTurn,
   // applies the pass-turn +/-3) and TurnStateMachine.EndPhase (duration resets,
   // clears isFirstPlayerFirstTurn). Both run here, in source order: the OnEndTurn
@@ -315,7 +315,10 @@ export class TurnStateMachine {
   }
 
   private async closeTurn(): Promise<void> {
-    this.setPhase(Phase.End);
+    // Keep the legacy protocol marker while duration cleanup runs: ordinary Main
+    // intents must remain closed. It is not a game phase and must not emit a
+    // phaseChanged event; turnEnded announces the handoff after cleanup finishes.
+    this.state.phase = Phase.End;
     this.state.isFirstPlayersFirstTurn = false;
 
     await this.hooks.clearDurations("eachTurnEnd");

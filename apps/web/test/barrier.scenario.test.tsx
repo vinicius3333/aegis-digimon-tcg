@@ -140,7 +140,7 @@ scenario("barrier", () => {
       // The board also refuses ordinary actions for as long as it is still presenting the
       // check, and the skip control is the only thing on screen that says it still is.
       await vi.waitFor(() => expect(screen.queryByTestId("skip-presentation")).toBeNull(), { timeout: 10_000 });
-      fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+      fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
     }
 
     // Turn 4 (opponent): Groundramon entered turn 2, so it may attack — attack the

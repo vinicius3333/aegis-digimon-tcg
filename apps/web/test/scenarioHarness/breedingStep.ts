@@ -21,7 +21,7 @@ export async function findEndBreedingControl(timeout = TIMEOUT): Promise<HTMLEle
 export async function waitForBoardActions(timeout = TIMEOUT): Promise<void> {
   await vi.waitFor(
     () => {
-      const control = screen.queryByRole("button", { name: /^end (?:phase|breeding)$/i }) as HTMLButtonElement | null;
+      const control = screen.queryByRole("button", { name: /^end (?:turn|breeding)$/i }) as HTMLButtonElement | null;
       expect(control).not.toBeNull();
       expect(control?.disabled).toBe(false);
     },

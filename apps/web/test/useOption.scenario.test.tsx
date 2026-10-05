@@ -144,7 +144,7 @@ scenario("use-option", () => {
 
     // Gravity Crush's end-of-turn loss is pending processing: pass through the real
     // UI so its exact -2 resolves at OnEndTurn before the turn frame flips.
-    fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(1);

@@ -1,4 +1,4 @@
-import { EffectTiming, Phase } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import {
@@ -638,7 +638,7 @@ describe("BT21-044 RizeGreymon — KB Q&A rulings", () => {
   });
 
   it("lets a newer treated-as-Digimon effect overwrite the DP while earlier <Alliance> and <Rush> stay (Q6019)", async () => {
-    const snapshotsAtEndPhase: Array<{ dp: number; rush: boolean; alliance: boolean; digivolveLocked: boolean }> = [];
+    const snapshotsAtTurnEnd: Array<{ dp: number; rush: boolean; alliance: boolean; digivolveLocked: boolean }> = [];
     let setup: EngineSetup | undefined;
     const s = setupEngine(
       {
@@ -654,9 +654,15 @@ describe("BT21-044 RizeGreymon — KB Q&A rulings", () => {
         autoSelectCards: true,
         declinePrompts: [OPTIONAL_ATTACK_PROMPT],
         onEvent: (event) => {
-          if (setup === undefined || event.kind !== "phaseChanged" || event.phase !== Phase.End) return;
+          if (
+            setup === undefined ||
+            event.kind !== "effectResolved" ||
+            event.sourceCardId !== MARCUS_AGUMON ||
+            event.timing !== "OnEndTurn"
+          )
+            return;
           const marcus = setup.perm("marcus");
-          snapshotsAtEndPhase.push({
+          snapshotsAtTurnEnd.push({
             dp: marcus.currentDP,
             rush: observe(setup.engine).hasKeyword(marcus, "Rush"),
             alliance: observe(setup.engine).hasKeyword(marcus, "Alliance"),
@@ -680,7 +686,7 @@ describe("BT21-044 RizeGreymon — KB Q&A rulings", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
 
-    expect(snapshotsAtEndPhase).toEqual([{ dp: 6000, rush: true, alliance: true, digivolveLocked: true }]);
+    expect(snapshotsAtTurnEnd).toEqual([{ dp: 6000, rush: true, alliance: true, digivolveLocked: true }]);
 
     const reversed = setupEngine(
       {

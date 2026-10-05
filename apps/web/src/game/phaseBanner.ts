@@ -16,7 +16,6 @@ export interface PhaseBanner {
 const BANNER_LABEL_KEYS = {
   [Phase.Active]: "game.phaseBanner.active",
   [Phase.Draw]: "game.phaseBanner.draw",
-  [Phase.End]: "game.phaseBanner.end",
   [Phase.Breeding]: "game.phaseBanner.breeding",
   [Phase.Main]: "game.phaseBanner.main",
 } as const;

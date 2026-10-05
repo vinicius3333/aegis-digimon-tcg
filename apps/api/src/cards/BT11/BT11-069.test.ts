@@ -3,10 +3,36 @@ import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT11-069.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT11-069 MetalGreymon (X Antibody)", () => {
+  it.each(["BT22-014", "BT9-068", "EX4-048"])(
+    "#4974 triggers the inheritance when %s Reboots with its Greymon Rule name",
+    async (id) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: id, as: "host", under: ["BT11-069"], suspended: true }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "opponent", suspended: true }],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      });
+      s.state.turnSeat = 1;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.perm("host").isSuspended).toBe(id === "EX4-048");
+      expect(s.perm("opponent").isSuspended).toBe(false);
+      expect(s.state.players[1]!.security).toHaveLength(1);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await turn;
+    },
+  );
+
   it("maps catalog facts and each conditional effect to IR", () => {
     expect(getCardDefinition("BT11-069")).toMatchObject({
       cardId: "BT11-069",

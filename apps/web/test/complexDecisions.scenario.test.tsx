@@ -163,7 +163,7 @@ scenario("complex-decisions", () => {
     // Passing and playing are driven by the headless client's real room intents.
     for (let added = 0; added < 2; added += 1) {
       if (opponent.room.state.turnSeat !== 1) {
-        fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+        fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
         await waitForTurnSeat(opponent, 1);
       }
       if (opponent.room.state.phase === "Breeding") opponent.endPhase();
@@ -182,7 +182,7 @@ scenario("complex-decisions", () => {
       if (added === 0) {
         await endBreedingStep();
         await waitForOwnMain(opponent);
-        fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+        fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
         await waitForTurnSeat(opponent, 1);
       }
     }
