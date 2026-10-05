@@ -153,6 +153,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-kingsukamon-machinedramon-dp",
   "arena-ex13-kingsukamon-vulcanusmon-link",
   "arena-ex13-examon",
+  "arena-ex13-examon-option-dp",
   "arena-ex13-examon-battle-win-timing",
   "arena-bt23-examon-opponent-turn-dna",
   "arena-ex13-chirinmon-cost-choice",
@@ -5007,6 +5008,58 @@ function layEx13ExamonScenario(state: GameState, decks: readonly [Decklist, Deck
 }
 
 /**
+ * Discord 1556502418941018123, match 83f93c89-40b2-4170-b327-d7057485f9ad.
+ * EX13-045 DNA at 2026-10-05T03:02:20Z must leave LM-051 and BT20-093 without DP.
+ */
+function layEx13ExamonOptionDpScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    fillZone(player, Zone.Hand, []);
+    fillZone(
+      player,
+      Zone.Deck,
+      Array.from({ length: 20 }, (_, index) => faceDownCard(`dev-examon-dp-deck-${seat}-${index}`, "BT1-009", seat)),
+    );
+    fillZone(
+      player,
+      Zone.Security,
+      Array.from({ length: 5 }, (_, index) => faceDownCard(`dev-examon-dp-security-${seat}-${index}`, "BT1-009", seat)),
+    );
+    setBreeding(player, undefined);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    for (const [cardId, slot] of [
+      ["EX13-021", "wingdramon"],
+      ["EX13-041", "groundramon"],
+      ["BT1-013", "ally"],
+      ["BT1-085", "tamer"],
+    ] as const) {
+      placePermanent(human, establishedDigimon(0, [cardId], `-examon-dp-${slot}`));
+    }
+    for (const [cardId, slot] of [
+      ["LM-051", "boost"],
+      ["BT20-093", "gene"],
+    ] as const) {
+      const option = establishedDigimon(0, [cardId], `-examon-dp-${slot}`);
+      option.placedByEffect = true;
+      placePermanent(human, option);
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-examon-dp-examon", "EX13-045", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-examon-dp-later-boost", "LM-051", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-examon-dp-later-digimon", "BT1-013", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/**
  * Discord bug 1552867266469568643: EX13-045 Examon's "when this Digimon wins a battle" jumped
  * ahead of the triggers from its own forced attack. DNA digivolving Wingdramon (Bebydomon
  * under it) + Groundramon into Examon declares the attack, which suspends Examon (Wingdramon's
@@ -5684,6 +5737,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-kingsukamon-machinedramon-dp": layEx13KingSukamonMachinedramonDpScenario,
   "arena-ex13-kingsukamon-vulcanusmon-link": layEx13KingSukamonVulcanusmonLinkScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
+  "arena-ex13-examon-option-dp": layEx13ExamonOptionDpScenario,
   "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
   "arena-bt23-examon-opponent-turn-dna": layBt23ExamonOpponentTurnDnaScenario,
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
