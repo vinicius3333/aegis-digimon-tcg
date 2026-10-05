@@ -87,6 +87,15 @@ describe("real keyword pacing boards", () => {
             (event) => event.kind === "cardsMoved" && event.trashedSources?.permanentId === host.permanentId,
           );
           expect(strips.flatMap((event) => event.instanceIds)).toEqual(initial[0]!.slice(0, 2));
+          expect(strips[0]!.trashedSources?.digiBurstDpBefore).toEqual(
+            expect.arrayContaining([
+              { permanentId: host.permanentId, currentDP: 7000 },
+              {
+                permanentId: "dev-perm-1-keyword-stack-target",
+                currentDP: scenario.deletesTarget ? 4000 : 12000,
+              },
+            ]),
+          );
         }
         expect([...control.stack, control.topCard].map((card) => card.instanceId)).toEqual(initial[1]);
         expect(s.state.pendingDecision).toBeUndefined();

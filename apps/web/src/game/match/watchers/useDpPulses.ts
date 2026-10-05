@@ -4,6 +4,7 @@ import type { AnimationQueue } from "../../animationQueue";
 import { dpPulses as diffDpPulses, type DpPulse } from "../../dpPulse";
 import { dpPulseTotalMs } from "../../timings";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
+import { waitForStackStrips } from "../stackStripBarrier";
 
 /**
  * A DP figure that moved gets a pulse.
@@ -21,6 +22,7 @@ export function useDpPulses({
   dpByPermanentRef,
   dpPulseKeyRef,
   causingEffectGateRef,
+  stackStripKeyRef,
   setDpPulses,
   setDpBadgeSuppressions,
 }: {
@@ -31,6 +33,7 @@ export function useDpPulses({
   dpPulseKeyRef: MutableRefObject<number>;
   /** The clause that moved the figure, which is read out before the number pulses. */
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
+  stackStripKeyRef: MutableRefObject<number>;
   setDpPulses: Dispatch<SetStateAction<ReadonlyMap<string, DpPulse>>>;
   setDpBadgeSuppressions: Dispatch<SetStateAction<ReadonlyMap<string, number>>>;
 }) {
@@ -54,32 +57,39 @@ export function useDpPulses({
     if (pulses.length === 0) return;
     dpPulseKeyRef.current += pulses.length;
     const causingEffectGate = causingEffectGateRef.current;
+    const throughKey = stackStripKeyRef.current;
+    const throughStateVersion = state.stateVersion;
     for (const pulse of pulses) {
       setDpBadgeSuppressions((suppressed) => new Map(suppressed).set(pulse.permanentId, pulse.key));
+      function release() {
+        setDpPulses((pulsing) => {
+          if (pulsing.get(pulse.permanentId)?.key !== pulse.key) return pulsing;
+          const next = new Map(pulsing);
+          next.delete(pulse.permanentId);
+          return next;
+        });
+        setDpBadgeSuppressions((suppressed) => {
+          if (suppressed.get(pulse.permanentId) !== pulse.key) return suppressed;
+          const next = new Map(suppressed);
+          next.delete(pulse.permanentId);
+          return next;
+        });
+      }
       queue.enqueue({
         id: `dp-pulse-${pulse.key}`,
         track: `dpPulse-${pulse.permanentId}`,
         replace: true,
+        onDiscard: release,
         async run(context) {
-          if (context.mode !== "live") return;
-          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "dpPulse/causingEffect");
-          if (context.cancelled) return;
           try {
+            if (context.mode !== "live" || context.skipping) return;
+            await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "dpPulse/causingEffect");
+            await waitForStackStrips({ queue, context, throughKey, throughStateVersion });
+            if (context.cancelled || context.skipping) return;
             setDpPulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
             await context.wait(dpPulseTotalMs(pulse.kind === "debuffFatal"));
           } finally {
-            setDpPulses((pulsing) => {
-              if (pulsing.get(pulse.permanentId)?.key !== pulse.key) return pulsing;
-              const next = new Map(pulsing);
-              next.delete(pulse.permanentId);
-              return next;
-            });
-            setDpBadgeSuppressions((suppressed) => {
-              if (suppressed.get(pulse.permanentId) !== pulse.key) return suppressed;
-              const next = new Map(suppressed);
-              next.delete(pulse.permanentId);
-              return next;
-            });
+            release();
           }
         },
       });

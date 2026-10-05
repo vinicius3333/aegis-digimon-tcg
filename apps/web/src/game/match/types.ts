@@ -75,6 +75,8 @@ export interface HeldStackStrip {
   index: number;
   stateVersion: number;
   returnedInstanceId: string | undefined;
+  /** Server-resolved figures before this Digi-Burst cost, across both public fields. */
+  beforeCostDps?: ReadonlyMap<string, number>;
 }
 
 /**

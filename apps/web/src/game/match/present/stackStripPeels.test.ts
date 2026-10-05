@@ -51,6 +51,101 @@ function collect(fresh: readonly ServerEvent[], snapshots: readonly StateSnapsho
 }
 
 describe("enqueueStackStripPeels", () => {
+  it("keeps each consecutive cost's DP while sharing physical source progress on one host", async () => {
+    const sources = ["a", "b", "c"].map((instanceId) => ({ instanceId, cardId: "ST3-02" }));
+    const permanent = { permanentId: "perm-1", topCard: { instanceId: "top", cardId: "BT4-046" }, stack: sources };
+    const snapshots = [
+      {
+        stateVersion: 0,
+        state: {
+          players: [
+            { battleArea: [permanent], trash: [] },
+            { battleArea: [], trash: [] },
+          ],
+        } as unknown as GameState,
+      },
+    ];
+    const receipts = [12000, 10000].map((currentDP, index) => ({
+      kind: "cardsMoved",
+      instanceIds: [sources[index]!.instanceId],
+      cardIds: ["ST3-02"],
+      seat: 0,
+      from: "various",
+      to: "trash",
+      trashedSources: {
+        permanentId: "perm-1",
+        hostCardId: "BT4-046",
+        digiBurstDpBefore: [{ permanentId: "target", currentDP }],
+      },
+    })) as ServerEvent[];
+    const { steps, held } = collect(receipts, snapshots);
+    const seen: { sources: number; dp: number | undefined }[][] = [];
+    for (const step of steps)
+      await step.run({
+        mode: "live",
+        cancelled: false,
+        skipping: false,
+        wait: async () => {
+          seen.push(
+            [...held().values()].map((strip) => ({
+              sources: strip.permanent.stack.length,
+              dp: strip.beforeCostDps?.get("target"),
+            })),
+          );
+        },
+      });
+    expect(seen).toEqual([
+      [
+        { sources: 3, dp: 12000 },
+        { sources: 3, dp: 10000 },
+      ],
+      [{ sources: 2, dp: 10000 }],
+    ]);
+  });
+  it("uses the cost receipt's pre-cost DP even when the available patch already contains the result", async () => {
+    const sources = ["a", "b", "c"].map((instanceId) => ({ instanceId, cardId: "ST3-02" }));
+    const permanent = { permanentId: "perm-1", topCard: { instanceId: "top", cardId: "BT4-046" }, stack: sources };
+    const snapshots = [
+      {
+        stateVersion: 0,
+        state: {
+          players: [
+            { battleArea: [permanent], trash: [] },
+            { battleArea: [{ permanentId: "target", currentDP: 8000 }], trash: [] },
+          ],
+        } as unknown as GameState,
+      },
+    ];
+    const receipt: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["a", "b"],
+      cardIds: ["ST3-02", "ST3-02"],
+      seat: 0,
+      from: "various",
+      to: "trash",
+      trashedSources: {
+        permanentId: "perm-1",
+        hostCardId: "BT4-046",
+        digiBurstDpBefore: [{ permanentId: "target", currentDP: 12000 }],
+      },
+    };
+    const { steps, held } = collect([receipt], snapshots);
+    const seen: { sources: number; dp: number | undefined }[] = [];
+    await steps[0]!.run({
+      mode: "live",
+      cancelled: false,
+      skipping: false,
+      wait: async () => {
+        const strip = [...held().values()][0]!;
+        seen.push({ sources: strip.permanent.stack.length, dp: strip.beforeCostDps?.get("target") });
+      },
+    });
+    expect(seen).toEqual([
+      { sources: 3, dp: 12000 },
+      { sources: 2, dp: 12000 },
+    ]);
+    expect(held().size).toBe(0);
+  });
   it("peels the stripped card off the permanent it left, on the shared source-removal track", () => {
     const { steps } = collect([deDigivolved]);
     expect(steps.map(({ id, track }) => ({ id, track }))).toEqual([

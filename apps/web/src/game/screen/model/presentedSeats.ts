@@ -25,6 +25,7 @@ import {
   securityEffectField,
   trashArrivalField,
   stackStripField,
+  stackCostDpField,
 } from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
 import { stackStripHand } from "../../match/heldStackStrip";
@@ -79,7 +80,10 @@ export function presentedSeats({
   function projectionFields(input: { player: PlayerState; live: PlayerState }) {
     // Future DP and abilities are effect results too. Live legality is read separately;
     // a paced decision opens only after its own public board revision has been reached.
-    return paced ? input.player : liveProjectionFields(input);
+    return stackCostDpField({
+      player: paced ? input.player : liveProjectionFields(input),
+      held: [...heldStackStrips.values()].filter((strip) => !paced || strip.stateVersion <= shownState.stateVersion),
+    });
   }
   const heldStripsOf = (seat: Seat) => [...heldStackStrips.values()].filter((strip) => strip.seat === seat);
   viewer = stackStripHand(viewer, heldStripsOf(viewerSeat));

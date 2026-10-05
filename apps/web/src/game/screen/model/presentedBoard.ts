@@ -142,3 +142,28 @@ export function stackStripField({
   }
   return { ...player, battleArea } as PlayerState;
 }
+
+/** A Digi-Burst result follows the cost's last peel, including a figure on the other seat. */
+export function stackCostDpField({
+  player,
+  held,
+}: {
+  player: PlayerState;
+  held: readonly HeldStackStrip[];
+}): PlayerState {
+  const figures = new Map<string, number>();
+  for (const strip of held) {
+    for (const [permanentId, dp] of strip.beforeCostDps ?? []) {
+      // Multiple costs can be queued together. Keep the earliest unfinished cost's figure.
+      if (!figures.has(permanentId)) figures.set(permanentId, dp);
+    }
+  }
+  if (figures.size === 0) return player;
+  const battleArea = player.battleArea.map((permanent) => {
+    const currentDP = figures.get(permanent.permanentId);
+    return currentDP === undefined || currentDP === permanent.currentDP
+      ? permanent
+      : ({ ...permanent, currentDP } as Permanent);
+  });
+  return { ...player, battleArea } as PlayerState;
+}

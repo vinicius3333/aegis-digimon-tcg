@@ -310,6 +310,11 @@ export function createTrashVerbs(pc: PrimitivesContext) {
     // controller's). Keep other requested cards eligible so "trash the bottom 2" can trash the
     // unprotected one (KB Q1922). Rule-driven identity cleanup uses other seams and is unaffected.
     const hostBeforeTrash = access.permanentById(hostPermanentId);
+    const digiBurstDpBefore = opts?.isDigiBurst
+      ? [...state.players].flatMap((seat) =>
+          [...seat.battleArea].map(({ permanentId, currentDP }) => ({ permanentId, currentDP })),
+        )
+      : undefined;
     const topStackCardInstanceId = hostBeforeTrash?.stack.at(-1)?.instanceId;
     const faceDownBeforeTrash = new Set(
       hostBeforeTrash?.stack.filter((card) => !card.faceUp).map((card) => card.instanceId) ?? [],
@@ -324,6 +329,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
             trashedSources: {
               permanentId: hostPermanentId,
               hostCardId: hostBeforeTrash.topCard.cardId,
+              ...(digiBurstDpBefore !== undefined ? { digiBurstDpBefore } : {}),
               ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
             },
           },

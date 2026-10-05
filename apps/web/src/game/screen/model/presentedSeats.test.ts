@@ -2,7 +2,7 @@ import { ArraySchema } from "@colyseus/schema";
 import { CardInstance, GameState, Permanent, PlayerState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { presentedSeats } from "./presentedSeats";
-import type { HeldHandArrival } from "../../match/types";
+import type { HeldHandArrival, HeldStackStrip } from "../../match/types";
 
 function permanent({ rush, duringAttack = false }: { rush: boolean; duringAttack?: boolean }): Permanent {
   const result = new Permanent();
@@ -29,6 +29,120 @@ function player(seat: 0 | 1, battleArea: Permanent[] = []): PlayerState {
 }
 
 describe("presentedSeats live projection", () => {
+  it.each(["current", "sequential"] as const)(
+    "keeps both seats' Digi-Burst DP until the earliest cost finishes under %s pacing",
+    (presentationPacing) => {
+      const host = permanent({ rush: true });
+      host.permanentId = "host";
+      host.currentDP = 6000;
+      const target = permanent({ rush: true });
+      target.permanentId = "target";
+      target.currentDP = 8000;
+      const viewer = player(0, [host]);
+      const opponent = player(1, [target]);
+      const shownState = new GameState();
+      shownState.stateVersion = 3;
+      shownState.players.push(viewer, opponent);
+      const held = new Map<number, HeldStackStrip>([
+        [
+          1,
+          {
+            seat: 0,
+            permanent: host,
+            index: 0,
+            stateVersion: 2,
+            returnedInstanceId: undefined,
+            beforeCostDps: new Map([
+              ["host", 7000],
+              ["target", 12000],
+            ]),
+          },
+        ],
+        [
+          2,
+          {
+            seat: 0,
+            permanent: host,
+            index: 0,
+            stateVersion: 3,
+            returnedInstanceId: undefined,
+            beforeCostDps: new Map([
+              ["host", 6000],
+              ["target", 10000],
+            ]),
+          },
+        ],
+      ]);
+      const show = () =>
+        presentedSeats({
+          shownState,
+          viewer,
+          opponent,
+          viewerSeat: 0,
+          presentationPacing,
+          heldPhaseState: undefined,
+          heldBlowState: undefined,
+          heldSecurityEffectState: undefined,
+          heldDrawState: undefined,
+          heldBreedingState: undefined,
+          heldDeletions: new Map(),
+          heldTrashArrivals: new Map(),
+          heldStackStrips: held,
+          optimisticPlayedInstanceId: undefined,
+        });
+      expect([show().shownViewer.battleArea[0]!.currentDP, show().shownOpponent.battleArea[0]!.currentDP]).toEqual([
+        7000, 12000,
+      ]);
+      held.delete(1);
+      expect([show().shownViewer.battleArea[0]!.currentDP, show().shownOpponent.battleArea[0]!.currentDP]).toEqual([
+        6000, 10000,
+      ]);
+      held.delete(2);
+      expect(show().shownOpponent.battleArea[0]!.currentDP).toBe(8000);
+      expect(target.currentDP).toBe(8000);
+    },
+  );
+
+  it("does not import a future cost's DP into an earlier narrated revision", () => {
+    const host = permanent({ rush: true });
+    const target = permanent({ rush: true });
+    target.permanentId = "target";
+    target.currentDP = 14000;
+    const viewer = player(0, [host]);
+    const opponent = player(1, [target]);
+    const shownState = new GameState();
+    shownState.stateVersion = 1;
+    shownState.players.push(viewer, opponent);
+    const shown = presentedSeats({
+      shownState,
+      viewer,
+      opponent,
+      viewerSeat: 0,
+      presentationPacing: "sequential",
+      heldPhaseState: undefined,
+      heldBlowState: undefined,
+      heldSecurityEffectState: undefined,
+      heldDrawState: undefined,
+      heldBreedingState: undefined,
+      heldDeletions: new Map(),
+      heldTrashArrivals: new Map(),
+      heldStackStrips: new Map([
+        [
+          1,
+          {
+            seat: 0,
+            permanent: host,
+            index: 0,
+            stateVersion: 2,
+            returnedInstanceId: undefined,
+            beforeCostDps: new Map([["target", 12000]]),
+          },
+        ],
+      ]),
+      optimisticPlayedInstanceId: undefined,
+    });
+    expect(shown.shownOpponent.battleArea[0]!.currentDP).toBe(14000);
+  });
   it.each([0, 1] as const)("holds a count-only private opponent hand for viewer seat%s", (viewerSeat) => {
     const viewer = player(viewerSeat);
     const other = player(viewerSeat === 0 ? 1 : 0);

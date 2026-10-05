@@ -1208,6 +1208,7 @@ export function useMatchCues({
     dpByPermanentRef,
     dpPulseKeyRef,
     causingEffectGateRef: liveStateCauseRef,
+    stackStripKeyRef: deleteBurstKeyRef,
     setDpPulses,
     setDpBadgeSuppressions,
   });

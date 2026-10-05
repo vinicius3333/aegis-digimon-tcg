@@ -92,6 +92,9 @@ export function enqueueStackStripPeels({
         index: origin.index,
         stateVersion,
         returnedInstanceId: undefined,
+        beforeCostDps: event.trashedSources?.digiBurstDpBefore
+          ? new Map(event.trashedSources.digiBurstDpBefore.map((figure) => [figure.permanentId, figure.currentDP]))
+          : undefined,
       });
     });
     function release() {

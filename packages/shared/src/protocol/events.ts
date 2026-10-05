@@ -409,6 +409,8 @@ export type ServerEvent =
       trashedSources?: {
         permanentId: string;
         hostCardId: string;
+        /** Public field DP before paying Digi-Burst, held until its source removal is shown. */
+        digiBurstDpBefore?: { permanentId: string; currentDP: number }[];
         /** The card whose effect trashed them, when an effect did. */
         sourceCardId?: string;
       };
