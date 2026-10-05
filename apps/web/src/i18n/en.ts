@@ -1186,11 +1186,7 @@ export const en = {
   "notice.keywordDescription.armorPurge":
     "When this Digimon would be deleted, by trashing its top card, prevent that deletion.",
   "notice.dismiss": "Dismiss notice",
-  "notice.details": "Notice details",
-  "notice.cardCount": "{count} cards",
   "notice.expand": "Show the full notice",
-  "notice.more": "Show {count} more recent notices",
-  "notice.recent": "Recent notices",
   "notice.collapse": "Fold the notice back",
   "notice.close": "Close",
   "notice.moreAbove": "Show more notices above",

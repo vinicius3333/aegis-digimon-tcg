@@ -612,19 +612,6 @@
   color: rgb(232 219 202);
 }
 
-/* The compact band's clause line keeps the effect preview within the available width. */
-.narration-peek__detail {
-  display: flex;
-  min-width: 0;
-  gap: 0.35rem;
-  align-items: center;
-}
-
-.narration-peek__detail > .narration-peek__clause {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
 /* How much is queued behind this one, so a folded band never hides that more is running.
    It pops when the count changes, because a digit rewritten in place is not a change
    anyone watching the board notices. */
