@@ -32,6 +32,7 @@ import { createDeploymentRuntime, installDeploymentRoutes, type DeploymentSlot }
 import { DeploymentServer } from "./deployment/DeploymentServer.js";
 import { isActiveDeploymentSlot, setRoomCreationAdmission } from "./deployment/admission.js";
 import { corsOriginForRequest } from "./http/cors.js";
+import { mailerFromEnv } from "./email/mailer.js";
 import { createClusterRuntime } from "./cluster/runtime.js";
 import { roomCodeDirectory, setRoomCodeDirectory } from "./rooms/AegisRoom.js";
 import { startBotInference, stopBotInference } from "./bot/inferenceRuntime.js";
@@ -60,8 +61,8 @@ app.set("trust proxy", Number(process.env.AEGIS_TRUSTED_PROXY_HOPS ?? 2));
 // The runtime singletons, not fresh instances: `TopCutProgram`'s in-process lock only serializes
 // callers that SHARE the instance, and the routes, the resolution listener and the sweep are three
 // callers of the same transition.
-// The bug tracker is read from the environment here, at the edge, so a test can install the
-// routes with a tracker of its own — or with none at all.
+// The bug tracker and the mailer are read from the environment here, at the edge, so a test can
+// install the routes with its own — or with none at all.
 installAccountRoutes(
   app,
   accountStore,
@@ -73,6 +74,7 @@ installAccountRoutes(
   topCutProgram,
   undefined,
   GitHubIssueTracker.fromEnvironment(),
+  mailerFromEnv(accountStore),
 );
 
 const cluster = createClusterRuntime();

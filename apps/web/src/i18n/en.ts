@@ -1538,6 +1538,8 @@ export const en = {
   "account.emailPlaceholder": "you@email.com",
   "account.sendMagicLink": "Send magic link",
   "account.magicLinkSent": "Check your email to sign in.",
+  "account.magicLinkDailyLimit": "We reached today's sign-in email limit. Sign in with Discord, or try again tomorrow.",
+  "account.magicLinkError": "Could not send the sign-in email. Try again.",
   "account.connected": "Account connected",
   "account.signOut": "Sign out",
   "account.nickname.title": "Player nickname",

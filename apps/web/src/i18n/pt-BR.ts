@@ -1568,6 +1568,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "account.emailPlaceholder": "voce@email.com",
   "account.sendMagicLink": "Enviar link mágico",
   "account.magicLinkSent": "Confira seu e-mail para entrar.",
+  "account.magicLinkDailyLimit":
+    "Atingimos o limite diário de e-mails de login. Entre com o Discord ou tente novamente amanhã.",
+  "account.magicLinkError": "Não foi possível enviar o e-mail de login. Tente novamente.",
   "account.connected": "Conta conectada",
   "account.signOut": "Sair",
   "account.nickname.title": "Nickname de jogador",

@@ -370,6 +370,27 @@ export class AccountStore {
     ]);
     return { token, expiresAt };
   }
+  // The conditional UPDATE takes the row lock, so concurrent sends never push `sent` past `limit`.
+  async reserveEmail(provider: string, day: string, limit: number): Promise<boolean> {
+    await this.ensureReady();
+    await this.pool.query(
+      "INSERT INTO email_daily_usage (provider, day, sent) VALUES ($1,$2,0) ON CONFLICT (provider, day) DO NOTHING",
+      [provider, day],
+    );
+    const result = await this.pool.query(
+      "UPDATE email_daily_usage SET sent=sent+1 WHERE provider=$1 AND day=$2 AND sent<$3 RETURNING sent",
+      [provider, day, limit],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+  async exhaustEmail(provider: string, day: string, limit: number): Promise<void> {
+    await this.ensureReady();
+    await this.pool.query("UPDATE email_daily_usage SET sent=$3 WHERE provider=$1 AND day=$2 AND sent<$3", [
+      provider,
+      day,
+      limit,
+    ]);
+  }
   async consumeMagicLink(token: string): Promise<Account | undefined> {
     const email = await this.transaction(
       async (client) =>

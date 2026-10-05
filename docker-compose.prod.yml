@@ -19,6 +19,9 @@
 # RESEND_API_KEY, AEGIS_EMAIL_FROM, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET.
 # Optional: POSTGRES_DB, POSTGRES_USER, AEGIS_REVISION, AEGIS_DEPLOYMENT_MODE,
 # AEGIS_ALERT_EMAIL (server errors are emailed there through Resend),
+# BREVO_API_KEY, BREVO_EMAIL_FROM (sign-in emails fall back to Brevo once Resend
+# reaches its daily limit), RESEND_DAILY_LIMIT and BREVO_DAILY_LIMIT (sends per UTC
+# day; default 100 and 300, the free plans),
 # GITHUB_TOKEN, GITHUB_BUG_REPOSITORY, GITHUB_BUG_LABELS (player bug reports are
 # filed as GitHub issues; without the token and the repository the in-game form
 # tells players to use Discord instead), AEGIS_TRUSTED_PROXY_HOPS (proxies in
@@ -50,6 +53,10 @@ x-api: &api
     RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY must be set}
     AEGIS_EMAIL_FROM: ${AEGIS_EMAIL_FROM:?AEGIS_EMAIL_FROM must be set}
     AEGIS_ALERT_EMAIL: ${AEGIS_ALERT_EMAIL:-}
+    RESEND_DAILY_LIMIT: ${RESEND_DAILY_LIMIT:-100}
+    BREVO_API_KEY: ${BREVO_API_KEY:-}
+    BREVO_EMAIL_FROM: ${BREVO_EMAIL_FROM:-}
+    BREVO_DAILY_LIMIT: ${BREVO_DAILY_LIMIT:-300}
     DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:?DISCORD_CLIENT_ID must be set}
     DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:?DISCORD_CLIENT_SECRET must be set}
     DISCORD_REDIRECT_URI: ${AEGIS_PUBLIC_URL}/auth/discord/callback

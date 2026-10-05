@@ -21,6 +21,7 @@ export function AccountPanel({
   const visibleMatches = (profile?.matches ?? []).filter((match) => RANKED_ENABLED || match.mode !== "ranked");
   const [email, setEmail] = useState("");
   const [linkSent, setLinkSent] = useState(false);
+  const [linkError, setLinkError] = useState("");
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(account?.displayName ?? "");
   const [nameError, setNameError] = useState("");
@@ -35,8 +36,16 @@ export function AccountPanel({
   useEffect(() => setNameInput(account?.displayName ?? ""), [account?.displayName]);
   async function sendLink(event: FormEvent) {
     event.preventDefault();
-    await accountApi.magicLink(email);
-    setLinkSent(true);
+    setLinkSent(false);
+    setLinkError("");
+    try {
+      await accountApi.magicLink(email);
+      setLinkSent(true);
+    } catch (error) {
+      if (error instanceof AccountApiError && error.code === "email_daily_limit")
+        setLinkError(t("account.magicLinkDailyLimit"));
+      else setLinkError(t("account.magicLinkError"));
+    }
   }
   async function selectAvatar(avatarId: DigimonWorldAvatarId) {
     const updated = await accountApi.updateAvatar(avatarId);
@@ -104,6 +113,7 @@ export function AccountPanel({
           </Button>
         </form>
         {linkSent ? <Alert tone="success">{t("account.magicLinkSent")}</Alert> : null}
+        {linkError ? <Alert tone="danger">{linkError}</Alert> : null}
       </div>
     );
   }

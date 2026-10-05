@@ -30,6 +30,7 @@ import { installBugReportRoutes, type IssueTracker } from "../bugs/index.js";
 import { openEliminationEvent } from "../tournaments/lifecycle/openEliminationEvent.js";
 import { TopCutProgram } from "../tournaments/topcut/index.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
+import { EmailQuotaExceededError, type Mailer } from "../email/mailer.js";
 import { TOURNAMENT_RULES_PRESETS, type TournamentRulesPreset } from "../tournaments/rules/index.js";
 import {
   AccountStore,
@@ -68,6 +69,7 @@ export function installAccountRoutes(
   topCut: TopCutProgram = new TopCutProgram(store, elimination),
   arbitration: ArbitrationService = new ArbitrationService(store, participants, series, swiss, elimination),
   bugTracker?: IssueTracker,
+  mailer?: Mailer,
 ): void {
   const sessionFromRequest = (req: Request) => store.session(cookie(req, SESSION_COOKIE));
   // The organizer's override surface, in its own module. See src/tournaments/arbitration.
@@ -99,7 +101,19 @@ export function installAccountRoutes(
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
     if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       const { token } = await store.createMagicLink(email);
-      await sendMagicLink(email, token).catch(() => undefined);
+      try {
+        await mailer?.({
+          to: email,
+          subject: "Sign in to Aegis",
+          html: `<p><a href="${process.env.AEGIS_API_URL ?? "http://localhost:2567"}/auth/magic-link/consume?token=${token}">Sign in to Aegis</a></p>`,
+        });
+      } catch (error) {
+        // The daily limit is global, so reporting it does not disclose anything about this address.
+        if (error instanceof EmailQuotaExceededError) {
+          res.status(429).json({ error: "email_daily_limit" });
+          return;
+        }
+      }
     }
     res.status(202).json({ ok: true }); // deliberately does not disclose account existence or delivery status
   });
@@ -776,23 +790,6 @@ function setCookie(res: Response, key: string, value: string, maxAge: number): v
 }
 function expire(res: Response, key: string): void {
   setCookie(res, key, "", 0);
-}
-async function sendMagicLink(email: string, token: string): Promise<void> {
-  const key = process.env.RESEND_API_KEY;
-  const from = process.env.AEGIS_EMAIL_FROM;
-  if (!key || !from) return;
-  await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from,
-      to: [email],
-      subject: "Sign in to Aegis",
-      html: `<p><a href="${process.env.AEGIS_API_URL ?? "http://localhost:2567"}/auth/magic-link/consume?token=${token}">Sign in to Aegis</a></p>`,
-    }),
-  }).then((response) => {
-    if (!response.ok) throw new Error("email delivery failed");
-  });
 }
 async function discordToken(code: string): Promise<string> {
   const body = new URLSearchParams({

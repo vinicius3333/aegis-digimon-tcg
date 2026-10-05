@@ -19,6 +19,7 @@ const TABLES = [
   "tournament_registrations",
   "tournament_matches",
   "room_tickets",
+  "email_daily_usage",
 ];
 
 async function tableNames(pool: Pool): Promise<string[]> {
