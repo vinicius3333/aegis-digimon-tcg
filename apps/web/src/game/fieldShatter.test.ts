@@ -1,7 +1,61 @@
 // @vitest-environment jsdom
 import { expect, it, vi } from "vitest";
 import fracture from "./fieldFracture.json";
-import { captureFieldShatterFace } from "./fieldShatter";
+import { captureFieldShatterFace, measureFieldShatterFace, resolveFieldDepartureFace } from "./fieldShatter";
+
+it.each([false, true])(
+  "captures both grouped physical departures after their representative changes (stack=%s)",
+  (includeStack) => {
+    const board = document.createElement("div");
+    board.className = "game-board";
+    board.innerHTML = `<div data-permanent-id="first" style="rotate:none;transform:none;scale:none">
+    <div class="game-card-enter" style="rotate:none;transform:none;scale:none">
+      <div data-state="active" style="width:100px;height:140px;box-sizing:border-box;rotate:none;transform:none;scale:none">
+        <img src="/physical-option.png" /><span>×2</span>
+      </div>
+    </div>
+  </div>`;
+    document.body.append(board);
+    const permanent = board.firstElementChild as HTMLElement;
+    const face = permanent.querySelector<HTMLElement>("[data-state]")!;
+    let rect = new DOMRect(10, 20, 100, 140);
+    face.getBoundingClientRect = () => rect;
+    permanent.getBoundingClientRect = () => rect;
+    board.getBoundingClientRect = () => new DOMRect(0, 0, 800, 1000);
+    const styleOf = window.getComputedStyle.bind(window);
+    const style = vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
+      const computed = styleOf(element);
+      Object.defineProperty(computed, Symbol.iterator, {
+        value: function* () {
+          for (let index = 0; index < computed.length; index++) yield computed.item(index);
+        },
+      });
+      return computed;
+    });
+    try {
+      const elements: Record<string, HTMLElement | null> = { first: permanent, second: permanent };
+      const cached = measureFieldShatterFace(permanent, board)!;
+      const first = resolveFieldDepartureFace({ id: "first", board, elements, cached, includeStack })!;
+      expect(first.clone?.querySelector("img")?.getAttribute("src")).toBe("/physical-option.png");
+      // The first hold releases: the same group's node now represents its second
+      // member, while its cached pose still names the old representative.
+      elements.first = null;
+      permanent.dataset.permanentId = "second";
+      face.querySelector("span")!.remove();
+      rect = new DOMRect(120, 30, 100, 140);
+      const second = resolveFieldDepartureFace({ id: "second", board, elements, cached, includeStack })!;
+      expect(second).toMatchObject({ permanentId: "second", x: 170, y: 100, width: 100, height: 140 });
+      expect(second.clone?.querySelector("img")?.getAttribute("src")).toBe("/physical-option.png");
+      expect(second.clone?.querySelector("span")).toBeNull();
+      expect(first).toMatchObject({ permanentId: "first", x: 60, y: 90 });
+      expect(first.clone?.querySelector("span")?.textContent).toBe("×2");
+      expect(Boolean(second.handStackClone?.querySelector("img"))).toBe(includeStack);
+    } finally {
+      style.mockRestore();
+      board.remove();
+    }
+  },
+);
 
 it("freezes a departing face and both stack orientations from one descendant style snapshot", () => {
   const board = document.createElement("div");

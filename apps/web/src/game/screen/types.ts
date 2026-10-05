@@ -104,6 +104,8 @@ export interface PermanentChrome {
   dpBadgeSuppressedIds: ReadonlySet<string>;
   freezePulses: ReadonlyMap<string, FreezePulse>;
   heldSuspendedIds: ReadonlySet<string>;
+  /** Established physical cards restored only until their departure begins. */
+  heldDeletionIds?: ReadonlySet<string>;
   /** The sweep's stagger for the permanent at this position in its owner's row. */
   suspendDelayMs: (index: number) => number;
 }
