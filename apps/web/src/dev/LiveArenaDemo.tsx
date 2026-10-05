@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-bt20-invisimon-security-count": {
+    ptBR: "Relato 1556677140253249656: sua segurança começa como na partida c77fc6f3 de 05/10/2026 às 14:35 UTC: Jesmon BT20-017 para cima e 3 cartas para baixo. O contador deve mostrar 4, inclusive em telas horizontais baixas. Abra a segurança para conferir 1 carta para cima de 4. Encerre a criação e evolua MetalGreymon em Invisimon BT20-055 por 3 e escolha “2 cartas”: a primeira segurança adversária vira para cima, mas ambos os contadores continuam em 4. Confira também a inspeção adversária.",
+    en: "Report 1556677140253249656: your security starts as in match c77fc6f3 on 2026-10-05 at 14:35 UTC: face-up BT20-017 Jesmon and 3 face-down cards. The count must read 4, including short landscape screens. Open security to confirm 1 face-up card out of 4. End breeding and digivolve MetalGreymon into BT20-055 Invisimon for 3 and choose “2 cards”: the opponent's first security turns face up while both counts stay at 4. Check the opponent's inspection too.",
+  },
   "arena-ex12-thetismon-mistymon-deletion": {
     ptBR: "Encerre a criação e ataque a segurança com Thetismon EX12-030. Resolva a compra de Jellymon LM-002, depois TeslaJellymon EX12-027 (compre e descarte 1 carta); recuse o custo de Puyoyomon RB1-002, se oferecido. Ao revelar Mistymon, o efeito da Mistymon em campo dá -6000 DP à Thetismon (7000 → 1000) e a deleta, pois restam 2 seguranças. Isso ocorre antes da batalha: Jamming protege contra batalha de segurança, não contra deleção por efeito. Reprodução da partida bf500886, 04/10/2026 às 17:08 UTC, relato 1556410279602946198.",
     en: "End breeding and attack security with EX12-030 Thetismon. Resolve LM-002 Jellymon's draw, then EX12-027 TeslaJellymon (draw and trash 1 card); decline RB1-002 Puyoyomon's cost if offered. When Mistymon is revealed, the field Mistymon's effect gives Thetismon -6000 DP (7000 → 1000) and deletes it because 2 security cards remain. This happens before battle: Jamming protects against security battle deletion, not effect deletion. Reproduces match bf500886 on 2026-10-04 at 17:08 UTC, report 1556410279602946198.",
@@ -870,6 +874,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt26-chronomon-dm-succession", "BT26 Chronomon DM · Succession When Digivolving"],
   ["arena-bt8-digimon-emperor-breeding-memory", "BT8 Digimon Emperor · breeding memory ends turn"],
   ["arena-face-up-security", "Security · opponent face-up cards"],
+  ["arena-bt20-invisimon-security-count", "BT20 Invisimon · face-up security count"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-bt10-taiki-x7-xros-heart", "BT10 Taiki · Shoutmon X7 Xros Heart"],
   ["arena-bt22-gabumon-eot-dna", "BT22 Gabumon · DNA no fim do turno"],

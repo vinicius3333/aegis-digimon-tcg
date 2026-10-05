@@ -9,7 +9,7 @@ class BrowserMatch {
     readonly page: Page,
     readonly server: Awaited<ReturnType<typeof startBrowserServer>>,
   ) {}
-  async start(scenario: "dna" | "reconnect" | "security") {
+  async start(scenario: "dna" | "reconnect" | "security" | "security-count") {
     const mainDeck = RED_DECK.mainDeck.map((id: string) => {
       if (scenario === "reconnect" && id === "BT1-013") return "EX11-069";
       if (scenario === "dna" && id === "BT1-015") return "BT1-051";
@@ -26,10 +26,11 @@ class BrowserMatch {
         deck: { mainDeck, eggDeck: [...RED_DECK.eggDeck] },
         seed: scenario === "dna" ? 6 : 2,
         ...(scenario === "security" ? { devScenario: "security-chain" as const } : {}),
+        ...(scenario === "security-count" ? { devScenario: "arena-bt20-invisimon-security-count" as const } : {}),
       },
     );
     await this.page.goto("/e2e/harness.html");
-    if (scenario === "security") return;
+    if (scenario === "security" || scenario === "security-count") return;
     await expect(this.page.getByText(/finding an opponent/i)).toBeVisible();
     this.opponent = await joinHeadlessOpponent(this.server.directEndpoint, {
       displayName: "Observer Opponent",

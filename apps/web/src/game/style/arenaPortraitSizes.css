@@ -208,10 +208,14 @@
   }
 }
 
-.game-security-shield:has(.game-security-card--revealed) .game-security-shield__count {
-  top: 50%;
-  left: calc(100% + 12px);
-  transform: translateY(-50%);
+/* Only the tall desktop draws an unclipped card strip. Landscape shields keep
+   their count on the shield's face; moving it beside them clips it away. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .game-security-shield:has(.game-security-card--revealed) .game-security-shield__count {
+    top: 50%;
+    left: calc(100% + 12px);
+    transform: translateY(-50%);
+  }
 }
 
 .game-security-card__faces {
