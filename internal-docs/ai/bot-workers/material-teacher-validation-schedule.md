@@ -10,7 +10,7 @@ This is a source and receipt diagnosis only. I made no remote reads or mutations
 - **Recipe order.** From the qualified `--describe-curriculum` (44 recipes). Only two recipes hold EX13-064 together with EX10-031 and both of its materials, EX10-026 and EX10-027:
   - 18 `ex13-lordknightmon-royal-knights@1` (4 / 3 / 3 / 3 copies)
   - 40 `curriculum-bagra-darkknightmon@1` (2 / 4 / 4 / 4 copies)
-- **ROOT closed receipts.** `closed-learning-r2-{contexts,contexts-1..4}.actual.json` and `closed-learning-gap-contexts-5.actual.json`. `closed-learning-gap-contexts-6.actual.json` is **0 bytes** locally, so contexts-6 is known only from ROOT's provisional raw report `39adad43…`.
+- **ROOT closed receipts.** `closed-learning-r2-{contexts,contexts-1..4}.actual.json` and `closed-learning-gap-contexts-{5,6}.actual.json`. Contexts-6's full consumer passed (completion `36daa7f1…`, report `39adad43…`). Across the 5716 closed teacher games, only validation `effectDigiXrosMaterial:seat1` is still missing.
 
 ## Actual effect DigiXros labels per closure
 
@@ -22,7 +22,7 @@ This is a source and receipt diagnosis only. I made no remote reads or mutations
 | contexts-3 | 880, 6001760 | 0 | 2 | 2 | 0 |
 | contexts-4 | 880, 6002640 | 5 | 1 | 0 | 0 |
 | contexts-5 | 880, 6003520 | 3 | 3 | 0 | 0 |
-| contexts-6 (provisional) | 880 | — | — | — | 0 per ROOT |
+| contexts-6 | 880, 6004400 | 1 | 6 | 2 | **0** |
 
 Counts are labelled rows, not games.
 
@@ -63,11 +63,10 @@ Run **one fresh block with the unchanged CLI and `--games 3872`**. Use the revie
 
 **Cheaper option:** `--games 1760` costs about half and adds 4 new matchups, but its chance of closing the gap is lower.
 
-**Seeds:** if contexts-6 used 6004400–6005279, then 6005280–6009151 stays clear of 6202400+ and the final 6210000–6213871. ROOT's fresh scanner must confirm this, because the contexts-6 seed is not in a local receipt.
+**Seeds:** contexts-6 used 6004400–6005279, so the next contiguous interval is 6005280–6009151. That stays clear of 6202400+ and the final 6210000–6213871. ROOT's fresh scanner must still confirm it before launch.
 
 ## Evidence limits
 
-- **Contexts-6** is provisional; its local receipt file is empty.
 - **Rows vs games.** Coverage counts rows, not games, and I did not read raw episodes.
-- **Chance of success.** The TRAIN seat-1 rate after contexts-3 is about 6 rows in about 48 games. At that rate, zero in about 16 validation games is unlikely but possible by chance. The diagnosis therefore shows **limited opponent diversity**; it does not prove that those four matchups are unfavorable. Whether 3872 closes the gap remains a probability, roughly 2 expected rows, not a guarantee.
-- **Expert phases.** I assumed the expert entry was active from contexts-3 on, which matches the adapter's expert phases. I did not verify contexts-5 or contexts-6 locally.
+- **Chance of success.** From contexts-3 to contexts-6, TRAIN seat 1 produced 12 rows in 64 games (about 0.19 per game), against 0 rows in the 16 repeated validation games. If rows behaved like independent games, zero would have about a 5% chance. Both explanations remain: the four fixed matchups may be unfavorable, or this may be chance. The 14 new matchups in a 3872-game block give roughly 2–3 expected rows. That is a probability, not a guarantee.
+- **Expert phases.** I assumed the expert entry was active from contexts-3 on, which matches the adapter's expert phases. The receipts record the driver as `teacher` and do not name the entry.
