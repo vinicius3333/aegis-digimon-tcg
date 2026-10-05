@@ -66,7 +66,8 @@ it("keeps the two newest toasts in each column and dismisses only the tapped occ
     ).toEqual(["middle", "new"]);
   }
   const right = container.querySelector('[data-slot="narration-cards"]')!;
-  fireEvent.click(within(right as HTMLElement).getAllByRole("button", { name: "Dismiss notice" })[0]!);
+  fireEvent.click(within(right as HTMLElement).getAllByRole("button", { name: /Show the full notice/ })[0]!);
+  fireEvent.click(within(screen.getByRole("dialog")).getByText("Dismiss notice", { exact: true }));
   expect(onAdvance).toHaveBeenCalledExactlyOnceWith("middle");
   expect(screen.queryByRole("dialog")).toBeNull();
 });
@@ -129,9 +130,44 @@ it("includes a rejected action in the left limit and uses its separate dismissal
   const { container } = render(view([effect("one"), effect("two")], onAdvance, rejection, onDismiss));
   const left = container.querySelector('[data-slot="narration-text"]')!;
   expect(left.querySelectorAll(".compact-toast")).toHaveLength(2);
-  fireEvent.click(left.querySelector('.compact-toast[data-tone="rejection"] .compact-toast__dismiss')!);
+  expect(left.querySelector('.compact-toast[data-tone="rejection"] .compact-toast__clause')?.textContent).toBe(
+    "Not enough memory",
+  );
+  fireEvent.click(left.querySelector('.compact-toast[data-tone="rejection"] .compact-toast__open')!);
+  fireEvent.click(within(screen.getByRole("dialog")).getByText("Dismiss notice", { exact: true }));
   expect(onDismiss).toHaveBeenCalledOnce();
   expect(onAdvance).not.toHaveBeenCalled();
+});
+
+it("preserves owner routing and the fixed lane hosts as notices arrive and expire", () => {
+  const own = effect("own");
+  const opposing = effect("opposing");
+  opposing.side = Side.Opponent;
+  opposing.notice!.side = Side.Opponent;
+  opposing.panel!.side = Side.Opponent;
+  const { container, rerender } = render(view([]));
+  const lanes = [...container.querySelectorAll(".narration-slot")];
+  expect(lanes).toHaveLength(2);
+  rerender(view([own, opposing]));
+  for (const lane of lanes) {
+    expect([...lane.querySelectorAll(".compact-toast")].map((toast) => toast.getAttribute("data-side"))).toEqual([
+      Side.Viewer,
+      Side.Opponent,
+    ]);
+  }
+  rerender(view([]));
+  expect([...container.querySelectorAll(".narration-slot")]).toEqual(lanes);
+  expect(container.querySelectorAll(".compact-toast")).toHaveLength(0);
+});
+
+it("retains the opened occurrence when a newer arrival evicts it from both lane caps", () => {
+  const { rerender } = render(view([effect("first")]));
+  fireEvent.click(screen.getAllByRole("button", { name: /Show the full notice/ })[0]!);
+  rerender(view([effect("second"), effect("third"), effect("fourth")]));
+  expect(screen.getByRole("dialog").textContent).toContain("Reveal 5 cards");
+  expect(screen.getByRole("dialog").querySelector('img[src*="BT1-010_P2"]')).toBeTruthy();
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  expect(screen.queryByRole("dialog")).toBeNull();
 });
 
 it("counts distinct card panels in one occurrence toward the right limit", () => {
@@ -150,4 +186,15 @@ it("counts distinct card panels in one occurrence toward the right limit", () =>
   expect([...right.querySelectorAll(".compact-toast")].map((toast) => toast.getAttribute("data-narration-id"))).toEqual(
     ["dual", "dual"],
   );
+});
+
+it("returns focus to the persistent lane when the opened toast expires", () => {
+  const { container, rerender } = render(view([effect("one")]));
+  const open = screen.getAllByRole("button", { name: /Show the full notice/ })[0]!;
+  const lane = container.querySelector('[data-slot="narration-text"]');
+  open.focus();
+  fireEvent.click(open);
+  rerender(view([]));
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  expect(document.activeElement).toBe(lane);
 });
