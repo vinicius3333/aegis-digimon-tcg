@@ -753,3 +753,25 @@ describe("BT23-013 Jesmon", () => {
     await loop;
   });
 });
+
+describe("Discord October 5 report regressions", () => {
+  it("1556688029731528804: effect-directed Jesmon orders When Attacking before Alliance", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-013", as: "jesmon" }], hand: [{ card: "BT1-009", as: "ally" }] },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: ["ir-12"] },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ally").instanceId })).toEqual({ ok: true });
+    await settle(() => s.engine.combat.hasOpenAllianceDecision);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId.includes("TOKEN"))).toBe(true);
+    expect(
+      s.decisions.some(({ req }) => req.kind === "orderTriggers" && JSON.stringify(req.options).includes("alliance")),
+    ).toBe(true);
+    s.engine.applyIntent(0, { type: "respondAlliance" });
+    await advance(s.engine).finishAttack();
+  });
+});

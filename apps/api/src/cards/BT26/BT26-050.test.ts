@@ -420,3 +420,35 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("Discord October 5 report regressions", () => {
+  it("1556702519952932885: declared Burst evolution returns Yoshino and costs zero", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-091", as: "yoshi" },
+            { card: "BT26-049", as: "base" },
+          ],
+          hand: [{ card: "BT26-050", as: "burst" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("burst").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-050" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.some((c) => c.cardId === "BT26-091")).toBe(true);
+  });
+});

@@ -100,6 +100,35 @@ function envOver(
 }
 
 describe("derived activation tiers", () => {
+  it("keeps granted copies and event occurrences distinct without reactivating after evolution", async () => {
+    let top = "original-top";
+    const resolved: string[] = [];
+    const firstEvent = {};
+    const secondEvent = {};
+    const grants = [
+      { id: 1, event: firstEvent, label: "first-event" },
+      { id: 1, event: secondEvent, label: "second-event" },
+      { id: 2, event: firstEvent, label: "second-grant" },
+    ];
+    const { env } = envOver([], {
+      collect: () =>
+        grants.map(({ id, event, label }) => ({
+          source: fakeSource(0, top),
+          grantedEffectId: id,
+          activationIdentity: event,
+          effect: fakeEffect(`granted/test/grant/${id}`, {
+            maxPerTurn: -1,
+            onResolve: () => {
+              resolved.push(label);
+              top = "evolved-top";
+            },
+          }),
+        })),
+    });
+    await resolveTiming(EffectTiming.OnEndAttack, env);
+    expect(resolved).toEqual(["first-event", "second-event", "second-grant"]);
+  });
+
   it("resumes the interrupted derived tier after a nested batch completes", async () => {
     let childrenArmed = false;
     let nestedArmed = false;

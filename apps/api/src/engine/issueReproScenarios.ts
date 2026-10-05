@@ -15,6 +15,104 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-discord-1556745762682183811-giant-slayer-execute": {
+    players: [
+      { hand: ["BT26-085", "BT26-060"], trash: ["BT26-078"], security: ["BT1-009", "BT1-009"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+    memory: 7,
+  },
+  "arena-discord-1556745762682183811-holy-succession": {
+    players: [
+      {
+        hand: ["BT26-085"],
+        trash: ["BT26-078", "BT26-060", "BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-016"],
+        security: ["BT1-009", "BT1-009"],
+      },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+    memory: 2,
+  },
+  "arena-discord-1556702519952932885-rosemon-burst": {
+    players: [
+      { field: [{ card: "BT26-049" }, { card: "BT26-091" }], hand: ["BT26-050"] },
+      { field: [{ card: "BT1-009" }, { card: "BT1-010" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+    memory: 3,
+  },
+  "arena-discord-1556702519952932885-yoshino": {
+    players: [
+      { field: [{ card: "BT26-091" }, { card: "ST24-09" }], hand: ["ST24-09", "ST24-10"] },
+      { field: [{ card: "BT1-009" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556702668754387095-machinedramon": {
+    players: [
+      {
+        field: [{ card: "BT12-072", under: ["EX12-054", "EX12-055", "EX12-059"] }],
+        hand: ["EX12-054", "EX12-055"],
+        trash: ["EX12-054"],
+      },
+      {
+        field: [{ card: "EX12-054", under: ["BT1-009"] }],
+        security: ["ST1-16", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
+  "arena-discord-1556703230166175754-engage": {
+    players: [
+      { field: [{ card: "EX12-060" }], hand: ["BT1-009"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+    ],
+    memory: 3,
+  },
+  "arena-discord-1556688029731528804-jesmon": {
+    players: [
+      { field: [{ card: "BT23-013" }], hand: ["BT1-009"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556715328610762844-alphamon": {
+    players: [
+      { hand: ["BT13-075"], trash: ["BT9-055"] },
+      { field: [{ card: "EX8-073" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556716432111304824-dantemon": {
+    players: [
+      {
+        hand: ["BT26-086"],
+        trash: ["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"],
+      },
+      { field: [{ card: "BT1-009" }], security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+    ],
+    memory: 7,
+  },
+  "arena-discord-1556715929973424128-block-timing": {
+    players: [
+      {
+        field: [{ card: "EX12-076", under: ["EX12-004", "EX12-031"] }],
+        hand: ["EX12-047"],
+        security: ["EX12-074"],
+        faceUpSecurity: true,
+      },
+      { field: [{ card: "BT23-077" }, { card: "BT1-009" }], security: [] },
+    ],
+    memory: 3,
+  },
+
+  "arena-discord-1556732255148179569-drasil-turn": {
+    players: [
+      {
+        breeding: { card: "BT13-007", under: ["BT20-102"] },
+        field: [{ card: "EX11-053", under: ["EX12-053"] }],
+        hand: ["BT13-087", "EX5-048"],
+        security: ["BT1-009"],
+      },
+      { breeding: { card: "BT1-001" }, field: [{ card: "ST1-10" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+
   "arena-issue-4905-magnamon-merciful-colors": {
     memory: 6,
     players: [

@@ -52,6 +52,7 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfYourTurn",
+      description: "＜Engage＞: at the end of this turn, this Digimon may attack.",
       actions: [
         {
           kind: "Attack",

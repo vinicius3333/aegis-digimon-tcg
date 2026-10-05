@@ -505,3 +505,73 @@ describe("BT26-086 compiled behavior", () => {
     await belowSevenLoop;
   });
 });
+
+const octoberSevenCode = ["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"];
+
+describe("Discord October 5 report regressions", () => {
+  it("1556716432111304824: Dantemon retains octoberSevenCode links across security battles and the opponent turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-086", as: "dantemon", linked: octoberSevenCode }],
+        deck: ["BT1-009"],
+        hand: ["BT1-009"],
+      },
+      1: { security: ["BT1-009", "BT1-009"], deck: ["BT1-009"], hand: ["BT1-009"] },
+    });
+    await s.ready();
+    expect(s.perm("dantemon").linked).toHaveLength(7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dantemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    expect(s.perm("dantemon").linked).toHaveLength(7);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.turnSeat === 1);
+    expect(s.perm("dantemon").linked).toHaveLength(7);
+    s.engine.applyIntent(1, { type: "surrender" });
+    await loop;
+  });
+
+  it.each([0, 1] as const)(
+    "1556716432111304824: Dantemon retains links after seat %s Assembly On Play attack",
+    async (seat) => {
+      const s = setupEngine(
+        {
+          [seat]: { hand: [{ card: "BT26-086", as: "dante" }], trash: octoberSevenCode, deck: ["BT1-009"] },
+          [seat === 0 ? 1 : 0]: {
+            security: ["BT1-009", "BT1-009", "BT1-009"],
+            battleArea: [{ card: "BT1-009", as: "enemy" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.turnSeat = seat;
+      s.state.memory = 7;
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(seat);
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "playCard",
+          instanceId: s.inst("dante").instanceId,
+          assembly: { materialInstanceIds: s.state.players[seat]!.trash.map((c) => c.instanceId) },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.engine.combat.isAttacking);
+      await advance(s.engine).finishAttack();
+      await settle(() => s.state.pendingDecision === undefined && !s.engine.combat.isAttacking);
+      expect(s.perm("dante").linked).toHaveLength(7);
+      advance(s.engine).endMainPhaseIfOpen(seat);
+      await settle(() => s.state.turnSeat !== seat);
+      expect(s.perm("dante").linked).toHaveLength(7);
+      s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      await loop;
+    },
+  );
+});

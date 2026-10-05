@@ -906,6 +906,15 @@ export class SubTriggerRegistry {
           ? replacement.activationContext
           : buildContext(sourcePermanentId, replacement.sourceInstanceId);
       if (ctx === undefined) continue;
+      // Resident reducers survive a declined payment window. Their printed turn
+      // restriction must still hold when a later play consults that subscription.
+      // Triggered grants retain the duration established by their resolving effect.
+      if (
+        replacement.residentReduction === true &&
+        ((replacement.activationTiming === "YourTurn" && ctx.game.state.turnSeat !== ctx.source.ownerSeat) ||
+          (replacement.activationTiming === "OpponentsTurn" && ctx.game.state.turnSeat === ctx.source.ownerSeat))
+      )
+        continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
       if (oncePerTurnKey !== undefined) this.activatingOncePerTurnKeys.add(oncePerTurnKey);

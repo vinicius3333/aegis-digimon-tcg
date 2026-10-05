@@ -1,3 +1,4 @@
+import { retirePendingAttackWatchers } from "./subTriggers.js";
 import { isTimingActivationDisabled } from "../effects/timingActivation.js";
 import {
   EffectTiming,
@@ -513,6 +514,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         // that [When Digivolving] is parked in the nested pool; it still resolves before
         // Counter Timing and security.
         await drainPendingAttackTriggers(engine);
+        // No declaration effect may become legal later during a block or battle.
+        retirePendingAttackWatchers(engine);
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;

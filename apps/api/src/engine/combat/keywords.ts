@@ -203,10 +203,18 @@ export function decoySpecMatches(alternatives: readonly string[], targetDef: Car
 const FRAGMENT_COUNT = /[<＜]\s*Fragment\s*\((\d+)\)/i;
 
 /** How many of this Digimon's own digivolution cards a ＜Fragment＞ trash-cost requires. */
-export function fragmentCountOf(holderCardId: string): number | undefined {
+export function fragmentCountOf(
+  holderCardId: string,
+  grants: readonly { keyword: string; amount?: number }[] = [],
+): number | undefined {
   const def = getCardDefinition(holderCardId);
   const match = FRAGMENT_COUNT.exec(def?.effectText ?? "");
-  return match === null ? undefined : Number(match[1]);
+  const amounts = grants
+    .filter((grant) => grant.keyword === "Fragment" && grant.amount !== undefined)
+    .map((grant) => grant.amount!);
+  if (match !== null) amounts.push(Number(match[1]));
+  const valid = amounts.filter((amount) => Number.isInteger(amount) && amount > 0);
+  return valid.length === 0 ? undefined : Math.min(...valid);
 }
 
 /** The printed count on a ＜Material Save N＞ marker (Comprehensive Rules §16-21-1), e.g. 4. */

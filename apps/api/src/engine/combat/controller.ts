@@ -1397,7 +1397,7 @@ export class CombatController {
       if (!this.hasKeyword(permanentId, "Fragment")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined) continue;
-      const n = fragmentCountOf(perm.topCard.cardId);
+      const n = fragmentCountOf(perm.topCard.cardId, this.hooks.continuous?.grantedKeywords?.(permanentId));
       if (n === undefined || n === 0 || perm.stack.length < n) continue;
       const chosenIds = await this.hooks.selectOptionalInstances?.(
         perm.controllerSeat,

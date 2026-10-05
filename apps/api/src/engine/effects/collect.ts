@@ -7,6 +7,8 @@ import { UseTracker, canActivate, canTrigger } from "./kernel.js";
 
 /** One effect paired with the source that produced it (collection output). */
 export interface CollectedEffect {
+  /** Ledger identity of an effect granted to a Digimon, retained across digivolution. */
+  grantedEffectId?: number;
   /** Stable identity of an event occurrence, separate from the effect's per-turn usage key. */
   triggerOccurrence?: string;
   source: CardSource;
@@ -114,7 +116,7 @@ export function collectGrantedCustomEffects(
         grantId === undefined ? effect : { ...effect, effectKey: `${effect.effectKey}/grant/${grantId}` };
       const ctx = makeContext(source, grantedEffect);
       if (canTrigger(grantedEffect, ctx, tracker)) {
-        collected.push({ source, effect: grantedEffect, timing });
+        collected.push({ source, effect: grantedEffect, timing, grantedEffectId: grantId });
       }
     }
   }

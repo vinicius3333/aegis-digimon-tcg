@@ -26,7 +26,11 @@ it.each(ISSUE_REPRO_SCENARIO_IDS)("sends the complete %s board on its first conn
     expect(host.addBot()).toBe(true);
     await vi.waitFor(() =>
       expect(room.state.phase).toBe(
-        devScenario === "arena-issue-4939-demon-lord-free-reduction" ? Phase.Main : Phase.Breeding,
+        ["arena-issue-4939-demon-lord-free-reduction", "arena-discord-1556732255148179569-drasil-turn"].includes(
+          devScenario,
+        )
+          ? Phase.Main
+          : Phase.Breeding,
       ),
     );
     await vi.waitFor(() => {

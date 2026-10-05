@@ -21,6 +21,21 @@ async function resolveQ6728WithFirst(firstCardId: "EX12-046" | "EX12-076") {
 
   const firing = advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
   await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+  // Execute's effect-directed attack now orders Raid alongside When Attacking.
+  // Resolve that declaration pool before inspecting the End of Attack siblings.
+  const declaration = s.state.pendingDecision!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: declaration.decisionId,
+      response: { kind: "orderTriggers", order: s.decisions.at(-1)!.req.options!.triggerKeys! },
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.state.pendingDecision?.kind === "orderTriggers" &&
+      s.decisions.at(-1)!.req.options?.triggerCardIds?.includes("EX12-046") === true,
+  );
   const pending = s.state.pendingDecision!;
   const request = s.decisions.at(-1)!.req;
   const options = request.options as { triggerKeys: string[]; triggerCardIds: string[] };

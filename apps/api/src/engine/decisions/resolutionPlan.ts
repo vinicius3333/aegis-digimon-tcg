@@ -16,10 +16,20 @@ export class ResolutionPlan {
   private readonly presets = new Map<string, boolean>();
   private readonly activationKeys = new WeakMap<object, Map<string, string>>();
   private readonly usedKeys = new Set<string>();
+  private readonly grantSourceInstances = new Map<number, string>();
 
   /** Keep each event's key stable as earlier activations leave this window's pending list. */
   keyFor(collected: CollectedEffect): string {
-    const base = triggerKeyOf(collected);
+    // A granted effect follows the Digimon through evolution. Keep the first
+    // physical source anchor for this window while retaining distinct events
+    // and independently materialized grant copies below.
+    let sourceInstanceId = collected.source.instanceId;
+    if (collected.grantedEffectId !== undefined) {
+      const prior = this.grantSourceInstances.get(collected.grantedEffectId);
+      if (prior === undefined) this.grantSourceInstances.set(collected.grantedEffectId, sourceInstanceId);
+      else sourceInstanceId = prior;
+    }
+    const base = triggerKeyOf(collected, sourceInstanceId);
     const identity = collected.activationIdentity;
     if (identity === undefined) {
       this.usedKeys.add(base);

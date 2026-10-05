@@ -376,7 +376,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         if (!continuous.hasKeyword(permanentId, "Fragment")) continue;
         const perm = access.permanentById(permanentId);
         if (perm === undefined || perm.topCard === undefined) continue;
-        const n = fragmentCountOf(perm.topCard.cardId);
+        const n = fragmentCountOf(perm.topCard.cardId, continuous.grantedKeywords(permanentId));
         if (n === undefined || n === 0 || perm.stack.length < n) continue;
         const candidateIds = perm.stack.map((c) => c.instanceId);
         const chosen = await engine.ask.selectInstances(

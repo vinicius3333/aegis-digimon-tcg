@@ -8,15 +8,21 @@ import { advance } from "./testkit/advance.js";
 import { setupEngine, settle, type SetupEngineOptions } from "./testkit/harness.js";
 
 async function start(id: IssueReproScenarioId, options: SetupEngineOptions = {}) {
+  const drasil = id === "arena-discord-1556732255148179569-drasil-turn";
   const s = setupEngine(
     { 0: {}, 1: {} },
-    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, ...options },
+    {
+      autoAcceptOptional: !drasil,
+      autoDeclineOptional: drasil,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      ...options,
+    },
   );
   layDevScenario(id, s.state, [BLUE_DECK, RED_DECK]);
   const loop = s.engine.startTurnLoop();
-  await settle(() => s.state.phase === Phase.Breeding);
-  if (id !== "arena-issue-4939-demon-lord-free-reduction")
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  await settle(() => s.state.phase === Phase.Breeding || s.state.phase === Phase.Main);
+  if (s.state.phase === Phase.Breeding) expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
   await advance(s.engine).waitForMainPhase(0);
   return { s, loop };
 }

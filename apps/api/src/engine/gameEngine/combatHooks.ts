@@ -1,7 +1,7 @@
 import { EffectDuration, EffectTiming, type CardInstance } from "@aegis/shared";
 import { effectiveColorsOf } from "./matchLifecycle.js";
 import { resolveKeywords } from "../combat/keywords.js";
-import { buildResolutionEnv } from "../effects/index.js";
+import { buildResolutionEnv, permanentIdentityOf } from "../effects/index.js";
 import { effectsOf } from "../effects/collect.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import { engineRunSecurityCheck, payBarrierSecurityCost } from "./securityCheck.js";
@@ -65,37 +65,8 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
           ? undefined
           : engine.access.permanentById(trigger.attackerPermanentId);
       const top = attacker?.topCard;
-      // A window opened INSIDE another effect's resolution is not the outermost one, so the
-      // resolver drops `extraPending` (and `fireTimingForPermanent` may defer the window
-      // wholesale). The synthetic Alliance effects would silently vanish with it, so decline
-      // the combined window here and let the caller run the legacy inline Alliance loop.
-      if (attacker === undefined || top === undefined || engine.activeWindowToken !== undefined) {
-        if (opts.suspendedPermanentId !== undefined) {
-          const suspensionTrigger = {
-            ...combatTriggerInfo(engine, trigger),
-            subjectPermanentId: opts.suspendedPermanentId,
-            suspendedPermanentId: opts.suspendedPermanentId,
-          };
-          await fireTiming(engine, EffectTiming.OnTappedAnyone, suspensionTrigger);
-          await engine.fireSubTrigger("whenSuspended", suspensionTrigger);
-        }
+      if (attacker === undefined || top === undefined) {
         await fireTiming(engine, EffectTiming.OnUseAttack, combatTriggerInfo(engine, trigger));
-        // An effect-driven attack parks the attacker's [When Attacking] effects in the
-        // resolving effect's window. The turn player's watchers armed by the same declaration
-        // (EX12-069's security "when one of your Digimon attacks") are simultaneous with them,
-        // so they join that window instead of resolving first on the caller's bus (CR §15-4).
-        // Parking claims them, so the caller's `whenAttacking` fire skips them.
-        if (
-          includeSubTriggers &&
-          opts.subTriggerPayload !== undefined &&
-          shouldDeferNestedTiming(engine) &&
-          engine.pendingPoolDrainDepth > 0
-        ) {
-          parkArmedForEnclosingWindow(
-            engine,
-            armedSubTriggers(engine, engine.subTriggers.subscriptionsFor("whenAttacking"), opts.subTriggerPayload),
-          );
-        }
         return { allianceResolvedInWindow: false, raidResolvedInWindow: false, subTriggersResolvedInWindow: false };
       }
       // Attack declaration opens several trigger channels as one event. Bring continuous
@@ -182,6 +153,39 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
               .collect(EffectTiming.OnTappedAnyone)
               .map((effect) => ({ ...effect, triggerInfo: suspensionPayload }));
       const pendingAttackEffects = [...allyAttackEffects, ...suspensionEffects, ...allianceEffects, ...raidEffects];
+      if (shouldDeferNestedTiming(engine)) {
+        // An effect-directed declaration joins its enclosing pool. Keyword instances
+        // must join the printed effects too, so the controller can order Alliance after
+        // an effect that creates its ally (Q5257).
+        for (const effect of pendingAttackEffects) {
+          const entry = {
+            ...effect,
+            triggerInfo: effect.triggerInfo ?? attackPayload,
+            activationIdentity: attackPayload,
+          };
+          engine.nestedTriggerSourceIdentity.set(entry, permanentIdentityOf(entry.source) ?? null);
+          engine.pendingNestedTimingEffects.push(entry);
+        }
+        await fireTimingForPermanent(engine, EffectTiming.OnUseAttack, attacker, attackPayload);
+        if (includeSubTriggers) {
+          for (const event of suspensionPayload === undefined
+            ? (["whenAttacking", "whenOpponentAttacks"] as const)
+            : (["whenSuspended", "whenAttacking", "whenOpponentAttacks"] as const)) {
+            parkArmedForEnclosingWindow(
+              engine,
+              armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), {
+                ...attackPayload,
+                ...(suspensionPayload ?? {}),
+              }),
+            );
+          }
+        }
+        return {
+          allianceResolvedInWindow: allianceCount > 0,
+          raidResolvedInWindow: raidEffects.length > 0,
+          subTriggersResolvedInWindow: includeSubTriggers,
+        };
+      }
       const timingWindow = async () =>
         fireTimingForPermanent(engine, EffectTiming.OnUseAttack, attacker, attackPayload, pendingAttackEffects);
       const subTriggerPayload = opts.subTriggerPayload ?? combatTriggerInfo(engine, trigger);

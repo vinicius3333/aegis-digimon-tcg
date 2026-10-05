@@ -1,3 +1,4 @@
+import "../index.js";
 import { describe, expect, it } from "vitest";
 import {
   assemblyRequirementFor,
@@ -478,5 +479,28 @@ describe("EX12-060 Chaosdramon", () => {
         useAlternateCost: false,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("Discord October 5 report regressions", () => {
+  it("1556703230166175754: Chaosdramon offers Engage after passing memory", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-060", as: "chaos" }], hand: ["BT1-009"], deck: ["BT1-009", "BT1-009"] },
+        1: { deck: ["BT1-009", "BT1-009"], security: ["BT1-009", "BT1-009"], hand: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.engine.combat.isAttacking || s.state.turnSeat === 1);
+    expect(s.events.some((e) => e.kind === "attackDeclared" && e.attackerCardId === "EX12-060")).toBe(true);
+    const engagePrompt = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "EX12-060");
+    expect(engagePrompt?.req.options?.effectText).toBe("＜Engage＞: at the end of this turn, this Digimon may attack.");
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.turnSeat === 1);
+    s.engine.applyIntent(1, { type: "surrender" });
+    await loop;
   });
 });
