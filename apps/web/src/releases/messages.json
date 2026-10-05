@@ -970,5 +970,9 @@
   "releases.1.0.0-beta.summary": {
     "en": "The first official Aegis beta milestone. From now on, every player-facing update is recorded here.",
     "pt-BR": "O primeiro marco oficial do beta do Aegis. Daqui para frente, todas as novidades para jogadores ficam registradas aqui."
+  },
+  "releases.1.10.2-beta.fix.deployContinuity": {
+    "en": "Updates can now deploy while matches on older versions continue running.",
+    "pt-BR": "Agora as atualizações podem ser implantadas enquanto as partidas em versões anteriores continuam em andamento."
   }
 }

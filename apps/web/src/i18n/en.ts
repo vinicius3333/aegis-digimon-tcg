@@ -89,6 +89,7 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.10.2-beta.fix.deployContinuity": releaseMessages["releases.1.10.2-beta.fix.deployContinuity"]["en"],
   "releases.1.10.2-beta.summary": releaseMessages["releases.1.10.2-beta.summary"]["en"],
   "releases.1.10.2-beta.fix.ruliReduction": releaseMessages["releases.1.10.2-beta.fix.ruliReduction"]["en"],
   "releases.1.10.2-beta.fix.lilamonProtection": releaseMessages["releases.1.10.2-beta.fix.lilamonProtection"]["en"],

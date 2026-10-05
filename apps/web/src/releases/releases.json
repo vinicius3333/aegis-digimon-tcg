@@ -59,6 +59,9 @@
       },
       {
         "textKey": "releases.1.10.2-beta.fix.scenarioLinks"
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.deployContinuity"
       }
     ]
   },
