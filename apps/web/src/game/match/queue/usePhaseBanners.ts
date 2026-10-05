@@ -257,6 +257,8 @@ export function usePhaseBanners({
       const awaitingCue = queue.hasPendingStep(
         (step) =>
           step.track !== "phaseBanner" &&
+          // Audio callbacks have no painted handoff to finish before a ribbon.
+          step.track !== "sound" &&
           step.track !== CueTrack.SecurityDock &&
           !OPTION_DOCK_TRACKS.includes(step.track ?? "") &&
           (stepPhaseOrdersRef.current.get(step) ?? 0) < phaseOrder,
