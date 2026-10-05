@@ -8,9 +8,6 @@ import { heldDeletionFrom } from "../heldDeletion";
 import type { StateSnapshot } from "../../../net/presentedState";
 import type { DeleteBurst, HeldStackStrip, MatchCueAnchors } from "../types";
 
-/** The peeled card is drawn at this width; its box is centred on the permanent. */
-const PEEL_CARD_WIDTH = 72;
-const PEEL_CARD_HEIGHT = 100;
 import { burstColorFor } from "../../showcases";
 import { waitForStackStripClock } from "./stackStripClock";
 
@@ -83,19 +80,20 @@ export function enqueueStackStripPeels({
       snapshots: snapshots.filter((snapshot) => snapshot.stateVersion < stateVersion),
       seat: event.seat,
       permanentId,
+      topInstanceId: event.strippedStackTops ? event.instanceIds[0] : undefined,
     });
-    if (held) {
-      setHeldStackStrips((current) => {
-        const preceding = [...current.values()].find((strip) => strip.permanent.permanentId === permanentId);
-        return new Map(current).set(key, {
-          seat: held.seat,
-          permanent: preceding?.permanent ?? held.permanent,
-          index: held.index,
-          stateVersion,
-          returnedInstanceId: undefined,
-        });
+    setHeldStackStrips((current) => {
+      const preceding = [...current.values()].find((strip) => strip.permanent.permanentId === permanentId);
+      const origin = preceding ?? held;
+      if (!origin) return current;
+      return new Map(current).set(key, {
+        seat: origin.seat,
+        permanent: origin.permanent,
+        index: origin.index,
+        stateVersion,
+        returnedInstanceId: undefined,
       });
-    }
+    });
     function release() {
       setHeldStackStrips((current) => {
         if (!current.has(key)) return current;
@@ -160,6 +158,6 @@ export function enqueueStackStripPeels({
       },
     });
     // A queued step can be replaced before it runs, so cleanup also follows queue idle.
-    if (held) void queue.idle().then(release);
+    void queue.idle().then(release);
   }
 }

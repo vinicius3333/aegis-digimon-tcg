@@ -38,6 +38,7 @@ function cues(): Parameters<typeof visibleBoard>[0]["cues"] {
     heldDrawState: undefined,
     heldBreedingState: undefined,
     heldDeletions: new Map(),
+    heldStackStrips: new Map(),
     heldTrashArrivals: new Map(),
     heldHandArrivals: new Map(),
     pendingPermanentIds: new Set(),
@@ -50,6 +51,30 @@ function cues(): Parameters<typeof visibleBoard>[0]["cues"] {
 }
 
 describe("visibleBoard", () => {
+  it("reports the held armor and source until its peel completes, then exposes the promoted top", () => {
+    const armor = permanent("armor", "BT8-012");
+    armor.stack.clear();
+    armor.stack.push(card("base", "BT1-009"));
+    const promoted = permanent("armor", "BT1-009");
+    promoted.stack.clear();
+    const live = board(15, [promoted]);
+    const holds = cues();
+    holds.heldStackStrips.set(1, {
+      seat: 1,
+      permanent: armor,
+      index: 0,
+      stateVersion: 15,
+      returnedInstanceId: undefined,
+    });
+    const held = visibleBoard({ live, displayed: live, viewerSeat: 0, cues: holds })!;
+    expect(held.players[1].battleArea[0]!.topCard.cardId).toBe("BT8-012");
+    expect(held.players[1].battleArea[0]!.stack.map((value) => value.cardId)).toEqual(["BT1-009"]);
+    holds.heldStackStrips.clear();
+    const complete = visibleBoard({ live, displayed: live, viewerSeat: 0, cues: holds })!;
+    expect(complete.players[1].battleArea[0]!.topCard.cardId).toBe("BT1-009");
+    expect(complete.players[1].battleArea[0]!.stack).toEqual([]);
+    expect(held.players[1].battleArea[0]!.topCard.cardId).toBe("BT8-012");
+  });
   it("preserves hidden opponent hand identities omitted from a real plain seat-view snapshot", () => {
     const live = board(15);
     live.players[1]!.handCount = 5;

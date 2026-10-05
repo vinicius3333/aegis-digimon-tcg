@@ -33,6 +33,23 @@ describe("heldDeletionFrom", () => {
     expect(heldDeletionFrom({ snapshots, seat: undefined, permanentId: "x" })).toMatchObject({ seat: 1, index: 0 });
   });
 
+  it("finds the departing top even when a newer snapshot already has its promoted source", () => {
+    const armor = board(8, ["armor"], []);
+    armor.players[0]!.battleArea[0]!.topCard = { instanceId: "old-top" } as never;
+    const promoted = board(9, ["armor"], []);
+    promoted.players[0]!.battleArea[0]!.topCard = { instanceId: "source" } as never;
+    const history = [
+      { stateVersion: 8, state: armor },
+      { stateVersion: 9, state: promoted },
+    ];
+    expect(
+      heldDeletionFrom({ snapshots: history, seat: 0, permanentId: "armor", topInstanceId: "old-top" }),
+    ).toMatchObject({ permanent: { topCard: { instanceId: "old-top" } }, trash: [{ instanceId: "t8" }] });
+    expect(
+      heldDeletionFrom({ snapshots: history, seat: 0, permanentId: "armor", topInstanceId: "missing" }),
+    ).toBeUndefined();
+  });
+
   it("finds nothing for a permanent no snapshot remembers", () => {
     expect(heldDeletionFrom({ snapshots, seat: 0, permanentId: "never" })).toBeUndefined();
     expect(heldDeletionFrom({ snapshots, seat: 1, permanentId: "dead" })).toBeUndefined();

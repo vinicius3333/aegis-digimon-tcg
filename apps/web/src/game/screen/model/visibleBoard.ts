@@ -47,6 +47,7 @@ type BoardCues = Pick<
   | "heldDrawState"
   | "heldBreedingState"
   | "heldDeletions"
+  | "heldStackStrips"
   | "heldTrashArrivals"
   | "heldHandArrivals"
   | "pendingPermanentIds"
@@ -92,6 +93,7 @@ export function visibleBoard({
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
     heldDeletions: cues.heldDeletions,
+    heldStackStrips: cues.heldStackStrips,
     heldTrashArrivals: cues.heldTrashArrivals,
     heldHandArrivals: cues.heldHandArrivals,
     optimisticPlayedInstanceId,
