@@ -54,7 +54,7 @@ index d9059c0e2..26ec3f4a3 100644
 @@ -111,6 +111,55 @@ function materialTeacherDecision(engine: GameEngine, seat: Seat, request: Decisi
    }
  }
- 
+
 +/** Take the free effect play the evaluation policy values most, instead of declining it. */
 +function effectPlayTeacherDecision(
 +  engine: GameEngine,
