@@ -37,9 +37,10 @@ interface Capture {
     suspendedIds: string[];
     securityCounts: number[];
     permanentIds: string[];
-    permanents: { permanentId: string; cardId: string; stackCount: number }[];
+    permanents: { permanentId: string; cardId: string; stackCount: number; currentDP: number }[];
   }[];
   peels: { key: string; permanentId?: string; cardId?: string; firstAt: number; lastAt: number; frames: number }[];
+  dpPulses: { permanentId?: string; firstAt: number; lastAt: number; frames: number }[];
   phaseRibbons: { at: number; label: string; side: string | undefined }[];
   arrows: {
     at: number;
@@ -82,6 +83,7 @@ export async function startPacingCapture(page: Page) {
       decisions: [],
       boards: [],
       peels: [],
+      dpPulses: [],
       phaseRibbons: [],
       arrows: [],
       returnLifecycle: [],
@@ -93,6 +95,7 @@ export async function startPacingCapture(page: Page) {
     let decision: { element: Element; observation: Capture["decisions"][number] } | undefined;
     let boardKey = "";
     const peelObservations = new WeakMap<Element, Capture["peels"][number]>();
+    const dpObservations = new WeakMap<Element, Capture["dpPulses"][number]>();
     let ribbonElement: Element | null = null;
     let arrowSignature = "";
     const returnId = (element: Element) => {
@@ -145,6 +148,7 @@ export async function startPacingCapture(page: Page) {
                   battleArea: {
                     permanentId: string;
                     isSuspended: boolean;
+                    currentDP: number;
                     topCard: { cardId: string };
                     stack?: unknown[];
                   }[];
@@ -168,6 +172,7 @@ export async function startPacingCapture(page: Page) {
               permanentId: card.permanentId,
               cardId: card.topCard.cardId,
               stackCount: card.stack?.length ?? 0,
+              currentDP: card.currentDP,
             })),
           ),
         };
@@ -196,6 +201,26 @@ export async function startPacingCapture(page: Page) {
           };
           peelObservations.set(peel, observation);
           capture.peels.push(observation);
+        }
+        observation.lastAt = at;
+        observation.frames++;
+      }
+      for (const pulse of document.querySelectorAll<HTMLElement>(".game-dp-pulse")) {
+        const bounds = pulse.getBoundingClientRect();
+        const painted = [...pulse.querySelectorAll("i, em")].some(
+          (part) => Number(getComputedStyle(part).opacity) > 0.01,
+        );
+        if (bounds.width <= 0 || bounds.height <= 0 || !painted) continue;
+        let observation = dpObservations.get(pulse);
+        if (!observation) {
+          observation = {
+            permanentId: pulse.closest<HTMLElement>("[data-drop][data-id]")?.dataset.id,
+            firstAt: at,
+            lastAt: at,
+            frames: 0,
+          };
+          dpObservations.set(pulse, observation);
+          capture.dpPulses.push(observation);
         }
         observation.lastAt = at;
         observation.frames++;

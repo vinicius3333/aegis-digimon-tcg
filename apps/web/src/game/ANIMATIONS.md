@@ -558,7 +558,7 @@ peels and sampled DOM artwork identities/poses. Hidden reduced-motion peels are
 excluded using actual bounds and SVG opacity. DOM poses and native animation observations share the requestAnimationFrame
 clock; callback completion time is retained separately. Its batch timestamp is a
 browser presentation hook observation, not a server/network timestamp. Coverage
-is nine of 46 keywords; native clip candidates and remaining scenarios require
+is ten of 46 keywords after the Digi-Burst cost checkpoint below; native clip candidates and remaining scenarios require
 review. Source report statuses retain failed cases even when they have no full
 capture, so keyword coverage alone does not mean the entire matrix passed.
 
@@ -572,6 +572,21 @@ none of these spans is presented as a server execution measurement. A live DP
 change may replace its previous decoration on the same card; the harness requires
 the replacement to start at cancellation and complete, while retaining both trace
 records. Attack, impact and other causal tracks retain strict cancellation checks.
+
+Digi-Burst now has two real-server layouts: WarGrowlmon pays Cupimon and Salamon
+to reduce Phoenixmon from 12,000 to 8,000 DP or delete Dracomon at zero DP.
+The public movement receipt carries both fields' resolved DP before the cost.
+Only those figures are held while the two sources peel; each consecutive cost
+keeps its own receipt. DP pulses wait for source-removal steps belonging to their
+revision, including a receipt processed after an early patch, without waiting
+for a future cost. Paused cancellation releases the pending badge suppression.
+Eight native Normal/Fast, 320px and reduced-motion captures passed with no
+expired gates or truncated records. The surviving target's painted DP pulse
+followed the second source's last painted frame by 116.7–150 ms in those captures.
+These are observations, not authored timings. Evidence is retained under
+`.local/keyword-pacing/digi-burst-cost`. De-Digivolve layouts and server outcomes
+are registered, but intermediate-top DP presentation remains unresolved and is
+not included in verified keyword coverage.
 
 ## Pending original audio pass
 

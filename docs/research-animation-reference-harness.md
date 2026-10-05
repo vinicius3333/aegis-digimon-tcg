@@ -1733,3 +1733,43 @@ completed a native attack and Armor Purge acceptance through the private
 HTTPS frontend on port 9445 and WSS API on port 9446, with no page errors.
 The access report and screenshot are retained locally; this verifies the
 private route and actual room connection rather than only an HTTP response.
+
+### Source costs before their DP result
+
+Four new server layouts cover single/multiple De-Digivolve and two Digi-Burst
+results. Their nineteen public-action scenario tests pass: physical source
+identity/order, the level-three floor, the untouched control stack and the final
+DP/deletion outcome are checked. This does not prove intermediate presentation.
+
+The initial Digi-Burst browser capture showed 8,000 DP at 9,522 ms, before its
+two source peels ended at 10,822 ms. Capturing resolved public field DP in the
+server's cost receipt fixes the order without guessing from an already-updated
+snapshot. The client holds figures across both seats until the last source leaves.
+Consecutive costs share physical progress but preserve their own DP receipts.
+The DP watcher waits for peels in its revision after its cause gate, including
+ones created after an early patch, while excluding future costs. Discarding a
+queued pulse releases its suppression even if it never started.
+
+Eight Digi-Burst browser cases passed: reduction/deletion at desktop Normal/Fast,
+320px and reduced motion, with eight full captures, no failures/skips/flakiness,
+expired gates or truncation. Painted source observations retained 36–37 frames
+per peel. The surviving target's DP pulse first painted 116.7–150 ms after the
+second peel's last painted frame. Reduced motion painted neither source peels
+nor DP pulses. These sampled spans are not authored durations. The observer now
+records painted DP pulses and the DP shown on each permanent, alongside its art
+and source count. Evidence is under `.local/keyword-pacing/digi-burst-cost`.
+The 288 focused client presentation tests, nineteen server scenario tests,
+production build and E2E TypeScript checks passed. Independent review caught
+and reproduced two defects in consecutive-cost inheritance and paused cleanup;
+both fixes now have regressions and the reproductions confirm the fixes.
+
+Coverage is now **10/46 keywords**, with 36 pending. The new De-Digivolve capture
+still shows the old top's DP on intermediate artwork. Its continuous modifiers
+can also change when a source becomes the top, so printed DP or the old ledger
+contribution alone cannot provide a correct value. That path remains unresolved
+and is not counted as browser coverage. No full expanded matrix or full reference
+comparison is claimed by this checkpoint.
+
+After updating this worktree's API on port 2571, a separate 320px native browser
+paid WarGrowlmon's Digi-Burst and reached the 8,000-DP outcome through the private
+HTTPS/WSS route, with no page errors. Its report is retained with the cost captures.
