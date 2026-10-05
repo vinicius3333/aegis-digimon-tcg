@@ -176,6 +176,7 @@ export function PermanentView({
       })}
       {...(drop ?? {})}
       data-suspended={isVisuallySuspended || undefined}
+      data-tap-target={candidate || highlight || !!onPointerDown || undefined}
       style={{
         // The badges size themselves from the card, so a phone's smaller card gets smaller badges.
         ...({ "--permanent-width": `${permanentWidth}px` } as CSSProperties),

@@ -58,6 +58,7 @@ export function BadgeHint({
     <span
       {...rest}
       ref={badgeRef}
+      data-badge-hint=""
       data-hint-open={anchor ? "" : undefined}
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
