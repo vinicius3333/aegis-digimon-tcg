@@ -18,6 +18,8 @@ import {
   type KeywordPacingScenario,
 } from "@aegis/shared";
 import { startPacingCapture, finishPacingCapture } from "./pacing-capture";
+import { installAudioCapture, readAudioCapture } from "./audio-capture";
+import { MAX_SOUND_VOICES, soundTones } from "../src/design/sound";
 
 /* A paced chain must keep moving in a real browser. The jsdom pacing harness replays the
    same scenarios on a fake clock, but a wait cycle between presentation steps only closes
@@ -1360,11 +1362,13 @@ test.describe("effects lab pacing in the browser", () => {
       test(`real bot action pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
         await page.setViewportSize({ width: format.width, height: format.height });
         await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        await installAudioCapture(page);
         const errors: string[] = [];
         page.on("pageerror", (error) => errors.push(error.message));
         const lab = new EffectsLabPage(page);
         await lab.start(scenario.id, false, format.speed, false);
         const before = await lab.read();
+        const audioBefore = await readAudioCapture(page);
         await startPacingCapture(page);
         await lab.button(/END PHASE/i).click();
         await expect
@@ -1383,11 +1387,63 @@ test.describe("effects lab pacing in the browser", () => {
           .toBe(true);
         const capture = await finishPacingCapture(page);
         const state = await lab.read();
+        const audioAfter = await readAudioCapture(page);
+        await info.attach("integrated-audio.json", {
+          body: Buffer.from(JSON.stringify({ before: audioBefore, after: audioAfter }, null, 2)),
+          contentType: "application/json",
+        });
         await info.attach("real-phase-pacing.json", {
           body: Buffer.from(JSON.stringify({ scenario, format, before, capture, state }, null, 2)),
           contentType: "application/json",
         });
         expect(errors).toEqual([]);
+        expect(
+          audioBefore.contexts.map((context) => context.state),
+          "trusted input unlocked native audio",
+        ).toEqual(["running"]);
+        expect(audioAfter.contexts.map((context) => context.state)).toEqual(["running"]);
+        expect(audioAfter.contexts[0]!.effectsGain).toBeGreaterThan(0);
+        expect(audioAfter.contexts[0]!.musicGain).toBeGreaterThan(0);
+        expect(audioAfter.peakEffects).toBeLessThanOrEqual(MAX_SOUND_VOICES);
+        const turnVoices = audioAfter.voices
+          .slice(audioBefore.voices.length)
+          .filter((voice) => voice.bus === "effects");
+        expect(turnVoices.length, "real autonomous actions scheduled native effect voices").toBeGreaterThan(0);
+        if (!format.reduced) {
+          for (const [index, cardId] of scenario.handCardIds.entries()) {
+            const card = getCardDefinition(cardId)!;
+            const occurrence = capture.arrivals.filter((entry) => entry.cardId === cardId)[
+              scenario.flow === "play-grouping" ? index : 0
+            ]!;
+            const kind = scenario.flow === "play-grouping" ? "cardPlay" : "digivolve";
+            const details = { cost: card.playCost, targetLevel: card.level };
+            const matches = (voice: (typeof turnVoices)[number], tone: ReturnType<typeof soundTones>[number]) =>
+              voice.type === tone.type &&
+              Math.abs(voice.frequency - tone.from) < 0.001 &&
+              Math.abs((voice.endFrequency ?? 0) - tone.to) < 0.001 &&
+              Math.abs((voice.durationMs ?? 0) - tone.duration * 1000) < 0.001;
+            // rAF poses and native oscillator observations both use absolute performance time.
+            const baseVoice = turnVoices.find(
+              (voice) =>
+                voice.at >= occurrence.firstAt - 50 &&
+                voice.at <= occurrence.lastAt + 50 &&
+                matches(voice, soundTones(kind, details)[0]!),
+            );
+            expect(baseVoice, `native target-level recipe accompanies ${cardId}`).toBeDefined();
+            expect(baseVoice!.showcase?.cardId).toBe(cardId);
+            expect(baseVoice!.showcase?.key).toBeTruthy();
+            // All these evolutions start at a central showcase, before its physical
+            // arrival burst exists. Identified landing metadata cannot replace the
+            // already played occurrence's deliberately neutral source recipe.
+            const tones = soundTones(kind, details);
+            for (const tone of tones) {
+              expect(
+                turnVoices.some((voice) => Math.abs(voice.at - baseVoice!.at) <= 50 && matches(voice, tone)),
+                `native recipe follows the painted ${cardId} occurrence`,
+              ).toBe(true);
+            }
+          }
+        }
         expect(capture.truncated).toBe(false);
         expect(state.gateExpiries).toEqual([]);
         expect(state.steps.filter((step) => step.failed)).toEqual([]);
