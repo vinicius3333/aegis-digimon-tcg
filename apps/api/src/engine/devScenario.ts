@@ -4,6 +4,7 @@ import {
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
+  KEYWORD_DECK_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -16,6 +17,7 @@ import {
   type KeywordTurnPacingScenario,
   type KeywordProtectionPacingScenario,
   type KeywordStackPacingScenario,
+  type KeywordDeckPacingScenario,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -62,6 +64,7 @@ export const DEV_SCENARIO_IDS = [
   ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => scenario.id),
   "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -5957,6 +5960,66 @@ function layKeywordStackPacingScenario(
   startEffectsLabTurn(state, 8);
 }
 
+/** Conserved main decks with known next cards and no incidental bot action before the printed On Play. */
+function layKeywordDeckPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordDeckPacingScenario,
+): void {
+  const fillers = [
+    "BT1-009",
+    "BT1-010",
+    "BT1-011",
+    "BT1-014",
+    "BT1-017",
+    "BT1-050",
+    "BT1-054",
+    "BT1-067",
+    "BT1-071",
+    "BT1-074",
+    "BT1-077",
+    "BT1-081",
+  ].flatMap((id) => Array<string>(4).fill(id));
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    const extras = [...(seat === scenario.sourceSeat ? [scenario.sourceCardId] : []), "BT1-089", "ST2-16"];
+    loadDeckInto(player, seat, {
+      mainDeck: [...extras, ...fillers.slice(0, 50 - extras.length)],
+      eggDeck: decks[seat].eggDeck,
+    });
+    const take = (cardId: string) => {
+      const card = extractCardAt(
+        player,
+        Zone.Deck,
+        player.deck.findIndex((candidate) => candidate.cardId === cardId),
+      );
+      if (!card) throw new Error(`Deck pacing scenario is missing ${cardId}`);
+      return card;
+    };
+    const control = new Permanent();
+    control.permanentId = `dev-perm-${seat}-keyword-deck-control`;
+    control.controllerSeat = seat;
+    control.enterFieldTurnCount = ESTABLISHED_TURN;
+    const tamer = take("BT1-089");
+    tamer.faceUp = true;
+    setTopCard(control, tamer);
+    placePermanent(player, control);
+    if (seat === scenario.sourceSeat) {
+      const source = take(scenario.sourceCardId);
+      source.instanceId = `dev-keyword-deck-source-${seat}`;
+      insertCard(player, Zone.Hand, source);
+    }
+    const count = seat === scenario.sourceSeat ? scenario.initialSecurity : 5;
+    for (let index = 0; index < count; index++) insertCard(player, Zone.Security, takeBottom(player, Zone.Deck)!);
+    if (seat === 0 && scenario.sourceSeat === 1) insertCard(player, Zone.Hand, take("BT1-009"));
+    // The ordinary turn draw consumes Cocytus Breath. With no blue Digimon initially,
+    // the bot's only playable hand card is this scenario's printed On Play source.
+    // Subsequent effect cards are Agumon, then Kokatorimon, in physical deck order.
+    for (const cardId of ["BT1-014", "BT1-010", "ST2-16"]) insertCard(player, Zone.Deck, take(cardId), "top");
+  }
+  startEffectsLabTurn(state, 10);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
@@ -5984,6 +6047,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => [
       scenario.id,
       (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordStackPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordDeckPacingScenario(state, decks, scenario),
     ]),
   ]) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
   battle: layBattleScenario,

@@ -3,6 +3,7 @@ import {
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
+  KEYWORD_DECK_PACING_SCENARIOS,
   Phase,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -14,6 +15,87 @@ import { setupEngine, settle } from "./testkit/harness.js";
 import { observe } from "./testkit/observe.js";
 
 describe("real keyword pacing boards", () => {
+  for (const scenario of KEYWORD_DECK_PACING_SCENARIOS) {
+    it(`${scenario.id} moves the actual next deck cards through public play`, async () => {
+      const s = setupEngine({ 0: {}, 1: {} });
+      s.engine.stagedDecks[0] = BLUE_DECK;
+      s.engine.stagedDecks[1] = RED_DECK;
+      s.engine.startDevScenario(scenario.id);
+      try {
+        await settle(() => s.state.phase === Phase.Breeding);
+        for (const player of s.state.players) {
+          const main = [
+            ...player.deck,
+            ...player.hand,
+            ...player.security,
+            ...player.trash,
+            ...[...player.battleArea].flatMap((permanent) => [
+              permanent.topCard,
+              ...permanent.stack,
+              ...permanent.linked,
+            ]),
+          ];
+          expect(main).toHaveLength(50);
+          expect(new Set(main.map((card) => card.instanceId)).size).toBe(50);
+          const copies = new Map<string, number>();
+          for (const card of main) copies.set(card.cardId, (copies.get(card.cardId) ?? 0) + 1);
+          expect([...copies.values()].every((count) => count <= 4)).toBe(true);
+        }
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        if (scenario.sourceSeat === 1) {
+          expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+          await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1);
+          expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+          await advance(s.engine).waitForMainPhase(1);
+        }
+        const player = s.state.players[scenario.sourceSeat]!;
+        const top = [...player.deck].slice(0, scenario.amount);
+        const security = [...player.security];
+        const controls = s.state.players.map((seat) => seat.battleArea[0]!.topCard.instanceId);
+        const firstEvent = s.events.length;
+        expect(
+          s.engine.applyIntent(scenario.sourceSeat, {
+            type: "playCard",
+            instanceId: `dev-keyword-deck-source-${scenario.sourceSeat}`,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() =>
+          scenario.amount > 0
+            ? s.events
+                .slice(firstEvent)
+                .some((event) => event.kind === "effectResolved" && event.sourceCardId === scenario.sourceCardId)
+            : s.state.turnSeat !== scenario.sourceSeat && s.state.phase === Phase.Breeding,
+        );
+        const moves = s.events
+          .slice(firstEvent)
+          .filter(
+            (event) =>
+              event.kind === "cardsMoved" &&
+              (event.seat === undefined || event.seat === scenario.sourceSeat) &&
+              event.from === "deck" &&
+              event.to === (scenario.flow === "draw" ? "hand" : "security"),
+          );
+        expect(moves.flatMap((event) => event.instanceIds)).toEqual(top.map((card) => card.instanceId));
+        for (const card of top)
+          expect(
+            player[scenario.flow === "draw" ? "hand" : "security"].some(
+              (candidate) => candidate.instanceId === card.instanceId,
+            ),
+          ).toBe(true);
+        expect(player.security.length).toBe(security.length + (scenario.flow === "recovery" ? scenario.amount : 0));
+        if (scenario.flow === "recovery") {
+          expect([...player.security].slice(0, scenario.amount).map((card) => card.instanceId)).toEqual(
+            [...top].reverse().map((card) => card.instanceId),
+          );
+          expect(top.every((card) => !card.faceUp)).toBe(true);
+        }
+        expect(s.state.players.map((seat) => seat.battleArea[0]!.topCard.instanceId)).toEqual(controls);
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      }
+    });
+  }
   for (const scenario of KEYWORD_STACK_PACING_SCENARIOS) {
     it(`${scenario.id} moves only the chosen physical stack through a public action`, async () => {
       const s = setupEngine({ 0: {}, 1: {} });

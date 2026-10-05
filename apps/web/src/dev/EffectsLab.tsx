@@ -5,6 +5,8 @@ import {
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
+  KEYWORD_DECK_PACING_SCENARIOS,
+  getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
 import { colorKey } from "../design/theme";
@@ -50,6 +52,13 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...KEYWORD_DECK_PACING_SCENARIOS.map(
+    (scenario) =>
+      [
+        scenario.id,
+        `Keyword pacing · ${scenario.keyword} · ${scenario.sourceSeat === 0 ? "own" : "opponent"} · ${scenario.amount || "condition inactive"}`,
+      ] as const,
+  ),
   ...KEYWORD_STACK_PACING_SCENARIOS.map(
     (scenario) =>
       [
@@ -95,6 +104,24 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  ...Object.fromEntries(
+    KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => {
+      const name = getCardDefinition(scenario.sourceCardId)?.nameEn ?? scenario.sourceCardId;
+      return [
+        scenario.id,
+        {
+          en:
+            scenario.sourceSeat === 0
+              ? `End breeding and play ${name}. ${scenario.amount ? `Follow ${scenario.amount} ${scenario.flow === "draw" ? "drawn cards joining your hand" : "cards joining your security"}, one at a time.` : "With four security cards, its Recovery condition is inactive: no card should move."} The established Tamers are controls.`
+              : `End breeding and your turn. The opponent plays ${name}. Follow its ${scenario.flow === "draw" ? "two hidden draws" : "face-down recovery"} and the displayed counts. The established Tamers are controls.`,
+          ptBR:
+            scenario.sourceSeat === 0
+              ? `Encerre a criação e jogue ${name}. ${scenario.amount ? `Acompanhe ${scenario.amount} ${scenario.flow === "draw" ? "cartas compradas chegando à mão" : "cartas chegando à segurança"}, uma por vez.` : "Com quatro seguranças, a condição de Recovery não se aplica: nenhuma carta deve se mover."} Os Tamers já no campo são controles.`
+              : `Encerre a criação e seu turno. O oponente joga ${name}. Acompanhe ${scenario.flow === "draw" ? "as duas compras ocultas" : "a recuperação com a carta virada para baixo"} e os contadores. Os Tamers já no campo são controles.`,
+        },
+      ];
+    }),
+  ),
   ...Object.fromEntries(
     KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => [
       scenario.id,

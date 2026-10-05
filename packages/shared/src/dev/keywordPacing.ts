@@ -164,11 +164,80 @@ export const KEYWORD_STACK_PACING_SCENARIOS = [
 ] as const;
 
 export type KeywordStackPacingScenario = (typeof KEYWORD_STACK_PACING_SCENARIOS)[number];
+
+/** Actual On Play draws/recovery; deck identities stay private to their owner. */
+export const KEYWORD_DECK_PACING_SCENARIOS = [
+  {
+    id: "keyword-pacing-draw-one",
+    keyword: "Draw",
+    flow: "draw",
+    sourceSeat: 0,
+    sourceCardId: "BT1-029",
+    amount: 1,
+    initialSecurity: 1,
+  },
+  {
+    id: "keyword-pacing-draw-many",
+    keyword: "Draw",
+    flow: "draw",
+    sourceSeat: 0,
+    sourceCardId: "BT1-041",
+    amount: 2,
+    initialSecurity: 1,
+  },
+  {
+    id: "keyword-pacing-draw-opponent",
+    keyword: "Draw",
+    flow: "draw",
+    sourceSeat: 1,
+    sourceCardId: "BT1-041",
+    amount: 2,
+    initialSecurity: 1,
+  },
+  {
+    id: "keyword-pacing-recovery-one",
+    keyword: "Recovery",
+    flow: "recovery",
+    sourceSeat: 0,
+    sourceCardId: "BT1-060",
+    amount: 1,
+    initialSecurity: 1,
+  },
+  {
+    id: "keyword-pacing-recovery-many",
+    keyword: "Recovery",
+    flow: "recovery",
+    sourceSeat: 0,
+    sourceCardId: "BT2-039",
+    amount: 2,
+    initialSecurity: 1,
+  },
+  {
+    id: "keyword-pacing-recovery-condition",
+    keyword: "Recovery",
+    flow: "recovery",
+    sourceSeat: 0,
+    sourceCardId: "BT2-039",
+    amount: 0,
+    initialSecurity: 4,
+  },
+  {
+    id: "keyword-pacing-recovery-opponent",
+    keyword: "Recovery",
+    flow: "recovery",
+    sourceSeat: 1,
+    sourceCardId: "BT1-060",
+    amount: 1,
+    initialSecurity: 1,
+  },
+] as const;
+export type KeywordDeckPacingScenario = (typeof KEYWORD_DECK_PACING_SCENARIOS)[number];
 export type KeywordProtectionPacingScenario = (typeof KEYWORD_PROTECTION_PACING_SCENARIOS)[number];
 export type KeywordTurnPacingScenario = (typeof KEYWORD_TURN_PACING_SCENARIOS)[number];
 export type KeywordPacingScenarioId =
   | (typeof KEYWORD_PACING_SCENARIOS)[number]["id"]
   | KeywordTurnPacingScenario["id"]
   | KeywordProtectionPacingScenario["id"]
-  | KeywordStackPacingScenario["id"];
+  | KeywordStackPacingScenario["id"]
+  | KeywordDeckPacingScenario["id"];
 export type KeywordPacingScenario = KeywordPacingBoard & { id: (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] };
