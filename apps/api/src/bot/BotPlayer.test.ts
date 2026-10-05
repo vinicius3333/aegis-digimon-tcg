@@ -434,33 +434,36 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(receivedSignal?.aborted).toBe(true);
   });
 
-  it("waits for the turn and opening phase ribbons before its breeding action", async () => {
-    vi.useFakeTimers();
-    const { state } = botState();
-    const intents: Intent[] = [];
-    const bot = new BotPlayer(
-      1,
-      state,
-      (intent) => {
-        intents.push(intent);
-        return { ok: true };
-      },
-      FIXED_THINK,
-    );
-    bot.onEvent({ kind: "phaseChanged", phase: Phase.End, turnSeat: 0, turnCount: 1 } as ServerEvent);
-    bot.onEvent({ kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 } as ServerEvent);
-    state.turnCount = 2;
-    for (const phase of [Phase.Active, Phase.Draw, Phase.Breeding]) {
-      state.phase = phase;
-      bot.onEvent({ kind: "phaseChanged", phase, turnSeat: 1, turnCount: 2 } as ServerEvent);
-    }
-    // Production plays End, turn change, Active, Draw and Breeding in sequence.
-    const ribbonsMs = 4 * PHASE_NARRATION_MS + TURN_NARRATION_MS;
-    await advance(ribbonsMs - 1);
-    expect(intents).toEqual([]);
-    await advance(1);
-    expect(intents).toHaveLength(1);
-  });
+  it.each([false, true])(
+    "waits for all opening phase ribbons before breeding, sequential client %s",
+    async (clientPacesChains) => {
+      vi.useFakeTimers();
+      const { state } = botState();
+      const intents: Intent[] = [];
+      const bot = new BotPlayer(
+        1,
+        state,
+        (intent) => {
+          intents.push(intent);
+          return { ok: true };
+        },
+        { ...FIXED_THINK, clientPacesChains },
+      );
+      bot.onEvent({ kind: "phaseChanged", phase: Phase.End, turnSeat: 0, turnCount: 1 } as ServerEvent);
+      bot.onEvent({ kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 1 } as ServerEvent);
+      state.turnCount = 2;
+      for (const phase of [Phase.Active, Phase.Draw, Phase.Breeding]) {
+        state.phase = phase;
+        bot.onEvent({ kind: "phaseChanged", phase, turnSeat: 1, turnCount: 2 } as ServerEvent);
+      }
+      // Production plays End, turn change, Active, Draw and Breeding in sequence.
+      const ribbonsMs = 4 * PHASE_NARRATION_MS + TURN_NARRATION_MS;
+      await advance(ribbonsMs - 1);
+      expect(intents).toEqual([]);
+      await advance(1);
+      expect(intents).toHaveLength(1);
+    },
+  );
 
   it("waits for an opponent play's arrival and On Play announcement before answering its choice", async () => {
     vi.useFakeTimers();

@@ -261,12 +261,12 @@ export class BotPlayer {
         break;
       case "phaseChanged":
         if (event.phase !== Phase.None) {
-          this.deferForNarration(PHASE_NARRATION_MS);
+          this.deferForNarration(PHASE_NARRATION_MS, true);
         }
         if (event.turnSeat === this.seat) this.onOwnPhase(event.phase as Phase, event.turnCount);
         break;
       case "turnEnded":
-        this.deferForNarration(TURN_NARRATION_MS);
+        this.deferForNarration(TURN_NARRATION_MS, true);
         break;
       case "attackDeclared":
         this.pendingAttackTargetsPlayer = event.target.kind === "player";
@@ -646,11 +646,14 @@ export class BotPlayer {
     return this.pause(COMBAT_REFLEX_MIN_MS, COMBAT_REFLEX_MAX_MS);
   }
 
-  private deferForNarration(duration: number): void {
+  private deferForNarration(duration: number, serial = false): void {
     const now = Date.now();
-    this.narrationUntil = this.clientPacesChains
-      ? Math.max(this.narrationUntil, now + duration)
-      : Math.max(now, this.narrationUntil) + duration;
+    // Phase/turn ribbons share one serialized client track, including the outgoing
+    // resolution ahead of them. Sequential effect playback cannot overlap that track.
+    this.narrationUntil =
+      this.clientPacesChains && !serial
+        ? Math.max(this.narrationUntil, now + duration)
+        : Math.max(now, this.narrationUntil) + duration;
   }
 
   /**
