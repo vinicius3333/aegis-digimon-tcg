@@ -103,7 +103,9 @@ export function zoneChangeStep({
           id: `burst-${burst.key}`,
           origin,
           track: `burst-${burst.permanentId}`,
-          holdsBoard: false,
+          // A raising evolution replaces this same physical stack on the next
+          // revision. Keep its card until the native arrival clock has finished.
+          holdsBoard: burst.inBreeding,
           onDiscard: () => presentation?.landed.release(),
           async run(burstContext) {
             let lightOwnsCleanup = false;
@@ -133,7 +135,7 @@ export function zoneChangeStep({
                   id: `arrival-light-${burst.key}`,
                   origin,
                   track: `arrivalLight-${burst.key}`,
-                  holdsBoard: false,
+                  holdsBoard: burst.inBreeding,
                   blocksDecision: false,
                   onDiscard: cleanup,
                   async run(lightContext) {

@@ -25,6 +25,7 @@ export function useDpPulses({
   stackStripKeyRef,
   setDpPulses,
   setDpBadgeSuppressions,
+  preserveChanges = false,
 }: {
   state: GameState | undefined;
   queue: AnimationQueue;
@@ -36,6 +37,8 @@ export function useDpPulses({
   stackStripKeyRef: MutableRefObject<number>;
   setDpPulses: Dispatch<SetStateAction<ReadonlyMap<string, DpPulse>>>;
   setDpBadgeSuppressions: Dispatch<SetStateAction<ReadonlyMap<string, number>>>;
+  /** Paced effects retain a transient gain even when its expiry is already live. */
+  preserveChanges?: boolean;
 }) {
   const dpSignature = state
     ? [...state.players]
@@ -78,7 +81,7 @@ export function useDpPulses({
       queue.enqueue({
         id: `dp-pulse-${pulse.key}`,
         track: `dpPulse-${pulse.permanentId}`,
-        replace: true,
+        replace: !preserveChanges,
         onDiscard: release,
         async run(context) {
           try {

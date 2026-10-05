@@ -21,7 +21,7 @@ function board(currentDP: number, stateVersion: number): GameState {
   } as unknown as GameState;
 }
 
-function harness() {
+function harness(preserveChanges = false) {
   const queue = createAnimationQueue();
   const gate = createPresentationGate();
   const dpByPermanentRef = { current: null as Map<string, number> | null };
@@ -33,6 +33,7 @@ function harness() {
       const [suppressions, setDpBadgeSuppressions] = useState<ReadonlyMap<string, number>>(new Map());
       useDpPulses({
         state,
+        preserveChanges,
         queue,
         dpByPermanentRef,
         dpPulseKeyRef,
@@ -47,6 +48,23 @@ function harness() {
   );
   return { ...view, queue, gate, stackStripKeyRef };
 }
+
+it("paints a paced gain before its queued expiry when both arrived during the clause", async () => {
+  const view = harness(true);
+  view.rerender({ state: board(15000, 2) });
+  await advance(32);
+  view.rerender({ state: board(12000, 3) });
+  await advance(32);
+  expect(view.result.current.pulses.size).toBe(0);
+  act(() => view.gate.release());
+  await advance(32);
+  expect(view.result.current.pulses.get("opponent")).toMatchObject({ from: 12000, to: 15000 });
+  await advance(700);
+  expect(view.result.current.pulses.get("opponent")).toMatchObject({ from: 15000, to: 12000 });
+  await advance(2000);
+  expect(view.queue.isIdle()).toBe(true);
+  expect(view.result.current.suppressions.size).toBe(0);
+});
 
 async function advance(ms: number) {
   await act(async () => {
