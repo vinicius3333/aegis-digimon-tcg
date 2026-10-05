@@ -105,6 +105,16 @@ interface Capture {
   }[];
   notices: { id: string; firstAt: number }[];
   phaseRibbons: { at: number; label: string; side: string | undefined }[];
+  hatches: { at: number; cardId: string; permanentId: string }[];
+  phasePanels: {
+    kind: "phase" | "turn";
+    label: string;
+    side: string;
+    firstAt: number;
+    lastAt: number;
+    removedAt?: number;
+    poses: { at: number; painted: boolean; nativeMs?: number; endMs?: number; playbackRate?: number }[];
+  }[];
   arrows: {
     at: number;
     key: string;
@@ -157,6 +167,8 @@ export async function startPacingCapture(page: Page) {
       arrivals: [],
       notices: [],
       phaseRibbons: [],
+      hatches: [],
+      phasePanels: [],
       arrows: [],
       returnLifecycle: [],
     };
@@ -176,6 +188,8 @@ export async function startPacingCapture(page: Page) {
     const checkObservations = new Map<string, Capture["securityChecks"][number]>();
     const focusElements = new WeakSet<Element>();
     const arrivalObservations = new Map<Element, Capture["arrivals"][number]>();
+    const phaseObservations = new Map<Element, Capture["phasePanels"][number]>();
+    const hatched = new Set<string>();
     const noticeIds = new Set<string>();
     let ribbonElement: Element | null = null;
     let arrowSignature = "";
@@ -516,6 +530,55 @@ export async function startPacingCapture(page: Page) {
         observation.frames++;
       }
       const ribbon = document.querySelector<HTMLElement>(".game-phase-banner");
+      for (const slot of document.querySelectorAll<HTMLElement>('.game-breeding-slot[data-burst="hatch"]')) {
+        const permanentId = slot.dataset.permanentId;
+        const cardId = slot.dataset.cardId;
+        const art = slot.querySelector<HTMLImageElement>("img[alt]");
+        if (
+          permanentId &&
+          cardId &&
+          !hatched.has(permanentId) &&
+          art?.complete &&
+          art.naturalWidth > 0 &&
+          isPainted(art)
+        ) {
+          hatched.add(permanentId);
+          capture.hatches.push({ at, permanentId, cardId });
+        }
+      }
+      for (const element of document.querySelectorAll<HTMLElement>(".game-phase-banner, .game-turn-banner")) {
+        let observation = phaseObservations.get(element);
+        if (!observation) {
+          observation = {
+            kind: element.classList.contains("game-phase-banner") ? "phase" : "turn",
+            label: element.textContent?.trim() ?? "",
+            side: element.dataset.side ?? (element.classList.contains("game-turn-banner--opp") ? "opp" : "you"),
+            firstAt: at,
+            lastAt: at,
+            poses: [],
+          };
+          phaseObservations.set(element, observation);
+          capture.phasePanels.push(observation);
+        }
+        const face = element.querySelector("span") ?? element;
+        const native = element
+          .getAnimations({ subtree: true })
+          .find(
+            (animation) =>
+              "animationName" in animation &&
+              ["arena-phase-ribbon", "battle-banner"].includes(String(animation.animationName)),
+          );
+        observation.lastAt = at;
+        observation.poses.push({
+          at,
+          painted: isPainted(face),
+          nativeMs: typeof native?.currentTime === "number" ? native.currentTime : undefined,
+          endMs: native ? Number(native.effect?.getComputedTiming().endTime) : undefined,
+          playbackRate: native?.playbackRate,
+        });
+      }
+      for (const [element, observation] of phaseObservations)
+        if (!element.isConnected && observation.removedAt === undefined) observation.removedAt = at;
       if (ribbon !== ribbonElement) {
         if (ribbon) capture.phaseRibbons.push({ at, label: ribbon.textContent ?? "", side: ribbon.dataset.side });
         ribbonElement = ribbon;

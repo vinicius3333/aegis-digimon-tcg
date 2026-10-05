@@ -1240,6 +1240,106 @@ test.describe("effects lab pacing in the browser", () => {
     }
   }
 
+  for (const format of [
+    { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+    { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+    { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+    { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+  ]) {
+    test(`real bot phase pacing (${format.name}, ${format.speed})`, async ({ page }, info) => {
+      await page.setViewportSize({ width: format.width, height: format.height });
+      await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      const lab = new EffectsLabPage(page);
+      // Reuse the conserved printed-card board, leaving GrandGalemon in hand.
+      // Its three established opposing Digimon make three real autonomous attacks.
+      await lab.start("keyword-pacing-vortex-decline", false, format.speed, false);
+      const before = await lab.read();
+      await startPacingCapture(page);
+      await lab.button(/END PHASE/i).click();
+      await expect
+        .poll(
+          async () => {
+            const current = await lab.read();
+            return (
+              current.queueIdle &&
+              !current.decision &&
+              current.board?.visible.turn?.seat === 0 &&
+              current.board.visible.turn.count === before.board!.visible.turn!.count + 2
+            );
+          },
+          { timeout: 65_000, intervals: [50, 100, 200] },
+        )
+        .toBe(true);
+      const capture = await finishPacingCapture(page);
+      const state = await lab.read();
+      await info.attach("real-phase-pacing.json", {
+        body: Buffer.from(JSON.stringify({ format, before, capture, state }, null, 2)),
+        contentType: "application/json",
+      });
+      expect(errors).toEqual([]);
+      expect(capture.truncated).toBe(false);
+      expect(state.gateExpiries).toEqual([]);
+      expect(state.steps.filter((step) => step.failed)).toEqual([]);
+      expect(state.board!.visible.players[1]!.hand).toEqual([]);
+      const attacks = state.events.filter((event) => event.kind === "attackDeclared" && event.seat === 1);
+      expect(attacks).toHaveLength(3);
+      expect(new Set(attacks.map((event) => event.attackerPermanentId)).size).toBe(3);
+      expect(state.board!.visible.players[0]!.securityCount).toBe(1);
+      if (format.reduced) return; // Terminal behavior; skipped ribbons make no native-duration claim.
+      const opponent = capture.phasePanels.filter((panel) => panel.side === "opp");
+      expect(opponent.map((panel) => panel.label)).toEqual([
+        "Opponent's turn",
+        "Unsuspend Phase",
+        "Draw Phase",
+        "Breeding Phase",
+        "Main Phase",
+        "End Phase",
+      ]);
+      for (const [index, panel] of opponent.entries()) {
+        expect(panel.poses.some((pose) => pose.painted)).toBe(true);
+        if (index > 0) expect(panel.firstAt).toBeGreaterThanOrEqual(opponent[index - 1]!.removedAt!);
+        if (!format.reduced) {
+          const clock = panel.poses.filter((pose) => pose.nativeMs !== undefined).at(-1)!;
+          expect(clock.nativeMs).toBeGreaterThanOrEqual(clock.endMs! - 34 * Math.max(1, Math.abs(clock.playbackRate!)));
+        }
+      }
+      if (!format.reduced) {
+        expect(capture.motion.captureQuality).toBe("usable");
+        const phases = capture.motion.animations.filter(
+          (animation) =>
+            animation.visibleFrames > 0 && ["arena-phase-ribbon", "battle-banner"].includes(animation.name),
+        );
+        const breeding = opponent.find((panel) => panel.label === "Breeding Phase")!;
+        // Receipt and native paint are separate clocks. An earlier batch is
+        // allowed, but its visible action must follow the completed phase.
+        const hatch = capture.hatches.find((arrival) => arrival.cardId === "BT1-001")!;
+        expect(hatch).toBeDefined();
+        expect(hatch.at).toBeGreaterThanOrEqual(breeding.removedAt!);
+        const main = opponent.find((panel) => panel.label === "Main Phase")!;
+        const firstAttack = capture.arrows.find((arrow) =>
+          arrow.source?.startsWith("dev-perm-1-keyword-attack-defender"),
+        )!;
+        expect(firstAttack).toBeDefined();
+        expect(firstAttack.at).toBeGreaterThanOrEqual(main.removedAt!);
+        for (const [index, attack] of attacks.entries()) {
+          const arrow = capture.arrows.find((item) => item.source === attack.attackerPermanentId)!;
+          expect(arrow).toBeDefined();
+          if (index > 0) expect(arrow.at).toBeGreaterThanOrEqual(capture.securityChecks[index - 1]!.removedAt!);
+        }
+        // Keep causal assertions ahead of the quality verdict so rejected
+        // recordings still distinguish a sequence bug from missing frame evidence.
+        expect(
+          phases
+            .filter((animation) => animation.undersampled || animation.cutShort)
+            .map(({ name, firstAt, undersampled, cutShort }) => ({ name, firstAt, undersampled, cutShort })),
+          "phase motion must remain sampled through native completion",
+        ).toEqual([]);
+      }
+    });
+  }
+
   for (const scenario of KEYWORD_END_ATTACK_PACING_SCENARIOS) {
     for (const format of [
       { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },

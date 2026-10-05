@@ -16,6 +16,8 @@ function specs(suite) {
   return [...(suite.specs ?? []), ...(suite.suites ?? []).flatMap(specs)];
 }
 
+const pacingAttachments = ["real-keyword-pacing.json", "real-group-pacing.json", "real-phase-pacing.json"];
+
 const runs = [];
 const captures = [];
 const sourceReports = [];
@@ -32,15 +34,13 @@ for (const path of positionals) {
     stats: report.stats,
     errorCount: (report.errors ?? []).length,
     pacingCases: specs(report)
-      .filter((spec) => /^real (keyword|group) pacing:/.test(spec.title))
+      .filter((spec) => /^real (?:(keyword|group) pacing:|bot phase pacing)/.test(spec.title))
       .flatMap((spec) =>
         spec.tests.flatMap((test) =>
           test.results.map((result) => ({
             name: spec.title,
             status: result.status,
-            hasCapture: (result.attachments ?? []).some((attachment) =>
-              ["real-keyword-pacing.json", "real-group-pacing.json"].includes(attachment.name),
-            ),
+            hasCapture: (result.attachments ?? []).some((attachment) => pacingAttachments.includes(attachment.name)),
           })),
         ),
       ),
@@ -49,7 +49,7 @@ for (const path of positionals) {
     for (const test of spec.tests) {
       for (const result of test.results) {
         for (const attachment of result.attachments ?? []) {
-          if (!["real-keyword-pacing.json", "real-group-pacing.json"].includes(attachment.name)) continue;
+          if (!pacingAttachments.includes(attachment.name)) continue;
           const body = attachment.body
             ? Buffer.from(attachment.body, "base64").toString("utf8")
             : await readFile(attachment.path, "utf8");
@@ -102,6 +102,8 @@ for (const path of positionals) {
                 "battle-draw-presentation-viewer",
                 "battle-draw-presentation",
                 "battle-security-flight",
+                "arena-phase-ribbon",
+                "battle-banner",
               ].includes(animation.name),
             )
             .map((animation) => ({
@@ -118,8 +120,8 @@ for (const path of positionals) {
             name: spec.title,
             status: result.status,
             keyword: data.scenario?.keyword,
-            scenarioId: data.scenario?.id ?? "effects-lab-field-grouping",
-            speed: data.speed ?? "normal",
+            scenarioId: data.scenario?.id ?? data.before?.scenario ?? "effects-lab-field-grouping",
+            speed: data.speed ?? data.format?.speed ?? "normal",
             format: data.format ?? { name: data.phone ? "phone" : "desktop" },
             captureMs: capture.finishedAt - capture.startedAt,
             closedBatchHookToCaptureEndMs: firstBatchAt === undefined ? null : capture.finishedAt - firstBatchAt,
@@ -145,6 +147,12 @@ for (const path of positionals) {
               };
             }),
             phaseRibbons: capture.phaseRibbons ?? [],
+            phasePanels: (capture.phasePanels ?? []).map((panel) => ({
+              ...panel,
+              observedMs: (panel.removedAt ?? panel.lastAt) - panel.firstAt,
+              lastNativeClock: panel.poses.filter((pose) => pose.nativeMs !== undefined).at(-1),
+            })),
+            hatches: capture.hatches ?? [],
             arrowTargetChanges: capture.arrows ?? [],
             visibleBoardChanges: capture.boards ?? [],
             drawnCards: (capture.draws ?? []).map((draw) => ({ ...draw, observedMs: draw.lastAt - draw.firstAt })),

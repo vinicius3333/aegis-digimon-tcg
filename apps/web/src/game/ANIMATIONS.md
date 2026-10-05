@@ -677,3 +677,34 @@ motion, preserve the existing layout, and commit each verified correction.
 
 Complete reference-frame review and the original effect/background-audio pass above
 remain open. No new audio or complete phase-pacing claim is made by this checkpoint.
+
+## Phase and autonomous-opponent sequencing checkpoint, 2026-10-05
+
+Phase and turn narration now extends the bot's serialized deadline even when the
+client owns effect-chain pacing. Effect-chain deadlines still coalesce. Both modes
+have a regression requiring the complete opening phase budget before breeding;
+all 47 BotPlayer tests passed. No thinking ranges or authored durations changed.
+
+Turn and phase panels finish their actual keyed native animations before unmount
+and release. A raw attack publication waits for pending phase presentation; an
+already presented clash retains its own arrow. Production build, TypeScript,
+226 phase/draw/painted-clock tests and eight hook/arrow regressions passed.
+
+A conserved real-server board follows autonomous hatch, three distinct ordinary
+attackers, three security checks, automatic Main pass and the next turn. Normal,
+Fast, 320px and reduced-motion cases have passing coverage across retained runs.
+The six-case follow-up passed 5/6, including Blitz/Vortex regressions; desktop
+Normal was rejected for an active phase sampling gap. Three plain Normal rejected
+captures remain alongside a later passing plain capture and separate diagnostics.
+No single green full-matrix or statistical smoothness claim is made. The 50ms
+sampling limit remains unchanged; reduced motion verifies terminal behavior.
+
+In the latest passing Normal observation, Main left at 9,692ms after capture start;
+attacks first appeared at 10,458, 12,458 and 14,591ms. The preceding security checks
+left at 11,958 and 13,875ms. All opponent turn/phase clocks reached 1000/1000 or
+1100/1100ms. Receipt timestamps are separate from visible action timing.
+
+Evidence is under `.local/phase-pacing/`; the pacing summarizer now includes phase
+panels, native endpoints and hatch observations. Bot play, digivolution, raising
+movement and trained-policy phase coverage still need dedicated captures. Native
+keyword coverage remains 18/46; full reference review and original audio remain open.

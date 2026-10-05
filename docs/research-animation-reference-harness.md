@@ -2052,3 +2052,60 @@ serialized in the client. Investigate that boundary and the ownership/order of
 draw/hatch cues. Add a regression at the actual mismatch, fix causal sequencing,
 then remeasure Normal/Fast, mobile and reduced motion before tuning durations.
 Preserve the Aegis design and commit each verified correction.
+
+### Measured phase and bot sequencing correction, 2026-10-05
+
+The ordinary autonomous-turn fixture reuses the conserved Vortex-decline board,
+leaves GrandGalemon in hand and follows hatch, three established physical attackers,
+three checks and an automatic Main pass. It drives public actions against the real
+server; opponent hands remain opaque. This fixture covers no bot play, evolution,
+raising movement or trained policy, which remain the next phase variations.
+
+The before capture received the hatch at 2,785ms after recording began while its
+Breeding panel remained until 6,631ms. The turn panel was removed at 949.94/1000ms
+and phase panels at 1016–1049/1100ms. These are individual browser observations,
+not server execution clocks. The serialized client phase track and coalesced bot
+narration deadline were mismatched. Phase/turn deadlines now accumulate in both
+client modes, while effect-chain deadlines retain their coalescing behavior. The
+regression failed in sequential-client mode before the fix; all 47 BotPlayer tests
+passed afterward. Thinking ranges and authored animation durations are unchanged.
+
+The client additionally waits for actual keyed `battle-banner` and
+`arena-phase-ribbon` completion before removing panels. A native Fast capture
+showed a raw attack arrow at 8,979ms while Main stayed until 9,612ms. The hook now
+withholds raw attack publication during phase presentation, without suppressing an
+owned security/field clash or replacing its retained arrow clock. Eight actual
+hook/arrow regressions passed; 226 phase/draw/native-clock tests, both TypeScript
+checks, scoped lint, formatting and the production web build passed.
+
+Retained evidence:
+
+- `bot-before`: one rejected original Normal recording establishes early panel removal.
+- `bot-after-first`: 0/4, retaining sampling rejection and driver assumptions that
+  incorrectly sought hatch in ZoneShowcase and ribbons under reduced motion.
+- `bot-causal-followup`: 5/6, passing Fast, 320px, reduced terminal behavior and
+  both Blitz/Vortex acceptance regressions. Normal retained a phase sampling gap.
+- `bot-normal-followup` and `bot-normal-final`: each retained a Normal sampling
+  rejection; all observed phase native clocks completed. Gaps included 50.1ms.
+- `bot-frame-cost-diagnostic`: passed with callback instrumentation; none of nine
+  observed callback identities exceeded the 8ms recording threshold in that run.
+- `bot-cpu-diagnostic`: passed with separate CPU profiling. Neither diagnostic is
+  substituted for an uninstrumented smoothness measurement.
+- `bot-causal-verdict`: the final plain Normal capture passed all causal/native
+  completion and unchanged 50ms quality assertions. Its collector has no diagnostic
+  instrumentation. Phase-quality assertions now report individual rejected clips
+  after causal assertions, so a sampling rejection does not hide a sequence bug.
+
+All four phase formats have passing coverage across these retained runs; there
+was no single green four/six-case matrix. The latest plain Normal Main panel was
+removed at 9,692ms after capture start, followed by arrows at 10,458, 12,458 and
+14,591ms. Previous checks left at 11,958 and 13,875ms. Every opponent turn/phase
+clock reached its 1000/1000 or 1100/1100ms endpoint. Reduced motion establishes the
+terminal three-attack/security-count result without native-duration claims.
+
+`tools/diagnostics/summarize-keyword-pacing.mjs` now reads real phase attachments,
+keeps failed runs and reports phase lifecycle, native endpoints and hatch paint.
+The combined final report records seven captures, one rejected capture and zero
+missing attachments. Phase fixtures do not inflate keyword coverage. Native
+keyword coverage remains 18/46; consecutive reference review remains 756/40,622,
+and the original effect/background sound pass remains queued.
