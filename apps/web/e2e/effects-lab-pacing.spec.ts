@@ -10,6 +10,8 @@ import {
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
+  KEYWORD_DECK_PACING_SCENARIOS,
+  getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
 import { startPacingCapture, finishPacingCapture } from "./pacing-capture";
@@ -63,6 +65,9 @@ interface LabState {
       turn?: { seat: number; count: number };
       players: {
         securityCount: number;
+        handCount: number;
+        deckCount: number;
+        hand: { instanceId: string; cardId: string }[];
         battleArea: {
           permanentId: string;
           topCard: { cardId: string };
@@ -999,6 +1004,216 @@ test.describe("effects lab pacing in the browser", () => {
               ),
             ).toBe(true);
           } else expect(peels).toHaveLength(0);
+        }
+      });
+    }
+  }
+
+  for (const scenario of KEYWORD_DECK_PACING_SCENARIOS) {
+    for (const format of [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+      { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+    ]) {
+      test(`real keyword pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, format.speed);
+        await expect.poll(async () => (await lab.read()).queueIdle).toBe(true);
+        const before = await lab.read();
+        await startPacingCapture(page);
+        const actions = [
+          {
+            label: scenario.sourceSeat === 0 ? "play-source" : "end-turn",
+            observedAt: await page.evaluate(() => performance.now()),
+          },
+        ];
+        if (scenario.sourceSeat === 0)
+          await new GamePage(page).play(new RegExp(`^${getCardDefinition(scenario.sourceCardId)!.nameEn}$`, "i"));
+        else await lab.button(/END PHASE/i).click();
+        await expect
+          .poll(
+            async () => {
+              const state = await lab.read();
+              expect(state.gateExpiries).toEqual([]);
+              expect(state.steps.filter((step) => step.failed || step.cancelled || step.phase === "dropped")).toEqual(
+                [],
+              );
+              return (
+                state.board?.visible.players[scenario.sourceSeat]!.battleArea.some(
+                  (card) => card.topCard.cardId === scenario.sourceCardId,
+                ) &&
+                (scenario.amount === 0 ||
+                  state.events.some(
+                    (event) => event.kind === "effectResolved" && event.sourceCardId === scenario.sourceCardId,
+                  )) &&
+                state.queueIdle &&
+                state.pendingSteps === 0 &&
+                !state.decision &&
+                state.board?.live.stateVersion === state.board?.displayed.stateVersion
+              );
+            },
+            { timeout: 45_000 },
+          )
+          .toBe(true);
+        const capture = await finishPacingCapture(page);
+        const state = await lab.read();
+        await info.attach("real-keyword-pacing.json", {
+          body: Buffer.from(
+            JSON.stringify({ scenario, format, speed: format.speed, actions, before, capture, state }, null, 2),
+          ),
+          contentType: "application/json",
+        });
+        await info.attach("deck-effect-field.png", { body: await page.screenshot(), contentType: "image/png" });
+        expect(errors).toEqual([]);
+        expect(capture.truncated || state.truncated).toBe(false);
+        // Drain mode has no effect motion to time; its immediate terminal DOM is
+        // checked below. Only moving cases contribute native timing evidence.
+        if (!format.reduced) expect(capture.motion.captureQuality).toBe("usable");
+        expect(state.board!.visible.players[1]!.hand).toEqual([]);
+        const sourceSeat = state.board!.visible.players[scenario.sourceSeat]!;
+        expect(sourceSeat.securityCount).toBe(
+          scenario.initialSecurity + (scenario.flow === "recovery" ? scenario.amount : 0),
+        );
+        for (const seat of [0, 1])
+          expect(
+            state.board!.visible.players[seat]!.battleArea.some(
+              (card) => card.permanentId === `dev-perm-${seat}-keyword-deck-control`,
+            ),
+          ).toBe(true);
+        const clause = state.steps.find(
+          (step) =>
+            step.phase === "started" &&
+            step.timing === "OnPlay" &&
+            step.sourceCardId === scenario.sourceCardId &&
+            step.stepId.startsWith("narration-step-"),
+        );
+        if (scenario.amount === 0) {
+          expect(clause).toBeUndefined();
+          expect(capture.securityLandings).toEqual([]);
+          expect(
+            capture.securityPaints.every((paint) => paint.counts[scenario.sourceSeat] === scenario.initialSecurity),
+          ).toBe(true);
+          return;
+        }
+        expect(clause, "the printed On Play clause was presented").toBeDefined();
+        const notice = capture.notices.find(
+          (candidate) => candidate.id === clause!.stepId.slice("narration-step-".length),
+        );
+        expect(notice, "the actual On Play notice painted before its result").toBeDefined();
+        const side = scenario.sourceSeat === 0 ? "you" : "opp";
+        if (scenario.flow === "draw") {
+          // Match physical presentation keys to their effect flight, not a time filter
+          // that would silently omit an anticipatory effect draw. Turn draws have their own track.
+          const effectKeys = new Set(
+            state.steps
+              .filter((step) => step.track === "drawFlight-presentation")
+              .map((step) => step.stepId.slice("draw-flight-".length)),
+          );
+          const draws = capture.draws.filter((draw) => draw.side === side && effectKeys.has(draw.key));
+          for (const draw of capture.draws.filter((candidate) => !effectKeys.has(candidate.key))) {
+            const ribbon = capture.phaseRibbons.filter((candidate) => candidate.at <= draw.firstAt).at(-1);
+            expect(ribbon, "a turn draw started under its own painted Draw ribbon").toMatchObject({
+              label: "Draw Phase",
+              side: draw.side,
+            });
+            const baseline = capture.boards.filter((sample) => sample.at < ribbon!.at).at(-1)!;
+            const seat = draw.side === "you" ? 0 : 1;
+            const handoff = seat === 0 ? 210 : 170;
+            for (const pose of draw.poses.filter((candidate) => (candidate.ageMs ?? Infinity) < handoff)) {
+              const shown = capture.boards.filter((sample) => sample.at <= pose.at).at(-1)!;
+              expect(shown.handCounts[seat], "the turn draw's hand count waited for its native handoff").toBe(
+                baseline.handCounts[seat],
+              );
+              expect(shown.deckCounts[seat], "the turn draw's deck count waited for its native handoff").toBe(
+                baseline.deckCounts[seat],
+              );
+            }
+            if (scenario.sourceSeat === 1 && draw.side === "you")
+              expect(draw.firstAt).toBeGreaterThanOrEqual(draws.at(-1)!.lastAt);
+          }
+          expect(draws).toHaveLength(format.reduced ? 0 : scenario.amount);
+          const clocks = capture.motion.animations.filter(
+            (animation) =>
+              animation.name ===
+                (scenario.sourceSeat === 0 ? "battle-draw-presentation-viewer" : "battle-draw-presentation") &&
+              draws.some((draw) => Math.abs(draw.firstAt - animation.firstAt) <= 34),
+          );
+          expect(clocks).toHaveLength(draws.length);
+          expect(
+            clocks.every(
+              (clock) =>
+                clock.durationMs === (scenario.sourceSeat === 0 ? 290 : 250) && !clock.cutShort && !clock.undersampled,
+            ),
+          ).toBe(true);
+          for (const [index, draw] of draws.entries()) {
+            expect(draw.firstAt).toBeGreaterThanOrEqual(notice!.firstAt);
+            expect(draw.poses.length).toBeGreaterThan(2);
+            if (index > 0) expect(draw.firstAt).toBeGreaterThanOrEqual(draws[index - 1]!.lastAt);
+            if (scenario.sourceSeat === 0) {
+              const arrival = capture.handArrivals.find((card) => card.instanceId === draw.instanceId);
+              expect(arrival, "the physical drawn card arrived in the hand").toBeDefined();
+              expect(arrival!.firstAt).toBeGreaterThan(draw.firstAt);
+              expect(draw.cardName).toBe(getCardDefinition(arrival!.cardId)!.nameEn);
+              const handedOver = draw.poses.find((pose) => (pose.ageMs ?? 0) >= 210);
+              expect(handedOver, "the native card reached its handoff beat").toBeDefined();
+              expect(arrival!.firstAt).toBeGreaterThanOrEqual(handedOver!.at);
+            } else {
+              expect(draw.cardName).toBeUndefined();
+              expect(sourceSeat.hand).toEqual([]);
+            }
+            const previous = before.board!.visible.players[scenario.sourceSeat]!;
+            const handBefore = previous.handCount - 1 + (scenario.sourceSeat === 1 ? 1 : 0) + index;
+            const deckBefore = previous.deckCount - (scenario.sourceSeat === 1 ? 1 : 0) - index;
+            const handoff = scenario.sourceSeat === 0 ? 210 : 170;
+            const handedOver = draw.poses.find((pose) => (pose.ageMs ?? 0) >= handoff);
+            expect(handedOver).toBeDefined();
+            for (const pose of draw.poses.filter((candidate) => (candidate.ageMs ?? Infinity) < handoff)) {
+              const board = capture.boards.filter((sample) => sample.at <= pose.at).at(-1)!;
+              expect(board.handCounts[scenario.sourceSeat], "hand count stayed before this native handoff").toBe(
+                handBefore,
+              );
+              expect(board.deckCounts[scenario.sourceSeat], "deck count stayed before this native handoff").toBe(
+                deckBefore,
+              );
+            }
+            const countAdvanced = capture.boards.find(
+              (sample) =>
+                sample.at >= draw.firstAt &&
+                sample.handCounts[scenario.sourceSeat] === handBefore + 1 &&
+                sample.deckCounts[scenario.sourceSeat] === deckBefore - 1,
+            );
+            expect(countAdvanced, "both counts advanced with this physical card").toBeDefined();
+            expect(countAdvanced!.at).toBeGreaterThanOrEqual(handedOver!.at);
+            if (index + 1 < draws.length) expect(countAdvanced!.at).toBeLessThanOrEqual(draws[index + 1]!.firstAt);
+          }
+          const countBefore = before.board!.visible.players[scenario.sourceSeat]!.handCount;
+          expect(sourceSeat.handCount).toBe(countBefore - 1 + scenario.amount + (scenario.sourceSeat === 1 ? 1 : 0));
+        } else {
+          const landings = capture.securityLandings.filter((landing) => landing.side === side);
+          expect(landings).toHaveLength(format.reduced ? 0 : 1);
+          const increased = capture.securityPaints.find(
+            (paint) => paint.counts[scenario.sourceSeat] === sourceSeat.securityCount,
+          );
+          expect(increased, "the actual security count was painted").toBeDefined();
+          expect(capture.securityPaints.every((paint) => paint.faceUpCards[scenario.sourceSeat] === 0)).toBe(true);
+          if (!format.reduced) {
+            expect(increased!.at).toBeGreaterThanOrEqual(notice!.firstAt);
+            const sourceFocus = capture.sourceFocuses.find((focus) => focus.cardId === scenario.sourceCardId);
+            expect(sourceFocus, "Recovery's source painted before its consequence").toBeDefined();
+            expect(landings[0]!.firstAt).toBeGreaterThanOrEqual(sourceFocus!.firstAt);
+            expect(landings[0]!.firstAt).toBeGreaterThanOrEqual(notice!.firstAt);
+            expect(increased!.at).toBeGreaterThanOrEqual(landings[0]!.firstAt - 34);
+            expect(increased!.at).toBeLessThanOrEqual(landings[0]!.lastAt);
+            expect(landings[0]!.frames).toBeGreaterThan(2);
+            const clocks = capture.motion.animations.filter((animation) => animation.name === "battle-security-flight");
+            expect(clocks).toHaveLength(1);
+            expect(clocks[0]).toMatchObject({ durationMs: 200, cutShort: false, undersampled: false });
+          }
         }
       });
     }

@@ -38,11 +38,27 @@ interface Capture {
     turnSeat: number;
     suspendedIds: string[];
     securityCounts: number[];
+    handCounts: number[];
+    deckCounts: number[];
     permanentIds: string[];
     permanents: { permanentId: string; cardId: string; stackCount: number; currentDP: number }[];
   }[];
   peels: { key: string; permanentId?: string; cardId?: string; firstAt: number; lastAt: number; frames: number }[];
   dpPulses: { permanentId?: string; firstAt: number; lastAt: number; frames: number }[];
+  draws: {
+    key: string;
+    side?: string;
+    instanceId?: string;
+    firstAt: number;
+    lastAt: number;
+    cardName?: string;
+    poses: { at: number; x: number; y: number; width: number; height: number; opacity: number; ageMs?: number }[];
+  }[];
+  handArrivals: { instanceId: string; cardId: string; firstAt: number }[];
+  securityPaints: { at: number; counts: number[]; landing: boolean[]; faceUpCards: number[] }[];
+  securityLandings: { side: string; key: string; firstAt: number; lastAt: number; frames: number }[];
+  sourceFocuses: { cardId: string; firstAt: number }[];
+  notices: { id: string; firstAt: number }[];
   phaseRibbons: { at: number; label: string; side: string | undefined }[];
   arrows: {
     at: number;
@@ -86,6 +102,12 @@ export async function startPacingCapture(page: Page) {
       boards: [],
       peels: [],
       dpPulses: [],
+      draws: [],
+      handArrivals: [],
+      securityPaints: [],
+      securityLandings: [],
+      sourceFocuses: [],
+      notices: [],
       phaseRibbons: [],
       arrows: [],
       returnLifecycle: [],
@@ -98,6 +120,12 @@ export async function startPacingCapture(page: Page) {
     let boardKey = "";
     const peelObservations = new WeakMap<Element, Capture["peels"][number]>();
     const dpObservations = new WeakMap<Element, Capture["dpPulses"][number]>();
+    const drawObservations = new WeakMap<Element, Capture["draws"][number]>();
+    const arrived = new Set<string>();
+    const landingObservations = new Map<string, Capture["securityLandings"][number]>();
+    let securityKey = "";
+    const focusElements = new WeakSet<Element>();
+    const noticeIds = new Set<string>();
     let ribbonElement: Element | null = null;
     let arrowSignature = "";
     const returnId = (element: Element) => {
@@ -147,6 +175,8 @@ export async function startPacingCapture(page: Page) {
                 turn: { seat: number };
                 players: {
                   securityCount: number;
+                  handCount: number;
+                  deckCount: number;
                   battleArea: {
                     permanentId: string;
                     isSuspended: boolean;
@@ -168,6 +198,8 @@ export async function startPacingCapture(page: Page) {
             player.battleArea.filter((card) => card.isSuspended).map((card) => card.permanentId),
           ),
           securityCounts: visible.players.map((player) => player.securityCount),
+          handCounts: visible.players.map((player) => player.handCount),
+          deckCounts: visible.players.map((player) => player.deckCount),
           permanentIds: visible.players.flatMap((player) => player.battleArea.map((card) => card.permanentId)),
           permanents: visible.players.flatMap((player) =>
             player.battleArea.map((card) => ({
@@ -182,6 +214,125 @@ export async function startPacingCapture(page: Page) {
         if (key !== boardKey) {
           capture.boards.push({ at, ...sample });
           boardKey = key;
+        }
+      }
+      const paintCache = new Map<Element, boolean>();
+      const visibleStyle = (element: Element): boolean => {
+        const cached = paintCache.get(element);
+        if (cached !== undefined) return cached;
+        const style = getComputedStyle(element);
+        const result =
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          Number(style.opacity) > 0.01 &&
+          (!element.parentElement || visibleStyle(element.parentElement));
+        paintCache.set(element, result);
+        return result;
+      };
+      const isPainted = (element: Element): boolean => {
+        const bounds = element.getBoundingClientRect();
+        return (
+          bounds.width > 0 &&
+          bounds.height > 0 &&
+          bounds.bottom > 0 &&
+          bounds.right > 0 &&
+          bounds.top < innerHeight &&
+          bounds.left < innerWidth &&
+          visibleStyle(element)
+        );
+      };
+      for (const focus of document.querySelectorAll<SVGElement>('[data-testid="effect-focus"]')) {
+        if (focusElements.has(focus) || !isPainted(focus)) continue;
+        focusElements.add(focus);
+        capture.sourceFocuses.push({ cardId: focus.dataset.sourceCardId!, firstAt: at });
+      }
+      for (const notice of document.querySelectorAll<HTMLElement>("[data-narration-id]")) {
+        const id = notice.dataset.narrationId!;
+        if (noticeIds.has(id) || !isPainted(notice)) continue;
+        noticeIds.add(id);
+        capture.notices.push({ id, firstAt: at });
+      }
+      for (const root of document.querySelectorAll<HTMLElement>(
+        '[data-draw-presentation-key][data-draw-ready="true"]',
+      )) {
+        const face = root.querySelector<HTMLElement>(".game-draw-presentation__face");
+        if (!face || !isPainted(face)) continue;
+        let observation = drawObservations.get(root);
+        if (!observation) {
+          observation = {
+            key: root.dataset.drawPresentationKey!,
+            side: root.dataset.side,
+            instanceId: root.dataset.drawInstanceId,
+            firstAt: at,
+            lastAt: at,
+            cardName: face.querySelector("img[alt]")?.getAttribute("alt") || undefined,
+            poses: [],
+          };
+          drawObservations.set(root, observation);
+          capture.draws.push(observation);
+        }
+        const bounds = face.getBoundingClientRect();
+        const native = face
+          .getAnimations()
+          .find(
+            (animation) =>
+              "animationName" in animation &&
+              (animation.animationName === "battle-draw-presentation-viewer" ||
+                animation.animationName === "battle-draw-presentation"),
+          );
+        observation.lastAt = at;
+        observation.poses.push({
+          at,
+          x: bounds.x,
+          y: bounds.y,
+          width: bounds.width,
+          height: bounds.height,
+          opacity: Number(getComputedStyle(face).opacity),
+          ageMs: typeof native?.currentTime === "number" ? native.currentTime : undefined,
+        });
+      }
+      for (const card of document.querySelectorAll<HTMLElement>(".game-hand-card[data-hand-card-id]")) {
+        const id = card.dataset.handInstanceId!;
+        if (arrived.has(id) || !isPainted(card)) continue;
+        const art = card.querySelector("[role=img]");
+        if (art && !isPainted(art)) continue;
+        arrived.add(id);
+        capture.handArrivals.push({ instanceId: id, cardId: card.dataset.handCardId!, firstAt: at });
+      }
+      const shields = ["you", "opp"].map((side) =>
+        document.querySelector<HTMLElement>(`.game-security-shield--${side}`),
+      );
+      if (shields.every((shield) => shield && isPainted(shield))) {
+        const sample = {
+          counts: shields.map((shield) => Number(shield!.querySelector(".game-security-shield__count")?.textContent)),
+          landing: shields.map((shield) =>
+            shield!
+              .getAnimations()
+              .some(
+                (animation) => "animationName" in animation && animation.animationName === "battle-security-flight",
+              ),
+          ),
+          faceUpCards: shields.map((shield) => shield!.querySelectorAll(".game-security-card--revealed").length),
+        };
+        const key = JSON.stringify(sample);
+        if (key !== securityKey) {
+          capture.securityPaints.push({ at, ...sample });
+          securityKey = key;
+        }
+        for (const [index, side] of ["you", "opp"].entries()) {
+          if (!sample.landing[index]) {
+            landingObservations.delete(side);
+            continue;
+          }
+          const occurrence = shields[index]!.getAttribute("data-security-landing-key") ?? "";
+          let observation = landingObservations.get(side);
+          if (!observation || observation.key !== occurrence) {
+            observation = { side, key: occurrence, firstAt: at, lastAt: at, frames: 0 };
+            landingObservations.set(side, observation);
+            capture.securityLandings.push(observation);
+          }
+          observation.lastAt = at;
+          observation.frames++;
         }
       }
       for (const peel of document.querySelectorAll<HTMLElement>(".game-stack-strip-peel")) {

@@ -79,25 +79,30 @@ export function createLiveMotionProbe(doc: Document = document) {
     if (previousFrame !== undefined) capped(gaps, now - previousFrame);
     previousFrame = now;
     const visibility = new Map<Element, boolean>();
-    function painted(element: Element): boolean {
+    function ancestorsVisible(element: Element): boolean {
       const cached = visibility.get(element);
       if (cached !== undefined) return cached;
-      const box = element.getBoundingClientRect();
       const style = win.getComputedStyle(element);
       const result =
         element.isConnected &&
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        Number(style.opacity) > 0 &&
+        (!element.parentElement || ancestorsVisible(element.parentElement));
+      visibility.set(element, result);
+      return result;
+    }
+    function painted(element: Element): boolean {
+      const box = element.getBoundingClientRect();
+      return (
         box.width > 0 &&
         box.height > 0 &&
         box.bottom > 0 &&
         box.right > 0 &&
         box.top < win.innerHeight &&
         box.left < win.innerWidth &&
-        style.display !== "none" &&
-        style.visibility !== "hidden" &&
-        Number(style.opacity) > 0 &&
-        (!element.parentElement || painted(element.parentElement));
-      visibility.set(element, result);
-      return result;
+        ancestorsVisible(element)
+      );
     }
     const animations = new Set(typeof doc.getAnimations === "function" ? doc.getAnimations() : []);
     for (const animation of animations) {

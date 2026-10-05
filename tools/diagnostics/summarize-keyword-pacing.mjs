@@ -97,6 +97,9 @@ for (const path of positionals) {
                 "battle-stack-strip-sway",
                 "battle-stack-strip-fade",
                 "battle-stack-strip-rim",
+                "battle-draw-presentation-viewer",
+                "battle-draw-presentation",
+                "battle-security-flight",
               ].includes(animation.name),
             )
             .map((animation) => ({
@@ -142,6 +145,15 @@ for (const path of positionals) {
             phaseRibbons: capture.phaseRibbons ?? [],
             arrowTargetChanges: capture.arrows ?? [],
             visibleBoardChanges: capture.boards ?? [],
+            drawnCards: (capture.draws ?? []).map((draw) => ({ ...draw, observedMs: draw.lastAt - draw.firstAt })),
+            handArrivals: capture.handArrivals ?? [],
+            securityPaints: capture.securityPaints ?? [],
+            securityLandings: (capture.securityLandings ?? []).map((landing) => ({
+              ...landing,
+              observedMs: landing.lastAt - landing.firstAt,
+            })),
+            sourceFocuses: capture.sourceFocuses ?? [],
+            notices: capture.notices ?? [],
             stackPeels: (capture.peels ?? []).map((peel) => ({ ...peel, observedMs: peel.lastAt - peel.firstAt })),
             cardRotations: capture.timings
               .filter((timing) => timing.properties.includes("rotate") && timing.duration === 200)
