@@ -39,7 +39,6 @@ export function playChoiceAnswers({
   overlays,
   setAppFusionChoice,
   clearSel,
-  playGameCue,
   lastPlayAttemptRef,
   dispatchPlayCard,
   digivolveWithChoice,
@@ -96,7 +95,6 @@ export function playChoiceAnswers({
       }
       lastPlayAttemptRef.current = dualPlay.instanceId;
       dispatchPlayCard(room, dualPlay.instanceId, undefined, undefined, undefined, useAs);
-      playGameCue("cardPlay");
       close(() => overlays.setDualPlay(null));
     },
     onDualPlayCancel: () => close(() => overlays.setDualPlay(null)),
@@ -109,7 +107,6 @@ export function playChoiceAnswers({
           intents.digivolve(room, actionConfirm.permanentId, actionConfirm.instanceId);
         else intents.dnaDigivolve(room, actionConfirm.materialPermanentIds, actionConfirm.instanceId);
       }
-      playGameCue(actionConfirm.kind === DragKind.Play ? "cardPlay" : "digivolve");
       close(() => overlays.setActionConfirm(null));
     },
     onDigivolveNormally:
@@ -135,7 +132,6 @@ export function playChoiceAnswers({
           : undefined;
       if (room && appFusionAvailable() && liveEntry && liveHost && liveRoute) {
         intents.appFusion(room, liveHost.permanentId, liveEntry.instanceId, liveRoute.linkedInstanceId);
-        playGameCue("digivolve");
       }
       close(() => setAppFusionChoice(null));
     },
@@ -167,7 +163,6 @@ export function playChoiceAnswers({
       if (!assemblyPick || mainActionBlocked) return;
       if (room) {
         lastPlayAttemptRef.current = assemblyPick.instanceId;
-        playGameCue("cardPlay");
         dispatchPlayCard(room, assemblyPick.instanceId, undefined, undefined, { materialInstanceIds });
       }
       close(() => overlays.setAssemblyPick(null));
@@ -176,7 +171,6 @@ export function playChoiceAnswers({
       if (!assemblyPick || mainActionBlocked) return;
       if (room) {
         lastPlayAttemptRef.current = assemblyPick.instanceId;
-        playGameCue("cardPlay");
         dispatchPlayCard(room, assemblyPick.instanceId);
       }
       close(() => overlays.setAssemblyPick(null));

@@ -43,7 +43,6 @@ export function matchIntents({
   digivolveRoutesOf,
   mainActionBlocked,
   actionConfirmationsEnabled,
-  playGameCue,
   lastPlayAttemptRef,
   playAttemptEventSeqRef,
   setOptimisticPlayedInstanceId,
@@ -109,7 +108,6 @@ export function matchIntents({
           materialPermanentIds: prompt.materialPermanentIds,
         });
       } else if (room) {
-        playGameCue("digivolve");
         intents.dnaDigivolve(room, prompt.materialPermanentIds, instanceId);
         clearSel();
       }
@@ -128,7 +126,6 @@ export function matchIntents({
       return;
     }
     if (room) {
-      playGameCue("cardPlay");
       dispatchPlayCard(room, instanceId);
     }
     clearSel();
@@ -165,7 +162,6 @@ export function matchIntents({
     if (mainActionBlocked) return;
     if (room) {
       lastPlayAttemptRef.current = instanceId;
-      playGameCue("digivolve");
       intents.digivolve(room, permanentId, instanceId, useAlternateCost, alternateRequirementIndex);
     }
     clearSel();
@@ -174,7 +170,6 @@ export function matchIntents({
   const attack = (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => {
     if (mainActionBlocked) return;
     if (room) {
-      playGameCue("attackDeclare");
       intents.attack(room, attackerPermanentId, target, vortex);
     }
     setSelPerm(null);

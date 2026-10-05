@@ -4,10 +4,10 @@ import type { AnimationStep } from "../../animationQueue";
 import { soundForEvent } from "../../soundEvents";
 
 /**
- * One sound cue per event the batch carries.
+ * Visible presentation state owns gameplay audio in live mode.
  *
- * `turnEnded` is left out: the turn banner plays its own cue, and the event's sound would
- * double it.
+ * Turn handover retains its banner cue. Reduced motion collapses decorative
+ * presentations, so their queued receipts provide static-board feedback instead.
  */
 export function enqueueBatchSounds({
   fresh,
@@ -25,6 +25,14 @@ export function enqueueBatchSounds({
   for (const event of fresh) {
     const cue = soundForEvent(event, viewerSeat);
     if (cue && event.kind !== "turnEnded")
-      enqueue({ id: `sound-${batchId}-${event.kind}`, track: "sound", run: () => playCue(cue) });
+      enqueue({
+        id: `sound-${batchId}-${event.kind}`,
+        track: "sound",
+        run(context) {
+          if (context.cancelled || context.mode === "replay" || context.skipping) return;
+          if (context.mode === "live" && event.kind !== "gameOver") return;
+          playCue(cue);
+        },
+      });
   }
 }

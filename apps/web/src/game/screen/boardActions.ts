@@ -60,7 +60,6 @@ export function boardActions({
   breedingActionsOpen,
   permanentRefs,
   ping,
-  playGameCue,
   selection,
   overlays,
   setAppFusionChoice,
@@ -354,7 +353,6 @@ export function boardActions({
       return;
     }
     if (room) {
-      playGameCue("hatch");
       intents.hatchEgg(room);
     }
   };

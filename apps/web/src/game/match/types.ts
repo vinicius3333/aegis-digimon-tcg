@@ -133,6 +133,8 @@ export type DeleteBurst = {
    * card lifts off toward the trash instead of shattering.
    */
   stackStrip?: true;
+  /** Public movement distinguishes top stripping from removal of inherited sources. */
+  stackStripKind?: "top" | "source";
   /** Viewer moves right/up; opponent moves left/down on the shared board plane. */
   /** Host of a source-removal vignette. */
   permanentId?: string;

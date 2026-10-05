@@ -82,6 +82,7 @@ import { type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
+import { usePresentationAudio } from "./usePresentationAudio";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useArenaBoardLook } from "./arenaLook";
 import "./game.css";
@@ -442,6 +443,7 @@ export function GameScreen({
     devProbe,
     presentationPacing,
   });
+  usePresentationAudio(cues, state);
   const devProbeRef = useRef(devProbe);
   devProbeRef.current = devProbe;
   useEffect(() => {
