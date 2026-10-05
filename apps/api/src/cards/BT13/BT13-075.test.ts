@@ -1,3 +1,4 @@
+import "../index.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -432,5 +433,41 @@ describe("BT13-075 Alphamon — KB Q&A rulings", () => {
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(securityBefore - 1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstSecurity").instanceId);
+  });
+});
+
+describe("Discord October 5 report regressions", () => {
+  it("1556715328610762844: Alphamon stops player attacks at zero memory until the next opponent turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-075", as: "alpha" }],
+          trash: ["BT9-055"],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "EX8-073", as: "gallant" }], hand: ["BT1-009"], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alpha").instanceId })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("gallant").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("gallant"), "attackPlayers")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.turnSeat === 0);
+    expect(observe(s.engine).isRestricted(s.perm("gallant"), "attackPlayers")).toBe(false);
+    s.engine.applyIntent(0, { type: "surrender" });
+    await loop;
   });
 });

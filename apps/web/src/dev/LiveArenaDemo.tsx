@@ -16,6 +16,50 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-discord-1556745762682183811-giant-slayer-execute": {
+    ptBR: "Jogue Giant Slayer por 12, passando 5 de memória. Aceite devolver Cherubimon da lixeira ao fundo do deck e conceda Rush e Execute ao Giant Slayer. Aceite Execute e ataque o jogador. No fim do ataque, aceite a proteção de Giant Slayer e evolua sem custo para Chronomon: Destroy Mode da mão. Execute deve resolver a deleção uma única vez: Destroy Mode permanece em campo.",
+    en: "Play Giant Slayer for 12, passing 5 memory. Accept returning Cherubimon from trash to the deck bottom and grant Giant Slayer Rush and Execute. Accept Execute and attack the player. At the end of the attack, accept Giant Slayer’s protection and digivolve for free into Chronomon: Destroy Mode from hand. Execute’s deletion resolves once: Destroy Mode stays in play.",
+  },
+  "arena-discord-1556745762682183811-holy-succession": {
+    ptBR: "Jogue Giant Slayer por Assembly usando Yokomon, Biyomon, Kiwimon, Deramon e Chronomon: Holy Mode da lixeira, por 7. Aceite Cherubimon para conceder Execute. Recuse a evolução herdada de Yokomon ao devolver Cherubimon ao deck. Aceite Execute e ataque o jogador. No fim do ataque, evolua pela proteção de Giant Slayer para Destroy Mode da lixeira. Recuse ofertas opcionais herdadas posteriores. Não deve ocorrer uma segunda deleção de Execute nem aparecer a proteção de Holy Mode: suas duas seguranças permanecem.",
+    en: "Play Giant Slayer for 7 through Assembly using Yokomon, Biyomon, Kiwimon, Deramon and Chronomon: Holy Mode from trash. Accept Cherubimon to grant Execute. Decline Yokomon’s inherited digivolution when Cherubimon returns to the deck. Accept Execute and attack the player. At the end of the attack, use Giant Slayer’s protection to digivolve into Destroy Mode from trash. Decline subsequent optional inherited offers. There must be no second Execute deletion or Holy Mode protection prompt: both security cards remain.",
+  },
+  "arena-discord-1556702519952932885-rosemon-burst": {
+    ptBR: "Recuse a colocação sob Yoshino no início da Main. Evolua Rosemon para Burst Mode e escolha a rota Burst de custo 0. Devolva Yoshino à mão. A evolução por efeito (incluindo Arts Digivolve) não usa Burst.",
+    en: "Decline Yoshino’s start-of-main placement. Digivolve Rosemon into Burst Mode using the zero-cost Burst route. Return Yoshino to hand. Effect digivolution, including Arts Digivolve, does not use Burst.",
+  },
+  "arena-discord-1556702519952932885-yoshino": {
+    ptBR: "Recuse colocar uma carta sob Yoshino no início da Main. Jogue Sunflowmon da mão, suspenda o Monodramon adversário e aceite Yoshino. Suspenda Yoshino e evolua o Sunflowmon já no campo para Lilamon por 2.",
+    en: "Decline the start-of-main placement under Yoshino. Play Sunflowmon from hand, suspend the opposing Monodramon, and accept Yoshino. Suspend Yoshino and digivolve the established Sunflowmon into Lilamon for 2.",
+  },
+  "arena-discord-1556702668754387095-machinedramon": {
+    ptBR: "Encerre a criação. No início da Main, coloque o EX12-054 da lixeira sob Chaosdramon X; essa colocação é obrigatória e os dois materiais da mão ficam disponíveis. Ataque o jogador. Resolva Machinedramon: De-Digivolve no Digimon adversário e aceite colocar os EX12-054 e EX12-055 da mão como fontes. A primeira segurança é Gaia Force e tentará deletar Chaosdramon X. Aceite Fragment (2) e descarte duas fontes EX12-054/EX12-055, mantendo Machinedramon EX12-059 na pilha. Chaosdramon X deve sobreviver.",
+    en: "End breeding. At the start of Main, place EX12-054 from trash under Chaosdramon X; this is mandatory and leaves both hand materials available. Attack the player. Resolve Machinedramon: De-Digivolve the opposing Digimon and accept placing EX12-054 and EX12-055 from hand as sources. The first security card is Gaia Force and attempts to delete Chaosdramon X. Accept Fragment (2) and trash two EX12-054/EX12-055 sources, keeping Machinedramon EX12-059 in the stack. Chaosdramon X survives.",
+  },
+  "arena-discord-1556703230166175754-engage": {
+    ptBR: "Passe o turno com Chaosdramon ativo e aceite Engage. Escolha atacar o jogador. O ataque e suas verificações de segurança terminam antes de passar o turno. Chaosdramon suspenso ou recém-jogado sem Rush não pode atacar.",
+    en: "Pass with an unsuspended Chaosdramon and accept Engage. Attack the player. The attack and security checks finish before the turn passes. A suspended or newly played Chaosdramon without Rush cannot attack.",
+  },
+  "arena-discord-1556688029731528804-jesmon": {
+    ptBR: "Jogue Monodramon e aceite o ataque de Jesmon por Your Turn. Escolha When Attacking antes de Alliance, crie o token e use-o como aliado. Alliance e o efeito impresso devem estar na mesma escolha de ordem.",
+    en: "Play Monodramon and accept Jesmon’s Your Turn attack. Order When Attacking before Alliance, create the token, and use it as the ally. Alliance and the printed effect share the ordering prompt.",
+  },
+  "arena-discord-1556715328610762844-alphamon": {
+    ptBR: "Jogue Alphamon e coloque GrandisKuwagamon do trash como fonte. No próximo turno, Gallantmon X pode atacar Digimon, mas não o jogador, independentemente da memória. A proteção expira ao fim desse turno adversário.",
+    en: "Play Alphamon and place GrandisKuwagamon from trash under it. On the next turn, Gallantmon X may attack Digimon but cannot attack the player, regardless of memory. The restriction expires at the end of that opponent turn.",
+  },
+  "arena-discord-1556716432111304824-dantemon": {
+    ptBR: "Jogue Dantemon com Assembly usando os sete Seven Code do trash. Ligue todos os sete, aceite o ataque e resolva a segurança. Passe o turno: os sete links devem permanecer.",
+    en: "Play Dantemon with Assembly using the seven Seven Code cards in trash. Link all seven, accept the attack, and resolve security. Pass the turn: all seven links remain.",
+  },
+  "arena-discord-1556715929973424128-block-timing": {
+    ptBR: "Passe o turno e aceite Execute de Susanoomon atacando o jogador. Coloque o Monodramon adversário na segurança e recuse Raid para manter Ciel disponível para bloquear. Quando Ciel bloquear e remover Susanoomon, Genshi & Ashino não pode evoluir MarineBullmon para Amaterasumon nesse momento.",
+    en: "Pass and accept Susanoomon’s Execute attack against the player. Place the opposing Monodramon in security and decline Raid so Ciel can block. When Ciel blocks and removes Susanoomon, Genshi & Ashino cannot digivolve MarineBullmon into Amaterasumon at that timing.",
+  },
+  "arena-discord-1556732255148179569-drasil-turn": {
+    ptBR: "Jogue Dynasmon e recuse a redução de King Drasil. Depois jogue Etemon e escolha Phoenixmon: ele recebe -3000 DP e um ataque obrigatório no início da Main adversária. Quando atacar, bloqueie com Omekamon (Blocker herdado de Hagurumon). Aceite jogar Omnimon X por On Deletion: King Drasil não deve oferecer sua redução durante o turno adversário. Escolha manter Omnimon X no efeito On Play.",
+    en: "Play Dynasmon and decline King Drasil’s reduction. Then play Etemon and choose Phoenixmon: it gets -3000 DP and a mandatory attack at the start of the opponent’s Main phase. When it attacks, block with Omekamon (Blocker inherited from Hagurumon). Accept its On Deletion free play of Omnimon X: King Drasil must not offer its reduction during the opponent’s turn. Keep Omnimon X when resolving its On Play effect.",
+  },
   "arena-bt20-invisimon-security-count": {
     ptBR: "Relato 1556677140253249656: sua segurança começa como na partida c77fc6f3 de 05/10/2026 às 14:35 UTC: Jesmon BT20-017 para cima e 3 cartas para baixo. O contador deve mostrar 4, inclusive em telas horizontais baixas. Abra a segurança para conferir 1 carta para cima de 4. Encerre a criação e evolua MetalGreymon em Invisimon BT20-055 por 3 e escolha “2 cartas”: a primeira segurança adversária vira para cima, mas ambos os contadores continuam em 4. Confira também a inspeção adversária.",
     en: "Report 1556677140253249656: your security starts as in match c77fc6f3 on 2026-10-05 at 14:35 UTC: face-up BT20-017 Jesmon and 3 face-down cards. The count must read 4, including short landscape screens. Open security to confirm 1 face-up card out of 4. End breeding and digivolve MetalGreymon into BT20-055 Invisimon for 3 and choose “2 cards”: the opponent's first security turns face up while both counts stay at 4. Check the opponent's inspection too.",
@@ -820,6 +864,17 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-discord-1556702519952932885-rosemon-burst", "Rosemon \u00b7 Burst"],
+  ["arena-discord-1556702519952932885-yoshino", "Yoshino \u00b7 reactive evolution"],
+  ["arena-discord-1556702668754387095-machinedramon", "Machinedramon \u00b7 Chaosdramon X Fragment"],
+  ["arena-discord-1556703230166175754-engage", "Chaosdramon \u00b7 Engage"],
+  ["arena-discord-1556688029731528804-jesmon", "Jesmon \u00b7 Alliance order"],
+  ["arena-discord-1556715328610762844-alphamon", "Alphamon \u00b7 attack restriction"],
+  ["arena-discord-1556716432111304824-dantemon", "Dantemon \u00b7 seven links"],
+  ["arena-discord-1556715929973424128-block-timing", "TB \u00b7 block timing"],
+  ["arena-discord-1556732255148179569-drasil-turn", "King Drasil · opponent turn"],
+  ["arena-discord-1556745762682183811-giant-slayer-execute", "Giant Slayer · Execute replacement"],
+  ["arena-discord-1556745762682183811-holy-succession", "Giant Slayer · Holy Mode Succession"],
   ["arena-issue-4938-ruli-optional-reduction", "#4938 · Ruli · optional reduction"],
   ["arena-issue-4937-grademon-dual-immunity", "#4937 · EX13 Grademon · DUAL Options"],
   ["arena-issue-4937-bt20-grademon-dual-immunity", "#4937 · BT20 Grademon · DUAL Options"],

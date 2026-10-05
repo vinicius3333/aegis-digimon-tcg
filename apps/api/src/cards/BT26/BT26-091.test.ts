@@ -252,3 +252,32 @@ describe("BT26-091 Yoshino Fujieda — KB Q&A rulings", () => {
     await loop;
   });
 });
+
+describe("Discord October 5 report regressions", () => {
+  it("1556702519952932885: Yoshino suspends and evolves an ally for one less after an opponent suspension", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-091", as: "yoshi" },
+            { card: "ST24-09", as: "base" },
+          ],
+          hand: [
+            { card: "ST24-09", as: "trigger" },
+            { card: "ST24-10", as: "evolution" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "enemy" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["CostGatedBlock", "top card of your deck"] },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("yoshi").isSuspended && s.perm("base").topCard.cardId === "ST24-10");
+    expect(s.state.memory).toBe(4);
+  });
+});
