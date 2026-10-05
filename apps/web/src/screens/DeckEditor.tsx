@@ -4,6 +4,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
   bannedPairViolations,
+  getCardArts,
   getCardDefinition,
   resolveCardArt,
   type CardDefinition,
@@ -29,7 +30,16 @@ import {
   serializeDeckList,
   type DeckListing,
 } from "../game/decks";
-import { DeckLevelCurve, DeckPreviewSections } from "./deckPreview";
+import {
+  DeckKindCounts,
+  DeckLevelCurve,
+  DeckPreviewSections,
+  DeckStepper,
+  DeckViewToggle,
+  useDeckView,
+} from "./deckPreview";
+import { DeckSplitHandle, DeckSplitPresets, useDeckShare } from "./DeckSplitHandle";
+import { setDeckBuilderPreferences, useDeckBuilderPreferences } from "./deckBuilderPreferences";
 import { DeckArtworkPicker } from "./DeckArtworkPicker";
 import { useTranslation } from "../i18n";
 import { ColorBalance } from "./ColorBalance";
@@ -55,7 +65,11 @@ export function DeckEditor({
 }) {
   const { t } = useTranslation();
   const pool = useMemo<CardDefinition[]>(() => activeCollectionCards(), []);
-  const filter = useCardFilter(pool, { colorFilterMode: "all" });
+  const { deckSort } = useDeckBuilderPreferences();
+  const filter = useCardFilter(pool, {
+    colorFilterMode: "all",
+    savedSort: { sort: deckSort, setSort: (sort) => setDeckBuilderPreferences({ deckSort: sort }) },
+  });
   const [main, setMain] = useState<CountMap>(() => toCountMap(deck.mainDeck));
   const [egg, setEgg] = useState<CountMap>(() => toCountMap(deck.eggDeck));
   const [arts, setArts] = useState<Record<string, string[]>>(() => {
@@ -77,6 +91,9 @@ export function DeckEditor({
   const [exporting, setExporting] = useState(false);
   const [deckInfoOpen, setDeckInfoOpen] = useState(false);
   const onSaveRef = useRef(onSave);
+  const workspace = useRef<HTMLDivElement>(null);
+  const deckShare = useDeckShare();
+  const { view, setView } = useDeckView();
 
   useEffect(() => {
     onSaveRef.current = onSave;
@@ -186,6 +203,15 @@ export function DeckEditor({
   const exportDeck = { ...deck, name, mainDeck: expand(main), eggDeck: expand(egg) };
   const exportText = serializeDeckList(exportDeck);
 
+  const selectedCount = sel ? (main[sel] ?? egg[sel] ?? 0) : 0;
+  const selectedDefinition = sel ? getCardDefinition(sel) : undefined;
+  const selectedAtMax =
+    !sel ||
+    !selectedDefinition ||
+    isBanned(sel) ||
+    pairedCardIds.has(sel) ||
+    sharedCardNumberCount(deckCardIds, sel) >= Math.min(selectedDefinition.maxCountInDeck, banlistLimit(sel));
+
   const [page, setPage] = useState(1);
 
   const sortedPool = useMemo(() => {
@@ -217,153 +243,167 @@ export function DeckEditor({
         extra={<p className="deck-builder-hint">{t("deck.builderHint")}</p>}
       />
 
-      <div className="deck-card-pool" onScroll={onPoolScroll}>
-        <SectionHeading
-          title={t("redesign.decks.editor.pool")}
-          action={
-            <span className="deck-card-pool__count">
-              {t("common.cards", { count: sortedPool.length.toLocaleString() })}
-            </span>
-          }
-        />
-        <div className="deck-card-grid">
-          {shownPool.map((card) => {
-            const inDeck = (isEggCard(card) ? egg : main)[card.cardId] ?? 0;
-            const cap = Math.min(card.maxCountInDeck, banlistLimit(card.cardId));
-            return (
-              <PoolCard
-                key={card.cardId}
-                cardId={card.cardId}
-                inDeck={inDeck}
-                atMax={sharedCardNumberCount(deckCardIds, card.cardId) >= cap}
-                pairConflict={pairedCardIds.has(card.cardId)}
-                onAdd={() => add(card.cardId)}
-                onRemove={() => remove(card.cardId)}
-                onOpen={() => {
-                  setSel(card.cardId);
-                }}
-                selected={sel === card.cardId || inDeck > 0}
-              />
-            );
-          })}
-          {shownPool.length === 0 ? <div className="deck-card-pool__empty">{t("deck.emptyPool")}</div> : null}
-        </div>
-        {shownPool.length < sortedPool.length ? (
-          <div className="deck-card-pool__more">{t("deck.scrollForMore")}</div>
-        ) : null}
-      </div>
-
-      {deckInfoOpen ? (
-        <button
-          type="button"
-          className="deck-info-backdrop"
-          aria-label={t("common.close")}
-          onClick={() => setDeckInfoOpen(false)}
-        />
-      ) : null}
-      <aside className={`deck-current${deckInfoOpen ? " deck-current--open" : ""}`} aria-label={t("deck.detailsTitle")}>
-        <div className="deck-info-sheet-handle">
-          <span />
-          <strong>{t("deck.detailsTitle")}</strong>
-          <button type="button" aria-label={t("common.close")} onClick={() => setDeckInfoOpen(false)}>
-            ×
-          </button>
-        </div>
-        <Panel as="div" circuitNodes={false} className="deck-current__header">
-          <input
-            className="deck-current__name"
-            aria-label={t("redesign.decks.editor.name")}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+      <div className="deck-workspace" ref={workspace} style={deckShare.style}>
+        <div className="deck-card-pool" onScroll={onPoolScroll}>
+          <SectionHeading
+            title={t("redesign.decks.editor.pool")}
+            action={
+              <span className="deck-card-pool__count">
+                {t("common.cards", { count: sortedPool.length.toLocaleString() })}
+              </span>
+            }
           />
-          <div className="deck-current__counts">
-            <CountChip label={t("deck.main")} count={mainCount} target={MAIN_TARGET} done={validMain} />
-            <CountChip label={t("deck.egg")} count={eggCount} target={EGG_TARGET} done={eggCount === EGG_TARGET} />
+          <div className="deck-card-grid">
+            {shownPool.map((card) => {
+              const inDeck = (isEggCard(card) ? egg : main)[card.cardId] ?? 0;
+              const cap = Math.min(card.maxCountInDeck, banlistLimit(card.cardId));
+              return (
+                <PoolCard
+                  key={card.cardId}
+                  cardId={card.cardId}
+                  inDeck={inDeck}
+                  atMax={sharedCardNumberCount(deckCardIds, card.cardId) >= cap}
+                  pairConflict={pairedCardIds.has(card.cardId)}
+                  onAdd={() => add(card.cardId)}
+                  onRemove={() => remove(card.cardId)}
+                  onOpen={() => {
+                    setSel(card.cardId);
+                  }}
+                  selected={sel === card.cardId || inDeck > 0}
+                />
+              );
+            })}
+            {shownPool.length === 0 ? <div className="deck-card-pool__empty">{t("deck.emptyPool")}</div> : null}
           </div>
-          <div className="deck-current__cover">
-            <div className="deck-current__cover-thumb">
-              <CoverThumb
-                key={coverCardId}
-                coverCardId={coverCardId}
-                artId={coverCardId ? arts[coverCardId]?.[0] : undefined}
-                sigilColor={dominantColor(expand(main))}
-                sigilSize={22}
-              />
-            </div>
-            <div className="deck-current__cover-text">
-              <div className="aegis-hero-panel__eyebrow">{t("deck.cover")}</div>
-              <div className="deck-current__cover-name" data-auto={!coverCardId}>
-                {coverCardId ? (getCardDefinition(coverCardId)?.nameEn ?? coverCardId) : t("deck.coverAuto")}
-              </div>
-            </div>
-            <button
-              className="deck-current__random-cover"
-              onClick={() => setCoverCardId(randomCoverCard(expand(main)))}
-              disabled={mainCount === 0}
-              title={t("deck.randomCover")}
-            >
-              <Icons.Dices size={15} />
+          {shownPool.length < sortedPool.length ? (
+            <div className="deck-card-pool__more">{t("deck.scrollForMore")}</div>
+          ) : null}
+        </div>
+
+        <DeckSplitHandle workspace={workspace} share={deckShare.share} onShare={deckShare.setShare} />
+
+        {deckInfoOpen ? (
+          <button
+            type="button"
+            className="deck-info-backdrop"
+            aria-label={t("common.close")}
+            onClick={() => setDeckInfoOpen(false)}
+          />
+        ) : null}
+        <aside
+          className={`deck-current${deckInfoOpen ? " deck-current--open" : ""}`}
+          aria-label={t("deck.detailsTitle")}
+        >
+          <div className="deck-info-sheet-handle">
+            <span />
+            <strong>{t("deck.detailsTitle")}</strong>
+            <button type="button" aria-label={t("common.close")} onClick={() => setDeckInfoOpen(false)}>
+              ×
             </button>
           </div>
-        </Panel>
-
-        <div className="deck-current__body">
-          <DeckPreviewSections
-            main={main}
-            egg={egg}
-            coverCardId={coverCardId}
-            pairConflictCardIds={pairedCardIds}
-            onSetCover={setCoverCardId}
-            onAdd={add}
-            onRemove={remove}
-            arts={arts}
-            onEditArt={(cardId) => setArtPickerCard(cardId)}
-          />
-
-          <div className="deck-current__stats">
-            <DeckLevelCurve main={main} />
-            <ColorBalance main={main} />
-          </div>
-        </div>
-
-        <div className="deck-current__footer">
-          {banlistViolations.length > 0 ? (
-            <div className="deck-current__violations">
-              <strong>{t("deck.banlistTitle")}</strong>
-              {banlistViolations.map((v) => {
-                const def = getCardDefinition(v.cardId);
-                return (
-                  <div key={v.cardId}>
-                    {t("deck.banlistRow", { name: def?.nameEn ?? v.cardId, count: v.count, cap: v.cap })}
-                  </div>
-                );
-              })}
+          <Panel as="div" circuitNodes={false} className="deck-current__header">
+            <div className="deck-current__identity">
+              <div className="deck-current__cover-thumb">
+                <CoverThumb
+                  key={coverCardId}
+                  coverCardId={coverCardId}
+                  artId={coverCardId ? arts[coverCardId]?.[0] : undefined}
+                  sigilColor={dominantColor(expand(main))}
+                  sigilSize={22}
+                />
+              </div>
+              <div className="deck-current__cover-text">
+                <input
+                  className="deck-current__name"
+                  aria-label={t("redesign.decks.editor.name")}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <div className="deck-current__cover-name" data-auto={!coverCardId}>
+                  <span className="aegis-hero-panel__eyebrow">{t("deck.cover")}</span>{" "}
+                  {coverCardId ? (getCardDefinition(coverCardId)?.nameEn ?? coverCardId) : t("deck.coverAuto")}
+                </div>
+              </div>
+              <div className="deck-current__counts">
+                <CountChip label={t("deck.main")} count={mainCount} target={MAIN_TARGET} done={validMain} />
+                <CountChip label={t("deck.egg")} count={eggCount} target={EGG_TARGET} done={eggCount === EGG_TARGET} />
+              </div>
+              <button
+                className="deck-current__random-cover"
+                onClick={() => setCoverCardId(randomCoverCard(expand(main)))}
+                disabled={mainCount === 0}
+                title={t("deck.randomCover")}
+                aria-label={t("deck.randomCover")}
+              >
+                <Icons.Dices size={15} />
+              </button>
             </div>
-          ) : null}
-          <div className="deck-current__row">
-            <Button variant="ghost" size="sm" icon={Icons.Upload} onClick={() => setImporting(true)}>
-              {t("common.import")}
-            </Button>
-            <Button variant="ghost" size="sm" icon={Icons.Download} onClick={() => setExporting(true)}>
-              {t("common.export")}
-            </Button>
+          </Panel>
+
+          <div className="deck-current__toolbar">
+            <DeckKindCounts main={main} />
+            <DeckLevelCurve main={main} compact />
+            <div className="deck-current__toolbar-controls">
+              <DeckViewToggle view={view} onView={setView} />
+              <DeckSplitPresets share={deckShare.share} onShare={deckShare.setShare} />
+            </div>
           </div>
-          <div className="deck-current__row">
-            <Button variant="secondary" size="md" full icon={Icons.ArrowLeft} onClick={onClose}>
-              {t("common.close")}
-            </Button>
-            <Button
-              size="md"
-              full
-              icon={Icons.Swords}
-              disabled={!validMain || banlistViolations.length > 0 || pairViolations.length > 0}
-              onClick={play}
-            >
-              {t("common.play")}
-            </Button>
+
+          <div className="deck-current__body">
+            <DeckPreviewSections
+              view={view}
+              main={main}
+              egg={egg}
+              coverCardId={coverCardId}
+              pairConflictCardIds={pairedCardIds}
+              onOpen={setSel}
+              onAdd={add}
+              onRemove={remove}
+              arts={arts}
+            />
+
+            <div className="deck-current__stats">
+              <ColorBalance main={main} />
+            </div>
           </div>
-        </div>
-      </aside>
+
+          <div className="deck-current__footer">
+            {banlistViolations.length > 0 ? (
+              <div className="deck-current__violations">
+                <strong>{t("deck.banlistTitle")}</strong>
+                {banlistViolations.map((v) => {
+                  const def = getCardDefinition(v.cardId);
+                  return (
+                    <div key={v.cardId}>
+                      {t("deck.banlistRow", { name: def?.nameEn ?? v.cardId, count: v.count, cap: v.cap })}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+            <div className="deck-current__row">
+              <Button variant="ghost" size="sm" icon={Icons.Upload} onClick={() => setImporting(true)}>
+                {t("common.import")}
+              </Button>
+              <Button variant="ghost" size="sm" icon={Icons.Download} onClick={() => setExporting(true)}>
+                {t("common.export")}
+              </Button>
+              <span className="deck-current__row-spacer" />
+              <Button variant="secondary" size="sm" icon={Icons.ArrowLeft} onClick={onClose}>
+                {t("common.close")}
+              </Button>
+              <Button
+                size="sm"
+                icon={Icons.Swords}
+                disabled={!validMain || banlistViolations.length > 0 || pairViolations.length > 0}
+                onClick={play}
+              >
+                {t("common.play")}
+              </Button>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       <button
         type="button"
@@ -399,20 +439,44 @@ export function DeckEditor({
         <CardDetailDrawer
           key={sel}
           cardId={sel}
-          artId={chosenArt[sel]}
+          artId={chosenArt[sel] ?? arts[sel]?.[0]}
           onArtChange={(artId) => {
             setChosenArt((previous) => ({ ...previous, [sel]: artId }));
           }}
           onClose={() => setSel(null)}
           footer={
             <div className="deck-drawer-actions">
-              <Button full icon={Icons.Plus} disabled={isBanned(sel)} onClick={() => add(sel)}>
-                {isBanned(sel) ? t("common.banned") : t("deck.addToDeck")}
-              </Button>
+              {selectedCount > 0 ? (
+                <div className="deck-drawer-count">
+                  <span>{t("deck.inDeck")}</span>
+                  <DeckStepper
+                    name={getCardDefinition(sel)?.nameEn ?? sel}
+                    count={selectedCount}
+                    addDisabled={selectedAtMax}
+                    onAdd={() => add(sel)}
+                    onRemove={() => remove(sel)}
+                  />
+                </div>
+              ) : (
+                <Button full icon={Icons.Plus} disabled={isBanned(sel)} onClick={() => add(sel)}>
+                  {isBanned(sel) ? t("common.banned") : t("deck.addToDeck")}
+                </Button>
+              )}
+              {selectedCount > 0 && getCardArts(sel).length > 1 ? (
+                <Button
+                  full
+                  variant="secondary"
+                  icon={Icons.Palette}
+                  aria-label={`${getCardDefinition(sel)?.nameEn ?? sel} · ${t("deck.editArtwork")}`}
+                  onClick={() => setArtPickerCard(sel)}
+                >
+                  {t("deck.editArtwork")}
+                </Button>
+              ) : null}
               <Button
                 full
                 variant={coverCardId === sel ? "secondary" : "ghost"}
-                icon={coverCardId === sel ? Icons.Check : Icons.Palette}
+                icon={coverCardId === sel ? Icons.Check : Icons.Star}
                 onClick={() => setCoverCardId(sel)}
               >
                 {coverCardId === sel ? t("deck.coverCard") : t("deck.setAsCover")}
