@@ -44,6 +44,25 @@ compose -p aegis-deployer \
              --env-file /etc/dokploy/compose/aegis-rgise8/code/.env
 ```
 
+## Card images
+
+The gateway serves card images from `/opt/aegis-rollout/assets/card-images`, at `/assets/card-images/<id>.webp`. The upstream card app (TakaOtaku/Digimon-Card-App) is the source. It keeps its images in a public bucket at `web-garage.takaotaku.de`. Commit `9f666f1` of the upstream repository is a second source.
+
+`tools/deploy/card-images.mjs` keeps the mirror current:
+
+- It reads the image ids from the committed card data and downloads only the missing files.
+- It never replaces a file, except a `-Sample` scan once the real image appears.
+- Every `deploy` and `deploy-web` runs it after extracting the web release. A failed sync logs a warning and does not block the release.
+- A daily root cron job on the VPS runs it too, to pick up images upstream publishes between releases. Its log is `/opt/aegis-rollout/logs/card-images.log`.
+
+```sh
+docker run --rm -v /etc/dokploy:/etc/dokploy:ro -v /opt/aegis-rollout:/opt/aegis-rollout node:26-alpine \
+  node /etc/dokploy/compose/aegis-rgise8/code/tools/deploy/card-images.mjs \
+  --source /etc/dokploy/compose/aegis-rgise8/code --state /opt/aegis-rollout
+```
+
+In local development, Vite proxies `/assets/card-images` to the upstream bucket.
+
 ## Migration from revision-named generations
 
 The controller and gateway continue to read and route existing g-<12 hex> identifiers so those processes can drain. New deploys always choose a fixed blue, red, or green slot. Do not edit the manifest or remove a generation's state directory by hand.

@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, rmSync, cpSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { describeSync, syncCardImages } from "./card-images.mjs";
 import { FIXED_SLOTS, isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
 
 function run(program, args, { capture = false } = {}) {
@@ -251,6 +252,12 @@ export async function controller({ action, source, envFile, state, revision }) {
         cpSync(`${release}/web/assets`, `${state}/assets`, { recursive: true });
       } finally {
         await run("docker", ["rm", extractor], { capture: true });
+      }
+      try {
+        console.log(describeSync(await syncCardImages({ source, destination: `${state}/assets/card-images` })));
+      } catch (error) {
+        // A failed sync leaves new cards without art until the next run; it must not block a release.
+        console.warn(`[aegis/deploy] card image sync failed: ${error.message}`);
       }
     }
 
