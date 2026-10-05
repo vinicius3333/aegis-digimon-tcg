@@ -9,7 +9,7 @@ import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { recordSnapshot, selectPresentedState, type StateSnapshot } from "../net/presentedState";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { TIMINGS } from "./timings";
-import { observeGateExpiry } from "./match/presentationGate";
+import { observeGateExpiry as observeTitanGateExpiry } from "./match/presentationGate";
 import type { PresentationPacing, PresentationProbe, PresentationControls } from "./presentationProbe";
 import { NarrationStack } from "./NarrationStack";
 import { I18nProvider } from "../i18n";
@@ -1328,7 +1328,7 @@ it.each([
   "keeps Titan Delay costs physical with earlier reactions queued=%s and copies=%s, %s",
   async (queuedReactions, copies, exit) => {
     const expiries: string[] = [];
-    onTestFinished(observeGateExpiry(({ label }) => expiries.push(label)));
+    onTestFinished(observeTitanGateExpiry(({ label }) => expiries.push(label)));
     const option = (permanentId: string, instanceId: string) => ({
       permanentId,
       topCard: { instanceId, cardId: "BT24-098" },
@@ -1449,18 +1449,23 @@ it.each([
       );
     }
     view.feedBatches(batches, after);
+    const assertBothHeld = () => expect(view.result.current.heldDeletions.size).toBe(2);
+    const assertSettled = () => {
+      expect(controls?.queue.isIdle()).toBe(true);
+      expect(expiries).toEqual([]);
+    };
+    const assertDecorationClean = () => {
+      expect(view.result.current.heldDeletions.size).toBe(0);
+      expect(view.result.current.deleteBursts).toHaveLength(0);
+    };
     if (exit !== "live") {
       await advance(16);
-      expect(view.result.current.heldDeletions.size).toBe(2);
+      assertBothHeld();
       if (exit === "skip") act(() => view.result.current.skipAnimations());
       else view.unmount();
       await advance(1000);
-      expect(controls?.queue.isIdle()).toBe(true);
-      if (exit === "skip") {
-        expect(view.result.current.heldDeletions.size).toBe(0);
-        expect(view.result.current.deleteBursts).toHaveLength(0);
-      }
-      expect(expiries).toEqual([]);
+      if (exit === "skip") assertDecorationClean();
+      assertSettled();
       return;
     }
     const moments = await firstSeenOrder(
@@ -1494,9 +1499,7 @@ it.each([
       "firstClause",
       ...(copies === 2 ? ["secondFocus", "secondBreak", "secondClause"] : []),
     ]);
-    expect(view.result.current.heldDeletions.size).toBe(0);
-    expect(view.result.current.deleteBursts).toHaveLength(0);
-    expect(controls?.queue.isIdle()).toBe(true);
-    expect(expiries).toEqual([]);
+    assertDecorationClean();
+    assertSettled();
   },
 );
