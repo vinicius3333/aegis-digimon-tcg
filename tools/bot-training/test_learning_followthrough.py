@@ -159,6 +159,12 @@ class PlannerTests(unittest.TestCase):
         self.assertFalse(result["launchesAnyJob"])
         self.assertFalse(result["automaticJobAdmission"])
         self.assertFalse(result["contextCoverageGuaranteed"])
+        self.assertEqual(
+            result["collectionDrivers"], {"diagnostic": "greedy-checkpoint", "contexts": "teacher"}
+        )
+        self.assertIn("--checkpoint", result["diagnosticCommand"])
+        self.assertNotIn("--checkpoint", result["contextCommandConditionalOnReviewedLabelProducer"])
+        self.assertNotIn("--device", result["contextCommandConditionalOnReviewedLabelProducer"])
         self.assertEqual(len(result["sequentialDevelopmentComparisonCommands"]), 5)
         for cmd in result["sequentialDevelopmentComparisonCommands"]:
             self.assertIn("--curriculum", cmd)
