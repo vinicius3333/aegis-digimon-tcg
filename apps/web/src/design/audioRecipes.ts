@@ -375,12 +375,12 @@ export function renderCue(
     sources,
   );
 }
-export const MUSIC_BPM = 80;
+export const MUSIC_BPM = 96;
 export const MUSIC_SECONDS = (32 * 60) / MUSIC_BPM;
 function musicStemLayers(stem: "bed" | "detail" | "pulse"): AudioLayer[] {
   const layers: AudioLayer[] = [];
   const beatSeconds = 60 / MUSIC_BPM;
-  // Eight bars at 80 BPM: Gmaj9, Em9, Cmaj9, Dsus/add9. All stems share this circular grid.
+  // Eight bars at 96 BPM: Gmaj9, Em9, Cmaj9, Dsus/add9. All stems share this circular grid.
   const chords = [
     [43, 50, 59, 66],
     [40, 47, 55, 62],
@@ -427,13 +427,6 @@ function musicStemLayers(stem: "bed" | "detail" | "pulse"): AudioLayer[] {
           gain: beat % 2 === 0 ? 0.045 : 0.018,
           hz: 80,
           endHz: 50,
-        });
-        layers.push({
-          texture: "paper",
-          at: (bar * 8 + beat + 0.5) * beatSeconds,
-          duration: 0.12,
-          gain: 0.027,
-          hz: 900,
         });
       }
     }

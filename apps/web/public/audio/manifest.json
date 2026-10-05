@@ -2,7 +2,7 @@
   "version": 2,
   "original": true,
   "renderer": "apps/web/src/design/audioRecipes.ts",
-  "rendererSha256": "da629c1c645e8c5e906ac97a60c613a37a4169148b60d691919edc60a0e78238",
+  "rendererSha256": "a55d132e0527826bbba3e3cb40709d396fb05bfa214ecf56a850c19f5e59c3b1",
   "sampleRate": 48000,
   "channels": 1,
   "seedMethod": "FNV-1a cue identity followed by xorshift32",
@@ -28,424 +28,424 @@
   },
   "music": {
     "file": "aegis-music-v2.wav",
-    "bpm": 80,
+    "bpm": 96,
     "layers": [
       {
         "texture": "pad",
         "at": 0,
-        "duration": 7.5,
+        "duration": 6.25,
         "gain": 0.017,
         "hz": 97.99885899543733
       },
       {
         "texture": "pad",
         "at": 0.06,
-        "duration": 7.5,
+        "duration": 6.25,
         "gain": 0.013076923076923078,
         "hz": 146.8323839587038
       },
       {
         "texture": "pad",
         "at": 0.12,
-        "duration": 7.5,
+        "duration": 6.25,
         "gain": 0.010625,
         "hz": 246.94165062806206
       },
       {
         "texture": "pad",
         "at": 0.18,
-        "duration": 7.5,
+        "duration": 6.25,
         "gain": 0.008947368421052633,
         "hz": 369.9944227116344
       },
       {
         "texture": "air",
-        "at": 2.25,
-        "duration": 4.5,
+        "at": 1.875,
+        "duration": 3.75,
         "gain": 0.012,
         "hz": 650
       },
       {
         "texture": "pad",
-        "at": 6,
-        "duration": 7.5,
+        "at": 5,
+        "duration": 6.25,
         "gain": 0.017,
         "hz": 82.4068892282175
       },
       {
         "texture": "pad",
-        "at": 6.06,
-        "duration": 7.5,
+        "at": 5.06,
+        "duration": 6.25,
         "gain": 0.013076923076923078,
         "hz": 123.47082531403103
       },
       {
         "texture": "pad",
-        "at": 6.12,
-        "duration": 7.5,
+        "at": 5.12,
+        "duration": 6.25,
         "gain": 0.010625,
         "hz": 195.99771799087463
       },
       {
         "texture": "pad",
-        "at": 6.18,
-        "duration": 7.5,
+        "at": 5.18,
+        "duration": 6.25,
         "gain": 0.008947368421052633,
         "hz": 293.6647679174076
       },
       {
         "texture": "air",
-        "at": 8.25,
-        "duration": 4.5,
+        "at": 6.875,
+        "duration": 3.75,
         "gain": 0.012,
         "hz": 650
       },
       {
         "texture": "pad",
-        "at": 12,
-        "duration": 7.5,
+        "at": 10,
+        "duration": 6.25,
         "gain": 0.017,
         "hz": 65.40639132514966
       },
       {
         "texture": "pad",
-        "at": 12.06,
-        "duration": 7.5,
+        "at": 10.06,
+        "duration": 6.25,
         "gain": 0.013076923076923078,
         "hz": 97.99885899543733
       },
       {
         "texture": "pad",
-        "at": 12.12,
-        "duration": 7.5,
+        "at": 10.12,
+        "duration": 6.25,
         "gain": 0.010625,
         "hz": 164.81377845643496
       },
       {
         "texture": "pad",
-        "at": 12.18,
-        "duration": 7.5,
+        "at": 10.18,
+        "duration": 6.25,
         "gain": 0.008947368421052633,
         "hz": 246.94165062806206
       },
       {
         "texture": "air",
-        "at": 14.25,
-        "duration": 4.5,
+        "at": 11.875,
+        "duration": 3.75,
         "gain": 0.012,
         "hz": 650
       },
       {
         "texture": "pad",
-        "at": 18,
-        "duration": 7.5,
+        "at": 15,
+        "duration": 6.25,
         "gain": 0.017,
         "hz": 73.41619197935188
       },
       {
         "texture": "pad",
-        "at": 18.06,
-        "duration": 7.5,
+        "at": 15.06,
+        "duration": 6.25,
         "gain": 0.013076923076923078,
         "hz": 110
       },
       {
         "texture": "pad",
-        "at": 18.12,
-        "duration": 7.5,
+        "at": 15.12,
+        "duration": 6.25,
         "gain": 0.010625,
         "hz": 195.99771799087463
       },
       {
         "texture": "pad",
-        "at": 18.18,
-        "duration": 7.5,
+        "at": 15.18,
+        "duration": 6.25,
         "gain": 0.008947368421052633,
         "hz": 329.6275569128699
       },
       {
         "texture": "air",
-        "at": 20.25,
-        "duration": 4.5,
+        "at": 16.875,
+        "duration": 3.75,
         "gain": 0.012,
         "hz": 650
       },
       {
         "texture": "pluck",
-        "at": 0.1875,
+        "at": 0.15625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 293.6647679174076
       },
       {
         "texture": "pluck",
-        "at": 0.9375,
+        "at": 0.78125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 493.8833012561241
       },
       {
         "texture": "pluck",
-        "at": 1.6875,
+        "at": 1.40625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 739.9888454232688
       },
       {
         "texture": "pluck",
-        "at": 2.4375,
+        "at": 2.03125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 493.8833012561241
       },
       {
         "texture": "glass",
-        "at": 2.8125,
+        "at": 2.34375,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 739.9888454232688
       },
       {
         "texture": "pluck",
-        "at": 3.1875,
+        "at": 2.65625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 293.6647679174076
       },
       {
         "texture": "pluck",
-        "at": 3.9375,
+        "at": 3.28125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 739.9888454232688
       },
       {
         "texture": "pluck",
-        "at": 4.6875,
+        "at": 3.90625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 493.8833012561241
       },
       {
         "texture": "glass",
-        "at": 5.0625,
+        "at": 4.21875,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 739.9888454232688
       },
       {
         "texture": "pluck",
-        "at": 5.4375,
+        "at": 4.53125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 739.9888454232688
       },
       {
         "texture": "pluck",
-        "at": 6.1875,
+        "at": 5.15625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 246.94165062806206
       },
       {
         "texture": "pluck",
-        "at": 6.9375,
+        "at": 5.78125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 391.99543598174927
       },
       {
         "texture": "pluck",
-        "at": 7.6875,
+        "at": 6.40625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 587.3295358348151
       },
       {
         "texture": "pluck",
-        "at": 8.4375,
+        "at": 7.03125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 391.99543598174927
       },
       {
         "texture": "glass",
-        "at": 8.8125,
+        "at": 7.34375,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 587.3295358348151
       },
       {
         "texture": "pluck",
-        "at": 9.1875,
+        "at": 7.65625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 246.94165062806206
       },
       {
         "texture": "pluck",
-        "at": 9.9375,
+        "at": 8.28125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 587.3295358348151
       },
       {
         "texture": "pluck",
-        "at": 10.6875,
+        "at": 8.90625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 391.99543598174927
       },
       {
         "texture": "glass",
-        "at": 11.0625,
+        "at": 9.21875,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 587.3295358348151
       },
       {
         "texture": "pluck",
-        "at": 11.4375,
+        "at": 9.53125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 587.3295358348151
       },
       {
         "texture": "pluck",
-        "at": 12.1875,
+        "at": 10.15625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 195.99771799087463
       },
       {
         "texture": "pluck",
-        "at": 12.9375,
+        "at": 10.78125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 329.6275569128699
       },
       {
         "texture": "pluck",
-        "at": 13.6875,
+        "at": 11.40625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 493.8833012561241
       },
       {
         "texture": "pluck",
-        "at": 14.4375,
+        "at": 12.03125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 329.6275569128699
       },
       {
         "texture": "glass",
-        "at": 14.8125,
+        "at": 12.34375,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 493.8833012561241
       },
       {
         "texture": "pluck",
-        "at": 15.1875,
+        "at": 12.65625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 195.99771799087463
       },
       {
         "texture": "pluck",
-        "at": 15.9375,
+        "at": 13.28125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 493.8833012561241
       },
       {
         "texture": "pluck",
-        "at": 16.6875,
+        "at": 13.90625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 329.6275569128699
       },
       {
         "texture": "glass",
-        "at": 17.0625,
+        "at": 14.21875,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 493.8833012561241
       },
       {
         "texture": "pluck",
-        "at": 17.4375,
+        "at": 14.53125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 493.8833012561241
       },
       {
         "texture": "pluck",
-        "at": 18.1875,
+        "at": 15.15625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 220
       },
       {
         "texture": "pluck",
-        "at": 18.9375,
+        "at": 15.78125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 391.99543598174927
       },
       {
         "texture": "pluck",
-        "at": 19.6875,
+        "at": 16.40625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 659.2551138257398
       },
       {
         "texture": "pluck",
-        "at": 20.4375,
+        "at": 17.03125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 391.99543598174927
       },
       {
         "texture": "glass",
-        "at": 20.8125,
+        "at": 17.34375,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 587.3295358348151
       },
       {
         "texture": "pluck",
-        "at": 21.1875,
+        "at": 17.65625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 220
       },
       {
         "texture": "pluck",
-        "at": 21.9375,
+        "at": 18.28125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 659.2551138257398
       },
       {
         "texture": "pluck",
-        "at": 22.6875,
+        "at": 18.90625,
         "duration": 1.65,
         "gain": 0.04,
         "hz": 391.99543598174927
       },
       {
         "texture": "glass",
-        "at": 23.0625,
+        "at": 19.21875,
         "duration": 1.2,
         "gain": 0.018,
         "hz": 587.3295358348151
       },
       {
         "texture": "pluck",
-        "at": 23.4375,
+        "at": 19.53125,
         "duration": 1.65,
         "gain": 0.024,
         "hz": 659.2551138257398
@@ -459,146 +459,92 @@
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 0.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 0.75,
+        "at": 0.625,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 1.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 1.5,
+        "at": 1.25,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
+        "texture": "body",
         "at": 1.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 2.25,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 2.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 3,
+        "at": 2.5,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 3.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
+        "texture": "body",
+        "at": 3.125,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
       },
       {
         "texture": "body",
         "at": 3.75,
         "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 4.375,
+        "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 4.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 4.5,
+        "at": 5,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 4.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 5.25,
-        "duration": 0.28,
-        "gain": 0.018,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
         "at": 5.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 6,
-        "duration": 0.28,
-        "gain": 0.045,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 6.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 6.75,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 7.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
+        "texture": "body",
+        "at": 6.25,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 6.875,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
       },
       {
         "texture": "body",
@@ -609,146 +555,92 @@
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 7.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 8.25,
+        "at": 8.125,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 8.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 9,
+        "at": 8.75,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
+        "texture": "body",
         "at": 9.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 9.75,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 10.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 10.5,
+        "at": 10,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 10.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
+        "texture": "body",
+        "at": 10.625,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
       },
       {
         "texture": "body",
         "at": 11.25,
         "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 11.875,
+        "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 11.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 12,
+        "at": 12.5,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 12.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 12.75,
-        "duration": 0.28,
-        "gain": 0.018,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
         "at": 13.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 13.5,
-        "duration": 0.28,
-        "gain": 0.045,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 13.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 14.25,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 14.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
+        "texture": "body",
+        "at": 13.75,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 14.375,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
       },
       {
         "texture": "body",
@@ -759,188 +651,72 @@
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 15.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 15.75,
+        "at": 15.625,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 16.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 16.5,
+        "at": 16.25,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
+        "texture": "body",
         "at": 16.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 17.25,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 17.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 18,
+        "at": 17.5,
         "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 18.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
+        "texture": "body",
+        "at": 18.125,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
       },
       {
         "texture": "body",
         "at": 18.75,
         "duration": 0.28,
-        "gain": 0.018,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 19.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 19.5,
-        "duration": 0.28,
         "gain": 0.045,
         "hz": 80,
         "endHz": 50
       },
       {
-        "texture": "paper",
-        "at": 19.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
         "texture": "body",
-        "at": 20.25,
+        "at": 19.375,
         "duration": 0.28,
         "gain": 0.018,
         "hz": 80,
         "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 20.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 21,
-        "duration": 0.28,
-        "gain": 0.045,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 21.375,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 21.75,
-        "duration": 0.28,
-        "gain": 0.018,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 22.125,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 22.5,
-        "duration": 0.28,
-        "gain": 0.045,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 22.875,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
-      },
-      {
-        "texture": "body",
-        "at": 23.25,
-        "duration": 0.28,
-        "gain": 0.018,
-        "hz": 80,
-        "endHz": 50
-      },
-      {
-        "texture": "paper",
-        "at": 23.625,
-        "duration": 0.12,
-        "gain": 0.027,
-        "hz": 900
       }
     ],
-    "composition": "Original 8 bars at steady 80 BPM; Gmaj9 / Em9 / Cmaj9 / Dsus-add9; circular overlapping pads, plucks, soft steady pulse and filtered air",
-    "seconds": 24,
-    "peak": 0.05832007899880409,
-    "peakDbFS": -24.683637928122124,
-    "rms": 0.010432076161674401,
-    "dc": -1.4380086500297459e-8,
-    "maximumStep": 0.008138047676766291,
-    "boundaryStep": 0.0006016327533870935,
-    "bytes": 2304044,
-    "sha256": "13c0f1bf9acaf7f2dda83413ee092ddde89e36092726df813c0b3f58f96ad6a7"
+    "composition": "Original 8 bars at steady 96 BPM; Gmaj9 / Em9 / Cmaj9 / Dsus-add9; circular overlapping pads, plucks, warm steady low pulse and filtered air, no shaker/hi-hat",
+    "seconds": 20,
+    "peak": 0.04942673444747925,
+    "peakDbFS": -26.12076163593465,
+    "rms": 0.010772642352007622,
+    "dc": -3.081749416560623e-8,
+    "maximumStep": 0.0051547568291425705,
+    "boundaryStep": 0.000553036923520267,
+    "bytes": 1920044,
+    "sha256": "1ae7f30bd8bec8caac40b188af49fc06857b1893e51aa9672e38da5e02fc5240"
   },
   "previews": {
     "warm": {

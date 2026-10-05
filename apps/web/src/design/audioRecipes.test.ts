@@ -86,17 +86,18 @@ describe("authored original bank", () => {
         expect(wav.readInt16LE(44 + (offset + i) * 2)).toBe(Math.round(samples[i]! * 32767) || 0);
     }
   });
-  it("keeps an 80 BPM pulse and progressing melody present from the beginning with a quiet circular seam", () => {
-    expect(MUSIC_BPM).toBe(80);
+  it("keeps an 96 BPM pulse and progressing melody present from the beginning with a quiet circular seam", () => {
+    expect(MUSIC_BPM).toBe(96);
     const layers = musicRecipe();
+    expect(layers.some((layer) => layer.texture === "paper" || layer.texture === "grain")).toBe(false);
     expect(layers.filter((layer) => layer.texture === "body").map((layer) => layer.at)).toEqual(
-      Array.from({ length: 32 }, (_, i) => i * 0.75),
+      Array.from({ length: 32 }, (_, i) => i * 0.625),
     );
     expect(layers.some((layer) => layer.texture === "pluck" && layer.at < 0.25)).toBe(true);
     for (const rate of [44100, 48000]) {
       const music = renderMusic(rate),
         measured = measures(music);
-      expect(music.length).toBe(rate * 24);
+      expect(music.length).toBe(rate * 20);
       expect(measured.peak).toBeLessThan(0.08);
       expect(measured.energy).toBeGreaterThan(1);
       expect(Math.abs(measured.mean)).toBeLessThan(0.00001);
