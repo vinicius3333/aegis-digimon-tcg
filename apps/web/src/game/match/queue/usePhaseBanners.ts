@@ -8,6 +8,7 @@ import type { ServerBatch } from "../../../net/serverBatches";
 import { isAnnouncedPhase, phaseBannerFrom, type PhaseBanner } from "../../phaseBanner";
 import { PRESENTED_BOARD_BUDGET_MS } from "../../presentationProgress";
 import { TIMINGS } from "../../timings";
+import { waitForPaintedAnimation } from "../../paintedAnimationClock";
 import { Side } from "../../side";
 import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "../constants";
 import { CueTrack } from "../enums";
@@ -330,6 +331,15 @@ export function usePhaseBanners({
               playCue("turnChange");
               setTurnTransition(transition);
               await context.wait(TIMINGS.turnBanner);
+              await waitForPaintedAnimation(
+                () =>
+                  typeof document === "undefined"
+                    ? null
+                    : document.querySelector(`[data-turn-key="${transition.endingSeat}:${transition.turnCount}"]`),
+                "battle-banner",
+                TIMINGS.turnBanner,
+                context,
+              );
               setTurnTransition((current) => (current === transition ? null : current));
               await context.wait(TIMINGS.phaseBannerGap);
             } finally {
@@ -476,6 +486,13 @@ export function usePhaseBanners({
                 releaseDrawHold();
               }
               await context.wait(TIMINGS.phaseBanner);
+              await waitForPaintedAnimation(
+                () =>
+                  typeof document === "undefined" ? null : document.querySelector(`[data-phase-key="${banner.key}"]`),
+                "arena-phase-ribbon",
+                TIMINGS.phaseBanner,
+                context,
+              );
               if (banner.phase === "Breeding") {
                 // A fast bot may already have evolved in Main. Present the raising
                 // area at the Main boundary first, so its hatch remains visible.

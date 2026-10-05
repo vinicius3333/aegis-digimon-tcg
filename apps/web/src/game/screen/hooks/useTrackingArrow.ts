@@ -33,6 +33,7 @@ export function useTrackingArrow({
   viewerSeat,
   fieldClash,
   securityClash,
+  phasePresentationPending = false,
   effectSelection,
   boardRef,
   permRefs,
@@ -47,6 +48,8 @@ export function useTrackingArrow({
   viewerSeat: Seat;
   fieldClash: FieldClashScene | null;
   securityClash?: SecurityClashScene | null;
+  /** Raw attack publication can precede the phase that introduces its action. */
+  phasePresentationPending?: boolean;
   effectSelection?: { sourcePermanentId: string; targetPermanentIds: readonly string[] };
   boardRef: RefObject<HTMLDivElement | null>;
   permRefs: MutableRefObject<Record<string, HTMLDivElement | null>>;
@@ -84,7 +87,7 @@ export function useTrackingArrow({
       : null) ??
     fieldClashArrow ??
     (securityClash && !securityClash.departing && !securityClash.exiting ? securityClash.attackArrow : null) ??
-    openAttackArrow ??
+    (phasePresentationPending ? null : openAttackArrow) ??
     effectTargetArrow({
       decision,
       picks,

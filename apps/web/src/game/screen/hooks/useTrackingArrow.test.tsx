@@ -18,7 +18,14 @@ const declaration: Extract<ServerEvent, { kind: "attackDeclared" }> = {
 const events: ServerEvent[] = [declaration, { kind: "attackEnded", seat: 0, attackerPermanentId: "attacker" }];
 const originalAnimations = Object.getOwnPropertyDescriptor(SVGElement.prototype, "getAnimations");
 
-function Harness({ exiting = false, effect = false, attack = declaration }) {
+function Harness({
+  exiting = false,
+  effect = false,
+  attack = declaration,
+  sceneVisible = true,
+  phasePending = false,
+  closed = true,
+}) {
   const boardRef = useRef<HTMLDivElement>(null);
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const permCentersRef = useRef({});
@@ -34,12 +41,13 @@ function Harness({ exiting = false, effect = false, attack = declaration }) {
   });
   const tracking = useTrackingArrow({
     state: undefined,
-    events,
+    events: closed ? events : [attack],
     decision: undefined,
     picks: [],
     viewerSeat: 0,
     fieldClash: null,
-    securityClash: { ...scene, exiting },
+    securityClash: sceneVisible ? { ...scene, exiting } : null,
+    phasePresentationPending: phasePending,
     effectSelection: effect ? { sourcePermanentId: "attacker", targetPermanentIds: ["defender"] } : undefined,
     boardRef,
     permRefs,
@@ -113,7 +121,10 @@ it.each([0, 0.5, 1, 2].flatMap((rate) => [false, true].map((effect) => ({ rate, 
         frame = undefined;
         callback?.(now);
       });
-    const screen = render(<Harness />);
+    const screen = render(<Harness sceneVisible={false} phasePending closed={false} />);
+    tick();
+    expect(screen.container.querySelector("svg")).toBeNull();
+    screen.rerender(<Harness phasePending />); // A presented clash owns its arrow even while later phases are queued.
     tick();
     expect(screen.container.querySelector("svg")).not.toBeNull();
     tick(); // Observe the native clock after the SVG has mounted.
