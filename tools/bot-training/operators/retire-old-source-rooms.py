@@ -423,7 +423,8 @@ def validate(row: dict, *, running: bool | None) -> None:
 
 
 def gone(expected: dict) -> bool:
-    actual = process(expected["pid"])
+    # Exiting processes can deny environ/cwd while still live: stat alone decides.
+    actual = process(expected["pid"], details=False)
     require(actual is None or actual["startTicks"] == expected["startTicks"], "Captured PID reused")
     return not live(actual)
 

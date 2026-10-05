@@ -464,6 +464,29 @@ class Guards(unittest.TestCase):
             module.signal_bound(expected["pid"], expected, parent_stopped=True)
             self.assertEqual([], f.events)
 
+    def test_exiting_environ_permission_is_live_until_stat_reports_dead(self):
+        expected = {"pid": 13787, "startTicks": "690019"}
+        calls = []
+
+        def exiting(pid, *, details=True):
+            calls.append(details)
+            if details:
+                raise PermissionError("exiting environ")
+            return {"pid": pid, "startTicks": "690019", "ppid": 1, "state": "R"}
+
+        with patch.object(module, "process", side_effect=exiting):
+            self.assertFalse(module.gone(expected))
+            with (
+                patch.object(module.time, "monotonic", side_effect=[0, 31]),
+                self.assertRaises(ValueError),
+            ):
+                module.wait_dead(expected)
+        self.assertTrue(calls and not any(calls))
+        with patch.object(
+            module, "process", return_value={"pid": 13787, "startTicks": "690019", "state": "Z"}
+        ):
+            self.assertTrue(module.gone(expected))
+
     def test_unexpected_esrch_never_accepted_and_fd_is_required(self):
         with Fixture() as f:
             expected = f.request["targets"][0]["processes"][1]
