@@ -38,6 +38,8 @@ class ExpertAdmissionTests(unittest.TestCase):
         self.base_request.write_text('{"synthetic":true}\n', encoding="utf-8")
         self.entry = self.transfers / "material-teacher-effect-entry.mjs"
         self.entry.write_text("// synthetic external producer\n", encoding="utf-8")
+        self.policy = self.transfers / "material-teacher-effect-policy.mjs"
+        self.policy.write_text("// synthetic policy helper\n", encoding="utf-8")
         self.request = self.transfers / "expert-request.json"
         for name, value in {
             "LAB": self.lab,
@@ -54,7 +56,7 @@ class ExpertAdmissionTests(unittest.TestCase):
             "formatVersion": 1,
             "baseRequest": {"path": str(self.base_request), "sha256": sha(self.base_request)},
             "entry": str(self.entry),
-            "expertModules": {str(self.entry): sha(self.entry)},
+            "expertModules": {str(self.entry): sha(self.entry), str(self.policy): sha(self.policy)},
             "oldPhases": {
                 phase: {"identitySha256": "1" * 64, "completionSha256": "2" * 64}
                 for phase in ADAPTER.OLD_PHASES
@@ -224,8 +226,8 @@ class ExpertAdmissionTests(unittest.TestCase):
             {"oldPhases": {}},
             {"entry": []},
             {"entry": str(self.transfers / "unsealed.mjs")},
-            {"expertModules": {str(self.entry): None}},
-            {"expertModules": {str(self.entry): "0" * 64}},
+            {"expertModules": {str(self.entry): None, str(self.policy): sha(self.policy)}},
+            {"expertModules": {str(self.entry): "0" * 64, str(self.policy): sha(self.policy)}},
             {"baseRequest": {"path": str(self.base_request), "sha256": "0" * 64}},
             {"expertModules": {str(self.entry.parent / ".." / "outside.mjs"): "1" * 64}},
         ]
@@ -276,6 +278,35 @@ class ExpertAdmissionTests(unittest.TestCase):
                 self.assertRaisesRegex(ValueError, "runtime override"),
             ):
                 self.context()
+
+    def test_imported_policy_cannot_be_missing_unpinned_or_changed(self) -> None:
+        original = copy.deepcopy(self.actor["expertModules"])
+        self.actor["expertModules"] = {str(self.entry): sha(self.entry)}
+        with self.assertRaisesRegex(ValueError, "entry and policy"):
+            self.context()
+        self.actor["expertModules"] = {**original, str(self.transfers / "unknown.mjs"): "a" * 64}
+        with self.assertRaisesRegex(ValueError, "entry and policy"):
+            self.context()
+        self.actor["expertModules"] = original
+        ctx = self.context()
+        _, approval_sha = self.approval(ctx, "contexts-3")
+        self.policy.write_text("// changed imported helper\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "pin changed"):
+            self.ns["go"](ctx, "contexts-3", approval_sha, idle=True)
+        self.assertNotIn(("host",), self.calls)
+
+    def test_executed_and_parsed_source_is_the_hashed_buffer(self) -> None:
+        reader = Path.read_bytes
+
+        def changed(path: Path) -> bytes:
+            if path == self.base_path:
+                return b"raise RuntimeError('unreviewed code executed')\n"
+            return reader(path)
+
+        with patch.object(Path, "read_bytes", changed):
+            for call in (ADAPTER.original, lambda: ADAPTER.namespace(self.base)):
+                with self.assertRaisesRegex(ValueError, "source byte pin"):
+                    call()
 
 
 if __name__ == "__main__":

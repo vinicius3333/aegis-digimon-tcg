@@ -41,15 +41,25 @@ def pin(path: Path, expected: str) -> None:
     require(isinstance(expected, str) and actual == expected, "Expert input pin changed")
 
 
+def sealed_source(path: Path, expected: str) -> bytes:
+    require(
+        path.is_file() and not any(p.is_symlink() for p in [path, *path.parents]),
+        "Missing regular reviewed source or symlink ancestor",
+    )
+    source = path.read_bytes()
+    require(hashlib.sha256(source).hexdigest() == expected, "Reviewed source byte pin changed")
+    return source
+
+
 def original() -> Any:
     sys.dont_write_bytecode = True
     require(__debug__ and "torch" not in sys.modules, "Use stdlib admission without -O")
-    pin(BASE_OPERATOR, BASE_SHA)
+    source = sealed_source(BASE_OPERATOR, BASE_SHA)
     spec = importlib.util.spec_from_file_location("original_material_learning", BASE_OPERATOR)
     require(spec is not None and spec.loader is not None, "Missing original loader")
     module = importlib.util.module_from_spec(spec)
     # Execute the pinned source bytes, never a pre-existing .pyc cache.
-    exec(compile(BASE_OPERATOR.read_bytes(), str(BASE_OPERATOR), "exec"), vars(module))  # noqa: S102 - exact original reviewed source bytes.
+    exec(compile(source, str(BASE_OPERATOR), "exec"), vars(module))  # noqa: S102 - exact original reviewed source bytes hashed and compiled from one buffer.
     pin(BASE_OPERATOR, BASE_SHA)
     return module
 
@@ -78,12 +88,13 @@ def envelope(base: Any, path: Path, expected: str) -> dict[str, Any]:
         value["baseRequest"] == {"path": str(BASE_REQUEST), "sha256": BASE_REQUEST_SHA},
         "Original sealed request required",
     )
+    entry = str(LAB / "transfers/material-teacher-effect-entry.mjs")
+    policy = str(LAB / "transfers/material-teacher-effect-policy.mjs")
     require(
-        isinstance(value["expertModules"], dict)
-        and 1 <= len(value["expertModules"]) <= 3
-        and isinstance(value["entry"], str)
-        and value["entry"] in value["expertModules"],
-        "Explicit expert entry and module pins required",
+        value["entry"] == entry
+        and isinstance(value["expertModules"], dict)
+        and set(value["expertModules"]) == {entry, policy},
+        "Exact external entry and policy pins required",
     )
     for filename, checksum in value["expertModules"].items():
         require(isinstance(filename, str), "Expert module path must be a string")
@@ -114,8 +125,7 @@ def envelope(base: Any, path: Path, expected: str) -> dict[str, Any]:
 
 def namespace(base: Any) -> dict[str, Any]:
     """Reuse complete SHA-bound function definitions without editing original bytes."""
-    pin(BASE_OPERATOR, BASE_SHA)
-    tree = ast.parse(BASE_OPERATOR.read_text(encoding="utf-8"))
+    tree = ast.parse(sealed_source(BASE_OPERATOR, BASE_SHA))
     definitions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
     names = {node.name for node in definitions}
     require(
