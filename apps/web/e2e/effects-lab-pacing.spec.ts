@@ -19,7 +19,9 @@ import {
 } from "@aegis/shared";
 import { startPacingCapture, finishPacingCapture } from "./pacing-capture";
 import { installAudioCapture, readAudioCapture } from "./audio-capture";
-import { MAX_SOUND_VOICES, soundTones } from "../src/design/sound";
+import { MAX_SOUND_VOICES } from "../src/design/sound";
+import { AUDIO_CUES } from "../src/design/audioBank";
+import { cueKey } from "../src/design/audioRecipes";
 
 /* A paced chain must keep moving in a real browser. The jsdom pacing harness replays the
    same scenarios on a fake clock, but a wait cycle between presentation steps only closes
@@ -1405,6 +1407,9 @@ test.describe("effects lab pacing in the browser", () => {
         expect(audioAfter.contexts[0]!.effectsGain).toBeGreaterThan(0);
         expect(audioAfter.contexts[0]!.musicGain).toBeGreaterThan(0);
         expect(audioAfter.peakEffects).toBeLessThanOrEqual(MAX_SOUND_VOICES);
+        expect(audioAfter.voices.some((voice) => voice.bus === "music" && voice.loop && voice.bufferDuration > 0)).toBe(
+          true,
+        );
         const turnVoices = audioAfter.voices
           .slice(audioBefore.voices.length)
           .filter((voice) => voice.bus === "effects");
@@ -1417,31 +1422,23 @@ test.describe("effects lab pacing in the browser", () => {
             ]!;
             const kind = scenario.flow === "play-grouping" ? "cardPlay" : "digivolve";
             const details = { cost: card.playCost, targetLevel: card.level };
-            const matches = (voice: (typeof turnVoices)[number], tone: ReturnType<typeof soundTones>[number]) =>
-              voice.type === tone.type &&
-              Math.abs(voice.frequency - tone.from) < 0.001 &&
-              Math.abs((voice.endFrequency ?? 0) - tone.to) < 0.001 &&
-              Math.abs((voice.durationMs ?? 0) - tone.duration * 1000) < 0.001;
-            // rAF poses and native oscillator observations both use absolute performance time.
-            const baseVoice = turnVoices.find(
-              (voice) =>
-                voice.at >= occurrence.firstAt - 50 &&
-                voice.at <= occurrence.lastAt + 50 &&
-                matches(voice, soundTones(kind, details)[0]!),
+            // Central showcases precede physical arrival metadata, so their source stays neutral.
+            const key = cueKey(kind, details);
+            const expectedCue = AUDIO_CUES[key]!;
+            const voice = turnVoices.find(
+              (entry) =>
+                entry.at >= occurrence.firstAt - 50 &&
+                entry.at <= occurrence.lastAt + 50 &&
+                !entry.loop &&
+                Math.abs(entry.offset - expectedCue.offset) < 0.000001 &&
+                Math.abs((entry.duration ?? 0) - expectedCue.duration) < 0.000001,
             );
-            expect(baseVoice, `native target-level recipe accompanies ${cardId}`).toBeDefined();
-            expect(baseVoice!.showcase?.cardId).toBe(cardId);
-            expect(baseVoice!.showcase?.key).toBeTruthy();
-            // All these evolutions start at a central showcase, before its physical
-            // arrival burst exists. Identified landing metadata cannot replace the
-            // already played occurrence's deliberately neutral source recipe.
-            const tones = soundTones(kind, details);
-            for (const tone of tones) {
-              expect(
-                turnVoices.some((voice) => Math.abs(voice.at - baseVoice!.at) <= 50 && matches(voice, tone)),
-                `native recipe follows the painted ${cardId} occurrence`,
-              ).toBe(true);
-            }
+            expect(voice, `native packed cue ${key} accompanies painted ${cardId}`).toBeDefined();
+            expect(voice!.showcase?.cardId).toBe(cardId);
+            expect(voice!.showcase?.key).toBeTruthy();
+            expect(voice!.bufferDuration).toBeGreaterThan(expectedCue.offset + expectedCue.duration);
+            expect(voice!.sampleRate).toBeGreaterThanOrEqual(44_100);
+            expect(voice!.playbackRate).toBe(1);
           }
         }
         expect(capture.truncated).toBe(false);

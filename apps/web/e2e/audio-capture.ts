@@ -5,10 +5,13 @@ export interface AudioSmoke {
   voices: {
     at: number;
     scheduledAt: number;
-    type: OscillatorType;
-    frequency: number;
-    endFrequency?: number;
-    durationMs?: number;
+    offset: number;
+    duration?: number;
+    bufferDuration: number;
+    sampleRate: number;
+    channels: number;
+    loop: boolean;
+    playbackRate: number;
     bus: "effects" | "music" | "modulation";
     showcase?: { cardId: string; key: string };
     endedAt?: number;
@@ -16,7 +19,7 @@ export interface AudioSmoke {
   peakEffects: number;
 }
 
-/** Observe native audio without replacing synthesis or adding a frame sampler. */
+/** Observe actual decoded-buffer playback without replacing audio or adding a frame sampler. */
 export async function installAudioCapture(page: Page): Promise<void> {
   await page.addInitScript(() => {
     for (const [key, value] of Object.entries({
@@ -52,27 +55,11 @@ export async function installAudioCapture(page: Page): Promise<void> {
         observeConnection(node);
         return node;
       }
-      override createOscillator(): OscillatorNode {
-        const node = super.createOscillator();
+      override createBufferSource(): AudioBufferSourceNode {
+        const node = super.createBufferSource();
         observeConnection(node);
-        let initialFrequency: number | undefined;
-        let initialTime: number | undefined;
-        let endFrequency: number | undefined;
-        let endTime: number | undefined;
-        const setFrequency = node.frequency.setValueAtTime.bind(node.frequency);
-        node.frequency.setValueAtTime = (value, when) => {
-          initialFrequency ??= value;
-          initialTime ??= when;
-          return setFrequency(value, when);
-        };
-        const rampFrequency = node.frequency.exponentialRampToValueAtTime.bind(node.frequency);
-        node.frequency.exponentialRampToValueAtTime = (value, when) => {
-          endFrequency = value;
-          endTime = when;
-          return rampFrequency(value, when);
-        };
         const start = node.start.bind(node);
-        node.start = (when = 0) => {
+        node.start = (when = 0, offset = 0, duration) => {
           const at = performance.now();
           let target: AudioNode | AudioParam | undefined = node;
           let bus: AudioSmoke["voices"][number]["bus"] = "modulation";
@@ -90,10 +77,13 @@ export async function installAudioCapture(page: Page): Promise<void> {
           const voice: AudioSmoke["voices"][number] = {
             at,
             scheduledAt: at + Math.max(0, when - this.currentTime) * 1000,
-            type: node.type,
-            frequency: initialFrequency ?? node.frequency.value,
-            endFrequency,
-            durationMs: initialTime !== undefined && endTime !== undefined ? (endTime - initialTime) * 1000 : undefined,
+            offset,
+            duration,
+            bufferDuration: node.buffer?.duration ?? 0,
+            sampleRate: node.buffer?.sampleRate ?? 0,
+            channels: node.buffer?.numberOfChannels ?? 0,
+            loop: node.loop,
+            playbackRate: node.playbackRate.value,
             bus,
           };
           if (bus === "effects") {
@@ -113,7 +103,8 @@ export async function installAudioCapture(page: Page): Promise<void> {
             peakEffects,
             voices.filter((item) => item.bus === "effects" && item.endedAt === undefined).length,
           );
-          start(when);
+          if (duration === undefined) start(when, offset);
+          else start(when, offset, duration);
         };
         return node;
       }
