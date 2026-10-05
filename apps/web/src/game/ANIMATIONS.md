@@ -618,3 +618,25 @@ feedback in `design/sound.ts` remains the starting implementation.
 ## Compact mobile narration
 
 Phones, portrait tablets and phone landscape use two compact notice columns with at most two toasts each. Each row is 64 px with 24 px artwork and a truncated clause. Tapping an individual toast opens its complete occurrence in a detail dialog; expiry of the live notification does not interrupt reading. The desktop notice layout remains separate. See `docs/plans/2026-10-05-mobile-toasts-design.md` and `tools/diagnostics/probe-mobile-notices.mjs` for the interaction and browser checks.
+
+## Real attack and grouping checkpoint, 2026-10-05
+
+Rush, Raid acceptance/refusal and inherited/accumulated Security Attack now have
+real conserved-deck fixtures, public server actions and native browser captures.
+The security count waits for the keyed 150ms lead-in plus 233ms reveal; each
+physical check finishes its 140ms disposal before the next. Raid re-aims the
+existing arrow at the chosen duplicate and preserves the other cards; its
+neighboring 420ms relayout is checked through native completion.
+
+Departing face/upright/hand copies share one frozen style tree and retain
+independent orientations. The recorder distinguishes actual active native
+motion from a pending start, CSS delay or filled final pose while preserving
+raw gaps and the 50ms sampling/global-p95 limits. Unknown clocks remain
+conservative. The 26 attack/group combinations have passed across retained
+runs; the expanded run's four rejected captures remain alongside their four
+passing calibrated follow-ups. This is not a single green full-matrix claim.
+
+Latest native keyword coverage is **16/46**, including the earlier completed
+stack and deck passes. Thirty keywords, complete reference-frame review and
+the original audio pass above remain pending. Evidence and limitations are
+recorded in `docs/research-animation-reference-harness.md`.

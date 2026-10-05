@@ -1901,3 +1901,83 @@ Native keyword coverage is now **13/46**, with 33 pending. The full expanded
 keyword/group matrix was not rerun. Consecutive reference-video review remains
 **756/40,622 frames**. Remaining keywords, full frame comparison and the original
 effect/background-audio pass remain open.
+
+### Printed attacks, physical targets and sequential checks, 2026-10-05
+
+Five server layouts now exercise Rush, Raid acceptance/refusal, an inherited
+Security Attack +1 and WarGreymon's accumulated +2. BushiAgumon, Cyclonemon and
+the legal Greymon/Phoenixmon or Agumon/WarGreymon stacks use their executable
+printed behavior. Each deck retains 50 physical cards, four real eggs and the
+copy limit. A fresh neutral attacker, equal highest-DP Monodramon targets, a
+lower-DP Agumon, unspent security and established Tamers provide controls.
+Thirty-one focused fixture tests passed, including rejection of the fresh
+neutral attack. A playable reserve keeps the real Main phase open after the
+attack; no browser event, attack result or selection response is scripted.
+
+The native capture exposed an early count release: security could drop around
+333 ms while the late-mounted reveal still owed its 150 ms lead-in and 233 ms
+movement. The production step now waits for that keyed native clock before
+releasing the physical security card. Two late-render regressions first failed
+and then passed, alongside the 286 focused presentation tests. Each moving
+check must retain its preceding count through the native reveal, paint the
+revealed and attacking images successfully, complete its 140 ms disposal and
+unmount before the following check. Image `complete` and positive `naturalWidth`
+establish loading; these observations are not an independent compositor proof.
+
+Raid's candidate choice identifies the second physical Monodramon, preserving
+its equal-DP neighbor and the lower-DP Agumon. The existing arrow must change
+target after the real decision closes, retaining its attack key and arriving
+before the claw. Agumon's neighboring 420 ms relayout must move its actual DOM
+artwork and finish its native clock within the existing two-frame tolerance,
+with the final 2,000-DP chip intact. Refusal preserves the original security
+attack. Each path starts only one fresh attack declaration.
+
+CPU profiles of the real private match found costly synchronous departure
+copies. The implementation now serializes each original element's computed
+styles once, then derives independent face, upright-stack and hand-stack copies
+from one frozen tree. It preserves source/link orientation, geometry, inert
+copies and identity stripping. A regression first observed three descendant
+style reads and now requires one, while checking retained colors and quoted
+custom properties across all copies. This removes duplicate preparation without
+changing the authored travel, impact or layout. The retained profiles are
+diagnostic observations, not statistical benchmarks.
+
+The expanded attack/group run passed **22/26** cases and retained four rejected
+captures. Investigating their native clocks also found a recorder error: a wall
+gap could invalidate an animation still awaiting its start or CSS lead-in, or
+holding its completed pose. Per-animation sampling now requires a gap over
+50 ms that also traverses over 50 ms of active native motion, accounting for
+delay and playback rate. Raw gaps, the global p95 threshold, hidden-time handling
+and conservative unknown/removal checks remain. Independent review caught an
+unknown-start-to-finished exception; its regression failed before correction.
+All eleven recorder tests passed, including genuine active/cross-delay gaps and
+unknown clocks that may have missed an entire animation.
+
+The four targeted follow-ups passed with usable captures and no expired gates,
+failed steps, missing captures or automatic retries. All **26 combinations have
+passed coverage across these retained runs**; a single green 26-case matrix is
+not claimed. Moving checks keep native count, duration, causal-order, no-cut and
+sampling assertions. Reduced cases check terminal behavior without claiming
+duration. Reports live under `.local/keyword-pacing/attack-group-final-first`
+and `attack-native-clock-followup`; the earlier failed attempts, no-trace/headed
+diagnoses and CPU profiles remain retained. Large JSON reports were compressed
+losslessly and verified by hash after the disk filled; the summarizer reads gzip.
+
+During this session the artwork provider removed its image directory from the
+floating branch. The [source removal](https://github.com/TakaOtaku/Digimon-Card-App/commit/48076d595a382cd0d1f55fffb8fe7bc425e133a8)
+is timestamped 2026-10-05 11:50 UTC. Image URLs now pin the preceding revision
+`9f666f16501fb329b4e2fd9851e862afe2d7da05`; alternate/errata, bundled unpublished
+and token fallbacks retain their order. Sixteen image/art tests and ten published
+WebP responses passed. Future additions need an explicit image-source update.
+A separate 320px browser confirmed loaded field artwork, three ordered checks
+and Raid's correct target through private HTTPS on 9445 and WSS on 9446, with
+opaque opponent hands and no page errors. Its inspected screenshots and report
+live under `attack-private-access-restored-art`.
+
+The current main branch was merged into this feature branch. Production/E2E
+TypeScript, the client build, focused snapshot/hand/deck/recorder tests, scoped
+lint/format and diff checks passed; existing build/lint warnings remain.
+Native keyword coverage is now **16/46**, with 30 pending. Consecutive video
+review remains **756/40,622 frames**. Remaining keywords, complete frame
+comparison and the original effect/background-audio pass remain open; the
+audio queue is recorded in `apps/web/src/game/ANIMATIONS.md`.
