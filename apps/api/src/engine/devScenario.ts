@@ -115,6 +115,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt14-chuumon-security-reveal",
   "arena-bt20-omnimon-each-player-survivor",
   "arena-bt20-ouryuken-reduction-resumes",
+  "arena-bt20-ouryuken-blast-dna-counter",
   "arena-ex13-gotsumon-blocker-search",
   "arena-ex13-craniamon-assembly",
   "arena-p220-millenniummon-assembly",
@@ -1725,6 +1726,32 @@ function layBt20OmnimonEachPlayerSurvivorScenario(state: GameState, decks: reado
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1556343982546755625: two ACEs and two hand partners yield four legal counters. */
+function layBt20OuryukenBlastDnaCounterScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-048", "BT20-053", "EX13-060"], "-ouryuken-alphamon"));
+    for (const [instanceId, cardId] of [
+      ["dev-ouryuken-ace-1", "BT20-060"],
+      ["dev-ouryuken-ace-2", "BT20-060"],
+      ["dev-ouryuken-partner-1", "BT20-018"],
+      ["dev-ouryuken-partner-2", "BT20-018"],
+    ] as const) {
+      insertCard(human, Zone.Hand, faceDownCard(instanceId, cardId, 0));
+    }
+    insertCard(human, Zone.Deck, faceDownCard("dev-ouryuken-draw", "BT1-085", 0), "top");
+    insertCard(human, Zone.Security, faceDownCard("dev-ouryuken-security", "EX13-055", 0), "top");
+    takeBottom(human, Zone.Security);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT12-024"], "-ouryuken-lanamon"));
+    // A red Option cannot be used with only the blue Lanamon, so the bot attacks first.
+    insertCard(bot, Zone.Deck, faceDownCard("dev-ouryuken-bot-draw", "ST1-16", 1), "top");
+  }
 }
 
 /**
@@ -5499,6 +5526,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt14-chuumon-security-reveal": layBt14ChuumonSecurityRevealScenario,
   "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
+  "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
   "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,

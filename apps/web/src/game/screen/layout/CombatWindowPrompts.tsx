@@ -63,7 +63,6 @@ export function CombatWindowPrompts({
           onSelectInstance={counterSelection?.onSelect ?? (() => undefined)}
           handInstanceIds={counterSelection?.handInstanceIds ?? []}
           getCardId={(instanceId) => instanceCardId(state, instanceId)}
-          getPermanentCardId={(permanentId) => permCardId(state, permanentId)}
           fieldPermanentOf={(instanceId) => instancePermanentId(state, instanceId)}
           onActivate={(instanceId, effectKey) => onCounter(instanceId, effectKey)}
           onPass={() => onCounter()}

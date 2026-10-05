@@ -94,6 +94,7 @@ export interface AegisJoinOptions {
     | "arena-bt14-chuumon-security-reveal"
     | "arena-bt20-omnimon-each-player-survivor"
     | "arena-bt20-ouryuken-reduction-resumes"
+    | "arena-bt20-ouryuken-blast-dna-counter"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
     | "arena-ex13-craniamon-assembly"

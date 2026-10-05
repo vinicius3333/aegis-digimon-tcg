@@ -357,7 +357,6 @@ it("selects a legal Counter from the actual hand before choosing its target, and
           { instanceId: "other-ace", effectKey: "blast-digivolve:one", description: "Blast Digivolve" },
         ]}
         getCardId={(id) => (id === "other-ace" ? "ST1-09" : instanceCardId(state, id))}
-        getPermanentCardId={(id) => (id === "one" ? "ST1-07" : "ST1-09")}
         onActivate={onActivate}
         onPass={onPass}
       />
@@ -387,7 +386,7 @@ it("selects a legal Counter from the actual hand before choosing its target, and
   expect(screen.queryByRole("button", { name: /Change card/ })).toBeNull();
   fireEvent.click(hand.getByRole("button", { name: /MetalGreymon/ }));
   expect(rail.getByRole("img", { name: "MetalGreymon" })).toBeTruthy();
-  expect(rail.getByText("Blast Digivolve")).toBeTruthy();
+  expect(rail.getByRole("button", { name: "Blast Digivolve" })).toBeTruthy();
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.getByRole("region")).toBeTruthy();
   expect(ace.getAttribute("aria-pressed")).toBe("false");
@@ -414,7 +413,6 @@ it("keeps distinct non-Blast counter effects reachable", () => {
           { instanceId: "source", effectKey: "second", description: "Second counter" },
         ]}
         getCardId={() => "ST1-03"}
-        getPermanentCardId={() => undefined}
         onActivate={activate}
         onPass={() => undefined}
       />
@@ -436,7 +434,6 @@ it("distinguishes identical Blast hosts and preserves each exact target", () => 
           { instanceId: "ace", effectKey: "blast-digivolve:resting", description: "Blast Digivolve" },
         ]}
         getCardId={() => "EX10-023"}
-        getPermanentCardId={() => "ST1-07"}
         fieldCards={[
           { permanentId: "ready", cardId: "ST1-07", dp: 5000 },
           { permanentId: "resting", cardId: "ST1-07", dp: 7000, suspended: true },
@@ -455,6 +452,41 @@ it("distinguishes identical Blast hosts and preserves each exact target", () => 
   expect(activate).toHaveBeenLastCalledWith("ace", "blast-digivolve:ready");
 });
 
+it("offers a lone Blast host as a rail button, so a phone never has to hit the card (Discord 1556418465231806535)", () => {
+  const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
+  render(
+    <I18nProvider>
+      <CounterHandHarness
+        eligibleCounters={[{ instanceId: "ace", effectKey: "blast-digivolve:one", description: "Blast Digivolve" }]}
+        getCardId={() => "EX10-023"}
+        onActivate={activate}
+        onPass={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  chooseHandAce();
+  fireEvent.click(within(screen.getByRole("region")).getByRole("button", { name: "Blast Digivolve" }));
+  expect(activate).toHaveBeenCalledWith("ace", "blast-digivolve:one");
+});
+
+it("leaves several Blast hosts to the board, where identical names stay distinguishable", () => {
+  render(
+    <I18nProvider>
+      <CounterHandHarness
+        eligibleCounters={[
+          { instanceId: "ace", effectKey: "blast-digivolve:one", description: "Blast Digivolve" },
+          { instanceId: "ace", effectKey: "blast-digivolve:two", description: "Blast Digivolve" },
+        ]}
+        getCardId={() => "EX10-023"}
+        onActivate={() => undefined}
+        onPass={() => undefined}
+      />
+    </I18nProvider>,
+  );
+  chooseHandAce();
+  expect(within(screen.getByRole("region")).queryByRole("button", { name: /^Blast (Digivolve|DNA)$/ })).toBeNull();
+});
+
 it("asks a lone field counter as a yes/no question beside its card art, without the effect text", () => {
   const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
   const pass = vi.fn<() => void>();
@@ -470,7 +502,6 @@ it("asks a lone field counter as a yes/no question beside its card art, without 
           },
         ]}
         getCardId={() => "EX13-036"}
-        getPermanentCardId={() => undefined}
         onActivate={activate}
         onPass={pass}
       />
@@ -496,7 +527,6 @@ it("asks which of two field counters to use before the yes/no question", () => {
       { instanceId: "second-top", effectKey: "EX13-036/counter", description: "Place 1 of each player's Digimon" },
     ],
     getCardId: () => "EX13-036",
-    getPermanentCardId: () => undefined,
     fieldPermanentOf: (instanceId: string) => instanceId.replace("-top", ""),
     onSelectInstance: selectInstance,
     handInstanceIds: [],
