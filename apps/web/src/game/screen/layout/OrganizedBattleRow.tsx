@@ -20,6 +20,8 @@ const LANE_GAP = 0;
 const MIN_STACKED_SHRINK = 0.6;
 /** A crowded lane shrinks its cards to this share of the height-fitted width before it scrolls. */
 const MIN_WIDTH_SHRINK = 0.75;
+/** Portrait cards keep a readable size; crowded boards use their existing lane paging. */
+const MIN_PORTRAIT_CARD_WIDTH = 65;
 /** Each lane's horizontal padding, from fieldLayout.css. */
 const LANE_INLINE_PADDING = 12;
 const DIGIMON_GAP_SHARE = 0.25;
@@ -528,7 +530,10 @@ export function fitLanesToWidth(
       laneContentWidth([...cards.digimon, ...cards.support], width, DIGIMON_GAP_SHARE, step, preferStacked) <= rowWidth,
   }[lanes.placement];
   if (fits(lanes.digimon)) return lanes;
-  const digimon = Math.max(Math.ceil(lanes.digimon * MIN_WIDTH_SHRINK), fittedWidth(lanes.digimon, fits));
+  const floor = preferStacked
+    ? Math.min(lanes.digimon, MIN_PORTRAIT_CARD_WIDTH)
+    : Math.ceil(lanes.digimon * MIN_WIDTH_SHRINK);
+  const digimon = Math.max(floor, fittedWidth(lanes.digimon, fits));
   return { ...lanes, digimon, support: supportFor(digimon) };
 }
 
@@ -603,7 +608,10 @@ function stackedLanes(rowHeight: number, layoutWidth: number, content: LaneConte
       rowHeight
     );
   });
-  if (digimon < (content.preferStacked ? 44 : layoutWidth * MIN_STACKED_SHRINK)) return undefined;
+  const floor = content.preferStacked
+    ? Math.min(layoutWidth, MIN_PORTRAIT_CARD_WIDTH)
+    : layoutWidth * MIN_STACKED_SHRINK;
+  if (digimon < floor) return undefined;
   return { placement: LanePlacement.Stacked, digimon, support: supportWidth(digimon) };
 }
 
@@ -872,7 +880,7 @@ export function OrganizedBattleRow({
     }
     return Math.max(drawn.length === 0 ? 1 : 0, count);
   }
-  const digimonSlots = emptySlots(digimonCards, lanes.digimon, DIGIMON_GAP_SHARE);
+  const digimonSlots = emptySlots(merged ? cards : digimonCards, lanes.digimon, DIGIMON_GAP_SHARE);
   useFieldMotion(ref, previous, cards, isSuspended, size);
   useLayoutEffect(() => {
     splitKeys.current = new Set(cards.filter((drawn) => drawn.splitOff).map((drawn) => drawn.fieldKey));

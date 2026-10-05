@@ -5,6 +5,49 @@ import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 const crowded = { digimonCount: 6, supportCount: 6 };
 
 describe("fitLanes", () => {
+  it("uses readable merged cards when a phone row cannot fit two uniform shelves", () => {
+    const content = {
+      digimonCount: 2,
+      supportCount: 2,
+      supportScale: 1,
+      reserveSupport: true,
+      preferStacked: true,
+      overlapLanes: true,
+      fitWidth: true,
+      sourceTop: 2,
+      sourceStep: 1.25,
+    };
+    const upright = { suspended: false, sources: 0, links: 0, copies: 1 };
+    const cards = {
+      digimon: [upright, { ...upright, suspended: true, sources: 6 }],
+      support: [{ ...upright, copies: 3 }, upright],
+    };
+    for (const width of [288, 343]) {
+      const lanes = fitLanes({ width, height: 186 }, 76, { ...content, digimonSources: 6 });
+      expect(lanes).toMatchObject({ placement: LanePlacement.Merged, digimon: 76, support: 76 });
+      const fitted = fitLanesToWidth(lanes, width, cards, content);
+      expect(fitted.digimon).toBeGreaterThanOrEqual(65);
+      expect(fitted.support).toBe(fitted.digimon);
+      // Crowded cards stay readable and page sideways instead of becoming tiny.
+      expect(laneContentWidth([...cards.digimon, ...cards.support], fitted.digimon, 0.25, 1.25, true)).toBeGreaterThan(
+        width,
+      );
+    }
+  });
+
+  it("keeps portrait shelves when there is height for two readable rows", () => {
+    const lanes = fitLanes({ width: 288, height: 270 }, 76, {
+      ...crowded,
+      supportScale: 1,
+      reserveSupport: true,
+      preferStacked: true,
+      overlapLanes: true,
+    });
+    expect(lanes.placement).toBe(LanePlacement.Stacked);
+    expect(lanes.digimon).toBeGreaterThanOrEqual(65);
+    expect(lanes.support).toBe(lanes.digimon);
+  });
+
   it("keeps uniform cards in compact stacked and side-by-side rows, including deep support stacks", () => {
     const content = {
       ...crowded,
@@ -76,17 +119,15 @@ describe("fitLanes", () => {
     expect(lanes.digimon).toBeGreaterThanOrEqual(40);
     expect(lanes.support).toBe(lanes.digimon);
   });
-  it("shrinks a merged lane until Digimon and support fit the row together", () => {
+  it("pages merged Digimon and support together when height already requires smaller cards", () => {
     const upright = { suspended: false, sources: 0, links: 0, copies: 1 };
     const cards = { digimon: [upright, upright], support: [upright] };
     const lanes = { placement: LanePlacement.Merged, digimon: 60, support: 60 };
     const content = { digimonCount: 2, supportCount: 1, supportScale: 1, preferStacked: true, fitWidth: true };
     const fitted = fitLanesToWidth(lanes, 300, cards, content);
-    expect(fitted.digimon).toBeLessThan(60);
+    expect(fitted.digimon).toBe(60);
     expect(fitted.support).toBe(fitted.digimon);
-    expect(laneContentWidth([...cards.digimon, ...cards.support], fitted.digimon, 0.25, 4, true)).toBeLessThanOrEqual(
-      300,
-    );
+    expect(laneContentWidth([...cards.digimon, ...cards.support], fitted.digimon, 0.25, 4, true)).toBeGreaterThan(300);
   });
   it("keeps the layout's width when a single lane has enough height", () => {
     expect(fitLanes({ width: 900, height: 220 }, 116, { digimonCount: 6, supportCount: 0 })).toMatchObject({
