@@ -108,8 +108,10 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     history.observe(observation);
     return { ...observation, history: history.snapshot() };
   };
-  const withTeacher = (window: TrainingWindow, intent?: Intent): TrainingWindow =>
-    intent === undefined ? window : { ...window, teacher: { action: teacherActionIndex(window, intent) ?? null } };
+  const withTeacher = (window: TrainingWindow, intent?: Intent, originatingIntent?: Intent): TrainingWindow =>
+    intent === undefined
+      ? window
+      : { ...window, teacher: { action: teacherActionIndex(window, intent, originatingIntent) ?? null } };
   function* actionSteps(
     kind: string,
     actions: TrainingAction[],
@@ -163,6 +165,7 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
             })),
           },
           demonstration,
+          action.intent,
         ),
       );
     }
