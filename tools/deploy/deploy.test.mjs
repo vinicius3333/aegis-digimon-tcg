@@ -7,9 +7,31 @@ import { fileURLToPath } from "node:url";
 import { FIXED_SLOTS, assertEmptySlot, validateManifest } from "./shared.mjs";
 import { assertOverflowCapacity, buildSlotCompose, fixedSlotRotation, restoreComposeEnvironment } from "./deploy.mjs";
 
+const HEALTHY_CAPACITY = { cpuUsage: 0.2, cores: 4, load5: 2, diskFreeBytes: 32 * 1024 ** 3 };
+
+function invokeDeployment(node, args, options) {
+  const value = (name) => args[args.indexOf(`--${name}`) + 1];
+  const state = value("state");
+  const meminfoPath = args.includes("--meminfo") ? value("meminfo") : `${state}/test-meminfo`;
+  if (!args.includes("--meminfo")) writeFileSync(meminfoPath, "MemAvailable: 14000000 kB\n");
+  const parameters = {
+    action: args[1],
+    source: value("source"),
+    envFile: value("env-file"),
+    state,
+    revision: value("revision"),
+    meminfoPath,
+  };
+  const samples = JSON.parse(options.env.TEST_CAPACITY_SEQUENCE ?? JSON.stringify([HEALTHY_CAPACITY]));
+  const program = `import { controller } from ${JSON.stringify(new URL("./deploy.mjs", import.meta.url).href)}; const samples=${JSON.stringify(samples)}; let index=0; await controller({...${JSON.stringify(parameters)},capacitySampler:async()=>samples[Math.min(index++,samples.length-1)]});`;
+  return spawnSync(node, ["--input-type=module", "-e", program], options);
+}
+
 test("additional generation capacity requires verifiable host memory and build headroom", () => {
   assert.doesNotThrow(() => assertOverflowCapacity("MemAvailable: 7098368 kB\n"));
   assert.throws(() => assertOverflowCapacity("MemAvailable: 7098367 kB\n"), /requires at least 6932 MiB/);
+  assert.doesNotThrow(() => assertOverflowCapacity("MemAvailable: 2097152 kB\n", 2048 * 1024));
+  assert.throws(() => assertOverflowCapacity("MemAvailable: 2097151 kB\n", 2048 * 1024), /requires at least 2048 MiB/);
   for (const input of [
     "MemFree: 14000000 kB\n",
     "MemAvailable: -1 kB\n",
@@ -168,6 +190,73 @@ test("cleanup command leaves a busy retiring process and manifest intact, and re
   assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")).draining, []);
 });
 
+test("maintenance preserves busy generations, removes empty ones and respects dry-run and deployment locks", (t) => {
+  const root = mkdtempSync(`${tmpdir()}/aegis-maintenance-`);
+  t.after(() => rmSync(root, { recursive: true }));
+  for (const directory of ["bin", "state/routing", "state/assets"])
+    mkdirSync(`${root}/${directory}`, { recursive: true });
+  writeFileSync(`${root}/state/admin-token`, "test-private-token-at-least-32-characters");
+  const manifest = {
+    version: 1,
+    active: { slot: "green", revision: "live" },
+    draining: [
+      { slot: "blue", revision: "busy" },
+      { slot: "red", revision: "empty" },
+    ],
+  };
+  for (const { slot, revision } of [manifest.active, ...manifest.draining]) {
+    mkdirSync(`${root}/state/slots/${slot}`, { recursive: true });
+    mkdirSync(`${root}/state/releases/${revision}/web/assets`, { recursive: true });
+    writeFileSync(
+      `${root}/state/slots/${slot}/compose.json`,
+      JSON.stringify({
+        services: Object.fromEntries(
+          [1, 2, 3].map((index) => [`api${index}`, { environment: { AEGIS_REVISION: revision } }]),
+        ),
+      }),
+    );
+  }
+  writeFileSync(`${root}/state/routing/manifest.json`, JSON.stringify(manifest));
+  writeFileSync(
+    `${root}/bin/docker`,
+    `#!/usr/bin/env node
+const fs=require('node:fs');const args=process.argv.slice(2);fs.appendFileSync(process.env.TEST_DOCKER_LOG,JSON.stringify(args)+'\\n');
+if(args.includes('exec')){const slot=args.includes('aegis-blue')?'blue':'red';console.log(JSON.stringify({slot,acceptingNewRooms:false,activeRooms:slot==='blue'?1:0,connectedClients:0}));}
+`,
+    { mode: 0o755 },
+  );
+  const invoke = (...extra) =>
+    spawnSync(
+      process.execPath,
+      [fileURLToPath(new URL("./deploy.mjs", import.meta.url)), "maintenance", "--state", `${root}/state`, ...extra],
+      {
+        env: { ...process.env, PATH: `${root}/bin:${process.env.PATH}`, TEST_DOCKER_LOG: `${root}/calls.jsonl` },
+        encoding: "utf8",
+      },
+    );
+  const preview = invoke("--dry-run");
+  assert.equal(preview.status, 0, preview.stderr);
+  assert.match(preview.stdout, /would remove verified-empty/);
+  assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")), manifest);
+  assert.equal(readFileSync(`${root}/calls.jsonl`, "utf8").includes('"down"'), false);
+  const actual = invoke();
+  assert.equal(actual.status, 0, actual.stderr);
+  assert.match(actual.stdout, /Maintenance retained.*blue/);
+  assert.equal(existsSync(`${root}/state/slots/red`), false);
+  assert.ok(existsSync(`${root}/state/slots/blue`));
+  assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")).draining, [
+    manifest.draining[0],
+  ]);
+  mkdirSync(`${root}/state/deploy.lock`);
+  writeFileSync(`${root}/state/deploy.lock/owner.json`, "owner");
+  const calls = readFileSync(`${root}/calls.jsonl`, "utf8");
+  const locked = invoke();
+  assert.equal(locked.status, 0, locked.stderr);
+  assert.match(locked.stdout, /Maintenance skipped/);
+  assert.equal(readFileSync(`${root}/calls.jsonl`, "utf8"), calls);
+  assert.equal(readFileSync(`${root}/state/deploy.lock/owner.json`, "utf8"), "owner");
+});
+
 test("status inspects orphans read-only and cleanup recovers only verifiable empty partial slots", (t) => {
   const root = mkdtempSync(`${tmpdir()}/aegis-orphan-cleanup-`);
   t.after(() => rmSync(root, { recursive: true }));
@@ -290,7 +379,7 @@ if(args.includes('exec')){const script=args[args.indexOf('-e')+1]||'';if(script.
   );
 
   const revision = "4444444444444444444444444444444444444444";
-  const result = spawnSync(
+  const result = invokeDeployment(
     process.execPath,
     [
       fileURLToPath(new URL("./deploy.mjs", import.meta.url)),
@@ -365,7 +454,7 @@ if(args[0]==='cp'){const destination=args.at(-1);fs.mkdirSync(destination+'/asse
     { mode: 0o755 },
   );
   const revision = "3333333333333333333333333333333333333333";
-  const result = spawnSync(
+  const result = invokeDeployment(
     process.execPath,
     [
       fileURLToPath(new URL("./deploy.mjs", import.meta.url)),
@@ -436,8 +525,8 @@ if(args.includes('exec')){const script=args[args.indexOf('-e')+1]||'';if(script.
 `,
     { mode: 0o755 },
   );
-  const invoke = () =>
-    spawnSync(
+  const invoke = (capacities = [HEALTHY_CAPACITY]) =>
+    invokeDeployment(
       process.execPath,
       [
         fileURLToPath(new URL("./deploy.mjs", import.meta.url)),
@@ -458,6 +547,7 @@ if(args.includes('exec')){const script=args[args.indexOf('-e')+1]||'';if(script.
           ...process.env,
           PATH: `${root}/bin:${process.env.PATH}`,
           TEST_STATE: `${root}/state`,
+          TEST_CAPACITY_SEQUENCE: JSON.stringify(capacities),
           TEST_DOCKER_LOG: `${root}/calls.jsonl`,
         },
         encoding: "utf8",
@@ -476,6 +566,27 @@ if(args.includes('exec')){const script=args[args.indexOf('-e')+1]||'';if(script.
     );
   }
   writeFileSync(`${root}/meminfo`, "MemAvailable: 14000000 kB\n");
+  for (const capacity of [
+    { ...HEALTHY_CAPACITY, cpuUsage: 0.9 },
+    { ...HEALTHY_CAPACITY, diskFreeBytes: 14 * 1024 ** 3 },
+  ]) {
+    const rejected = invoke([capacity]);
+    assert.equal(rejected.status, 1);
+    assert.match(rejected.stderr, /CPU is busy|free disk/);
+    assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")), before);
+  }
+  const changedCapacity = invoke([HEALTHY_CAPACITY, { ...HEALTHY_CAPACITY, diskFreeBytes: 9 * 1024 ** 3 }]);
+  assert.equal(changedCapacity.status, 1);
+  assert.match(changedCapacity.stderr, /free disk before-start/);
+  assert.deepEqual(JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8")), before);
+  assert.equal(
+    readFileSync(`${root}/calls.jsonl`, "utf8")
+      .trim()
+      .split("\n")
+      .map(JSON.parse)
+      .some((args) => args.includes("up")),
+    false,
+  );
   const result = invoke();
   assert.equal(result.status, 0, result.stderr);
   const after = JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8"));

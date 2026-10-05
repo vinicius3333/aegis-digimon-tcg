@@ -5,20 +5,20 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describeSync, syncCardImages } from "./card-images.mjs";
 import { FIXED_SLOTS, isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
+import { API_MEMORY_MIB, REDIS_MEMORY_MIB, sampleHostCapacity, assertHostCapacity } from "./resources.mjs";
+import { retainArtifacts } from "./retention.mjs";
 
-const API_MEMORY_MIB = 1500;
-const REDIS_MEMORY_MIB = 384;
 // Reserve the new services' full limits plus headroom for builds and host services.
 const OVERFLOW_REQUIRED_KIB = (3 * API_MEMORY_MIB + REDIS_MEMORY_MIB + 2048) * 1024;
 
-export function assertOverflowCapacity(meminfo) {
+export function assertOverflowCapacity(meminfo, requiredKiB = OVERFLOW_REQUIRED_KIB) {
   const available = /^MemAvailable:\s+(\d+)\s+kB\s*$/m.exec(meminfo);
   if (!available || !Number.isSafeInteger(Number(available[1]))) {
-    throw new Error("Host available memory is unverifiable; refusing an additional generation");
+    throw new Error("Host available memory is unverifiable; refusing deployment");
   }
-  if (Number(available[1]) < OVERFLOW_REQUIRED_KIB) {
+  if (Number(available[1]) < requiredKiB) {
     throw new Error(
-      `An additional generation requires at least ${OVERFLOW_REQUIRED_KIB / 1024} MiB of available host memory; existing rooms retained`,
+      `Deployment requires at least ${requiredKiB / 1024} MiB of available host memory; existing rooms retained`,
     );
   }
 }
@@ -139,7 +139,16 @@ export function restoreComposeEnvironment(environment) {
   );
 }
 
-export async function controller({ action, source, envFile, state, revision, meminfoPath = "/host/meminfo" }) {
+export async function controller({
+  action,
+  source,
+  envFile,
+  state,
+  revision,
+  meminfoPath = "/host/meminfo",
+  capacitySampler = sampleHostCapacity,
+  dryRun = false,
+}) {
   mkdirSync(state, { recursive: true, mode: 0o755 });
   for (const directory of ["routing", "releases", "assets", "logs"])
     mkdirSync(`${state}/${directory}`, { recursive: true, mode: 0o755 });
@@ -148,6 +157,10 @@ export async function controller({ action, source, envFile, state, revision, mem
   try {
     mkdirSync(lock);
   } catch {
+    if (action === "maintenance") {
+      console.log("Maintenance skipped: a deployment or another maintenance run owns the lock");
+      return;
+    }
     throw new Error("Another deploy is active, or its lock needs operator recovery; no services changed");
   }
   try {
@@ -162,7 +175,7 @@ export async function controller({ action, source, envFile, state, revision, mem
     const admin = async (slot, index, path, method = "GET", body) => {
       const encodedBody = body === undefined ? undefined : Buffer.from(JSON.stringify(body)).toString("base64");
       const bodyExpression = encodedBody ? `Buffer.from('${encodedBody}','base64').toString()` : "undefined";
-      const script = `const body=${bodyExpression};fetch('http://127.0.0.1:2567${path}', {method:'${method}',headers:{authorization:'Bearer '+process.env.AEGIS_DEPLOYMENT_ADMIN_TOKEN,...(body?{'content-type':'application/json'}:{})},...(body?{body}:{})}).then(async r=>{if(!r.ok)throw Error('admin request rejected');console.log(JSON.stringify(await r.json()))}).catch(()=>process.exit(1))`;
+      const script = `const body=${bodyExpression};fetch('http://127.0.0.1:2567${path}', {method:'${method}',signal:AbortSignal.timeout(5000),headers:{authorization:'Bearer '+process.env.AEGIS_DEPLOYMENT_ADMIN_TOKEN,...(body?{'content-type':'application/json'}:{})},...(body?{body}:{})}).then(async r=>{if(!r.ok)throw Error('admin request rejected');console.log(JSON.stringify(await r.json()))}).catch(()=>process.exit(1))`;
       const raw = await compose(slot, ["exec", "-T", `api${index}`, "node", "-e", script], true);
       return JSON.parse(raw);
     };
@@ -237,6 +250,10 @@ export async function controller({ action, source, envFile, state, revision, mem
           { capture: true },
         ),
       );
+    const checkCapacity = async (phase, needsGeneration = true) => {
+      assertOverflowCapacity(readFileSync(meminfoPath, "utf8"), needsGeneration ? OVERFLOW_REQUIRED_KIB : 2048 * 1024);
+      assertHostCapacity(await capacitySampler({ state }), phase);
+    };
     async function buildWebRelease(config, webRevision) {
       const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
       const publicVersion = existsSync(`${source}/package.json`)
@@ -289,7 +306,9 @@ export async function controller({ action, source, envFile, state, revision, mem
         console.log(`Web revision ${revision} already active`);
         return;
       }
+      await checkCapacity("before-build", false);
       await buildWebRelease(await composeConfig(), revision);
+      await checkCapacity("before-start", false);
       publish({ ...manifest, webRevision: revision });
       console.log(`WEB ${revision}; API slot ${manifest.active.slot} unchanged`);
       return;
@@ -378,27 +397,33 @@ export async function controller({ action, source, envFile, state, revision, mem
       );
       return;
     }
-    if (action === "cleanup") {
+    if (action === "cleanup" || action === "maintenance") {
       const pending = [];
       const manifest = readManifest(state);
       for (const { slot } of manifest.draining) {
         try {
-          await cleanupSlot(slot);
+          if (dryRun) {
+            assertEmptySlot(await statuses(slot), slot);
+            console.log(`${slot}: would remove verified-empty deployment`);
+          } else await cleanupSlot(slot);
         } catch (error) {
           pending.push({ slot, error });
         }
       }
       for (const slot of orphanSlots(installedManifest() ?? manifest)) {
         try {
-          await cleanupOrphanSlot(slot);
+          if (dryRun) console.log(JSON.stringify(await inspectOrphanSlot(slot)));
+          else await cleanupOrphanSlot(slot);
         } catch (error) {
           pending.push({ slot, error });
         }
       }
       if (pending.length > 0) {
         const details = pending.map(({ slot, error }) => `${slot}: ${error.message}`).join("; ");
-        throw new Error(`Cleanup pending for ${details}`);
+        if (action === "cleanup") throw new Error(`Cleanup pending for ${details}`);
+        console.log(`Maintenance retained deployments not proven empty: ${details}`);
       }
+      if (action === "maintenance") await retainArtifacts({ state, manifest: readManifest(state), run, dryRun });
       return;
     }
     if (action === "rollback") {
@@ -417,7 +442,7 @@ export async function controller({ action, source, envFile, state, revision, mem
       return;
     }
     if (action !== "deploy") {
-      throw new Error("Expected deploy, deploy-web, status, cleanup, or rollback");
+      throw new Error("Expected deploy, deploy-web, status, cleanup, maintenance, or rollback");
     }
     const before = installedManifest();
     revision ??= await run("git", ["-c", `safe.directory=${source}`, "-C", source, "rev-parse", "HEAD"], {
@@ -478,6 +503,7 @@ export async function controller({ action, source, envFile, state, revision, mem
       active: { slot, revision },
       draining: current ? [current.active, ...current.draining] : [],
     });
+    await checkCapacity("before-build");
     const config = await composeConfig();
     const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
     if (existsSync(`${source}/package.json`)) {
@@ -497,10 +523,8 @@ export async function controller({ action, source, envFile, state, revision, mem
       source,
     ]);
     await buildWebRelease(config, revision);
-    if (slot.startsWith("g-")) {
-      // Builds can take minutes; confirm capacity again before starting the new services.
-      assertOverflowCapacity(readFileSync(meminfoPath, "utf8"));
-    }
+    // Builds can take minutes; confirm every resource again before starting services.
+    await checkCapacity("before-start");
     mkdirSync(`${state}/slots/${slot}`, { recursive: true, mode: 0o700 });
     atomicJson(
       slotPath(slot),
@@ -581,6 +605,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     state: resolve(option("state", "/opt/aegis-rollout")),
     revision: option("revision"),
     meminfoPath: resolve(option("meminfo", "/host/meminfo")),
+    dryRun: args.includes("--dry-run"),
   }).catch((error) => {
     console.error(`[aegis/deploy] ${error.message}`);
     process.exitCode = 1;
