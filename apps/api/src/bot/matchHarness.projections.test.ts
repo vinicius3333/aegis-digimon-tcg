@@ -3,7 +3,7 @@ import { ALL_FAMOUS_DECKS } from "@aegis/shared";
 import { runBotMatch } from "./matchHarness.js";
 
 describe("bot match client projections", () => {
-  it.each([262603, 262613])(
+  it.each([262603, 262614])(
     "keeps later draws private after recovery in a BT26 Abbadomon mirror (seed %i)",
     async (seed) => {
       const source = ALL_FAMOUS_DECKS.find((deck) => deck.deckVersion === "bt26-dgo-2026-09-05-2-abbadomon@1");
