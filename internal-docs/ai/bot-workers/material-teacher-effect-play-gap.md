@@ -1,208 +1,105 @@
 # Effect DigiXros teacher gap: optional free effect play
 
-Base: feature commit `93db25fb50b0900a8ae89d4bdaab205693a13f7a`. Frozen source `1cec011c0` and qualified engine `9a8d2d5f22fd…` stay unchanged. This note proposes a source change for a ROOT decision. It contains no model, remote, or acceptance evidence.
+Base: feature commit `93db25fb50b0900a8ae89d4bdaab205693a13f7a`. Its `apps/api` and `packages` trees are identical to frozen source `1cec011c0`; only operator scripts and docs differ. No tracked source was changed. This note is a handoff for a ROOT decision. It contains no model, remote, or acceptance evidence.
 
 ## Finding
 
-The teacher refuses the free effect play that leads to effect DigiXros. Local fixtures reproduce this in both seats.
+The original teacher declines LordKnightmon's free effect play. That refusal is the precursor that keeps effect DigiXros labels out of the corpus.
 
-| Step | Request | Teacher answer |
+| Step | Public request | Original teacher |
 | --- | --- | --- |
 | Digivolve into EX13-064 LordKnightmon | — | — |
-| [When Digivolving] "You may play … [Knightmon] text card … without paying the cost" | `selectCards`, `min 0`, `max 1`, `timing WhenDigivolving`, no `purpose`. Candidates: EX10-031 DarkKnightmon, EX10-027 DeadlyAxemon, EX10-026 SkullKnightmon (trash) | `[]` (declines) |
+| [When Digivolving] "You may play or use 1 … [Knightmon] text card from your hand or trash without paying the cost" | `selectCards`, `min 0`, `max 1`, `timing: "WhenDigivolving"`, no `purpose`, no preceding `optional` prompt | `[]` (declines) |
 
-There is no preceding `optional` prompt. The compiler merges the play/use modal into one up-to-1 pick (`modal.ts` `mergedPlayOrUseAction`). `play.ts` then calls `pickLoose`, which uses `min: 0`. Because `min` equals the printed minimum, `decisionApi.ts` `backOutPurpose` does not add `acceptedOptional`.
+**Cause.**
 
-`createTrainingTeacher` delegates this request to `policy.ts` `pickInstances`. For an own-card `min 0` pick with no `purpose`, `pickInstances` returns `[]`. `materialTeacherDecision` handles only requests that already carry `digiXrosCardId` or `assemblyCardId`. The effect DigiXros material request is never opened, so the corpus gets no positive label for it. This matches ROOT's raw inspection: episode 216 (seat 0), episode 260 (seat 1), and zero effect DigiXros windows in 14 LordKnightmon digivolves.
+1. The compiler merges the play/use Modal into one `PlayWithoutCost` (`modal.ts` `mergedPlayOrUseAction`). That action has `optional: false` and `target.upTo: true, minimum: 0`.
+2. `play.ts` therefore asks one up-to-1 pick with no prompt before it. `decisionApi.ts` `backOutPurpose` adds `acceptedOptional` only when it lowers `min` itself, which it does not do here.
+3. `policy.ts` `pickInstances` returns `[]` for an own `min 0` pick with no `purpose`.
+4. `materialTeacherDecision` handles only requests that already carry `digiXrosCardId`, so it never runs.
 
-## Why a teacher-only fix is not viable
+**Correction to the actual evidence.** The two actual refusal rows are not equivalent. Fixture: `bagra-effect-play-refusals.actual.json`, SHA256 `24b14f7d…7433ab`.
 
-1. **No public cue.** The request carries no structured field that says "the picked cards are played". The only alternatives are reading prompt text (`effectText`), which counts as a display label, or reading the engine's resolving action, which is hidden internal state. A third option is to match the source card's compiled IR by `sourceCardId` and `timing`. That is ambiguous when an effect has several selections, and a wrong match would fabricate a positive label. I rejected all three.
-2. **No injection seam.** `cli.ts:152` hard-codes `createTrainingTeacher(engine, seat, seed)`. An external decorator passed to `createTrainingPolicy` would need a new CLI entrypoint, which is new source too.
+| Episode | Seat, fold | DeadlyAxemon (DigiXros material) | Effect DigiXros reachable? |
+| --- | --- | --- | --- |
+| 216 | 0, training | hand `s0-18` | Yes |
+| 260 | 1, validation | trash `s1-19` only. The hand holds DarkKnightmon `s1-23`, Rie Kishibe `s1-42` and others, but no material | No |
 
-So any correct fix needs new qualified source. ROOT must decide whether to build it.
+A synthetic engine probe on the unchanged source confirms this. If the effect play chooses DarkKnightmon while DeadlyAxemon is only in the trash, no DigiXros material picker opens; DarkKnightmon's [On Play] runs directly. Episode 260 is therefore a plain free-play refusal. **There is still no actual seat-1 effect DigiXros precursor.** Fixing the teacher creates the opportunity in both seats, but only new collection can show a seat-1 window.
 
-## Proposed minimal diff
+## Recommendation: external expert decorator, no API change
 
-The change has two parts:
+This route is viable and needs no edit to frozen source. `collect.py --worker` accepts any JS entry.
 
-- **Engine cue.** Add `purpose: "effectPlay"` to `DecisionRequest.options`. `play.ts` sets `ctx.pickingEffectPlay` only around the effect-play `pickLoose`, and `decisionApi.ts` publishes it through the existing `provenance`. The existing precedence is kept: `cost` wins inside provenance, and `acceptedOptional` overrides both. The web contract already lists `purpose` as `null` (no UI reader), so the web needs no change. The observation encoder does not read `purpose`, so the model input stays the same.
-- **Teacher decorator.** `effectPlayTeacherDecision` handles only own, current, `min 0`, `max ≥ 1` requests with `purpose: "effectPlay"`. It scores each Digimon candidate as a zero-cost `playDigimon` with the unchanged `scoreCandidate` and `DEFAULT_BOT_PROFILE`, and picks one only if the score is above 0. Every other request falls through to the existing teacher.
+### Admission rule
 
-What stays unchanged:
+`effectPlayCandidates(observation, request)` admits a request only when every check below holds. Otherwise the decorator returns `undefined` and the original teacher answers unchanged. Its inputs are the public request fields and the learner's own seat observation. It reads no prompt or `effectText` and no opponent hidden state.
 
-- **Fixed opponent.** `pickInstances` treats the new value like an absent `purpose` and still answers `[]`. A test asserts this.
-- **Model action space.** `decisions.ts` raises the floor only for `acceptedOptional`, so the model can still decline.
-- **Physical materials.** The existing `materialTeacherDecision` and its solver proof still choose the materials.
+1. **Request shape.** The request is `selectCards` for the learner's own seat and is the current `pendingDecision`. It has `min 0`, `max 1`, a `timing`, and `isInherited` not true. None of these are set: `purpose`, Assembly or DigiXros fields, cost or DP budgets, distinctness flags, `targetFate`, `selectionContext`.
+2. **Source permanent.** `sourcePermanentId` is on the learner's own board.
+3. **Compiled effect.** `runtimeCompiledCard(sourceCardId)` has exactly one effect whose `trigger === timing`. That effect is not inherited, linked or security, has no whole-effect `optional` or `cost`, and has exactly one action. That action is a Modal accepted by the engine's own `mergedPlayOrUseAction`: one `PlayWithoutCost` branch plus one `UseOptionWithoutCost` branch.
+4. **Merged play action.** It has `upTo: true`, `minimum 0`, `count 1` and `payCost: false`. It has no action cost and no opponent chooser. Its `from` lists only `hand` and/or `trash`.
+5. **Candidate pool.** Every offered id is unique and is an own physical card in one of those zones. Each card's single kind is Digimon or Tamer, and its play cost is at or below the printed ceiling. One Option in the pool rejects the whole request, because only the use branch could own an Option.
 
-Patch: `internal-docs/ai/bot-workers/material-teacher-effect-play-gap.patch` (git-ignored locally), SHA256 `d03395998636dfc6ae9839e369a3b16f7052756ae6788746d06681e34305eb5b`. It applies cleanly to `93db25fb5`.
+### Ranking
 
-| File | SHA256 before | SHA256 after |
-| --- | --- | --- |
-| `packages/shared/src/protocol/events.ts` | `f361d005…deff1` | `2f21ffa5…42f4` |
-| `apps/api/src/engine/effects/context/effectContext.ts` | `f5c02ad9…4754` | `72e72882…0290` |
-| `apps/api/src/engine/decisions/decisionApi.ts` | `9b202fd2…928e` | `7b89cad4…f750` |
-| `apps/api/src/engine/effects/interpreter/actions/play.ts` | `304ab15c…f0da` | `223eaf9f…b1b1` |
-| `apps/api/src/bot/training/referencePolicy.ts` | `c47278f1…157e` | `311b7dd4…8570` |
-| `apps/api/src/bot/training/cli.ts` | `2140c324…2a96` | unchanged |
+A candidate with a DigiXros recipe outranks every other free card when the learner's current hand holds a card that fills one recipe slot (`materialsSatisfyRecipe`). Within each tier, the unchanged `scoreCandidate` and `DEFAULT_BOT_PROFILE` decide, using a zero-cost `playDigimon` or `playTamer`. A candidate needs a score above 0. If no candidate qualifies, the original teacher answers.
 
-```diff
-diff --git a/apps/api/src/bot/training/referencePolicy.ts b/apps/api/src/bot/training/referencePolicy.ts
-index d9059c0e2..26ec3f4a3 100644
---- a/apps/api/src/bot/training/referencePolicy.ts
-+++ b/apps/api/src/bot/training/referencePolicy.ts
-@@ -111,6 +111,55 @@ function materialTeacherDecision(engine: GameEngine, seat: Seat, request: Decisi
-   }
- }
+The physical materials are still labelled by the original `materialTeacherDecision` and its solver proof. The fixed heuristic opponent and the model action space do not change.
 
-+/** Take the free effect play the evaluation policy values most, instead of declining it. */
-+function effectPlayTeacherDecision(
-+  engine: GameEngine,
-+  seat: Seat,
-+  view: BotView | undefined,
-+  request: DecisionRequest,
-+): Intent | undefined {
-+  const options = request.options;
-+  if (
-+    view === undefined ||
-+    request.kind !== "selectCards" ||
-+    request.seat !== seat ||
-+    engine.state.pendingDecision?.decisionId !== request.decisionId ||
-+    options?.purpose !== "effectPlay" ||
-+    (options.min ?? 0) !== 0 ||
-+    (options.max ?? 0) < 1
-+  )
-+    return undefined;
-+  const cards = selectionCards(trainingObservation(engine.state, seat, request));
-+  let best: string | undefined;
-+  let bestScore = 0;
-+  for (const instanceId of new Set(options.candidateInstanceIds ?? [])) {
-+    const cardId = cards.get(instanceId)?.cardId;
-+    const definition = cardId === undefined ? undefined : getCardDefinition(cardId);
-+    if (definition === undefined || !isDigimonCard(definition)) continue;
-+    const score = scoreCandidate(
-+      view,
-+      {
-+        kind: "playDigimon",
-+        key: `effectPlay:${instanceId}`,
-+        intent: { type: "playCard", instanceId },
-+        cost: 0,
-+        definition,
-+      },
-+      DEFAULT_BOT_PROFILE,
-+    );
-+    if (score > bestScore) {
-+      best = instanceId;
-+      bestScore = score;
-+    }
-+  }
-+  if (best === undefined) return undefined;
-+  return {
-+    type: "respondDecision",
-+    decisionId: request.decisionId,
-+    response: { kind: "selectCards", instanceIds: [best] },
-+  };
-+}
-+
- /** Teach compound declarations without changing the fixed heuristic strength opponent. */
- export function createTrainingTeacher(engine: GameEngine, seat: Seat, seed: number): BotPolicy {
-   const rejectedMaterials = new Set<string>();
-@@ -128,7 +177,11 @@ export function createTrainingTeacher(engine: GameEngine, seat: Seat, seed: numb
-       teacher.onTurnStart();
-     },
-     answerDecision(view, request, signal) {
--      return materialTeacherDecision(engine, seat, request) ?? teacher.answerDecision(view, request, signal);
-+      return (
-+        materialTeacherDecision(engine, seat, request) ??
-+        effectPlayTeacherDecision(engine, seat, view, request) ??
-+        teacher.answerDecision(view, request, signal)
-+      );
-     },
-     noteRejected(intent: Intent) {
-       // The fixed opponent's ordinary-play key cannot identify a material route.
-diff --git a/apps/api/src/engine/decisions/decisionApi.ts b/apps/api/src/engine/decisions/decisionApi.ts
-index 2c102ffdc..85642f10d 100644
---- a/apps/api/src/engine/decisions/decisionApi.ts
-+++ b/apps/api/src/engine/decisions/decisionApi.ts
-@@ -94,7 +94,11 @@ function buildSeatScopedApi(
-     ...(ctx.affectedPermanentIds !== undefined ? { affectedPermanentIds: [...ctx.affectedPermanentIds] } : {}),
-     // Raised by `payCost` for as long as a cost payment is on the stack. Without it a
-     // cost selection and a target selection reach the deciding seat as the same request.
--    ...((ctx.payingCostDepth ?? 0) > 0 ? { purpose: "cost" as const } : {}),
-+    ...((ctx.payingCostDepth ?? 0) > 0
-+      ? { purpose: "cost" as const }
-+      : ctx.pickingEffectPlay === true
-+        ? { purpose: "effectPlay" as const }
-+        : {}),
-   });
-   // Only a pick whose floor was lowered here is the back-out of an accepted "you may"; a pick
-   // the action already allowed to be empty keeps its own meaning (DigiXros materials).
-diff --git a/apps/api/src/engine/effects/context/effectContext.ts b/apps/api/src/engine/effects/context/effectContext.ts
-index d7bddccc9..ab0cdad95 100644
---- a/apps/api/src/engine/effects/context/effectContext.ts
-+++ b/apps/api/src/engine/effects/context/effectContext.ts
-@@ -96,6 +96,8 @@ export interface EffectContext {
-    * `purpose: "acceptedOptional"`.
-    */
-   pickingAcceptedOptional?: boolean;
-+  /** Set while an effect asks which cards it will play or use. Surfaced as `purpose: "effectPlay"`. */
-+  pickingEffectPlay?: boolean;
-   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
-   effectRestrictions?: Set<string>;
-   game: GameAccess;
-diff --git a/apps/api/src/engine/effects/interpreter/actions/play.ts b/apps/api/src/engine/effects/interpreter/actions/play.ts
-index 6c7164c44..9a6acb1e8 100644
---- a/apps/api/src/engine/effects/interpreter/actions/play.ts
-+++ b/apps/api/src/engine/effects/interpreter/actions/play.ts
-@@ -740,7 +740,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
-               .filter((instanceId, index, all) => all.indexOf(instanceId) === index)
-           : undefined;
-       const asker = playCostAdjustedTarget.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
--      const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, asker, visibleZoneIds);
-+      const pickingEffectPlay = ctx.pickingEffectPlay;
-+      ctx.pickingEffectPlay = true;
-+      let chosen: string[];
-+      try {
-+        chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, asker, visibleZoneIds);
-+      } finally {
-+        ctx.pickingEffectPlay = pickingEffectPlay;
-+      }
-       if (playCostAdjustedTarget.chooser === "opponent" && action.optional === true) {
-         ctx.lastOpponentDeclined = chosen.length === 0;
-       }
-diff --git a/packages/shared/src/protocol/events.ts b/packages/shared/src/protocol/events.ts
-index c2e3dcab2..5d7ade1c8 100644
---- a/packages/shared/src/protocol/events.ts
-+++ b/packages/shared/src/protocol/events.ts
-@@ -671,8 +671,11 @@ export interface DecisionRequest {
-      *
-      * `"acceptedOptional"` marks a pick of an action whose "you may" the controller already
-      * accepted. A `min: 0` there only lets the player back out; an empty answer does nothing.
-+     *
-+     * `"effectPlay"` marks a pick whose chosen cards the resolving effect plays or uses. On a
-+     * `min: 0` request an empty answer declines that "you may".
-      */
--    purpose?: "cost" | "acceptedOptional";
-+    purpose?: "cost" | "acceptedOptional" | "effectPlay";
-     /** Effect-driven play awaiting the existing Assembly material picker for this card. */
-     assemblyCardId?: string;
-     /** Effect-driven play awaiting the existing DigiXros material picker for this card. */
-```
+### Remaining ambiguity
+
+The rule relies on two things holding:
+
+- **Gained effects.** A gained [When Digivolving] effect reported under the same `sourceCardId`, with an own hand/trash Digimon or Tamer pool and the same `min 0`/`max 1` shape, would pass the request checks. The IR check binds only the printed effect. I found no such case for EX13-064, but the rule cannot rule it out from public fields alone.
+- **Text gate.** The candidate check enforces kind, zone, owner and cost ceiling. It does not re-check the `[Knightmon]` text gate; it trusts the engine to offer only legal cards.
+
+Requiring an exact card ID allowlist (EX13-064) would remove the generality risk. ROOT should decide whether to add it.
+
+### Entry and admission implications
+
+`effectPlayExpertCli.local.ts` is the original `cli.ts` with exactly three changes:
+
+1. It imports `createEffectPlayExpertTeacher` instead of `createTrainingTeacher`.
+2. It passes that factory to the existing `createTrainingPolicy`.
+3. `--describe` adds `expertTeacher: "effectPlayExpert.local"`.
+
+No loader or source transform is used, and the original CLI and helper files are byte-identical.
+
+- **Not the original producer.** This entry must not be treated as the original producer. `engineSha256` is identical because the engine modules are the same. `collect.py` copies only `engineSha256`, so `expertTeacher` does not reach the collected outputs. A ROOT-reviewed operator must declare the entry and decorator pins itself.
+- **Separate collection.** Expert-teacher data is a new collection. Do not merge it into the consumed 436-game or 880-game corpora, and do not move validation folds.
+- **Wider label shift.** The decorator changes teacher labels on every admitted free play, not only DigiXros routes.
+- **Fingerprint mismatch to check.** The local `--describe` of the original `cli.js` built from this tree reports `engineSha256` `cc00dc7c27267cbeeac488d62fc14a796056d4b69b6509545fb4eeb108d9b1f2`. That differs from the qualified runtime fingerprint `9a8d2d5f…` that ROOT reported. ROOT should compare this against its own describe of the frozen worker; I did not recompute that fingerprint.
 
 ## Local verification (synthetic only)
 
-All runs used Node 26.10.0 and one Vitest fork per run. Two runs briefly overlapped once, for about 2 seconds.
+All runs used Node 26.10.0 with one Vitest fork per run. Two runs overlapped once, for about 2 seconds.
 
-- **Baseline, unchanged source.** `effectPlayPrecursor.local.test.ts` (git-ignored, SHA256 `beed2643…2b92`) shows the refusal above in both seats.
-- **With the patch, precursor fixture.** The teacher picks DarkKnightmon. `materialTeacherDecision` then labels DeadlyAxemon on the `digiXrosCardId: EX10-031` request. DarkKnightmon enters with DeadlyAxemon under it, in both seats.
-- **With the patch, guard test.** `effectPlayTeacher.test.ts` (git-ignored, SHA256 `48fd48aa…f126`) covers both seats. It asserts that the fixed opponent still declines, the label and material route execute, and these variants are delegated unchanged: no purpose, `acceptedOptional`, `min 1`, `max 0`, empty candidates, stale decision, and opponent seat. 4 of 4 pass.
-- **With the patch, regressions.** `tsc --noEmit` passes. Focused bot/training, decisions, interpreter actions, EX13-064, and EX10-031 suites: 82 files and 1,830 tests pass. `FAST=1` over `src/engine` and `src/bot`: 542 files and 10,145 tests pass. FAST mode excludes the card and conformance suites.
+| Test | Result |
+| --- | --- |
+| `effectPlayExpert.local.test.ts`, actual fixture windows | Fixture bytes match their pin. Episode 216 is admitted and ranks `s0-22` DarkKnightmon first (hand material `s0-18`). Episode 260 is admitted, and every candidate shows no hand material. |
+| `effectPlayExpert.local.test.ts`, live synthetic route, both seats | The original teacher and the fixed opponent both answer `[]`. The decorator picks DarkKnightmon. The original material teacher then labels DeadlyAxemon, and DarkKnightmon enters with DeadlyAxemon under it. |
+| `effectPlayExpert.local.test.ts`, delegation, both seats | 14 request variants and an Option-bearing pool all return the original teacher's answer. |
+| `effectPlayPrecursor.local.test.ts` | A hand material opens the `digiXrosCardId: EX10-031` picker; a trash-only material does not. |
+| Typecheck and smoke | `tsc --noEmit` passes. `tsc --noCheck` builds the entry, and `node …/effectPlayExpertCli.local.js --describe` emits the metadata. |
 
-These tests check the teacher's contract only. They are not primary, model, or mastery proof.
+In total, 11 of 11 tests pass. These are teacher-contract tests only, not primary, model or mastery proof. No full bridge episode was run.
 
-## Residual risks for ROOT
+## Fallback: typed purpose (needs new qualified source)
 
-- **Wider label shift.** Every optional `min 0` effect play without `acceptedOptional` will now get a positive teacher label, not just DigiXros routes. Teacher trajectories will differ from the consumed 436-game and 880-game corpora, so a new teacher collection is needed. Do not merge the corpora.
-- **Accepted-optional path not covered.** Effect plays that ask an `optional` prompt first still carry `acceptedOptional`. `pickInstances` then plays the cheapest own card, not the most valuable one. The patch does not change this. A follow-up would apply the same scoring when `acceptedOptional` comes from a play pick.
-- **Tamers and Options not covered.** The decorator labels only Digimon. Tamer and Option candidates fall back to the existing teacher, which declines them.
-- **Other play paths not tagged.** The total-cost budget path in `play.ts`, around line 306, is not tagged. It sees only multi-card budget plays.
+If ROOT rejects the IR route, the general fix is a public `purpose: "effectPlay"` set around the `play.ts` effect-play pick, plus a teacher branch. The full diff is in commit `4c3a228d1` of this branch and in the ignored patch below. With that patch: focused suites 82 files / 1,830 tests pass, and `FAST=1` `src/engine` + `src/bot` 542 files / 10,145 tests pass. This changes source and engine bytes, so it needs a new qualified source. It was not built or pushed.
+
+## Ignored local files (not committed)
+
+Worktree root: `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/bot-effect-digixros-teacher-fix`. All files below are excluded through `.git/info/exclude`.
+
+| Path | SHA256 |
+| --- | --- |
+| `apps/api/src/bot/training/effectPlayExpert.local.ts` | `2eab5e6b13b21d7a71c769b3c8f615fb31f33fbc06506d284c151ee06346d7b9` |
+| `apps/api/src/bot/training/effectPlayExpert.local.test.ts` | `2fa40f30c48b0594a623fbb6d76d52d0f62f8203f4ef29dcf8f2617c559eaf53` |
+| `apps/api/src/bot/training/effectPlayExpertCli.local.ts` | `d5ea3d3f02804c1a04ffc37f3fcd458d3d8eaa0e42a44242b45f662456ea324e` |
+| `apps/api/src/bot/training/effectPlayPrecursor.local.test.ts` | `5d7a2deaf997ab0e65396df60a5afe5d1c6d3aea5e90a664c2beae82ab35275e` |
+| `internal-docs/ai/bot-workers/material-teacher-effect-play-gap.patch` (fallback) | `d03395998636dfc6ae9839e369a3b16f7052756ae6788746d06681e34305eb5b` |
+| `internal-docs/ai/bot-workers/material-teacher-effect-play-gap.guard.test.ts` (fallback guard; typechecks only with the patch) | `48fd48aad13f93d529eb94a6276e61570d804b592c63808540b867019050f126` |
+
+These original files are unchanged: `cli.ts` `2140c324…2a96` and `referencePolicy.ts` `c47278f1…157e`.
