@@ -11,7 +11,7 @@ import { combatWindowsFor } from "./screen/model/combatWindows";
 import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
-import { captureFieldShatterFace, takeFieldShatterOrigin, type FieldShatterFace } from "./fieldShatter";
+import { resolveFieldDepartureFace, type FieldShatterFace } from "./fieldShatter";
 import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
 import { useBoardSelection } from "./screen/hooks/useBoardSelection";
 import { useOverlayState } from "./screen/hooks/useOverlayState";
@@ -409,26 +409,21 @@ export function GameScreen({
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
       permanentCardId: (permanentId) => permCardIdsRef.current[permanentId],
-      permanentStack: (id) => {
-        const cached = permFacesRef.current[id];
-        const element = permRefs.current[cached?.permanentId ?? id];
-        const board = boardRef.current;
-        return element?.isConnected && board
-          ? (captureFieldShatterFace(element, board, true) ?? cached)
-          : board
-            ? (takeFieldShatterOrigin(board, id) ?? cached)
-            : cached;
-      },
-      permanentFace: (id) => {
-        const cached = permFacesRef.current[id];
-        const element = permRefs.current[cached?.permanentId ?? id];
-        const board = boardRef.current;
-        return element?.isConnected && board
-          ? (captureFieldShatterFace(element, board) ?? cached)
-          : board
-            ? (takeFieldShatterOrigin(board, id) ?? cached)
-            : cached;
-      },
+      permanentStack: (id) =>
+        resolveFieldDepartureFace({
+          id,
+          cached: permFacesRef.current[id],
+          elements: permRefs.current,
+          board: boardRef.current,
+          includeStack: true,
+        }),
+      permanentFace: (id) =>
+        resolveFieldDepartureFace({
+          id,
+          cached: permFacesRef.current[id],
+          elements: permRefs.current,
+          board: boardRef.current,
+        }),
       attackArrowClock: (permanentId, key) => readAttackArrowClock({ board: boardRef.current, key, permanentId }),
       yourDeck: yourDeckRef,
       oppDeck: oppDeckRef,
@@ -1221,6 +1216,7 @@ export function GameScreen({
     dpBadgeSuppressedIds,
     freezePulses,
     heldSuspendedIds: cues.heldSuspendedIds,
+    heldDeletionIds: new Set([...cues.heldDeletions.values()].map((hold) => hold.permanent.permanentId)),
   };
 
   return (

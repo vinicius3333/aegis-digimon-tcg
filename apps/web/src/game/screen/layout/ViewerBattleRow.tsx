@@ -90,7 +90,11 @@ export function ViewerBattleRow({
         perm={p}
         copies={members.length}
         entranceKey={fieldKey}
-        quietEntrance={splitOff || chrome.combatImpactIds.has(p.permanentId)}
+        quietEntrance={
+          splitOff ||
+          chrome.combatImpactIds.has(p.permanentId) ||
+          members.some((member) => chrome.heldDeletionIds?.has(member.permanentId))
+        }
         keywordLabels={chrome.keywordLabels?.[p.permanentId]}
         compact={chrome.compact}
         width={width}

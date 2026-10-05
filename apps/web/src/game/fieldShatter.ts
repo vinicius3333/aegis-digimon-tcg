@@ -63,6 +63,32 @@ export function takeFieldShatterOrigin(board: HTMLElement, id: string): FieldSha
   return face;
 }
 
+/** Resolve the live physical face before using its last measured or detached origin. */
+export function resolveFieldDepartureFace({
+  id,
+  board,
+  elements,
+  cached,
+  includeStack = false,
+}: {
+  id: string;
+  board: HTMLElement | null;
+  elements: Readonly<Record<string, HTMLElement | null>>;
+  cached: FieldShatterFace | undefined;
+  includeStack?: boolean;
+}): FieldShatterFace | undefined {
+  // A surviving group member owns its live face even when its last measurement
+  // still names the representative that just left. Instance ids use that alias
+  // only when they have no directly registered permanent.
+  const direct = elements[id];
+  const element = direct?.isConnected ? direct : elements[cached?.permanentId ?? id];
+  return element?.isConnected && board
+    ? (captureFieldShatterFace(element, board, includeStack) ?? cached)
+    : board
+      ? (takeFieldShatterOrigin(board, id) ?? cached)
+      : cached;
+}
+
 export function useFieldShatterOrigins(boardRef: RefObject<HTMLDivElement | null>) {
   useLayoutEffect(() => {
     const board = boardRef.current;
