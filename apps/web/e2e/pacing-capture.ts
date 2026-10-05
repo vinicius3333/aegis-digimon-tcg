@@ -89,11 +89,26 @@ interface Capture {
     }[];
   }[];
   sourceFocuses: { cardId: string; firstAt: number }[];
+  arrivals: {
+    cardId: string;
+    firstAt: number;
+    lastAt: number;
+    removedAt?: number;
+    poses: {
+      at: number;
+      painted: boolean;
+      artLoaded: boolean;
+      exitMs?: number;
+      exitEndMs?: number;
+      exitRate?: number;
+    }[];
+  }[];
   notices: { id: string; firstAt: number }[];
   phaseRibbons: { at: number; label: string; side: string | undefined }[];
   arrows: {
     at: number;
     key: string;
+    sweepMs?: number;
     source: string | undefined;
     target: string | undefined;
     gapPx: number;
@@ -139,6 +154,7 @@ export async function startPacingCapture(page: Page) {
       securityLandings: [],
       securityChecks: [],
       sourceFocuses: [],
+      arrivals: [],
       notices: [],
       phaseRibbons: [],
       arrows: [],
@@ -159,6 +175,7 @@ export async function startPacingCapture(page: Page) {
     let securityKey = "";
     const checkObservations = new Map<string, Capture["securityChecks"][number]>();
     const focusElements = new WeakSet<Element>();
+    const arrivalObservations = new Map<Element, Capture["arrivals"][number]>();
     const noticeIds = new Set<string>();
     let ribbonElement: Element | null = null;
     let arrowSignature = "";
@@ -275,6 +292,33 @@ export async function startPacingCapture(page: Page) {
           visibleStyle(element)
         );
       };
+      for (const [element, observation] of arrivalObservations)
+        if (!element.isConnected && observation.removedAt === undefined) observation.removedAt = at;
+      for (const element of document.querySelectorAll<HTMLElement>('[data-testid="zone-showcase"]')) {
+        const face = element.querySelector<HTMLElement>(".battle-showcase__art");
+        if (!face) continue;
+        let observation = arrivalObservations.get(element);
+        if (!observation) {
+          if (!isPainted(element)) continue;
+          observation = { cardId: element.dataset.cardId!, firstAt: at, lastAt: at, poses: [] };
+          arrivalObservations.set(element, observation);
+          capture.arrivals.push(observation);
+        }
+        observation.lastAt = at;
+        const image = face.querySelector<HTMLImageElement>("img[alt]");
+        const exit = face
+          .getAnimations()
+          .find((animation) => "animationName" in animation && animation.animationName === "battle-showcase-exit");
+        const end = exit?.effect?.getComputedTiming().endTime;
+        observation.poses.push({
+          at,
+          painted: isPainted(face) && Boolean(image && isPainted(image)),
+          artLoaded: Boolean(image?.complete && image.naturalWidth > 0),
+          exitMs: typeof exit?.currentTime === "number" ? exit.currentTime : undefined,
+          exitEndMs: typeof end === "number" && Number.isFinite(end) ? end : undefined,
+          exitRate: exit?.playbackRate,
+        });
+      }
       const scenes = [...document.querySelectorAll<HTMLElement>('[data-testid="security-clash"][data-cause="check"]')];
       const sceneKeys = new Set(scenes.map((scene) => scene.dataset.sceneKey!));
       for (const observation of capture.securityChecks)
@@ -507,16 +551,31 @@ export async function startPacingCapture(page: Page) {
         const target = nearest && nearest.gapPx <= 8 ? nearest.target : undefined;
         const key = arrow.dataset.attackKey ?? "";
         nextArrowSignature += `${key}:${target};`;
-        if (nextArrowSignature !== arrowSignature)
+        if (nextArrowSignature !== arrowSignature) {
+          const sweep = arrow
+            .querySelector(".game-attack-arrow__reveal")
+            ?.getAnimations()
+            .find((animation) => "animationName" in animation && animation.animationName === "battle-arrow-extend");
+          const delay = Number(sweep?.effect?.getTiming().delay ?? 0);
+          const timeline = document.timeline?.currentTime;
+          const sweepMs =
+            sweep &&
+            (typeof timeline === "number" && typeof sweep.startTime === "number" && sweep.playState !== "paused"
+              ? (timeline - sweep.startTime) * sweep.playbackRate - delay
+              : typeof sweep.currentTime === "number"
+                ? sweep.currentTime - delay
+                : undefined);
           capture.arrows.push({
             at,
             key,
+            sweepMs: typeof sweepMs === "number" ? Math.max(0, sweepMs) : undefined,
             source: arrow.dataset.attackSource,
             target,
             gapPx: nearest?.gapPx ?? Infinity,
             x: point.x,
             y: point.y,
           });
+        }
       }
       arrowSignature = nextArrowSignature;
       const dialog = document.querySelector('[role="dialog"], [data-testid="board-prompt"]');

@@ -1981,3 +1981,74 @@ Native keyword coverage is now **16/46**, with 30 pending. Consecutive video
 review remains **756/40,622 frames**. Remaining keywords, complete frame
 comparison and the original effect/background-audio pass remain open; the
 audio queue is recorded in `apps/web/src/game/ANIMATIONS.md`.
+
+### Printed evolution and end-turn attack wave, 2026-10-05
+
+Four real-server layouts now isolate BT5-086 Blitz acceptance/refusal and EX7-034
+Vortex acceptance/refusal. Blitz pays four memory to evolve Phoenixmon, resolves
+its printed effects in the chosen order, and attacks through the public projection;
+its separate Unsuspend follows that attack. Vortex is freshly played, has no Rush,
+and cannot declare an ordinary attack. Its end-turn choice offers only the two
+suspended physical Monodramon copies, selects the second, and keeps the neighboring
+Agumon. Fifty main cards, four eggs, physical identities and copy limits remain
+conserved. All 35 keyword fixture tests passed. Fixture/lab work was committed as
+`afaae72e4`; the arrival correction was committed as `d8ed3dfdf`.
+
+An actual Blitz capture showed the arrival exiting at 433/560ms when the queue
+released the field. The production step now waits for the keyed painted exit,
+without changing authored durations or easing. Late mounts at both queue speeds
+have regressions. The browser also reconstructs the native endpoint from the last
+sample and playback rate and requires the physical field artwork to appear after
+that endpoint, rather than accepting a near-final sample as proof of completion.
+
+A second native capture contained a completed declaration, security check and claw
+but no painted attack arrow: the server closed the attack before the next rAF.
+Player-target security scenes now retain the original declaration. The hook samples
+its actual native clock while painted and carries only the matching occurrence
+through disposal/remount. Temporary effect beams cannot overwrite that clock;
+eight real hook/AttackArrowLayer tests cover direct and effect-interrupted remounts
+at paused, half, Normal and Fast rates, plus an unrelated declaration starting anew.
+Two/three-check browser scenarios require the same key and a completed native sweep
+after the first check. The focused six-suite presentation run passed 294 tests,
+TypeScript and scoped production lint passed, and read-only review found no remaining
+blocker in the arrow correction.
+
+The four desktop Normal cases passed first. The responsive 18-case run then passed
+14 cases and retained four rejected captures: the mobile hand-hover portal intercepted
+ordering controls, the Fast driver dragged before the presented action opened, and
+the reduced-motion driver sampled the handoff before its security count released.
+The modal now hides that hover portal. The driver waits for public attack eligibility,
+presentation readiness and the expected visible count. Targeted follow-ups passed
+4/6 (including the stricter two/three-check arrow assertions), then both mobile cases
+passed after suppressing the entire portal rather than its inherited visibility.
+All 16 new combinations have passing coverage across these retained runs; this is
+not one green 16/18-case full-matrix claim. Evidence is retained under
+`.local/keyword-pacing/end-attack-security-arrow`, `end-attack-responsive-native`,
+`end-attack-targeted-followup` and `end-attack-phone-followup`, alongside earlier
+rejected diagnoses. Sampling/no-cut thresholds were not relaxed. Reduced cases
+establish terminal behavior without claiming native durations.
+
+Latest native keyword coverage is **18/46**, with 28 still pending. Reference review
+remains **756/40,622 consecutive frames**. Original effect sounds and background music
+remain queued and have no additional completed coverage in this wave.
+
+### Next requested investigation: every phase, especially the bot
+
+Measure full Unsuspend → Draw → Breeding → Main → End → turn handoff from real
+server play, including automatic empty Main passes, bot hatch/move, normal play,
+digivolution, successive attacks/security checks and decision interruptions.
+Keep native presentation, browser receipt, thinking delay and human decision time
+separate. The existing batch timestamps are browser observations, not server
+execution/network clocks; private opponent hands must remain opaque.
+
+The retained desktop Blitz acceptance capture received the bot's hatch at 7,615ms
+after capture start but did not first paint its Draw ribbon until 17,925ms. The
+bot's automatic Main pass was already published at 7,666ms. Vortex acceptance
+received the bot hatch at 7,713ms and its next attack at 9,975ms while the first
+Draw ribbon appeared at 10,679ms. These are specific observations, not benchmark
+averages or proof that an event was visibly shown at receipt. BotPlayer currently
+coalesces narration deadlines for sequential clients, whereas phase ribbons are
+serialized in the client. Investigate that boundary and the ownership/order of
+draw/hatch cues. Add a regression at the actual mismatch, fix causal sequencing,
+then remeasure Normal/Fast, mobile and reduced motion before tuning durations.
+Preserve the Aegis design and commit each verified correction.

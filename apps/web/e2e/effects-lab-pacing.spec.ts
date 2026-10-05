@@ -12,6 +12,7 @@ import {
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
   KEYWORD_ATTACK_PACING_SCENARIOS,
+  KEYWORD_END_ATTACK_PACING_SCENARIOS,
   getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -52,6 +53,7 @@ interface LabState {
     effectKey?: string;
     revealedCardId?: string;
     redirected?: boolean;
+    attackerPermanentId?: string;
     target?: { kind: string; permanentId?: string };
     batch?: string;
   }[];
@@ -61,7 +63,13 @@ interface LabState {
       stateVersion: number;
       pendingDecision?: unknown;
       players: {
-        battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean; keywords?: string[] }[];
+        battleArea: {
+          permanentId: string;
+          topCard: { cardId: string };
+          isSuspended: boolean;
+          keywords?: string[];
+          canAttackPlayer?: boolean;
+        }[];
       }[];
     };
     displayed: { stateVersion: number };
@@ -1186,6 +1194,14 @@ test.describe("effects lab pacing in the browser", () => {
           expect(capture.securityChecks.map((check) => check.cardName)).toEqual(
             securityIds.slice(0, scenario.securityRemoved).map((id) => getCardDefinition(id)!.nameEn),
           );
+          if (scenario.securityRemoved > 1) {
+            const arrows = capture.arrows.filter((arrow) => arrow.source === attacker.permanentId);
+            expect(arrows.length).toBeGreaterThan(1);
+            expect(new Set(arrows.map((arrow) => arrow.key)).size).toBe(1);
+            const later = arrows.filter((arrow) => arrow.at >= capture.securityChecks[1]!.firstAt);
+            expect(later.length).toBeGreaterThan(0);
+            expect(later.every((arrow) => arrow.sweepMs !== undefined && arrow.sweepMs >= 380)).toBe(true);
+          }
           for (const [index, check] of capture.securityChecks.entries()) {
             expect(check.attackerName).toBe(getCardDefinition(scenario.attackerCardIds.at(-1)!)!.nameEn);
             expect(check.outcomeAt).toBeDefined();
@@ -1219,6 +1235,229 @@ test.describe("effects lab pacing in the browser", () => {
               ),
           );
           expect(clips.every((animation) => !animation.undersampled && !animation.cutShort)).toBe(true);
+        }
+      });
+    }
+  }
+
+  for (const scenario of KEYWORD_END_ATTACK_PACING_SCENARIOS) {
+    for (const format of [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+      { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+    ]) {
+      test(`real keyword pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, format.speed, false);
+        const before = await lab.read();
+        await startPacingCapture(page);
+        const actions: { name: string; observedAt: number }[] = [];
+        const boundary = async (name: string) =>
+          actions.push({ name, observedAt: await page.evaluate(() => performance.now()) });
+        const game = new GamePage(page);
+        await boundary(scenario.flow === "blitz" ? "digivolve" : "play-source");
+        if (scenario.flow === "blitz") {
+          await game.dragCardTo(
+            /^Omnimon$/i,
+            page.locator('[data-drop="perm-you"][data-id="dev-perm-0-keyword-attack-attacker"]'),
+          );
+          await boundary("confirm-digivolution");
+          await page.getByRole("button", { name: "Digivolve", exact: true }).click();
+          await page.getByRole("button", { name: "Select all, top to bottom", exact: true }).click();
+          await boundary("confirm-effect-order");
+          await page.getByRole("button", { name: "Resolve in this order", exact: true }).click();
+        } else {
+          await game.play(/^GrandGalemon$/i);
+          await expect
+            .poll(
+              async () => {
+                const state = await lab.read();
+                return (
+                  state.board?.visible.players[0]!.battleArea.some((p) => p.topCard.cardId === scenario.sourceCardId) &&
+                  state.queueIdle
+                );
+              },
+              { timeout: 40_000 },
+            )
+            .toBe(true);
+          await boundary("end-turn");
+          await lab.button(/END PHASE/i).click();
+          await expect.poll(async () => (await lab.read()).decision?.kind).toMatch(/^(orderTriggers|optional)$/);
+          if ((await lab.read()).decision?.kind === "orderTriggers") {
+            await page.getByRole("button", { name: /GrandGalemon/i }).click();
+            await page.getByRole("button", { name: "Resolve effect", exact: true }).click();
+          }
+        }
+        const use = page.getByRole("button", { name: /^(Yes, activate|Use)$/i });
+        await expect(use).toBeVisible();
+        // Sample the actual mounted prompt before answering it; no injected engine response.
+        await expect
+          .poll(() =>
+            page.evaluate(
+              () =>
+                (window as unknown as { __keywordPacingCapture: { decisions: unknown[] } }).__keywordPacingCapture
+                  .decisions.length,
+            ),
+          )
+          .toBeGreaterThan(0);
+        await boundary(scenario.accept ? "accept-attack" : "decline-attack");
+        await (scenario.accept ? use : page.getByRole("button", { name: /^(No, decline|Don't use)$/i })).click();
+        const ready = await lab.read();
+        const attacker = ready.board!.visible.players[0]!.battleArea.find(
+          (p) => p.topCard.cardId === scenario.sourceCardId,
+        )!;
+        if (scenario.accept) {
+          if (scenario.flow === "blitz") {
+            await expect
+              .poll(async () => {
+                const current = await lab.read();
+                return (
+                  current.queueIdle &&
+                  !current.decision &&
+                  current.board?.live.players[0]!.battleArea.some(
+                    (card) => card.permanentId === attacker.permanentId && card.canAttackPlayer,
+                  )
+                );
+              })
+              .toBe(true);
+            await boundary("attack-security");
+            await game.attack(attacker.permanentId, page.locator('[data-drop="opp-security"]'));
+          } else {
+            const prompt = page.getByRole("region", { name: "Attack target", exact: true });
+            await expect(prompt).toBeVisible();
+            await waitForDecisionPaint(page, "Attack target");
+            await boundary("choose-second-suspended-target");
+            await clickFieldArtwork(page, "dev-perm-1-keyword-attack-defender-1", "Monodramon");
+            await prompt.getByRole("button", { name: "Attack", exact: true }).click();
+          }
+        }
+        await expect
+          .poll(
+            async () => {
+              const state = await lab.read();
+              expect(state.gateExpiries).toEqual([]);
+              expect(state.steps.filter((step) => step.failed)).toEqual([]);
+              // Observe the first painted turn handoff. The autonomous opponent can
+              // hatch/pass before its phase banners drain, so whole-game queue idle
+              // is not a stable boundary for this outgoing-turn capture.
+              return (
+                state.board?.visible.turn?.seat === 1 &&
+                state.board.visible.turn.count === before.board!.visible.turn!.count + 1 &&
+                state.board.visible.players[1]!.securityCount === 4 - scenario.securityRemoved &&
+                state.board.visible.players[0]!.battleArea.some(
+                  (p) =>
+                    p.permanentId === attacker.permanentId &&
+                    p.isSuspended === (scenario.flow === "vortex" && scenario.accept),
+                ) &&
+                (!scenario.accept || state.events.some((event) => event.kind === "attackEnded"))
+              );
+            },
+            { timeout: 45_000, intervals: [50, 100, 200] },
+          )
+          .toBe(true);
+        const capture = await finishPacingCapture(page);
+        const state = await lab.read();
+        await info.attach("real-keyword-pacing.json", {
+          body: Buffer.from(
+            JSON.stringify({ scenario, format, speed: format.speed, actions, before, capture, state }, null, 2),
+          ),
+          contentType: "application/json",
+        });
+        expect(capture.truncated || state.truncated).toBe(false);
+        expect(errors).toEqual([]);
+        const handoffAt = capture.boards.find((board) => board.turnSeat === 1)?.at ?? capture.finishedAt;
+        expectOnlyCompletedDpReplacements(state.steps.filter((step) => step.at < handoffAt));
+        expect(state.board!.visible.turn!.count).toBe(before.board!.visible.turn!.count + 1);
+        expect(state.board!.visible.players[1]!.hand).toEqual([]);
+        expect(state.board!.visible.players[1]!.securityCount).toBe(4 - scenario.securityRemoved);
+        expect(state.board!.visible.players[0]!.securityCount).toBe(4);
+        expect(
+          state.events.filter((event) => event.kind === "attackDeclared" && event.seat === 0 && !event.redirected),
+        ).toHaveLength(scenario.accept ? 1 : 0);
+        expect(
+          state.events
+            .filter((event) => event.kind === "securityChecked" && event.seat === 1)
+            .map((event) => event.revealedCardId),
+        ).toEqual(scenario.securityRemoved ? ["BT1-011"] : []);
+        const final = state.board!.visible.players[0]!.battleArea.find((p) => p.permanentId === attacker.permanentId)!;
+        expect(final.topCard.cardId).toBe(scenario.sourceCardId);
+        expect(final.isSuspended).toBe(scenario.flow === "vortex" && scenario.accept);
+        if (scenario.flow === "blitz") expect(final.stack.map((card) => card.cardId)).toEqual(["ST1-10"]);
+        else
+          expect(
+            state
+              .board!.visible.players[1]!.battleArea.filter((p) => p.topCard.cardId !== "BT1-089")
+              .map((p) => p.permanentId),
+          ).toEqual(
+            [0, ...(scenario.accept ? [] : [1]), 2].map((index) => `dev-perm-1-keyword-attack-defender-${index}`),
+          );
+        for (const seat of [0, 1])
+          expect(
+            state.board!.visible.players[seat]!.battleArea.find(
+              (p) => p.permanentId === `dev-perm-${seat}-keyword-attack-control`,
+            ),
+          ).toMatchObject(before.board!.visible.players[seat]!.battleArea[0]!);
+        if (!format.reduced) {
+          expect(capture.motion.captureQuality).toBe("usable");
+          const arrival = capture.arrivals.find((item) => item.cardId === scenario.sourceCardId)!;
+          expect(arrival).toBeDefined();
+          expect(arrival.poses.some((pose) => pose.painted && pose.artLoaded)).toBe(true);
+          expect(arrival.removedAt).toBeDefined();
+          const paintedExit = arrival.poses.filter((pose) => pose.exitMs !== undefined);
+          expect(paintedExit.at(-1)!.exitMs).toBeGreaterThanOrEqual(paintedExit.at(-1)!.exitEndMs! - 34);
+          const sourcePose = capture.poses.find(
+            (pose) =>
+              pose.permanentId === attacker.permanentId &&
+              pose.cardName === getCardDefinition(scenario.sourceCardId)!.nameEn,
+          );
+          expect(sourcePose).toBeDefined();
+          expect(sourcePose!.at).toBeGreaterThanOrEqual(arrival.lastAt);
+          // The last rAF can precede the endpoint by one frame. Reconstruct the
+          // native endpoint from that sample; a 30ms early field handoff must fail.
+          const lastExit = paintedExit.at(-1)!;
+          const nativeEndAt = lastExit.at + (lastExit.exitEndMs! - lastExit.exitMs!) / Math.abs(lastExit.exitRate!);
+          expect(sourcePose!.at + 1).toBeGreaterThanOrEqual(nativeEndAt);
+          const turn = capture.boards.find((board) => board.turnSeat === 1)!;
+          expect(turn).toBeDefined();
+          const attackArrow = capture.arrows.find((arrow) => arrow.source === attacker.permanentId);
+          if (scenario.accept) {
+            expect(attackArrow).toBeDefined();
+            expect(attackArrow!.at).toBeGreaterThanOrEqual(sourcePose!.at);
+            const blow = capture.motion.animations.find((animation) => animation.name === "battle-claw")!;
+            expect(blow).toBeDefined();
+            expect(blow.firstAt).toBeGreaterThanOrEqual(attackArrow!.at);
+            expect(turn.at).toBeGreaterThan(blow.lastAt);
+          } else expect(attackArrow).toBeUndefined();
+          const clips = capture.motion.animations.filter(
+            (animation) =>
+              animation.firstAt < handoffAt &&
+              animation.visibleFrames > 0 &&
+              [
+                "battle-showcase-turn",
+                "battle-showcase-exit",
+                "battle-claw",
+                "battle-security-reveal",
+                "battle-security-exit",
+              ].includes(animation.name),
+          );
+          expect(clips.every((animation) => !animation.undersampled && !animation.cutShort)).toBe(true);
+          if (scenario.flow === "vortex" && scenario.accept) {
+            const relayout = capture.timings.find(
+              (timing) =>
+                timing.permanentId === "dev-perm-1-keyword-attack-defender-2" &&
+                timing.duration === 420 &&
+                timing.properties.includes("translate"),
+            );
+            expect(relayout).toBeDefined();
+            expect(relayout!.nativeMs).toBeGreaterThanOrEqual(
+              relayout!.endMs! - 34 * Math.max(1, Math.abs(relayout!.playbackRate)),
+            );
+          }
         }
       });
     }

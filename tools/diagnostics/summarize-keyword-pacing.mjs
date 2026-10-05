@@ -156,6 +156,7 @@ for (const path of positionals) {
             })),
             securityChecks: capture.securityChecks ?? [],
             sourceFocuses: capture.sourceFocuses ?? [],
+            arrivals: capture.arrivals ?? [],
             notices: capture.notices ?? [],
             stackPeels: (capture.peels ?? []).map((peel) => ({ ...peel, observedMs: peel.lastAt - peel.firstAt })),
             cardRotations: capture.timings

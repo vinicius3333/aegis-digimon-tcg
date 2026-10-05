@@ -640,3 +640,40 @@ Latest native keyword coverage is **16/46**, including the earlier completed
 stack and deck passes. Thirty keywords, complete reference-frame review and
 the original audio pass above remain pending. Evidence and limitations are
 recorded in `docs/research-animation-reference-harness.md`.
+
+## Evolution and end-turn attack checkpoint, 2026-10-05
+
+Blitz acceptance/refusal uses BT5-086's real digivolution, ordered printed effects
+and public attack declaration. Vortex acceptance/refusal uses a freshly played
+EX7-034, its actual end-turn permission and the second physical suspended target;
+ordinary attacks remain illegal. The conserved-deck fixtures passed 35 engine tests.
+
+The keyed arrival now completes its actual painted exit before field handoff.
+Security scenes retain the original declaration when the server already closed
+the attack, and preserve its native sweep clock across disposal and effect-selection
+interruptions. The browser checks the native arrow age on subsequent security
+checks; temporary effect beams cannot replace the retained attack occurrence.
+
+All 16 new Normal/Fast, 320px and reduced-motion combinations have passing coverage
+across retained runs. The initial responsive run passed 14/18 including two prior
+multi-check cases; its four rejected cases remain preserved. Targeted follow-ups
+fixed driver readiness, terminal-count observation and a portaled hand hover covering
+mobile decision controls. This is not a single green full-matrix claim. Latest native
+keyword coverage is **18/46**, with 28 pending. Focused presentation validation passed
+294 tests, including eight real hook/arrow remount regressions.
+
+## Next: phase and autonomous-opponent pacing
+
+Requested next: measure Unsuspend, Draw, Breeding, Main, End and turn handoff with
+real server scenarios, especially consecutive bot plays, evolutions and attacks.
+Separate browser batch receipt, decision reading, queue waiting and native motion;
+batch receipt is not server execution time. One retained Normal capture received
+the opponent hatch at 7,615ms and first painted its Draw ribbon at 17,925ms after
+the capture began. Its automatic Main pass followed the hatch in the server log.
+The server currently coalesces narration deadlines for sequential clients while
+the client serializes phase ribbons. Investigate that mismatch and the phase order
+of hatch/draw cues before changing durations. Repeat Normal/Fast, mobile and reduced
+motion, preserve the existing layout, and commit each verified correction.
+
+Complete reference-frame review and the original effect/background-audio pass above
+remain open. No new audio or complete phase-pacing claim is made by this checkpoint.
