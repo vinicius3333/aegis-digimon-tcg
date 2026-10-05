@@ -203,7 +203,6 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
       dropPermanentLedgers(source.permanentId);
       const shed = [...source.stack, ...source.linked];
       for (const card of shed) {
-        card.faceUp = false;
         insertCard(player(card.ownerSeat), Zone.Trash, card);
       }
       if (shed.length > 0) {

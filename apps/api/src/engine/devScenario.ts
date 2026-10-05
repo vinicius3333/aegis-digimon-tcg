@@ -85,6 +85,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt10-taiki-x7-xros-heart",
   "arena-bt10-taiki-reveal-under-self",
   "arena-ex13-sampson-face-down-sources",
+  "arena-ex9-metal-mamemon-face-down-deletion",
   "arena-p240-arcturusmon-vb-routes",
   "arena-p240-arcturusmon-ordered-placement",
   "arena-ex12-proximamon-dual-siriusmon",
@@ -1051,6 +1052,47 @@ function layEx13SampsonFaceDownSourcesScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1556527556319252540, match 24a8a257: Susanoomon deletes MetalMamemon at 0 DP. */
+function layMetalMamemonFaceDownDeletionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Trash);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-hidden-deletion-susanoo", "EX12-076", 0));
+    for (const [index, cardId] of [
+      "EX12-006",
+      "EX12-009",
+      "EX12-011",
+      "EX12-015",
+      "EX12-020",
+      "EX12-025",
+      "EX12-031",
+      "EX12-036",
+    ].entries()) {
+      const card = faceDownCard(`dev-hidden-deletion-material-${index}`, cardId, 0);
+      card.faceUp = true;
+      insertCard(human, Zone.Trash, card);
+    }
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    const metal = establishedDigimon(1, ["EX9-018"], "-hidden-deletion-metal");
+    pushOnStack(metal, faceDownCard("dev-hidden-deletion-kokuwa", "EX13-046", 1));
+    placePermanent(opponent, metal);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Same physical Ravemon evolves again before its earlier deletion chain has finished. */
@@ -5665,6 +5707,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt10-taiki-x7-xros-heart": layBt10TaikiX7XrosHeartScenario,
   "arena-bt10-taiki-reveal-under-self": layBt10TaikiRevealUnderSelfScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
+  "arena-ex9-metal-mamemon-face-down-deletion": layMetalMamemonFaceDownDeletionScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-p240-arcturusmon-ordered-placement": layP240ArcturusmonOrderedPlacementScenario,
   "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,

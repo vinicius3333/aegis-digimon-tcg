@@ -4,6 +4,7 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX13-046.js";
+import "../BT1/BT1-062.js";
 
 const inertDeck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
 
@@ -351,6 +352,85 @@ describe("EX13-046 Kokuwamon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it.each([false, true])(
+    "Discord 1556527556319252540: only a face-up Kokuwamon inherits On Deletion in battle (faceUp=%s)",
+    async (faceUp) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT1-080", as: "attacker", under: ["BT3-067"] }],
+            deck: inertDeck,
+          },
+          1: {
+            battleArea: [
+              {
+                card: "EX9-018",
+                as: "host",
+                suspended: true,
+                under: [{ card: "EX13-046", as: "source", faceUp }],
+              },
+            ],
+            deck: inertDeck,
+          },
+        },
+        { autoSelectCards: true, autoOrderTriggers: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "attackEnded"));
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+      expect(s.perm("attacker").topCard.cardId).toBe(faceUp ? "BT3-067" : "BT1-080");
+      expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX13-046")).toBe(
+        faceUp,
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it.each([false, true])(
+    "Discord 1556527556319252540: only a face-up Kokuwamon inherits On Deletion from DP rule deletion (faceUp=%s)",
+    async (faceUp) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT1-060", as: "host", under: ["BT1-009"] }],
+            hand: [{ card: "BT1-062", as: "slash" }],
+            deck: inertDeck,
+          },
+          1: {
+            battleArea: [{ card: "EX9-018", as: "metal", under: [{ card: "EX13-046", as: "source", faceUp }] }],
+            deck: inertDeck,
+          },
+        },
+        { autoSelectCards: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("slash").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.length === 0);
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe(faceUp ? "BT1-060" : "BT1-062");
+      expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX13-046")).toBe(
+        faceUp,
+      );
+
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
 
   it("trashes exactly one card from the opponent's stack and spares the controller's own", async () => {
     const s = setupEngine(

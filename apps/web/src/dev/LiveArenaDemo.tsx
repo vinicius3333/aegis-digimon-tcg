@@ -116,6 +116,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
   },
+  "arena-ex9-metal-mamemon-face-down-deletion": {
+    ptBR: "Encerre a fase de criação. Jogue EX12-076 Susanoomon com Assembly, escolhendo os 8 materiais diferentes da lixeira. O [Ao Jogar] dá -9000 DP ao MetalMamemon EX9-018 do bot e ele morre. Seu Kokuwamon EX13-046 estava virado para baixo: o herdado [Ao Ser Deletado] não deve ativar nem oferecer De-Digivolve. Susanoomon permanece no campo com os 8 materiais; as duas cartas vão viradas para cima para a lixeira do bot, visíveis para ambos os jogadores.",
+    en: "End breeding. Play EX12-076 Susanoomon with Assembly, selecting all 8 different materials from trash. Its [On Play] gives the bot's EX9-018 MetalMamemon -9000 DP and deletes it. Its EX13-046 Kokuwamon was face down: the inherited [On Deletion] must not trigger or offer De-Digivolve. Susanoomon stays on the field with all 8 materials; both cards enter the bot's trash face up, visible to both players.",
+  },
   "arena-ex13-sampson-face-down-sources": {
     ptBR: "Você e o bot controlam EX13-071 Richard Sampson com 1 carta virada para baixo embaixo. No início da sua Fase Principal, aceite colocar a carta do topo do deck virada para baixo embaixo do seu Sampson. Abra a pilha do seu Sampson: as 2 cartas embaixo mostram o nome e a marca “Virada para baixo”, e tocar nelas amplia a carta. Abra a pilha do Sampson do bot: a carta embaixo continua como “Carta virada para baixo”, sem nome e sem ampliar.",
     en: "You and the bot each control EX13-071 Richard Sampson with 1 face-down card under it. At the start of your Main phase, accept placing your deck's top card face down under your Sampson. Open your Sampson's stack: both cards under it show their name with a “Face down” mark, and tapping one enlarges it. Open the bot's Sampson stack: its card stays “Face-down card”, with no name and no enlarge.",
@@ -756,6 +760,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-thetismon-mistymon-deletion", "EX12 Thetismon · Mistymon effect deletion before battle"],
   ["arena-ex12-thetismon-jamming-control", "EX12 Thetismon · Jamming security battle control"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
+  ["arena-ex9-metal-mamemon-face-down-deletion", "EX9 MetalMamemon · face-down On Deletion"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
   ["arena-p240-arcturusmon-ordered-placement", "P-240 Arcturusmon · order two bottom sources"],
   ["arena-ex12-proximamon-dual-siriusmon", "EX12 Proximamon · use DUAL Siriusmon from sources"],

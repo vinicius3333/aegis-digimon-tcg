@@ -222,7 +222,11 @@ export function insertCard(
   instance: CardInstance,
   position: ZonePosition = "bottom",
 ): void {
-  if (zone === Zone.Trash) trashArrivals.set(instance, ++lastTrashArrival);
+  if (zone === Zone.Trash) {
+    // CR §3-6-3: trash is public. Reveal before attachment notifies either player's view.
+    instance.faceUp = true;
+    trashArrivals.set(instance, ++lastTrashArrival);
+  }
   const arr = zoneArrayOf(player, zone);
   if (position === "top") {
     insertIntoSyncedArray(arr, instance, 0, (card) => notifyCardEntered(player, zone, card));
