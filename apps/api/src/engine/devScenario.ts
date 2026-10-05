@@ -6,6 +6,7 @@ import {
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
   KEYWORD_ATTACK_PACING_SCENARIOS,
+  KEYWORD_END_ATTACK_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -20,6 +21,7 @@ import {
   type KeywordStackPacingScenario,
   type KeywordDeckPacingScenario,
   type KeywordAttackPacingScenario,
+  type KeywordEndAttackPacingScenario,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -68,6 +70,7 @@ export const DEV_SCENARIO_IDS = [
   ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_END_ATTACK_PACING_SCENARIOS.map((scenario) => scenario.id),
   "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -6080,7 +6083,7 @@ function layKeywordDeckPacingScenario(
 function layKeywordAttackPacingScenario(
   state: GameState,
   _decks: readonly [Decklist, Decklist],
-  scenario: KeywordAttackPacingScenario,
+  scenario: KeywordAttackPacingScenario | KeywordEndAttackPacingScenario,
 ): void {
   const security = ["BT1-011", "BT1-010", "BT1-009", "BT1-014"];
   const fillerIds = [
@@ -6099,7 +6102,12 @@ function layKeywordAttackPacingScenario(
   ];
   for (const seat of [0, 1] as const) {
     const player = state.players[seat]!;
-    const fieldIds = seat === 0 ? scenario.attackerCardIds : scenario.flow === "raid" ? scenario.defenderCardIds : [];
+    const fieldIds =
+      seat === 0
+        ? scenario.attackerCardIds
+        : scenario.flow === "raid" || scenario.flow === "vortex"
+          ? scenario.defenderCardIds
+          : [];
     const mainFieldIds = fieldIds.filter((id) => !getCardDefinition(id)?.kinds.includes(CardKind.DigiEgg));
     const extras = [
       ...mainFieldIds,
@@ -6107,6 +6115,7 @@ function layKeywordAttackPacingScenario(
       "BT1-089",
       "ST2-16",
       ...(seat === 0 && scenario.flow === "rush" ? [scenario.controlCardId] : []),
+      ...(seat === 0 && (scenario.flow === "blitz" || scenario.flow === "vortex") ? [scenario.sourceCardId] : []),
     ];
     const fillers = fillerIds.flatMap((id) =>
       Array<string>(4 - extras.filter((extra) => extra === id).length).fill(id),
@@ -6149,18 +6158,27 @@ function layKeywordAttackPacingScenario(
           card.instanceId = `dev-keyword-attack-${slot}`;
           insertCard(player, Zone.Hand, card);
         }
+      } else if (scenario.flow === "blitz" || scenario.flow === "vortex") {
+        if (scenario.attackerCardIds.length > 0) place(scenario.attackerCardIds, "attacker");
+        const card = take(scenario.sourceCardId);
+        card.instanceId = "dev-keyword-attack-source";
+        insertCard(player, Zone.Hand, card);
       } else place(scenario.attackerCardIds, "attacker");
       // A playable reserve prevents the real loop from auto-passing an exhausted Main.
       const reserve = take("BT1-009");
       reserve.instanceId = "dev-keyword-attack-reserve";
       insertCard(player, Zone.Hand, reserve);
-    } else if (scenario.flow === "raid") {
+    } else if (scenario.flow === "raid" || scenario.flow === "vortex") {
       scenario.defenderCardIds.forEach((id, index) => place([id], `defender-${index}`));
+      if (scenario.flow === "vortex")
+        for (const permanent of player.battleArea)
+          permanent.isSuspended =
+            permanent.permanentId.endsWith("defender-0") || permanent.permanentId.endsWith("defender-1");
     }
     for (const cardId of security) insertCard(player, Zone.Security, take(cardId));
     insertCard(player, Zone.Deck, take("ST2-16"), "top");
   }
-  startEffectsLabTurn(state, 10);
+  startEffectsLabTurn(state, scenario.flow === "blitz" ? 3 : 10);
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
@@ -6196,6 +6214,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
       (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordDeckPacingScenario(state, decks, scenario),
     ]),
     ...KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) =>
+        layKeywordAttackPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_END_ATTACK_PACING_SCENARIOS.map((scenario) => [
       scenario.id,
       (state: GameState, decks: readonly [Decklist, Decklist]) =>
         layKeywordAttackPacingScenario(state, decks, scenario),

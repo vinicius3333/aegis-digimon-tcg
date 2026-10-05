@@ -5,6 +5,7 @@ import {
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
   KEYWORD_ATTACK_PACING_SCENARIOS,
+  KEYWORD_END_ATTACK_PACING_SCENARIOS,
   CardKind,
   getCardDefinition,
   Phase,
@@ -18,6 +19,140 @@ import { setupEngine, settle } from "./testkit/harness.js";
 import { observe } from "./testkit/observe.js";
 
 describe("real keyword pacing boards", () => {
+  for (const scenario of KEYWORD_END_ATTACK_PACING_SCENARIOS) {
+    it(`${scenario.id} finishes its real evolution or fresh play before the end-turn attack`, async () => {
+      const s = setupEngine({ 0: {}, 1: {} });
+      s.engine.stagedDecks[0] = BLUE_DECK;
+      s.engine.stagedDecks[1] = RED_DECK;
+      s.engine.startDevScenario(scenario.id);
+      const conserved = () => {
+        for (const player of s.state.players) {
+          const all = [
+            ...player.deck,
+            ...player.hand,
+            ...player.security,
+            ...player.trash,
+            ...player.eggDeck,
+            ...[...player.battleArea].flatMap((p) => [p.topCard, ...p.stack, ...p.linked]),
+          ];
+          const main = all.filter((card) => !getCardDefinition(card.cardId)?.kinds.includes(CardKind.DigiEgg));
+          expect(main).toHaveLength(50);
+          expect(new Set(all.map((card) => card.instanceId)).size).toBe(54);
+          const copies = new Map<string, number>();
+          for (const card of main) copies.set(card.cardId, (copies.get(card.cardId) ?? 0) + 1);
+          expect([...copies.values()].every((count) => count <= 4)).toBe(true);
+        }
+      };
+      try {
+        await settle(() => s.state.phase === Phase.Breeding);
+        conserved();
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        const turn = s.state.turnCount;
+        const security = [...s.state.players[1]!.security];
+        const controls = s.state.players.map((player) => player.battleArea[0]!.topCard.instanceId);
+        const firstEvent = s.events.length;
+        const base = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "ST1-10");
+        const baseId = base?.topCard.instanceId;
+        expect(
+          s.engine.applyIntent(
+            0,
+            scenario.flow === "blitz"
+              ? { type: "digivolve", permanentId: base!.permanentId, instanceId: "dev-keyword-attack-source" }
+              : { type: "playCard", instanceId: "dev-keyword-attack-source" },
+          ),
+        ).toEqual({ ok: true });
+        await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === scenario.sourceCardId));
+        const attacker = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === scenario.sourceCardId)!;
+        if (scenario.flow === "vortex") {
+          await settle(() => !s.state.pendingDecision);
+          expect(s.state.memory).toBe(3);
+          expect(attacker.enterFieldTurnCount).toBe(turn);
+          expect(observe(s.engine).hasKeyword(attacker, "Vortex")).toBe(true);
+          expect(
+            s.engine.applyIntent(0, {
+              type: "attack",
+              attackerPermanentId: attacker.permanentId,
+              target: { kind: "player" },
+            }),
+          ).toEqual({ ok: false, reason: "illegal-target" });
+          expect(attacker.isSuspended).toBe(false);
+          expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        }
+        await settle(() => s.state.pendingDecision?.kind === "optional");
+        const optional = s.state.pendingDecision!;
+        expect(s.decisions.findLast(({ req }) => req.decisionId === optional.decisionId)?.req.sourceCardId).toBe(
+          scenario.sourceCardId,
+        );
+        expect(s.state.memory).toBe(scenario.flow === "blitz" ? -1 : -3);
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: optional.decisionId,
+            response: { kind: "optional", accept: scenario.accept },
+          }),
+        ).toEqual({ ok: true });
+        if (scenario.accept) {
+          if (scenario.flow === "blitz") {
+            await settle(() => s.engine.hasAcceptedBlitzAttack(attacker.permanentId));
+            expect(
+              s.engine.applyIntent(0, {
+                type: "attack",
+                attackerPermanentId: attacker.permanentId,
+                target: { kind: "player" },
+              }),
+            ).toEqual({ ok: true });
+          } else {
+            await settle(() => s.state.pendingDecision?.kind === "selectCards");
+            const selection = s.state.pendingDecision!;
+            expect(JSON.parse(selection.payloadJson).candidateInstanceIds).toEqual([
+              "dev-perm-1-keyword-attack-defender-0",
+              "dev-perm-1-keyword-attack-defender-1",
+            ]);
+            expect(
+              s.engine.applyIntent(0, {
+                type: "respondDecision",
+                decisionId: selection.decisionId,
+                response: { kind: "selectCards", instanceIds: ["dev-perm-1-keyword-attack-defender-1"] },
+              }),
+            ).toEqual({ ok: true });
+          }
+        }
+        await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1);
+        const events = s.events.slice(firstEvent);
+        expect(events.filter((event) => event.kind === "attackDeclared")).toHaveLength(scenario.accept ? 1 : 0);
+        expect(events.filter((event) => event.kind === "attackEnded")).toHaveLength(scenario.accept ? 1 : 0);
+        expect(events.filter((event) => event.kind === "securityChecked").map((event) => event.revealedCardId)).toEqual(
+          security.slice(0, scenario.securityRemoved).map((card) => card.cardId),
+        );
+        expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(
+          security.slice(scenario.securityRemoved).map((card) => card.instanceId),
+        );
+        expect(attacker.topCard.instanceId).toBe("dev-keyword-attack-source");
+        expect(s.state.players[0]!.battleArea).toContain(attacker);
+        if (scenario.flow === "blitz") {
+          expect(attacker.permanentId).toBe(base!.permanentId);
+          expect(attacker.stack.map((card) => card.instanceId)).toEqual([baseId]);
+          // Blitz resolves first. The other printed When Digivolving effect then unsuspends it.
+          expect(attacker.isSuspended).toBe(false);
+        } else {
+          expect(attacker.isSuspended).toBe(scenario.accept);
+          expect(
+            s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId !== "BT1-089").map((p) => p.permanentId),
+          ).toEqual(
+            [0, ...(scenario.accept ? [] : [1]), 2].map((index) => `dev-perm-1-keyword-attack-defender-${index}`),
+          );
+        }
+        expect(s.state.players.map((player) => player.battleArea[0]!.topCard.instanceId)).toEqual(controls);
+        expect(s.state.turnCount).toBe(turn + 1);
+        expect(s.state.pendingDecision).toBeUndefined();
+        conserved();
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      }
+    });
+  }
+
   for (const scenario of KEYWORD_ATTACK_PACING_SCENARIOS) {
     it(`${scenario.id} resolves printed attack permissions and each physical target through public actions`, async () => {
       const s = setupEngine({ 0: {}, 1: {} });

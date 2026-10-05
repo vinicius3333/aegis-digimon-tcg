@@ -269,6 +269,36 @@ export const KEYWORD_ATTACK_PACING_SCENARIOS = [
   },
 ] as const;
 export type KeywordAttackPacingScenario = (typeof KEYWORD_ATTACK_PACING_SCENARIOS)[number];
+
+/** End-of-turn attacks retain their actual evolution/play and optional declaration. */
+export const KEYWORD_END_ATTACK_PACING_SCENARIOS = [
+  ...([true, false] as const).map(
+    (accept) =>
+      ({
+        id: accept ? "keyword-pacing-blitz-accept" : "keyword-pacing-blitz-decline",
+        keyword: "Blitz",
+        flow: "blitz",
+        attackerCardIds: ["ST1-10"],
+        sourceCardId: "BT5-086",
+        accept,
+        securityRemoved: accept ? 1 : 0,
+      }) as const,
+  ),
+  ...([true, false] as const).map(
+    (accept) =>
+      ({
+        id: accept ? "keyword-pacing-vortex-accept" : "keyword-pacing-vortex-decline",
+        keyword: "Vortex",
+        flow: "vortex",
+        attackerCardIds: [],
+        sourceCardId: "EX7-034",
+        defenderCardIds: ["BT1-009", "BT1-009", "BT1-010"],
+        accept,
+        securityRemoved: 0,
+      }) as const,
+  ),
+] as const;
+export type KeywordEndAttackPacingScenario = (typeof KEYWORD_END_ATTACK_PACING_SCENARIOS)[number];
 export type KeywordDeckPacingScenario = (typeof KEYWORD_DECK_PACING_SCENARIOS)[number];
 export type KeywordProtectionPacingScenario = (typeof KEYWORD_PROTECTION_PACING_SCENARIOS)[number];
 export type KeywordTurnPacingScenario = (typeof KEYWORD_TURN_PACING_SCENARIOS)[number];
@@ -278,5 +308,6 @@ export type KeywordPacingScenarioId =
   | KeywordProtectionPacingScenario["id"]
   | KeywordStackPacingScenario["id"]
   | KeywordDeckPacingScenario["id"]
-  | KeywordAttackPacingScenario["id"];
+  | KeywordAttackPacingScenario["id"]
+  | KeywordEndAttackPacingScenario["id"];
 export type KeywordPacingScenario = KeywordPacingBoard & { id: (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] };

@@ -7,6 +7,7 @@ import {
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
   KEYWORD_ATTACK_PACING_SCENARIOS,
+  KEYWORD_END_ATTACK_PACING_SCENARIOS,
   getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -53,6 +54,10 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...KEYWORD_END_ATTACK_PACING_SCENARIOS.map(
+    (scenario) =>
+      [scenario.id, `Keyword pacing · ${scenario.keyword} · ${scenario.accept ? "accept" : "decline"}`] as const,
+  ),
   ...KEYWORD_ATTACK_PACING_SCENARIOS.map(
     (scenario) =>
       [
@@ -112,6 +117,20 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  ...Object.fromEntries(
+    KEYWORD_END_ATTACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      scenario.flow === "blitz"
+        ? {
+            en: `End breeding and digivolve Phoenixmon into Omnimon. Resolve Blitz first and ${scenario.accept ? "accept, then attack security" : "decline the attack"}. Follow the evolution, draw, decision and later unsuspend before the turn changes.`,
+            ptBR: `Encerre a criação e evolua Phoenixmon para Omnimon. Resolva Blitz primeiro e ${scenario.accept ? "aceite, depois ataque a segurança" : "recuse o ataque"}. Acompanhe a evolução, a compra, a decisão e o desvirar antes da troca de turno.`,
+          }
+        : {
+            en: `End breeding, play GrandGalemon, then end your turn. ${scenario.accept ? "Accept Vortex and choose the second suspended Monodramon. Follow its departure and the field regrouping." : "Decline Vortex and follow the turn change without an attack."} The unsuspended Agumon and security are not legal Vortex targets.`,
+            ptBR: `Encerre a criação, jogue GrandGalemon e encerre seu turno. ${scenario.accept ? "Aceite Vortex e escolha o segundo Monodramon virado. Acompanhe a saída e o reagrupamento do campo." : "Recuse Vortex e acompanhe a troca de turno sem ataque."} Agumon desvirado e a segurança não são alvos válidos de Vortex.`,
+          },
+    ]),
+  ),
   ...Object.fromEntries(
     KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => [
       scenario.id,
