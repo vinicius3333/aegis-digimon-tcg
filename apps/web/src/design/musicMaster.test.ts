@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { tempoOriginalMusic } from "../../../../tools/diagnostics/tempo-original-music.mjs";
 import { MUSIC_URL } from "./audioBank";
 import { decodeMusicWav, encodeMusicWav, masterOriginalMusic, musicMetrics } from "./musicMaster";
 
@@ -13,12 +14,16 @@ describe("original musical source mastering", () => {
     const selected = manifest.candidates.find((row: { id: string }) => row.id === manifest.selectedId);
     expect(MUSIC_URL).toBe(selected.url);
     expect(manifest.runtimeUrl).toBe(selected.url);
-    expect(selected.bpm).toBe(104);
+    expect(selected.bpm).toBe(112);
     expect(selected.role).toBe("selected");
     for (const candidate of provenance.candidates) {
       const source = gunzipSync(readFileSync(new URL(`music-candidates/${candidate.sourceFile}`, root)));
       expect(createHash("sha256").update(source).digest("hex")).toBe(candidate.sourceSha256);
-      const pcm = masterOriginalMusic(decodeMusicWav(source), candidate.masterSettings);
+      const original = masterOriginalMusic(decodeMusicWav(source), candidate.masterSettings);
+      const pcm =
+        candidate.id === provenance.selectedId
+          ? tempoOriginalMusic(original, provenance.selectedTempo.fromBpm, provenance.selectedTempo.bpm)
+          : original;
       const bytes = encodeMusicWav(pcm);
       const row = manifest.candidates.find((entry: { id: string }) => entry.id === candidate.id);
       expect(createHash("sha256").update(bytes).digest("hex")).toBe(row.sha256);
@@ -30,7 +35,7 @@ describe("original musical source mastering", () => {
       expect(measured.rms).toBeGreaterThan(0.01);
       expect(Math.abs(measured.dc)).toBeLessThan(0.000001);
       expect(measured.boundaryStep).toBe(0);
-      expect(measured.seconds).toBeCloseTo((candidate.masterSettings.beats * 60) / candidate.masterSettings.bpm, 4);
+      expect(measured.seconds).toBeCloseTo((candidate.masterSettings.beats * 60) / row.bpm, 4);
       expect(row.sourceIdentity.type).toBe("original-text-generation");
     }
   });

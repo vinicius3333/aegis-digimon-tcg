@@ -1,7 +1,7 @@
 {
   "version": 1,
   "selectedId": "warm-drive",
-  "runtimeUrl": "/audio/aegis-music-v3.wav?v=605e4aab391d",
+  "runtimeUrl": "/audio/aegis-music-v3.wav?v=dfc22b914a38",
   "candidates": [
     {
       "id": "current-clean-96",
@@ -28,11 +28,11 @@
       }
     },
     {
-      "id": "warm-drive",
-      "label": "Warm drive · guitar and keys",
-      "role": "selected",
-      "file": "aegis-music-v3.wav",
-      "url": "/audio/aegis-music-v3.wav?v=605e4aab391d",
+      "id": "warm-drive-104",
+      "label": "Prior warm drive · 104 BPM",
+      "role": "alternative",
+      "file": "music-candidates/warm-drive-104.wav",
+      "url": "/audio/music-candidates/warm-drive-104.wav?v=605e4aab391d",
       "sha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e",
       "bpm": 104,
       "seconds": 36.92308333333333,
@@ -46,6 +46,31 @@
         "sampleRate": 48000,
         "channels": 2,
         "bytes": 7089276
+      },
+      "sourceIdentity": {
+        "type": "original-text-generation",
+        "sha256": "3e07d11d16ca9ca356ff8ca092317a208236239331c48bb3527c33d587e14822"
+      }
+    },
+    {
+      "id": "warm-drive",
+      "label": "Warm drive · steady 112 BPM",
+      "role": "selected",
+      "file": "aegis-music-v3.wav",
+      "url": "/audio/aegis-music-v3.wav?v=dfc22b914a38",
+      "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
+      "bpm": 112,
+      "seconds": 34.28572916666667,
+      "metrics": {
+        "peak": 0.07501220703125,
+        "peakDbFS": -22.497361128185656,
+        "rms": 0.01692427846837236,
+        "dc": 1.5483955444518037e-9,
+        "boundaryStep": 0,
+        "seconds": 34.28572916666667,
+        "sampleRate": 48000,
+        "channels": 2,
+        "bytes": 6582904
       },
       "sourceIdentity": {
         "type": "original-text-generation",
@@ -64,6 +89,15 @@
         "peak": 0.075,
         "crossfadeBeats": 0.5,
         "lowpassHz": 5200
+      },
+      "tempoAdjustment": {
+        "bpm": 112,
+        "fromBpm": 104,
+        "method": "offline ffmpeg atempo; pitch preserving",
+        "ratio": 1.0769230769230769,
+        "ffmpegVersion": "8.1.2",
+        "renderer": "tools/diagnostics/tempo-original-music.mjs",
+        "sourceMasterSha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e"
       }
     },
     {
@@ -112,6 +146,6 @@
     "sha256": "42adc3affa0a810d699df36fdf17e8ee5885d5d9d13dcb130ddb0edfa466b63b",
     "seconds": 258.48454166666664
   },
-  "selectionReason": "Strong measured105 BPM pulse near requested104, strongest proposed loop-boundary harmonic similarity0.907, modest0.974% tempo alignment; no subjective listening certification",
+  "selectionReason": "Previously selected warm-drive original at a steady 112 BPM, offline pitch-preserving 112/104 tempo adjustment; prior 104 master retained for comparison; listening acceptance remains",
   "listeningStatus": "Measured verification only; user/validator listening acceptance remains"
 }
