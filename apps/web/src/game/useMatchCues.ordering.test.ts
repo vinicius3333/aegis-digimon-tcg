@@ -9,6 +9,7 @@ import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { recordSnapshot, selectPresentedState, type StateSnapshot } from "../net/presentedState";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { TIMINGS } from "./timings";
+import type { PresentationPacing, PresentationProbe, PresentationControls } from "./presentationProbe";
 import { NarrationStack } from "./NarrationStack";
 import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
@@ -78,6 +79,8 @@ function renderOrderingCues(
   initialState: GameState = BOARD,
   cueAnchors: MatchCueAnchors = anchors,
   viewerSeat: Seat = VIEWER,
+  presentationPacing: PresentationPacing = "current",
+  devProbe?: PresentationProbe,
 ) {
   const feed = batchFeed();
   let snapshots = recordSnapshot([], initialState);
@@ -85,6 +88,8 @@ function renderOrderingCues(
     ({ batches, decisionPending, state, snapshots: taken }: OrderingProps) =>
       useMatchCues({
         narrationLimit: 3,
+        presentationPacing,
+        devProbe,
         batches,
         state,
         snapshots: taken,
@@ -252,6 +257,8 @@ it.each([
       y: 0,
       toJSON: () => ({}),
     });
+    let controls: PresentationControls | undefined;
+    const pendingSteps = new Set<string>();
     const view = renderOrderingCues(
       before,
       {
@@ -1307,5 +1314,186 @@ it.each([0, 1] as const)(
     );
     await advance(12_000);
     expect(expiries).toEqual([]);
+  },
+);
+
+// Actual Titan cascade: hand-trash reactions precede two physical Delay costs.
+// Each cost must wait its turn without spending its own gate ceiling in that queue.
+it.each([
+  [false, 2, "live"],
+  [true, 1, "live"],
+  [true, 2, "live"],
+  [true, 2, "skip"],
+  [true, 2, "cancel"],
+] as const)(
+  "keeps Titan Delay costs physical with earlier reactions queued=%s and copies=%s, %s",
+  async (queuedReactions, copies, exit) => {
+    const option = (permanentId: string, instanceId: string) => ({
+      permanentId,
+      topCard: { instanceId, cardId: "BT24-098" },
+      stack: [],
+      currentDP: 0,
+    });
+    const first = option("delay-first", "option-first");
+    const second = option("delay-second", "option-second");
+    const titan = {
+      permanentId: "titan",
+      topCard: { instanceId: "titamon", cardId: "BT25-084" },
+      stack: [],
+      currentDP: 14000,
+    };
+    const before = {
+      stateVersion: 0,
+      players: [
+        {
+          battleArea: [titan, first, second],
+          trash: [{ instanceId: "discard", cardId: "BT26-069" }],
+          hand: [],
+          deckCount: 30,
+          securityCount: 0,
+        },
+        { battleArea: [], trash: [], hand: [], securityCount: 0 },
+      ],
+    } as unknown as GameState;
+    const after = {
+      ...before,
+      stateVersion: 20,
+      players: [
+        {
+          ...before.players[0],
+          battleArea: copies === 2 ? [titan] : [titan, second],
+          trash: [...[first, second].slice(0, copies).map((physical) => physical.topCard), ...before.players[0]!.trash],
+          hand: [{ instanceId: "drawn", cardId: "BT1-009" }],
+        },
+        before.players[1],
+      ],
+    } as unknown as GameState;
+    let controls: PresentationControls | undefined;
+    const view = renderOrderingCues(
+      before,
+      {
+        ...anchors,
+        permanentCenter: () => ({ x: 200, y: 300 }),
+        permanentFace: (id) => ({ x: id === "delay-first" ? 200 : 300, y: 300, width: 99, height: 139, angle: 0 }),
+      },
+      0,
+      "sequential",
+      {
+        onQueue: (next) => {
+          controls = next;
+        },
+      },
+    );
+    await advance(0);
+    view.setDecisionPending(queuedReactions);
+    const batches: ServerEvent[][] = [];
+    if (queuedReactions) {
+      const reaction = {
+        seat: 0,
+        sourceCardId: "BT25-084",
+        sourceInstanceId: "titamon",
+        sourcePermanentId: "titan",
+        effectKey: "hand-trash",
+        timing: "whenHandTrashed",
+        description: "[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon.",
+      } as const;
+      const draw = {
+        seat: 0,
+        sourceCardId: "BT26-069",
+        sourceInstanceId: "discard",
+        effectKey: "hand-draw",
+        timing: "whenTrashedFromHand",
+        description: "When this card is trashed from the hand, if your hand has 5 or fewer cards, ＜Draw 1＞",
+      } as const;
+      batches.push(
+        [{ kind: "effectTriggered", ...reaction }],
+        [{ kind: "effectResolved", ...reaction }],
+        [
+          { kind: "effectTriggered", ...draw },
+          { kind: "cardsMoved", from: "deck", to: "hand", handAddition: "draw", seat: 0, instanceIds: ["drawn"] },
+        ],
+        [{ kind: "effectResolved", ...draw }],
+      );
+    }
+    for (const physical of [first, second].slice(0, copies)) {
+      const clause = {
+        seat: 0,
+        sourceCardId: "BT24-098",
+        sourceInstanceId: physical.topCard.instanceId,
+        sourcePermanentId: physical.permanentId,
+        effectKey: `delay-${physical.permanentId}`,
+        timing: "whenPlayed",
+        description:
+          "[Your Turn] When any of your [Titan] trait Digimon are played, ＜Delay＞ · If your opponent has 5 or more memory, you may play 1 level 5 or lower [Titan] Digimon from your trash.",
+      } as const;
+      batches.push(
+        [{ kind: "effectTriggered", ...clause }],
+        [
+          {
+            kind: "cardsMoved",
+            from: "various",
+            to: "trash",
+            instanceIds: [physical.topCard.instanceId],
+            trashedPermanents: [
+              {
+                permanentId: physical.permanentId,
+                instanceId: physical.topCard.instanceId,
+                cardId: "BT24-098",
+                seat: 0,
+              },
+            ],
+          },
+        ],
+        [{ kind: "effectResolved", ...clause }],
+      );
+    }
+    view.feedBatches(batches, after);
+    if (exit !== "live") {
+      await advance(16);
+      expect(view.result.current.heldDeletions.size).toBe(2);
+      if (exit === "skip") act(() => view.result.current.skipAnimations());
+      else view.unmount();
+      await advance(1000);
+      expect(controls?.queue.isIdle()).toBe(true);
+      if (exit === "skip") {
+        expect(view.result.current.heldDeletions.size).toBe(0);
+        expect(view.result.current.deleteBursts).toHaveLength(0);
+      }
+      return;
+    }
+    const moments = await firstSeenOrder(
+      {
+        firstFocus: () =>
+          view.result.current.effectSources.some(
+            (source) => source.site.zone === "field" && source.site.permanentId === "delay-first",
+          ),
+        firstBreak: () => view.result.current.deleteBursts.some((burst) => burst.face?.x === 200),
+        firstClause: () =>
+          view.result.current.notices.some(
+            (notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId === "option-first",
+          ),
+        secondFocus: () =>
+          copies === 2 &&
+          view.result.current.effectSources.some(
+            (source) => source.site.zone === "field" && source.site.permanentId === "delay-second",
+          ),
+        secondBreak: () => copies === 2 && view.result.current.deleteBursts.some((burst) => burst.face?.x === 300),
+        secondClause: () =>
+          copies === 2 &&
+          view.result.current.notices.some(
+            (notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId === "option-second",
+          ),
+      },
+      12000,
+    );
+    expect(moments).toEqual([
+      "firstFocus",
+      "firstBreak",
+      "firstClause",
+      ...(copies === 2 ? ["secondFocus", "secondBreak", "secondClause"] : []),
+    ]);
+    expect(view.result.current.heldDeletions.size).toBe(0);
+    expect(view.result.current.deleteBursts).toHaveLength(0);
+    expect(controls?.queue.isIdle()).toBe(true);
   },
 );

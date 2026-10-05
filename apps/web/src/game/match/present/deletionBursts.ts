@@ -149,6 +149,8 @@ export function enqueueDeletionBursts({
         if (anchorId === costClause?.permanentId) costClause.departing.release();
         continue;
       }
+      if (anchorId === costClause?.permanentId)
+        costClause.deletion = deletionReadyAtRef.current.get(costClause.sourceKey);
       deletionBurstPresentedRef.current.add(anchorId);
       const held = heldDeletionFrom({ snapshots, seat: deleted?.seat, permanentId: anchorId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));

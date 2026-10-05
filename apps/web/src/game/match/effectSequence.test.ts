@@ -77,6 +77,26 @@ describe("effect sequence", () => {
     expect(sequence.pendingCount()).toBe(1);
   });
 
+  it("keeps each physical field Delay cost in its own unit before either starts", () => {
+    const sequence = createEffectSequence();
+    const delay = (instanceId: string, kind: "effectTriggered" | "effectResolved"): ServerEvent =>
+      ({
+        ...copy(instanceId, kind),
+        sourceCardId: "BT24-098",
+        sourcePermanentId: `option-${instanceId}`,
+        description: "[Your Turn] When your [Titan] Digimon is played, ＜Delay＞ · You may play a Digimon.",
+      }) as ServerEvent;
+    const first = sequence.observeBatch("b1", 1, [delay("first", "effectTriggered")]).opened[0]!.unit;
+    sequence.observeBatch("b2", 2, [delay("first", "effectResolved")]);
+    const second = sequence.observeBatch("b3", 3, [delay("second", "effectTriggered")]);
+    expect(first.started.open).toBe(false);
+    expect(second.grouped).toEqual([]);
+    expect(second.opened).toHaveLength(1);
+    expect(second.owner?.sourcePermanentId).toBe("option-second");
+    expect(first.sourcePermanentId).toBe("option-first");
+    expect(first.count).toBe(1);
+  });
+
   it("opens a new unit when the earlier copy is already on screen", () => {
     const sequence = createEffectSequence();
     const unit = sequence.observeBatch("b1", 1, [copy("first", "effectTriggered")]).opened[0]!.unit;
