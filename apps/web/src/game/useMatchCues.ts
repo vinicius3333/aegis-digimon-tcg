@@ -1094,6 +1094,7 @@ export function useMatchCues({
     anchors,
     viewerSeat,
     causingEffectGateRef,
+    presentationBatchRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,

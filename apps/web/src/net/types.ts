@@ -54,6 +54,7 @@ export interface AegisJoinOptions {
     | "arena-taiki-digixros-any-tamer-hand"
     | "arena-kotone-digixros-any-tamer-effect"
     | "arena-mervamon-trash-digixros"
+    | "arena-bt5-koromon-attack-draw"
     | "arena-ex7-seventh-fascination-turn"
     | "arena-ad1-adventure-tamers-security"
     | "arena-lm067-gundramon-free-option"
