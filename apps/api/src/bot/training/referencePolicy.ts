@@ -35,7 +35,7 @@ function materialTeacherDecision(engine: GameEngine, seat: Seat, request: Decisi
   if (options.digiXrosCardId !== undefined && digiXrosRequirementFor(options.digiXrosCardId)?.[0] === undefined)
     return undefined;
   const cards = selectionCards(trainingObservation(engine.state, seat, request));
-  const offered = options.candidateInstanceIds ?? [];
+  const offered = [...new Set(options.candidateInstanceIds ?? [])];
   const min = options.min ?? 0;
   const max = options.max ?? offered.length;
   if (!Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < min || min > offered.length)
@@ -68,6 +68,15 @@ function materialTeacherDecision(engine: GameEngine, seat: Seat, request: Decisi
     )
       return undefined;
     const ids = intent.response.instanceIds;
+    // The solver may clamp a floor to its deduplicated pool. A teacher label
+    // must still satisfy the original request against physical identities.
+    if (
+      ids.length < min ||
+      ids.length > max ||
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => !offered.includes(id))
+    )
+      return undefined;
     // Assembly's specialized completion program owns the printed recipe. Replay
     // the same IDs through the general constraints too (cost, DP, count, names,
     // colors); DigiXros additionally retains its material-group quotas here.
