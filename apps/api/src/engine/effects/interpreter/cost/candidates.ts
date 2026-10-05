@@ -1,4 +1,5 @@
 import type { EffectContext } from "../../EffectContext.js";
+import { hasPlayCost } from "../../../cards/cardData.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { LooseCandidate } from "../targeting/loose.js";
 import { candidatePermanents } from "../targeting/permanents.js";
@@ -66,7 +67,7 @@ export function bindLooseCostSelection(
   ctx.selectionFacts.set(ref, {
     dp: definition.dp,
     level: definition.level,
-    playCost: definition.playCost,
+    playCost: hasPlayCost(definition) ? definition.playCost : undefined,
     names: effectiveExactNames(definition),
   });
 }

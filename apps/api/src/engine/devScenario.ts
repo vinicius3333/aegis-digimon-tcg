@@ -99,6 +99,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-decoy-protect-choice",
   "arena-crimson-blaze-jesmon-token",
   "arena-p245-kakkinmon-full-hand-suspend",
+  "arena-ex13-craniamon-dual-play-cost",
   "arena-ex13-alphamon-end-turn-attack",
   "arena-bt20-dragon-gene-skip-play",
   "arena-bt26-rosemon-option-digivolve-lock",
@@ -117,6 +118,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt14-chuumon-security-reveal",
   "arena-bt20-omnimon-each-player-survivor",
   "arena-bt20-ouryuken-reduction-resumes",
+  "arena-bt20-ouryuken-blast-dna-counter",
   "arena-ex13-gotsumon-blocker-search",
   "arena-ex13-craniamon-assembly",
   "arena-p220-millenniummon-assembly",
@@ -1443,6 +1445,37 @@ function layCrimsonBlazeJesmonTokenScenario(state: GameState, decks: readonly [D
   state.memory = 3;
 }
 
+/** Discord 1556424046827282472: Craniamon must ignore Siriusmon DUAL's Option use cost. */
+function layEx13CraniamonDualPlayCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    for (let index = 0; index < 7; index += 1) {
+      insertCard(human, Zone.Hand, faceDownCard(`dev-dual-cost-hand-${index}`, "BT1-009", 0));
+    }
+    placePermanent(human, establishedDigimon(0, ["P-245", "EX13-062"], "-dual-cost-craniamon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(
+      bot,
+      establishedDigimon(1, ["BT21-002", "EX12-014", "BT21-022", "EX12-018"], "-dual-cost-siriusmon"),
+    );
+    placePermanent(bot, establishedDigimon(1, ["EX12-013"], "-dual-cost-betelgammamon"));
+    placePermanent(bot, establishedDigimon(1, ["P-240"], "-dual-cost-arcturusmon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
 /**
  * Discord 1555485421750984765: the human's EX13-062 Craniamon has P-245 Kakkinmon in its
  * digivolution cards, and the turn draw brings the hand to 8. At the end of the turn,
@@ -1775,6 +1808,32 @@ function layBt20OmnimonEachPlayerSurvivorScenario(state: GameState, decks: reado
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1556343982546755625: two ACEs and two hand partners yield four legal counters. */
+function layBt20OuryukenBlastDnaCounterScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-048", "BT20-053", "EX13-060"], "-ouryuken-alphamon"));
+    for (const [instanceId, cardId] of [
+      ["dev-ouryuken-ace-1", "BT20-060"],
+      ["dev-ouryuken-ace-2", "BT20-060"],
+      ["dev-ouryuken-partner-1", "BT20-018"],
+      ["dev-ouryuken-partner-2", "BT20-018"],
+    ] as const) {
+      insertCard(human, Zone.Hand, faceDownCard(instanceId, cardId, 0));
+    }
+    insertCard(human, Zone.Deck, faceDownCard("dev-ouryuken-draw", "BT1-085", 0), "top");
+    insertCard(human, Zone.Security, faceDownCard("dev-ouryuken-security", "EX13-055", 0), "top");
+    takeBottom(human, Zone.Security);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT12-024"], "-ouryuken-lanamon"));
+    // A red Option cannot be used with only the blue Lanamon, so the bot attacks first.
+    insertCard(bot, Zone.Deck, faceDownCard("dev-ouryuken-bot-draw", "ST1-16", 1), "top");
+  }
 }
 
 /**
@@ -5532,6 +5591,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-decoy-protect-choice": layDecoyProtectChoiceScenario,
   "arena-crimson-blaze-jesmon-token": layCrimsonBlazeJesmonTokenScenario,
   "arena-p245-kakkinmon-full-hand-suspend": layP245KakkinmonFullHandSuspendScenario,
+  "arena-ex13-craniamon-dual-play-cost": layEx13CraniamonDualPlayCostScenario,
   "arena-ex13-alphamon-end-turn-attack": layEx13AlphamonEndTurnAttackScenario,
   "arena-bt20-dragon-gene-skip-play": layBt20DragonGeneSkipPlayScenario,
   "arena-bt26-rosemon-option-digivolve-lock": layBt26RosemonOptionDigivolveLockScenario,
@@ -5551,6 +5611,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt14-chuumon-security-reveal": layBt14ChuumonSecurityRevealScenario,
   "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
   "arena-bt20-ouryuken-reduction-resumes": layBt20OuryukenReductionResumesScenario,
+  "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
   "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,
