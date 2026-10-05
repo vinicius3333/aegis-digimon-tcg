@@ -4,6 +4,7 @@ import {
   KEYWORD_PACING_SCENARIOS,
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
+  KEYWORD_STACK_PACING_SCENARIOS,
   type KeywordPacingScenario,
 } from "@aegis/shared";
 import { colorKey } from "../design/theme";
@@ -49,6 +50,13 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...KEYWORD_STACK_PACING_SCENARIOS.map(
+    (scenario) =>
+      [
+        scenario.id,
+        `Keyword pacing · ${scenario.flow === "de-digivolve" ? `De-Digivolve · ${scenario.removedCount} levels` : `Digi-Burst · ${scenario.deletesTarget ? "delete at zero DP" : "reduce DP"}`}`,
+      ] as const,
+  ),
   ...KEYWORD_PROTECTION_PACING_SCENARIOS.map(
     (scenario) =>
       [scenario.id, `Keyword pacing · ${scenario.keyword} · ${scenario.accept ? "accept" : "decline"}`] as const,
@@ -87,6 +95,20 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  ...Object.fromEntries(
+    KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      scenario.flow === "de-digivolve"
+        ? {
+            en: `End breeding, play ${scenario.optionCardId === "BT2-105" ? "Spider Shooter" : "Infinity Cannon"} and select one Phoenixmon. Watch each top leave in order while the other copy keeps its stack. The level-three floor protects Yokomon.`,
+            ptBR: `Encerre a criação, jogue ${scenario.optionCardId === "BT2-105" ? "Spider Shooter" : "Infinity Cannon"} e selecione um Phoenixmon. Acompanhe cada topo saindo em ordem, enquanto a outra cópia mantém a pilha. O limite de nível três protege Yokomon.`,
+          }
+        : {
+            en: `End breeding and activate one WarGrowlmon. Trash Cupimon and Salamon for Digi-Burst, then follow the two source peels and ${scenario.deletesTarget ? "Dracomon's deletion at zero DP" : "Phoenixmon's DP reduction"}. The other WarGrowlmon keeps its sources.`,
+            ptBR: `Encerre a criação e ative um WarGrowlmon. Descarte Cupimon e Salamon para Digi-Burst, depois acompanhe as duas fontes saindo e ${scenario.deletesTarget ? "a deleção de Dracomon com zero DP" : "a redução de DP de Phoenixmon"}. O outro WarGrowlmon mantém suas fontes.`,
+          },
+    ]),
+  ),
   ...Object.fromEntries(
     KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => [
       scenario.id,

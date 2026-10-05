@@ -2,6 +2,7 @@ import {
   KEYWORD_PACING_SCENARIOS,
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
+  KEYWORD_STACK_PACING_SCENARIOS,
   Phase,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -13,6 +14,87 @@ import { setupEngine, settle } from "./testkit/harness.js";
 import { observe } from "./testkit/observe.js";
 
 describe("real keyword pacing boards", () => {
+  for (const scenario of KEYWORD_STACK_PACING_SCENARIOS) {
+    it(`${scenario.id} moves only the chosen physical stack through a public action`, async () => {
+      const s = setupEngine({ 0: {}, 1: {} });
+      s.engine.stagedDecks[0] = BLUE_DECK;
+      s.engine.stagedDecks[1] = RED_DECK;
+      s.engine.startDevScenario(scenario.id);
+      try {
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        const seat = scenario.flow === "de-digivolve" ? 1 : 0;
+        const host = s.state.players[seat]!.battleArea[0]!;
+        const control = s.state.players[seat]!.battleArea[1]!;
+        const initial = [host, control].map((permanent) =>
+          [...permanent.stack, permanent.topCard].map((card) => card.instanceId),
+        );
+        if (scenario.flow === "de-digivolve") {
+          expect(s.engine.applyIntent(0, { type: "playCard", instanceId: "dev-keyword-stack-option" })).toEqual({
+            ok: true,
+          });
+          await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+          const choice = s.state.pendingDecision!;
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: choice.decisionId,
+              response: { kind: "chooseTargets", instanceIds: [host.permanentId] },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => host.topCard.cardId === scenario.expectedTopCardId);
+          expect(host.stack).toHaveLength(4 - scenario.removedCount);
+          expect(host.stack[0]!.cardId).toBe("BT1-001");
+          const strips = s.events.filter(
+            (event) => event.kind === "cardsMoved" && event.strippedStackTops?.reason === "deDigivolve",
+          );
+          expect(strips.flatMap((event) => event.instanceIds)).toEqual(
+            initial[0]!.slice(-scenario.removedCount).reverse(),
+          );
+          expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+            initial[0]!.slice(-scenario.removedCount).reverse(),
+          );
+        } else {
+          const effect = observe(s.engine)
+            .activatableEffects(host)
+            .find((entry) => entry.effectKey.startsWith("BT4-046/"))!;
+          expect(
+            s.engine.applyIntent(0, {
+              type: "activateEffect",
+              sourceInstanceId: host.topCard.instanceId,
+              effectKey: effect.effectKey,
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => s.state.pendingDecision?.kind === "selectCards");
+          const choice = s.state.pendingDecision!;
+          expect(s.decisions.at(-1)!.req.options?.purpose).toBe("cost");
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: choice.decisionId,
+              response: { kind: "selectCards", instanceIds: initial[0]!.slice(0, 2) },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() =>
+            s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT4-046"),
+          );
+          expect(host.topCard.cardId).toBe("BT4-046");
+          expect(host.stack.map((card) => card.instanceId)).toEqual(initial[0]!.slice(2, -1));
+          expect(s.state.players[1]!.battleArea).toHaveLength(scenario.deletesTarget ? 0 : 1);
+          if (!scenario.deletesTarget) expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(8000);
+          const strips = s.events.filter(
+            (event) => event.kind === "cardsMoved" && event.trashedSources?.permanentId === host.permanentId,
+          );
+          expect(strips.flatMap((event) => event.instanceIds)).toEqual(initial[0]!.slice(0, 2));
+        }
+        expect([...control.stack, control.topCard].map((card) => card.instanceId)).toEqual(initial[1]);
+        expect(s.state.pendingDecision).toBeUndefined();
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      }
+    });
+  }
   for (const scenario of KEYWORD_PROTECTION_PACING_SCENARIOS) {
     it(`${scenario.id} protects or deletes printed cards through a public attack`, async () => {
       const s = setupEngine({ 0: {}, 1: {} });

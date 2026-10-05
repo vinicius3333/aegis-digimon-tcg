@@ -135,10 +135,40 @@ export const KEYWORD_PROTECTION_PACING_SCENARIOS = [
   ),
 ] as const;
 
+/** Stack costs and level reduction are measured one physical card at a time. */
+export const KEYWORD_STACK_PACING_SCENARIOS = [
+  ...([1, 4] as const).map(
+    (amount) =>
+      ({
+        id: amount === 1 ? "keyword-pacing-de-digivolve-one" : "keyword-pacing-de-digivolve-many",
+        keyword: "DeDigivolve",
+        flow: "de-digivolve",
+        optionCardId: amount === 1 ? "BT2-105" : "BT2-106",
+        supportCardId: "BT4-070",
+        targetCardIds: ["BT1-001", "BT1-009", "ST1-07", "ST1-08", "ST1-10"],
+        removedCount: amount === 1 ? 1 : 3,
+        expectedTopCardId: amount === 1 ? "ST1-08" : "BT1-009",
+      }) as const,
+  ),
+  ...([false, true] as const).map(
+    (deletesTarget) =>
+      ({
+        id: deletesTarget ? "keyword-pacing-digi-burst-delete" : "keyword-pacing-digi-burst-reduce",
+        keyword: "DigiBurst",
+        flow: "digi-burst",
+        holderCardIds: ["BT1-006", "ST3-02", "BT1-051", "BT4-046"],
+        targetCardId: deletesTarget ? "ST1-04" : "ST1-10",
+        deletesTarget,
+      }) as const,
+  ),
+] as const;
+
+export type KeywordStackPacingScenario = (typeof KEYWORD_STACK_PACING_SCENARIOS)[number];
 export type KeywordProtectionPacingScenario = (typeof KEYWORD_PROTECTION_PACING_SCENARIOS)[number];
 export type KeywordTurnPacingScenario = (typeof KEYWORD_TURN_PACING_SCENARIOS)[number];
 export type KeywordPacingScenarioId =
   | (typeof KEYWORD_PACING_SCENARIOS)[number]["id"]
   | KeywordTurnPacingScenario["id"]
-  | KeywordProtectionPacingScenario["id"];
+  | KeywordProtectionPacingScenario["id"]
+  | KeywordStackPacingScenario["id"];
 export type KeywordPacingScenario = KeywordPacingBoard & { id: (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] };

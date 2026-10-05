@@ -3,6 +3,7 @@ import {
   KEYWORD_PACING_SCENARIOS,
   KEYWORD_TURN_PACING_SCENARIOS,
   KEYWORD_PROTECTION_PACING_SCENARIOS,
+  KEYWORD_STACK_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -14,6 +15,7 @@ import {
   type KeywordPacingScenarioId,
   type KeywordTurnPacingScenario,
   type KeywordProtectionPacingScenario,
+  type KeywordStackPacingScenario,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -59,6 +61,7 @@ export const DEV_SCENARIO_IDS = [
   ...KEYWORD_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => scenario.id),
   "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -5935,6 +5938,25 @@ function layKeywordProtectionPacingScenario(
   startEffectsLabTurn(state, 3);
 }
 
+function layKeywordStackPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordStackPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  if (scenario.flow === "de-digivolve") {
+    placePermanent(state.players[0]!, establishedDigimon(0, [scenario.supportCardId], "-keyword-stack-support"));
+    insertCard(state.players[0]!, Zone.Hand, faceDownCard("dev-keyword-stack-option", scenario.optionCardId, 0));
+    for (let index = 0; index < 2; index++)
+      placePermanent(state.players[1]!, establishedDigimon(1, scenario.targetCardIds, `-keyword-stack-${index}`));
+  } else {
+    for (let index = 0; index < 2; index++)
+      placePermanent(state.players[0]!, establishedDigimon(0, scenario.holderCardIds, `-keyword-stack-${index}`));
+    placePermanent(state.players[1]!, establishedDigimon(1, [scenario.targetCardId], "-keyword-stack-target"));
+  }
+  startEffectsLabTurn(state, 8);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
@@ -5958,6 +5980,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
       scenario.id,
       (state: GameState, decks: readonly [Decklist, Decklist]) =>
         layKeywordProtectionPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordStackPacingScenario(state, decks, scenario),
     ]),
   ]) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
   battle: layBattleScenario,
