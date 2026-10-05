@@ -7,6 +7,60 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-085 compiled behavior", () => {
+  it.each([false, true])(
+    "1556745762682183811: Execute deletes once after Giant Slayer evolves to Destroy Mode (Holy Mode=%s)",
+    async (withHolyMode) => {
+      const materials = ["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-016"];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT26-085", as: "giantSlayer" },
+              ...(withHolyMode ? [] : [{ card: "BT26-060", as: "destroyMode" }]),
+            ],
+            trash: [
+              { card: "BT26-078", as: "cherubimon" },
+              ...(withHolyMode ? [{ card: "BT26-060", as: "destroyMode" }] : []),
+              ...(withHolyMode ? materials.map((card, i) => ({ card, as: `material${i}` })) : []),
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+            security: ["BT1-009", "BT1-010"],
+          },
+          1: { deck: ["BT1-009", "BT1-010"], security: ["BT1-009", "BT1-009", "BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      const loop = s.engine.startTurnLoop();
+      try {
+        await advance(s.engine).waitForMainPhase(0);
+        s.state.memory = withHolyMode ? 2 : 7;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "playCard",
+            instanceId: s.inst("giantSlayer").instanceId,
+            ...(withHolyMode
+              ? { assembly: { materialInstanceIds: materials.map((_, i) => s.inst(`material${i}`).instanceId) } }
+              : {}),
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.events.some((e) => e.kind === "attackDeclared"));
+        await advance(s.engine).finishAttack();
+        await advance(s.engine).waitForMainPhase(1);
+        expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toContain("BT26-060");
+        expect(s.state.players[0]!.security).toHaveLength(2);
+        expect(
+          s.events.filter((e) => e.kind === "effectTriggered" && e.effectKey.startsWith("granted/Execute/1/")),
+        ).toHaveLength(1);
+        expect(
+          s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT26-016"),
+        ).toHaveLength(0);
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+        await loop;
+      }
+    },
+  );
+
   it("proves Assembly's five different-level Chronomon-text-or-Shaman materials and keywords", () => {
     expect(getCardDefinition("BT26-085")).toMatchObject({
       nameEn: "Giant Slayer",
