@@ -15,6 +15,37 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  "lobby.timer.label": "Tempo de partida",
+  "lobby.timer.with": "Com timer",
+  "lobby.timer.without": "Sem timer",
+  "lobby.timer.summary": "{minutes} min iniciais · +60s no seu turno · +30s no turno do oponente",
+  "lobby.timer.publicHint": "Você encontra jogadores com a mesma opção de timer.",
+  "lobby.timer.privateHint":
+    "Vale para os dois jogadores. Conta enquanto você decide, até o limite do tempo inicial. Zerar significa derrota.",
+  "lobby.timer.guestHint": "O anfitrião define o timer para os dois jogadores.",
+  "lobby.timer.start": "Tempo inicial",
+  "lobby.timer.refill": "Reposição por turno",
+  "lobby.timer.seconds": "{seconds} s",
+  "lobby.timer.enabled": "Timer ligado",
+  "lobby.timer.on": "Ligado",
+  "lobby.timer.off": "Desligado",
+  "lobby.timer.yourTurn": "Seu turno",
+  "lobby.timer.opponentTurn": "Turno do oponente",
+  "lobby.timer.shortSeconds": "{seconds}s",
+  "lobby.timer.capHint": "Máximo de {seconds}s · Conta enquanto você decide",
+  "lobby.timer.offHint": "Vale para os dois jogadores. Jogue no seu ritmo.",
+  "lobby.timer.rules":
+    "Conta enquanto você decide. Repõe 60s no seu turno e 30s no do oponente, até o tempo inicial. Zerar significa derrota.",
+  "game.timer.you": "Seu tempo",
+  "game.timer.opponent": "Oponente",
+  "game.timer.active": "Sua ação",
+  "game.timer.paused": "Pausado",
+  "game.timer.low": "Tempo acabando",
+  "game.timer.refill": "+{seconds}s / turno",
+  "overlay.reason.win.timeout": "O tempo do seu oponente acabou.",
+  "overlay.reason.loss.timeout": "Seu tempo acabou.",
+  "overlay.reason.draw.timeout": "A partida terminou por tempo.",
+
   "common.loading": "Carregando...",
   "common.cancel": "Cancelar",
   "common.close": "Fechar",

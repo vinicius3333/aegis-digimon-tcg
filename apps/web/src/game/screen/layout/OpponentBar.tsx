@@ -6,7 +6,7 @@
    sidebar footer is out of reach mid-match, and the desktop — which dropped the
    sidebar — carries them as the reference client's circular header buttons. */
 
-import type { CSSProperties, RefObject } from "react";
+import type { CSSProperties, ReactNode, RefObject } from "react";
 import type { Phase, Seat } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { Icons } from "../../../design/icons";
@@ -18,6 +18,7 @@ import { PlayerLine } from "./PlayerLine";
 const OPPONENT_NAME_MAX_LENGTH = 12;
 
 export function OpponentBar({
+  timer,
   handStripRef,
   opponentName,
   opponentAvatarId,
@@ -40,6 +41,7 @@ export function OpponentBar({
   onSkipPresentation,
   onResetScenario,
 }: {
+  timer?: ReactNode;
   handStripRef: RefObject<HTMLDivElement | null>;
   opponentName: string;
   opponentAvatarId: string;
@@ -83,6 +85,7 @@ export function OpponentBar({
         avatarId={opponentAvatarId}
         side="opponent"
         maxLength={OPPONENT_NAME_MAX_LENGTH}
+        timer={timer}
         playing={displayedTurnSeat !== viewerSeat}
       />
       <div

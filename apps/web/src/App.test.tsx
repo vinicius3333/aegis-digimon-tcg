@@ -63,6 +63,37 @@ describe("responsive application state", () => {
 
   afterEach(() => cleanup());
 
+  it("restores both timer choices after remounting the app", async () => {
+    const view = () => (
+      <I18nProvider>
+        <AegisClient
+          player={{ name: "Timer Tamer", color: "Blue", shards: 0 }}
+          setPlayer={() => undefined}
+          decks={[]}
+          activeDeckId=""
+          setActiveDeckId={() => undefined}
+          saveDeck={() => undefined}
+          deleteDeck={() => undefined}
+          dark={false}
+          setDark={() => undefined}
+          initialScreen="lobby"
+        />
+      </I18nProvider>
+    );
+    let rendered = render(view());
+    const timerSwitch = await screen.findByRole("switch", { name: "Match timer" });
+    expect(timerSwitch.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(timerSwitch);
+    rendered.unmount();
+    rendered = render(view());
+    const restored = await screen.findByRole("switch", { name: "Match timer" });
+    expect(restored.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(restored);
+    rendered.unmount();
+    render(view());
+    expect((await screen.findByRole("switch", { name: "Match timer" })).getAttribute("aria-checked")).toBe("false");
+  });
+
   it("shows a simple empty state when the player has no decks", async () => {
     render(
       <I18nProvider>

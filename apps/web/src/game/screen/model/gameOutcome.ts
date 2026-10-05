@@ -2,7 +2,7 @@ import type { Seat, ServerEvent } from "@aegis/shared";
 
 export function gameOverReason(input: {
   events: readonly ServerEvent[];
-}): "security" | "deckOut" | "surrender" | "effect" {
+}): Extract<ServerEvent, { kind: "gameOver" }>["reason"] {
   const { events } = input;
   for (let i = events.length - 1; i >= 0; i -= 1) {
     const e = events[i]!;

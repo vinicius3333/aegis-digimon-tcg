@@ -21,10 +21,10 @@ describe("gameOverSplash", () => {
   });
 
   it("falls back to a real sentence for a reason it has not been taught", () => {
-    // A protocol that grows a fifth reason must not print its raw enum name at
+    // A protocol that grows another reason must not print its raw enum name at
     // the player mid-splash.
-    const splash = gameOverSplash("loss", "timeout");
+    const splash = gameOverSplash("loss", "unknownFutureReason");
     expect(en[splash.reasonKey]).toBeTruthy();
-    expect(isGameOverReason("timeout")).toBe(false);
+    expect(isGameOverReason("unknownFutureReason")).toBe(false);
   });
 });

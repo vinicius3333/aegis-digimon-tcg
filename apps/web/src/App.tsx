@@ -15,6 +15,7 @@ import {
 } from "./game/decks";
 import type { AegisJoinOptions } from "./net/types";
 import type { PrivateRoom, StartMode } from "./screens/Lobby";
+import { loadMatchTimerPreference } from "./screens/matchTimerPreference";
 import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
 import { accentForAvatar } from "./guest";
@@ -271,6 +272,11 @@ export function AegisClient({
       hasReconnectSession: loadReconnectSession() !== undefined,
     });
   });
+  const [timerOptions, setTimerOptions] = useState(() => ({
+    matchTimer: loadMatchTimerPreference(),
+    timerStartSeconds: 300,
+    timerRefillSeconds: 60,
+  }));
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
   const [roomCode, setRoomCode] = useState<string>();
@@ -332,6 +338,7 @@ export function AegisClient({
 
   const joinOptions = useMemo<AegisJoinOptions>(
     () => ({
+      ...timerOptions,
       displayName: effectivePlayer.name,
       avatarId: effectivePlayer.avatarId ?? undefined,
       deckId: matchDeck?.id,
@@ -343,7 +350,7 @@ export function AegisClient({
         eggDeckArts: matchDeck?.eggDeckArts,
       },
     }),
-    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck],
+    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck, timerOptions],
   );
 
   const showNav = NAV_SCREENS.includes(screen);
@@ -405,6 +412,8 @@ export function AegisClient({
                 navigateScreen("deck");
               }}
               onNav={navigateScreen}
+              timerOptions={timerOptions}
+              onTimerOptionsChange={setTimerOptions}
               invitedRoomCode={invitedRoomCode}
               privateRoom={privateRoom}
               onLeavePrivateRoom={() => setPrivateRoom(undefined)}

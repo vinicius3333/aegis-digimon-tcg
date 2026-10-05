@@ -174,6 +174,13 @@ export function createArenaDemoState(
   if (scenario === "crowded") return createArenaCrowdedDemoState(drawCounts, crowdedTamers);
   const state = new GameState();
   state.matchId = "arena-demo";
+  const timerPreview = new URLSearchParams(window.location.search).get("timer");
+  if (timerPreview === "on" || timerPreview === "low") {
+    state.matchTimer = true;
+    state.timerRemaining0 = timerPreview === "low" ? 20 : 272;
+    state.timerRemaining1 = 228;
+    state.timerActiveSeat = 0;
+  }
   state.phase = Phase.Main;
   state.turnCount = 5;
   state.turnSeat = 0;

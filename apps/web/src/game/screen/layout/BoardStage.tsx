@@ -40,6 +40,7 @@ import { DragGhost } from "./DragGhost";
 import { FieldClashGhosts } from "./FieldClashGhosts";
 import { LeftPileColumn } from "./LeftPileColumn";
 import { LogTicker } from "./LogTicker";
+import { DecisionMatchTimer, MatchTimer } from "../../MatchTimer";
 import { MemoryBand } from "./MemoryBand";
 import { OpponentBar } from "./OpponentBar";
 import { OpponentBattleRow } from "./OpponentBattleRow";
@@ -239,6 +240,7 @@ export function BoardStage({
           className="game-board aegis-arena-surface"
           ref={anchors.board}
           data-art={look.hasArt || undefined}
+          data-timer-decision={(state.matchTimer && !state.gameOver && !!state.pendingDecision) || undefined}
           style={{
             ...({
               "--arena-raising-width": `${layout.arenaRaisingWidth}px`,
@@ -252,6 +254,7 @@ export function BoardStage({
         >
           <OpponentBar
             onResetScenario={onResetScenario}
+            timer={state.matchTimer ? <MatchTimer state={state} seat={other} opponent /> : undefined}
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponent.displayName || t("game.opponent")}
             opponentAvatarId={opponent.avatarId}
@@ -274,6 +277,7 @@ export function BoardStage({
             onSkipPresentation={() => cues.skipAnimations()}
           />
 
+          <DecisionMatchTimer state={state} seat={viewerSeat} />
           {/* One moment at a time. The portrait phone folds both sides into a single
               centred slot; everywhere else the viewer reads the left corner and the
               opponent's moments arrive in the right one. */}
@@ -452,6 +456,7 @@ export function BoardStage({
           </div>
 
           <PlayerDock
+            timer={state.matchTimer ? <MatchTimer state={state} seat={viewerSeat} /> : undefined}
             playerName={viewer.displayName || t("game.you")}
             playerAvatarId={viewer.avatarId}
             breedingDock={!layout.portraitArena ? breedingDock : null}

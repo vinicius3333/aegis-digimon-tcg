@@ -354,6 +354,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Mesa de fim de partida: 21 permanentes por lado, 12 fontes no Vulcanusmon, 2 links e 8 cartas salvas no Watchmaker. Cada lado conserva as 50 cartas do deck principal. Role as duas fileiras, inspecione as fontes e gire a tela.",
     en: "Late-game board: 21 permanents per side, 12 Vulcanusmon sources, 2 links and 8 saved Watchmaker cards. Each side conserves its 50-card main deck. Scroll both lanes, inspect sources and rotate the screen.",
   },
+  "arena-match-timer": {
+    ptBR: "Timer real: 300 s iniciais por jogador, +60 s no seu turno e +30 s no turno do oponente, até 300 s. Encerre a criação e jogue contra o bot. Só conta o tempo de quem precisa responder; efeitos e animações pausam a contagem. Fique sem agir para testar a derrota por timeout. Reiniciar combate restaura os relógios.",
+    en: "Live timer: 300 sec initially per player, +60 sec on your turn and +30 sec on the opponent's, capped at 300 sec. End breeding and play against the bot. Only the required responder's time counts; effects and animations pause it. Stop acting to test defeat by timeout. Reset combat restores the clocks.",
+  },
   "arena-bt20-bakemon-violet-retroactive": {
     ptBR: "Evolua Ghostmon para BT20-068 Bakemon. Aceite jogar BT23-087 Violet Inboots da mão. Como Violet entrou depois da evolução, ela deve permanecer desuspensa e não deve oferecer Rush para esse Bakemon.",
     en: "Digivolve Ghostmon into BT20-068 Bakemon. Accept playing BT23-087 Violet Inboots from hand. Violet entered after the evolution, so it should remain unsuspended and should not offer Rush to this Bakemon.",
@@ -1116,6 +1120,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-field-grouping-dense", "Field grouping · late-game density, deep sources and links"],
+  ["arena-match-timer", "Timer · vs bot (300s + 60s/30s)"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-marcus-alliance", "Alliance · Marcus treated as a Digimon"],

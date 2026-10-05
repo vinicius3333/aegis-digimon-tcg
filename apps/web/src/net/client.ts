@@ -55,7 +55,7 @@ export class AegisConnectionRouter {
   constructor(private readonly dependencies: RouterDependencies) {}
 
   async joinOrCreate(options: AegisJoinOptions): Promise<AegisRoom> {
-    return this.joinOrCreateWithFreshManifest(options, false);
+    return this.joinOrCreateWithFreshManifest({ ...options, matchTimer: options.matchTimer === true }, false);
   }
 
   private async joinOrCreateWithFreshManifest(
@@ -257,7 +257,7 @@ function rememberLegacy(room: AegisRoom): AegisRoom {
 /** Join an existing public/ranked match or create one on the active deployment. */
 export async function joinOrCreate(options: AegisJoinOptions): Promise<AegisRoom> {
   if (useProductionRouter()) return getProductionRouter().joinOrCreate(options);
-  const authenticatedOptions = await withLegacyRoomTicket(options);
+  const authenticatedOptions = await withLegacyRoomTicket({ ...options, matchTimer: options.matchTimer === true });
   const joined = await getLegacyClient().joinOrCreate<GameState>(publicRoomType(options), authenticatedOptions);
   return rememberLegacy(joined);
 }

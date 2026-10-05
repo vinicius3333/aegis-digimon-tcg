@@ -282,13 +282,6 @@ button.lobby-active-strip__jump {
   text-transform: uppercase;
 }
 
-.lobby-setup__mode {
-  color: var(--ds-fg);
-  font-size: var(--ds-text-lg);
-  letter-spacing: var(--ds-tracking-display);
-  text-transform: none;
-}
-
 .lobby-setup__body {
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
@@ -603,4 +596,12 @@ button.lobby-active-strip__jump {
   .lobby-setup {
     padding: var(--ds-space-4);
   }
+}
+
+.lobby-timer-hint,
+.lobby-timer-summary {
+  margin: 0;
+  color: var(--ds-foreground-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }

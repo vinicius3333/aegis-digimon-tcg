@@ -13,6 +13,37 @@ import { shellEn } from "./redesign/shell.en";
    error. Placeholders use {name} and are filled by `t(key, params)`. */
 
 export const en = {
+  "lobby.timer.label": "Match timer",
+  "lobby.timer.with": "With timer",
+  "lobby.timer.without": "Without timer",
+  "lobby.timer.summary": "{minutes} min initially · +60s your turn · +30s opponent turn",
+  "lobby.timer.publicHint": "Matched with players using the same timer setting.",
+  "lobby.timer.privateHint":
+    "Applies to both players. Counts while you decide; capped at the starting time. Time out means defeat.",
+  "lobby.timer.guestHint": "The host sets the timer for both players.",
+  "lobby.timer.start": "Starting time",
+  "lobby.timer.refill": "Per-turn refill",
+  "lobby.timer.seconds": "{seconds} sec",
+  "lobby.timer.enabled": "Timer ON",
+  "lobby.timer.on": "Enabled",
+  "lobby.timer.off": "Disabled",
+  "lobby.timer.yourTurn": "Your turn",
+  "lobby.timer.opponentTurn": "Opponent turn",
+  "lobby.timer.shortSeconds": "{seconds}s",
+  "lobby.timer.capHint": "Maximum {seconds}s · Counts while you decide",
+  "lobby.timer.offHint": "Applies to both players. Play at your own pace.",
+  "lobby.timer.rules":
+    "Counts while you decide. Adds 60s on your turn and 30s on the opponent's, up to the starting time. Time out means defeat.",
+  "game.timer.you": "Your time",
+  "game.timer.opponent": "Opponent",
+  "game.timer.active": "Your action",
+  "game.timer.paused": "Paused",
+  "game.timer.low": "Time running low",
+  "game.timer.refill": "+{seconds}s / turn",
+  "overlay.reason.win.timeout": "Your opponent ran out of time.",
+  "overlay.reason.loss.timeout": "You ran out of time.",
+  "overlay.reason.draw.timeout": "The game ended on time.",
+
   "common.loading": "Loading...",
   "common.cancel": "Cancel",
   "common.close": "Close",

@@ -123,7 +123,7 @@ function keywordHarness() {
     fireTiming: async () => {},
     checkSecurity: async () => {},
   };
-  return { state, combat: new CombatController(new GameStateAccess(state), hooks), events, permanent };
+  return { state, combat: new CombatController(new GameStateAccess(state), hooks), hooks, events, permanent };
 }
 
 describe("keyword prompt mirrors", () => {
@@ -151,4 +151,51 @@ describe("keyword prompt mirrors", () => {
     expect(await answered).toBe(false);
     expect(h.events.some((e) => e.kind === "barrierResolved" && e.accepted === false)).toBe(true);
   });
+});
+
+describe("terminal combat cancellation", () => {
+  it("silently releases a real block wait without checking security after the outcome", async () => {
+    const s = blockWindowBoard();
+    const attacker = s.perm("attacker");
+    s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } });
+    await settle(() => s.state.combatWindow?.kind === "block", 3000);
+    const securityBefore = s.state.players[1]!.security.length;
+    s.engine.win.declareLoss(1, "timeout");
+    const eventCount = s.events.length;
+    s.engine.combat.cancel();
+    expect(s.state.combatWindow).toBeUndefined();
+    expect(s.engine.combat.expireOpenWindow()).toBe(false);
+    await settle(() => !s.engine.combat.isAttacking, 3000);
+    expect(s.state.players[1]!.security.length).toBe(securityBefore);
+    expect(s.events.slice(eventCount)).toEqual([]);
+  });
+
+  for (const keyword of ["Evade", "Barrier"] as const) {
+    it(`stops a real battle parked on ${keyword} without deleting either Digimon`, async () => {
+      const h = keywordHarness();
+      const attacker = new Permanent();
+      attacker.permanentId = "attacker";
+      attacker.controllerSeat = 0;
+      attacker.topCard = new CardInstance();
+      attacker.topCard.cardId = DIGIMON_A;
+      attacker.topCard.instanceId = "attacker-card";
+      attacker.currentDP = 6000;
+      h.permanent.currentDP = 3000;
+      h.state.players[0]!.battleArea.push(attacker);
+      h.state.players[1]!.security.push(new CardInstance());
+      h.hooks.hasKeyword = (id, name) => id === h.permanent.permanentId && name === keyword;
+      const battle = h.combat.resolveBattle(attacker, h.permanent);
+      await settle(() => h.state.combatWindow?.kind === keyword.toLowerCase(), 3000);
+      h.state.gameOver = true;
+      const eventCount = h.events.length;
+      h.combat.cancel();
+      await battle;
+      expect(h.state.combatWindow).toBeUndefined();
+      expect(h.combat.expireOpenWindow()).toBe(false);
+      expect(h.state.players[0]!.battleArea).toContain(attacker);
+      expect(h.state.players[1]!.battleArea).toContain(h.permanent);
+      expect(h.state.players[1]!.security).toHaveLength(1);
+      expect(h.events.slice(eventCount)).toEqual([]);
+    });
+  }
 });

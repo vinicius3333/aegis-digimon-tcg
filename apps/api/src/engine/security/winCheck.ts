@@ -21,7 +21,7 @@ import type { GameState, PlayerState, Seat, ServerEvent } from "@aegis/shared";
 export type GameOverReason = Extract<ServerEvent, { kind: "gameOver" }>["reason"];
 
 /** Why a seat lost. Maps to the gameOver reason of the *winner*. */
-export type LossCause = "security" | "deckOut" | "surrender" | "effect";
+export type LossCause = GameOverReason;
 
 const otherSeat = (seat: Seat): Seat => (seat === 0 ? 1 : 0);
 

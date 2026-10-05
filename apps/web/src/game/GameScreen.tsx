@@ -361,11 +361,13 @@ export function GameScreen({
   // an answer the server refused.
   const mirroredWindow = state ? mirroredCombatWindow(state, viewerSeat) : null;
   const decisionPendingForViewer = decision?.seat === viewerSeat && decision.kind !== "mulligan";
+  const timedViewerAnswer =
+    state?.matchTimer === true && (decisionPendingForViewer || openCombatWindowForBarrier !== null);
 
   // Every cue the server provokes: sounds, panels, banners, the security clash,
   // the draw flights. The hook sequences them on the animation queue; this
   // component only renders what it reports.
-  const cues = useMatchCues({
+  const presentationCues = useMatchCues({
     snapshots,
     batches: cueBatches,
     phaseEvents: events,
@@ -398,6 +400,32 @@ export function GameScreen({
       room?.send(PRESENTATION_CHANNEL, report);
     },
   });
+  // Answering on the live board also requires live cards: presentation holds can
+  // hide a newly played target or paint a security reveal over the selection.
+  const cues = timedViewerAnswer
+    ? {
+        ...presentationCues,
+        securityBreak: null,
+        securityClash: null,
+        securityBranch: null,
+        optionBranch: null,
+        zoneShowcase: null,
+        revealShowcase: null,
+        fieldClash: null,
+        phaseBanner: null,
+        pendingPermanentIds: new Set<string>(),
+        heldPhaseState: undefined,
+        heldBlowState: undefined,
+        heldSecurityEffectState: undefined,
+        heldDrawState: undefined,
+        heldBreedingState: undefined,
+        heldMemory: undefined,
+        heldDeletions: new Map<number, never>(),
+        heldTrashArrivals: new Map<number, never>(),
+        heldSuspendedIds: new Set<string>(),
+        heldSecurityCounts: new Map<Seat, number>(),
+      }
+    : presentationCues;
   // The decision panel repeats the source card and its clause, field selections included, so
   // the matching toast waits until the viewer has answered.
   const alliancePromptCardId = state ? ownAlliancePromptCardId(state, viewerSeat) : undefined;
@@ -556,11 +584,13 @@ export function GameScreen({
    * They are the same object whenever the queue is caught up.
    */
   const shownState =
-    selectPresentedState({
-      live: state,
-      snapshots: snapshots ?? [],
-      presentedStateVersion: cues.presentedStateVersion,
-    }) ?? state;
+    (timedViewerAnswer
+      ? state
+      : selectPresentedState({
+          live: state,
+          snapshots: snapshots ?? [],
+          presentedStateVersion: cues.presentedStateVersion,
+        })) ?? state;
 
   const {
     shownViewer: shownYou,

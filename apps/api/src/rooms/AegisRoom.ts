@@ -27,6 +27,7 @@ import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
 import type { SeriesStore } from "../tournaments/series/index.js";
 import { createLocalRoomCodeDirectory, type RoomCodeDirectory } from "../cluster/roomCodes.js";
+import { MatchClock } from "./MatchClock.js";
 import { parsePresentationReport } from "./presentationReport.js";
 
 /** Hand-laid boards must never be reachable by a real player. */
@@ -45,6 +46,9 @@ function generateRoomCode(length = 6): string {
 }
 
 interface RoomCreateOptions {
+  matchTimer?: boolean;
+  timerStartSeconds?: number;
+  timerRefillSeconds?: number;
   seed?: number;
   private?: boolean;
   /** Reopens a private room under the code of the one that just finished. */
@@ -123,6 +127,9 @@ function combatWindowEvent(window: CombatWindow): ServerEvent | undefined {
  * brackets keep running until the manager takes them over.
  */
 export interface AegisJoinOptions extends SeatJoinOptions {
+  matchTimer?: boolean;
+  timerStartSeconds?: number;
+  timerRefillSeconds?: number;
   deckId?: string;
   deckName?: string;
   roomCode?: string; // for joining a private room by code
@@ -173,6 +180,7 @@ interface OpenBatch {
   emitted: number;
   lastSeq: number;
   recipient?: Client;
+  presentation?: boolean;
 }
 
 /**
@@ -221,6 +229,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private readyTimeout: Delayed | undefined;
   private waitingRoomTimeout: Delayed | undefined;
   private matchStartRequested = false;
+  private matchClock: MatchClock | undefined;
+  private matchClockInterval: Delayed | undefined;
 
   /** Position of the last event put on the wire; the first event of a room is `seq` 1. */
   private eventSeq = 0;
@@ -515,6 +525,24 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.handleIntent(client, { type, ...(payload as object) } as Intent);
     });
 
+    // Optional clocks belong to casual/private rooms. Ignore crafted ranked/tournament options.
+    const devTimer = this.devScenario === "arena-match-timer";
+    this.matchClock = new MatchClock(
+      this.state,
+      {
+        ...options,
+        matchTimer:
+          !this.isTournamentRoom &&
+          !this.isRankedRoom &&
+          (devTimer || (!this.isBotRoom && options.matchTimer === true)),
+        ...(devTimer ? { timerStartSeconds: 300 } : {}),
+      },
+      this.isPrivate || devTimer,
+      performance.now(),
+    );
+    if (this.state.matchTimer) {
+      this.matchClockInterval = this.clock.setInterval(() => this.syncMatchClock(), 100);
+    }
     roomRegistry.set(this.roomId, this);
   }
 
@@ -739,6 +767,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     this.debug("room.disposed");
     this.readyTimeout?.clear();
     this.waitingRoomTimeout?.clear();
+    this.matchClockInterval?.clear();
     // Legacy only. A Tournament Game's room binding is permanent by design: the game either
     // finished here or is voided by the scheduler, and re-binding it to a second room would be the
     // duplicate-claim the UNIQUE room_id exists to prevent.
@@ -989,6 +1018,12 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // The bot never sends its own `ready` intent (it isn't a Colyseus client, so it
     // has no seatByClient entry for applyIntent to route through) — starting the
     // match directly here is the bot seat's stand-in for readiness.
+    // Legacy bot joins can promote a waiting casual room to practice mode.
+    if (this.devScenario !== "arena-match-timer") {
+      this.state.matchTimer = false;
+      this.state.timerActiveSeat = -1;
+      this.matchClockInterval?.clear();
+    }
     if (this.devScenario !== undefined) this.startDevScenarioNow(this.devScenario);
     else this.startMatchNow();
     return true;
@@ -1093,6 +1128,20 @@ export class AegisRoom extends Room<{ state: GameState }> {
     const batch = this.currentBatch ?? this.openImplicitBatch();
     this.eventSeq += 1;
     batch.emitted += 1;
+    if (
+      [
+        "phaseChanged",
+        "cardPlayed",
+        "cardsMoved",
+        "digivolved",
+        "attackDeclared",
+        "securityRevealed",
+        "securityChecked",
+        "matchStarted",
+      ].includes(event.kind)
+    ) {
+      batch.presentation = true;
+    }
     batch.lastSeq = this.eventSeq;
     const stamped = { ...event, seq: this.eventSeq, batch: batch.id, stateVersion: this.state.stateVersion };
     this.debug("engine.event", stamped);
@@ -1125,7 +1174,11 @@ export class AegisRoom extends Room<{ state: GameState }> {
     const batch = this.currentBatch;
     this.currentBatch = undefined;
     if (!batch || batch.emitted === 0) return;
-    if (!batch.recipient) this.state.stateVersion += 1;
+    if (!batch.recipient) {
+      this.syncMatchClock();
+      if (batch.presentation) this.matchClock?.pauseForPresentation(performance.now());
+      this.state.stateVersion += 1;
+    }
     const closed: ServerEvent = {
       kind: "batchClosed",
       batch: batch.id,
@@ -1176,7 +1229,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
    */
   private syncCombatWindowTimeout(): void {
     const window = this.state.combatWindow;
-    const key = window ? combatWindowKey(window) : undefined;
+    const key = window && !this.state.gameOver ? combatWindowKey(window) : undefined;
     if (key === this.combatWindowTimeoutKey) return;
     this.combatWindowTimeout?.clear();
     this.combatWindowTimeout = undefined;
@@ -1185,7 +1238,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     this.combatWindowTimeout = this.clock.setTimeout(() => {
       this.combatWindowTimeout = undefined;
       this.combatWindowTimeoutKey = undefined;
-      this.withBatch(() => this.engine.expireCombatWindow());
+      if (!this.state.gameOver) this.withBatch(() => this.engine.expireCombatWindow());
     }, this.COMBAT_WINDOW_TIMEOUT_SECONDS * 1000);
   }
 
@@ -1249,12 +1302,25 @@ export class AegisRoom extends Room<{ state: GameState }> {
     withMatchLog(this.state.matchLogId, this.roomId, () => logError(...data));
   }
 
+  private syncMatchClock(): void {
+    const expired = this.matchClock?.update(
+      performance.now(),
+      this.matchStartRequested ? this.engine.inputSeat : undefined,
+    );
+    if (expired !== undefined && !this.state.gameOver) {
+      this.withBatch(() => this.engine.expireMatchTimer(expired));
+    }
+    if (this.state.gameOver) this.matchClockInterval?.clear();
+  }
+
   private applyLoggedIntent(seat: Seat, intent: Intent) {
     return withMatchLog(this.state.matchLogId, this.roomId, () => {
+      this.syncMatchClock();
       const started = performance.now();
       log("intent.received", { seat, intent, stateVersion: this.state.stateVersion });
       try {
         const result = this.withBatch(() => this.engine.applyIntent(seat, intent));
+        this.syncMatchClock();
         log("intent.result", {
           seat,
           type: intent.type,
