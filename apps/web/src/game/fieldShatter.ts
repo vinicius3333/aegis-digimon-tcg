@@ -116,7 +116,28 @@ export function measureFieldShatterFace(permanent: HTMLElement, board: HTMLEleme
   };
 }
 
-/** Copy styles once; all 41 fragments share this already decoded physical face. */
+/** Freeze one tree; the face and both stack orientations copy its already frozen declarations. */
+function freezeFieldTree(original: HTMLElement) {
+  const clone = original.cloneNode(true) as HTMLElement;
+  const originals = [original, ...original.querySelectorAll<HTMLElement>("*")];
+  const copies = [clone, ...clone.querySelectorAll<HTMLElement>("*")];
+  originals.forEach((element, index) => {
+    const style = getComputedStyle(element);
+    const declarations = [];
+    for (const property of style) {
+      const priority = style.getPropertyPriority(property);
+      declarations.push(`${property}:${style.getPropertyValue(property)}${priority ? " !important" : ""};`);
+    }
+    const copy = copies[index]!;
+    copy.style.cssText = declarations.join("");
+    copy.style.animation = "none";
+    copy.style.transition = "none";
+    for (const attribute of ["id", "tabindex", "data-drop"]) copy.removeAttribute(attribute);
+  });
+  return clone;
+}
+
+/** All 41 fragments share this already loaded physical face. */
 export function captureFieldShatterFace(
   permanent: HTMLElement,
   board: HTMLElement,
@@ -125,20 +146,12 @@ export function captureFieldShatterFace(
   const pose = measureFieldShatterFace(permanent, board);
   const face = permanent.querySelector<HTMLElement>(".game-card-enter > [data-state]");
   if (!pose || !face) return;
-  const clone = face.cloneNode(true) as HTMLElement;
-  const originals = [face, ...face.querySelectorAll<HTMLElement>("*")];
-  const copies = [clone, ...clone.querySelectorAll<HTMLElement>("*")];
-  originals.forEach((original, index) => {
-    const copy = copies[index]!,
-      style = getComputedStyle(original);
-    for (const property of style) copy.style.setProperty(property, style.getPropertyValue(property));
-    copy.style.animation = "none";
-    copy.style.transition = "none";
-    copy.removeAttribute("id");
-    copy.removeAttribute("tabindex");
-    copy.removeAttribute("data-drop");
-    copy.removeAttribute("data-state");
-  });
+  const frozen = freezeFieldTree(includeStack ? permanent : face);
+  const clone = includeStack
+    ? (frozen.querySelector(".game-card-enter > [data-state]")!.cloneNode(true) as HTMLElement)
+    : frozen;
+  for (const element of [clone, ...clone.querySelectorAll("[data-state]")]) element.removeAttribute("data-state");
+  const handStack = includeStack ? (frozen.cloneNode(true) as HTMLElement) : undefined;
   const faceStyle = getComputedStyle(face);
   const localWidth =
     parseFloat(faceStyle.width) +
@@ -167,8 +180,8 @@ export function captureFieldShatterFace(
     clone,
     ...(includeStack
       ? {
-          stackClone: captureFieldStack(permanent, face, pose, localWidth, true),
-          handStackClone: captureFieldStack(permanent, face, pose, localWidth, false),
+          stackClone: captureFieldStack(permanent, face, pose, localWidth, true, frozen),
+          handStackClone: captureFieldStack(permanent, face, pose, localWidth, false, handStack!),
         }
       : {}),
   };
@@ -181,18 +194,10 @@ function captureFieldStack(
   pose: FieldShatterFace,
   localWidth: number,
   upright: boolean,
+  clone: HTMLElement,
 ) {
-  const clone = permanent.cloneNode(true) as HTMLElement;
-  const originals = [permanent, ...permanent.querySelectorAll<HTMLElement>("*")];
-  const copies = [clone, ...clone.querySelectorAll<HTMLElement>("*")];
-  originals.forEach((original, index) => {
-    const copy = copies[index]!,
-      style = getComputedStyle(original);
-    for (const property of style) copy.style.setProperty(property, style.getPropertyValue(property));
-    copy.style.animation = "none";
-    copy.style.transition = "none";
-    for (const attribute of ["id", "tabindex", "data-drop", "data-permanent-id"]) copy.removeAttribute(attribute);
-  });
+  for (const element of [clone, ...clone.querySelectorAll("[data-permanent-id]")])
+    element.removeAttribute("data-permanent-id");
   const card = clone.querySelector<HTMLElement>(".game-card-enter > [data-state]")!;
   let x = localWidth / 2,
     y = parseFloat(getComputedStyle(face).height) / 2;
