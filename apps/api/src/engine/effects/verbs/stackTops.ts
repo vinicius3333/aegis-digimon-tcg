@@ -132,6 +132,18 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
     ledger.recomputeDP(state, permanentId);
+    // Publish the physical move before yielding: a continuous-effect recalculation can
+    // send another batch whose patch already exposes the promoted top.
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: [oldTop.instanceId],
+      cardIds: [oldTop.cardId],
+      artIds: [oldTop.artId || oldTop.cardId],
+      seat: controllerSeat,
+      from: Zone.BattleArea,
+      to: Zone.Trash,
+      strippedStackTops: { permanentId, reason: "armorPurge" },
+    });
     // The promoted card is now the permanent's active top card. Re-derive its static
     // keywords/effects before the deletion-prevention window continues (BT8 Armor Purge
     // chains must expose the promoted card's own Armor Purge immediately).
@@ -139,7 +151,6 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     // <Overflow> (CR §4-18): the old top card just left the battle area for trash — a genuine
     // leave, distinct from the permanent as a whole (which is NOT being deleted).
     applyOverflow(engine.memory, [oldTop], state.turnSeat);
-    engine.emit({ kind: "cardsMoved", instanceIds: [oldTop.instanceId], from: Zone.BattleArea, to: Zone.Trash });
     if (requireCardDefinition(oldTop.cardId).kinds.includes(CardKind.Digimon)) {
       await engine.fireSubTrigger?.("whenDigimonTopTrashed", {
         subjectPermanentId: permanentId,

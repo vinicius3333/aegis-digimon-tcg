@@ -435,6 +435,19 @@ describe("stackStripNoticeFromEvent", () => {
     expect(stackStripNoticeFromEvent(trashedTop, 1, "n", 5)?.side).toBe(Side.Opponent);
   });
 
+  it("keeps Armor Purge's cost peel from creating a second prevention notice", () => {
+    const cost: ServerEvent = { ...trashedTop, strippedStackTops: { permanentId: "perm-1", reason: "armorPurge" } };
+    expect(stackStripNoticeFromEvent(cost, VIEWER, "cost", 5)).toBeNull();
+    expect(
+      preventionNoticeFromEvent(
+        { kind: "deletionPrevented", keyword: "Armor Purge", permanentId: "perm-1", cardId: "BT8-012", seat: 0 },
+        VIEWER,
+        "saved",
+        5,
+      )?.body,
+    ).toMatchObject({ variant: "keyword", keyword: "armorPurge", cardId: "BT8-012" });
+  });
+
   it("ignores a De-Digivolve strip", () => {
     const deDigivolved: ServerEvent = {
       ...trashedTop,

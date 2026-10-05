@@ -391,12 +391,13 @@ export type ServerEvent =
       }[];
       /**
        * Top cards stripped off a permanent that stays on the field (＜De-Digivolve＞, or an
-       * effect that trashes stack tops). The permanent was not deleted, so it gets no
+       * effect that trashes stack tops, or an Armor Purge cost). The permanent was not
+       * deleted, so it gets no
        * `deletedPermanents` entry; `cardIds` and `seat` name the stripped cards and their owner.
        */
       strippedStackTops?: {
         permanentId: string;
-        reason: "deDigivolve" | "trashTop";
+        reason: "deDigivolve" | "trashTop" | "armorPurge";
         /** The card whose effect stripped the stack, when an effect did. */
         sourceCardId?: string;
       };
