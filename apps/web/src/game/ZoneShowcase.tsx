@@ -18,6 +18,7 @@ export function ZoneShowcase({ showcase }: { showcase: ZoneShowcaseModel }) {
       className="battle-showcase battle-showcase--arrival"
       data-testid="zone-showcase"
       data-card-id={showcase.cardId}
+      data-showcase-key={showcase.key}
       role="status"
     >
       <figure className="battle-showcase__frame">

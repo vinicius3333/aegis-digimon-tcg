@@ -72,6 +72,16 @@ export function zoneChangeStep({
             id: `card-reveal-${key}`,
             origin,
             duration: SHOWCASE_TOTAL_MS,
+            waitForPaintedExit: (revealContext) =>
+              waitForPaintedAnimation(
+                () =>
+                  typeof document === "undefined"
+                    ? null
+                    : document.querySelector(`[data-showcase-key="${showcase.key}"]`),
+                "battle-showcase-exit",
+                TIMINGS.showcaseOut,
+                revealContext,
+              ),
             show: () => setZoneShowcase(showcase),
             clear: () => setZoneShowcase((current) => (current?.key === showcase.key ? null : current)),
           });

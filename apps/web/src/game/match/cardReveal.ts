@@ -31,6 +31,7 @@ export async function runCardReveal({
   origin,
   show,
   clear,
+  waitForPaintedExit,
 }: {
   queue: AnimationQueue;
   context: AnimationStepContext;
@@ -39,6 +40,8 @@ export async function runCardReveal({
   origin?: { batchId: string; stateVersion: number; phaseOrder?: number };
   show: () => void;
   clear: () => void;
+  /** A mounted arrival owns its native exit before the field handoff opens. */
+  waitForPaintedExit?: (context: AnimationStepContext) => Promise<void>;
 }) {
   const finished = createPresentationGate();
   if (context.mode !== "live" || context.cancelled || context.skipping) return;
@@ -64,6 +67,8 @@ export async function runCardReveal({
         // One wait shares CSS's full clock. Repeated short waits accumulate browser
         // scheduling delay and can leave the field empty after the art has exited.
         await Promise.race([revealContext.wait(duration), cancelled]);
+        if (waitForPaintedExit && !context.cancelled && !context.skipping)
+          await Promise.race([waitForPaintedExit(revealContext), cancelled]);
       } finally {
         removeCancellation();
         clear();

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Dispatch, SetStateAction } from "react";
 import { createAnimationQueue, type AnimationQueue } from "./animationQueue";
@@ -5,7 +6,7 @@ import { zoneChangeStep } from "./match/steps/zoneChangeStep";
 import { createArrivalPresentation } from "./match/cardReveal";
 import { CueTrack } from "./match/enums";
 import type { PermanentBurst, ZoneShowcase } from "./showcases";
-import { CARD_BURST_PEAK_MS, SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
+import { CARD_BURST_PEAK_MS, SHOWCASE_TOTAL_MS, SHOWCASE_OUT_AT_MS, TIMINGS } from "./timings";
 import { createPresentationGate, type PresentationGate } from "./match/presentationGate";
 
 function stateCell<T>(initial: T) {
@@ -75,6 +76,7 @@ afterEach(async () => {
   for (const queue of queues.splice(0)) queue.clear();
   await vi.advanceTimersByTimeAsync(0);
   vi.useRealTimers();
+  document.body.replaceChildren();
 });
 function run(mode: "live" | "drain" | "replay" = "live") {
   const result = fixture(mode);
@@ -83,6 +85,38 @@ function run(mode: "live" | "drain" | "replay" = "live") {
 }
 
 describe("public card arrival", () => {
+  it.each([1, 2])("holds a late painted exit before releasing the field at %sx playback", async (rate) => {
+    const f = run();
+    f.queue.setRate(rate);
+    const startedAt = Date.now();
+    const root = document.createElement("div");
+    root.dataset.showcaseKey = "1";
+    document.body.append(root);
+    root.getAnimations = () => [
+      {
+        animationName: "battle-showcase-exit",
+        get currentTime() {
+          return Math.max(0, Date.now() - startedAt - 100) * rate;
+        },
+        playState: "running",
+        playbackRate: rate,
+        effect: { getTiming: () => ({ delay: SHOWCASE_OUT_AT_MS }) },
+      } as unknown as Animation,
+    ];
+    const gates = f.arrive();
+    await vi.advanceTimersByTimeAsync(SHOWCASE_TOTAL_MS / rate);
+    expect(f.showcase.get()?.key).toBe(1);
+    expect(f.pending.get().has("p-1")).toBe(true);
+    expect(gates.revealed.open).toBe(false);
+    await vi.advanceTimersByTimeAsync(99);
+    expect(gates.revealed.open).toBe(false);
+    await vi.advanceTimersByTimeAsync(17);
+    expect(f.showcase.get()).toBeNull();
+    expect(f.pending.get().size).toBe(0);
+    expect(gates.revealed.open).toBe(true);
+    expect(f.bursts.get().has("p-1")).toBe(true);
+  });
+
   it.each([false, true])("reveals the accepted art before the field for mine=%s", async (mine) => {
     const f = run();
     const gates = f.arrive(1, { mine });
