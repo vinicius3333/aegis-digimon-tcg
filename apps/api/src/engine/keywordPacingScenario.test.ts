@@ -10,6 +10,7 @@ import {
   getCardDefinition,
   Phase,
   type KeywordPacingScenario,
+  type ServerEvent,
 } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../cards/index.js";
@@ -344,7 +345,7 @@ describe("real keyword pacing boards", () => {
         const moves = s.events
           .slice(firstEvent)
           .filter(
-            (event) =>
+            (event): event is Extract<ServerEvent, { kind: "cardsMoved" }> =>
               event.kind === "cardsMoved" &&
               (event.seat === undefined || event.seat === scenario.sourceSeat) &&
               event.from === "deck" &&
@@ -403,7 +404,8 @@ describe("real keyword pacing boards", () => {
           expect(host.stack).toHaveLength(4 - scenario.removedCount);
           expect(host.stack[0]!.cardId).toBe("BT1-001");
           const strips = s.events.filter(
-            (event) => event.kind === "cardsMoved" && event.strippedStackTops?.reason === "deDigivolve",
+            (event): event is Extract<ServerEvent, { kind: "cardsMoved" }> =>
+              event.kind === "cardsMoved" && event.strippedStackTops?.reason === "deDigivolve",
           );
           expect(strips.flatMap((event) => event.instanceIds)).toEqual(
             initial[0]!.slice(-scenario.removedCount).reverse(),
@@ -440,7 +442,8 @@ describe("real keyword pacing boards", () => {
           expect(s.state.players[1]!.battleArea).toHaveLength(scenario.deletesTarget ? 0 : 1);
           if (!scenario.deletesTarget) expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(8000);
           const strips = s.events.filter(
-            (event) => event.kind === "cardsMoved" && event.trashedSources?.permanentId === host.permanentId,
+            (event): event is Extract<ServerEvent, { kind: "cardsMoved" }> =>
+              event.kind === "cardsMoved" && event.trashedSources?.permanentId === host.permanentId,
           );
           expect(strips.flatMap((event) => event.instanceIds)).toEqual(initial[0]!.slice(0, 2));
           expect(strips[0]!.trashedSources?.digiBurstDpBefore).toEqual(
@@ -516,7 +519,8 @@ describe("real keyword pacing boards", () => {
             expect(holder.stack).toHaveLength(0);
             expect(
               s.events.filter(
-                (event) => event.kind === "cardsMoved" && event.strippedStackTops?.reason === "armorPurge",
+                (event): event is Extract<ServerEvent, { kind: "cardsMoved" }> =>
+                  event.kind === "cardsMoved" && event.strippedStackTops?.reason === "armorPurge",
               ),
             ).toEqual([
               expect.objectContaining({
@@ -574,7 +578,8 @@ describe("real keyword pacing boards", () => {
             true,
           ]);
           const moves = s.events.filter(
-            (event) => event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended",
+            (event): event is Extract<ServerEvent, { kind: "cardsMoved" }> =>
+              event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended",
           );
           expect(moves.flatMap((event) => event.instanceIds)).toEqual(
             expect.arrayContaining(["dev-perm-0-keyword-reboot-0", "dev-perm-0-keyword-reboot-1"]),
