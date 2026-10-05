@@ -44,6 +44,14 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      // Production serves the mirror tools/deploy/card-images.mjs keeps; dev reads its source.
+      "/assets/card-images": {
+        target: "https://web-garage.takaotaku.de",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/assets\/card-images/, ""),
+      },
+    },
   },
   build: {
     target: "es2022",

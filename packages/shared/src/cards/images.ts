@@ -1,8 +1,8 @@
 import { resolveCardArt } from "./arts.js";
 import { TOKEN_ID_PREFIX } from "./tokens.js";
 
-// Pinned to the last upstream commit that still ships card images; upstream main deleted them.
-const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/9f666f16501fb329b4e2fd9851e862afe2d7da05/src/assets/images/cards";
+/** Mirrored by tools/deploy/card-images.mjs; the dev server proxies it to the upstream bucket. */
+const CARD_IMAGE_BASE = "/assets/card-images";
 
 /**
  * Printings the upstream set has no English image for, bundled as official "SAMPLE" scans.
@@ -69,9 +69,9 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
   return ids.flatMap((id) => {
     const unpublished = UNPUBLISHED_IMAGE_IDS.has(id) ? `/cards/unpublished/${id}.webp` : undefined;
     return [
-      `${GITHUB_BASE}/${id}.webp`,
+      `${CARD_IMAGE_BASE}/${id}.webp`,
       ...(unpublished ? [unpublished] : []),
-      `${GITHUB_BASE}/${id}-Sample.webp`,
+      `${CARD_IMAGE_BASE}/${id}-Sample.webp`,
     ];
   });
 }
