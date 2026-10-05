@@ -111,6 +111,15 @@ for (const seat of [0, 1] as const) {
             for (const blocked of [
               { ...request, options: { ...request.options, max: 0 } },
               { ...request, options: { ...request.options, min: 2, max: 1 } },
+              {
+                ...request,
+                options: {
+                  ...request.options,
+                  candidateInstanceIds: [s.inst("material").instanceId, s.inst("material").instanceId],
+                  min: 2,
+                  max: 2,
+                },
+              },
               { ...request, options: { ...request.options, candidateInstanceIds: [] } },
               { ...request, decisionId: "stale" },
               ...(family === "digiXros"
