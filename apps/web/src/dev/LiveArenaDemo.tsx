@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-bt11-hades-force-target-selection": {
+    ptBR: "Entre na Principal e use Hades Force (custo 5 com X Antibody nas fontes). WarGreymon tem custo 12. A seleção deve oferecer Thomas (3), Gaomon (3) e Hexeblaumon (12) juntos. Escolha apenas Hexeblaumon e confirme: os dois alvos baratos permanecem. Também é possível escolher os dois baratos ou nenhuma carta. Depois, recuse o ataque opcional para inspecionar o resultado. Baseado na partida c8383f3a, 15:02 UTC, bug 1556322403456520223.",
+    en: "Enter Main and use Hades Force (cost 5 with X Antibody in the sources). WarGreymon's play cost is 12. The target selection must offer Thomas (3), Gaomon (3), and Hexeblaumon (12) together. Select only Hexeblaumon and confirm: both cheap targets remain. You can also select both cheap targets or no cards. Then decline the optional attack to inspect the result. Based on match c8383f3a at 15:02 UTC, bug 1556322403456520223.",
+  },
   "arena-bt22-gabumon-eot-dna": {
     ptBR: "Entre na Principal e ative o efeito [Mão] [Principal] de MetalGarurumon BT22-026 (custo 6). Resolva Nokia EX13-067 primeiro: suspenda-a, jogue Agumon BT22-008 da lixeira e recupere Omnimon AD1-025. Depois escolha evoluir Agumon em WarGreymon pelo efeito de MetalGarurumon. No fim automático do turno, aceite a DNA herdada de Gabumon (ou Agumon) e escolha AD1-025: os dois níveis 6 devem formar Omnimon por custo 0, preservando as quatro fontes. Reprodução da partida 8ca7da4d, bug 1556299408700735548.",
     en: "Enter Main and activate BT22-026 MetalGarurumon's [Hand] [Main] effect (cost 6). Resolve EX13-067 Nokia first: suspend her, play BT22-008 Agumon from trash and recover AD1-025 Omnimon. Then choose to digivolve Agumon into WarGreymon with MetalGarurumon's effect. At the automatic end of turn, accept Gabumon's (or Agumon's) inherited DNA and choose AD1-025: the two level 6 Digimon must form Omnimon for cost 0, keeping all four sources. Reproduces match 8ca7da4d, bug 1556299408700735548.",
@@ -95,6 +99,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-mervamon-trash-digixros": {
     ptBR: "Encerre a fase de criação e jogue BT11-086 Mervamon da mão. A seleção de DigiXros deve oferecer Mervamon e BT11-076 Ignitemon da lixeira sem exigir um Tamer. Escolha apenas 1 deles; Agumon não é material válido. Confirme o DigiXros e recuse o [Ao Jogar] da Mervamon, se oferecido. Ela entra com 1 material e a memória cai de 10 para 2. Reinicie para testar a outra opção.",
     en: "End breeding and play BT11-086 Mervamon from hand. DigiXros must offer Mervamon and BT11-076 Ignitemon from trash without requiring a Tamer. Choose just 1; Agumon is not a valid material. Confirm DigiXros and decline Mervamon's [On Play], if offered. She enters with 1 material and memory falls from 10 to 2. Reset to test the other option.",
+  },
+  "arena-bt5-koromon-attack-draw": {
+    ptBR: "Encerre a fase de criação e ataque a segurança com Greymon BT12-062. Koromon BT5-001 está na base da pilha: seu efeito herdado deve brilhar e comprar 1 carta antes do escudo quebrar e Gaogamon EX4-017 ser revelado. A compra da fase de compra ocorre antes desse ataque e é separada da compra do Koromon.",
+    en: "End breeding and attack security with BT12-062 Greymon. BT5-001 Koromon is at the bottom of its stack: its inherited effect must glow and draw 1 card before the shield breaks and EX4-017 Gaogamon is revealed. The draw-phase card arrives before this attack and is separate from Koromon's draw.",
   },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
@@ -544,6 +552,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Issue #4905, partida d20f9c5d. Encerre a criação e jogue Veemon P-117. Digievolua nele Magnamon ST17-13 pela condição alternativa de Veemon. Escolha Omnimon: Merciful Mode como alvo: ele tem 6 cores distintas concedidas pelas fontes (branco, vermelho, azul, preto, verde e amarelo). As 6 cartas de digievolução devem ir ao lixo de uma vez; depois, Merciful sem fontes deve voltar à mão.",
     en: "Issue #4905, match d20f9c5d. End breeding and play P-117 Veemon. Digivolve it into ST17-13 Magnamon using the alternate Veemon requirement. Choose Omnimon: Merciful Mode: its sources grant 6 distinct colors (white, red, blue, black, green, and yellow). All 6 digivolution cards must be trashed together, then the source-free Merciful must return to the hand.",
   },
+  "arena-ex13-gallantmon-standoff": {
+    ptBR: "Discord 1556325649071870043. Encerre a criação e jogue Gallantmon EX13-015 da mão usando Assembly com WarGrowlmon, Growlmon e Guilmon do trash. Seu Ao Jogar tenta deletar o Gallantmon adversário. Ele pode se proteger tentando deletar seu Gallantmon: Guilmon e Growlmon herdados aumentam o limite para 13000 DP. Aceite sua própria proteção e delete o Guilmon adversário. Seu Gallantmon fica; o custo adversário falha e o Gallantmon dele também é deletado (Q7247). A segurança adversária não muda. Se recusar sua proteção, seu Gallantmon é deletado e o adversário fica.",
+    en: "Discord 1556325649071870043. End breeding and play EX13-015 Gallantmon from hand using Assembly with WarGrowlmon, Growlmon and Guilmon in the trash. Its On Play attempts to delete the opposing Gallantmon. That Gallantmon can protect itself by trying to delete yours: inherited Guilmon and Growlmon raise its cap to 13000 DP. Accept your own protection and delete the opposing Guilmon. Your Gallantmon stays; the opposing cost fails and their Gallantmon is also deleted (Q7247). Opposing security stays unchanged. Decline your protection instead to lose your Gallantmon and let theirs survive.",
+  },
   "arena-ad1-gallantmon-deletion-attack-order": {
     ptBR: "Discord 1555207697991864380. Encerre a criação. Digievolua WarGrowlmon (com Growlmon embaixo) em Gallantmon. Resolva primeiro o Ao Digievoluir que deleta até 10000 DP: delete 1 DarkTyrannomon e aceite o ataque ao jogador. Growlmon herdado (ganhar 1 memória) e o Ao Atacar de Gallantmon disparam juntos: escolha o Ao Atacar primeiro. Ele deleta o outro DarkTyrannomon, depois Growlmon dá +1 memória uma única vez. Ao Fim do Ataque, WarGrowlmon herdado dá +2 memória.",
     en: "Discord 1555207697991864380. End breeding. Digivolve WarGrowlmon (Growlmon underneath) into Gallantmon. Resolve the When Digivolving effect that deletes up to 10000 DP first: delete 1 DarkTyrannomon and accept the attack on the player. Inherited Growlmon (gain 1 memory) and Gallantmon's When Attacking trigger together: choose When Attacking first. It deletes the other DarkTyrannomon, then Growlmon gains 1 memory only once. At End of Attack, inherited WarGrowlmon gains 2 memory.",
@@ -675,6 +687,7 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-bt11-hades-force-target-selection", "BT11 Hades Force · escolha dos alvos"],
   ["arena-bt23-examon-partition-return", "BT23 Examon · Partition on deck return"],
   ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],
@@ -713,6 +726,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-taiki-digixros-any-tamer-hand", "Taiki · DigiXros from hand under any Tamer"],
   ["arena-kotone-digixros-any-tamer-effect", "Kotone · effect DigiXros under any Tamer"],
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
+  ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
@@ -797,6 +811,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-merciful-mode-attack-order", "EX13 Merciful Mode · match f9505ba7 attack order"],
   ["arena-ex13-merciful-repeat-barrier", "EX13 Merciful Mode · repeat inherited Barrier"],
   ["arena-st17-magnamon-merciful-colors", "ST17 Magnamon · Merciful gained colors (#4905)"],
+  ["arena-ex13-gallantmon-standoff", "EX13 Gallantmon · nested leave prevention"],
   ["arena-ad1-gallantmon-deletion-attack-order", "AD1 Gallantmon · deletion watcher vs When Attacking order"],
   ["arena-bt20-cool-boy-stacked-omekamon", "BT20 Cool Boy · two copies play two Omekamon"],
   ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],

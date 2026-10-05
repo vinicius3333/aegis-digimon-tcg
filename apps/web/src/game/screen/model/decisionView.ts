@@ -29,6 +29,8 @@ export type DecisionView = {
   decisionDifferentColors: boolean;
   decisionDistinctCardIds: boolean;
   decisionDistinctNames: boolean;
+  /** The combined printed play-cost cap sent by the engine. */
+  decisionMaxTotalPlayCost: number | undefined;
   /** The summed-DP cap the engine enforces on this selection, if any. */
   decisionMaxTotalDP: number | undefined;
   /** Current DP of each board candidate, keyed by permanent and top-card id. */
@@ -112,6 +114,7 @@ export function decisionViewFor({
     decisionDifferentColors: viewerDecision?.options?.differentColors === true,
     decisionDistinctCardIds: viewerDecision?.options?.distinctCardIds === true,
     decisionDistinctNames: viewerDecision?.options?.distinctNames === true,
+    decisionMaxTotalPlayCost: viewerDecision?.options?.maxTotalPlayCost,
     decisionMaxTotalDP: viewerDecision?.options?.maxTotalDP,
     decisionCandidateDP: new Map(
       permanents.flatMap((permanent) => [

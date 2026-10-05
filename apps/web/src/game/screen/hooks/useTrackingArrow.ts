@@ -25,6 +25,7 @@ export function useTrackingArrow({
   picks,
   viewerSeat,
   fieldClash,
+  effectSelection,
   boardRef,
   permRefs,
   permCentersRef,
@@ -37,6 +38,7 @@ export function useTrackingArrow({
   picks: readonly string[];
   viewerSeat: Seat;
   fieldClash: FieldClashScene | null;
+  effectSelection?: { sourcePermanentId: string; targetPermanentIds: readonly string[] };
   boardRef: RefObject<HTMLDivElement | null>;
   permRefs: MutableRefObject<Record<string, HTMLDivElement | null>>;
   /** Where each permanent last stood, so a deleted card's arrow still reaches it. */
@@ -60,6 +62,14 @@ export function useTrackingArrow({
       }
     : null;
   const trackingArrowRequest =
+    (effectSelection
+      ? {
+          kind: "effect" as const,
+          key: `effect:${effectSelection.sourcePermanentId}`,
+          from: { kind: "permanent" as const, permanentId: effectSelection.sourcePermanentId },
+          to: effectSelection.targetPermanentIds.map((permanentId) => ({ kind: "permanent" as const, permanentId })),
+        }
+      : null) ??
     fieldClashArrow ??
     activeAttackArrow(events) ??
     effectTargetArrow({

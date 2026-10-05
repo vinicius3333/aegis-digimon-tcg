@@ -234,12 +234,21 @@ export type ServerEvent =
   // forbids reordering a deck otherwise. Carries no card identity, so it reveals nothing.
   | { kind: "deckShuffled"; seat: Seat; deck: "deck" | "eggDeck" }
   | { kind: "cardRevealed"; seat: Seat; cardId: string; artId?: string; sourceCardId?: string }
+  | {
+      /** Public field targets, before deletion prevention interrupts the resolving effect. */
+      kind: "effectTargetsSelected";
+      seat: Seat;
+      sourcePermanentId: string;
+      targetPermanentIds: string[];
+    }
   | { kind: "effectActivated"; seat: Seat; sourceCardId: string; effectKey: string; description: string }
   | {
       // A triggered effect (On Play / When Digivolving / ...) STARTED resolving. Emitted
       // before the effect's optional prompt and any in-body decisions, so the client can
       // announce the effect ahead of the "opponent is selecting" wait it may open.
       kind: "effectTriggered";
+      /** A leave prevention resolves before its source's attempted removal. */
+      beforeRemoval?: boolean;
       seat: Seat;
       sourceCardId: string;
       /** Physical source and host; distinguish identical cards on the same seat. */
@@ -474,6 +483,7 @@ export const SERVER_EVENT_KINDS = [
   "securityRecovered",
   "deckShuffled",
   "cardRevealed",
+  "effectTargetsSelected",
   "effectActivated",
   "effectTriggered",
   "effectOptionChosen",

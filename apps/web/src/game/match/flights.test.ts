@@ -30,6 +30,7 @@ function flightSequence() {
     queue,
     anchors,
     viewerSeat: 0,
+    presentationBatchRef: { current: { batchId: "draw-batch", stateVersion: 1 } },
     causingEffectGateRef: { current: null },
     securityGainKeyRef: { current: 0 },
     drawFlightKeyRef: { current: 0 },

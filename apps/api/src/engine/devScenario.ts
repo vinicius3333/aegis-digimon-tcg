@@ -38,10 +38,12 @@ import {
  */
 export const DEV_SCENARIO_IDS = [
   "arena-bt18-candlemon-data-selection",
+  "arena-bt5-koromon-attack-draw",
   "arena-taiki-digixros-any-tamer-hand",
   "arena-kotone-digixros-any-tamer-effect",
   "arena-mervamon-trash-digixros",
   "arena-bt22-gabumon-eot-dna",
+  "arena-bt11-hades-force-target-selection",
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
   "arena-bt26-monimon-optional-cost",
@@ -161,6 +163,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-merciful-repeat-barrier",
   "arena-st17-magnamon-merciful-colors",
   "arena-ad1-gallantmon-deletion-attack-order",
+  "arena-ex13-gallantmon-standoff",
   "arena-bt20-cool-boy-stacked-omekamon",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
@@ -681,6 +684,29 @@ function layDiarbbitmonDualOptionImmunityScenario(state: GameState, decks: reado
   state.memory = 10;
 }
 
+/** Discord 1556322403456520223: choose the full Hades Force budget, not per-target yes/no. */
+function layBt11HadesForceTargetSelectionScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-hades-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-hades-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-hades-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  placePermanent(state.players[0]!, establishedDigimon(0, ["BT9-109", "BT12-070"], "-hades-greymon"));
+  insertCard(state.players[0]!, Zone.Hand, faceDownCard("dev-hades-option", "BT11-107", 0));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT4-093"], "-hades-tamer"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["EX4-015"], "-hades-rookie"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["EX7-023"], "-hades-hexeblau"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 /** Discord 1556299408700735548: match 8ca7da4d, 13:33 UTC, Nokia before MetalGarurumon. */
 function layBt22GabumonEotDnaScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -700,6 +726,28 @@ function layBt22GabumonEotDnaScenario(state: GameState, _decks: readonly [Deckli
   insertCard(human, Zone.Hand, faceDownCard("dev-gabu-war", "BT22-013", 0));
   insertCard(human, Zone.Trash, faceUpCard("dev-gabu-agu", "BT22-008", 0));
   insertCard(human, Zone.Trash, faceUpCard("dev-gabu-omni", "AD1-025", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1556321937188196474: c8383f3a at 14:57 UTC, Greymon checks Gaogamon. */
+function layBt5KoromonAttackDrawScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-koromon-egg-${seat}`, "BT5-001", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-koromon-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-koromon-security-${seat}-${index}`, "EX4-017", seat));
+    }
+  }
+  placePermanent(
+    state.players[0]!,
+    establishedDigimon(0, ["BT5-001", "BT12-059", "BT9-008", "BT12-062"], "-koromon-greymon"),
+  );
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -3791,6 +3839,33 @@ function layEx13DeletionTriggerOrderingScenario(state: GameState, decks: readonl
  * DarkTyrannomon and attacks. The inherited ST7-05 memory watcher and the [When Attacking]
  * deletion trigger together, so the player orders them (Q2044).
  */
+/** Discord 1556325649071870043: a leave-prevention cost triggers the other Gallantmon's protection. */
+function layEx13GallantmonStandoffScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-gallantmon-standoff-hand", "EX13-015", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-standoff-lv3", "BT2-009", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-standoff-lv4", "BT2-013", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-standoff-lv5", "BT2-017", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["EX13-007", "EX13-010", "EX13-015"], "-ex13-standoff-gallantmon"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-007"], "-ex13-standoff-guilmon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 function layAd1GallantmonDeletionAttackOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -5349,6 +5424,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
   "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
   "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
+  "arena-bt11-hades-force-target-selection": layBt11HadesForceTargetSelectionScenario,
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,
@@ -5381,6 +5457,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
+  "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
@@ -5472,6 +5549,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-merciful-repeat-barrier": layEx13MercifulRepeatBarrierScenario,
   "arena-st17-magnamon-merciful-colors": laySt17MagnamonMercifulColorsScenario,
   "arena-ad1-gallantmon-deletion-attack-order": layAd1GallantmonDeletionAttackOrderScenario,
+  "arena-ex13-gallantmon-standoff": layEx13GallantmonStandoffScenario,
   "arena-bt20-cool-boy-stacked-omekamon": layBt20CoolBoyStackedOmekamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,

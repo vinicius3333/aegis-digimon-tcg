@@ -5736,3 +5736,93 @@ it("does not name a ＜Delay＞ Option twice in a trashed-cards panel beside its
   await advance(TIMINGS.cardBurst + TIMINGS.effectSourceHold);
   expect(result.current.sidePanels).toEqual([]);
 });
+
+it.each([false, true])(
+  "Discord 1556321937188196474: Koromon draws before security (coalesced=%s)",
+  async (coalesced) => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    const hand = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    const state = {
+      players: [
+        { battleArea: [], hand: [], trash: [], handCount: 5 },
+        {
+          battleArea: [
+            {
+              permanentId: "perm-3",
+              topCard: { cardId: "BT12-062", instanceId: "greymon" },
+              stack: [{ cardId: "BT5-001", instanceId: "koromon" }],
+            },
+          ],
+          hand: [],
+          trash: [],
+          handCount: 5,
+        },
+      ],
+    } as unknown as GameState;
+    const { result, rerender } = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          batches,
+          state,
+          viewerSeat: 0,
+          mulliganOpen: false,
+          anchors: {
+            ...anchors,
+            board: { current: board },
+            oppDeck: { current: deck },
+            oppHandStrip: { current: hand },
+          },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerBatch[] },
+    );
+    const batches = [
+      singleServerBatch([{ ...ATTACK, attackerPermanentId: "perm-3", attackerCardId: "BT12-062" }], 68),
+      singleServerBatch(
+        [
+          {
+            kind: "effectTriggered",
+            seat: 1,
+            sourceCardId: "BT5-001",
+            sourcePermanentId: "perm-3",
+            sourceInstanceId: "koromon",
+            effectKey: "BT5-001/ir-12-0",
+            timing: "OnUseAttack",
+            printedTiming: "WhenAttacking",
+            isInherited: true,
+            description: "[When Attacking][Once Per Turn] Draw 1.",
+          },
+          { kind: "cardsMoved", seat: 1, instanceIds: ["drawn"], from: "deck", to: "hand" },
+        ],
+        69,
+      ),
+      singleServerBatch([{ ...REVEAL, attackerPermanentId: "perm-3", revealedCardId: "EX4-017" }], 71),
+      singleServerBatch([{ ...CHECK, revealedCardId: "EX4-017" }], 72),
+    ];
+    if (coalesced) rerender(batches);
+    else
+      for (let index = 0; index < batches.length; index++) {
+        rerender(batches.slice(0, index + 1));
+        await advance(40);
+      }
+    let drawSeen = false;
+    let drawFinished = false;
+    let shieldSeen = false;
+    for (let tick = 0; tick < 500; tick++) {
+      await advance(20);
+      if (result.current.drawFlights.length > 0) drawSeen = true;
+      if (drawSeen && result.current.drawFlights.length === 0) drawFinished = true;
+      if (result.current.securityBreak !== null || result.current.securityClash !== null) {
+        shieldSeen = true;
+        break;
+      }
+    }
+    expect(shieldSeen).toBe(true);
+    expect(drawSeen).toBe(true);
+    expect(drawFinished).toBe(true);
+  },
+);

@@ -62,6 +62,49 @@ describe("BT11-107 Hades Force", () => {
     expect(s.state.memory).toBe(5);
   });
 
+  it("Discord 1556322403456520223: asks for the whole budgeted target set before deleting anything", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-064", under: ["BT9-109"], as: "greymon" }],
+          hand: [{ card: "BT11-107", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "ST1-02", as: "cheap" },
+            { card: "BT1-088", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks(400);
+    const picks = s.decisions.filter(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.maxTotalPlayCost !== undefined,
+    );
+    expect(picks).toHaveLength(1);
+    const { seat, req } = picks[0]!;
+    expect(req.options).toMatchObject({ min: 0, max: 2, maxTotalPlayCost: 5, targetFate: "delete" });
+    expect(req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("cheap").permanentId, s.perm("tamer").permanentId]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(seat, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-088"));
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["ST1-02"]);
+  });
+
   it("registers the complete IR", () => {
     const runtimeCard = runtimeCompiledCard("BT11-107")!;
     expect(runtimeCard.coverage).toBe("full");
@@ -94,10 +137,11 @@ describe("BT11-107 Hades Force — KB Q&A rulings", () => {
           instanceIds: (req.options?.candidateInstanceIds ?? []).slice(0, req.options?.min ?? 0),
         };
 
-  const isBudgetDeletionPrompt = (req: DecisionRequest) => req.kind === "optional" && req.promptText?.includes("/6)");
+  const isBudgetDeletionPrompt = (req: DecisionRequest) =>
+    req.kind === "chooseTargets" && req.options?.maxTotalPlayCost !== undefined;
 
   const keepOpponentBoard: Answer = (req) =>
-    isBudgetDeletionPrompt(req) ? { kind: "optional", accept: false } : acceptEverything(req);
+    isBudgetDeletionPrompt(req) ? { kind: "chooseTargets", instanceIds: [] } : acceptEverything(req);
 
   async function answerAll(s: Setup, answer: Answer): Promise<void> {
     let handled = 0;
@@ -152,18 +196,18 @@ describe("BT11-107 Hades Force — KB Q&A rulings", () => {
       },
     });
     const sparedPermanentId = s.perm("spared").permanentId;
-    const budgetPrompts: string[] = [];
+    const budgetPrompts: DecisionRequest[] = [];
 
     await useHadesForce(s, (req) => {
       if (isBudgetDeletionPrompt(req)) {
-        const prompt = req.promptText ?? "";
-        budgetPrompts.push(prompt);
-        return { kind: "optional", accept: !prompt.includes(sparedPermanentId) };
+        budgetPrompts.push(req);
+        return { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] };
       }
       return req.kind === "optional" ? { kind: "optional", accept: false } : acceptEverything(req);
     });
 
-    expect(budgetPrompts.some((prompt) => prompt.includes(sparedPermanentId))).toBe(true);
+    expect(budgetPrompts).toHaveLength(1);
+    expect(budgetPrompts[0]!.options?.candidateInstanceIds).toContain(sparedPermanentId);
     expect(onBoard(s, 1, "spared")).toBe(true);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["ST1-02"]);
@@ -202,6 +246,7 @@ describe("BT11-107 Hades Force — KB Q&A rulings", () => {
   });
 
   it("only lets a Greymon that can also attack unsuspended Digimon attack the player (Q2137)", async () => {
+    const options = { autoSelectCards: true };
     const s = setupEngine(
       {
         0: {
@@ -214,7 +259,7 @@ describe("BT11-107 Hades Force — KB Q&A rulings", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "unsuspendedTarget", dp: 20000 }], security: 3 },
       },
-      { autoSelectCards: true },
+      options,
     );
     s.state.memory = 10;
     await s.ready();
@@ -223,6 +268,7 @@ describe("BT11-107 Hades Force — KB Q&A rulings", () => {
     });
     await settle(() => observe(s.engine).canAttackUnsuspended(s.perm("greymon")));
 
+    options.autoSelectCards = false;
     await useHadesForce(s, keepOpponentBoard);
 
     const targetRequests = attackTargetRequests(s);

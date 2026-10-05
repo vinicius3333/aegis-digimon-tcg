@@ -370,140 +370,151 @@ export async function runReplacement(
         if (protectsFilter.controller === "opponent" && leaving.controllerSeat === ownerSeat) return false;
         return permanentMatchesFilter(subCtx, leaving, protectsFilter, subCtx.source);
       },
-      preventCheck: async (subCtx) => {
-        // "You may [pay cost] to prevent" — the cost is the gate. Decline => not prevented.
-        if (preventCost !== undefined && !canPayCost(subCtx, preventCost)) return false;
-        const availablePreventCosts = action.costOptions ?? nestedPrevent?.costOptions;
-        if (availablePreventCosts !== undefined && !availablePreventCosts.some((cost) => canPayCost(subCtx, cost))) {
-          return false;
-        }
-        // The install-time provenance of the whole clause: the timing and printed text the
-        // prevent prompt already carries, so every question the nested actions ask arrives with
-        // them too. A nested Digivolve otherwise reached the client as the bare internal verb
-        // "Digivolve" with no clause, and the client — which drops those verbs because the
-        // clause is what explains the ask — rendered an empty confirmation (BT26-085).
-        const clauseProvenance = {
-          ...(ctx.activeTiming !== undefined ? { activeTiming: ctx.activeTiming } : {}),
-          ...(ctx.activeEffectIsInherited === true ? { activeEffectIsInherited: true } : {}),
-        };
-        if (action.optional !== false) {
-          // The printed clause is what makes the prompt answerable ("...by returning 4 [Vemmon]
-          // from its digivolution cards"). A Prevent compiled without its own `raw` still has
-          // the cost's, so fall back through both. `printedClause` drops a `raw` that holds an
-          // internal identifier instead of printed text (some cards store the replacement's
-          // event name there), so no identifier can reach the player; the source card's own
-          // printed effect text is the last resort, so the question is always answerable.
-          const preventReason =
-            printedClause(action.raw) ??
-            printedClause(preventCost?.raw) ??
-            printedClause(subCtx.activeEffectText) ??
-            printedClause(subCtx.source.definition.effectText);
-          // The clause travels as the decision's `effectText` provenance (the channel the
-          // client already renders beside the source card), never interpolated into the
-          // question itself. The install-time timing (and inheritance) rides along so the
-          // client slices the resolving clause out of a fallback full-text clause instead of
-          // showing every printed effect (BT26-016's protection).
-          const askCtx =
-            preventReason === undefined ? subCtx : { ...subCtx, activeEffectText: preventReason, ...clauseProvenance };
-          const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
-          if (!yes) return false;
-        }
-        if (action.digivolveFromTrash === true) {
-          const targetId = subCtx.trigger.deletedPermanentId;
-          if (targetId === undefined) return false;
-          return (
-            (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, {
-              payCost: false,
-              processRulesBeforeWhenDigivolving: true,
-            })) !== undefined
-          );
-        }
-        if (action.playAndRelocateSourceUnder !== undefined) {
-          const host = subCtx.source.permanent();
-          if (host === undefined) return false;
-          const owner = subCtx.game.state.players[subCtx.source.ownerSeat]!;
-          const candidates = [
-            ...(action.playAndRelocateSourceUnder.from.includes("digivolutionCards") ? host.stack : []),
-            ...(action.playAndRelocateSourceUnder.from.includes("trash") ? owner.trash : []),
-          ].filter((card) =>
-            definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)),
-          );
-          if (candidates.length === 0) return false;
-          const selected = await subCtx.ask.selectCards(subCtx, {
-            candidates: candidates.map((card) => card.instanceId),
-            min: 1,
-            max: 1,
-          });
-          if (selected.length === 0) return false;
-          const selectedCards = candidates.filter((card) => selected.includes(card.instanceId));
-          const played = await playEffectInstances(subCtx, selectedCards, { payCost: false });
-          const playedPermanent = played[0];
-          if (playedPermanent === undefined) return false;
-          return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });
-        }
-        // Give the nested actions the clause's provenance IN PLACE. A copy would fork the
-        // context the nested actions write their own state back through (activation receipts,
-        // selection bindings), so the shared sub-context is mutated instead — the same thing
-        // `withReplacementSource` does for the other replacement modes.
-        if (clauseProvenance.activeTiming !== undefined) subCtx.activeTiming ??= clauseProvenance.activeTiming;
-        if (clauseProvenance.activeEffectIsInherited === true) subCtx.activeEffectIsInherited ??= true;
-        subCtx.activeEffectText ??=
-          printedClause(action.raw) ?? printedClause(ctx.activeEffectText) ?? subCtx.source.definition.effectText;
-        const runCtx: EffectContext =
-          action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
-        // A ＜Delay＞ is an activated effect the viewer must see: the client paces the Option's
-        // break and the save behind this clause, so without it both land the instant the prompt
-        // closes (Discord 1555673696960774224).
-        const resolvedNotice =
-          action.requiresDelayArmed === true || requiresIntrinsicDelay
-            ? subCtx.fx.announceEffect?.(subCtx, {
-                effectKey: activationIdentity ?? `replacement/${ctx.source.cardId}/delay`,
-                description: subCtx.activeEffectText ?? "",
-                timing: subCtx.activeTiming ?? "AllTurns",
-                ...(subCtx.activeEffectIsInherited === true ? { isInherited: true } : {}),
-              })
-            : undefined;
-        try {
-          if (action.requiresDelayArmed === true) {
-            const source = subCtx.source.permanent();
-            if (source === undefined) return false;
-            if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-            const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some((g) => g.keyword === "Delay");
-            if (!hasDelay) return false;
-            subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
-            const trashed = await trashDelaySource(subCtx, source);
-            if (trashed <= 0) return false;
-          }
-          // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
-          // §16-17) — the printed keyword's OWN cost, not the separate GainKeyword-armed model
-          // above. §16-17-3 bars activation the turn the card entered play; §16-17-1 makes
-          // trashing the source card (already asked as the "prevent?" confirm above) the cost.
-          if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
-            const source = subCtx.source.permanent();
-            if (source === undefined) return false;
-            if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
-            const trashed = await trashDelaySource(subCtx, source);
-            if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
-          }
-          const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
-          if (preventCosts.length > 0) {
-            const paid = await payOneCostOption(subCtx, preventCosts);
-            if (!paid) return false;
-          }
-          for (const inner of action.actions ?? []) {
-            if (inner.kind === "Prevent") continue;
-            if (inner.kind === "GrantStatic" && isCannotLeavePlayGrant((inner as { grant?: unknown }).grant)) continue;
-            const abort = await runAction(runCtx, inner);
-            if (abort) break;
-          }
-          if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
+      // A prevention's costs and actions belong to its source, even when interrupting
+      // the opponent's effect. Restore that outer effect after nested protection resolves
+      // (Discord 1556325649071870043; EX13-015 Q7247).
+      preventCheck: async (subCtx) =>
+        withReplacementSource(subCtx, async () => {
+          // "You may [pay cost] to prevent" — the cost is the gate. Decline => not prevented.
+          if (preventCost !== undefined && !canPayCost(subCtx, preventCost)) return false;
+          const availablePreventCosts = action.costOptions ?? nestedPrevent?.costOptions;
+          if (availablePreventCosts !== undefined && !availablePreventCosts.some((cost) => canPayCost(subCtx, cost))) {
             return false;
           }
-          return true;
-        } finally {
-          resolvedNotice?.();
-        }
-      },
+          // The install-time provenance of the whole clause: the timing and printed text the
+          // prevent prompt already carries, so every question the nested actions ask arrives with
+          // them too. A nested Digivolve otherwise reached the client as the bare internal verb
+          // "Digivolve" with no clause, and the client — which drops those verbs because the
+          // clause is what explains the ask — rendered an empty confirmation (BT26-085).
+          const clauseProvenance = {
+            ...(ctx.activeTiming !== undefined ? { activeTiming: ctx.activeTiming } : {}),
+            ...(ctx.activeEffectIsInherited === true ? { activeEffectIsInherited: true } : {}),
+          };
+          const resolveNotice = subCtx.fx.announceEffect?.(subCtx, {
+            beforeRemoval: true,
+            effectKey: activationIdentity ?? `replacement/${ctx.source.cardId}/prevent`,
+            description:
+              printedClause(action.raw) ??
+              printedClause(ctx.activeEffectText) ??
+              subCtx.source.definition.effectText ??
+              "",
+            timing: clauseProvenance.activeTiming ?? "AllTurns",
+            ...(clauseProvenance.activeEffectIsInherited === true ? { isInherited: true } : {}),
+          });
+          try {
+            if (action.optional !== false) {
+              // The printed clause is what makes the prompt answerable ("...by returning 4 [Vemmon]
+              // from its digivolution cards"). A Prevent compiled without its own `raw` still has
+              // the cost's, so fall back through both. `printedClause` drops a `raw` that holds an
+              // internal identifier instead of printed text (some cards store the replacement's
+              // event name there), so no identifier can reach the player; the source card's own
+              // printed effect text is the last resort, so the question is always answerable.
+              const preventReason =
+                printedClause(action.raw) ??
+                printedClause(preventCost?.raw) ??
+                printedClause(subCtx.activeEffectText) ??
+                printedClause(subCtx.source.definition.effectText);
+              // The clause travels as the decision's `effectText` provenance (the channel the
+              // client already renders beside the source card), never interpolated into the
+              // question itself. The install-time timing (and inheritance) rides along so the
+              // client slices the resolving clause out of a fallback full-text clause instead of
+              // showing every printed effect (BT26-016's protection).
+              const askCtx =
+                preventReason === undefined
+                  ? subCtx
+                  : { ...subCtx, activeEffectText: preventReason, ...clauseProvenance };
+              const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
+              if (!yes) return false;
+            }
+            if (action.digivolveFromTrash === true) {
+              const targetId = subCtx.trigger.deletedPermanentId;
+              if (targetId === undefined) return false;
+              return (
+                (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, {
+                  payCost: false,
+                  processRulesBeforeWhenDigivolving: true,
+                })) !== undefined
+              );
+            }
+            if (action.playAndRelocateSourceUnder !== undefined) {
+              const host = subCtx.source.permanent();
+              if (host === undefined) return false;
+              const owner = subCtx.game.state.players[subCtx.source.ownerSeat]!;
+              const candidates = [
+                ...(action.playAndRelocateSourceUnder.from.includes("digivolutionCards") ? host.stack : []),
+                ...(action.playAndRelocateSourceUnder.from.includes("trash") ? owner.trash : []),
+              ].filter((card) =>
+                definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)),
+              );
+              if (candidates.length === 0) return false;
+              const selected = await subCtx.ask.selectCards(subCtx, {
+                candidates: candidates.map((card) => card.instanceId),
+                min: 1,
+                max: 1,
+              });
+              if (selected.length === 0) return false;
+              const selectedCards = candidates.filter((card) => selected.includes(card.instanceId));
+              const played = await playEffectInstances(subCtx, selectedCards, { payCost: false });
+              const playedPermanent = played[0];
+              if (playedPermanent === undefined) return false;
+              return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });
+            }
+            // Give the nested actions the clause's provenance IN PLACE. A copy would fork the
+            // context the nested actions write their own state back through (activation receipts,
+            // selection bindings), so the shared sub-context is mutated instead — the same thing
+            // `withReplacementSource` does for the other replacement modes.
+            if (clauseProvenance.activeTiming !== undefined) subCtx.activeTiming ??= clauseProvenance.activeTiming;
+            if (clauseProvenance.activeEffectIsInherited === true) subCtx.activeEffectIsInherited ??= true;
+            subCtx.activeEffectText ??=
+              printedClause(action.raw) ?? printedClause(ctx.activeEffectText) ?? subCtx.source.definition.effectText;
+            const runCtx: EffectContext =
+              action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
+            // A ＜Delay＞ is an activated effect the viewer must see: the client paces the Option's
+            // break and the save behind this clause, so without it both land the instant the prompt
+            // closes (Discord 1555673696960774224).
+            if (action.requiresDelayArmed === true) {
+              const source = subCtx.source.permanent();
+              if (source === undefined) return false;
+              if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+              const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some(
+                (g) => g.keyword === "Delay",
+              );
+              if (!hasDelay) return false;
+              subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
+              const trashed = await trashDelaySource(subCtx, source);
+              if (trashed <= 0) return false;
+            }
+            // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
+            // §16-17) — the printed keyword's OWN cost, not the separate GainKeyword-armed model
+            // above. §16-17-3 bars activation the turn the card entered play; §16-17-1 makes
+            // trashing the source card (already asked as the "prevent?" confirm above) the cost.
+            if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+              const source = subCtx.source.permanent();
+              if (source === undefined) return false;
+              if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+              const trashed = await trashDelaySource(subCtx, source);
+              if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
+            }
+            const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
+            if (preventCosts.length > 0) {
+              const paid = await payOneCostOption(subCtx, preventCosts);
+              if (!paid) return false;
+            }
+            for (const inner of action.actions ?? []) {
+              if (inner.kind === "Prevent") continue;
+              if (inner.kind === "GrantStatic" && isCannotLeavePlayGrant((inner as { grant?: unknown }).grant))
+                continue;
+              const abort = await runAction(runCtx, inner);
+              if (abort) break;
+            }
+            if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
+              return false;
+            }
+            return true;
+          } finally {
+            resolveNotice?.();
+          }
+        }),
     });
     return;
   }
