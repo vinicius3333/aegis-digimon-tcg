@@ -1,0 +1,17 @@
+# Actual frozen-teacher learning progress
+
+The frozen source remains `1cec011c0fd0c6481e7297506ed4c825a4dfcdc7`; archive SHA256 `7eb27ab7c35d749c6ed6447a7db40522352df2e97ee2ae79ad765f76b6bec080`. Actual preparation and four-checkpoint migration closed with original whole exit zero and their full consumers passed. Completion hashes are respectively `0d5ef3f264b513678525bafca5a5d7b30c7e737d43e0ea9d38a3e2835a23f7ff` and `603250849a26d8f8ee6b4fd37dd067ebdf78d47f21a77584bbdad8d41d42a3e3`; current runtime fingerprint is `9a8d2d5f22fd9a06b959de37530a52c4aff4370988101060f75990bf17da7a7e`. No further build, archive or metadata-copy generation was made.
+
+## Diagnostic completed
+
+The first diagnostic attempt failed admission before any model/game because its exact historical summary basename was missing. The failed request/namespace/whole-exit-one remain intact. ROOT transferred the original exact `47f7ca12ebd2a4dad86f66ba625c8cd52406c2b66583c5c3708a70571b2ae5b3` summary bytes and sealed retry request `d3ed04a42050fc14f4f56bfdaa2722e8dca9ee8ba64263259e595f44a890ee57` in `/transfers/material-teacher-learning-r2-request.json`.
+
+The new exclusive run `/runs/material-teacher-learning-2026-10-05-one-policy-r2` completed all88 diagnostic games using the actual migrated challenger, CUDA, unchanged source, all44 recipes and both seats. Whole695/start7135 closed zero; the unchanged full learning consumer then exited zero and reconstructed the raw results, exact commands/maps and preserved checkpoints. Identity SHA256 `f1ed918b39a90b89c4b9c6ec081d711c8ea1f91eb2549bfe8270240447923521`, completion `b2a55a7694cb441b5a61b0f6689f59f86d457fbd377a63122cde33939d5c279a`, report `c61613c8a2fc205d25f000990724f3f364c8eb6233b775033e86e9ba75d8bdcb`. This was a diagnostic with zero training updates; no strength or mastery acceptance is claimed. Raw inspection counted52 wins, without establishing all44 gains.
+
+## Next actual phase
+
+After that full diagnostic consumption, ROOT separately sealed contexts resource approval `07e194fae394e34b756e5ae9996839ded85604eb230d8f8c342414fc3c937156`. The 436-game teacher collection is launched with whole685/start70978, operator692/start70985, identity `0d0c3e77b239d5df16153035c00dd187ab7a5a44425210ae035e9ef55ecdb1e4`. Exact live argv/parentage were observed; its launch has not yet established collection completion. Seed interval6202500..6202935 is checked by the unchanged fresh scanner before execution. No checkpoint or device is supplied to this teacher collection.
+
+Each later phase still requires real whole-zero/raw closure and a separate ROOT approval. Imitation requires all181 supervised training identities and eight mechanism families in both seats and original folds; only actual closed predeclared fresh expansions may fill gaps. Actual finite changed PPO learning, five-policy all44 strict gains, new-candidate physical/material evidence, all26 managed rooms and final reserved6210000..6213871 blind acceptance remain outstanding. Final seeds and production remain untouched.
+
+The candidate-only physical operator is integrated from pushed child `ebea0c8e4`, SHA256 `cdddc817472520850680077444cd1971ca9c028411cfee7a1f8d8b92085a1c95`; eight synthetic source guards and supported Node26 normal pre-push typechecks pass. It is staged without execution and awaits real new PPO pins. Its synthetic tests establish helper contracts, never actual model acceptance.
