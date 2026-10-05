@@ -4,7 +4,14 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { tempoOriginalMusic } from "../../../../tools/diagnostics/tempo-original-music.mjs";
 import { MUSIC_URL } from "./audioBank";
-import { decodeMusicWav, encodeMusicWav, masterOriginalMusic, musicMetrics } from "./musicMaster";
+import {
+  decodeMusicWav,
+  encodeMusicWav,
+  masterOriginalMusic,
+  musicMetrics,
+  addRecordedMusicPulse,
+  analyzeMusicBeatPhase,
+} from "./musicMaster";
 
 const root = new URL("../../public/audio/", import.meta.url);
 const provenance = JSON.parse(readFileSync(new URL("music-candidates/provenance.json", root), "utf8"));
@@ -17,8 +24,11 @@ describe("original musical source mastering", () => {
     expect(selected.bpm).toBe(112);
     expect(selected.role).toBe("selected");
     expect(selected.finishedAnalysis.sha256).toBe(selected.sha256);
-    expect(selected.finishedAnalysis.estimatedBpm).toBeCloseTo(112, 0);
-    expect(selected.finishedAnalysis.normalizedAutocorrelation).toBeGreaterThan(0.6);
+    expect(selected.finishedAnalysis.gridBpm).toBe(112);
+    expect(selected.finishedAnalysis.measuredTempo.sha256).toBe(selected.sha256);
+    expect(selected.finishedAnalysis.measuredTempo.estimatedBpm).toBeCloseTo(112, 0);
+    expect(selected.finishedAnalysis.gridStrength).toBeGreaterThan(1.5);
+    expect(selected.dryAnalysis.normalizedAutocorrelation).toBeGreaterThan(0.6);
     for (const candidate of provenance.candidates) {
       const source = gunzipSync(readFileSync(new URL(`music-candidates/${candidate.sourceFile}`, root)));
       expect(createHash("sha256").update(source).digest("hex")).toBe(candidate.sourceSha256);
@@ -41,6 +51,47 @@ describe("original musical source mastering", () => {
       expect(measured.seconds).toBeCloseTo((candidate.masterSettings.beats * 60) / row.bpm, 4);
       expect(row.sourceIdentity.type).toBe("original-text-generation");
     }
+  });
+  it("preserves liked dry bytes and adds sparse natural-recorded accents on the measured score phase", () => {
+    const dry = manifest.candidates.find((row: { id: string }) => row.id === "warm-drive");
+    const selected = manifest.candidates.find((row: { id: string }) => row.id === manifest.selectedId);
+    const originalBytes = readFileSync(new URL(dry.file, root));
+    expect(createHash("sha256").update(originalBytes).digest("hex")).toBe(
+      "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
+    );
+    const pcm = decodeMusicWav(originalBytes);
+    const recorded = (name: string) => {
+      const audio = decodeMusicWav(readFileSync(new URL(`sources/recorded-${name}.wav`, root)));
+      return { sampleRate: audio.sampleRate, samples: audio.channels[0]! };
+    };
+    const pulsed = addRecordedMusicPulse(pcm, recorded("placeHeavy"), recorded("tap"));
+    expect(createHash("sha256").update(encodeMusicWav(pulsed.pcm)).digest("hex")).toBe(selected.sha256);
+    expect(pulsed.pcm.channels[0]!.length).toBe(pcm.channels[0]!.length);
+    expect(pulsed.events).toHaveLength(64);
+    expect(pulsed.analysis.phaseSeconds).toBeGreaterThan(0);
+    expect(pulsed.analysis.phaseSeconds).toBeLessThan(0.04);
+    expect(pulsed.analysis.gridStrength).toBeGreaterThan(1.5);
+    for (let i = 1; i < pulsed.events.length; i++)
+      expect(pulsed.events[i]!.peakSeconds - pulsed.events[i - 1]!.peakSeconds).toBeCloseTo(60 / 112, 4);
+    const differenceEnergy = pulsed.pulse.reduce((sum, value) => sum + value * value, 0);
+    const originalEnergy = pcm.channels[0]!.reduce((sum, value) => sum + value * value, 0);
+    expect(differenceEnergy).toBeGreaterThan(0.01);
+    expect(differenceEnergy).toBeLessThan(originalEnergy * 0.01);
+    expect(musicMetrics(pulsed.pcm).peak).toBeLessThan(0.079);
+    expect(musicMetrics(pulsed.pcm).boundaryStep).toBeLessThan(0.000001);
+  });
+  it("detects a deliberately offset recorded beat instead of assuming phase zero", () => {
+    const rate = 48000,
+      data = new Float32Array(rate * 8),
+      offset = 0.16;
+    for (let beat = 0; beat < 12; beat++) {
+      const start = Math.round((offset + (beat * 60) / 112) * rate);
+      for (let i = 0; i < rate * 0.07; i++)
+        data[start + i] = Math.sin((2 * Math.PI * 90 * i) / rate) * Math.exp(-i / (rate * 0.014)) * 0.05;
+    }
+    const analysis = analyzeMusicBeatPhase({ sampleRate: rate, channels: [data] });
+    expect(analysis.phaseSeconds).toBeCloseTo(offset, 1);
+    expect(analysis.phaseSeconds).toBeGreaterThan(0.1);
   });
   it("retains rhythmic energy across the circular boundary rather than inserting a silence gap", () => {
     const selected = manifest.candidates.find((row: { id: string }) => row.id === manifest.selectedId);

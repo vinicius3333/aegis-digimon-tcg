@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "selectedId": "warm-drive",
-  "runtimeUrl": "/audio/aegis-music-v3.wav?v=dfc22b914a38",
+  "selectedId": "warm-drive-pulse-112",
+  "runtimeUrl": "/audio/aegis-music-v3.wav?v=69cbe499a72a",
   "candidates": [
     {
       "id": "current-clean-96",
@@ -13,18 +13,18 @@
       "seconds": 20,
       "metrics": {
         "seconds": 20,
-        "peak": 0.04550116881728172,
-        "peakDbFS": -26.839548944055075,
-        "rms": 0.010716250127765116,
-        "dc": -3.0868994488760425e-8,
-        "maximumStep": 0.005075868641142733,
-        "boundaryStep": 0.00029226837068563327,
+        "peak": 0.045501708984375,
+        "peakDbFS": -26.839445830134466,
+        "rms": 0.010715937047985544,
+        "dc": -2.86102294921875e-8,
+        "maximumStep": 0.00506591796875,
+        "boundaryStep": 0.000274658203125,
         "bytes": 1920044,
         "sha256": "0ac715d3d9c4feff2318bf114845790e8d852094aec4269cdc67bc0b7dff3922"
       },
       "sourceIdentity": {
         "type": "original-authored",
-        "rendererSha256": "def8ace008581505db2fc02417a3a763a54f43ea8164fae16c44b7e9445c0c10"
+        "rendererSha256": "a8ff0e21833beba3908ab34b7f02e438634dede87045702b865cde424fe4aae5"
       }
     },
     {
@@ -55,9 +55,9 @@
     {
       "id": "warm-drive",
       "label": "Warm drive · steady 112 BPM",
-      "role": "selected",
-      "file": "aegis-music-v3.wav",
-      "url": "/audio/aegis-music-v3.wav?v=dfc22b914a38",
+      "role": "alternative",
+      "file": "music-candidates/warm-drive-dry-112.wav",
+      "url": "/audio/music-candidates/warm-drive-dry-112.wav?v=dfc22b914a38",
       "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
       "bpm": 112,
       "seconds": 34.28572916666667,
@@ -118,6 +118,482 @@
       }
     },
     {
+      "id": "warm-drive-pulse-112",
+      "label": "Warm drive · subtle recorded pulse · 112 BPM",
+      "role": "selected",
+      "file": "aegis-music-v3.wav",
+      "url": "/audio/aegis-music-v3.wav?v=69cbe499a72a",
+      "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
+      "bpm": 112,
+      "seconds": 34.28572916666667,
+      "metrics": {
+        "peak": 0.075164794921875,
+        "peakDbFS": -22.479710462412296,
+        "rms": 0.016943527292285994,
+        "dc": 2.503393994023874e-8,
+        "boundaryStep": 0,
+        "seconds": 34.28572916666667,
+        "sampleRate": 48000,
+        "channels": 2,
+        "bytes": 6582904
+      },
+      "sourceIdentity": {
+        "type": "original-score-with-licensed-recorded-rhythm",
+        "sha256": "3e07d11d16ca9ca356ff8ca092317a208236239331c48bb3527c33d587e14822",
+        "seed": 20261021,
+        "prompt": "TrackType: Music, an original melodic instrumental for a lively strategic card game, warm clean electric rhythm guitar playing syncopated original chords, rounded melodic electric bass, bright electric piano playing an original memorable short melody, dry close-mic kick snare and tom drum groove, steady 104 BPM in four four throughout, upbeat optimistic forward motion with controlled moderately engaging energy, clear eight bar repeated musical phrases, coherent chord changes, instruments and beat present from the first beat, intimate polished studio mix, space for game actions, purely instrumental, clean defined tones and silence between notes, no ambience or atmospheric beds"
+      },
+      "sourceAnalysis": {
+        "sourceBpm": 105.02324819208111,
+        "tempoConfidence": 0.679754376411438,
+        "boundaryChromaCosine": 0.9065326829911248,
+        "scope": "Original generated source and proposed source crop; not the finished tempo-adjusted master"
+      },
+      "finishedAnalysis": {
+        "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
+        "gridBpm": 112,
+        "measuredTempo": {
+          "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
+          "estimatedBpm": 112.03463668922063,
+          "normalizedAutocorrelation": 0.6740238747000331,
+          "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
+          "scope": "Finished pulse mix waveform only"
+        },
+        "analysisScope": "Current finished mix; pulse fitted to the unchanged dry score beat grid",
+        "phaseSeconds": 0.020000000000000004,
+        "gridStrength": 1.8717093891482344,
+        "bpm": 112,
+        "uncertaintySeconds": 0.02,
+        "method": "35-280 Hz attack RMS; 10 ms frames; positive energy rises; 112 BPM circular grid fit at 2 ms phases with 20 ms attack windows"
+      },
+      "masterSettings": {
+        "startSeconds": 2.3103854875283445,
+        "sourceBpm": 105.02324819208111,
+        "bpm": 104,
+        "beats": 64,
+        "peak": 0.075,
+        "crossfadeBeats": 0.5,
+        "lowpassHz": 5200
+      },
+      "tempoAdjustment": {
+        "bpm": 112,
+        "fromBpm": 104,
+        "method": "offline ffmpeg atempo; pitch preserving",
+        "ratio": 1.0769230769230769,
+        "ffmpegVersion": "8.1.2",
+        "renderer": "tools/diagnostics/tempo-original-music.mjs",
+        "sourceMasterSha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e",
+        "finishedAnalysis": {
+          "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
+          "estimatedBpm": 112.02756010664898,
+          "normalizedAutocorrelation": 0.6696969342306412,
+          "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
+          "confidence": "Numerical estimate; beat interpretation and listening acceptance remain"
+        }
+      },
+      "dryAnalysis": {
+        "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
+        "estimatedBpm": 112.02756010664898,
+        "normalizedAutocorrelation": 0.6696969342306412,
+        "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
+        "confidence": "Numerical estimate; beat interpretation and listening acceptance remain"
+      },
+      "rhythm": {
+        "source": "CC0 recorded card-body and chip-tap",
+        "bodyId": "placeHeavy",
+        "tapId": "tap",
+        "bodyPeak": 0.006,
+        "tapPeak": 0.0025,
+        "events": [
+          {
+            "beat": 0,
+            "peakSeconds": 0.02,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 1,
+            "peakSeconds": 0.5557083333333334,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 2,
+            "peakSeconds": 1.0914375,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 3,
+            "peakSeconds": 1.6271458333333333,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 4,
+            "peakSeconds": 2.1628541666666665,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 5,
+            "peakSeconds": 2.6985625,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 6,
+            "peakSeconds": 3.2342916666666666,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 7,
+            "peakSeconds": 3.77,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 8,
+            "peakSeconds": 4.3057083333333335,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 9,
+            "peakSeconds": 4.8414375,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 10,
+            "peakSeconds": 5.3771458333333335,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 11,
+            "peakSeconds": 5.9128541666666665,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 12,
+            "peakSeconds": 6.4485625,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 13,
+            "peakSeconds": 6.984291666666667,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 14,
+            "peakSeconds": 7.52,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 15,
+            "peakSeconds": 8.055708333333333,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 16,
+            "peakSeconds": 8.5914375,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 17,
+            "peakSeconds": 9.127145833333334,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 18,
+            "peakSeconds": 9.662854166666667,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 19,
+            "peakSeconds": 10.1985625,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 20,
+            "peakSeconds": 10.734291666666667,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 21,
+            "peakSeconds": 11.27,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 22,
+            "peakSeconds": 11.805708333333333,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 23,
+            "peakSeconds": 12.3414375,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 24,
+            "peakSeconds": 12.877145833333334,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 25,
+            "peakSeconds": 13.412854166666667,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 26,
+            "peakSeconds": 13.9485625,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 27,
+            "peakSeconds": 14.484291666666667,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 28,
+            "peakSeconds": 15.02,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 29,
+            "peakSeconds": 15.555708333333333,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 30,
+            "peakSeconds": 16.0914375,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 31,
+            "peakSeconds": 16.627145833333334,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 32,
+            "peakSeconds": 17.162854166666666,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 33,
+            "peakSeconds": 17.6985625,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 34,
+            "peakSeconds": 18.234291666666667,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 35,
+            "peakSeconds": 18.77,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 36,
+            "peakSeconds": 19.30570833333333,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 37,
+            "peakSeconds": 19.8414375,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 38,
+            "peakSeconds": 20.377145833333334,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 39,
+            "peakSeconds": 20.912854166666666,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 40,
+            "peakSeconds": 21.4485625,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 41,
+            "peakSeconds": 21.984291666666667,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 42,
+            "peakSeconds": 22.52,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 43,
+            "peakSeconds": 23.05570833333333,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 44,
+            "peakSeconds": 23.5914375,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 45,
+            "peakSeconds": 24.127145833333334,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 46,
+            "peakSeconds": 24.662854166666666,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 47,
+            "peakSeconds": 25.1985625,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 48,
+            "peakSeconds": 25.734291666666667,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 49,
+            "peakSeconds": 26.27,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 50,
+            "peakSeconds": 26.80570833333333,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 51,
+            "peakSeconds": 27.3414375,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 52,
+            "peakSeconds": 27.877145833333334,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 53,
+            "peakSeconds": 28.412854166666666,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 54,
+            "peakSeconds": 28.9485625,
+            "source": "card-body",
+            "polarity": 1
+          },
+          {
+            "beat": 55,
+            "peakSeconds": 29.484291666666667,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 56,
+            "peakSeconds": 30.02,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 57,
+            "peakSeconds": 30.55570833333333,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 58,
+            "peakSeconds": 31.0914375,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 59,
+            "peakSeconds": 31.627145833333334,
+            "source": "chip-tap",
+            "polarity": 1
+          },
+          {
+            "beat": 60,
+            "peakSeconds": 32.16285416666667,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 61,
+            "peakSeconds": 32.6985625,
+            "source": "chip-tap",
+            "polarity": -1
+          },
+          {
+            "beat": 62,
+            "peakSeconds": 33.234291666666664,
+            "source": "card-body",
+            "polarity": -1
+          },
+          {
+            "beat": 63,
+            "peakSeconds": 33.77,
+            "source": "chip-tap",
+            "polarity": -1
+          }
+        ],
+        "drySha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715"
+      }
+    },
+    {
       "id": "bright-motion",
       "label": "Bright motion · piano and guitar",
       "role": "alternative",
@@ -166,6 +642,6 @@
     "sha256": "42adc3affa0a810d699df36fdf17e8ee5885d5d9d13dcb130ddb0edfa466b63b",
     "seconds": 258.48454166666664
   },
-  "selectionReason": "Previously selected warm-drive original at a steady 112 BPM, offline pitch-preserving 112/104 tempo adjustment; prior 104 master retained for comparison; listening acceptance remains",
+  "selectionReason": "Preserves the liked dry 112 BPM score byte-for-byte as warm-drive comparison; selected mix adds only sparse beat-phase-aligned recorded acoustic rhythm",
   "listeningStatus": "Measured verification only; user/validator listening acceptance remains"
 }

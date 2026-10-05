@@ -173,3 +173,120 @@ export function encodeMusicWav(pcm: MusicPCM): Uint8Array {
       );
   return bytes;
 }
+
+/** Offline grid phase measured from the liked score's low-band attack energy, never an arbitrary clock. */
+export function analyzeMusicBeatPhase(pcm: MusicPCM, bpm = 112) {
+  const hop = Math.round(pcm.sampleRate * 0.01),
+    beat = 60 / bpm;
+  const novelty: number[] = [];
+  const highpass = Math.exp((-2 * Math.PI * 35) / pcm.sampleRate);
+  const lowpass = 1 - Math.exp((-2 * Math.PI * 280) / pcm.sampleRate);
+  let previous = 0,
+    high = 0,
+    low = 0,
+    square = 0,
+    previousRms = 0;
+  for (let i = 0; i < pcm.channels[0]!.length; i++) {
+    const input = pcm.channels.reduce((sum, channel) => sum + channel[i]!, 0) / pcm.channels.length;
+    high = highpass * (high + input - previous);
+    previous = input;
+    low += lowpass * (high - low);
+    square += low * low;
+    if ((i + 1) % hop === 0) {
+      const rms = Math.sqrt(square / hop);
+      novelty.push(Math.max(0, rms - previousRms));
+      previousRms = rms;
+      square = 0;
+    }
+  }
+  const scores: number[] = [];
+  let maximum = 0,
+    phaseSeconds = 0;
+  for (let phase = 0; phase < beat; phase += 0.002) {
+    let score = 0;
+    for (let i = 0; i < novelty.length; i++) {
+      const t = ((i + 0.5) * hop) / pcm.sampleRate;
+      const distance = ((t - phase + beat * 1.5) % beat) - beat / 2;
+      score += novelty[i]! * Math.exp(-0.5 * (distance / 0.02) ** 2);
+    }
+    scores.push(score);
+    if (score > maximum) {
+      maximum = score;
+      phaseSeconds = phase;
+    }
+  }
+  return {
+    phaseSeconds,
+    gridStrength: maximum / (scores.reduce((sum, value) => sum + value, 0) / scores.length),
+    bpm,
+    uncertaintySeconds: 0.02,
+    method:
+      "35-280 Hz attack RMS; 10 ms frames; positive energy rises; 112 BPM circular grid fit at 2 ms phases with 20 ms attack windows",
+  };
+}
+
+/** Adds sparse, quiet recorded card-body thumps and acoustic chip taps while retaining the dry score. */
+export function addRecordedMusicPulse(
+  source: MusicPCM,
+  body: { samples: Float32Array; sampleRate: number },
+  tap: { samples: Float32Array; sampleRate: number },
+  bpm = 112,
+) {
+  const analysis = analyzeMusicBeatPhase(source, bpm);
+  const frames = source.channels[0]!.length,
+    rate = source.sampleRate;
+  const pulse = new Float32Array(frames);
+  const instrument = (recording: typeof body, hz: number, peak: number) => {
+    const length = Math.round((recording.samples.length * rate) / recording.sampleRate);
+    const output = new Float32Array(length);
+    const coefficient = 1 - Math.exp((-2 * Math.PI * hz) / rate);
+    let low = 0,
+      maximum = 0,
+      peakFrame = 0;
+    for (let i = 0; i < length; i++) {
+      const position = (i * recording.sampleRate) / rate,
+        left = Math.floor(position),
+        fraction = position - left;
+      const sample = (recording.samples[left] ?? 0) * (1 - fraction) + (recording.samples[left + 1] ?? 0) * fraction;
+      low += coefficient * (sample - low);
+      output[i] = low * Math.max(0, Math.min(1, i / (rate * 0.002), (length - 1 - i) / (rate * 0.008)));
+      if (Math.abs(output[i]!) > maximum) {
+        maximum = Math.abs(output[i]!);
+        peakFrame = i;
+      }
+    }
+    for (let i = 0; i < length; i++) output[i]! *= peak / maximum;
+    return { samples: output, peakFrame };
+  };
+  const thump = instrument(body, 180, 0.006),
+    rim = instrument(tap, 1800, 0.0025);
+  const beats = Math.round(((frames / rate) * bpm) / 60);
+  const events: Array<{ beat: number; peakSeconds: number; source: "card-body" | "chip-tap"; polarity: number }> = [];
+  for (let beat = 0; beat < beats; beat++) {
+    const at = Math.round((analysis.phaseSeconds + (beat * 60) / bpm) * rate);
+    const voice = beat % 2 ? rim : thump;
+    let correlation = 0;
+    for (let i = 0; i < voice.samples.length; i++) {
+      const index = (at - voice.peakFrame + i + frames) % frames;
+      correlation += voice.samples[i]! * source.channels.reduce((sum, channel) => sum + channel[index]!, 0);
+    }
+    const polarity = correlation < 0 ? -1 : 1;
+    events.push({ beat, peakSeconds: at / rate, source: beat % 2 ? "chip-tap" : "card-body", polarity });
+    for (let i = 0; i < voice.samples.length; i++) {
+      const index = (at - voice.peakFrame + i + frames) % frames;
+      pulse[index]! += voice.samples[i]! * polarity;
+    }
+  }
+  const mean = pulse.reduce((sum, value) => sum + value, 0) / frames;
+  for (let i = 0; i < frames; i++) pulse[i]! -= mean;
+  const bridge = Math.round(rate * 0.002),
+    delta = pulse.at(-1)! - pulse[0]!;
+  for (let i = 0; i < bridge; i++) {
+    const x = i / (bridge - 1);
+    pulse[frames - bridge + i]! -= delta * x * x * (3 - 2 * x);
+  }
+  const channels = source.channels.map((channel) => Float32Array.from(channel, (value, i) => value + pulse[i]!));
+  const pcm = { sampleRate: rate, channels };
+  if (musicMetrics(pcm).peak > 0.079) throw new Error("Recorded pulse exceeds quiet music headroom");
+  return { pcm, pulse, analysis, events };
+}

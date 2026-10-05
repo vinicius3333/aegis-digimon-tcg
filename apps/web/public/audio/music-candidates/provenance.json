@@ -2,7 +2,7 @@
   "version": 1,
   "original": true,
   "selectedId": "warm-drive",
-  "selectionReason": "Previously selected warm-drive original at a steady 112 BPM, offline pitch-preserving 112/104 tempo adjustment; prior 104 master retained for comparison; listening acceptance remains",
+  "selectionReason": "Preserves the liked dry 112 BPM score byte-for-byte as warm-drive comparison; selected mix adds only sparse beat-phase-aligned recorded acoustic rhythm",
   "generator": {
     "repository": "https://github.com/Stability-AI/stable-audio-3",
     "sourceCommit": "3a82c807b69cf4b7c5c05270011a5d5e47abac18",
@@ -191,7 +191,7 @@
       "onsetsPerSecond": 2.575,
       "highBandEnergyFraction": 0.005185152404010296,
       "selectionLimit": "Beat/chroma consistency is measured; actual instrument timbre, wash/shaker absence and musical phrase resolution need listening",
-      "label": "Warm drive · guitar and keys",
+      "label": "Warm drive \u00b7 guitar and keys",
       "sourceFile": "sources/warm-drive.wav.gz",
       "masterSettings": {
         "startSeconds": 2.3103854875283445,
@@ -274,7 +274,7 @@
       "onsetsPerSecond": 3.175,
       "highBandEnergyFraction": 0.0033410147298127413,
       "selectionLimit": "Beat/chroma consistency is measured; actual instrument timbre, wash/shaker absence and musical phrase resolution need listening",
-      "label": "Bright motion · piano and guitar",
+      "label": "Bright motion \u00b7 piano and guitar",
       "sourceFile": "sources/bright-motion.wav.gz",
       "masterSettings": {
         "startSeconds": 1.0565079365079366,
@@ -308,6 +308,24 @@
       "normalizedAutocorrelation": 0.6696969342306412,
       "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
       "confidence": "Numerical estimate; beat interpretation and listening acceptance remain"
+    }
+  },
+  "selectedMixId": "warm-drive-pulse-112",
+  "rhythmRecipe": {
+    "bpm": 112,
+    "analysis": "Offline 35-280 Hz attack RMS grid phase fitted at 2 ms resolution; independent spectral-flux phase cross-check",
+    "sources": ["recorded-placeHeavy.wav", "recorded-tap.wav"],
+    "sourceProvenance": "../sources/recorded-provenance.json",
+    "bodyPeak": 0.006,
+    "tapPeak": 0.0025,
+    "sourcePitchChange": "none",
+    "fixedConsistent": true,
+    "finishedTempo": {
+      "sha256": "69cbe499a72a28e4aa0c552e5a95835a88f9e51c04b99e341eafa02649e75acf",
+      "estimatedBpm": 112.03463668922063,
+      "normalizedAutocorrelation": 0.6740238747000331,
+      "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
+      "scope": "Finished pulse mix waveform only"
     }
   }
 }

@@ -96,6 +96,11 @@ describe("authored original bank", () => {
     }
   });
   it("uses audited CC0 originals and preserves a recorded slide waveform at natural speed", () => {
+    expect(
+      createHash("sha256")
+        .update(readFileSync(new URL("recorded-originals/kenney-casino.zip", sourceRoot)))
+        .digest("hex"),
+    ).toBe(recordedProvenance.archiveSha256);
     for (const asset of recordedProvenance.assets) {
       expect(asset.license).toBe("CC0-1.0");
       const original = readFileSync(new URL(asset.sourceFile, sourceRoot));
