@@ -17,6 +17,7 @@ import { DESKTOP_NOTICE_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
+import { ErodeRing } from "./ErodeRing";
 import { TIMING_LABELS, noticeEffectClause } from "./overlay";
 import { type MatchNotice, type NoticeKeyword, type StackStripReason } from "./notices";
 
@@ -233,7 +234,7 @@ export function NoticeStack({
       >
         {/* The clock a player can see: a ring that erodes clockwise over exactly the
             time the queue is holding this item for. */}
-        <span className="match-notice__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
+        <ErodeRing className="match-notice__erode" remainingMs={remainingMs} />
         {body.variant === "effect" ? (
           <>
             <EffectNoticeBody

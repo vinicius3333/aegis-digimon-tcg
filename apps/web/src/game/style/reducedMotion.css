@@ -45,8 +45,11 @@
      its whole reading time. */
   .side-panel__erode,
   .match-notice__erode {
-    animation: none;
     opacity: 0.45;
+  }
+
+  .erode-ring__half::before {
+    animation: none;
   }
 
   /* The flying card back exists only for its trip: with no motion it would just

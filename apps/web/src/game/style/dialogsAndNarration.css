@@ -222,13 +222,58 @@
   padding: 2px;
   border-radius: inherit;
   inset: 0;
-  background: conic-gradient(from 0deg, var(--battle-cyan) var(--erode-angle), transparent 0);
   mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
   pointer-events: none;
-  animation: panel-erode linear forwards;
+  container-type: size;
+}
+
+/* The ring drains as two halves, left first. Each half is clipped to its side of the
+   panel and holds a cover larger than the panel's diagonal that turns away from it,
+   so a geometric angle on the cover is the same angle a conic gradient would sweep.
+   The timing set inline on the ring, and a held or wound-back clock, pass down to
+   the covers. */
+.erode-ring__half {
+  position: absolute;
+  inset: 0;
+  animation-duration: inherit;
+  animation-delay: inherit;
+  animation-play-state: inherit;
+}
+
+.erode-ring__half--left {
+  clip-path: inset(0 50% 0 0);
+}
+
+.erode-ring__half--right {
+  clip-path: inset(0 0 0 50%);
+}
+
+.erode-ring__half::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(1.5 * max(100cqw, 100cqh));
+  height: calc(1.5 * max(100cqw, 100cqh));
+  content: "";
+  translate: -50% -50%;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-duration: inherit;
+  animation-delay: inherit;
+  animation-play-state: inherit;
+}
+
+.erode-ring__half--left::before {
+  background: linear-gradient(to right, var(--battle-cyan) 50%, transparent 50%);
+  animation-name: erode-ring-left;
+}
+
+.erode-ring__half--right::before {
+  background: linear-gradient(to left, var(--battle-cyan) 50%, transparent 50%);
+  animation-name: erode-ring-right;
 }
 
 /* The title is centred over the cards it names, with the close button laid over it rather
@@ -652,20 +697,20 @@ button.side-panel__name:focus-visible {
   color: #fff;
 }
 
-/* Registered so the erosion angle interpolates; an unregistered custom property
-   would jump from full ring to empty with nothing in between. */
-@property --erode-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 360deg;
+@keyframes erode-ring-left {
+  50%,
+  100% {
+    rotate: -180deg;
+  }
 }
 
-@keyframes panel-erode {
-  from {
-    --erode-angle: 360deg;
+@keyframes erode-ring-right {
+  0%,
+  50% {
+    rotate: 0deg;
   }
-  to {
-    --erode-angle: 0deg;
+  100% {
+    rotate: -180deg;
   }
 }
 

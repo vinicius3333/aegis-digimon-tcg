@@ -10,6 +10,7 @@ import type { CSSProperties } from "react";
 import { CardMini } from "../design/cards";
 import { useTranslation } from "../i18n";
 import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
+import { ErodeRing } from "./ErodeRing";
 import { type AttackAnnouncement, type SidePanel, type SidePanelCard } from "./sidePanels";
 
 /* The panel is read at a glance, so the art carries it: big enough to recognise a card
@@ -71,7 +72,7 @@ export function SidePanelStack({
       >
         {/* The clock a player can see: the border erodes clockwise over exactly the
             time this panel has left, which nothing else on the board can shorten. */}
-        <span className="side-panel__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
+        <ErodeRing className="side-panel__erode" remainingMs={remainingMs} />
         <header className="side-panel__header">
           <h3 className="side-panel__title">{title}</h3>
           <span className="side-panel__owner">{t(panel.side === "you" ? "panel.yours" : "panel.opponents")}</span>
