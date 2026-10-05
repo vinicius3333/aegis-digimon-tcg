@@ -28,23 +28,23 @@
   },
   "music": {
     "file": "aegis-music-v3.wav",
-    "bpm": 104,
+    "bpm": 112,
     "original": true,
     "selectedId": "warm-drive",
     "sourceProvenance": "music-candidates/provenance.json",
     "masteringRenderer": "apps/web/src/design/musicMaster.ts",
     "masteringRendererSha256": "8be0a25022a5f4deac5522c5e8a94ed1880d864f08c6b52347c4ff4e354f3d6a",
-    "composition": "Original text-generated melodic guitar/keys/bass score; steady104 BPM, no reference audio conditioning",
+    "composition": "Original text-generated melodic guitar/keys/bass score; steady112 BPM, offline pitch-preserving tempo adjustment from the original 104 master, no reference audio conditioning",
     "peak": 0.07501220703125,
     "peakDbFS": -22.497361128185656,
-    "rms": 0.01695676281374223,
-    "dc": 4.390874736149134e-10,
+    "rms": 0.01692427846837236,
+    "dc": 1.5483955444518037e-9,
     "boundaryStep": 0,
-    "seconds": 36.92308333333333,
+    "seconds": 34.28572916666667,
     "sampleRate": 48000,
     "channels": 2,
-    "bytes": 7089276,
-    "sha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e"
+    "bytes": 6582904,
+    "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715"
   },
   "previews": {
     "warm": {

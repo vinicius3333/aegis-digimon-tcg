@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import ts from "typescript-api";
 import { gunzipSync } from "node:zlib";
+import { tempoOriginalMusic } from "./tempo-original-music.mjs";
 
 // Exactly the renderer used to author the shipped bank, not an approximation of browser oscillators.
 const source = await readFile(new URL("../../apps/web/src/design/audioRecipes.ts", import.meta.url), "utf8");
@@ -113,20 +114,41 @@ for (const candidate of musicProvenance.candidates) {
   const bytes = gunzipSync(await readFile(new URL(candidate.sourceFile, musicInputsRoot)));
   const hash = createHash("sha256").update(bytes).digest("hex");
   if (hash !== candidate.sourceSha256) throw new Error(`Original source identity changed: ${candidate.id}`);
-  const mastered = masterOriginalMusic(decodeMusicWav(bytes), candidate.masterSettings, sampleRate);
+  let mastered = masterOriginalMusic(decodeMusicWav(bytes), candidate.masterSettings, sampleRate);
+  const selected = candidate.id === musicProvenance.selectedId;
+  if (selected && musicProvenance.selectedTempo) {
+    const oldBytes = encodeMusicWav(mastered);
+    const oldHash = createHash("sha256").update(oldBytes).digest("hex");
+    if (sampleRate === 48000 && oldHash !== musicProvenance.selectedTempo.sourceMasterSha256)
+      throw new Error("Selected source master identity changed");
+    const oldFile = "music-candidates/warm-drive-104.wav";
+    await writeFile(path.join(directory, oldFile), oldBytes);
+    candidateRows.push({
+      id: "warm-drive-104",
+      label: "Prior warm drive · 104 BPM",
+      role: "alternative",
+      file: oldFile,
+      url: `/audio/${oldFile}?v=${oldHash.slice(0, 12)}`,
+      sha256: oldHash,
+      bpm: candidate.masterSettings.bpm,
+      seconds: mastered.channels[0].length / sampleRate,
+      metrics: { ...measureMusic(decodeMusicWav(oldBytes)), bytes: oldBytes.length },
+      sourceIdentity: { type: "original-text-generation", sha256: candidate.sourceSha256 },
+    });
+    mastered = tempoOriginalMusic(mastered, musicProvenance.selectedTempo.fromBpm, musicProvenance.selectedTempo.bpm);
+  }
   const encoded = encodeMusicWav(mastered),
     sha256 = createHash("sha256").update(encoded).digest("hex");
-  const selected = candidate.id === musicProvenance.selectedId;
   const file = selected ? "aegis-music-v3.wav" : `music-candidates/${candidate.id}.wav`;
   await writeFile(path.join(directory, file), encoded);
   const row = {
     id: candidate.id,
-    label: candidate.label,
+    label: selected ? "Warm drive · steady 112 BPM" : candidate.label,
     role: selected ? "selected" : "alternative",
     file,
     url: `/audio/${file}?v=${sha256.slice(0, 12)}`,
     sha256,
-    bpm: candidate.masterSettings.bpm,
+    bpm: selected ? (musicProvenance.selectedTempo?.bpm ?? candidate.masterSettings.bpm) : candidate.masterSettings.bpm,
     seconds: mastered.channels[0].length / sampleRate,
     metrics: { ...measureMusic(decodeMusicWav(encoded)), bytes: encoded.length },
     sourceIdentity: {
@@ -139,6 +161,7 @@ for (const candidate of musicProvenance.candidates) {
     tempoConfidence: candidate.tempoConfidence,
     boundaryChromaCosine: candidate.boundaryChromaCosine,
     masterSettings: candidate.masterSettings,
+    ...(selected && musicProvenance.selectedTempo ? { tempoAdjustment: musicProvenance.selectedTempo } : {}),
   };
   candidateRows.push(row);
   if (selected) selectedMusic = row;
@@ -201,7 +224,7 @@ const manifest = {
     masteringRenderer: "apps/web/src/design/musicMaster.ts",
     masteringRendererSha256: createHash("sha256").update(masterSource).digest("hex"),
     composition:
-      "Original text-generated melodic guitar/keys/bass score; steady104 BPM, no reference audio conditioning",
+      "Original text-generated melodic guitar/keys/bass score; steady112 BPM, offline pitch-preserving tempo adjustment from the original 104 master, no reference audio conditioning",
     ...musicMetrics,
   },
   previews: previewMetrics,
@@ -216,7 +239,7 @@ if (!process.argv[2])
   );
 await writeFile(
   path.join(directory, "previews/index.html"),
-  `<!doctype html><html lang="en"><meta charset="utf-8"><title>Aegis authored audio directions</title><style>body{background:#0b1020;color:#dceaff;font:16px system-ui;max-width:760px;margin:48px auto;padding:24px}audio{width:100%}li{margin:6px}</style><h1>Original Aegis audio directions</h1><p>Same authored renderer as the game. Six cues at two-second intervals: draw, cost-12 play, activation, level-3 to level-6 evolution, impact, security crack. Warm tactile is applied; crisp restrained is the alternative.</p><h2>Warm tactile</h2><audio controls src="warm-six-cues.wav?v=${previewMetrics.warm.sha256.slice(0, 12)}"></audio><h2>Crisp restrained</h2><audio controls src="crisp-six-cues.wav?v=${previewMetrics.crisp.sha256.slice(0, 12)}"></audio><h2>Steady match music</h2><p>Original 20-second steady 96 BPM seamless composition. Set the player volume near 25% to approximate the default music bus.</p><audio controls loop src="../aegis-music-v2.wav?v=${baselineMetrics.sha256.slice(0, 12)}"></audio><p><a href="../manifest.json">Original-generation manifest and measured levels</a></p></html>`,
+  `<!doctype html><html lang="en"><meta charset="utf-8"><title>Aegis authored audio directions</title><style>body{background:#0b1020;color:#dceaff;font:16px system-ui;max-width:760px;margin:48px auto;padding:24px}audio{width:100%}li{margin:6px}</style><h1>Original Aegis audio directions</h1><p>Same authored renderer as the game. Six cues at two-second intervals: draw, cost-12 play, activation, level-3 to level-6 evolution, impact, security crack. Warm tactile is applied; crisp restrained is the alternative.</p><h2>Warm tactile</h2><audio controls src="warm-six-cues.wav?v=${previewMetrics.warm.sha256.slice(0, 12)}"></audio><h2>Crisp restrained</h2><audio controls src="crisp-six-cues.wav?v=${previewMetrics.crisp.sha256.slice(0, 12)}"></audio><h2>Steady match music</h2><p>Selected original steady 112 BPM seamless composition. Set the player volume near 25% to approximate the default music bus.</p><audio controls loop src="..${selectedMusic.url.slice(6)}"></audio><p><a href="../manifest.json">Original-generation manifest and measured levels</a></p></html>`,
 );
 console.log(
   JSON.stringify(

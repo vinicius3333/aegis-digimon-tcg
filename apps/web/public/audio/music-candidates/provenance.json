@@ -2,7 +2,7 @@
   "version": 1,
   "original": true,
   "selectedId": "warm-drive",
-  "selectionReason": "Strong measured105 BPM pulse near requested104, strongest proposed loop-boundary harmonic similarity0.907, modest0.974% tempo alignment; no subjective listening certification",
+  "selectionReason": "Previously selected warm-drive original at a steady 112 BPM, offline pitch-preserving 112/104 tempo adjustment; prior 104 master retained for comparison; listening acceptance remains",
   "generator": {
     "repository": "https://github.com/Stability-AI/stable-audio-3",
     "sourceCommit": "3a82c807b69cf4b7c5c05270011a5d5e47abac18",
@@ -191,7 +191,7 @@
       "onsetsPerSecond": 2.575,
       "highBandEnergyFraction": 0.005185152404010296,
       "selectionLimit": "Beat/chroma consistency is measured; actual instrument timbre, wash/shaker absence and musical phrase resolution need listening",
-      "label": "Warm drive \u00b7 guitar and keys",
+      "label": "Warm drive · guitar and keys",
       "sourceFile": "sources/warm-drive.wav.gz",
       "masterSettings": {
         "startSeconds": 2.3103854875283445,
@@ -274,7 +274,7 @@
       "onsetsPerSecond": 3.175,
       "highBandEnergyFraction": 0.0033410147298127413,
       "selectionLimit": "Beat/chroma consistency is measured; actual instrument timbre, wash/shaker absence and musical phrase resolution need listening",
-      "label": "Bright motion \u00b7 piano and guitar",
+      "label": "Bright motion · piano and guitar",
       "sourceFile": "sources/bright-motion.wav.gz",
       "masterSettings": {
         "startSeconds": 1.0565079365079366,
@@ -293,5 +293,14 @@
       "seed": 20261023,
       "reason": "No reliable intended100 BPM peak; near-target candidate autocorrelation negative and strong60/120 BPM ambiguity; excluded from selected loops"
     }
-  ]
+  ],
+  "selectedTempo": {
+    "bpm": 112,
+    "fromBpm": 104,
+    "method": "offline ffmpeg atempo; pitch preserving",
+    "ratio": 1.0769230769230769,
+    "ffmpegVersion": "8.1.2",
+    "renderer": "tools/diagnostics/tempo-original-music.mjs",
+    "sourceMasterSha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e"
+  }
 }
