@@ -220,6 +220,7 @@ export interface PrimitivesEngine {
       isDnaDigivolve?: boolean;
       digivolvedFromZone?: import("@aegis/shared").ZoneRef;
       baseWasDigimon?: boolean;
+      previousDigivolutionLevel?: number;
       playedFromZone?: import("@aegis/shared").ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;

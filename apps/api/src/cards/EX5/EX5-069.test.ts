@@ -399,3 +399,29 @@ describe("EX5-069 Biting Crush — KB Q&A rulings", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX5-069");
   });
 });
+
+describe("GitHub #4917 — Biting Crush delayed placement", () => {
+  it("places itself in battle when its demon lord cost is paid without an opposing target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-067" }],
+          hand: [
+            { card: "EX5-069", as: "crush" },
+            { card: "EX5-063", as: "lord" },
+          ],
+        },
+        1: {},
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crush").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "EX5-069" && e.timing === "OnUseOption"),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("crush").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("lord").instanceId)).toBe(true);
+  });
+});

@@ -66,7 +66,7 @@ describe("RB1-034 Ruli Tsukiyono", () => {
 
   it("excludes Sea Animal from the Beast, Animal, or Sovereign reduction filter", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
-      kind: "CostModifier",
+      kind: "Replacement",
       into: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
     });
   });
@@ -109,5 +109,77 @@ describe("RB1-034 Ruli Tsukiyono — KB Q&A rulings", () => {
     const diarbbitmonFirst = await endTurnResolvingFirst("RB1-025");
     expect(diarbbitmonFirst.offeredOrder).toEqual(["RB1-034", "RB1-025"]);
     expect(diarbbitmonFirst.attackerIds).toEqual([diarbbitmonFirst.diarbbitId]);
+  });
+});
+
+describe("GitHub #4938 — optional Ruli digivolution reduction", () => {
+  it("asks separately for each Ruli and charges only the accepted suspension", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-034", as: "firstRuli" },
+            { card: "RB1-034", as: "secondRuli" },
+            { card: "RB1-022", as: "base" },
+          ],
+          hand: [{ card: "RB1-024", as: "lamortmon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lamortmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    for (const accept of [false, true]) {
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const decision = s.state.pendingDecision!;
+      expect(s.decisions.at(-1)?.req.sourceCardId).toBe("RB1-034");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.decisionId !== decision.decisionId);
+    }
+    await settle(() => s.perm("base").topCard.cardId === "RB1-024" && s.state.pendingDecision === undefined);
+    expect(s.perm("firstRuli").isSuspended).toBe(false);
+    expect(s.perm("secondRuli").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.decisions.filter((d) => d.req.kind === "optional" && d.req.sourceCardId === "RB1-034")).toHaveLength(2);
+  });
+  it("lets the player decline suspension and pay the full evolution cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-034", as: "ruli" },
+            { card: "RB1-022", as: "base" },
+          ],
+          hand: [{ card: "RB1-024", as: "lamortmon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lamortmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "RB1-024" && s.state.pendingDecision === undefined);
+    expect(s.perm("ruli").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(2);
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
   });
 });

@@ -9,7 +9,7 @@ export const compiled: CompiledCard = {
         {
           effectTextPart:
             "[When Digivolving] Search your security stack, and you may play 1 red or yellow Tamer card among it without paying the cost. If you did, ＜Recovery +1 (Deck)＞. (Place the top card of your deck on top of your security stack.)",
-          kind: "PlayWithoutCost",
+          kind: "SearchSecurity",
           target: {
             filter: {
               controllerDefault: "mine",
@@ -18,9 +18,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          from: ["security"],
-          payCost: false,
-          optional: true,
+          then: { kind: "PlayWithoutCost", source: "security", payCost: false, optional: true },
         },
         {
           kind: "SecurityManipulation",

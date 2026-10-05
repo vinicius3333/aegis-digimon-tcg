@@ -1926,12 +1926,13 @@
                 "condition": {
                   "kind": "youHave",
                   "filter": {
-                    "zone": "trash",
+                    "zone": "battleArea",
+                    "kind": ["Digimon"],
                     "controller": "mine",
-                    "nameOrTrait": [{ "tokens": ["Knightmon", "Lucemon"], "match": "text" }]
+                    "nameOrTrait": [{ "tokens": ["Knightmon", "Lucemon"], "match": "name" }]
                   },
-                  "count": 4,
-                  "raw": "you have 4 or more cards with [Knightmon] or [Lucemon] in its text in your trash"
+                  "count": 1,
+                  "raw": "you have a Digimon with [Knightmon] or [Lucemon] in its name"
                 }
               }
             ]
@@ -21389,14 +21390,12 @@
         "actions": [
           {
             "effectTextPart": "[When Digivolving] Search your security stack, and you may play 1 red or yellow Tamer card among it without paying the cost. If you did, ＜Recovery +1 (Deck)＞. (Place the top card of your deck on top of your security stack.)",
-            "kind": "PlayWithoutCost",
+            "kind": "SearchSecurity",
             "target": {
               "filter": { "controllerDefault": "mine", "kind": ["Tamer"], "colors": ["Red", "Yellow"] },
               "count": 1
             },
-            "from": ["security"],
-            "payCost": false,
-            "optional": true
+            "then": { "kind": "PlayWithoutCost", "source": "security", "payCost": false, "optional": true }
           },
           {
             "kind": "SecurityManipulation",
@@ -36169,7 +36168,7 @@
         "actions": [
           {
             "effectTextPart": "[Main] Search your security stack. You may play 1 yellow level 4 or lower Digimon card among it without paying the cost.",
-            "kind": "PlayWithoutCost",
+            "kind": "SearchSecurity",
             "target": {
               "filter": {
                 "controller": "mine",
@@ -36179,11 +36178,8 @@
               },
               "count": 1
             },
-            "from": ["security"],
-            "payCost": false,
-            "optional": true
+            "then": { "kind": "PlayWithoutCost", "source": "security", "payCost": false, "optional": true }
           },
-          { "kind": "SecurityManipulation", "op": "shuffle", "controller": "mine" },
           {
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
@@ -36617,17 +36613,23 @@
             },
             "actions": [
               {
-                "kind": "Delete",
-                "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } },
+                "kind": "CostGatedBlock",
+                "optional": true,
                 "cost": {
                   "kind": "return",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by returning this card to the bottom of the deck"
-                }
-              },
-              {
-                "kind": "Delete",
-                "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+                },
+                "actions": [
+                  {
+                    "kind": "Delete",
+                    "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } }
+                  },
+                  {
+                    "kind": "Delete",
+                    "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+                  }
+                ]
               }
             ]
           }
@@ -36638,17 +36640,23 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "Delete",
-            "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } },
+            "kind": "CostGatedBlock",
+            "optional": true,
             "cost": {
               "kind": "trash",
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
-            }
-          },
-          {
-            "kind": "Delete",
-            "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+            },
+            "actions": [
+              {
+                "kind": "Delete",
+                "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [4] } }
+              },
+              {
+                "kind": "Delete",
+                "target": { "count": 1, "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [6] } }
+              }
+            ]
           }
         ]
       },
@@ -48259,6 +48267,7 @@
             "payCostBeforeOptional": true,
             "cost": {
               "kind": "place",
+              "optional": true,
               "target": {
                 "filter": {
                   "zone": "battleArea",
@@ -64748,20 +64757,30 @@
         "trigger": "YourTurn",
         "actions": [
           {
-            "kind": "CostModifier",
-            "mode": "reduce",
-            "costType": "digivolve",
-            "amount": 1,
-            "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
+            "kind": "Replacement",
+            "event": "wouldDigivolve",
+            "sourceFilter": { "zone": "battleArea", "controller": "mine", "kind": ["Digimon"] },
             "into": {
               "zone": "hand",
               "controller": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Tyrannomon"], "match": "name" }]
             },
-            "restriction": "suspendThisTamer",
-            "optional": true,
-            "duration": "forTheTurn"
+            "actions": [
+              {
+                "kind": "Replacement",
+                "event": "wouldDigivolve",
+                "mode": "reduceCost",
+                "amount": 1,
+                "optional": true,
+                "cost": {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                  "raw": "by suspending this Tamer"
+                }
+              }
+            ],
+            "raw": "When digivolving one of your Digimon into a Tyrannomon card, you may suspend this Tamer to reduce the cost by 1"
           }
         ]
       },
@@ -96434,7 +96453,7 @@
               "target": {
                 "filter": {
                   "digivolutionCards": "none",
-                  "controllerDefault": "mine",
+                  "controller": "any",
                   "excludeLeavingSubject": true,
                   "kind": ["Digimon"]
                 },
@@ -104810,7 +104829,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": ["Digimon"],
+                    "kind": ["Digimon", "Tamer"],
                     "playCostLte": 8,
                     "nameOrTrait": [{ "tokens": ["Angel", "Archangel", "Iliad"], "match": "trait" }]
                   },
@@ -152909,7 +152928,7 @@
     "assemblyRequirement": [
       {
         "materials": [
-          { "count": 3, "names": ["Gokuumon", "Sangomon", "Cho-Hakkaimon", "Sanzomon"], "differentNames": true }
+          { "count": 3, "names": ["Gokuumon", "Sagomon", "Cho-Hakkaimon", "Sanzomon"], "differentNames": true }
         ],
         "reduceCost": 6
       }
@@ -208235,11 +208254,9 @@
         "trigger": "YourTurn",
         "actions": [
           {
-            "kind": "CostModifier",
-            "mode": "reduce",
-            "costType": "digivolve",
-            "amount": 1,
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "battleArea" }, "count": "all" },
+            "kind": "Replacement",
+            "event": "wouldDigivolve",
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "zone": "battleArea" },
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
@@ -208247,9 +208264,21 @@
               "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" }],
               "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
             },
-            "restriction": "suspendThisTamer",
-            "optional": true,
-            "duration": "forTheTurn"
+            "actions": [
+              {
+                "kind": "Replacement",
+                "event": "wouldDigivolve",
+                "mode": "reduceCost",
+                "amount": 1,
+                "optional": true,
+                "cost": {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                  "raw": "by suspending this Tamer"
+                }
+              }
+            ],
+            "raw": "When one of your Digimon would digivolve into a qualifying green Beast, Animal or Sovereign card, you may suspend this Tamer to reduce the cost by 1"
           }
         ]
       },
@@ -218850,6 +218879,7 @@
             "event": "wouldLeavePlay",
             "mode": "prevent",
             "sourceFilter": {
+              "isSelfRef": true,
               "controller": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
@@ -236553,8 +236583,16 @@
             "raw": "You may play 1 play cost 4 or lower card with [Sistermon] from your hand or trash without paying the cost."
           },
           {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "noirOpponent"
+            }
+          },
+          {
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "noirOpponent" },
             "amount": 1,
             "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" },
             "raw": "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon."

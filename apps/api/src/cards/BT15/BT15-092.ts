@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
         {
           effectTextPart:
             "[Main] Search your security stack. You may play 1 yellow level 4 or lower Digimon card among it without paying the cost.",
-          kind: "PlayWithoutCost",
+          kind: "SearchSecurity",
           target: {
             filter: {
               controller: "mine",
@@ -43,14 +43,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          from: ["security"],
-          payCost: false,
-          optional: true,
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "shuffle",
-          controller: "mine",
+          then: { kind: "PlayWithoutCost", source: "security", payCost: false, optional: true },
         },
         {
           kind: "SecurityManipulation",

@@ -114,7 +114,7 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  kind: ["Digimon"],
+                  kind: ["Digimon", "Tamer"],
                   playCostLte: 8,
                   nameOrTrait: [
                     {

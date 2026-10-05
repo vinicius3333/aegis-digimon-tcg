@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming, type CardInstance } from "@aegis/shared";
 import { effectiveColorsOf } from "./matchLifecycle.js";
 import { resolveKeywords } from "../combat/keywords.js";
 import { buildResolutionEnv } from "../effects/index.js";
@@ -21,7 +21,8 @@ import {
   prepareSubTrigger,
   withPendingSubTriggers,
 } from "./subTriggers.js";
-import { shouldDeferNestedTiming } from "./windows.js";
+import { deferNestedTimingEffects, shouldDeferNestedTiming } from "./windows.js";
+import { collectPermanentInstances } from "./ruleProcess.js";
 import { cardSourceOf, dropPermanentSubscriptions, effectEnvironment } from "./effectContext.js";
 import { beginBattleScope, endBattleScope, sweepBattleDurations, sweepCombatDurations } from "./turnFlow.js";
 import type { GameEngine } from "../GameEngine.js";
@@ -217,8 +218,27 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
       }),
     prepareFrozenSubTrigger: (event, payload) => prepareFrozenSubTrigger(engine, event, payload),
     refreshContinuousEffects: () => engine.recomputeContinuousEffects(),
-    resolveDeletionReactions: async (trigger, candidates, transientCandidates = []) =>
-      resolveDeletionReactions(
+    resolveDeletionReactions: async (trigger, candidates, transientCandidates = []) => {
+      const winner =
+        trigger.deletingPermanentId === undefined
+          ? undefined
+          : engine.access.permanentById(trigger.deletingPermanentId);
+      if (winner !== undefined) {
+        // Battle victory and deletion reactions trigger together. Snapshot the winner's
+        // printed effects before the turn player chooses their shared resolution order.
+        const scoped: CardInstance[] = [];
+        collectPermanentInstances(engine, winner, scoped);
+        deferNestedTimingEffects(
+          engine,
+          EffectTiming.OnBattleDeleteOpponent,
+          {
+            ...combatTriggerInfo(engine, trigger),
+            attackerPermanentId: winner.permanentId,
+          },
+          scoped,
+        );
+      }
+      await resolveDeletionReactions(
         engine,
         trigger,
         candidates,
@@ -233,7 +253,8 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
               )
             : fireTiming(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
         transientCandidates,
-      ),
+      );
+    },
     effectiveColorsOf: (permanentId) => {
       const permanent = engine.access.permanentById(permanentId);
       return permanent === undefined ? [] : effectiveColorsOf(engine, permanent);

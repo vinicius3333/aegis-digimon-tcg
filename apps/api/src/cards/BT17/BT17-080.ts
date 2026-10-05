@@ -62,6 +62,7 @@ export const compiled: CompiledCard = {
           payCostBeforeOptional: true,
           cost: {
             kind: "place",
+            optional: true,
             target: {
               filter: {
                 zone: "battleArea",

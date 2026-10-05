@@ -1,12 +1,85 @@
-import { EffectTiming } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { afterEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registeredCompiledCards, registeredIrModules } from "../../engine/effects/interpreter/compiledCards.js";
+import { unregisterCard } from "../../engine/effects/registry.js";
 import "./BT2-088.js";
 import "../index.js";
 
+const ORIGIN_OPTION = "TEST-TAIGA-EVOLUTION-ORIGIN";
+afterEach(() => {
+  unregisterCard(ORIGIN_OPTION);
+  registeredCompiledCards.delete(ORIGIN_OPTION);
+  registeredIrModules.delete(ORIGIN_OPTION);
+  delete compiledEffects[ORIGIN_OPTION];
+  syntheticDefinitions.delete(ORIGIN_OPTION);
+});
+
 describe("BT2-088 Taiga", () => {
+  it.each(["hand", "trash"] as const)(
+    "#4938 sweep preserves Taiga's hand-only scope for paid effect evolution from %s",
+    async (origin) => {
+      // No current printed effect evolves a Tyrannomon from trash. This test-only IR
+      // Option exercises that shared payment seam without changing any real card.
+      syntheticDefinitions.set(ORIGIN_OPTION, {
+        ...getCardDefinition("BT1-110")!,
+        cardId: ORIGIN_OPTION,
+        nameEn: "Paid effect evolution",
+        playCost: 0,
+      });
+      registerIrCard(ORIGIN_OPTION, {
+        coverage: "full",
+        residual: [],
+        effects: [
+          {
+            trigger: "Main",
+            actions: [
+              {
+                kind: "Digivolve",
+                target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+                into: { controller: "mine", kind: ["Digimon"], cardId: "BT2-044" },
+                from: [origin],
+                payCost: true,
+              },
+            ],
+          },
+        ],
+      });
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT2-088", as: "taiga" },
+              { card: "BT2-043", as: "base" },
+            ],
+            hand: [
+              { card: ORIGIN_OPTION, as: "option" },
+              { card: "BT2-044", as: "handCopy" },
+            ],
+            trash: origin === "trash" ? [{ card: "BT2-044", as: "trashCopy" }] : [],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      const handCopyId = s.inst("handCopy").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("base").topCard.cardId === "BT2-044" && s.state.pendingDecision === undefined);
+      expect(s.perm("taiga").isSuspended).toBe(origin === "hand");
+      expect(s.state.memory).toBe(origin === "hand" ? 2 : 1);
+      expect(s.decisions.filter((d) => d.req.sourceCardId === "BT2-088" && d.req.kind === "optional")).toHaveLength(
+        origin === "hand" ? 1 : 0,
+      );
+      expect(s.state.players[0]!.hand.some((c) => c.instanceId === handCopyId)).toBe(origin === "trash");
+    },
+  );
   it("grants Piercing and may suspend to reduce a Tyrannomon digivolution cost by 1", async () => {
     const s = setupEngine(
       {
@@ -59,7 +132,7 @@ describe("BT2-088 Taiga", () => {
     expect(observe(s.engine).hasPierce(s.perm("tyrannomon"))).toBe(false);
   });
 
-  it("may decline the Tyrannomon cost reduction", async () => {
+  it("#4938 mechanism sweep: may decline the Tyrannomon cost reduction", async () => {
     const s = setupEngine(
       {
         0: {
@@ -73,6 +146,7 @@ describe("BT2-088 Taiga", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 2;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

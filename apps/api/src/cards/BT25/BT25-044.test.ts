@@ -626,3 +626,33 @@ describe("BT25-044 Junomon — KB Q&A rulings", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
+
+describe("GitHub #4915 — Junomon Iliad card scope", () => {
+  it.each(["hand", "trash"] as const)("plays Homeros from %s after a security check", async (zone) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          [zone]: [{ card: "BT24-102", as: "homeros" }],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 15000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await s.ready();
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("homeros").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

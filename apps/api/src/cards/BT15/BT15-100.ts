@@ -20,37 +20,23 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "Delete",
-              target: {
-                count: 1,
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                  levels: [4],
-                },
-              },
+              kind: "CostGatedBlock",
+              optional: true,
               cost: {
                 kind: "return",
-                target: {
-                  filter: {
-                    isSelfRef: true,
-                  },
-                  count: 1,
-                  isSelf: true,
-                },
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
                 raw: "by returning this card to the bottom of the deck",
               },
-            },
-            {
-              kind: "Delete",
-              target: {
-                count: 1,
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                  levels: [6],
+              actions: [
+                {
+                  kind: "Delete",
+                  target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
                 },
-              },
+                {
+                  kind: "Delete",
+                  target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [6] } },
+                },
+              ],
             },
           ],
         },
@@ -61,37 +47,23 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Delete",
-          target: {
-            count: 1,
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [4],
-            },
-          },
+          kind: "CostGatedBlock",
+          optional: true,
           cost: {
             kind: "trash",
-            target: {
-              filter: {
-                zone: "hand",
-                controller: "mine",
-              },
-              count: 1,
-            },
+            target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
             raw: "By trashing 1 card in your hand",
           },
-        },
-        {
-          kind: "Delete",
-          target: {
-            count: 1,
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levels: [6],
+          actions: [
+            {
+              kind: "Delete",
+              target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [4] } },
             },
-          },
+            {
+              kind: "Delete",
+              target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levels: [6] } },
+            },
+          ],
         },
       ],
     },

@@ -404,3 +404,45 @@ describe("BT24-102 Homeros — KB Q&A rulings", () => {
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toEqual([]);
   });
 });
+
+describe("GitHub #4921 — newly played Homeros", () => {
+  it("triggers at end of turn after Jupitermon plays it from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-029", as: "base" }],
+          hand: [
+            { card: "BT26-033", as: "jupiter" },
+            { card: "BT24-102", as: "homeros" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: {
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jupiter").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.events.some((e) => e.kind === "effectTriggered" && e.sourceCardId === "BT24-102" && e.timing === "OnEndTurn"),
+    ).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});

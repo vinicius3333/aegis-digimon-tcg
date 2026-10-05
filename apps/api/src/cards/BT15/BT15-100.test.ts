@@ -9,8 +9,14 @@ describe("BT15-100", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "Main",
       actions: [
-        { kind: "Delete", target: { filter: { levels: [4] } }, cost: { kind: "trash" } },
-        { kind: "Delete", target: { filter: { levels: [6] } } },
+        {
+          kind: "CostGatedBlock",
+          cost: { kind: "trash" },
+          actions: [
+            { kind: "Delete", target: { filter: { levels: [4] } } },
+            { kind: "Delete", target: { filter: { levels: [6] } } },
+          ],
+        },
       ],
     });
   });
@@ -22,7 +28,9 @@ describe("BT15-100", () => {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          actions: [{ kind: "Delete", cost: { kind: "return" } }, { kind: "Delete" }],
+          actions: [
+            { kind: "CostGatedBlock", cost: { kind: "return" }, actions: [{ kind: "Delete" }, { kind: "Delete" }] },
+          ],
         },
       ],
     }));
@@ -44,7 +52,7 @@ describe("BT15-100", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -79,7 +87,7 @@ describe("BT15-100", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -149,7 +157,7 @@ async function digivolveIntoLeviamon(optionZone: "hand" | "trash", options: Setu
         ],
       },
     },
-    { autoSelectCards: true, ...options },
+    { autoSelectCards: true, autoAcceptOptional: true, ...options },
   );
   s.state.memory = 10;
   await s.ready();
@@ -188,6 +196,7 @@ describe("BT15-100 Seventh Lightning — KB Q&A rulings", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+    expect(await respondTo(s, { kind: "optional", accept: true })).toEqual({ ok: true });
     expect(await respondTo(s, { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] })).toEqual({ ok: true });
 
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
@@ -263,5 +272,34 @@ describe("BT15-100 Seventh Lightning — KB Q&A rulings", () => {
     const leviamonFirst = await resolveFirst("BT15-081");
     expect(leviamonFirst.slice(0, 3).sort()).toEqual([LEVEL_3, LEVEL_5, OPPONENT_TAMER].sort());
     expect(leviamonFirst.slice(3).sort()).toEqual([LEVEL_4, LEVEL_6].sort());
+  });
+});
+
+describe("GitHub #4919 — Seventh Lightning cost without a level 4", () => {
+  it("returns the trash source to deck bottom before deleting a level 6 even with no level 4", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-077", as: "base" }],
+          hand: [{ card: "BT15-081", as: "levia" }],
+          trash: [{ card: "BT15-100", as: "lightning" }],
+        },
+        1: { battleArea: [{ card: "BT15-079", as: "six" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("levia").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT15-100"));
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("lightning").instanceId);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("lightning").instanceId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

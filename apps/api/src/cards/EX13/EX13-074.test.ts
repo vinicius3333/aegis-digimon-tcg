@@ -790,3 +790,88 @@ describe("EX13-074 Rie Kishibe", () => {
     await opponentTurn;
   });
 });
+
+describe("GitHub #4926 — battle deletion priority", () => {
+  it.each([0, 1] as const)("resolves seat %s's Groundramon and Examon before the opponent's Rie", async (seat) => {
+    const other = seat === 0 ? 1 : 0;
+    const s = setupEngine(
+      {
+        [seat]: { battleArea: [{ card: "BT23-047", as: "examon", under: ["EX13-041"] }], security: ["BT1-009"] },
+        [other]: {
+          battleArea: [
+            { card: "EX13-058", as: "knight", suspended: true },
+            { card: "EX13-074", as: "rie", suspended: true },
+          ],
+          hand: [{ card: "EX13-058", as: "rieCost" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = seat;
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(seat, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("knight").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    const rieTrigger = s.events.filter(
+      (e) => e.kind === "effectTriggered" && e.sourceCardId === "EX13-074" && e.timing === "onDeletionOf",
+    );
+    expect(rieTrigger).toHaveLength(0);
+    expect(s.state.players[other]!.battleArea.some((p) => p.topCard.cardId === "EX13-074")).toBe(false);
+    expect(s.state.players[other]!.hand.some((c) => c.instanceId === s.inst("rieCost").instanceId)).toBe(true);
+  });
+});
+
+describe("GitHub #4926 — printed battle winner timings", () => {
+  it.each([
+    { seat: 0 as const, defending: false },
+    { seat: 1 as const, defending: false },
+    { seat: 0 as const, defending: true },
+  ])("orders the printed inherited effect with Rie ($seat, defending=$defending)", async ({ seat, defending }) => {
+    const other = seat === 0 ? 1 : 0;
+    const s = setupEngine(
+      {
+        [seat]: {
+          battleArea: [{ card: "BT1-024", as: "winner", under: ["BT20-029"], dp: 20000, suspended: defending }],
+        },
+        [other]: {
+          battleArea: [
+            { card: "BT5-042", as: "knight", suspended: !defending },
+            { card: "EX13-074", as: "rie" },
+          ],
+          hand: [{ card: "EX13-058", as: "cost" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = defending ? other : seat;
+    s.state.memory = 5;
+    await s.ready();
+    const attacker = defending ? s.perm("knight") : s.perm("winner");
+    const target = defending ? s.perm("winner") : s.perm("knight");
+    expect(
+      s.engine.applyIntent(s.state.turnSeat, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: target.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    const memoryIndex = s.events.findIndex(
+      (e) => e.kind === "effectTriggered" && e.sourceCardId === "BT20-029" && e.timing === "OnBattleDeleteOpponent",
+    );
+    const rieIndex = s.events.findIndex(
+      (e) => e.kind === "effectTriggered" && e.sourceCardId === "EX13-074" && e.timing === "onDeletionOf",
+    );
+    expect(memoryIndex).toBeGreaterThanOrEqual(0);
+    expect(rieIndex).toBeGreaterThanOrEqual(0);
+    expect(defending ? rieIndex : memoryIndex).toBeLessThan(defending ? memoryIndex : rieIndex);
+  });
+});

@@ -69,7 +69,7 @@ const STRUCTURED_REDUCER_COSTS = new Set([
 const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "EX2-046", // no other ADR-02 Searcher in play -> self play cost -2
   "AD1-017", // 4+ Lucemon/Witchelny-text cards in trash -> self play cost -5
-  "AD1-018", // 4+ Knightmon/Lucemon-text cards in trash -> self play cost -5
+  "AD1-018", // Knightmon/Lucemon in own battle area -> self play cost -5
   "BT13-045", // 8+ Chessmon-name Digimon cards in trash -> self play cost -8
   "BT13-080", // delete one own level-2 Digimon in breeding -> self play cost -2
   "BT13-083", // delete one own level-3 Digimon -> self play cost -4
