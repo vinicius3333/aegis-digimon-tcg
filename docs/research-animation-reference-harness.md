@@ -1838,3 +1838,66 @@ Native keyword coverage is now **11/46**, with 35 pending. The full expanded
 72-case matrix was not run at this checkpoint. Consecutive reference-video review
 remains **756/40,622 frames**; remaining keywords, full frame comparison and the
 original effect/background-audio pass remain open.
+
+### Printed deck effects and native handoffs, 2026-10-05
+
+Seven real layouts now cover Draw 1/2, an opponent Draw 2, Recovery 1/2,
+an opponent Recovery 1, and Magnadramon's inactive four-security condition.
+They use the executable BT1-029, BT1-041, BT1-060 and BT2-039 modules, conserved
+50-card decks and established Tamers as controls. Public play/end-phase actions
+produce the receipts; no browser event or result is scripted. Twenty-six focused
+server fixture tests passed.
+
+Draw presents each physical card separately. Viewer/opponent native clocks remain
+290/250 ms, with handoffs at 210/170 ms. The observer samples the actual hand
+artwork, arrivals, private card backs, hand/deck counts, source focus and painted
+notice. Each count must remain at its preceding value until that card's native
+handoff, then advance before the following card. A turn-start draw must follow
+its own painted Draw ribbon, including a fast opponent's complete subsequent turn.
+
+The new captures exposed two production defects. Recovery's reaction ran before
+its source was announced, and a turn draw's hold used the newest Main revision
+while the board was still presenting Draw. Recovery now shares its clause's
+causal gate and waits for the native stack clock to finish. Distinct receipts
+queue distinct keyed surfaces, including consecutive reactions without an idle
+React render. One multi-card receipt owns one 200 ms stack reaction, consistent
+with the pinned [recovery implementation](https://raw.githubusercontent.com/DCGO2/DCGO/2a43ecc4b1580dfd98deab73871a17d2978face8/Assets/Scripts/Script/CardController.cs).
+Turn holds now belong to ordered phase boundaries. Their flights use the exact
+Draw snapshot, and later effect counts cannot deduplicate an ordinary turn draw.
+An unavailable tracked snapshot takes the existing immediate-state fallback,
+without inventing a flight from future cards.
+
+The first 28-case browser matrix passed 22 cases and retained six rejected
+captures. Three rejected native clocks had sampling gaps; three reduced cases
+incorrectly imposed animated ordering on the existing drain-mode contract.
+Calibration also corrected the development recorder's invalid requirement for
+bounding boxes on `display: contents` ancestors. Target geometry and ancestor
+visibility remain required, without changing the 50 ms sampling threshold.
+A six-case follow-up passed all three moving cases and one reduced case; two
+very short reduced captures were rejected for frame quality and remain retained.
+The final three reduced terminal-state checks passed. Reduced checks require the
+painted notice, exact final state, face-down security, an opaque opponent hand
+and no Draw/Recovery decoration. They contribute no duration or between-frame
+absence evidence. Moving cases retain strict native duration, causal ordering,
+no-cut and sampling checks. Automatic retries stayed disabled.
+
+All 28 combinations have passed coverage across these retained runs. The
+calibrated Draw 2 faces retained 20–21 visible frames; the opponent's Recovery
+retained 13 visible frames and ten moving frames. These are sampled observations,
+not authored durations or statistical benchmarks. Reports live under
+`.local/keyword-pacing/deck-final-first`, `deck-calibrated-six` and
+`deck-reduced-terminal`; earlier rejected ownership/handoff reports are retained
+alongside them. The 258 focused presentation tests, two recorder regressions,
+production/E2E TypeScript checks, client build, scoped lint/format and
+`git diff --check` passed. Existing lint/build warnings remain.
+
+After updating this checkout's API on port 2571, separate 320px native browser
+plays completed Draw 2 and Recovery 2 through private HTTPS on 9445 and WSS on
+9446, with correct final counts, opaque opponent hands and no page errors.
+Reports and inspected screenshots live under `deck-private-access`. The first
+join during the restart failed to fetch; that failed startup is retained too.
+
+Native keyword coverage is now **13/46**, with 33 pending. The full expanded
+keyword/group matrix was not rerun. Consecutive reference-video review remains
+**756/40,622 frames**. Remaining keywords, full frame comparison and the original
+effect/background-audio pass remain open.
