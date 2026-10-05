@@ -5,6 +5,7 @@ import {
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
+  KEYWORD_ATTACK_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -18,6 +19,7 @@ import {
   type KeywordProtectionPacingScenario,
   type KeywordStackPacingScenario,
   type KeywordDeckPacingScenario,
+  type KeywordAttackPacingScenario,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -65,6 +67,7 @@ export const DEV_SCENARIO_IDS = [
   ...KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_STACK_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => scenario.id),
   "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -6073,6 +6076,89 @@ function layKeywordDeckPacingScenario(
   startEffectsLabTurn(state, 10);
 }
 
+/** Every field/hand/security instance is extracted from a legal fifty-card main deck. */
+function layKeywordAttackPacingScenario(
+  state: GameState,
+  _decks: readonly [Decklist, Decklist],
+  scenario: KeywordAttackPacingScenario,
+): void {
+  const security = ["BT1-011", "BT1-010", "BT1-009", "BT1-014"];
+  const fillerIds = [
+    "BT1-009",
+    "BT1-010",
+    "BT1-011",
+    "BT1-014",
+    "BT1-017",
+    "BT1-050",
+    "BT1-054",
+    "BT1-067",
+    "BT1-071",
+    "BT1-074",
+    "BT1-077",
+    "BT1-081",
+  ];
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    const fieldIds = seat === 0 ? scenario.attackerCardIds : scenario.flow === "raid" ? scenario.defenderCardIds : [];
+    const mainFieldIds = fieldIds.filter((id) => !getCardDefinition(id)?.kinds.includes(CardKind.DigiEgg));
+    const extras = [
+      ...mainFieldIds,
+      ...security,
+      "BT1-089",
+      "ST2-16",
+      ...(seat === 0 && scenario.flow === "rush" ? [scenario.controlCardId] : []),
+    ];
+    const fillers = fillerIds.flatMap((id) =>
+      Array<string>(4 - extras.filter((extra) => extra === id).length).fill(id),
+    );
+    const mainDeck = [...extras, ...fillers.slice(0, 50 - extras.length)];
+    if (mainDeck.length !== 50) throw new Error("Attack pacing scenario needs fifty main-deck cards");
+    loadDeckInto(player, seat, { mainDeck, eggDeck: Array<string>(4).fill("BT1-001") });
+    const take = (cardId: string) => {
+      const zone = getCardDefinition(cardId)?.kinds.includes(CardKind.DigiEgg) ? Zone.EggDeck : Zone.Deck;
+      const cards = zone === Zone.EggDeck ? player.eggDeck : player.deck;
+      const card = extractCardAt(
+        player,
+        zone,
+        cards.findIndex((candidate) => candidate.cardId === cardId),
+      );
+      if (!card) throw new Error(`Attack pacing scenario is missing ${cardId}`);
+      return card;
+    };
+    const place = (ids: readonly string[], slot: string) => {
+      const permanent = new Permanent();
+      permanent.permanentId = `dev-perm-${seat}-keyword-attack-${slot}`;
+      permanent.controllerSeat = seat;
+      permanent.enterFieldTurnCount = ESTABLISHED_TURN;
+      const cards = ids.map(take);
+      for (const card of cards) card.faceUp = true;
+      setTopCard(permanent, cards.at(-1)!);
+      for (const card of cards.slice(0, -1)) pushOnStack(permanent, card);
+      permanent.baseDP = getCardDefinition(cards.at(-1)!.cardId)?.dp ?? 0;
+      permanent.currentDP = permanent.baseDP;
+      placePermanent(player, permanent);
+    };
+    place(["BT1-089"], "control");
+    if (seat === 0) {
+      if (scenario.flow === "rush") {
+        for (const [slot, cardId] of [
+          ["source", scenario.attackerCardIds[0]],
+          ["control", scenario.controlCardId],
+        ] as const) {
+          const card = take(cardId);
+          card.instanceId = `dev-keyword-attack-${slot}`;
+          insertCard(player, Zone.Hand, card);
+        }
+      } else place(scenario.attackerCardIds, "attacker");
+    } else if (scenario.flow === "raid") {
+      scenario.defenderCardIds.forEach((id, index) => place([id], `defender-${index}`));
+    }
+    for (const cardId of security) insertCard(player, Zone.Security, take(cardId));
+    insertCard(player, Zone.Deck, take("ST2-16"), "top");
+  }
+  startEffectsLabTurn(state, 10);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
@@ -6104,6 +6190,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => [
       scenario.id,
       (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordDeckPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) =>
+        layKeywordAttackPacingScenario(state, decks, scenario),
     ]),
   ]) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
   battle: layBattleScenario,

@@ -231,6 +231,44 @@ export const KEYWORD_DECK_PACING_SCENARIOS = [
     initialSecurity: 1,
   },
 ] as const;
+/** Printed attack permissions, tied Raid targets and inherited/accumulated checks. */
+export const KEYWORD_ATTACK_PACING_SCENARIOS = [
+  {
+    id: "keyword-pacing-rush",
+    keyword: "Rush",
+    flow: "rush",
+    attackerCardIds: ["BT4-038"],
+    controlCardId: "BT1-009",
+    securityRemoved: 1,
+  },
+  ...([true, false] as const).map(
+    (accept) =>
+      ({
+        id: accept ? "keyword-pacing-raid-accept" : "keyword-pacing-raid-decline",
+        keyword: "Raid",
+        flow: "raid",
+        attackerCardIds: ["BT24-011"],
+        defenderCardIds: ["BT1-009", "BT1-009", "BT1-010"],
+        accept,
+        securityRemoved: accept ? 0 : 1,
+      }) as const,
+  ),
+  {
+    id: "keyword-pacing-security-attack-inherited",
+    keyword: "SecurityAttack",
+    flow: "security-attack",
+    attackerCardIds: ["BT1-009", "ST1-07", "ST1-09", "ST1-10"],
+    securityRemoved: 2,
+  },
+  {
+    id: "keyword-pacing-security-attack-accumulated",
+    keyword: "SecurityAttack",
+    flow: "security-attack",
+    attackerCardIds: ["BT1-001", "BT1-009", "ST1-06", "ST1-09", "ST1-11"],
+    securityRemoved: 3,
+  },
+] as const;
+export type KeywordAttackPacingScenario = (typeof KEYWORD_ATTACK_PACING_SCENARIOS)[number];
 export type KeywordDeckPacingScenario = (typeof KEYWORD_DECK_PACING_SCENARIOS)[number];
 export type KeywordProtectionPacingScenario = (typeof KEYWORD_PROTECTION_PACING_SCENARIOS)[number];
 export type KeywordTurnPacingScenario = (typeof KEYWORD_TURN_PACING_SCENARIOS)[number];
@@ -239,5 +277,6 @@ export type KeywordPacingScenarioId =
   | KeywordTurnPacingScenario["id"]
   | KeywordProtectionPacingScenario["id"]
   | KeywordStackPacingScenario["id"]
-  | KeywordDeckPacingScenario["id"];
+  | KeywordDeckPacingScenario["id"]
+  | KeywordAttackPacingScenario["id"];
 export type KeywordPacingScenario = KeywordPacingBoard & { id: (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] };

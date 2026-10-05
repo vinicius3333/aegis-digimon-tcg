@@ -6,6 +6,7 @@ import {
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
+  KEYWORD_ATTACK_PACING_SCENARIOS,
   getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -52,6 +53,13 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...KEYWORD_ATTACK_PACING_SCENARIOS.map(
+    (scenario) =>
+      [
+        scenario.id,
+        `Keyword pacing · ${scenario.keyword} · ${scenario.flow === "raid" ? (scenario.accept ? "accept" : "decline") : scenario.flow === "rush" ? "fresh play" : `${scenario.securityRemoved} checks`}`,
+      ] as const,
+  ),
   ...KEYWORD_DECK_PACING_SCENARIOS.map(
     (scenario) =>
       [
@@ -104,6 +112,25 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  ...Object.fromEntries(
+    KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      scenario.flow === "rush"
+        ? {
+            en: "End breeding, play BushiAgumon and Monodramon, then attack security with BushiAgumon. Only the fresh BushiAgumon can attack this turn.",
+            ptBR: "Encerre a criação, jogue BushiAgumon e Monodramon e ataque a segurança com BushiAgumon. Só o BushiAgumon recém-jogado pode atacar neste turno.",
+          }
+        : scenario.flow === "raid"
+          ? {
+              en: `End breeding and attack security with Cyclonemon. ${scenario.accept ? "Select the second Monodramon and confirm Raid. Follow the target change and the remaining copy." : "Pass Raid and follow the security check."} Both Monodramon are tied for highest DP; Agumon cannot be chosen.`,
+              ptBR: `Encerre a criação e ataque a segurança com Cyclonemon. ${scenario.accept ? "Selecione o segundo Monodramon e confirme Raid. Acompanhe a troca de alvo e a cópia que fica no campo." : "Passe Raid e acompanhe a checagem de segurança."} Os dois Monodramon têm o maior DP; Agumon não pode ser escolhido.`,
+            }
+          : {
+              en: `End breeding and attack security with ${getCardDefinition(scenario.attackerCardIds.at(-1)!)?.nameEn}. Follow ${scenario.securityRemoved} separate checks in order. One declaration starts the attack; an unchecked security card remains.`,
+              ptBR: `Encerre a criação e ataque a segurança com ${getCardDefinition(scenario.attackerCardIds.at(-1)!)?.nameEn}. Acompanhe ${scenario.securityRemoved} checagens separadas em ordem. Uma declaração inicia o ataque; uma segurança não checada permanece.`,
+            },
+    ]),
+  ),
   ...Object.fromEntries(
     KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => {
       const name = getCardDefinition(scenario.sourceCardId)?.nameEn ?? scenario.sourceCardId;

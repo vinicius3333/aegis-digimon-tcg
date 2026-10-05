@@ -4,6 +4,9 @@ import {
   KEYWORD_PROTECTION_PACING_SCENARIOS,
   KEYWORD_STACK_PACING_SCENARIOS,
   KEYWORD_DECK_PACING_SCENARIOS,
+  KEYWORD_ATTACK_PACING_SCENARIOS,
+  CardKind,
+  getCardDefinition,
   Phase,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -15,6 +18,138 @@ import { setupEngine, settle } from "./testkit/harness.js";
 import { observe } from "./testkit/observe.js";
 
 describe("real keyword pacing boards", () => {
+  for (const scenario of KEYWORD_ATTACK_PACING_SCENARIOS) {
+    it(`${scenario.id} resolves printed attack permissions and each physical target through public actions`, async () => {
+      const s = setupEngine({ 0: {}, 1: {} });
+      s.engine.stagedDecks[0] = BLUE_DECK;
+      s.engine.stagedDecks[1] = RED_DECK;
+      s.engine.startDevScenario(scenario.id);
+      const conserved = () => {
+        for (const player of s.state.players) {
+          const all = [
+            ...player.deck,
+            ...player.hand,
+            ...player.security,
+            ...player.trash,
+            ...player.eggDeck,
+            ...[...player.battleArea].flatMap((p) => [p.topCard, ...p.stack, ...p.linked]),
+          ];
+          const main = all.filter((card) => !getCardDefinition(card.cardId)?.kinds.includes(CardKind.DigiEgg));
+          expect(main).toHaveLength(50);
+          expect(new Set(all.map((card) => card.instanceId)).size).toBe(54);
+          expect(all.filter((card) => getCardDefinition(card.cardId)?.kinds.includes(CardKind.DigiEgg))).toHaveLength(
+            4,
+          );
+          const copies = new Map<string, number>();
+          for (const card of main) copies.set(card.cardId, (copies.get(card.cardId) ?? 0) + 1);
+          expect([...copies.values()].every((count) => count <= 4)).toBe(true);
+        }
+      };
+      try {
+        await settle(() => s.state.phase === Phase.Breeding);
+        conserved();
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        const security = [...s.state.players[1]!.security];
+        const controls = s.state.players.map((p) => p.battleArea[0]!.topCard.instanceId);
+        if (scenario.flow === "rush") {
+          for (const slot of ["source", "control"]) {
+            expect(s.engine.applyIntent(0, { type: "playCard", instanceId: `dev-keyword-attack-${slot}` })).toEqual({
+              ok: true,
+            });
+            await settle(
+              () =>
+                s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === `dev-keyword-attack-${slot}`) &&
+                !s.state.pendingDecision,
+            );
+          }
+          const neutral = s.state.players[0]!.battleArea.find(
+            (p) => p.topCard.instanceId === "dev-keyword-attack-control",
+          )!;
+          expect(
+            s.engine.applyIntent(0, {
+              type: "attack",
+              attackerPermanentId: neutral.permanentId,
+              target: { kind: "player" },
+            }),
+          ).toEqual({ ok: false, reason: "illegal-target" });
+          expect(neutral.isSuspended).toBe(false);
+          expect(observe(s.engine).hasKeyword(neutral, "Rush")).toBe(false);
+          expect(s.state.memory).toBe(3);
+        }
+        const attacker = s.state.players[0]!.battleArea.find(
+          (p) => p.topCard.cardId === scenario.attackerCardIds.at(-1),
+        )!;
+        expect(observe(s.engine).hasKeyword(attacker, scenario.keyword)).toBe(true);
+        const defenderIds = s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId !== "BT1-089").map(
+          (p) => p.permanentId,
+        );
+        const firstEvent = s.events.length;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: attacker.permanentId,
+            target: { kind: "player" },
+          }),
+        ).toEqual({ ok: true });
+        if (scenario.flow === "raid") {
+          await settle(() => s.state.pendingDecision?.kind === "selectCards");
+          const decision = s.state.pendingDecision!;
+          const candidates = JSON.parse(decision.payloadJson ?? "{}").candidateInstanceIds;
+          expect(candidates).toEqual(
+            s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "BT1-009").map(
+              (p) => p.topCard.instanceId,
+            ),
+          );
+          const second = s.state.players[1]!.battleArea.find((p) => p.permanentId === defenderIds[1])!;
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: decision.decisionId,
+              response: { kind: "selectCards", instanceIds: scenario.accept ? [second.topCard.instanceId] : [] },
+            }),
+          ).toEqual({ ok: true });
+        }
+        await settle(
+          () =>
+            s.events.slice(firstEvent).some((event) => event.kind === "attackEnded") &&
+            !observe(s.engine).isAttacking(),
+        );
+        const attackEvents = s.events.slice(firstEvent);
+        expect(
+          attackEvents.filter((event) => event.kind === "securityChecked").map((event) => event.revealedCardId),
+        ).toEqual(security.slice(0, scenario.securityRemoved).map((card) => card.cardId));
+        expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(
+          security.slice(scenario.securityRemoved).map((card) => card.instanceId),
+        );
+        expect(
+          s.state.players[1]!.trash.filter((card) =>
+            security.some((initial) => initial.instanceId === card.instanceId),
+          ).map((card) => card.instanceId),
+        ).toEqual(security.slice(0, scenario.securityRemoved).map((card) => card.instanceId));
+        expect(attacker.isSuspended).toBe(true);
+        expect(s.state.players[0]!.battleArea).toContain(attacker);
+        const declarations = attackEvents.filter((event) => event.kind === "attackDeclared");
+        expect(declarations).toHaveLength(scenario.flow === "raid" && scenario.accept ? 2 : 1);
+        if (scenario.flow === "raid") {
+          expect(
+            s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId !== "BT1-089").map((p) => p.permanentId),
+          ).toEqual(scenario.accept ? [defenderIds[0], defenderIds[2]] : defenderIds);
+          if (scenario.accept)
+            expect(declarations[1]).toMatchObject({
+              redirected: true,
+              target: { kind: "permanent", permanentId: defenderIds[1] },
+            });
+        }
+        expect(s.state.players.map((p) => p.battleArea[0]!.topCard.instanceId)).toEqual(controls);
+        expect(s.state.pendingDecision).toBeUndefined();
+        conserved();
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      }
+    });
+  }
+
   for (const scenario of KEYWORD_DECK_PACING_SCENARIOS) {
     it(`${scenario.id} moves the actual next deck cards through public play`, async () => {
       const s = setupEngine({ 0: {}, 1: {} });
