@@ -411,8 +411,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
           reportShown(`narration-step-${item.id}`, context);
           // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
           // single moment, give every clause one readable beat before the next server event
-          // can replace it; a column with room shows a batch together instead.
-          if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
+          // can replace it. The phone's folded band also shows only the newest moment,
+          // even though its accordion retains several items for inspection.
+          if (shown.notice && (narrationLimitRef.current === 1 || collapseNarrationRef.current))
+            await context.wait(TIMINGS.effectAnnounce);
         }
       },
     });

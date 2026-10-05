@@ -10,7 +10,7 @@ import { BoardInputLock, PermanentView } from "./piece";
 import { PermanentDetailInspector, StackViewerOverlay } from "./overlay";
 import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
-import { buildSecurityClashScene, buildSecurityDestructionScene } from "./securityClash";
+import { buildSecurityClashScene, buildSecurityDestructionScene, buildSecurityRevealScene } from "./securityClash";
 import { Side } from "./side";
 
 afterEach(() => cleanup());
@@ -77,6 +77,48 @@ describe("security feedback", () => {
     expect(scene.querySelector('[data-role="attacker"][data-side="you"]')).toBeTruthy();
     expect(scene.querySelector('[data-role="revealed"][data-side="opp"]')).toBeTruthy();
     expect(screen.getAllByText(/DP$/).length).toBe(2);
+    expect(screen.getByText("VS")).toBeTruthy();
+  });
+
+  it("Discord 1556410279602946198: shows a pending check without promising a battle or a security effect", () => {
+    render(
+      <I18nProvider>
+        <SecurityClash
+          scene={buildSecurityRevealScene({
+            key: 4,
+            revealedCardId: "EX13-033",
+            defenderSeat: 1,
+            viewerSeat: 0,
+            attacker: { seat: 0, cardId: "EX12-030" },
+            securityCardDP: 7000,
+            attackerDP: 7000,
+          })}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText("Resolving security check")).toBeTruthy();
+    expect(screen.queryByText("VS")).toBeNull();
+  });
+
+  it("Discord 1556410279602946198: an attacker removed by a field effect does not receive a battle verdict", () => {
+    render(
+      <I18nProvider>
+        <SecurityClash
+          scene={buildSecurityClashScene({
+            key: 5,
+            revealedCardId: "EX13-033",
+            resolution: "trashed",
+            defenderSeat: 1,
+            viewerSeat: 0,
+            attacker: { seat: 0, cardId: "EX12-030" },
+          })}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText("Security card trashed")).toBeTruthy();
+    expect(screen.queryByText("No effect, trashed")).toBeNull();
+    expect(screen.queryByText("VS")).toBeNull();
+    expect(screen.getByTestId("security-clash").querySelector(".battle-clash__flash")).toBeNull();
   });
 
   it("stages a destroyed security card alone, cracked, with nothing printed around it", () => {

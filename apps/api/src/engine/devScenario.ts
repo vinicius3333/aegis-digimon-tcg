@@ -37,6 +37,8 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-ex12-thetismon-mistymon-deletion",
+  "arena-ex12-thetismon-jamming-control",
   "arena-bt18-candlemon-data-selection",
   "arena-bt5-koromon-attack-draw",
   "arena-taiki-digixros-any-tamer-hand",
@@ -750,6 +752,54 @@ function layBt5KoromonAttackDrawScenario(state: GameState, _decks: readonly [Dec
     state.players[0]!,
     establishedDigimon(0, ["BT5-001", "BT12-059", "BT9-008", "BT12-062"], "-koromon-greymon"),
   );
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1556410279602946198: match bf500886 at 17:08 UTC, deletion before security battle. */
+function layThetismonJammingScenario(
+  state: GameState,
+  _decks: readonly [Decklist, Decklist],
+  mistymonInPlay = true,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    insertCard(
+      player,
+      Zone.EggDeck,
+      faceDownCard(`dev-thetismon-egg-${seat}`, seat === 0 ? "RB1-002" : "EX13-004", seat),
+    );
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(
+        player,
+        Zone.Deck,
+        faceDownCard(`dev-thetismon-deck-${seat}-${index}`, seat === 0 ? "BT1-032" : "BT1-009", seat),
+      );
+    }
+    for (let index = 0; index < (seat === 0 ? 5 : 3); index += 1) {
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`dev-thetismon-security-${seat}-${index}`, seat === 1 ? "EX13-033" : "BT1-009", seat),
+      );
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["RB1-002", "LM-002", "EX12-027", "EX12-030"], "-thetismon"));
+    // The turn's draw brings the hand to seven, matching the logged attack's draw/trash sequence.
+    for (let index = 0; index < 6; index += 1) {
+      insertCard(human, Zone.Hand, faceDownCard(`dev-thetismon-hand-${index}`, "BT1-032", 0));
+    }
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined && mistymonInPlay) {
+    placePermanent(opponent, establishedDigimon(1, ["EX13-004", "BT25-030", "BT18-036", "EX13-033"], "-mistymon"));
+    placePermanent(opponent, establishedDigimon(1, ["BT18-030"], "-mistymon-candlemon"));
+  }
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -5478,6 +5528,8 @@ function laySt17MagnamonMercifulColorsScenario(state: GameState, decks: readonly
 }
 
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
+  "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
   "arena-bt18-candlemon-data-selection": layBt18CandlemonDataSelectionScenario,
   "arena-mervamon-trash-digixros": layMervamonTrashDigiXrosScenario,
   "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
