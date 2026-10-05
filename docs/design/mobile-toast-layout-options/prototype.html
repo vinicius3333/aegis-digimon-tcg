@@ -192,6 +192,7 @@ const VIEWPORTS = {
 };
 
 const OPTIONS = {
+  R: { name: "R · Floating row (implemented)", band: false },
   A2: { name: "A2 · Moment cards (recommended)", band: true },
   current: { name: "Current", band: true },
   A: { name: "A · Lane ledger", band: true },
@@ -199,7 +200,7 @@ const OPTIONS = {
   C: { name: "C · Edge rails", band: false },
 };
 
-const state = { option: "A2", size: "large", viewport: "320x568", scenario: "paired", measure: "on", selected: null, tab: 0 };
+const state = { option: "R", size: "large", viewport: "320x568", scenario: "paired", measure: "on", selected: null, tab: 0 };
 const params = new URLSearchParams(location.search);
 for (const key of Object.keys(state)) if (params.has(key)) state[key] = params.get(key);
 
@@ -231,6 +232,31 @@ function rowsOf(moments) {
   return moments.map((id) => MOMENT[id]).slice(-2).reverse();
 }
 
+/* R is the shipped component: the board is the probe's real capture for the viewport and
+   state, not a drawing. Measured row boxes come from floating-row/capture.json. */
+const ROW_CAPTURE = {
+  "320x568": { x: 8, y: 113, width: 304, height: 24 },
+  "320x740": { x: 8, y: 121, width: 304, height: 40 },
+  "390x844": { x: 8, y: 130, width: 374, height: 44 },
+};
+function renderImplemented(phone, vp) {
+  const scenario = SCENARIOS[state.scenario];
+  const shot = state.selected ? "details"
+    : scenario.decision === "order" ? "decision-orderTriggers"
+    : scenario.decision === "targets" ? "decision-chooseTargets"
+    : scenario.moments.length ? "live" : "empty";
+  phone.append(el("img", { class: "strip", src: `floating-row/${shot}-${state.viewport}.webp`, alt: `Captured ${shot} state at ${vp.w}×${vp.h}`, style: { top: "0px", height: vp.h + "px" } }));
+  const row = ROW_CAPTURE[state.viewport];
+  if (shot === "live" || shot.startsWith("decision")) {
+    phone.append(el("button", { class: "hit", style: { inset: "auto", left: row.x + "px", top: row.y + "px", width: row.width + "px", height: row.height + "px" }, "aria-label": "Open the captured details state", onclick: () => { state.selected = "reveal"; render(); } }));
+    phone.append(measure(`row ${row.width}×${row.height} m · zero layout height`, { left: "8px", top: row.y + row.height + 2 + "px" }));
+  }
+  if (shot === "details") {
+    phone.append(el("button", { class: "hit", style: { inset: "auto", left: 0, top: 0, width: vp.w + "px", height: vp.h + "px" }, "aria-label": "Close the captured details state", onclick: () => { state.selected = null; render(); } }));
+  }
+  renderNotes();
+}
+
 function render() {
   const vp = VIEWPORTS[state.viewport];
   const option = OPTIONS[state.option];
@@ -242,6 +268,7 @@ function render() {
   phone.style.height = vp.h + "px";
   phone.setAttribute("aria-label", `${option.name} at ${vp.w}×${vp.h}`);
 
+  if (state.option === "R") return renderImplemented(phone, vp);
   const v = state.viewport;
   phone.append(el("img", { class: "strip", src: `board/header-${v}.webp`, alt: "", style: { top: "0px", height: "44px" } }));
   phone.append(el("img", { class: "strip", src: `board/dock-${v}.webp`, alt: "", style: { top: vp.h - vp.dock + "px", height: vp.dock + "px" } }));
@@ -571,6 +598,7 @@ function renderSheet({ phone }) {
 }
 
 const NOTES = {
+  R: ["R · Floating row (implemented)", "The user's choice, now in the game: one full-width line that floats over the board and takes no layout height. The 48px gutter is gone, so field cards return to 44×62 at 320×568 and 844×390. The row sits in the measured gap between the opponent's upper controls and their battle cards: 24px where the board is tight, up to 44px where it has room. It shows the owner, source art, label, action with ellipsis and the linked result card for the newest moment; '+N' opens every retained moment (two clauses and two card lists at most). These images are real captures of the production components; tap the row for the captured details state."],
   A2: ["A2 · Moment cards (recommended)", "The existing 48px band holds the two newest moments as complete cards, about 150×48 each at 320: twice the per-event width of today. Each card is one event and one 44px+ target. It shows the owner in words (You / Opp), the label, two lines of action text, and the result card when the clause moved cards. Cause and result stay in one card. The opponent header is untouched. At 320×568 the battle rows keep their 96px floor, so field art stays 44×62 and the field scrolls locally; scroll the field to try it. Older moments stay in the queue and are listed under Earlier in the sheet."],
   current: ["Current checkpoint (9f366325f)", "Four 72×48 targets in a permanent 48px gutter. One moment that carries a clause and its revealed cards is split into two toasts, so four slots show two moments. Text area is about 40px wide: roughly six characters (\"Reveal 5…\", \"1 cards\"). 16px art is not recognisable. Owner is not shown."],
   A: ["A · Lane ledger (exploration)", "Two columns keep the lanes: clauses left, moved cards right, at most two entries each, so 2 left + 2 right are visible at once (see '4 unrelated items'). A clause and the cards it moved share a row and render joined; unrelated entries sit in separate cells. Each lane column is one target at least 44px tall; the tapped row selects its tab in the sheet. The opponent header stays untouched. Large (64px band, 30px rows, 12px text, 20×28 art) is the requested bigger size; Compact keeps today's 48px."],
@@ -584,14 +612,14 @@ function renderNotes() {
     el("h2", {}, title), el("p", {}, body),
     el("h2", {}, "Tradeoffs at 320×568"),
     table([
-      ["", "Current", "A2", "A Large", "B", "C"],
-      ["Reserved height", "48px", "48px", "64px", "0", "0"],
-      ["Field art", "32×45 m", "44×62 floor", "≈26×37 e", "44×62 m", "44×62 m"],
-      ["Field scroll", "12px m", "≈50px e", "more e", "≈0 e", "≈0 e"],
-      ["Events visible", "2 (as 4 toasts)", "2", "2L+2R", "1 + 2 stubs", "2"],
-      ["Own 44px target per event", "yes", "yes", "no (lane)", "no (43×38 hit)", "no (38px wide hit)"],
-      ["Action text", "≈40px × 1", "≈95px × 2 p", "≈90px × 1 p", "≈78px × 2", "label only"],
-      ["Covers", "nothing", "nothing", "nothing", "opp name + counters", "lane edges"],
+      ["", "Current", "R (shipped)", "A2", "A Large", "B", "C"],
+      ["Reserved height", "48px", "0 m", "48px", "64px", "0", "0"],
+      ["Field art", "32×45 m", "44×62 m", "44×62 floor", "≈26×37 e", "44×62 m", "44×62 m"],
+      ["Field scroll", "12px m", "0 m", "≈50px e", "more e", "≈0 e", "≈0 e"],
+      ["Events visible", "2 (as 4 toasts)", "1 + '+N' sheet", "2", "2L+2R", "1 + 2 stubs", "2"],
+      ["Own 44px target per event", "yes", "no (304×24 m; 44 at 390)", "yes", "no (lane)", "no (43×38 hit)", "no (38px wide hit)"],
+      ["Action text", "≈40px × 1", "one line, ellipsis", "≈95px × 2 p", "≈90px × 1 p", "≈78px × 2", "label only"],
+      ["Covers", "nothing", "4–6px of two pile labels", "nothing", "nothing", "opp name + counters", "lane edges"],
     ]),
     el("p", {}, el("span", { class: "tag" }, "m"), " measured in capture.json · ", el("span", { class: "tag" }, "e"), " estimated from measured heights; needs the browser probe."),
   );

@@ -36,6 +36,28 @@ function effect(id: string): NarrationItem {
     },
   };
 }
+function clauseOnly(id: string): NarrationItem {
+  const { panel: _panel, ...item } = effect(id);
+  return item;
+}
+function cardsOnly(id: string, count = 1): NarrationItem {
+  const { notice: _notice, ...item } = effect(id);
+  return {
+    ...item,
+    panel: {
+      ...item.panel!,
+      titleKey: "panel.trashedCards",
+      cards: Array.from({ length: count }, (_, index) => ({ cardId: "BT1-010", badge: index + 1 })),
+    },
+  };
+}
+const rejected: MatchNotice = {
+  id: "rejected",
+  side: Side.Viewer,
+  fromSecurity: false,
+  createdAt: 0,
+  body: { variant: "rejection", reason: "Not enough memory" },
+};
 function view(
   items: NarrationItem[],
   onAdvance = vi.fn<(id: string) => void>(),
@@ -56,25 +78,70 @@ function view(
     </I18nProvider>
   );
 }
+const row = (container: HTMLElement) => container.querySelector<HTMLElement>('[data-slot="narration-row"]')!;
+const more = () => screen.queryByRole("button", { name: /more recent notices/ });
 
-it("keeps the two newest toasts in each column and dismisses only the tapped occurrence", () => {
+it("shows the newest moment as one line with its owner, clause and linked result", () => {
+  const { container } = render(view([effect("old"), effect("new")]));
+  expect(container.querySelectorAll(".narration-slot")).toHaveLength(1);
+  const line = row(container).querySelector(".compact-row")!;
+  expect(line.getAttribute("data-narration-id")).toBe("new");
+  expect(line.querySelector(".compact-row__owner")?.textContent).toBe("You");
+  expect(line.querySelector(".compact-row__label")?.textContent).toBe("On Play");
+  expect(line.querySelector(".compact-row__action")?.textContent).toMatch(
+    /^Reveal 5 cards from the top of your deck\./,
+  );
+  expect(line.querySelector(".compact-row__result-label")?.textContent).toBe("Agumon");
+  expect(line.textContent).not.toContain("1 cards");
+  expect(line.querySelectorAll(".compact-row__open")).toHaveLength(1);
+});
+
+it("names a card count only when a moment moved several cards", () => {
+  const { container } = render(view([cardsOnly("trash", 3)]));
+  expect(row(container).querySelector(".compact-row__action")?.textContent).toBe("3 cards");
+  expect(row(container).querySelector(".compact-row__result")).toBeNull();
+});
+
+it("retains two clauses and two card lists, listing each moment once, behind the more control", () => {
+  const { container, rerender } = render(view([effect("old"), effect("middle"), effect("new")]));
+  expect(more()?.textContent).toBe("+1");
+  fireEvent.click(more()!);
+  const entries = within(screen.getByRole("group", { name: "Recent notices" })).getAllByRole("button");
+  expect(entries).toHaveLength(2);
+  expect(entries[1]!.getAttribute("aria-pressed")).toBe("true");
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+
+  rerender(view([clauseOnly("a"), cardsOnly("b"), clauseOnly("c"), cardsOnly("d"), clauseOnly("e")]));
+  expect(row(container).querySelector(".compact-row")?.getAttribute("data-narration-id")).toBe("e");
+  expect(more()?.textContent).toBe("+3");
+  expect(more()?.getAttribute("aria-label")).toBe("Show 3 more recent notices");
+});
+
+it("dismisses only the chosen retained moment and closes the details", () => {
   const onAdvance = vi.fn<(id: string) => void>();
-  const { container } = render(view([effect("old"), effect("middle"), effect("new")], onAdvance));
-  for (const slot of container.querySelectorAll(".narration-slot")) {
-    expect(
-      [...slot.querySelectorAll(".compact-toast")].map((toast) => toast.getAttribute("data-narration-id")),
-    ).toEqual(["middle", "new"]);
-  }
-  const right = container.querySelector('[data-slot="narration-cards"]')!;
-  fireEvent.click(within(right as HTMLElement).getAllByRole("button", { name: /Show the full notice/ })[0]!);
+  render(view([effect("old"), effect("middle"), effect("new")], onAdvance));
+  fireEvent.click(more()!);
   fireEvent.click(within(screen.getByRole("dialog")).getByText("Dismiss notice", { exact: true }));
   expect(onAdvance).toHaveBeenCalledExactlyOnceWith("middle");
   expect(screen.queryByRole("dialog")).toBeNull();
 });
 
-it("opens the selected moment clause-first with all cards and retains it after the toast expires", () => {
+it("switches the details between retained moments without dismissing either", () => {
+  const onAdvance = vi.fn<(id: string) => void>();
+  render(view([clauseOnly("clause"), cardsOnly("cards", 2)], onAdvance));
+  fireEvent.click(screen.getByRole("button", { name: /Show the full notice/ }));
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.querySelector(".side-panel-stack")).toBeTruthy();
+  expect(dialog.querySelector(".match-notice-stack")).toBeNull();
+  fireEvent.click(within(dialog).getByRole("button", { name: /On Play/ }));
+  expect(dialog.querySelector(".match-notice-stack")).toBeTruthy();
+  expect(dialog.textContent).toContain("Reveal 5 cards");
+  expect(onAdvance).not.toHaveBeenCalled();
+});
+
+it("opens the selected moment clause-first with all cards and retains it after the row moves on", () => {
   const { rerender } = render(view([effect("one"), effect("two")]));
-  const open = screen.getAllByRole("button", { name: /Show the full notice/ })[0]!;
+  const open = screen.getByRole("button", { name: /Show the full notice/ });
   open.focus();
   fireEvent.click(open);
   const dialog = screen.getByRole("dialog", { name: "Notice details" });
@@ -93,10 +160,10 @@ it("opens the selected moment clause-first with all cards and retains it after t
   expect(screen.queryByRole("dialog")).toBeNull();
 });
 
-it("returns focus to the toast and preserves the occurrence when closing details", () => {
+it("returns focus to the row and preserves the occurrence when closing details", () => {
   const onAdvance = vi.fn<(id: string) => void>();
   render(view([effect("one")], onAdvance));
-  const open = screen.getAllByRole("button", { name: /Show the full notice/ })[0]!;
+  const open = screen.getByRole("button", { name: /Show the full notice/ });
   open.focus();
   fireEvent.click(open);
   fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Close" }));
@@ -104,65 +171,67 @@ it("returns focus to the toast and preserves the occurrence when closing details
   expect(onAdvance).not.toHaveBeenCalled();
 });
 
-it("keeps the reading clock paused across a long decision and neighboring arrivals", () => {
+it("keeps the reading clock paused across a long decision and restarts the line for a new moment", () => {
   const original = effect("one");
   const paused = { ...original, pausedAt: 1000 };
   const { container, rerender } = render(view([paused], undefined, null, undefined, 12000));
-  const life = container.querySelector<HTMLElement>(".compact-toast__life")!;
+  const life = container.querySelector<HTMLElement>(".compact-row__life")!;
   expect(life.style.animationDuration).toBe(`${narrationReadingTime(original) - 1000}ms`);
   expect(container.querySelector("[data-reading-paused]")).toBeTruthy();
-  rerender(view([{ ...original, createdAt: 11000 }, effect("two")], undefined, null, undefined, 12000));
-  expect(container.querySelector(".compact-toast__life")).toBe(life);
-  expect(life.style.animationDuration).toBe(`${narrationReadingTime(original) - 1000}ms`);
+  rerender(view([{ ...original, createdAt: 11000 }], undefined, null, undefined, 12000));
+  expect(container.querySelector(".compact-row__life")).toBe(life);
   expect(container.querySelector("[data-reading-paused]")).toBeNull();
+  rerender(
+    view(
+      [
+        { ...original, createdAt: 11000 },
+        { ...effect("two"), createdAt: 12000 },
+      ],
+      undefined,
+      null,
+      undefined,
+      12000,
+    ),
+  );
+  const next = container.querySelector<HTMLElement>(".compact-row__life")!;
+  expect(next).not.toBe(life);
+  expect(next.style.animationDuration).toBe(`${narrationReadingTime(original)}ms`);
 });
 
-it("includes a rejected action in the left limit and uses its separate dismissal", () => {
+it("leads with a refused action, which takes one clause place and its own dismissal", () => {
   const onAdvance = vi.fn<(id: string) => void>(),
     onDismiss = vi.fn<() => void>();
-  const rejection: MatchNotice = {
-    id: "rejected",
-    side: Side.Viewer,
-    fromSecurity: false,
-    createdAt: 0,
-    body: { variant: "rejection", reason: "Not enough memory" },
-  };
-  const { container } = render(view([effect("one"), effect("two")], onAdvance, rejection, onDismiss));
-  const left = container.querySelector('[data-slot="narration-text"]')!;
-  expect(left.querySelectorAll(".compact-toast")).toHaveLength(2);
-  expect(left.querySelector('.compact-toast[data-tone="rejection"] .compact-toast__clause')?.textContent).toBe(
-    "Not enough memory",
-  );
-  fireEvent.click(left.querySelector('.compact-toast[data-tone="rejection"] .compact-toast__open')!);
+  const { container } = render(view([clauseOnly("one"), clauseOnly("two")], onAdvance, rejected, onDismiss));
+  const line = row(container).querySelector(".compact-row")!;
+  expect(line.getAttribute("data-tone")).toBe("rejection");
+  expect(line.querySelector(".compact-row__action")?.textContent).toBe("Not enough memory");
+  expect(more()?.textContent).toBe("+1");
+  fireEvent.click(line.querySelector(".compact-row__open")!);
   fireEvent.click(within(screen.getByRole("dialog")).getByText("Dismiss notice", { exact: true }));
   expect(onDismiss).toHaveBeenCalledOnce();
   expect(onAdvance).not.toHaveBeenCalled();
 });
 
-it("preserves owner routing and the fixed lane hosts as notices arrive and expire", () => {
-  const own = effect("own");
+it("keeps one persistent host while notices arrive and expire", () => {
   const opposing = effect("opposing");
   opposing.side = Side.Opponent;
   opposing.notice!.side = Side.Opponent;
   opposing.panel!.side = Side.Opponent;
   const { container, rerender } = render(view([]));
-  const lanes = [...container.querySelectorAll(".narration-slot")];
-  expect(lanes).toHaveLength(2);
-  rerender(view([own, opposing]));
-  for (const lane of lanes) {
-    expect([...lane.querySelectorAll(".compact-toast")].map((toast) => toast.getAttribute("data-side"))).toEqual([
-      Side.Viewer,
-      Side.Opponent,
-    ]);
-  }
+  const host = row(container);
+  expect(host.children).toHaveLength(0);
+  rerender(view([effect("own"), opposing]));
+  expect(row(container)).toBe(host);
+  expect(host.querySelector(".compact-row")?.getAttribute("data-side")).toBe(Side.Opponent);
+  expect(host.querySelector(".compact-row__owner")?.textContent).toBe("Opponent");
   rerender(view([]));
-  expect([...container.querySelectorAll(".narration-slot")]).toEqual(lanes);
-  expect(container.querySelectorAll(".compact-toast")).toHaveLength(0);
+  expect(row(container)).toBe(host);
+  expect(host.children).toHaveLength(0);
 });
 
-it("retains the opened occurrence when a newer arrival evicts it from both lane caps", () => {
+it("retains the opened occurrence when newer arrivals evict it from the caps", () => {
   const { rerender } = render(view([effect("first")]));
-  fireEvent.click(screen.getAllByRole("button", { name: /Show the full notice/ })[0]!);
+  fireEvent.click(screen.getByRole("button", { name: /Show the full notice/ }));
   rerender(view([effect("second"), effect("third"), effect("fourth")]));
   expect(screen.getByRole("dialog").textContent).toContain("Reveal 5 cards");
   expect(screen.getByRole("dialog").querySelector('img[src*="BT1-010_P2"]')).toBeTruthy();
@@ -170,31 +239,12 @@ it("retains the opened occurrence when a newer arrival evicts it from both lane 
   expect(screen.queryByRole("dialog")).toBeNull();
 });
 
-it("counts distinct card panels in one occurrence toward the right limit", () => {
-  const dual = {
-    ...effect("dual"),
-    notice: {
-      ...effect("dual").notice!,
-      body: {
-        variant: "deletion" as const,
-        cards: [{ cardId: "BT1-010" }],
-      },
-    },
-  };
-  const { container } = render(view([effect("old"), dual]));
-  const right = container.querySelector('[data-slot="narration-cards"]')!;
-  expect([...right.querySelectorAll(".compact-toast")].map((toast) => toast.getAttribute("data-narration-id"))).toEqual(
-    ["dual", "dual"],
-  );
-});
-
-it("returns focus to the persistent lane when the opened toast expires", () => {
+it("returns focus to the persistent host when the opened row expires", () => {
   const { container, rerender } = render(view([effect("one")]));
-  const open = screen.getAllByRole("button", { name: /Show the full notice/ })[0]!;
-  const lane = container.querySelector('[data-slot="narration-text"]');
+  const open = screen.getByRole("button", { name: /Show the full notice/ });
   open.focus();
   fireEvent.click(open);
   rerender(view([]));
   fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
-  expect(document.activeElement).toBe(lane);
+  expect(document.activeElement).toBe(row(container));
 });

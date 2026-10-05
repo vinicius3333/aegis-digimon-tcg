@@ -1,0 +1,186 @@
+{
+  "viewport": "320x740",
+  "state": "empty (no notice records)",
+  "builds": {
+    "before-gutter": [
+      {
+        "card": "Plutomon",
+        "centre": [
+          112,
+          250
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Dobermon (Suspended)",
+        "centre": [
+          210,
+          250
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Asuna Shiroki",
+        "centre": [
+          308,
+          250
+        ],
+        "reachable": false,
+        "underNotice": false,
+        "blockedBy": "div.game-field",
+        "outsideLane": true
+      },
+      {
+        "card": "Chronomon: Holy Mode",
+        "centre": [
+          112,
+          438
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Hyokomon",
+        "centre": [
+          197,
+          438
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Shota Kuroi",
+        "centre": [
+          282,
+          438
+        ],
+        "reachable": false,
+        "underNotice": false,
+        "blockedBy": "svg.",
+        "outsideLane": false
+      },
+      {
+        "card": null,
+        "centre": [
+          92,
+          547
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": null
+      },
+      {
+        "card": null,
+        "centre": [
+          232,
+          129
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": null
+      }
+    ],
+    "after-floating-row": [
+      {
+        "card": "Plutomon",
+        "centre": [
+          112,
+          214
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Dobermon (Suspended)",
+        "centre": [
+          210,
+          214
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Asuna Shiroki",
+        "centre": [
+          308,
+          214
+        ],
+        "reachable": false,
+        "underNotice": false,
+        "blockedBy": "div.game-field",
+        "outsideLane": true
+      },
+      {
+        "card": "Chronomon: Holy Mode",
+        "centre": [
+          112,
+          426
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Hyokomon",
+        "centre": [
+          197,
+          426
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": false
+      },
+      {
+        "card": "Shota Kuroi",
+        "centre": [
+          282,
+          426
+        ],
+        "reachable": false,
+        "underNotice": false,
+        "blockedBy": "svg.",
+        "outsideLane": false
+      },
+      {
+        "card": null,
+        "centre": [
+          92,
+          547
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": null
+      },
+      {
+        "card": null,
+        "centre": [
+          232,
+          81
+        ],
+        "reachable": true,
+        "underNotice": false,
+        "blockedBy": null,
+        "outsideLane": null
+      }
+    ]
+  }
+}

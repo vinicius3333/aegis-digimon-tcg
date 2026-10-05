@@ -33,7 +33,7 @@ it("reserves space for the security dock and releases it when the dock closes", 
   rerender(view(false, false));
   expect(container.querySelector("[data-security-dock]")).toBeNull();
   rerender(view(true, true));
-  expect(container.querySelector('[data-slot="narration-cards"][data-security-dock]')).toBeTruthy();
+  expect(container.querySelector('[data-slot="narration-row"][data-security-dock]')).toBeTruthy();
 });
 
 function cardItem(id: string): NarrationItem {
