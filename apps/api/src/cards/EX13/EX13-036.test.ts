@@ -1080,3 +1080,41 @@ describe("EX13-036 Kentaurosmon", () => {
     }
   });
 });
+
+describe("GitHub #4932 — Kentaurosmon reactivated security", () => {
+  it("reduces both opposing Digimon after paying the security cost on digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST24-10", as: "base" }],
+          hand: [{ card: "EX13-036", as: "kent" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-024", as: "first" },
+            { card: "BT1-024", as: "second" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kent").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some(
+        (e) => e.kind === "effectResolved" && e.sourceCardId === "EX13-036" && e.effectKey?.includes("reactivated"),
+      ),
+    );
+    expect(s.perm("first").currentDP).toBe(3000);
+    expect(s.perm("second").currentDP).toBe(3000);
+  });
+});

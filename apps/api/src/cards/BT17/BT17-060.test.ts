@@ -1,6 +1,7 @@
+import { advance } from "../../engine/testkit/advance.js";
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-060.js";
 import "./index.js";
@@ -104,8 +105,8 @@ describe("BT17-060 Armageddemon", () => {
         target: { kind: "permanent", permanentId: unsuspendedTargetId },
       }),
     ).toEqual({ ok: true });
-    await drainMicrotasks(50);
-    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    // The sole opposing Blocker is already the attack target (CR 12-1-5).
+    await advance(s.engine).finishAttack();
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT17-060")).toBe(true);

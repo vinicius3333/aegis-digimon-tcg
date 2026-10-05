@@ -7,11 +7,9 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "digivolve",
-          amount: 1,
-          target: { filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" }, count: "all" },
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" },
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
@@ -19,9 +17,21 @@ export const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" }],
             excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
           },
-          restriction: "suspendThisTamer",
-          optional: true,
-          duration: "forTheTurn",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              optional: true,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+            },
+          ],
+          raw: "When one of your Digimon would digivolve into a qualifying green Beast, Animal or Sovereign card, you may suspend this Tamer to reduce the cost by 1",
         },
       ],
     },

@@ -25,27 +25,30 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "digivolve",
-          amount: 1,
-          target: {
-            filter: {
-              zone: "battleArea",
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: "all",
-          },
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] },
           into: {
             zone: "hand",
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Tyrannomon"], match: "name" }],
           },
-          restriction: "suspendThisTamer",
-          optional: true,
-          duration: "forTheTurn",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              optional: true,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+            },
+          ],
+          raw: "When digivolving one of your Digimon into a Tyrannomon card, you may suspend this Tamer to reduce the cost by 1",
         },
       ],
     },

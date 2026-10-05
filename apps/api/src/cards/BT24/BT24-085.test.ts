@@ -201,16 +201,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 4);
-    const secondUseOptionPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[3]!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: secondUseOptionPrompt.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 5);
-    const attackPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[4]!.req;
+    const attackPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[3]!.req;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -712,15 +703,6 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: firstUseOptionDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const secondUseOptionDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: secondUseOptionDecision.decisionId,
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });

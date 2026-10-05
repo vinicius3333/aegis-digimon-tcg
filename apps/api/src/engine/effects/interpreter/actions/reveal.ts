@@ -12,6 +12,7 @@ import { CardKind, filterToDistinctColors, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 import { playEffectInstances, prepareEffectPlayAssembly } from "./effectPlayAssembly.js";
 import { prepareEffectPlayDigiXros } from "./effectPlayDigiXros.js";
+import { playableCandidates } from "./play.js";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
 export function revealedDefinition(
@@ -1098,9 +1099,13 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
         return false;
       }
       const security = ctx.game.player(ctx.source.ownerSeat).security;
-      const candidates = security.filter((card) =>
-        definitionMatches(action.target.filter, ctx.game.definitionOf(card) as DefinitionFacts),
-      );
+      const candidates = playableCandidates(
+        ctx,
+        action.target,
+        security.filter((card) =>
+          definitionMatches(action.target.filter, ctx.game.definitionOf(card) as DefinitionFacts),
+        ),
+      ).filter((card) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, card.cardId, "play"));
       const maximum =
         action.target.count === "all" ? candidates.length : Math.min(action.target.count, candidates.length);
       const minimum = action.then.optional === true || action.target.upTo === true ? 0 : maximum;

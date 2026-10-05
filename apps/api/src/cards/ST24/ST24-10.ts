@@ -55,6 +55,7 @@ const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           mode: "prevent",
           sourceFilter: {
+            isSelfRef: true,
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [

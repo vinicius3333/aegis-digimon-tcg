@@ -228,22 +228,25 @@ describe("BT2-081 through BT2-090 IR coverage", () => {
           trigger: "YourTurn",
           actions: [
             expect.objectContaining({
-              kind: "CostModifier",
-              costType: "digivolve",
-              amount: 1,
-              target: {
-                filter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] },
-                count: "all",
-              },
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              sourceFilter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] },
               into: {
                 zone: "hand",
                 controller: "mine",
                 kind: ["Digimon"],
                 nameOrTrait: [{ tokens: ["Tyrannomon"], match: "name" }],
               },
-              restriction: "suspendThisTamer",
-              optional: true,
-              duration: "forTheTurn",
+              actions: [
+                expect.objectContaining({
+                  kind: "Replacement",
+                  event: "wouldDigivolve",
+                  mode: "reduceCost",
+                  amount: 1,
+                  optional: true,
+                  cost: expect.objectContaining({ kind: "suspend" }),
+                }),
+              ],
             }),
           ],
         }),

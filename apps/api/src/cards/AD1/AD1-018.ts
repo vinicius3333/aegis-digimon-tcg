@@ -22,17 +22,18 @@ const compiled: CompiledCard = {
               condition: {
                 kind: "youHave",
                 filter: {
-                  zone: "trash",
+                  zone: "battleArea",
+                  kind: ["Digimon"],
                   controller: "mine",
                   nameOrTrait: [
                     {
                       tokens: ["Knightmon", "Lucemon"],
-                      match: "text",
+                      match: "name",
                     },
                   ],
                 },
-                count: 4,
-                raw: "you have 4 or more cards with [Knightmon] or [Lucemon] in its text in your trash",
+                count: 1,
+                raw: "you have a Digimon with [Knightmon] or [Lucemon] in its name",
               },
             },
           ],

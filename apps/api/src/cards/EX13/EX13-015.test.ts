@@ -687,7 +687,10 @@ describe("EX13-015 Gallantmon", () => {
             security: Array(3).fill("BT1-009"),
           },
           1: {
-            battleArea: [{ card: "ST18-07", as: "blocker", dp: 10_000 }],
+            battleArea: [
+              { card: "ST18-07", as: "raidTarget", dp: 10_000 },
+              { card: "ST18-07", as: "blocker", dp: 10_000 },
+            ],
             deck: Array(6).fill("BT1-010"),
             security: Array(3).fill("BT1-010"),
           },

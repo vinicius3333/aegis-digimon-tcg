@@ -326,7 +326,7 @@ export function prepareFrozenSubTrigger(
       // one whose host dies beside that Digimon in the same battle cannot activate (Q2602).
       const sourceId = item.sub.sourcePermanentId;
       if (
-        (event === "onDeletionOf" || event === "whenLeavesPlay") &&
+        (event === "onDeletionOf" || event === "whenLeavesPlay" || event === "whenDeletesInBattle") &&
         sourceId !== undefined &&
         !(sourceId === boundPayload.deletedPermanentId && boundPayload.deletedPermanentIds?.includes(sourceId)) &&
         buildSubTriggerContext(engine, item.sub, boundPayload) === undefined

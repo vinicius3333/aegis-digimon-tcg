@@ -63,6 +63,7 @@ import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
 import { minimumDeferredPlayCost } from "./timing/playAffordability.js";
+import { looseZoneOfInstance } from "../effects/verbs/looseInstances.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -289,7 +290,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
           markFired: (key) => engine.tracker.register(key, "replacement"),
         },
-        undefined,
+        "hand",
         baseAsDigimon,
       );
       const evolving = state.players[seat]?.hand.find(({ cardId }) => cardId === into.cardId);
@@ -324,7 +325,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           markFired: (key) => engine.tracker.register(key, "replacement"),
         },
         undefined,
-        undefined,
+        looseZoneOfInstance(engine.state, evolvingInstanceId),
         baseAsDigimon,
       );
       const evolving = findLooseInstance(engine, evolvingInstanceId);
@@ -929,10 +930,17 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
     potentialInteractiveDnaDigivolveReduction: (_state, seat, materials, definition) => {
       const target = materials[0];
       if (target === undefined || engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
-      return engine.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, definition, {
-        hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
-        markFired: (key) => engine.tracker.register(key, "replacement"),
-      });
+      return engine.subTriggers.potentialInteractiveReductionFor(
+        "wouldDigivolve",
+        seat,
+        target,
+        definition,
+        {
+          hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
+          markFired: (key) => engine.tracker.register(key, "replacement"),
+        },
+        "hand",
+      );
     },
     activateInteractiveDnaDigivolveReduction: async (_state, seat, materials, definition, evolvingInstanceId) => {
       const target = materials[0];
@@ -958,6 +966,7 @@ export function dnaDigivolveDeps(engine: GameEngine): DnaDigivolveDeps {
           markFired: (key) => engine.tracker.register(key, "replacement"),
         },
         materials,
+        looseZoneOfInstance(engine.state, evolvingInstanceId),
       );
     },
     materialsRestricted: (_state, materials, definition) =>

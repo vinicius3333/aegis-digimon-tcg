@@ -1,3 +1,4 @@
+import "../index.js";
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type CardSpec } from "../../engine/testkit/harness.js";
@@ -243,5 +244,36 @@ describe("BT9-092 Cool Boy — KB Q&A rulings", () => {
 
     await settle(() => inHand("xDigimon") && inHand("xOption") && player.deck.length === 1);
     expect(inHand("plainDigimon")).toBe(false);
+  });
+});
+
+describe("GitHub #4913 — Cool Boy after effect digivolution", () => {
+  it("recognizes MetalSeadramon to GigaSeadramon as same-level after Proto Form", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-026", as: "metal" },
+            { card: "BT9-092", as: "boy" },
+          ],
+          hand: [
+            { card: "EX5-070", as: "proto" },
+            { card: "BT20-028", as: "giga" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("proto").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "EX5-070"));
+    await settle();
+    expect(s.perm("metal").topCard.cardId).toBe("BT20-028");
+    expect(s.perm("boy").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 });

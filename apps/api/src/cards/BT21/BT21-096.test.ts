@@ -303,6 +303,7 @@ describe("BT21-096 The Champion Ultimate Fighter! — KB Q&A rulings", () => {
         1: {
           battleArea: [
             { card: "BT19-064", as: "justimon" },
+            { card: "ST2-07", as: "otherBlocker" },
             { card: "BT18-059", as: "zenimon" },
           ],
         },
@@ -319,6 +320,7 @@ describe("BT21-096 The Champion Ultimate Fighter! — KB Q&A rulings", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+    // A separate Blocker keeps this pre-battle observation window legal (CR 12-1-5).
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
 
     expect(s.perm("marcus").isSuspended).toBe(true);
@@ -553,7 +555,12 @@ describe("BT21-096 The Champion Ultimate Fighter! — KB Q&A rulings", () => {
           ],
           hand: [{ card: "BT21-096", as: "option" }],
         },
-        1: { battleArea: [{ card: "BT19-064", as: "justimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT19-064", as: "justimon" },
+            { card: "ST2-07", as: "otherBlocker" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
@@ -567,6 +574,7 @@ describe("BT21-096 The Champion Ultimate Fighter! — KB Q&A rulings", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+    // A separate Blocker keeps this pre-battle observation window legal (CR 12-1-5).
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
 
     expect(s.perm("marcus").isSuspended).toBe(true);

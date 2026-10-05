@@ -1,4 +1,64 @@
 {
+  "releases.1.10.2-beta.summary": {
+    "en": "This patch corrects card costs, protection scopes, battle priority and development scenario links.",
+    "pt-BR": "Este patch corrige custos de cartas, o alcance das proteções, a prioridade em batalha e os links dos cenários de desenvolvimento."
+  },
+  "releases.1.10.2-beta.fix.ruliReduction": {
+    "en": "Ruli and Taiga now let you decline suspending them to reduce a digivolution cost.",
+    "pt-BR": "Ruli e Taiga agora permitem recusar a suspensão para reduzir um custo de evolução."
+  },
+  "releases.1.10.2-beta.fix.lilamonProtection": {
+    "en": "Lilamon’s inherited protection applies only to its own Digimon, rather than other allied Digimon.",
+    "pt-BR": "A proteção herdada de Lilamon vale apenas para seu próprio Digimon, em vez de outros Digimon aliados."
+  },
+  "releases.1.10.2-beta.fix.lordKnightmonReduction": {
+    "en": "LordKnightmon AD1-018 now reduces its play cost when a Knightmon or Lucemon Digimon is in your battle area. Its displayed text matches this condition.",
+    "pt-BR": "LordKnightmon AD1-018 agora reduz seu custo de jogo quando há um Digimon Knightmon ou Lucemon em seu campo. O texto exibido corresponde a essa condição."
+  },
+  "releases.1.10.2-beta.fix.venusmonProtection": {
+    "en": "Venusmon’s protection cost can use an opponent’s Digimon with no digivolution cards, placing it under its owner’s security.",
+    "pt-BR": "O custo de proteção de Venusmon pode usar um Digimon adversário sem fontes de evolução, colocando-o sob a segurança de seu dono."
+  },
+  "releases.1.10.2-beta.fix.noirTarget": {
+    "en": "Sistermon Noir’s Option effect selects one opposing Digimon and applies every De-Digivolve to that same target.",
+    "pt-BR": "O efeito de Opção de Sistermon Noir seleciona um Digimon adversário e aplica todas as reduções de evolução nesse mesmo alvo."
+  },
+  "releases.1.10.2-beta.fix.battlePriority": {
+    "en": "Battle deletion effects now resolve with turn-player priority across printed and inherited effects, including Examon, Groundramon and Rie Kishibe.",
+    "pt-BR": "Efeitos de deleção em batalha agora respeitam a prioridade do jogador do turno entre efeitos principais e herdados, incluindo Examon, Groundramon e Rie Kishibe."
+  },
+  "releases.1.10.2-beta.fix.securitySearch": {
+    "en": "Revelation of Light and security searches reveal the card faces privately and offer only legal cards to play.",
+    "pt-BR": "Revelation of Light e buscas na segurança revelam as faces das cartas de forma privada e oferecem apenas cartas que podem ser jogadas."
+  },
+  "releases.1.10.2-beta.fix.seitenAssembly": {
+    "en": "SeitenGokuumon’s Assembly correctly accepts Sagomon EX12-029.",
+    "pt-BR": "O Assembly de SeitenGokuumon aceita corretamente Sagomon EX12-029."
+  },
+  "releases.1.10.2-beta.fix.seventhLightning": {
+    "en": "Seventh Lightning returns to the deck as its trash-effect cost before resolving both deletion effects, even when one target level is absent.",
+    "pt-BR": "Seventh Lightning volta ao deck como custo de seu efeito da lixeira antes de resolver as duas deleções, mesmo quando não há alvo de um dos níveis."
+  },
+  "releases.1.10.2-beta.fix.raidBlocking": {
+    "en": "A Digimon targeted by Raid can no longer block the attack directed at itself.",
+    "pt-BR": "Um Digimon escolhido como alvo de Raid não pode mais bloquear o ataque direcionado a si mesmo."
+  },
+  "releases.1.10.2-beta.fix.junomonHomeros": {
+    "en": "Junomon can now play qualifying Iliad Tamers such as Homeros from the hand.",
+    "pt-BR": "Junomon agora pode jogar da mão Tamers Iliad válidos, como Homeros."
+  },
+  "releases.1.10.2-beta.fix.coolBoy": {
+    "en": "Cool Boy now recognizes same-level digivolution performed through effects such as X Antibody Proto Form.",
+    "pt-BR": "Cool Boy agora reconhece evoluções no mesmo nível realizadas por efeitos como X Antibody Proto Form."
+  },
+  "releases.1.10.2-beta.fix.takatoOptionalCost": {
+    "en": "Takato Matsuki BT17-080 now lets you decline its placement cost when its End of Turn effect activates.",
+    "pt-BR": "Takato Matsuki BT17-080 agora permite recusar o custo de colocação quando seu efeito de fim do turno é ativado."
+  },
+  "releases.1.10.2-beta.fix.scenarioLinks": {
+    "en": "Development scenario links now open the requested board and show all seeded cards on the first connection.",
+    "pt-BR": "Links de cenários de desenvolvimento agora abrem o tabuleiro solicitado e mostram todas as cartas preparadas na primeira conexão."
+  },
   "releases.1.10.1-beta.summary": {
     "en": "This patch corrects face-down source effects, trash visibility, Cerberusmon's optional cost, and Ceresmon and Shoto suspension triggers.",
     "pt-BR": "Este patch corrige efeitos de fontes viradas para baixo, a visibilidade do lixo, o custo opcional de Cerberusmon e os gatilhos de suspensão de Ceresmon e Shoto."

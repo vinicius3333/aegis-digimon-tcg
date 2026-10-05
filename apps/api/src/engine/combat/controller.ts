@@ -916,7 +916,11 @@ export class CombatController {
    */
   private runBlockWindow(attackerSeat: Seat, attacker: Permanent): Promise<string | null> {
     const defendingSeat = this.access.opponentOf(attackerSeat);
-    const blockers = eligibleBlockers(this.access, attacker, this.hooks.continuous);
+    const target = this.currentAttack?.target;
+    // CR 12-1-5: the current attack target cannot perform a block, including after Raid.
+    const blockers = eligibleBlockers(this.access, attacker, this.hooks.continuous).filter(
+      (blocker) => target?.kind !== "permanent" || blocker.permanentId !== target.permanentId,
+    );
     const eligibleBlockerIds = blockers.map((b) => b.permanentId);
 
     if (blockers.length === 0) {
@@ -1545,7 +1549,10 @@ export class CombatController {
     // reacting inherited host are still live, then activate them after the simultaneous batch
     // has left play. A watcher on a separate surviving host remains eligible; the frozen bus
     // drops a watcher whose own host was part of the batch.
-    const prepareBattleDeleteReaction = (subject: Permanent, victim: Permanent): (() => Promise<void>) | undefined => {
+    const prepareBattleDeleteReaction = (
+      subject: Permanent,
+      victim: Permanent,
+    ): ((options?: { deferIntoDeletionWindow?: boolean }) => Promise<void>) | undefined => {
       if (!postCardPreventionDeletedIds.includes(victim.permanentId)) return undefined;
       const payload: TriggerInfo = {
         subjectPermanentId: subject.permanentId,
@@ -1696,7 +1703,11 @@ export class CombatController {
         deleted.length > 0 && this.currentAttack === undefined ? { deferIntoDeletionWindow: true } : undefined,
       );
     }
+    // Battle winners and deletion watchers trigger together. Queue both families before
+    // opening the deletion window so turn-player priority applies across the two buses.
     if (deleted.length > 0) {
+      await attackerBattleDeleteReaction?.({ deferIntoDeletionWindow: true });
+      await defenderBattleDeleteReaction?.({ deferIntoDeletionWindow: true });
       const deletingPermanentId = deleted.includes(attacker.permanentId)
         ? deleted.includes(defender.permanentId)
           ? undefined
@@ -1753,15 +1764,16 @@ export class CombatController {
       }
       // System A: fire the top-level WhenBattleDeleteOpponent timing for the surviving attacker.
       // The trigger carries both the attacker (who fires the effect) and the deleted defender.
-      await this.hooks.fireTiming(EffectTiming.OnBattleDeleteOpponent, {
-        attackerPermanentId: attacker.permanentId,
-        deletedPermanentId: defender.permanentId,
-        ...(defenderTopCardId !== undefined ? { deletedTopCardId: defenderTopCardId } : {}),
-        deletedInstanceIds,
-        deletedWasStackInstanceIds,
-      });
+      if (!this.hooks.resolveDeletionReactions)
+        await this.hooks.fireTiming(EffectTiming.OnBattleDeleteOpponent, {
+          attackerPermanentId: attacker.permanentId,
+          deletedPermanentId: defender.permanentId,
+          ...(defenderTopCardId !== undefined ? { deletedTopCardId: defenderTopCardId } : {}),
+          deletedInstanceIds,
+          deletedWasStackInstanceIds,
+        });
     }
-    await attackerBattleDeleteReaction?.();
+    if (deleted.length === 0) await attackerBattleDeleteReaction?.();
 
     // A defending Digimon can also be the surviving battle winner and delete the attacker.
     // Effects such as BT5-062 say "when this Digimon deletes an opponent's Digimon in battle"
@@ -1770,15 +1782,16 @@ export class CombatController {
     const defenderSurvived = this.access.permanentById(defender.permanentId) !== undefined;
     const attackerDeleted = deleted.includes(attacker.permanentId);
     if (defenderSurvived && attackerDeleted) {
-      await this.hooks.fireTiming(EffectTiming.OnBattleDeleteOpponent, {
-        attackerPermanentId: defender.permanentId,
-        deletedPermanentId: attacker.permanentId,
-        ...(attackerTopCardId !== undefined ? { deletedTopCardId: attackerTopCardId } : {}),
-        deletedInstanceIds,
-        deletedWasStackInstanceIds,
-      });
+      if (!this.hooks.resolveDeletionReactions)
+        await this.hooks.fireTiming(EffectTiming.OnBattleDeleteOpponent, {
+          attackerPermanentId: defender.permanentId,
+          deletedPermanentId: attacker.permanentId,
+          ...(attackerTopCardId !== undefined ? { deletedTopCardId: attackerTopCardId } : {}),
+          deletedInstanceIds,
+          deletedWasStackInstanceIds,
+        });
     }
-    await defenderBattleDeleteReaction?.();
+    if (deleted.length === 0) await defenderBattleDeleteReaction?.();
 
     // Comprehensive Rules §14-2-5: "If an effect is triggered by the end of the battle
     // timing when a battle ends, that effect is to be resolved." This is a distinct window

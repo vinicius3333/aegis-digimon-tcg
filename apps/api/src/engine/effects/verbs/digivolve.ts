@@ -249,6 +249,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
+    const previousDigivolutionLevel = opts?.virtualBase?.level ?? requireCardDefinition(priorTop.cardId).level;
     const baseWasDigimon = baseIsDigimon || asDigimon !== undefined;
     pushOnStack(permanent, priorTop);
     setTopCard(permanent, instance);
@@ -305,6 +306,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     if (opts?.suppressWhenDigivolving !== true) {
       await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat, {
         baseWasDigimon,
+        previousDigivolutionLevel,
         ...(sourceZone !== undefined ? { digivolvedFromZone: sourceZone } : {}),
       });
     }

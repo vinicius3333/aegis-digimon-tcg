@@ -166,7 +166,7 @@ function connectRoom(
  */
 export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled = false): UseRoomResult {
   const [status, setStatus] = useState<ConnectionStatus>(() =>
-    !disabled && loadReconnectSession() ? "reconnecting" : "connecting",
+    !disabled && !options.devScenario && loadReconnectSession() ? "reconnecting" : "connecting",
   );
   const [patchVersion, setVersion] = useState(0);
   const [snapshots, setSnapshots] = useState<readonly StateSnapshot[]>([]);
@@ -326,6 +326,9 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     };
 
     const resumeOrConnect = async (): Promise<AegisRoom> => {
+      // A dev-scenario link requests a new seeded board, even when this tab
+      // still holds a reconnection token from a different match.
+      if (options.devScenario) clearReconnectSession();
       const saved = loadReconnectSession();
       if (saved) {
         setStatus("reconnecting");

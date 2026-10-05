@@ -11,11 +11,12 @@ import {
 import type { AegisRoom } from "./client";
 
 const joinOrCreate = vi.fn();
+const createBot = vi.fn<(...args: unknown[]) => Promise<AegisRoom>>();
 const reconnect = vi.fn();
 
 vi.mock("./client", () => ({
   joinOrCreate: (...args: unknown[]) => joinOrCreate(...args),
-  createBot: vi.fn(),
+  createBot: (...args: unknown[]) => createBot(...args),
   createPrivate: vi.fn(),
   joinPrivateByCode: vi.fn(),
   reconnect: (...args: unknown[]) => reconnect(...args),
@@ -85,6 +86,7 @@ describe("useRoom reconnection token persistence", () => {
   beforeEach(() => {
     sessionStorage.clear();
     joinOrCreate.mockReset();
+    createBot.mockReset();
     reconnect.mockReset();
   });
 
@@ -131,6 +133,30 @@ describe("useRoom reconnection token persistence", () => {
       slot: "legacy",
     });
   });
+
+  it.each(["arena-issue-4907-takato-end-turn", "arena-issue-4938-ruli-optional-reduction"] as const)(
+    "opens the requested dev scenario %s instead of resuming the previous board",
+    async (devScenario) => {
+      saveReconnectSession({
+        reconnectionToken: "previous-board:token",
+        roomId: "previous-board",
+        slot: "legacy",
+        savedAt: Date.now(),
+      });
+      reconnect.mockResolvedValue(fakeRoom("previous-board").room);
+      const requested = fakeRoom("requested-board");
+      createBot.mockResolvedValue(requested.room);
+      const options = { ...OPTIONS, devScenario };
+
+      const { result } = renderHook(() => useRoom(options, { mode: "bot" }));
+
+      await waitFor(() => expect(result.current.status).toBe("connected"));
+      expect(createBot).toHaveBeenCalledWith(options);
+      expect(reconnect).not.toHaveBeenCalled();
+      expect(result.current.room).toBe(requested.room);
+      expect(loadReconnectSession()).toMatchObject({ roomId: "requested-board" });
+    },
+  );
 
   it("resumes a persisted legacy seat instead of matchmaking on a fresh mount", async () => {
     saveReconnectSession({

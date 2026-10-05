@@ -126,10 +126,10 @@ describe("AD1-018 LordKnightmon", () => {
     expect(s.perm("opponent").stack).toHaveLength(0);
   });
 
-  it("reduces its play cost by 5 with four Knightmon/Lucemon-text cards in trash", async () => {
+  it("reduces its play cost by 5 with Knightmon in the battle area", async () => {
     const s = setupEngine({
       0: {
-        trash: ["AD1-018", "AD1-018", "AD1-018", "AD1-018"],
+        battleArea: [{ card: "BT5-042" }],
         hand: [{ card: "AD1-018", as: "lord" }],
       },
     });
@@ -515,5 +515,30 @@ describe("AD1-018 LordKnightmon — KB Q&A rulings", () => {
       opponentSources: 0,
       resolvedEffects: 2,
     });
+  });
+});
+
+describe("GitHub #4931 — printed LordKnightmon reduction", () => {
+  it.each(["BT5-042", "BT7-111"])("reduces by 5 with %s in play and an empty trash", async (card) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card }], hand: [{ card: "AD1-018", as: "lord" }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "AD1-018"));
+    expect(s.state.memory).toBe(1);
+  });
+  it("does not reduce for four matching cards only in trash", async () => {
+    const s = setupEngine({
+      0: { trash: ["AD1-018", "AD1-018", "AD1-018", "AD1-018"], hand: [{ card: "AD1-018", as: "lord" }] },
+    });
+    s.state.memory = 11;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "AD1-018"));
+    expect(s.state.memory).toBe(0);
   });
 });

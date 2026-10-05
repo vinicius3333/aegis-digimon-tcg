@@ -245,7 +245,7 @@ describe("BT17-080 Takato Matsuki", () => {
           ],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Digivolve"] },
     );
     s.state.turnSeat = 0;
     await s.ready();
@@ -391,5 +391,34 @@ describe("BT17-080 Takato Matsuki — KB Q&A rulings", () => {
     } finally {
       registerIrCard("BT12-018", printedGallantmon);
     }
+  });
+});
+
+describe("GitHub #4907 — optional Takato processing condition", () => {
+  it("can decline all placement costs before being asked to warp", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-080", as: "takato" },
+            { card: "BT17-008", as: "guil" },
+          ],
+          hand: [{ card: "BT17-016", as: "gallant" }],
+          trash: [
+            { card: "BT17-010", as: "growl" },
+            { card: "BT17-013", as: "war" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("takato").instanceId)).toBe(true);
+    expect(s.perm("guil").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("growl").instanceId, s.inst("war").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("gallant").instanceId)).toBe(true);
   });
 });

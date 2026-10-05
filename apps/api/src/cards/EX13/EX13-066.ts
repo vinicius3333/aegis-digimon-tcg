@@ -87,8 +87,12 @@ export const compiled: CompiledCard = {
           raw: "You may play 1 play cost 4 or lower card with [Sistermon] from your hand or trash without paying the cost.",
         },
         {
+          kind: "SelectBind",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "noirOpponent" },
+        },
+        {
           kind: "DeDigivolve",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          target: { filter: {}, count: 1, fromSelectionRef: "noirOpponent" },
           amount: 1,
           scaling: { per: 1, filter: { controller: "mine", kind: ["Digimon"] }, unit: "cards" },
           raw: "Then, to 1 of your opponent's Digimon, ＜De-Digivolve 1＞ for each of your Digimon.",
