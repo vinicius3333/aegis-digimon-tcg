@@ -824,10 +824,10 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.optionResolving": "Efeito da Option sendo resolvido",
   "overlay.securityEffectDetail":
     "O efeito de segurança da carta resolve automaticamente e depois ela vai para o lixo.",
-  "overlay.securityTrashed": "Sem efeito, descartada",
-  "overlay.securityTrashedDetail": "A carta revelada não tem efeito de segurança e vai para o lixo.",
+  "overlay.securityTrashed": "Carta de segurança descartada",
+  "overlay.securityTrashedDetail": "A carta de segurança revelada vai para o lixo.",
   "overlay.securityCheck": "Verificação de segurança",
-  "overlay.securityResolving": "Resolvendo da segurança",
+  "overlay.securityResolving": "Resolvendo a checagem de segurança",
   "overlay.securityCheckDetail": "A carta do topo da segurança vira e resolve sozinha.",
   "overlay.revealedFromSecurity": "Revelada da segurança",
   "overlay.securityDestroyed": "Segurança destruída",

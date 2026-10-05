@@ -16,6 +16,14 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-ex12-thetismon-mistymon-deletion": {
+    ptBR: "Encerre a criação e ataque a segurança com Thetismon EX12-030. Resolva a compra de Jellymon LM-002, depois TeslaJellymon EX12-027 (compre e descarte 1 carta); recuse o custo de Puyoyomon RB1-002, se oferecido. Ao revelar Mistymon, o efeito da Mistymon em campo dá -6000 DP à Thetismon (7000 → 1000) e a deleta, pois restam 2 seguranças. Isso ocorre antes da batalha: Jamming protege contra batalha de segurança, não contra deleção por efeito. Reprodução da partida bf500886, 04/10/2026 às 17:08 UTC, relato 1556410279602946198.",
+    en: "End breeding and attack security with EX12-030 Thetismon. Resolve LM-002 Jellymon's draw, then EX12-027 TeslaJellymon (draw and trash 1 card); decline RB1-002 Puyoyomon's cost if offered. When Mistymon is revealed, the field Mistymon's effect gives Thetismon -6000 DP (7000 → 1000) and deletes it because 2 security cards remain. This happens before battle: Jamming protects against security battle deletion, not effect deletion. Reproduces match bf500886 on 2026-10-04 at 17:08 UTC, report 1556410279602946198.",
+  },
+  "arena-ex12-thetismon-jamming-control": {
+    ptBR: "Encerre a criação e ataque a segurança com Thetismon EX12-030. Resolva a compra de Jellymon LM-002, depois TeslaJellymon EX12-027 (compre e descarte 1 carta); recuse o custo de Puyoyomon RB1-002, se oferecido. Mistymon é revelada da segurança, mas não há Mistymon em campo para ativar o efeito de remoção da segurança. Thetismon sobrevive à batalha de 7000 contra 7000 graças a Jamming, com suas 3 fontes; o Digimon de segurança vai para a lixeira. Compare com o cenário de deleção por Mistymon.",
+    en: "End breeding and attack security with EX12-030 Thetismon. Resolve LM-002 Jellymon's draw, then EX12-027 TeslaJellymon (draw and trash 1 card); decline RB1-002 Puyoyomon's cost if offered. Mistymon is revealed from security, but there is no field Mistymon to trigger the security-removal effect. Thetismon survives the 7000 vs 7000 battle thanks to Jamming, keeping all 3 sources; the security Digimon goes to trash. Compare with the Mistymon deletion scenario.",
+  },
   "arena-bt11-hades-force-target-selection": {
     ptBR: "Entre na Principal e use Hades Force (custo 5 com X Antibody nas fontes). WarGreymon tem custo 12. A seleção deve oferecer Thomas (3), Gaomon (3) e Hexeblaumon (12) juntos. Escolha apenas Hexeblaumon e confirme: os dois alvos baratos permanecem. Também é possível escolher os dois baratos ou nenhuma carta. Depois, recuse o ataque opcional para inspecionar o resultado. Baseado na partida c8383f3a, 15:02 UTC, bug 1556322403456520223.",
     en: "Enter Main and use Hades Force (cost 5 with X Antibody in the sources). WarGreymon's play cost is 12. The target selection must offer Thomas (3), Gaomon (3), and Hexeblaumon (12) together. Select only Hexeblaumon and confirm: both cheap targets remain. You can also select both cheap targets or no cards. Then decline the optional attack to inspect the result. Based on match c8383f3a at 15:02 UTC, bug 1556322403456520223.",
@@ -728,6 +736,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-ex12-thetismon-mistymon-deletion", "EX12 Thetismon · Mistymon effect deletion before battle"],
+  ["arena-ex12-thetismon-jamming-control", "EX12 Thetismon · Jamming security battle control"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
   ["arena-p240-arcturusmon-ordered-placement", "P-240 Arcturusmon · order two bottom sources"],

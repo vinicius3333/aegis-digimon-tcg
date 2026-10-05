@@ -56,6 +56,8 @@ export interface AegisJoinOptions {
     | "arena-mervamon-trash-digixros"
     | "arena-bt5-koromon-attack-draw"
     | "arena-ex7-seventh-fascination-turn"
+    | "arena-ex12-thetismon-mistymon-deletion"
+    | "arena-ex12-thetismon-jamming-control"
     | "arena-ad1-adventure-tamers-security"
     | "arena-lm067-gundramon-free-option"
     | "arena-bt10-taiki-x7-xros-heart"

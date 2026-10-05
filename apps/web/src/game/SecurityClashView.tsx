@@ -185,9 +185,17 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
           width={cardWidth}
         />
         {fighters.length > 1 ? (
-          <span className="battle-clash__mark" aria-hidden="true">
-            VS
-            {scene.resolution === "battle" ? <i className="battle-clash__flash" /> : null}
+          <span
+            className="battle-clash__mark"
+            aria-hidden="true"
+            style={{ visibility: scene.resolution === "battle" ? "visible" : "hidden" }}
+          >
+            {scene.resolution === "battle" ? (
+              <>
+                VS
+                <i className="battle-clash__flash" />
+              </>
+            ) : null}
           </span>
         ) : null}
         {fighters[1] ? (
