@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { AUDIO_CUES } from "./audioBank";
+import { AUDIO_BANK_URL, AUDIO_CUES } from "./audioBank";
 import {
   MUSIC_BPM,
   musicRecipe,
@@ -47,12 +47,47 @@ describe("authored original bank", () => {
       expect(data.at(-1)).toBeCloseTo(0, 7);
       expect(AUDIO_CUES[recipe.key]!.duration).toBe(data.length / 48000);
     }
-    expect(audioRecipe("draw").layers.every((l) => l.texture === "paper")).toBe(true);
+    expect(audioRecipe("draw").layers.filter((l) => l.texture === "paper")).toHaveLength(2);
+    expect(audioRecipe("draw").duration).toBeLessThan(0.2);
     expect(renderCue("draw", {}, "warm", 48000, sources)).not.toEqual(renderCue("draw"));
     expect(audioRecipe("attackDeclare").layers.map((l) => l.texture)).toContain("air");
     expect(audioRecipe("impact").layers.map((l) => l.texture)).toEqual(["body", "grain", "recording"]);
     expect(audioRecipe("securityHit").layers.map((l) => l.texture)).toContain("glass");
     expect(audioRecipe("delete").duration).toBeGreaterThan(audioRecipe("impact").duration);
+  });
+  it("compares identical original materials and exact runtime slices without raising peak or energy", () => {
+    const root = new URL("../../public/audio/", import.meta.url);
+    const comparison = JSON.parse(readFileSync(new URL("previews/cue-comparison.json", root), "utf8"));
+    expect(comparison.examples).toHaveLength(13);
+    expect(comparison.current.url).toBe(AUDIO_BANK_URL);
+    for (const version of ["previous", "current"]) {
+      const row = comparison[version];
+      const wav = readFileSync(new URL(row.url.split("?")[0].slice(7), root));
+      expect(createHash("sha256").update(wav).digest("hex")).toBe(row.sha256);
+      for (const example of comparison.examples) {
+        const clip = example[version];
+        const start = 44 + Math.round(clip.offset * 48000) * 2;
+        const end = start + Math.round(clip.duration * 48000) * 2;
+        expect(wav.readInt16LE(start)).toBe(0);
+        expect(wav.readInt16LE(end - 2)).toBe(0);
+        expect(end).toBeLessThanOrEqual(wav.length);
+      }
+    }
+    const priorWav = readFileSync(new URL(comparison.previous.url.split("?")[0].slice(7), root));
+    for (const example of comparison.examples) {
+      const clip = example.previous;
+      const single = readFileSync(new URL(clip.url.split("?")[0].slice(7), root));
+      const start = 44 + Math.round(clip.offset * 48000) * 2;
+      const end = start + Math.round(clip.duration * 48000) * 2;
+      expect(createHash("sha256").update(single).digest("hex")).toBe(clip.sha256);
+      expect(single.subarray(44)).toEqual(priorWav.subarray(start, end));
+      expect(example.current.offset).toBe(AUDIO_CUES[example.key]!.offset);
+      expect(example.current.duration).toBe(AUDIO_CUES[example.key]!.duration);
+      expect(example.current.duration).toBeLessThan(example.previous.duration);
+      expect(example.current.metrics.peak).toBeLessThanOrEqual(example.previous.metrics.peak);
+      const energy = (clip: { duration: number; metrics: { rms: number } }) => clip.metrics.rms ** 2 * clip.duration;
+      expect(energy(example.current)).toBeLessThan(energy(example.previous));
+    }
   });
   it("weights actual printed cost and retains Assembly and physical level jump recipes", () => {
     const light = audioRecipe("cardPlay", { cost: 2 }).layers.find((l) => l.texture === "body")!;

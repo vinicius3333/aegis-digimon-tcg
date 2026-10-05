@@ -33,16 +33,20 @@ export function tempoOriginalMusic(pcm, fromBpm, toBpm, peak = 0.075) {
     "pcm_f32le",
     "pipe:1",
   ];
-  const result = spawnSync(process.env.AUDIO_FFMPEG ?? "ffmpeg", args, { input, maxBuffer: 100_000_000 });
+  const result = spawnSync(process.env.AUDIO_FFMPEG ?? "ffmpeg", args, {
+    input,
+    timeout: 60_000,
+    maxBuffer: 100_000_000,
+  });
   if (result.error || result.status !== 0)
     throw new Error(`Offline ffmpeg tempo adjustment failed: ${result.error?.message ?? result.stderr.toString()}`);
   const frames = Math.round(sourceFrames / ratio);
   if (result.stdout.length < frames * 2 * channels * 4) throw new Error("Incomplete stretched phrase");
   const output = Array.from({ length: channels }, (_, channel) => {
-    const data = Float32Array.from({ length: frames }, (_, i) =>
+    const data = Float32Array.from({ length: frames }, (unused, i) =>
       result.stdout.readFloatLE(((i + frames) * channels + channel) * 4),
     );
-    // Match the seam over a short equal-power blend with the next phrase's beginning.
+    // Match the seam over a short raised-cosine blend with the next phrase's beginning.
     const blendFrames = Math.round(pcm.sampleRate * 0.06);
     for (let i = 0; i < blendFrames; i++) {
       const x = i / (blendFrames - 1);

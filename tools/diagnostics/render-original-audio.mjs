@@ -10,9 +10,14 @@ const source = await readFile(new URL("../../apps/web/src/design/audioRecipes.ts
 const compiled = ts.transpileModule(source, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
 }).outputText;
-const { bankRecipes, renderCue, renderMusic, MUSIC_BPM, decodeSourceWav } = await import(
-  `data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`
-);
+const {
+  bankRecipes,
+  renderCue,
+  renderMusic,
+  MUSIC_BPM,
+  decodeSourceWav,
+  cueKey: audioKey,
+} = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
 const masterSource = await readFile(new URL("../../apps/web/src/design/musicMaster.ts", import.meta.url), "utf8");
 const masterCompiled = ts.transpileModule(masterSource, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
@@ -94,6 +99,76 @@ for (let i = 0; i < clips.length; i++) {
   frame += clip.length + gap;
 }
 const bankMetrics = await wav("aegis-cues-v2.wav", bank);
+// Preserve prior original renderer for a reproducible, identical-source comparison.
+const priorSource = gunzipSync(await readFile(new URL("prior-audio-recipes.ts.gz", sourcesDirectory))).toString("utf8");
+const priorCompiled = ts.transpileModule(priorSource, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
+}).outputText;
+const { renderCue: renderPriorCue } = await import(
+  `data:text/javascript;base64,${Buffer.from(priorCompiled).toString("base64")}`
+);
+const comparisonExamples = [
+  ["draw", {}, "Draw"],
+  ["cardPlay", { cost: 2 }, "Light play"],
+  ["cardPlay", { cost: 12 }, "Heavy play"],
+  ["effectFocus", {}, "Focus"],
+  ["effectActivate", {}, "Effect"],
+  ["endTurn", {}, "End turn"],
+  ["handTrash", {}, "Hand trash"],
+  ["sourceTrash", {}, "Stack trash"],
+  ["deDigivolve", {}, "De-digivolution"],
+  ["digivolve", { sourceLevel: 3, targetLevel: 4 }, "Evolution 3 to 4"],
+  ["digivolve", { sourceLevel: 4, targetLevel: 5 }, "Evolution 4 to 5"],
+  ["digivolve", { sourceLevel: 5, targetLevel: 6 }, "Evolution 5 to 6"],
+  ["digivolve", { sourceLevel: 3, targetLevel: 6 }, "Evolution 3 to 6"],
+];
+const priorClips = comparisonExamples.map(([kind, details]) =>
+  renderPriorCue(kind, details, "warm", sampleRate, sources),
+);
+const priorBank = new Float32Array(priorClips.reduce((length, clip) => length + clip.length + gap, 0));
+let priorFrame = 0;
+const comparisonRows = comparisonExamples.map(([kind, details, label], i) => {
+  const key = audioKey(kind, details),
+    clip = priorClips[i];
+  priorBank.set(clip, priorFrame);
+  const row = {
+    key,
+    kind,
+    details,
+    label,
+    previous: { offset: priorFrame / sampleRate, duration: clip.length / sampleRate, metrics: metrics(clip) },
+    current: { ...cues[key], metrics: manifestClips.find((entry) => entry.key === key).metrics },
+  };
+  priorFrame += clip.length + gap;
+  return row;
+});
+for (let i = 0; i < comparisonRows.length; i++) {
+  const file = `previews/prior-${comparisonRows[i].key}.wav`;
+  const measured = await wav(file, priorClips[i]);
+  Object.assign(comparisonRows[i].previous, {
+    url: `/audio/${file}?v=${measured.sha256.slice(0, 12)}`,
+    sha256: measured.sha256,
+    bytes: measured.bytes,
+  });
+}
+const priorMetrics = await wav("previews/prior-cues.wav", priorBank);
+await writeFile(
+  path.join(directory, "previews/cue-comparison.json"),
+  JSON.stringify(
+    {
+      version: 1,
+      sampleRate,
+      channels: 1,
+      priorRendererSha256: createHash("sha256").update(priorSource).digest("hex"),
+      previous: { url: `/audio/previews/prior-cues.wav?v=${priorMetrics.sha256.slice(0, 12)}`, ...priorMetrics },
+      current: { url: `/audio/aegis-cues-v2.wav?v=${bankMetrics.sha256.slice(0, 12)}`, ...bankMetrics },
+      examples: comparisonRows,
+      listeningStatus: "Comparison prepared for listening; no subjective acceptance claimed",
+    },
+    null,
+    2,
+  ) + "\n",
+);
 const baselineMetrics = await wav("aegis-music-v2.wav", renderMusic(sampleRate));
 await mkdir(path.join(directory, "music-candidates"), { recursive: true });
 const candidateRows = [
@@ -157,9 +232,13 @@ for (const candidate of musicProvenance.candidates) {
       seed: candidate.seed,
       prompt: candidate.prompt,
     },
-    sourceBpm: candidate.sourceBpm,
-    tempoConfidence: candidate.tempoConfidence,
-    boundaryChromaCosine: candidate.boundaryChromaCosine,
+    sourceAnalysis: {
+      sourceBpm: candidate.sourceBpm,
+      tempoConfidence: candidate.tempoConfidence,
+      boundaryChromaCosine: candidate.boundaryChromaCosine,
+      scope: "Original generated source and proposed source crop; not the finished tempo-adjusted master",
+    },
+    ...(selected ? { finishedAnalysis: musicProvenance.selectedTempo?.finishedAnalysis } : {}),
     masterSettings: candidate.masterSettings,
     ...(selected && musicProvenance.selectedTempo ? { tempoAdjustment: musicProvenance.selectedTempo } : {}),
   };
@@ -223,6 +302,9 @@ const manifest = {
     sourceProvenance: "music-candidates/provenance.json",
     masteringRenderer: "apps/web/src/design/musicMaster.ts",
     masteringRendererSha256: createHash("sha256").update(masterSource).digest("hex"),
+    tempoRendererSha256: createHash("sha256")
+      .update(await readFile(new URL("tempo-original-music.mjs", import.meta.url)))
+      .digest("hex"),
     composition:
       "Original text-generated melodic guitar/keys/bass score; steady112 BPM, offline pitch-preserving tempo adjustment from the original 104 master, no reference audio conditioning",
     ...musicMetrics,
@@ -235,7 +317,14 @@ await writeFile(path.join(directory, "manifest.json"), JSON.stringify(manifest, 
 if (!process.argv[2])
   await writeFile(
     new URL("../../apps/web/src/design/audioBank.ts", import.meta.url),
-    `// Generated by tools/diagnostics/render-original-audio.mjs; do not edit offsets.\nexport const AUDIO_BANK_URL = "/audio/aegis-cues-v2.wav?v=${bankMetrics.sha256.slice(0, 12)}";\nexport const MUSIC_URL = "${selectedMusic.url}";\nexport const AUDIO_CUES: Record<string, { offset: number; duration: number }> = ${JSON.stringify(cues, null, 2)};\n`,
+    `// Generated by tools/diagnostics/render-original-audio.mjs; do not edit offsets.\nexport const AUDIO_BANK_URL = "/audio/aegis-cues-v2.wav?v=${bankMetrics.sha256.slice(0, 12)}";\nexport const MUSIC_URL = "${selectedMusic.url}";\nexport const AUDIO_CUES: Record<string, { offset: number; duration: number }> = ${JSON.stringify(
+      cues,
+      null,
+      2,
+    )
+      .replace(/"([A-Za-z][A-Za-z0-9]*)":/g, "$1:")
+      .replace(/(duration: [^\n]+)(\n  })/g, "$1,$2")
+      .replace(/\n  }(,?)/g, "\n  },")};\n`,
   );
 await writeFile(
   path.join(directory, "previews/index.html"),

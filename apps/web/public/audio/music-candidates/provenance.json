@@ -301,6 +301,13 @@
     "ratio": 1.0769230769230769,
     "ffmpegVersion": "8.1.2",
     "renderer": "tools/diagnostics/tempo-original-music.mjs",
-    "sourceMasterSha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e"
+    "sourceMasterSha256": "605e4aab391d5ddbcc4cc8ce2473c0298d059985720414d1046d9a75e948e55e",
+    "finishedAnalysis": {
+      "sha256": "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
+      "estimatedBpm": 112.02756010664898,
+      "normalizedAutocorrelation": 0.6696969342306412,
+      "method": "Finished PCM16 mono; scipy resample_poly to 11025 Hz; Hann STFT 1024/256; positive log1p(abs(STFT)*1000) spectral flux; median9 suppression; FFT autocorrelation 95-125 BPM with parabolic lag refinement",
+      "confidence": "Numerical estimate; beat interpretation and listening acceptance remain"
+    }
   }
 }

@@ -123,5 +123,12 @@
         "/tmp/aegis-audio-generation/candidates/crystal-2.wav"
       ]
     }
-  ]
+  ],
+  "priorCueRenderer": {
+    "file": "prior-audio-recipes.ts.gz",
+    "original": true,
+    "sourceRevision": "b2765d0081b9d3a6a4046e97c75c6424ee6c33b3",
+    "sha256": "f6ff3e61c549620375dab8f1f667f2695f5e5a387be609af862dfcc135757e0c",
+    "purpose": "Prior original authored cue recipes, reproducible same-material comparison only; not a reference asset"
+  }
 }

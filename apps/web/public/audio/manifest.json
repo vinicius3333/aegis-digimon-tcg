@@ -2,7 +2,7 @@
   "version": 2,
   "original": true,
   "renderer": "apps/web/src/design/audioRecipes.ts",
-  "rendererSha256": "f6ff3e61c549620375dab8f1f667f2695f5e5a387be609af862dfcc135757e0c",
+  "rendererSha256": "292e2c79830dbd9206c76b68b74ad7fe23370171412bf763146aa9969ef802ac",
   "sampleRate": 48000,
   "channels": 1,
   "seedMethod": "FNV-1a cue identity followed by xorshift32",
@@ -16,15 +16,15 @@
   "directionReason": "Damped bodies, softer paper bandwidth and longer resonant tails support tactile card actions without piercing transients",
   "bank": {
     "file": "aegis-cues-v2.wav",
-    "seconds": 77.344,
+    "seconds": 67.416,
     "peak": 0.2885240614414215,
     "peakDbFS": -10.796359260875859,
-    "rms": 0.024912685256923355,
-    "dc": -0.0000037111966856535603,
+    "rms": 0.02007833778648657,
+    "dc": -0.00000398180147218458,
     "maximumStep": 0.1779022146947682,
     "boundaryStep": 0,
-    "bytes": 7425068,
-    "sha256": "0e94616b3750f1213d0cf93a0fa61dd7ec7e44b8eb6c16f211fda634390ff0d5"
+    "bytes": 6471980,
+    "sha256": "5700989d78a56b4500e5741d3ca06b85fab6e0bcb267c4c341b154b9f3faf420"
   },
   "music": {
     "file": "aegis-music-v3.wav",
@@ -34,6 +34,7 @@
     "sourceProvenance": "music-candidates/provenance.json",
     "masteringRenderer": "apps/web/src/design/musicMaster.ts",
     "masteringRendererSha256": "8be0a25022a5f4deac5522c5e8a94ed1880d864f08c6b52347c4ff4e354f3d6a",
+    "tempoRendererSha256": "849cc065be14922d8e1f32228a81522f1eddefc99a55c13b20af889a40563fdf",
     "composition": "Original text-generated melodic guitar/keys/bass score; steady112 BPM, offline pitch-preserving tempo adjustment from the original 104 master, no reference audio conditioning",
     "peak": 0.07501220703125,
     "peakDbFS": -22.497361128185656,
@@ -51,23 +52,23 @@
       "seconds": 12,
       "peak": 0.2885240614414215,
       "peakDbFS": -10.796359260875859,
-      "rms": 0.013950368933311632,
-      "dc": -0.000004576935710260858,
+      "rms": 0.01154969735273537,
+      "dc": -0.000004632768956232075,
       "maximumStep": 0.1779022146947682,
       "boundaryStep": 0,
       "bytes": 1152044,
-      "sha256": "33eae37355e0b89dfd129cf0c4fa014078b889fe02d20e4a9c42635a9e7feb1d"
+      "sha256": "246721b65a878335bb5350000a1a32c34e9ba32439ed8b72430f6f399c730d2a"
     },
     "crisp": {
       "seconds": 12,
       "peak": 0.22162273526191711,
       "peakDbFS": -13.087713787507177,
-      "rms": 0.010653697160875025,
-      "dc": -0.0000035826731913380905,
+      "rms": 0.00874021129929762,
+      "dc": -0.0000035796507631599702,
       "maximumStep": 0.19046617299318314,
       "boundaryStep": 0,
       "bytes": 1152044,
-      "sha256": "5a4aadbc77b9257545af99eb1e99ccfdda6cb713cb7144d21f9257a86ec092fd"
+      "sha256": "bdc5284350f6b40d8509c2b0b660f84821404b8efc94546d67a3004488f88283"
     }
   },
   "clips": [
@@ -414,37 +415,44 @@
       "details": {},
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.055,
+          "gain": 0.055,
+          "hz": 1722
+        },
+        {
           "texture": "pluck",
           "at": 0,
-          "duration": 0.38,
-          "gain": 0.085,
+          "duration": 0.27,
+          "gain": 0.075,
           "hz": 240.8051096922742
         },
         {
           "texture": "pluck",
-          "at": 0.13,
-          "duration": 0.38,
-          "gain": 0.085,
+          "at": 0.11,
+          "duration": 0.27,
+          "gain": 0.075,
           "hz": 180.39999999999998
         },
         {
           "texture": "body",
-          "at": 0.04,
-          "duration": 0.18,
-          "gain": 0.06,
+          "at": 0.025,
+          "duration": 0.11,
+          "gain": 0.05,
           "hz": 120,
           "endHz": 100
         }
       ],
-      "duration": 0.555,
+      "duration": 0.425,
       "offset": 3.612,
       "metrics": {
-        "seconds": 0.555,
-        "peak": 0.05899668112397194,
-        "peakDbFS": -24.583448380745825,
-        "rms": 0.014046151065337704,
-        "dc": -0.000015486013220110103,
-        "maximumStep": 0.003381583606824279,
+        "seconds": 0.425,
+        "peak": 0.05784895643591881,
+        "peakDbFS": -24.754089421611898,
+        "rms": 0.011635568902449817,
+        "dc": -0.000017300280068467367,
+        "maximumStep": 0.02663519885390997,
         "boundaryStep": 0
       }
     },
@@ -491,7 +499,7 @@
         }
       ],
       "duration": 0.645,
-      "offset": 4.192,
+      "offset": 4.062,
       "metrics": {
         "seconds": 0.645,
         "peak": 0.0832364484667778,
@@ -508,29 +516,36 @@
       "details": {},
       "layers": [
         {
-          "texture": "air",
+          "texture": "paper",
           "at": 0,
-          "duration": 0.19,
-          "gain": 0.06,
-          "hz": 1394
+          "duration": 0.045,
+          "gain": 0.045,
+          "hz": 1722
+        },
+        {
+          "texture": "pluck",
+          "at": 0.006,
+          "duration": 0.16,
+          "gain": 0.045,
+          "hz": 240.8051096922742
         },
         {
           "texture": "glass",
           "at": 0.035,
-          "duration": 0.28,
-          "gain": 0.07,
+          "duration": 0.2,
+          "gain": 0.055,
           "hz": 240.8051096922742
         }
       ],
-      "duration": 0.36,
-      "offset": 4.862,
+      "duration": 0.28,
+      "offset": 4.732,
       "metrics": {
-        "seconds": 0.36,
-        "peak": 0.05694067105650902,
-        "peakDbFS": -24.89154837833639,
-        "rms": 0.010771506218315654,
-        "dc": -3.757317258665891e-8,
-        "maximumStep": 0.02911023050546646,
+        "seconds": 0.28,
+        "peak": 0.04499160870909691,
+        "peakDbFS": -26.937369560563663,
+        "rms": 0.008673419798188567,
+        "dc": 5.215984870861354e-8,
+        "maximumStep": 0.023219008930027485,
         "boundaryStep": 0
       }
     },
@@ -540,44 +555,51 @@
       "details": {},
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.055,
+          "gain": 0.06,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.22,
-          "gain": 0.085,
+          "duration": 0.12,
+          "gain": 0.045,
           "hz": 1886
         },
         {
           "texture": "glass",
-          "at": 0.02,
-          "duration": 0.38,
-          "gain": 0.085,
+          "at": 0.012,
+          "duration": 0.25,
+          "gain": 0.075,
           "hz": 321.4362575050344
         },
         {
           "texture": "glass",
-          "at": 0.085,
-          "duration": 0.38,
-          "gain": 0.085,
+          "at": 0.077,
+          "duration": 0.25,
+          "gain": 0.075,
           "hz": 481.6102193845484
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.3,
-          "gain": 0.32,
+          "duration": 0.22,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.51,
-      "offset": 5.247,
+      "duration": 0.372,
+      "offset": 5.037,
       "metrics": {
-        "seconds": 0.51,
-        "peak": 0.1485290676355362,
-        "peakDbFS": -16.563770902913333,
-        "rms": 0.01766130831771833,
-        "dc": -1.30671795062188e-7,
-        "maximumStep": 0.1000119298696518,
+        "seconds": 0.372,
+        "peak": 0.10438242554664612,
+        "peakDbFS": -19.62745231223142,
+        "rms": 0.013191573569626037,
+        "dc": 2.795279549790767e-8,
+        "maximumStep": 0.07240203022956848,
         "boundaryStep": 0
       }
     },
@@ -589,27 +611,35 @@
         {
           "texture": "paper",
           "at": 0,
-          "duration": 0.24,
-          "gain": 0.18,
+          "duration": 0.17,
+          "gain": 0.15,
           "hz": 1722
         },
         {
           "texture": "grain",
-          "at": 0.12,
-          "duration": 0.2,
-          "gain": 0.09,
-          "hz": 820
+          "at": 0.075,
+          "duration": 0.085,
+          "gain": 0.045,
+          "hz": 574
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.15,
+          "gain": 0.035,
+          "hz": 180.39999999999998,
+          "endHz": 146.8323839587038
         }
       ],
-      "duration": 0.365,
-      "offset": 5.782,
+      "duration": 0.255,
+      "offset": 5.434,
       "metrics": {
-        "seconds": 0.365,
-        "peak": 0.07823047041893005,
-        "peakDbFS": -22.132481164546142,
-        "rms": 0.007348175423148767,
-        "dc": -8.915815617622148e-7,
-        "maximumStep": 0.03169098403304815,
+        "seconds": 0.255,
+        "peak": 0.06746748834848404,
+        "peakDbFS": -23.418109145552016,
+        "rms": 0.006320637473757769,
+        "dc": -9.734680814647132e-7,
+        "maximumStep": 0.042509326711297035,
         "boundaryStep": 0
       }
     },
@@ -621,34 +651,42 @@
         {
           "texture": "paper",
           "at": 0,
-          "duration": 0.095,
-          "gain": 0.11,
+          "duration": 0.07,
+          "gain": 0.1,
           "hz": 1722
         },
         {
           "texture": "paper",
-          "at": 0.055,
-          "duration": 0.095,
-          "gain": 0.11,
+          "at": 0.042,
+          "duration": 0.07,
+          "gain": 0.1,
           "hz": 1722
         },
         {
           "texture": "paper",
-          "at": 0.115,
-          "duration": 0.095,
-          "gain": 0.11,
+          "at": 0.087,
+          "duration": 0.07,
+          "gain": 0.1,
           "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.11,
+          "duration": 0.065,
+          "gain": 0.04,
+          "hz": 230,
+          "endHz": 180
         }
       ],
-      "duration": 0.255,
-      "offset": 6.172,
+      "duration": 0.22,
+      "offset": 5.714,
       "metrics": {
-        "seconds": 0.255,
-        "peak": 0.04921600595116615,
-        "peakDbFS": -26.15787267400167,
-        "rms": 0.004799217314349879,
-        "dc": 4.4128152991900325e-7,
-        "maximumStep": 0.04452033340930939,
+        "seconds": 0.22,
+        "peak": 0.04708018898963928,
+        "peakDbFS": -26.543236049540305,
+        "rms": 0.004741082956484222,
+        "dc": 4.460549934209611e-7,
+        "maximumStep": 0.039756341837346554,
         "boundaryStep": 0
       }
     },
@@ -660,48 +698,63 @@
         {
           "texture": "pluck",
           "at": 0,
-          "duration": 0.38,
-          "gain": 0.09,
+          "duration": 0.22,
+          "gain": 0.075,
           "hz": 360.79999999999995
         },
         {
           "texture": "pluck",
-          "at": 0.075,
-          "duration": 0.38,
-          "gain": 0.09,
+          "at": 0.06,
+          "duration": 0.22,
+          "gain": 0.075,
           "hz": 270.2945966685533
         },
         {
           "texture": "pluck",
-          "at": 0.15,
-          "duration": 0.38,
-          "gain": 0.09,
+          "at": 0.12,
+          "duration": 0.22,
+          "gain": 0.075,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.22499999999999998,
-          "duration": 0.38,
-          "gain": 0.09,
+          "at": 0.18,
+          "duration": 0.22,
+          "gain": 0.075,
           "hz": 120.4025548461371
         },
         {
-          "texture": "grain",
-          "at": 0.12,
-          "duration": 0.35,
-          "gain": 0.11,
-          "hz": 1066
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.08,
+          "gain": 0.1,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.055,
+          "duration": 0.08,
+          "gain": 0.1,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.15,
+          "duration": 0.08,
+          "gain": 0.045,
+          "hz": 180,
+          "endHz": 120
         }
       ],
-      "duration": 0.65,
-      "offset": 6.452,
+      "duration": 0.445,
+      "offset": 5.959,
       "metrics": {
-        "seconds": 0.65,
-        "peak": 0.09719832986593246,
-        "peakDbFS": -20.246823947614658,
-        "rms": 0.019492987049091404,
-        "dc": -0.000006978285388448718,
-        "maximumStep": 0.034384656231850386,
+        "seconds": 0.445,
+        "peak": 0.07361479103565216,
+        "peakDbFS": -22.660698327438777,
+        "rms": 0.013895575353487564,
+        "dc": -0.00000859390680659085,
+        "maximumStep": 0.03980164625681937,
         "boundaryStep": 0
       }
     },
@@ -734,7 +787,7 @@
         }
       ],
       "duration": 0.645,
-      "offset": 7.127,
+      "offset": 6.429,
       "metrics": {
         "seconds": 0.645,
         "peak": 0.12652605772018433,
@@ -767,7 +820,7 @@
         }
       ],
       "duration": 0.305,
-      "offset": 7.797,
+      "offset": 7.099,
       "metrics": {
         "seconds": 0.305,
         "peak": 0.05617889016866684,
@@ -786,27 +839,35 @@
         {
           "texture": "paper",
           "at": 0,
-          "duration": 0.16,
-          "gain": 0.18,
+          "duration": 0.115,
+          "gain": 0.16,
           "hz": 1722
         },
         {
           "texture": "paper",
-          "at": 0.055,
-          "duration": 0.065,
-          "gain": 0.08,
+          "at": 0.048,
+          "duration": 0.045,
+          "gain": 0.065,
           "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.012,
+          "duration": 0.055,
+          "gain": 0.035,
+          "hz": 330,
+          "endHz": 260
         }
       ],
-      "duration": 0.205,
-      "offset": 8.127,
+      "duration": 0.16,
+      "offset": 7.429,
       "metrics": {
-        "seconds": 0.205,
-        "peak": 0.08241026103496552,
-        "peakDbFS": -21.68037420454764,
-        "rms": 0.006873831693082127,
-        "dc": -4.923859212792975e-7,
-        "maximumStep": 0.04654608806595206,
+        "seconds": 0.16,
+        "peak": 0.06358817964792252,
+        "peakDbFS": -23.932472149542434,
+        "rms": 0.006345792780403992,
+        "dc": -4.824371664464077e-7,
+        "maximumStep": 0.056011002510786057,
         "boundaryStep": 0
       }
     },
@@ -852,7 +913,7 @@
         }
       ],
       "duration": 0.45,
-      "offset": 8.357,
+      "offset": 7.614,
       "metrics": {
         "seconds": 0.45,
         "peak": 0.05894196033477783,
@@ -892,7 +953,7 @@
         }
       ],
       "duration": 0.455,
-      "offset": 8.832,
+      "offset": 8.089,
       "metrics": {
         "seconds": 0.455,
         "peak": 0.08457836508750916,
@@ -933,7 +994,7 @@
         }
       ],
       "duration": 0.357,
-      "offset": 9.312,
+      "offset": 8.569,
       "metrics": {
         "seconds": 0.357,
         "peak": 0.2885240614414215,
@@ -979,7 +1040,7 @@
         }
       ],
       "duration": 0.565,
-      "offset": 9.694,
+      "offset": 8.951,
       "metrics": {
         "seconds": 0.565,
         "peak": 0.08350072056055069,
@@ -1018,7 +1079,7 @@
         }
       ],
       "duration": 0.575,
-      "offset": 10.284,
+      "offset": 9.541,
       "metrics": {
         "seconds": 0.575,
         "peak": 0.059666652232408524,
@@ -1057,7 +1118,7 @@
         }
       ],
       "duration": 0.485,
-      "offset": 10.884,
+      "offset": 10.141,
       "metrics": {
         "seconds": 0.485,
         "peak": 0.07475733757019043,
@@ -1110,7 +1171,7 @@
         }
       ],
       "duration": 0.665,
-      "offset": 11.394,
+      "offset": 10.651,
       "metrics": {
         "seconds": 0.665,
         "peak": 0.062359124422073364,
@@ -1150,7 +1211,7 @@
         }
       ],
       "duration": 0.385,
-      "offset": 12.084,
+      "offset": 11.341,
       "metrics": {
         "seconds": 0.385,
         "peak": 0.059773899614810944,
@@ -1210,7 +1271,7 @@
         }
       ],
       "duration": 1.195,
-      "offset": 12.494,
+      "offset": 11.751,
       "metrics": {
         "seconds": 1.195,
         "peak": 0.07553796470165253,
@@ -1256,7 +1317,7 @@
         }
       ],
       "duration": 0.865,
-      "offset": 13.714,
+      "offset": 12.971,
       "metrics": {
         "seconds": 0.865,
         "peak": 0.06188583001494408,
@@ -1285,36 +1346,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.22,
-          "gain": 0.16,
+          "duration": 0.18,
+          "gain": 0.15,
           "hz": 190,
           "endHz": 65
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.13,
-          "gain": 0.13,
+          "at": 0.025,
+          "duration": 0.075,
+          "gain": 0.09,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.357,
-      "offset": 14.604,
+      "duration": 0.26,
+      "offset": 13.861,
       "metrics": {
-        "seconds": 0.357,
-        "peak": 0.14908622205257416,
-        "peakDbFS": -16.53124980874354,
-        "rms": 0.019836486753506966,
-        "dc": 5.00410411414491e-8,
-        "maximumStep": 0.06507628597319126,
+        "seconds": 0.26,
+        "peak": 0.11277715116739273,
+        "peakDbFS": -18.955577604052046,
+        "rms": 0.01878111783317232,
+        "dc": 8.207750048468238e-7,
+        "maximumStep": 0.06505034491419792,
         "boundaryStep": 0
       }
     },
@@ -1336,17 +1404,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.22,
-          "gain": 0.16,
+          "duration": 0.18,
+          "gain": 0.15,
           "hz": 190,
           "endHz": 65
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.13,
-          "gain": 0.13,
+          "at": 0.025,
+          "duration": 0.075,
+          "gain": 0.09,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -1381,20 +1456,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 14.986,
+      "offset": 14.146,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.14702683687210083,
-        "peakDbFS": -16.652067721132468,
-        "rms": 0.018144723420936284,
-        "dc": 2.472871984202637e-7,
-        "maximumStep": 0.057549784891307354,
+        "peak": 0.11190725117921829,
+        "peakDbFS": -19.022835437423527,
+        "rms": 0.016289739654823207,
+        "dc": -1.4764411509968145e-7,
+        "maximumStep": 0.05752386339008808,
         "boundaryStep": 0
       }
     },
@@ -1416,36 +1491,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.23466666666666666,
-          "gain": 0.16866666666666666,
+          "duration": 0.192,
+          "gain": 0.158,
           "hz": 184.33333333333334,
           "endHz": 63.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.138,
-          "gain": 0.13466666666666668,
+          "at": 0.025,
+          "duration": 0.07933333333333333,
+          "gain": 0.09333333333333332,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.357,
-      "offset": 15.716,
+      "duration": 0.272,
+      "offset": 14.876,
       "metrics": {
-        "seconds": 0.357,
-        "peak": 0.15201722085475922,
-        "peakDbFS": -16.362144228135474,
-        "rms": 0.02086351669890169,
-        "dc": 0.000001488468196858296,
-        "maximumStep": 0.06328825652599335,
+        "seconds": 0.272,
+        "peak": 0.12486163526773453,
+        "peakDbFS": -18.071419631390604,
+        "rms": 0.018764939497959036,
+        "dc": -5.582662881873891e-7,
+        "maximumStep": 0.0632948949933052,
         "boundaryStep": 0
       }
     },
@@ -1467,17 +1549,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.23466666666666666,
-          "gain": 0.16866666666666666,
+          "duration": 0.192,
+          "gain": 0.158,
           "hz": 184.33333333333334,
           "endHz": 63.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.138,
-          "gain": 0.13466666666666668,
+          "at": 0.025,
+          "duration": 0.07933333333333333,
+          "gain": 0.09333333333333332,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -1512,20 +1601,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 16.098,
+      "offset": 15.173,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.15742050111293793,
-        "peakDbFS": -16.05877418916588,
-        "rms": 0.018893160892916535,
-        "dc": 4.326124925268725e-7,
-        "maximumStep": 0.05904826149344444,
+        "peak": 0.12510131299495697,
+        "peakDbFS": -18.05476264330631,
+        "rms": 0.016666130051940568,
+        "dc": -2.852081527294449e-7,
+        "maximumStep": 0.05910006910562515,
         "boundaryStep": 0
       }
     },
@@ -1547,36 +1636,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.24933333333333332,
-          "gain": 0.17733333333333334,
+          "duration": 0.204,
+          "gain": 0.16599999999999998,
           "hz": 178.66666666666666,
           "endHz": 62.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.14600000000000002,
-          "gain": 0.13933333333333334,
+          "at": 0.025,
+          "duration": 0.08366666666666667,
+          "gain": 0.09666666666666666,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.357,
-      "offset": 16.828,
+      "duration": 0.284,
+      "offset": 15.903,
       "metrics": {
-        "seconds": 0.357,
-        "peak": 0.1393616497516632,
-        "peakDbFS": -17.117134423277747,
-        "rms": 0.022947445139696553,
-        "dc": 0.000002189309097085501,
-        "maximumStep": 0.06326235365122557,
+        "seconds": 0.284,
+        "peak": 0.12047917395830154,
+        "peakDbFS": -18.381760375752833,
+        "rms": 0.019561853776945966,
+        "dc": -5.749028977337839e-7,
+        "maximumStep": 0.06323651131242514,
         "boundaryStep": 0
       }
     },
@@ -1598,17 +1694,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.24933333333333332,
-          "gain": 0.17733333333333334,
+          "duration": 0.204,
+          "gain": 0.16599999999999998,
           "hz": 178.66666666666666,
           "endHz": 62.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.14600000000000002,
-          "gain": 0.13933333333333334,
+          "at": 0.025,
+          "duration": 0.08366666666666667,
+          "gain": 0.09666666666666666,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -1643,20 +1746,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 17.21,
+      "offset": 16.212,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.14254890382289886,
-        "peakDbFS": -16.920722359864417,
-        "rms": 0.019810661149503216,
-        "dc": 6.228478063115942e-7,
-        "maximumStep": 0.058379875496029854,
+        "peak": 0.13320079445838928,
+        "peakDbFS": -17.509863697328527,
+        "rms": 0.017166118650992032,
+        "dc": -7.366950681085138e-7,
+        "maximumStep": 0.058353939559310675,
         "boundaryStep": 0
       }
     },
@@ -1678,36 +1781,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.264,
-          "gain": 0.186,
+          "duration": 0.216,
+          "gain": 0.174,
           "hz": 173,
           "endHz": 61
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.154,
-          "gain": 0.14400000000000002,
+          "at": 0.025,
+          "duration": 0.088,
+          "gain": 0.1,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.357,
-      "offset": 17.94,
+      "duration": 0.296,
+      "offset": 16.942,
       "metrics": {
-        "seconds": 0.357,
-        "peak": 0.15189515054225922,
-        "peakDbFS": -16.36912182707036,
-        "rms": 0.024903661015118424,
-        "dc": 1.1713948487565934e-7,
-        "maximumStep": 0.06651338562369347,
+        "seconds": 0.296,
+        "peak": 0.11757045984268188,
+        "peakDbFS": -18.594035663645492,
+        "rms": 0.020713008998651278,
+        "dc": -0.000003153698028390235,
+        "maximumStep": 0.0665664728730917,
         "boundaryStep": 0
       }
     },
@@ -1729,17 +1839,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.264,
-          "gain": 0.186,
+          "duration": 0.216,
+          "gain": 0.174,
           "hz": 173,
           "endHz": 61
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.154,
-          "gain": 0.14400000000000002,
+          "at": 0.025,
+          "duration": 0.088,
+          "gain": 0.1,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -1774,20 +1891,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 18.322,
+      "offset": 17.263,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.1700926572084427,
-        "peakDbFS": -15.38628868397275,
-        "rms": 0.02127352697522211,
-        "dc": -3.550013972024757e-7,
-        "maximumStep": 0.06068183481693268,
+        "peak": 0.13656826317310333,
+        "peakDbFS": -17.293004275196203,
+        "rms": 0.01788793165778673,
+        "dc": -0.000001054013980039925,
+        "maximumStep": 0.0606561079621315,
         "boundaryStep": 0
       }
     },
@@ -1809,36 +1926,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.2786666666666667,
-          "gain": 0.19466666666666665,
+          "duration": 0.22799999999999998,
+          "gain": 0.182,
           "hz": 167.33333333333334,
           "endHz": 59.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.162,
-          "gain": 0.14866666666666667,
+          "at": 0.025,
+          "duration": 0.09233333333333332,
+          "gain": 0.10333333333333333,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.3586666666666667,
-      "offset": 19.052,
+      "duration": 0.308,
+      "offset": 17.993,
       "metrics": {
-        "seconds": 0.3586666666666667,
-        "peak": 0.19113290309906006,
-        "peakDbFS": -14.373290873831765,
-        "rms": 0.026387186019957244,
-        "dc": -0.0000023691869994581017,
-        "maximumStep": 0.059969592839479446,
+        "seconds": 0.308,
+        "peak": 0.12829318642616272,
+        "peakDbFS": -17.835928162617737,
+        "rms": 0.021717941092943626,
+        "dc": -0.0000028301381444573102,
+        "maximumStep": 0.06002227962017059,
         "boundaryStep": 0
       }
     },
@@ -1860,17 +1984,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.2786666666666667,
-          "gain": 0.19466666666666665,
+          "duration": 0.22799999999999998,
+          "gain": 0.182,
           "hz": 167.33333333333334,
           "endHz": 59.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.162,
-          "gain": 0.14866666666666667,
+          "at": 0.025,
+          "duration": 0.09233333333333332,
+          "gain": 0.10333333333333333,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -1905,20 +2036,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 19.435666666666666,
+      "offset": 18.326,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.16701805591583252,
-        "peakDbFS": -15.544731515883164,
-        "rms": 0.021692141395814366,
-        "dc": 1.1157097511423682e-7,
-        "maximumStep": 0.06616632826626301,
+        "peak": 0.14072264730930328,
+        "peakDbFS": -17.032720068367233,
+        "rms": 0.01858388572020701,
+        "dc": -0.0000011908652787105833,
+        "maximumStep": 0.06614065356552601,
         "boundaryStep": 0
       }
     },
@@ -1940,36 +2071,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.29333333333333333,
-          "gain": 0.20333333333333334,
+          "duration": 0.24,
+          "gain": 0.19,
           "hz": 161.66666666666666,
           "endHz": 58.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.16999999999999998,
-          "gain": 0.15333333333333335,
+          "at": 0.025,
+          "duration": 0.09666666666666666,
+          "gain": 0.10666666666666666,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.37333333333333335,
-      "offset": 20.165666666666667,
+      "duration": 0.32,
+      "offset": 19.056,
       "metrics": {
-        "seconds": 0.37333333333333335,
-        "peak": 0.21228598058223724,
-        "peakDbFS": -13.461573716003086,
-        "rms": 0.026970103695631263,
-        "dc": -0.0000032113774600640482,
-        "maximumStep": 0.06328669562935829,
+        "seconds": 0.32,
+        "peak": 0.13138310611248016,
+        "peakDbFS": -17.629209498236534,
+        "rms": 0.022080060440197544,
+        "dc": -0.0000011815651746939927,
+        "maximumStep": 0.06329333409667015,
         "boundaryStep": 0
       }
     },
@@ -1991,17 +2129,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.29333333333333333,
-          "gain": 0.20333333333333334,
+          "duration": 0.24,
+          "gain": 0.19,
           "hz": 161.66666666666666,
           "endHz": 58.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.16999999999999998,
-          "gain": 0.15333333333333335,
+          "at": 0.025,
+          "duration": 0.09666666666666666,
+          "gain": 0.10666666666666666,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2036,20 +2181,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 20.564,
+      "offset": 19.401,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.17511388659477234,
-        "peakDbFS": -15.133588256817589,
-        "rms": 0.023013066559957197,
-        "dc": -0.0000017651664102133714,
-        "maximumStep": 0.05762922950088978,
+        "peak": 0.13626481592655182,
+        "peakDbFS": -17.312325322262907,
+        "rms": 0.01900142042855901,
+        "dc": -6.78159921631924e-7,
+        "maximumStep": 0.0576036311686039,
         "boundaryStep": 0
       }
     },
@@ -2071,36 +2216,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.308,
-          "gain": 0.21200000000000002,
+          "duration": 0.252,
+          "gain": 0.198,
           "hz": 156,
           "endHz": 57
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.178,
-          "gain": 0.158,
+          "at": 0.025,
+          "duration": 0.101,
+          "gain": 0.11,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.388,
-      "offset": 21.294,
+      "duration": 0.332,
+      "offset": 20.131,
       "metrics": {
-        "seconds": 0.388,
-        "peak": 0.1858939677476883,
-        "peakDbFS": -14.61469405678341,
-        "rms": 0.02745774522231491,
-        "dc": -0.0000025498770535984864,
-        "maximumStep": 0.0642407163977623,
+        "seconds": 0.332,
+        "peak": 0.1412683129310608,
+        "peakDbFS": -16.99910482565523,
+        "rms": 0.022889468292464823,
+        "dc": -0.000002054869928037719,
+        "maximumStep": 0.06429233402013779,
         "boundaryStep": 0
       }
     },
@@ -2122,17 +2274,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.308,
-          "gain": 0.21200000000000002,
+          "duration": 0.252,
+          "gain": 0.198,
           "hz": 156,
           "endHz": 57
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.178,
-          "gain": 0.158,
+          "at": 0.025,
+          "duration": 0.101,
+          "gain": 0.11,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2167,20 +2326,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 21.707,
+      "offset": 20.488,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.17141878604888916,
-        "peakDbFS": -15.31883169606365,
-        "rms": 0.023563414893251453,
-        "dc": -9.474744377298622e-7,
-        "maximumStep": 0.064647501334548,
+        "peak": 0.14380046725273132,
+        "peakDbFS": -16.84479405584253,
+        "rms": 0.01969099402895649,
+        "dc": -3.223693226437516e-7,
+        "maximumStep": 0.06469946540892124,
         "boundaryStep": 0
       }
     },
@@ -2202,36 +2361,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.32266666666666666,
-          "gain": 0.22066666666666668,
+          "duration": 0.264,
+          "gain": 0.206,
           "hz": 150.33333333333334,
           "endHz": 55.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.186,
-          "gain": 0.16266666666666668,
+          "at": 0.025,
+          "duration": 0.10533333333333333,
+          "gain": 0.11333333333333333,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.4026666666666667,
-      "offset": 22.437,
+      "duration": 0.344,
+      "offset": 21.218,
       "metrics": {
-        "seconds": 0.4026666666666667,
-        "peak": 0.20754627883434296,
-        "peakDbFS": -13.657700976492048,
-        "rms": 0.02807188396958936,
-        "dc": -4.319300471428817e-7,
-        "maximumStep": 0.057796177454292774,
+        "seconds": 0.344,
+        "peak": 0.13907040655612946,
+        "peakDbFS": -17.13530551471318,
+        "rms": 0.024547977764977597,
+        "dc": -0.000002068067804876337,
+        "maximumStep": 0.057847218587994576,
         "boundaryStep": 0
       }
     },
@@ -2253,17 +2419,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.32266666666666666,
-          "gain": 0.22066666666666668,
+          "duration": 0.264,
+          "gain": 0.206,
           "hz": 150.33333333333334,
           "endHz": 55.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.186,
-          "gain": 0.16266666666666668,
+          "at": 0.025,
+          "duration": 0.10533333333333333,
+          "gain": 0.11333333333333333,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2298,20 +2471,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 22.86466666666667,
+      "offset": 21.587,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.19423645734786987,
-        "peakDbFS": -14.233385031402953,
-        "rms": 0.024953520326316873,
-        "dc": -8.934032769048609e-7,
-        "maximumStep": 0.06806090660393238,
+        "peak": 0.14606569707393646,
+        "peakDbFS": -16.70903528715694,
+        "rms": 0.020912617945726387,
+        "dc": -6.633235002115869e-7,
+        "maximumStep": 0.06803500652313232,
         "boundaryStep": 0
       }
     },
@@ -2333,36 +2506,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.3373333333333333,
-          "gain": 0.22933333333333333,
+          "duration": 0.276,
+          "gain": 0.214,
           "hz": 144.66666666666666,
           "endHz": 54.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.194,
-          "gain": 0.16733333333333333,
+          "at": 0.025,
+          "duration": 0.10966666666666666,
+          "gain": 0.11666666666666667,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.41733333333333333,
-      "offset": 23.594666666666665,
+      "duration": 0.356,
+      "offset": 22.317,
       "metrics": {
-        "seconds": 0.41733333333333333,
-        "peak": 0.20786795020103455,
-        "peakDbFS": -13.644249330621731,
-        "rms": 0.02986054133655359,
-        "dc": 7.051457342312933e-7,
-        "maximumStep": 0.06397033669054508,
+        "seconds": 0.356,
+        "peak": 0.13479192554950714,
+        "peakDbFS": -17.406722451907463,
+        "rms": 0.025817669026232313,
+        "dc": -0.00000211009444206311,
+        "maximumStep": 0.0639769472181797,
         "boundaryStep": 0
       }
     },
@@ -2384,17 +2564,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.3373333333333333,
-          "gain": 0.22933333333333333,
+          "duration": 0.276,
+          "gain": 0.214,
           "hz": 144.66666666666666,
           "endHz": 54.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.194,
-          "gain": 0.16733333333333333,
+          "at": 0.025,
+          "duration": 0.10966666666666666,
+          "gain": 0.11666666666666667,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2429,20 +2616,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 24.037,
+      "offset": 22.698,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.21649980545043945,
-        "peakDbFS": -13.29084979146299,
-        "rms": 0.02594510348207473,
-        "dc": 4.9550556659066876e-8,
-        "maximumStep": 0.0613052099943161,
+        "peak": 0.14190220832824707,
+        "peakDbFS": -16.96021691716352,
+        "rms": 0.021619990962543453,
+        "dc": -0.0000011377998290811632,
+        "maximumStep": 0.06127951666712761,
         "boundaryStep": 0
       }
     },
@@ -2464,36 +2651,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.352,
-          "gain": 0.238,
+          "duration": 0.288,
+          "gain": 0.22199999999999998,
           "hz": 139,
           "endHz": 53
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.202,
-          "gain": 0.17200000000000001,
+          "at": 0.025,
+          "duration": 0.11399999999999999,
+          "gain": 0.12,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.432,
-      "offset": 24.767,
+      "duration": 0.368,
+      "offset": 23.428,
       "metrics": {
-        "seconds": 0.432,
-        "peak": 0.20175102353096008,
-        "peakDbFS": -13.903685066420643,
-        "rms": 0.031583538835442286,
-        "dc": 0.0000014323564608606916,
-        "maximumStep": 0.06543875858187675,
+        "seconds": 0.368,
+        "peak": 0.15382204949855804,
+        "peakDbFS": -16.259628129548787,
+        "rms": 0.026413888074931873,
+        "dc": -0.0000027796552539045054,
+        "maximumStep": 0.06541311740875244,
         "boundaryStep": 0
       }
     },
@@ -2515,17 +2709,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.352,
-          "gain": 0.238,
+          "duration": 0.288,
+          "gain": 0.22199999999999998,
           "hz": 139,
           "endHz": 53
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.202,
-          "gain": 0.17200000000000001,
+          "at": 0.025,
+          "duration": 0.11399999999999999,
+          "gain": 0.12,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2560,20 +2761,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 25.224,
+      "offset": 23.821,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.20518045127391815,
-        "peakDbFS": -13.757280386632672,
-        "rms": 0.027250618839292345,
-        "dc": 3.381473408353698e-7,
-        "maximumStep": 0.06122715212404728,
+        "peak": 0.15968593955039978,
+        "peakDbFS": -15.934666441726486,
+        "rms": 0.022436920661641165,
+        "dc": -0.000001404026386863647,
+        "maximumStep": 0.0612793629989028,
         "boundaryStep": 0
       }
     },
@@ -2595,36 +2796,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.3666666666666667,
-          "gain": 0.24666666666666667,
+          "duration": 0.3,
+          "gain": 0.22999999999999998,
           "hz": 133.33333333333334,
           "endHz": 51.66666666666667
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.21,
-          "gain": 0.17666666666666667,
+          "at": 0.025,
+          "duration": 0.11833333333333333,
+          "gain": 0.12333333333333332,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.44666666666666666,
-      "offset": 25.954,
+      "duration": 0.38,
+      "offset": 24.551,
       "metrics": {
-        "seconds": 0.44666666666666666,
-        "peak": 0.21473872661590576,
-        "peakDbFS": -13.36179253103027,
-        "rms": 0.03178477694179122,
-        "dc": 5.373832278108987e-7,
-        "maximumStep": 0.0665867030620575,
+        "seconds": 0.38,
+        "peak": 0.17770947515964508,
+        "peakDbFS": -15.005788315042592,
+        "rms": 0.02736867632743458,
+        "dc": -0.0000036296084689762455,
+        "maximumStep": 0.06656086631119251,
         "boundaryStep": 0
       }
     },
@@ -2646,17 +2854,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.3666666666666667,
-          "gain": 0.24666666666666667,
+          "duration": 0.3,
+          "gain": 0.22999999999999998,
           "hz": 133.33333333333334,
           "endHz": 51.66666666666667
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.21,
-          "gain": 0.17666666666666667,
+          "at": 0.025,
+          "duration": 0.11833333333333333,
+          "gain": 0.12333333333333332,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2691,20 +2906,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 26.425666666666668,
+      "offset": 24.956,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.21768561005592346,
-        "peakDbFS": -13.243405574424889,
-        "rms": 0.02733908699424509,
-        "dc": 0.0000019924733750160264,
-        "maximumStep": 0.06341028772294521,
+        "peak": 0.16747909784317017,
+        "peakDbFS": -15.52078774362525,
+        "rms": 0.023179595869044382,
+        "dc": -0.000002052176540541352,
+        "maximumStep": 0.06338450498878956,
         "boundaryStep": 0
       }
     },
@@ -2726,36 +2941,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.3813333333333333,
-          "gain": 0.2553333333333333,
+          "duration": 0.31199999999999994,
+          "gain": 0.238,
           "hz": 127.66666666666667,
           "endHz": 50.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.218,
-          "gain": 0.18133333333333335,
+          "at": 0.025,
+          "duration": 0.12266666666666666,
+          "gain": 0.12666666666666665,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.4613333333333333,
-      "offset": 27.155666666666665,
+      "duration": 0.392,
+      "offset": 25.686,
       "metrics": {
-        "seconds": 0.4613333333333333,
-        "peak": 0.23757679760456085,
-        "peakDbFS": -12.483919519974098,
-        "rms": 0.03356685492933065,
-        "dc": 0.0000013054564777410249,
-        "maximumStep": 0.06051374785602093,
+        "seconds": 0.392,
+        "peak": 0.18284685909748077,
+        "peakDbFS": -14.758249909510056,
+        "rms": 0.028820250089069323,
+        "dc": -0.000004243760512321632,
+        "maximumStep": 0.060487888753414154,
         "boundaryStep": 0
       }
     },
@@ -2777,17 +2999,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.3813333333333333,
-          "gain": 0.2553333333333333,
+          "duration": 0.31199999999999994,
+          "gain": 0.238,
           "hz": 127.66666666666667,
           "endHz": 50.333333333333336
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.218,
-          "gain": 0.18133333333333335,
+          "at": 0.025,
+          "duration": 0.12266666666666666,
+          "gain": 0.12666666666666665,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2822,20 +3051,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 27.642,
+      "offset": 26.103,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.2205384522676468,
-        "peakDbFS": -13.130313552337348,
-        "rms": 0.028688666992604875,
-        "dc": 8.47156203718947e-7,
-        "maximumStep": 0.06429854314774275,
+        "peak": 0.17554062604904175,
+        "peakDbFS": -15.112447142129364,
+        "rms": 0.024582072555604857,
+        "dc": -0.0000019111947339875018,
+        "maximumStep": 0.06427268125116825,
         "boundaryStep": 0
       }
     },
@@ -2857,36 +3086,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.396,
-          "gain": 0.264,
+          "duration": 0.32399999999999995,
+          "gain": 0.246,
           "hz": 122,
           "endHz": 49
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.226,
-          "gain": 0.186,
+          "at": 0.025,
+          "duration": 0.127,
+          "gain": 0.13,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.476,
-      "offset": 28.372,
+      "duration": 0.404,
+      "offset": 26.833,
       "metrics": {
-        "seconds": 0.476,
-        "peak": 0.24265463650226593,
-        "peakDbFS": -12.30022812051095,
-        "rms": 0.036343862430497954,
-        "dc": -0.0000015788752261781852,
-        "maximumStep": 0.0680171474814415,
+        "seconds": 0.404,
+        "peak": 0.17558914422988892,
+        "peakDbFS": -15.110046755704563,
+        "rms": 0.030619355172758125,
+        "dc": -0.000005978882158792613,
+        "maximumStep": 0.0679912306368351,
         "boundaryStep": 0
       }
     },
@@ -2908,17 +3144,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.396,
-          "gain": 0.264,
+          "duration": 0.32399999999999995,
+          "gain": 0.246,
           "hz": 122,
           "endHz": 49
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.226,
-          "gain": 0.186,
+          "at": 0.025,
+          "duration": 0.127,
+          "gain": 0.13,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -2953,20 +3196,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 28.873,
+      "offset": 27.262,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.24097438156604767,
-        "peakDbFS": -12.36058251247686,
-        "rms": 0.03200436394618476,
-        "dc": -4.957474207319701e-7,
-        "maximumStep": 0.06135112792253494,
+        "peak": 0.17371828854084015,
+        "peakDbFS": -15.20308915848842,
+        "rms": 0.025572946473927837,
+        "dc": -0.0000028188455521876416,
+        "maximumStep": 0.06132535636425018,
         "boundaryStep": 0
       }
     },
@@ -2988,36 +3231,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.4106666666666667,
-          "gain": 0.27266666666666667,
+          "duration": 0.33599999999999997,
+          "gain": 0.254,
           "hz": 116.33333333333333,
           "endHz": 47.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.23399999999999999,
-          "gain": 0.19066666666666668,
+          "at": 0.025,
+          "duration": 0.13133333333333333,
+          "gain": 0.13333333333333333,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.49066666666666664,
-      "offset": 29.603,
+      "duration": 0.416,
+      "offset": 27.992,
       "metrics": {
-        "seconds": 0.49066666666666664,
-        "peak": 0.281589537858963,
-        "peakDbFS": -11.00766969901664,
-        "rms": 0.03775839128709091,
-        "dc": -0.000011154650527736504,
-        "maximumStep": 0.06345124170184135,
+        "seconds": 0.416,
+        "peak": 0.18064649403095245,
+        "peakDbFS": -14.863409255158754,
+        "rms": 0.03205699184367499,
+        "dc": -0.000004888701580729534,
+        "maximumStep": 0.0635028425604105,
         "boundaryStep": 0
       }
     },
@@ -3039,17 +3289,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.4106666666666667,
-          "gain": 0.27266666666666667,
+          "duration": 0.33599999999999997,
+          "gain": 0.254,
           "hz": 116.33333333333333,
           "endHz": 47.666666666666664
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.23399999999999999,
-          "gain": 0.19066666666666668,
+          "at": 0.025,
+          "duration": 0.13133333333333333,
+          "gain": 0.13333333333333333,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -3084,20 +3341,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 30.118666666666666,
+      "offset": 28.433,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.26755890250205994,
-        "peakDbFS": -11.451611882903322,
-        "rms": 0.03338968107737026,
-        "dc": -0.000004478643692472581,
-        "maximumStep": 0.06458019837737083,
+        "peak": 0.18088237941265106,
+        "peakDbFS": -14.852074754188498,
+        "rms": 0.02731369609103245,
+        "dc": -0.000003048644293626894,
+        "maximumStep": 0.06455451436340809,
         "boundaryStep": 0
       }
     },
@@ -3119,36 +3376,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.42533333333333334,
-          "gain": 0.2813333333333333,
+          "duration": 0.348,
+          "gain": 0.262,
           "hz": 110.66666666666667,
           "endHz": 46.33333333333333
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.242,
-          "gain": 0.19533333333333336,
+          "at": 0.025,
+          "duration": 0.13566666666666666,
+          "gain": 0.13666666666666666,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.5053333333333333,
-      "offset": 30.848666666666666,
+      "duration": 0.428,
+      "offset": 29.163,
       "metrics": {
-        "seconds": 0.5053333333333333,
-        "peak": 0.279671311378479,
-        "peakDbFS": -11.067041623519385,
-        "rms": 0.039450744498481065,
-        "dc": -0.000007707282397686655,
-        "maximumStep": 0.06471904367208481,
+        "seconds": 0.428,
+        "peak": 0.1856115758419037,
+        "peakDbFS": -14.627898841708223,
+        "rms": 0.03311152405946384,
+        "dc": -0.0000036221719528782255,
+        "maximumStep": 0.06469327211380005,
         "boundaryStep": 0
       }
     },
@@ -3170,17 +3434,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.42533333333333334,
-          "gain": 0.2813333333333333,
+          "duration": 0.348,
+          "gain": 0.262,
           "hz": 110.66666666666667,
           "endHz": 46.33333333333333
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.242,
-          "gain": 0.19533333333333336,
+          "at": 0.025,
+          "duration": 0.13566666666666666,
+          "gain": 0.13666666666666666,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -3215,20 +3486,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 31.379,
+      "offset": 29.616,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.263878732919693,
-        "peakDbFS": -11.57191219922192,
-        "rms": 0.03545599254925635,
-        "dc": -0.000007363405983483931,
-        "maximumStep": 0.05943024158477783,
+        "peak": 0.19293637573719025,
+        "peakDbFS": -14.291717677023158,
+        "rms": 0.0280087457373499,
+        "dc": -0.0000013949067078570428,
+        "maximumStep": 0.05943684093654156,
         "boundaryStep": 0
       }
     },
@@ -3250,36 +3521,43 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.44,
-          "gain": 0.29000000000000004,
+          "duration": 0.36,
+          "gain": 0.27,
           "hz": 105,
           "endHz": 45
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.25,
-          "gain": 0.2,
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.14,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
-      "duration": 0.52,
-      "offset": 32.109,
+      "duration": 0.44,
+      "offset": 30.346,
       "metrics": {
-        "seconds": 0.52,
-        "peak": 0.25562864542007446,
-        "peakDbFS": -11.84780962601546,
-        "rms": 0.040279628698587346,
-        "dc": -0.00000812063844271798,
-        "maximumStep": 0.05716396332718432,
+        "seconds": 0.44,
+        "peak": 0.18661484122276306,
+        "peakDbFS": -14.581076407412612,
+        "rms": 0.03360514653031765,
+        "dc": -0.0000039556333551245366,
+        "maximumStep": 0.057217780384235084,
         "boundaryStep": 0
       }
     },
@@ -3301,17 +3579,24 @@
         {
           "texture": "body",
           "at": 0.035,
-          "duration": 0.44,
-          "gain": 0.29000000000000004,
+          "duration": 0.36,
+          "gain": 0.27,
           "hz": 105,
           "endHz": 45
         },
         {
           "texture": "grain",
-          "at": 0.04,
-          "duration": 0.25,
-          "gain": 0.2,
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.14,
           "hz": 779
+        },
+        {
+          "texture": "pluck",
+          "at": 0.025,
+          "duration": 0.14,
+          "gain": 0.028,
+          "hz": 160.7181287525172
         },
         {
           "texture": "body",
@@ -3346,20 +3631,20 @@
           "texture": "recording",
           "source": "impact",
           "at": 0.012,
-          "duration": 0.3,
-          "gain": 0.28,
+          "duration": 0.2,
+          "gain": 0.22,
           "hz": 1
         }
       ],
       "duration": 0.705,
-      "offset": 32.654,
+      "offset": 30.811,
       "metrics": {
         "seconds": 0.705,
-        "peak": 0.26956528425216675,
-        "peakDbFS": -11.386720776006456,
-        "rms": 0.03706046566484293,
-        "dc": -0.000007414889266180039,
-        "maximumStep": 0.05634693056344986,
+        "peak": 0.19287139177322388,
+        "peakDbFS": -14.294643712173958,
+        "rms": 0.028810736607139825,
+        "dc": -0.0000029040610918672972,
+        "maximumStep": 0.05635352246463299,
         "boundaryStep": 0
       }
     },
@@ -3372,72 +3657,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 71.5917874437658
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.6000000000000001,
-          "gain": 0.075,
+          "duration": 0.42,
+          "gain": 0.06,
           "hz": 113.64487870051754
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 227.28975740103508
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.93,
-      "offset": 33.384,
+      "duration": 0.75,
+      "offset": 31.541,
       "metrics": {
-        "seconds": 0.93,
-        "peak": 0.15918101370334625,
-        "peakDbFS": -15.962174678650168,
-        "rms": 0.026073745592597217,
-        "dc": -2.7524065106898115e-7,
-        "maximumStep": 0.09429162368178368,
+        "seconds": 0.75,
+        "peak": 0.10890345275402069,
+        "peakDbFS": -19.259167016776605,
+        "rms": 0.02014886517961866,
+        "dc": -2.5739901131203675e-7,
+        "maximumStep": 0.07763569243252277,
         "boundaryStep": 0
       }
     },
@@ -3450,72 +3742,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.37,
-          "gain": 0.13,
+          "duration": 0.27599999999999997,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 75.84885665588504
         },
         {
           "texture": "pluck",
-          "at": 0.164,
+          "at": 0.14500000000000002,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.268,
+          "at": 0.23,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.37200000000000005,
+          "at": 0.315,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 191.12714222241686
         },
         {
           "texture": "pad",
           "at": 0.32,
-          "duration": 0.625,
-          "gain": 0.075,
+          "duration": 0.44,
+          "gain": 0.06,
           "hz": 127.56206332605318
         },
         {
           "texture": "glass",
           "at": 0.39,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 255.12412665210636
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.99,
-      "offset": 34.339,
+      "duration": 0.805,
+      "offset": 32.316,
       "metrics": {
-        "seconds": 0.99,
-        "peak": 0.12920862436294556,
-        "peakDbFS": -17.774169945358565,
-        "rms": 0.025908873215676642,
-        "dc": -2.6710380018669143e-7,
-        "maximumStep": 0.0872810143046081,
+        "seconds": 0.805,
+        "peak": 0.1164618581533432,
+        "peakDbFS": -18.676325699757243,
+        "rms": 0.019594279716384225,
+        "dc": -1.54395975017311e-7,
+        "maximumStep": 0.06628281064331532,
         "boundaryStep": 0
       }
     },
@@ -3528,72 +3827,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.395,
-          "gain": 0.13,
+          "duration": 0.294,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 80.3590643762586
         },
         {
           "texture": "pluck",
-          "at": 0.176,
+          "at": 0.155,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.29200000000000004,
+          "at": 0.25,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 143.1835748875316
         },
         {
           "texture": "pluck",
-          "at": 0.40800000000000003,
+          "at": 0.34500000000000003,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 214.53296354649086
         },
         {
           "texture": "pad",
           "at": 0.355,
-          "duration": 0.65,
-          "gain": 0.075,
+          "duration": 0.46,
+          "gain": 0.06,
           "hz": 143.1835748875316
         },
         {
           "texture": "glass",
           "at": 0.42500000000000004,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 286.3671497750632
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.05,
-      "offset": 35.354,
+      "duration": 0.86,
+      "offset": 33.146,
       "metrics": {
-        "seconds": 1.05,
-        "peak": 0.14059104025363922,
-        "peakDbFS": -17.040847112979872,
-        "rms": 0.02591759608625552,
-        "dc": -3.067759783173855e-7,
-        "maximumStep": 0.09280646964907646,
+        "seconds": 0.86,
+        "peak": 0.10431350767612457,
+        "peakDbFS": -19.63318901279819,
+        "rms": 0.019243149945011202,
+        "dc": -2.0875059384512185e-7,
+        "maximumStep": 0.07450753822922707,
         "boundaryStep": 0
       }
     },
@@ -3606,72 +3912,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.42000000000000004,
-          "gain": 0.13,
+          "duration": 0.312,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 85.13746300388874
         },
         {
           "texture": "pluck",
-          "at": 0.188,
+          "at": 0.165,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 135.14729833427666
         },
         {
           "texture": "pluck",
-          "at": 0.316,
+          "at": 0.27,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 160.7181287525172
         },
         {
           "texture": "pluck",
-          "at": 0.444,
+          "at": 0.37500000000000006,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 240.8051096922742
         },
         {
           "texture": "pad",
           "at": 0.39,
-          "duration": 0.675,
-          "gain": 0.075,
+          "duration": 0.48,
+          "gain": 0.06,
           "hz": 160.7181287525172
         },
         {
           "texture": "glass",
           "at": 0.46,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 321.4362575050344
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.11,
-      "offset": 36.429,
+      "duration": 0.915,
+      "offset": 34.031,
       "metrics": {
-        "seconds": 1.11,
-        "peak": 0.1482926309108734,
-        "peakDbFS": -16.577608595650897,
-        "rms": 0.02540027074903216,
-        "dc": -4.952935285406745e-7,
-        "maximumStep": 0.0780849913135171,
+        "seconds": 0.915,
+        "peak": 0.08975236862897873,
+        "peakDbFS": -20.939081625149704,
+        "rms": 0.018814771587523905,
+        "dc": 7.742807726033572e-8,
+        "maximumStep": 0.0707571990787983,
         "boundaryStep": 0
       }
     },
@@ -3684,72 +3997,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.445,
-          "gain": 0.13,
+          "duration": 0.32999999999999996,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 90.19999999999999
         },
         {
           "texture": "pluck",
-          "at": 0.2,
+          "at": 0.175,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 151.6977133117701
         },
         {
           "texture": "pluck",
-          "at": 0.34,
+          "at": 0.29000000000000004,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.48000000000000004,
+          "at": 0.405,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 270.2945966685533
         },
         {
           "texture": "pad",
           "at": 0.42500000000000004,
-          "duration": 0.7000000000000001,
-          "gain": 0.075,
+          "duration": 0.5,
+          "gain": 0.06,
           "hz": 180.39999999999998
         },
         {
           "texture": "glass",
           "at": 0.495,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 360.79999999999995
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.17,
-      "offset": 37.564,
+      "duration": 0.97,
+      "offset": 34.971,
       "metrics": {
-        "seconds": 1.17,
-        "peak": 0.1519518941640854,
-        "peakDbFS": -16.365877636605695,
-        "rms": 0.025231794130659006,
-        "dc": -0.000001188884241552068,
-        "maximumStep": 0.07306765019893646,
+        "seconds": 0.97,
+        "peak": 0.10529021918773651,
+        "peakDbFS": -19.552239404416287,
+        "rms": 0.018587897404779247,
+        "dc": -3.201698096694265e-7,
+        "maximumStep": 0.06337249837815762,
         "boundaryStep": 0
       }
     },
@@ -3762,72 +4082,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.47000000000000003,
-          "gain": 0.13,
+          "duration": 0.348,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.21200000000000002,
+          "at": 0.185,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pluck",
-          "at": 0.36400000000000005,
+          "at": 0.31,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 202.49215351501087
         },
         {
           "texture": "pluck",
-          "at": 0.516,
+          "at": 0.435,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 303.3954266235402
         },
         {
           "texture": "pad",
           "at": 0.46,
-          "duration": 0.7250000000000001,
-          "gain": 0.075,
+          "duration": 0.52,
+          "gain": 0.06,
           "hz": 202.49215351501087
         },
         {
           "texture": "glass",
           "at": 0.53,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 404.98430703002174
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.23,
-      "offset": 38.759,
+      "duration": 1.025,
+      "offset": 35.966,
       "metrics": {
-        "seconds": 1.23,
-        "peak": 0.14385879039764404,
-        "peakDbFS": -16.841271913630692,
-        "rms": 0.024710036688212346,
-        "dc": -7.93507282764656e-7,
-        "maximumStep": 0.0737049113959074,
+        "seconds": 1.025,
+        "peak": 0.09341546893119812,
+        "peakDbFS": -20.59162403531304,
+        "rms": 0.018358797980480023,
+        "dc": -2.562324503682838e-7,
+        "maximumStep": 0.0689746867865324,
         "boundaryStep": 0
       }
     },
@@ -3840,72 +4167,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 71.5917874437658
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.6000000000000001,
-          "gain": 0.075,
+          "duration": 0.42,
+          "gain": 0.06,
           "hz": 113.64487870051754
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 227.28975740103508
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.93,
-      "offset": 40.014,
+      "duration": 0.75,
+      "offset": 37.016,
       "metrics": {
-        "seconds": 0.93,
-        "peak": 0.14295893907546997,
-        "peakDbFS": -16.895773669390547,
-        "rms": 0.025866121961893133,
-        "dc": -2.1036038747365446e-7,
-        "maximumStep": 0.09207917493768036,
+        "seconds": 0.75,
+        "peak": 0.09827575832605362,
+        "peakDbFS": -20.151071926896222,
+        "rms": 0.020013442994618852,
+        "dc": -1.982583551498065e-7,
+        "maximumStep": 0.07129454798996449,
         "boundaryStep": 0
       }
     },
@@ -3918,72 +4252,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 80.3590643762586
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 191.12714222241686
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.625,
-          "gain": 0.075,
+          "duration": 0.44,
+          "gain": 0.06,
           "hz": 127.56206332605318
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 255.12412665210636
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.955,
-      "offset": 40.969,
+      "duration": 0.77,
+      "offset": 37.791,
       "metrics": {
-        "seconds": 0.955,
-        "peak": 0.14628823101520538,
-        "peakDbFS": -16.695812234943997,
-        "rms": 0.02624026098473364,
-        "dc": -3.654812712902489e-7,
-        "maximumStep": 0.09077554196119308,
+        "seconds": 0.77,
+        "peak": 0.1133560836315155,
+        "peakDbFS": -18.911103341062883,
+        "rms": 0.01987882161642352,
+        "dc": -3.54863819855083e-8,
+        "maximumStep": 0.07379558309912682,
         "boundaryStep": 0
       }
     },
@@ -3996,72 +4337,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.37,
-          "gain": 0.13,
+          "duration": 0.27599999999999997,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 85.13746300388874
         },
         {
           "texture": "pluck",
-          "at": 0.164,
+          "at": 0.14500000000000002,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.268,
+          "at": 0.23,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 143.1835748875316
         },
         {
           "texture": "pluck",
-          "at": 0.37200000000000005,
+          "at": 0.315,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 214.53296354649086
         },
         {
           "texture": "pad",
           "at": 0.32,
-          "duration": 0.65,
-          "gain": 0.075,
+          "duration": 0.46,
+          "gain": 0.06,
           "hz": 143.1835748875316
         },
         {
           "texture": "glass",
           "at": 0.39,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 286.3671497750632
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.015,
-      "offset": 41.949,
+      "duration": 0.825,
+      "offset": 38.586,
       "metrics": {
-        "seconds": 1.015,
-        "peak": 0.1589304804801941,
-        "peakDbFS": -15.975856072857368,
-        "rms": 0.025834874644320962,
-        "dc": -7.991116892516349e-7,
-        "maximumStep": 0.08488105610013008,
+        "seconds": 0.825,
+        "peak": 0.12070897221565247,
+        "peakDbFS": -18.365208957799574,
+        "rms": 0.020005825615080897,
+        "dc": 7.684920883040727e-8,
+        "maximumStep": 0.07450851239264011,
         "boundaryStep": 0
       }
     },
@@ -4074,72 +4422,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.395,
-          "gain": 0.13,
+          "duration": 0.294,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 90.19999999999999
         },
         {
           "texture": "pluck",
-          "at": 0.176,
+          "at": 0.155,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 135.14729833427666
         },
         {
           "texture": "pluck",
-          "at": 0.29200000000000004,
+          "at": 0.25,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 160.7181287525172
         },
         {
           "texture": "pluck",
-          "at": 0.40800000000000003,
+          "at": 0.34500000000000003,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 240.8051096922742
         },
         {
           "texture": "pad",
           "at": 0.355,
-          "duration": 0.675,
-          "gain": 0.075,
+          "duration": 0.48,
+          "gain": 0.06,
           "hz": 160.7181287525172
         },
         {
           "texture": "glass",
           "at": 0.42500000000000004,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 321.4362575050344
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.075,
-      "offset": 42.989,
+      "duration": 0.88,
+      "offset": 39.436,
       "metrics": {
-        "seconds": 1.075,
-        "peak": 0.15928113460540771,
-        "peakDbFS": -15.956713187298435,
-        "rms": 0.025481903761731515,
-        "dc": -8.488044655644769e-8,
-        "maximumStep": 0.08797647058963776,
+        "seconds": 0.88,
+        "peak": 0.10254926979541779,
+        "peakDbFS": -19.781348553781584,
+        "rms": 0.01910664388008469,
+        "dc": -2.4034950729544103e-7,
+        "maximumStep": 0.06492534605786204,
         "boundaryStep": 0
       }
     },
@@ -4152,72 +4507,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.42000000000000004,
-          "gain": 0.13,
+          "duration": 0.312,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.188,
+          "at": 0.165,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 151.6977133117701
         },
         {
           "texture": "pluck",
-          "at": 0.316,
+          "at": 0.27,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.444,
+          "at": 0.37500000000000006,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 270.2945966685533
         },
         {
           "texture": "pad",
           "at": 0.39,
-          "duration": 0.7000000000000001,
-          "gain": 0.075,
+          "duration": 0.5,
+          "gain": 0.06,
           "hz": 180.39999999999998
         },
         {
           "texture": "glass",
           "at": 0.46,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 360.79999999999995
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.135,
-      "offset": 44.089,
+      "duration": 0.935,
+      "offset": 40.341,
       "metrics": {
-        "seconds": 1.135,
-        "peak": 0.15362462401390076,
-        "peakDbFS": -16.270783340223765,
-        "rms": 0.025626936340101204,
-        "dc": -8.324414114500716e-7,
-        "maximumStep": 0.08818602189421654,
+        "seconds": 0.935,
+        "peak": 0.09601005911827087,
+        "peakDbFS": -20.353665257813542,
+        "rms": 0.01873557252120764,
+        "dc": -2.192274703380117e-7,
+        "maximumStep": 0.06646165996789932,
         "boundaryStep": 0
       }
     },
@@ -4230,72 +4592,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.445,
-          "gain": 0.13,
+          "duration": 0.32999999999999996,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 101.24607675750543
         },
         {
           "texture": "pluck",
-          "at": 0.2,
+          "at": 0.175,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pluck",
-          "at": 0.34,
+          "at": 0.29000000000000004,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 202.49215351501087
         },
         {
           "texture": "pluck",
-          "at": 0.48000000000000004,
+          "at": 0.405,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 303.3954266235402
         },
         {
           "texture": "pad",
           "at": 0.42500000000000004,
-          "duration": 0.7250000000000001,
-          "gain": 0.075,
+          "duration": 0.52,
+          "gain": 0.06,
           "hz": 202.49215351501087
         },
         {
           "texture": "glass",
           "at": 0.495,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 404.98430703002174
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.195,
-      "offset": 45.249,
+      "duration": 0.99,
+      "offset": 41.301,
       "metrics": {
-        "seconds": 1.195,
-        "peak": 0.14297929406166077,
-        "peakDbFS": -16.894537030540285,
-        "rms": 0.02522256461022691,
-        "dc": -8.182593632000021e-7,
-        "maximumStep": 0.07162240333855152,
+        "seconds": 0.99,
+        "peak": 0.10300513356924057,
+        "peakDbFS": -19.74282260779242,
+        "rms": 0.018509405570540816,
+        "dc": -2.633994883838255e-7,
+        "maximumStep": 0.06436474993824959,
         "boundaryStep": 0
       }
     },
@@ -4308,72 +4677,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 71.5917874437658
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.6000000000000001,
-          "gain": 0.075,
+          "duration": 0.42,
+          "gain": 0.06,
           "hz": 113.64487870051754
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 227.28975740103508
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.93,
-      "offset": 46.469,
+      "duration": 0.75,
+      "offset": 42.316,
       "metrics": {
-        "seconds": 0.93,
-        "peak": 0.13386377692222595,
-        "peakDbFS": -17.466738513687442,
-        "rms": 0.025859994849034063,
-        "dc": -5.297663166271061e-7,
-        "maximumStep": 0.1033402755856514,
+        "seconds": 0.75,
+        "peak": 0.11076432466506958,
+        "peakDbFS": -19.11200192138414,
+        "rms": 0.020122614943404678,
+        "dc": -3.3562256899773734e-8,
+        "maximumStep": 0.06963696144521236,
         "boundaryStep": 0
       }
     },
@@ -4386,72 +4762,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 80.3590643762586
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 191.12714222241686
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.625,
-          "gain": 0.075,
+          "duration": 0.44,
+          "gain": 0.06,
           "hz": 127.56206332605318
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 255.12412665210636
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.955,
-      "offset": 47.424,
+      "duration": 0.77,
+      "offset": 43.091,
       "metrics": {
-        "seconds": 0.955,
-        "peak": 0.1707375943660736,
-        "peakDbFS": -15.353416838619555,
-        "rms": 0.026053561424311488,
-        "dc": -1.2901939705639557e-7,
-        "maximumStep": 0.09085481986403465,
+        "seconds": 0.77,
+        "peak": 0.1131209135055542,
+        "peakDbFS": -18.929141927941487,
+        "rms": 0.019765101923660072,
+        "dc": -2.3214594006332917e-8,
+        "maximumStep": 0.07072228938341141,
         "boundaryStep": 0
       }
     },
@@ -4464,72 +4847,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 90.19999999999999
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 143.1835748875316
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 214.53296354649086
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.65,
-          "gain": 0.075,
+          "duration": 0.46,
+          "gain": 0.06,
           "hz": 143.1835748875316
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 286.3671497750632
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.98,
-      "offset": 48.404,
+      "duration": 0.79,
+      "offset": 43.886,
       "metrics": {
-        "seconds": 0.98,
-        "peak": 0.15300357341766357,
-        "peakDbFS": -16.305968521236245,
-        "rms": 0.026510540159464913,
-        "dc": -4.6518503968568233e-7,
-        "maximumStep": 0.08296451531350613,
+        "seconds": 0.79,
+        "peak": 0.09935958683490753,
+        "peakDbFS": -20.05580446164556,
+        "rms": 0.019657330303622395,
+        "dc": -3.8147440742644793e-7,
+        "maximumStep": 0.07906387746334076,
         "boundaryStep": 0
       }
     },
@@ -4542,72 +4932,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.37,
-          "gain": 0.13,
+          "duration": 0.27599999999999997,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.164,
+          "at": 0.14500000000000002,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 135.14729833427666
         },
         {
           "texture": "pluck",
-          "at": 0.268,
+          "at": 0.23,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 160.7181287525172
         },
         {
           "texture": "pluck",
-          "at": 0.37200000000000005,
+          "at": 0.315,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 240.8051096922742
         },
         {
           "texture": "pad",
           "at": 0.32,
-          "duration": 0.675,
-          "gain": 0.075,
+          "duration": 0.48,
+          "gain": 0.06,
           "hz": 160.7181287525172
         },
         {
           "texture": "glass",
           "at": 0.39,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 321.4362575050344
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.04,
-      "offset": 49.409,
+      "duration": 0.845,
+      "offset": 44.701,
       "metrics": {
-        "seconds": 1.04,
-        "peak": 0.1537187099456787,
-        "peakDbFS": -16.26546537848425,
-        "rms": 0.02548198871271274,
-        "dc": -2.9654025608403785e-7,
-        "maximumStep": 0.08547491393983364,
+        "seconds": 0.845,
+        "peak": 0.11884965747594833,
+        "peakDbFS": -18.500041311365564,
+        "rms": 0.01932220869082665,
+        "dc": 1.0547526830472299e-7,
+        "maximumStep": 0.07080208696424961,
         "boundaryStep": 0
       }
     },
@@ -4620,72 +5017,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.395,
-          "gain": 0.13,
+          "duration": 0.294,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 101.24607675750543
         },
         {
           "texture": "pluck",
-          "at": 0.176,
+          "at": 0.155,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 151.6977133117701
         },
         {
           "texture": "pluck",
-          "at": 0.29200000000000004,
+          "at": 0.25,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.40800000000000003,
+          "at": 0.34500000000000003,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 270.2945966685533
         },
         {
           "texture": "pad",
           "at": 0.355,
-          "duration": 0.7000000000000001,
-          "gain": 0.075,
+          "duration": 0.5,
+          "gain": 0.06,
           "hz": 180.39999999999998
         },
         {
           "texture": "glass",
           "at": 0.42500000000000004,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 360.79999999999995
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.1,
-      "offset": 50.474,
+      "duration": 0.9,
+      "offset": 45.571,
       "metrics": {
-        "seconds": 1.1,
-        "peak": 0.15591907501220703,
-        "peakDbFS": -16.142015006578056,
-        "rms": 0.0256016809873996,
-        "dc": -9.64095968777064e-7,
-        "maximumStep": 0.07645635306835175,
+        "seconds": 0.9,
+        "peak": 0.09868331998586655,
+        "peakDbFS": -20.115124960847574,
+        "rms": 0.01926254088728122,
+        "dc": -1.8596772828420696e-7,
+        "maximumStep": 0.07468526251614094,
         "boundaryStep": 0
       }
     },
@@ -4698,72 +5102,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.42000000000000004,
-          "gain": 0.13,
+          "duration": 0.312,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.188,
+          "at": 0.165,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pluck",
-          "at": 0.316,
+          "at": 0.27,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 202.49215351501087
         },
         {
           "texture": "pluck",
-          "at": 0.444,
+          "at": 0.37500000000000006,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 303.3954266235402
         },
         {
           "texture": "pad",
           "at": 0.39,
-          "duration": 0.7250000000000001,
-          "gain": 0.075,
+          "duration": 0.52,
+          "gain": 0.06,
           "hz": 202.49215351501087
         },
         {
           "texture": "glass",
           "at": 0.46,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 404.98430703002174
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.16,
-      "offset": 51.599,
+      "duration": 0.955,
+      "offset": 46.496,
       "metrics": {
-        "seconds": 1.16,
-        "peak": 0.14168448746204376,
-        "peakDbFS": -16.973553930608595,
-        "rms": 0.025206901448592185,
-        "dc": -0.0000010159238245149233,
-        "maximumStep": 0.08198617398738861,
+        "seconds": 0.955,
+        "peak": 0.11215434968471527,
+        "peakDbFS": -19.003677570030796,
+        "rms": 0.01877669922481109,
+        "dc": -1.1321414209774905e-7,
+        "maximumStep": 0.06771695241332054,
         "boundaryStep": 0
       }
     },
@@ -4776,72 +5187,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 71.5917874437658
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.6000000000000001,
-          "gain": 0.075,
+          "duration": 0.42,
+          "gain": 0.06,
           "hz": 113.64487870051754
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 227.28975740103508
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.93,
-      "offset": 52.784,
+      "duration": 0.75,
+      "offset": 47.476,
       "metrics": {
-        "seconds": 0.93,
-        "peak": 0.15151624381542206,
-        "peakDbFS": -16.390816092905716,
-        "rms": 0.02610258025423471,
-        "dc": -4.067014244412745e-7,
-        "maximumStep": 0.08813787903636694,
+        "seconds": 0.75,
+        "peak": 0.11049606651067734,
+        "peakDbFS": -19.133063638330967,
+        "rms": 0.020118230827245915,
+        "dc": -8.361963283304432e-8,
+        "maximumStep": 0.07257316680625081,
         "boundaryStep": 0
       }
     },
@@ -4854,72 +5272,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 80.3590643762586
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 191.12714222241686
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.625,
-          "gain": 0.075,
+          "duration": 0.44,
+          "gain": 0.06,
           "hz": 127.56206332605318
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 255.12412665210636
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.955,
-      "offset": 53.739,
+      "duration": 0.77,
+      "offset": 48.251,
       "metrics": {
-        "seconds": 0.955,
-        "peak": 0.1412348598241806,
-        "peakDbFS": -17.001161935265266,
-        "rms": 0.02586978683523707,
-        "dc": -2.674921270674386e-7,
-        "maximumStep": 0.0873133447021246,
+        "seconds": 0.77,
+        "peak": 0.10860396176576614,
+        "peakDbFS": -19.283086636448402,
+        "rms": 0.019740432454721832,
+        "dc": 5.7560489686649384e-8,
+        "maximumStep": 0.06676054559648037,
         "boundaryStep": 0
       }
     },
@@ -4932,72 +5357,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 90.19999999999999
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 143.1835748875316
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 214.53296354649086
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.65,
-          "gain": 0.075,
+          "duration": 0.46,
+          "gain": 0.06,
           "hz": 143.1835748875316
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 286.3671497750632
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.98,
-      "offset": 54.719,
+      "duration": 0.79,
+      "offset": 49.046,
       "metrics": {
-        "seconds": 0.98,
-        "peak": 0.15239094197750092,
-        "peakDbFS": -16.340816928445264,
-        "rms": 0.026405668050478785,
-        "dc": -7.122905691107596e-7,
-        "maximumStep": 0.09871843829751015,
+        "seconds": 0.79,
+        "peak": 0.10515241324901581,
+        "peakDbFS": -19.563615116005046,
+        "rms": 0.019732430511395078,
+        "dc": -2.0872719820038522e-7,
+        "maximumStep": 0.07578495889902115,
         "boundaryStep": 0
       }
     },
@@ -5010,72 +5442,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 101.24607675750543
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 135.14729833427666
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 160.7181287525172
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 240.8051096922742
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.675,
-          "gain": 0.075,
+          "duration": 0.48,
+          "gain": 0.06,
           "hz": 160.7181287525172
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 321.4362575050344
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.005,
-      "offset": 55.724,
+      "duration": 0.81,
+      "offset": 49.861,
       "metrics": {
-        "seconds": 1.005,
-        "peak": 0.1820569634437561,
-        "peakDbFS": -14.79585410418471,
-        "rms": 0.025904952029579507,
-        "dc": -3.0221729951529785e-7,
-        "maximumStep": 0.08222454320639372,
+        "seconds": 0.81,
+        "peak": 0.10368134081363678,
+        "peakDbFS": -19.68598790227086,
+        "rms": 0.019932834468979446,
+        "dc": 7.618411142212354e-8,
+        "maximumStep": 0.08296027034521103,
         "boundaryStep": 0
       }
     },
@@ -5088,72 +5527,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.37,
-          "gain": 0.13,
+          "duration": 0.27599999999999997,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.164,
+          "at": 0.14500000000000002,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 151.6977133117701
         },
         {
           "texture": "pluck",
-          "at": 0.268,
+          "at": 0.23,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.37200000000000005,
+          "at": 0.315,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 270.2945966685533
         },
         {
           "texture": "pad",
           "at": 0.32,
-          "duration": 0.7000000000000001,
-          "gain": 0.075,
+          "duration": 0.5,
+          "gain": 0.06,
           "hz": 180.39999999999998
         },
         {
           "texture": "glass",
           "at": 0.39,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 360.79999999999995
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.065,
-      "offset": 56.754,
+      "duration": 0.865,
+      "offset": 50.696,
       "metrics": {
-        "seconds": 1.065,
-        "peak": 0.1597622036933899,
-        "peakDbFS": -15.930519152371712,
-        "rms": 0.02567951824773473,
-        "dc": -8.992323452526866e-7,
-        "maximumStep": 0.08061811700463295,
+        "seconds": 0.865,
+        "peak": 0.09749568998813629,
+        "peakDbFS": -20.220291656438,
+        "rms": 0.019407425462417728,
+        "dc": -8.138884191878224e-8,
+        "maximumStep": 0.07469719368964434,
         "boundaryStep": 0
       }
     },
@@ -5166,72 +5612,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.395,
-          "gain": 0.13,
+          "duration": 0.294,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.176,
+          "at": 0.155,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pluck",
-          "at": 0.29200000000000004,
+          "at": 0.25,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 202.49215351501087
         },
         {
           "texture": "pluck",
-          "at": 0.40800000000000003,
+          "at": 0.34500000000000003,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 303.3954266235402
         },
         {
           "texture": "pad",
           "at": 0.355,
-          "duration": 0.7250000000000001,
-          "gain": 0.075,
+          "duration": 0.52,
+          "gain": 0.06,
           "hz": 202.49215351501087
         },
         {
           "texture": "glass",
           "at": 0.42500000000000004,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 404.98430703002174
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.125,
-      "offset": 57.844,
+      "duration": 0.92,
+      "offset": 51.586,
       "metrics": {
-        "seconds": 1.125,
-        "peak": 0.1443091183900833,
-        "peakDbFS": -16.814124529705584,
-        "rms": 0.025405165247989643,
-        "dc": -8.186940163352877e-7,
-        "maximumStep": 0.07857411541044712,
+        "seconds": 0.92,
+        "peak": 0.1069660559296608,
+        "peakDbFS": -19.415080345590447,
+        "rms": 0.019245374679618912,
+        "dc": -1.4616454308972074e-7,
+        "maximumStep": 0.07246668636798859,
         "boundaryStep": 0
       }
     },
@@ -5244,72 +5697,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 71.5917874437658
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.6000000000000001,
-          "gain": 0.075,
+          "duration": 0.42,
+          "gain": 0.06,
           "hz": 113.64487870051754
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 227.28975740103508
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.93,
-      "offset": 58.994,
+      "duration": 0.75,
+      "offset": 52.531,
       "metrics": {
-        "seconds": 0.93,
-        "peak": 0.1623273342847824,
-        "peakDbFS": -15.792166864165134,
-        "rms": 0.026029977933657095,
-        "dc": -5.39378138061082e-7,
-        "maximumStep": 0.08915012702345848,
+        "seconds": 0.75,
+        "peak": 0.10879343003034592,
+        "peakDbFS": -19.267946612558227,
+        "rms": 0.0201152356876619,
+        "dc": -8.690982073176706e-8,
+        "maximumStep": 0.07198559865355492,
         "boundaryStep": 0
       }
     },
@@ -5322,72 +5782,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 80.3590643762586
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 191.12714222241686
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.625,
-          "gain": 0.075,
+          "duration": 0.44,
+          "gain": 0.06,
           "hz": 127.56206332605318
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 255.12412665210636
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.955,
-      "offset": 59.949,
+      "duration": 0.77,
+      "offset": 53.306,
       "metrics": {
-        "seconds": 0.955,
-        "peak": 0.14526334404945374,
-        "peakDbFS": -16.75687924679298,
-        "rms": 0.02610240030190065,
-        "dc": -4.529319112261274e-7,
-        "maximumStep": 0.09703495749272406,
+        "seconds": 0.77,
+        "peak": 0.12164680659770966,
+        "peakDbFS": -18.297985748670126,
+        "rms": 0.019713361334429184,
+        "dc": 3.3161590844917515e-7,
+        "maximumStep": 0.08304332196712494,
         "boundaryStep": 0
       }
     },
@@ -5400,72 +5867,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 90.19999999999999
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 143.1835748875316
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 214.53296354649086
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.65,
-          "gain": 0.075,
+          "duration": 0.46,
+          "gain": 0.06,
           "hz": 143.1835748875316
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 286.3671497750632
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.98,
-      "offset": 60.929,
+      "duration": 0.79,
+      "offset": 54.101,
       "metrics": {
-        "seconds": 0.98,
-        "peak": 0.15622800588607788,
-        "peakDbFS": -16.124822211792846,
-        "rms": 0.0263153263401065,
-        "dc": -7.876778704289724e-7,
-        "maximumStep": 0.08480187237728387,
+        "seconds": 0.79,
+        "peak": 0.0995391309261322,
+        "peakDbFS": -20.04012310781195,
+        "rms": 0.01971138866686917,
+        "dc": -3.9381611892474665e-7,
+        "maximumStep": 0.06572031415998936,
         "boundaryStep": 0
       }
     },
@@ -5478,72 +5952,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 101.24607675750543
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 135.14729833427666
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 160.7181287525172
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 240.8051096922742
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.675,
-          "gain": 0.075,
+          "duration": 0.48,
+          "gain": 0.06,
           "hz": 160.7181287525172
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 321.4362575050344
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.005,
-      "offset": 61.934,
+      "duration": 0.81,
+      "offset": 54.916,
       "metrics": {
-        "seconds": 1.005,
-        "peak": 0.16284142434597015,
-        "peakDbFS": -15.764702151535664,
-        "rms": 0.025925907135608665,
-        "dc": -6.263669779118301e-7,
-        "maximumStep": 0.09559492208063602,
+        "seconds": 0.81,
+        "peak": 0.12341223657131195,
+        "peakDbFS": -18.172835539940642,
+        "rms": 0.020022774147882692,
+        "dc": -1.8864703032277453e-8,
+        "maximumStep": 0.07590151950716972,
         "boundaryStep": 0
       }
     },
@@ -5556,72 +6037,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 151.6977133117701
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 270.2945966685533
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.7000000000000001,
-          "gain": 0.075,
+          "duration": 0.5,
+          "gain": 0.06,
           "hz": 180.39999999999998
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 360.79999999999995
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.03,
-      "offset": 62.964,
+      "duration": 0.83,
+      "offset": 55.751,
       "metrics": {
-        "seconds": 1.03,
-        "peak": 0.15556329488754272,
-        "peakDbFS": -16.161857338220518,
-        "rms": 0.026244150738464027,
-        "dc": -6.52415679909664e-7,
-        "maximumStep": 0.08234086632728577,
+        "seconds": 0.83,
+        "peak": 0.1165945827960968,
+        "peakDbFS": -18.66643254495625,
+        "rms": 0.019868666326305,
+        "dc": -3.362160917894871e-7,
+        "maximumStep": 0.06972994655370712,
         "boundaryStep": 0
       }
     },
@@ -5634,72 +6122,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.37,
-          "gain": 0.13,
+          "duration": 0.27599999999999997,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.164,
+          "at": 0.14500000000000002,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pluck",
-          "at": 0.268,
+          "at": 0.23,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 202.49215351501087
         },
         {
           "texture": "pluck",
-          "at": 0.37200000000000005,
+          "at": 0.315,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 303.3954266235402
         },
         {
           "texture": "pad",
           "at": 0.32,
-          "duration": 0.7250000000000001,
-          "gain": 0.075,
+          "duration": 0.52,
+          "gain": 0.06,
           "hz": 202.49215351501087
         },
         {
           "texture": "glass",
           "at": 0.39,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 404.98430703002174
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.09,
-      "offset": 64.019,
+      "duration": 0.885,
+      "offset": 56.606,
       "metrics": {
-        "seconds": 1.09,
-        "peak": 0.13498283922672272,
-        "peakDbFS": -17.39442882311761,
-        "rms": 0.02545788590845436,
-        "dc": -0.000001052229779814762,
-        "maximumStep": 0.085972610861063,
+        "seconds": 0.885,
+        "peak": 0.12542864680290222,
+        "peakDbFS": -18.03206526251564,
+        "rms": 0.019658717991747614,
+        "dc": -2.1421551270856243e-7,
+        "maximumStep": 0.07549474481493235,
         "boundaryStep": 0
       }
     },
@@ -5712,72 +6207,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 71.5917874437658
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.6000000000000001,
-          "gain": 0.075,
+          "duration": 0.42,
+          "gain": 0.06,
           "hz": 113.64487870051754
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 227.28975740103508
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.93,
-      "offset": 65.134,
+      "duration": 0.75,
+      "offset": 57.516,
       "metrics": {
-        "seconds": 0.93,
-        "peak": 0.14325083792209625,
-        "peakDbFS": -16.878056580387245,
-        "rms": 0.025798870848235456,
-        "dc": -5.925019643480977e-7,
-        "maximumStep": 0.09114321321249008,
+        "seconds": 0.75,
+        "peak": 0.09863516688346863,
+        "peakDbFS": -20.119364325826474,
+        "rms": 0.020036684381759134,
+        "dc": 1.9058823053042445e-7,
+        "maximumStep": 0.07012183126062155,
         "boundaryStep": 0
       }
     },
@@ -5790,72 +6292,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 80.3590643762586
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 191.12714222241686
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.625,
-          "gain": 0.075,
+          "duration": 0.44,
+          "gain": 0.06,
           "hz": 127.56206332605318
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 255.12412665210636
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.955,
-      "offset": 66.089,
+      "duration": 0.77,
+      "offset": 58.291,
       "metrics": {
-        "seconds": 0.955,
-        "peak": 0.16099637746810913,
-        "peakDbFS": -15.86367791579905,
-        "rms": 0.026250145048862642,
-        "dc": -4.786695801519998e-7,
-        "maximumStep": 0.09761769883334637,
+        "seconds": 0.77,
+        "peak": 0.11076992005109787,
+        "peakDbFS": -19.11156315485758,
+        "rms": 0.019818597610808408,
+        "dc": 3.790023975165935e-9,
+        "maximumStep": 0.06769605353474617,
         "boundaryStep": 0
       }
     },
@@ -5868,72 +6377,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 90.19999999999999
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 143.1835748875316
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 214.53296354649086
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.65,
-          "gain": 0.075,
+          "duration": 0.46,
+          "gain": 0.06,
           "hz": 143.1835748875316
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 286.3671497750632
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.98,
-      "offset": 67.069,
+      "duration": 0.79,
+      "offset": 59.086,
       "metrics": {
-        "seconds": 0.98,
-        "peak": 0.16456378996372223,
-        "peakDbFS": -15.673314384776917,
-        "rms": 0.02646894746343075,
-        "dc": -4.035949443073861e-7,
-        "maximumStep": 0.08104740083217621,
+        "seconds": 0.79,
+        "peak": 0.10252547264099121,
+        "peakDbFS": -19.783364398887823,
+        "rms": 0.01976361108771263,
+        "dc": -4.3788611286083253e-7,
+        "maximumStep": 0.07401305064558983,
         "boundaryStep": 0
       }
     },
@@ -5946,72 +6462,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 101.24607675750543
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 135.14729833427666
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 160.7181287525172
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 240.8051096922742
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.675,
-          "gain": 0.075,
+          "duration": 0.48,
+          "gain": 0.06,
           "hz": 160.7181287525172
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 321.4362575050344
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.005,
-      "offset": 68.074,
+      "duration": 0.81,
+      "offset": 59.901,
       "metrics": {
-        "seconds": 1.005,
-        "peak": 0.14311566948890686,
-        "peakDbFS": -16.886256269596988,
-        "rms": 0.02602247205019649,
-        "dc": -5.813773714483861e-7,
-        "maximumStep": 0.09006509557366371,
+        "seconds": 0.81,
+        "peak": 0.10394572466611862,
+        "peakDbFS": -19.66386737380695,
+        "rms": 0.020050727139055886,
+        "dc": 7.803254800854167e-8,
+        "maximumStep": 0.0662840036675334,
         "boundaryStep": 0
       }
     },
@@ -6024,72 +6547,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 151.6977133117701
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 270.2945966685533
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.7000000000000001,
-          "gain": 0.075,
+          "duration": 0.5,
+          "gain": 0.06,
           "hz": 180.39999999999998
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 360.79999999999995
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.03,
-      "offset": 69.104,
+      "duration": 0.83,
+      "offset": 60.736,
       "metrics": {
-        "seconds": 1.03,
-        "peak": 0.14989349246025085,
-        "peakDbFS": -16.484344427751104,
-        "rms": 0.02621474991634747,
-        "dc": -6.810524794815765e-7,
-        "maximumStep": 0.08915785513818264,
+        "seconds": 0.83,
+        "peak": 0.1238369420170784,
+        "peakDbFS": -18.14299561667098,
+        "rms": 0.019712696766795233,
+        "dc": -3.232895253684265e-7,
+        "maximumStep": 0.06585878133773804,
         "boundaryStep": 0
       }
     },
@@ -6102,72 +6632,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 202.49215351501087
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 303.3954266235402
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.7250000000000001,
-          "gain": 0.075,
+          "duration": 0.52,
+          "gain": 0.06,
           "hz": 202.49215351501087
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 404.98430703002174
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.055,
-      "offset": 70.159,
+      "duration": 0.85,
+      "offset": 61.591,
       "metrics": {
-        "seconds": 1.055,
-        "peak": 0.15534460544586182,
-        "peakDbFS": -16.17407647235432,
-        "rms": 0.025799766337757973,
-        "dc": -2.666202057029266e-7,
-        "maximumStep": 0.09177454747259617,
+        "seconds": 0.85,
+        "peak": 0.11133179813623428,
+        "peakDbFS": -19.067615530418056,
+        "rms": 0.01982225296687372,
+        "dc": -3.6161902226592216e-7,
+        "maximumStep": 0.06713827792555094,
         "boundaryStep": 0
       }
     },
@@ -6180,72 +6717,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 71.5917874437658
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 95.56357111120843
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.6000000000000001,
-          "gain": 0.075,
+          "duration": 0.42,
+          "gain": 0.06,
           "hz": 113.64487870051754
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 227.28975740103508
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.93,
-      "offset": 71.239,
+      "duration": 0.75,
+      "offset": 62.466,
       "metrics": {
-        "seconds": 0.93,
-        "peak": 0.15163926780223846,
-        "peakDbFS": -16.383766425061786,
-        "rms": 0.02572098427081971,
-        "dc": -4.1317515803980616e-7,
-        "maximumStep": 0.08858568593859673,
+        "seconds": 0.75,
+        "peak": 0.11658434569835663,
+        "peakDbFS": -18.6671952065039,
+        "rms": 0.020199225308581963,
+        "dc": -3.769642303846245e-7,
+        "maximumStep": 0.06837707385420799,
         "boundaryStep": 0
       }
     },
@@ -6258,72 +6802,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 80.3590643762586
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 107.26648177324543
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 191.12714222241686
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.625,
-          "gain": 0.075,
+          "duration": 0.44,
+          "gain": 0.06,
           "hz": 127.56206332605318
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 255.12412665210636
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.955,
-      "offset": 72.194,
+      "duration": 0.77,
+      "offset": 63.241,
       "metrics": {
-        "seconds": 0.955,
-        "peak": 0.16327497363090515,
-        "peakDbFS": -15.741607554125103,
-        "rms": 0.026155284591854868,
-        "dc": -4.3639435819785243e-7,
-        "maximumStep": 0.08812937512993813,
+        "seconds": 0.77,
+        "peak": 0.10121671110391617,
+        "peakDbFS": -19.894955571848044,
+        "rms": 0.019776600844782843,
+        "dc": 3.490258601103044e-8,
+        "maximumStep": 0.07038748636841774,
         "boundaryStep": 0
       }
     },
@@ -6336,72 +6887,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 90.19999999999999
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 120.4025548461371
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 143.1835748875316
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 214.53296354649086
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.65,
-          "gain": 0.075,
+          "duration": 0.46,
+          "gain": 0.06,
           "hz": 143.1835748875316
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 286.3671497750632
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 0.98,
-      "offset": 73.174,
+      "duration": 0.79,
+      "offset": 64.036,
       "metrics": {
-        "seconds": 0.98,
-        "peak": 0.16484828293323517,
-        "peakDbFS": -15.658311442543308,
-        "rms": 0.02647428620852647,
-        "dc": -3.349517449683324e-7,
-        "maximumStep": 0.08396428311243653,
+        "seconds": 0.79,
+        "peak": 0.1018412634730339,
+        "peakDbFS": -19.84152442668683,
+        "rms": 0.01976084768521702,
+        "dc": -2.2542889269952569e-7,
+        "maximumStep": 0.0679045463912189,
         "boundaryStep": 0
       }
     },
@@ -6414,72 +6972,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 101.24607675750543
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 135.14729833427666
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 160.7181287525172
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 240.8051096922742
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.675,
-          "gain": 0.075,
+          "duration": 0.48,
+          "gain": 0.06,
           "hz": 160.7181287525172
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 321.4362575050344
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.005,
-      "offset": 74.179,
+      "duration": 0.81,
+      "offset": 64.851,
       "metrics": {
-        "seconds": 1.005,
-        "peak": 0.17683318257331848,
-        "peakDbFS": -15.048724734841588,
-        "rms": 0.025983965374510875,
-        "dc": -3.707149738341901e-7,
-        "maximumStep": 0.09373251907527447,
+        "seconds": 0.81,
+        "peak": 0.11722482740879059,
+        "peakDbFS": -18.619607960089372,
+        "rms": 0.019938307040900792,
+        "dc": 1.4124341957784252e-7,
+        "maximumStep": 0.07070939056575298,
         "boundaryStep": 0
       }
     },
@@ -6492,72 +7057,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 113.64487870051754
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 151.6977133117701
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 180.39999999999998
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 270.2945966685533
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.7000000000000001,
-          "gain": 0.075,
+          "duration": 0.5,
+          "gain": 0.06,
           "hz": 180.39999999999998
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 360.79999999999995
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.03,
-      "offset": 75.209,
+      "duration": 0.83,
+      "offset": 65.686,
       "metrics": {
-        "seconds": 1.03,
-        "peak": 0.1341927945613861,
-        "peakDbFS": -17.445416056848895,
-        "rms": 0.025804660306097692,
-        "dc": -0.0000010955343725178134,
-        "maximumStep": 0.10793909430503845,
+        "seconds": 0.83,
+        "peak": 0.10706723481416702,
+        "peakDbFS": -19.406868270852602,
+        "rms": 0.01968044393396396,
+        "dc": -5.624117327901225e-7,
+        "maximumStep": 0.07184786861762404,
         "boundaryStep": 0
       }
     },
@@ -6570,72 +7142,79 @@
       },
       "layers": [
         {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.09,
+          "gain": 0.085,
+          "hz": 1722
+        },
+        {
           "texture": "air",
           "at": 0,
-          "duration": 0.34500000000000003,
-          "gain": 0.13,
+          "duration": 0.258,
+          "gain": 0.075,
           "hz": 1394
         },
         {
           "texture": "pluck",
           "at": 0.06,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 127.56206332605318
         },
         {
           "texture": "pluck",
-          "at": 0.152,
+          "at": 0.135,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 170.27492600777748
         },
         {
           "texture": "pluck",
-          "at": 0.244,
+          "at": 0.21,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 202.49215351501087
         },
         {
           "texture": "pluck",
-          "at": 0.336,
+          "at": 0.285,
           "duration": 0.38,
-          "gain": 0.095,
+          "gain": 0.085,
           "hz": 303.3954266235402
         },
         {
           "texture": "pad",
           "at": 0.28500000000000003,
-          "duration": 0.7250000000000001,
-          "gain": 0.075,
+          "duration": 0.52,
+          "gain": 0.06,
           "hz": 202.49215351501087
         },
         {
           "texture": "glass",
           "at": 0.355,
-          "duration": 0.45,
-          "gain": 0.055,
+          "duration": 0.32,
+          "gain": 0.045,
           "hz": 404.98430703002174
         },
         {
           "texture": "recording",
           "source": "crystal",
           "at": 0.025,
-          "duration": 0.55,
-          "gain": 0.32,
+          "duration": 0.4,
+          "gain": 0.26,
           "hz": 1
         }
       ],
-      "duration": 1.055,
-      "offset": 76.264,
+      "duration": 0.85,
+      "offset": 66.541,
       "metrics": {
-        "seconds": 1.055,
-        "peak": 0.15288430452346802,
-        "peakDbFS": -16.312741960652733,
-        "rms": 0.02606060597850776,
-        "dc": -8.948609228180183e-7,
-        "maximumStep": 0.08120051771402359,
+        "seconds": 0.85,
+        "peak": 0.1078980565071106,
+        "peakDbFS": -19.33972755784115,
+        "rms": 0.019724656262184146,
+        "dc": -6.864412237465577e-8,
+        "maximumStep": 0.06854294519871473,
         "boundaryStep": 0
       }
     }
