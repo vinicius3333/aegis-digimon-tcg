@@ -1,5 +1,6 @@
-import { getCardDefinition, Phase, type GameState } from "@aegis/shared";
+import { getCardDefinition, Phase, type Permanent, type Seat } from "@aegis/shared";
 import type { SoundDetails, SoundKind } from "../../../design/sound";
+import type { presentedSeats } from "../../screen/model/presentedSeats";
 import type { MatchCues } from "../types";
 import { SecurityBreakPhase } from "../enums";
 import { SECURITY_CLASH_OUTCOME_AT_MS, SECURITY_DESTROY_OUTCOME_AT_MS } from "../../securityClash";
@@ -10,8 +11,26 @@ export interface PresentationSound {
   details?: SoundDetails;
 }
 
+type AudioPermanent = Pick<Permanent, "permanentId" | "topCard" | "stack">;
+export interface PresentationAudioBoard {
+  players: readonly { battleArea: readonly AudioPermanent[]; breeding?: AudioPermanent }[];
+}
+
+/** Use the same field and independently held breeding slots the screen paints. */
+export function audioBoardFromPresentedSeats(
+  seats: Pick<
+    ReturnType<typeof presentedSeats>,
+    "shownViewer" | "shownOpponent" | "breedingViewer" | "breedingOpponent"
+  >,
+  viewerSeat: Seat,
+): PresentationAudioBoard {
+  const viewer = { battleArea: seats.shownViewer.battleArea, breeding: seats.breedingViewer.breeding };
+  const opponent = { battleArea: seats.shownOpponent.battleArea, breeding: seats.breedingOpponent.breeding };
+  return { players: viewerSeat === 0 ? [viewer, opponent] : [opponent, viewer] };
+}
+
 /** Only committed visible presentations earn audio; receipt/intent timing has no role. */
-export function soundsForPresentation(cues: MatchCues, state?: GameState): PresentationSound[] {
+export function soundsForPresentation(cues: MatchCues, board?: PresentationAudioBoard): PresentationSound[] {
   const sounds: PresentationSound[] = [];
   const add = (id: string, kind: SoundKind, details?: SoundDetails) =>
     sounds.push({ id, kind, ...(details ? { details } : {}) });
@@ -23,43 +42,41 @@ export function soundsForPresentation(cues: MatchCues, state?: GameState): Prese
       assembly: /[＜<]Assembly\b/i.test(card?.effectText ?? ""),
     };
   };
-  const evolutionDetails = (cardId: string, permanentId?: string): SoundDetails => {
-    const details = cardDetails(cardId);
-    const permanent = state?.players
-      .flatMap((player) => [...player.battleArea, ...(player.breeding ? [player.breeding] : [])])
-      .find(
-        (item) =>
-          item.permanentId === permanentId ||
-          item.topCard?.cardId === cardId ||
-          item.stack.some((card) => card.cardId === cardId),
-      );
-    // Only public physical stack data determines the source level. Missing data uses the neutral recipe.
-    const stack = permanent ? [...permanent.stack, ...(permanent.topCard ? [permanent.topCard] : [])] : [];
-    const targetIndex = stack.map((card) => card.cardId).lastIndexOf(cardId);
-    const source = targetIndex > 0 ? stack[targetIndex - 1] : undefined;
-    return { ...details, sourceLevel: source ? getCardDefinition(source.cardId)?.level : undefined };
+  const evolutionDetails = (cardId: string, permanent?: AudioPermanent): SoundDetails => {
+    // A showcase has no physical ID: ambiguous or absent hosts keep neutral source metadata.
+    // Never search older card IDs inside a newer stack to reconstruct a past occurrence.
+    const source = permanent?.topCard?.cardId === cardId ? permanent.stack.at(-1) : undefined;
+    return { ...cardDetails(cardId), sourceLevel: source ? getCardDefinition(source.cardId)?.level : undefined };
   };
   if (cues.zoneShowcase) {
     const scene = cues.zoneShowcase;
+    // Only a matching physical arrival occurrence can identify the showcase's host.
+    const arrival = [...cues.permanentBursts.values()].find((burst) => burst.key === scene.key);
+    const player = board?.players[scene.seat];
+    const permanent = arrival
+      ? (arrival.inBreeding ? (player?.breeding ? [player.breeding] : []) : [...(player?.battleArea ?? [])]).find(
+          (item) => item.permanentId === arrival.permanentId,
+        )
+      : undefined;
     add(
       `arrival:${scene.key}`,
       scene.kind === "play" ? "cardPlay" : "digivolve",
-      scene.kind === "play" ? cardDetails(scene.cardId) : evolutionDetails(scene.cardId),
+      scene.kind === "play" ? cardDetails(scene.cardId) : evolutionDetails(scene.cardId, permanent),
     );
   }
   for (const burst of cues.permanentBursts.values()) {
     if (burst.moveFromBreeding) add(`move:${burst.key}`, "move");
     else if (burst.variant === "hatch") add(`hatch:${burst.key}`, "hatch");
     else if (burst.variant === "play" || burst.variant === "evolve") {
-      const permanent = state?.players
-        .flatMap((player) => [...player.battleArea, ...(player.breeding ? [player.breeding] : [])])
+      const permanent = board?.players
+        .flatMap((player) => (burst.inBreeding ? (player.breeding ? [player.breeding] : []) : [...player.battleArea]))
         .find((item) => item.permanentId === burst.permanentId);
       const cardId = permanent?.topCard?.cardId ?? "";
       // Showcase and landing share occurrence keys; the landing is a fallback, never a second play.
       add(
         `arrival:${burst.key}`,
         burst.variant === "play" ? "cardPlay" : "digivolve",
-        burst.variant === "play" ? cardDetails(cardId) : evolutionDetails(cardId, burst.permanentId),
+        burst.variant === "play" ? cardDetails(cardId) : evolutionDetails(cardId, permanent),
       );
     }
   }
