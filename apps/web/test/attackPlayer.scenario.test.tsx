@@ -123,7 +123,7 @@ scenario("attack-player", () => {
     // has to be dismissed before the match continues.
     const clash = await screen.findByTestId("security-clash", {}, { timeout: 10_000 });
     expect(clash.getAttribute("role")).toBe("status");
-    expect(within(clash).getByText(/security check/i)).toBeTruthy();
+    expect(within(clash).getByText(/^Security check$/i)).toBeTruthy();
     expect(within(clash).getAllByRole("img").length).toBeGreaterThan(0);
     expect(opponent.room.state.gameOver).toBe(false);
 

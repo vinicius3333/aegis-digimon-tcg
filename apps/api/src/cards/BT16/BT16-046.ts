@@ -46,8 +46,8 @@ const compiled: CompiledCard = {
             filter: {},
             count: 2,
           },
-          restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
+          duration: "untilOpponentNextUnsuspendPhase",
         },
         {
           effectTextPart: "Then, delete 1 of their suspended Tamers.",
@@ -95,8 +95,8 @@ const compiled: CompiledCard = {
             filter: {},
             count: 2,
           },
-          restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
+          duration: "untilOpponentNextUnsuspendPhase",
         },
         {
           effectTextPart: "Then, delete 1 of their suspended Tamers.",

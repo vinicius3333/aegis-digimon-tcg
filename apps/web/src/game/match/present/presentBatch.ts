@@ -34,6 +34,7 @@ import type {
   DeleteBurst,
   DrawFlightCard,
   HeldDeletion,
+  HeldStackStrip,
   MatchCueAnchors,
   RevealOnStage,
   SecurityBreakCue,
@@ -77,6 +78,7 @@ import { effectUnitSteps, resumedUnitSteps, type EffectSequence, type ObservedBa
 import {
   createPresentationGate,
   waitForGate,
+  CONSEQUENCE_GATE_MAX_MS,
   type DeletionReadyAt,
   type PendingAnnounceGate,
   type CostClause,
@@ -218,6 +220,7 @@ export function presentServerBatch({
   setCombatImpactIds,
   setDeleteBursts,
   setHeldDeletions,
+  setHeldStackStrips,
 }: {
   batchId: string;
   stateVersion: number;
@@ -338,14 +341,42 @@ export function presentServerBatch({
   setCombatImpactIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
+  setHeldStackStrips: Dispatch<SetStateAction<ReadonlyMap<number, HeldStackStrip>>>;
 }) {
+  // Preserve event order before splitting a batch into target-animation segments. A
+  // resolving source can be removed by its nested cost later at the same state version.
+  const deletedLater = new Set<string>();
+  fresh = [...fresh]
+    .reverse()
+    .map((event) => {
+      if (event.kind === "cardsMoved") {
+        for (const deleted of event.deletedPermanents ?? []) deletedLater.add(deleted.instanceId);
+      }
+      if (event.kind === "effectTriggered" && event.sourceInstanceId && deletedLater.has(event.sourceInstanceId)) {
+        return { ...event, beforeRemoval: true };
+      }
+      return event;
+    })
+    .reverse();
   const phaseSegments: ServerEvent[][] = [];
   for (const event of fresh) {
     if (phaseSegments.length === 0 || event.kind === "phaseChanged" || event.kind === "turnEnded")
       phaseSegments.push([]);
     phaseSegments.at(-1)!.push(event);
   }
-  const segments = phaseSegments.flatMap(securityCheckSegments);
+  const segments = phaseSegments.flatMap(securityCheckSegments).flatMap((events) => {
+    const parts: ServerEvent[][] = [];
+    for (const event of events) {
+      if (
+        !parts.length ||
+        event.kind === "effectTargetsSelected" ||
+        parts.at(-1)?.at(-1)?.kind === "effectTargetsSelected"
+      )
+        parts.push([]);
+      parts.at(-1)!.push(event);
+    }
+    return parts;
+  });
   if (segments.length > 1) {
     for (const [index, segment] of segments.entries()) {
       present(batchId, stateVersion, segment, replayingHistory, continuingBatch || index > 0);
@@ -427,6 +458,41 @@ export function presentServerBatch({
       origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
       ...(replayingHistory ? { mode: "replay" as const } : {}),
     });
+  for (const event of fresh) {
+    if (event.kind !== "effectTargetsSelected" || replayingHistory) continue;
+    const preceding = effectAnnounceGateRef.current;
+    const selected = createPresentationGate();
+    effectAnnounceGateRef.current = selected;
+    const key = ++effectSourceKeyRef.current;
+    enqueue({
+      id: `effect-targets-${key}`,
+      track: "effectTargets",
+      async run(context) {
+        try {
+          await waitForGate(preceding, context, CONSEQUENCE_GATE_MAX_MS, "effect-targets-source");
+          if (context.cancelled || context.mode !== "live") return;
+          const cardId =
+            state?.players[event.seat]?.battleArea.find(
+              (permanent) => permanent.permanentId === event.sourcePermanentId,
+            )?.topCard?.cardId ?? "";
+          setEffectSources((sources) => [
+            ...sources,
+            {
+              key,
+              seat: event.seat,
+              cardId,
+              site: { zone: "field", permanentId: event.sourcePermanentId },
+              targetPermanentIds: event.targetPermanentIds,
+            },
+          ]);
+          await context.wait(TIMINGS.effectSourceHold);
+        } finally {
+          setEffectSources((sources) => sources.filter((source) => source.key !== key));
+          selected.release();
+        }
+      },
+    });
+  }
   const optionRoutedUnder = fresh.find(
     (event) => event.kind === "cardsMoved" && event.optionUsed === true && event.placedUnder !== undefined,
   );
@@ -904,6 +970,19 @@ export function presentServerBatch({
     enqueue,
   });
   const optionResolving = optionDockRef.current !== null && !optionDockRef.current.closed;
+  enqueueStackStripPeels({
+    queue,
+    snapshots,
+    stateVersion,
+    viewerSeat,
+    setHeldStackStrips,
+    fresh,
+    anchors,
+    deleteBurstKeyRef,
+    causingEffectGate: causingEffectGateRef.current,
+    setDeleteBursts,
+    enqueue,
+  });
   enqueueDeletionBursts({
     queue,
     fresh,
@@ -939,14 +1018,6 @@ export function presentServerBatch({
     enqueue,
   });
 
-  enqueueStackStripPeels({
-    fresh,
-    anchors,
-    deleteBurstKeyRef,
-    causingEffectGate: causingEffectGateRef.current,
-    setDeleteBursts,
-    enqueue,
-  });
   /**
    * A [Security] effect that PLAYS its own card leaves the dock nothing to show: the card
    * is on the field now, so the dock goes at that play rather than waiting for the eventual

@@ -15,7 +15,11 @@ describe("BT11-102 High Mega Blaster", () => {
     expect(compiled.effects).toMatchObject([
       {
         trigger: "Main",
-        actions: [{ kind: "SelectBind" }, { kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }],
+        actions: [
+          { kind: "SelectBind" },
+          { kind: "Suspend" },
+          { kind: "Restrict", restriction: "unsuspendDuringOwnUnsuspendPhase" },
+        ],
       },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "Suspend" }] },
     ]);

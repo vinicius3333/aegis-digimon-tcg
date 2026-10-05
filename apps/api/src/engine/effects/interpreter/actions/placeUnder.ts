@@ -838,8 +838,11 @@ export async function runTrashDigivolution(
     const permanent = ctx.game.permanentById(pid);
     if (permanent === undefined) continue;
     const stack = permanent.stack.filter(stackCardMatches);
+    // Count before trashing: removing sources can immediately change gained colors.
     const targetAmount =
-      action.scaling?.unit === "targetColors" ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size : amount;
+      action.scaling?.unit === "targetColors"
+        ? new Set(ctx.game.effectiveColors?.(permanent) ?? ctx.game.definitionOf(permanent.topCard).colors).size
+        : amount;
     let take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
     if (action.upTo === true && action.choose !== true && typeof targetAmount === "number" && take > 1) {
       // "up to" source trash still requires one card under CR 1-3-6, then lets the

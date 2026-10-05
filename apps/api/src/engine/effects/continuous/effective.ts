@@ -15,7 +15,8 @@ export function modeMatches(mode: "play" | "move" | "playOrMove", requested: "pl
 
 /** Does a card definition satisfy a PlayMatch predicate (kind AND optional DP cap)? */
 export function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
-  if (def.isToken === true && match.allowTokens !== true) return false;
+  // Digimon tokens are Digimon for play prohibitions (BT14-017/Q2381).
+  // Q3834 permits the unrestricted player's effect, not every token play.
   if (match.kinds !== undefined && match.kinds.length > 0) {
     // Mother Eater is catalogued as a Digi-Egg because it begins in that deck, but its
     // own effect can play it into the battle area as a Digimon. Play prohibitions that

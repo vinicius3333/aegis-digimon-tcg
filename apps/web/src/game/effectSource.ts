@@ -30,6 +30,8 @@ export type EffectSourceLookup = (
 ) => EffectSourceSite | undefined;
 
 export interface EffectActivation {
+  /** A public target selection being presented between effect clauses. */
+  targetPermanentIds?: readonly string[];
   key: number;
   seat: Seat;
   cardId: string;

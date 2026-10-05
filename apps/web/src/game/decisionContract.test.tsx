@@ -29,7 +29,7 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   visibleCards: "decisionModel.ts",
   min: "decisionPresentation.ts",
   max: "overlay/choice/DecisionOverlay.tsx",
-  maxTotalPlayCost: "overlay/choice/DecisionOverlay.tsx",
+  maxTotalPlayCost: "screen/model/decisionView.ts",
   maxTotalDP: "screen/model/decisionView.ts",
   differentColors: "screen/model/decisionView.ts",
   distinctCardIds: "screen/model/decisionView.ts",
@@ -228,5 +228,37 @@ describe("summed DP budget (maxTotalDP)", () => {
     expect(allows("large", ["small"])).toBe(false);
     expect(allows("large", [])).toBe(true);
     expect(allows("small", ["small"])).toBe(true);
+  });
+});
+
+// Discord 1556322403456520223 / 1556323133361750088: the board must enforce
+// the same aggregate play-cost constraint as the target-selection dialog.
+describe("Hades Force board target budget", () => {
+  const cardIds = new Map([
+    ["hexeblau", "EX7-023"],
+    ["thomas", "BT4-093"],
+    ["gaomon", "EX4-015"],
+  ]);
+  const allows = (instanceId: string, picks: string[]) =>
+    decisionAllowsPick({
+      instanceId,
+      picks,
+      decisionSelectable: new Set(cardIds.keys()),
+      decisionInstanceColors: new Map(),
+      decisionDifferentColors: false,
+      decisionVisibleCardIds: cardIds,
+      decisionDistinctCardIds: false,
+      decisionMaxTotalPlayCost: 12,
+    });
+
+  it("only enables targets that fit the remaining budget and always permits deselection", () => {
+    expect(allows("hexeblau", [])).toBe(true);
+    expect(allows("hexeblau", ["thomas"])).toBe(false);
+    expect(allows("thomas", ["hexeblau"])).toBe(false);
+    expect(allows("gaomon", ["hexeblau"])).toBe(false);
+    expect(allows("gaomon", ["thomas"])).toBe(true);
+    expect(allows("hexeblau", ["hexeblau"])).toBe(true);
+    expect(allows("thomas", ["thomas", "gaomon"])).toBe(true);
+    expect(allows("hexeblau", [])).toBe(true);
   });
 });

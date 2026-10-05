@@ -89,7 +89,11 @@ import {
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
-import { noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
+import {
+  noticeRemaining,
+  rejectionNotice,
+  type MatchNotice,
+} from "./notices";
 import { narrationReadingTime, trimNarration, NARRATION_QUEUE_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
@@ -422,6 +426,28 @@ export function useMatchCues({
   const [heldSecurityEffectState, setHeldSecurityEffectState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [heldDeletions, setHeldDeletions] = useState<MatchCues["heldDeletions"]>(new Map());
+  const [stackStripHolds, setHeldStackStrips] = useState<MatchCues["heldStackStrips"]>(new Map());
+  const heldStackStrips = new Map(
+    [...stackStripHolds].map(([key, held]) => [
+      key,
+      {
+        ...held,
+        returnedInstanceId: batches
+          .filter((batch) => batch.stateVersion >= held.stateVersion)
+          .flatMap((batch) => batch.events)
+          .filter(
+            (event) =>
+              event.kind === "cardsMoved" &&
+              event.to === "hand" &&
+              (event.from === "various" || event.from === "battleArea"),
+          )
+          .flatMap((event) => (event.kind === "cardsMoved" ? event.instanceIds : []))
+          .find((instanceId) =>
+            [held.permanent.topCard, ...held.permanent.stack].some((card) => card.instanceId === instanceId),
+          ),
+      },
+    ]),
+  );
   const [heldTrashArrivals, setHeldTrashArrivals] = useState<MatchCues["heldTrashArrivals"]>(new Map());
   const trashArrivalKeyRef = useRef(0);
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
@@ -975,6 +1001,7 @@ export function useMatchCues({
       setCombatImpactIds,
       setDeleteBursts,
       setHeldDeletions,
+      setHeldStackStrips,
     });
     // Whatever happens to the narration, the pile catches up once this batch has played.
     if (holdsTrash) void queue.idle().then(() => releaseTrashArrivalsThrough(stateVersion));
@@ -1213,6 +1240,7 @@ export function useMatchCues({
     anchors,
     viewerSeat,
     causingEffectGateRef,
+    presentationBatchRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,
@@ -1236,6 +1264,7 @@ export function useMatchCues({
       anchors,
       viewerSeat,
       causingEffectGateRef: liveStateCauseRef,
+      presentationBatchRef,
       securityGainKeyRef,
       drawFlightKeyRef,
       setSecurityFlights,
@@ -1381,6 +1410,7 @@ export function useMatchCues({
     heldSecurityEffectState,
     heldBreedingState,
     heldDeletions,
+    heldStackStrips,
     heldTrashArrivals,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },

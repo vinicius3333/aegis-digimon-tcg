@@ -252,6 +252,13 @@ export type ServerEvent =
   | { kind: "deckShuffled"; seat: Seat; deck: "deck" | "eggDeck" }
   | { kind: "cardRevealed"; seat: Seat; cardId: string; artId?: string; sourceCardId?: string }
   | {
+      /** Public field targets, before deletion prevention interrupts the resolving effect. */
+      kind: "effectTargetsSelected";
+      seat: Seat;
+      sourcePermanentId: string;
+      targetPermanentIds: string[];
+    }
+  | {
       kind: "effectActivated";
       seat: Seat;
       sourceCardId: string;
@@ -265,6 +272,8 @@ export type ServerEvent =
       // after any initial optional activation question. Pending questions explain their
       // own source/clause; declining them never opens a public effect lifecycle.
       kind: "effectTriggered";
+      /** A leave prevention resolves before its source's attempted removal. */
+      beforeRemoval?: boolean;
       seat: Seat;
       sourceCardId: string;
       /** Physical source and host; distinguish identical cards on the same seat. */
@@ -511,6 +520,7 @@ export const SERVER_EVENT_KINDS = [
   "securityRecovered",
   "deckShuffled",
   "cardRevealed",
+  "effectTargetsSelected",
   "effectActivated",
   "effectTriggered",
   "resolutionOrderChosen",

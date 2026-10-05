@@ -7,7 +7,7 @@ import { printedCardName } from "../printedCardName";
 import { Scrim } from "../Scrim";
 import type { DigiXrosCandidate, DigiXrosEligibleExpander } from "../types";
 import { DigiXrosCandidateGrid } from "./DigiXrosCandidateGrid";
-import { DigiXrosExpanderList } from "./DigiXrosExpanderList";
+import { DigiXrosExpanderPrompt } from "./DigiXrosExpanderPrompt";
 import { DigiXrosLockedZone } from "./DigiXrosLockedZone";
 import { digiXrosMaterialPool } from "./digiXrosMaterialPool";
 import { pruneDigiXrosPicksForZoneLimits, toggleDigiXrosPick } from "./digiXrosPicks";
@@ -60,9 +60,13 @@ export function DigiXrosMaterialOverlay({
   const { t } = useTranslation();
   const titleId = useId();
   const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
-  const focusProps = useEffectPromptFocus(isViewingBoard);
   const [picks, setPicks] = useState<string[]>([]);
   const [chosenExpanderPermanentIds, setChosenExpanderPermanentIds] = useState<string[]>([]);
+  const [answeredExpanderPermanentIds, setAnsweredExpanderPermanentIds] = useState<string[]>([]);
+  const pendingExpander = eligibleExpanders.find(
+    (expander) => !answeredExpanderPermanentIds.includes(expander.permanentId),
+  );
+  const focusProps = useEffectPromptFocus(isViewingBoard || pendingExpander !== undefined);
 
   const req = requirements[0]!;
   const reductionLabel =
@@ -97,12 +101,6 @@ export function DigiXrosMaterialOverlay({
     setPicks((prev) => pruneDigiXrosPicksForZoneLimits({ picks: prev, lockedCandidates, trashMax, underTamerMax }));
   }, [lockedCandidates, trashMax, underTamerMax]);
 
-  const toggleExpander = (permanentId: string) => {
-    setChosenExpanderPermanentIds((prev) =>
-      prev.includes(permanentId) ? prev.filter((id) => id !== permanentId) : [...prev, permanentId],
-    );
-  };
-
   const toggle = (candidate: DigiXrosCandidate) => {
     setPicks((prev) => toggleDigiXrosPick({ picks: prev, candidate, candidateById, trashMax, underTamerMax }));
   };
@@ -119,6 +117,24 @@ export function DigiXrosMaterialOverlay({
   };
 
   if (isViewingBoard) return boardReturn;
+  if (pendingExpander !== undefined) {
+    return (
+      <DigiXrosExpanderPrompt
+        key={pendingExpander.permanentId}
+        expander={pendingExpander}
+        copyIndex={
+          eligibleExpanders
+            .filter((expander) => expander.cardId === pendingExpander.cardId)
+            .findIndex((expander) => expander.permanentId === pendingExpander.permanentId) + 1
+        }
+        copyCount={eligibleExpanders.filter((expander) => expander.cardId === pendingExpander.cardId).length}
+        onAnswer={(accept) => {
+          if (accept) setChosenExpanderPermanentIds((prev) => [...prev, pendingExpander.permanentId]);
+          setAnsweredExpanderPermanentIds((prev) => [...prev, pendingExpander.permanentId]);
+        }}
+      />
+    );
+  }
   return (
     <Scrim className="game-modal">
       <div
@@ -157,13 +173,15 @@ export function DigiXrosMaterialOverlay({
           </div>
         </div>
 
-        {eligibleExpanders.length > 0 ? (
-          <DigiXrosExpanderList
-            eligibleExpanders={eligibleExpanders}
-            chosenExpanderPermanentIds={chosenExpanderPermanentIds}
-            onToggle={toggleExpander}
-            t={t}
-          />
+        {chosenExpanderPermanentIds.length > 0 ? (
+          <p role="status">
+            {t("overlay.xrosTamersWillSuspend", {
+              names: eligibleExpanders
+                .filter((expander) => chosenExpanderPermanentIds.includes(expander.permanentId))
+                .map((expander) => printedCardName(expander.cardId))
+                .join(", "),
+            })}
+          </p>
         ) : null}
 
         <DigiXrosCandidateGrid items={candidates} emptyText={t("overlay.xrosNoMaterials")} {...gridProps} />
@@ -171,14 +189,14 @@ export function DigiXrosMaterialOverlay({
           label={t("overlay.xrosZoneTrash")}
           items={trashCandidates}
           max={trashMax}
-          hasEligibleExpanders={eligibleExpanders.length > 0}
+          hasEligibleExpanders={false}
           {...gridProps}
         />
         <DigiXrosLockedZone
           label={t("overlay.xrosZoneUnderTamers")}
           items={underTamerCandidates}
           max={underTamerMax}
-          hasEligibleExpanders={eligibleExpanders.length > 0}
+          hasEligibleExpanders={false}
           {...gridProps}
         />
 
@@ -204,6 +222,17 @@ export function DigiXrosMaterialOverlay({
             </Button>
           ) : null}
         </div>
+        {eligibleExpanders.length > 0 ? (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setChosenExpanderPermanentIds([]);
+              setAnsweredExpanderPermanentIds([]);
+            }}
+          >
+            {t("overlay.xrosChangeTamerEffects")}
+          </Button>
+        ) : null}
         <div className="effect-prompt-family__board-action">
           <DecisionViewBoardButton onOpenBoard={openBoard} />
         </div>

@@ -48,6 +48,7 @@ test("fixed slot infrastructure isolates Redis and advertises exact owning proce
   assert.equal(blue.services.api1.environment.DISCORD_CLIENT_SECRET, "literal$$dollar$${variable}");
   assert.equal(blue.services.api1.environment.AEGIS_LOG_DIR, "/logs");
   assert.equal(blue.services.api1.environment.AEGIS_LOG_MAX_BYTES, "268435456");
+  assert.match(blue.services.api1.environment.NODE_OPTIONS, /--max-old-space-size=1100/);
   assert.deepEqual(blue.services.api1.volumes, [
     "/opt/aegis-rollout/routing:/deployment:ro",
     "/opt/aegis-rollout/logs:/logs",

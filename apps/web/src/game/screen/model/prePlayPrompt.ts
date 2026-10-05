@@ -2,6 +2,7 @@ import {
   CardKind,
   assemblyRequirementFor,
   digiXrosRequirementFor,
+  digiXrosAllowsTrashWithoutCostFor,
   digiXrosTrashNameAllowanceFor,
   digiXrosZoneExpanderFor,
   getCardDefinition,
@@ -159,13 +160,14 @@ function digiXrosMaterials({
     : [];
   const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(cardId);
   const intrinsicTrashMax =
-    intrinsicTrashNames !== undefined &&
-    viewer.battleArea.every((permanent) => {
-      if (!permanent.topCard) return true;
-      const definition = getCardDefinition(permanent.topCard.cardId);
-      return !definition?.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(definition.nameEn);
-    })
-      ? (requirements[0]?.maxMaterials ?? 0)
+    digiXrosAllowsTrashWithoutCostFor(cardId) ||
+    (intrinsicTrashNames !== undefined &&
+      viewer.battleArea.every((permanent) => {
+        if (!permanent.topCard) return true;
+        const definition = getCardDefinition(permanent.topCard.cardId);
+        return !definition?.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(definition.nameEn);
+      }))
+      ? (requirements[0]?.maxMaterials ?? requirements[0]?.materials.length ?? 0)
       : 0;
   return { candidates, lockedCandidates, eligibleExpanders, intrinsicTrashMax };
 }

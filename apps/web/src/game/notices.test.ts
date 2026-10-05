@@ -219,6 +219,36 @@ describe("preventionNoticeFromEvent", () => {
 });
 
 describe("effectNoticeFromEvent", () => {
+  it("shows BT11-032's two Your Turn reactions as different clauses", () => {
+    const clauses = [
+      "[Your Turn] When you play a blue Tamer, unsuspend this Digimon.",
+      "[Your Turn][Once Per Turn] When this Digimon becomes unsuspended, return 1 of your opponent's level 3 or lower Digimon to its owner's hand. For every blue Tamer you have in play, add 1 to the max level of the Digimon you can choose with this effect.",
+    ];
+    const shown = clauses.map((description, index) => {
+      const shownNotice = effectNoticeFromEvent(
+        {
+          kind: "effectTriggered",
+          seat: 0,
+          sourceCardId: "BT11-032",
+          effectKey: `ulforce-reaction-${index}`,
+          timing: index === 0 ? "whenPlayed" : "whenUnsuspended",
+          printedTiming: "YourTurn",
+          description,
+        },
+        VIEWER,
+        `ulforce-${index}`,
+        0,
+      );
+      if (shownNotice?.body.variant !== "effect") throw new Error("Ulforce effect notice missing");
+      return noticeEffectClause({
+        cardId: shownNotice.body.cardId,
+        timing: shownNotice.body.timing,
+        description: shownNotice.body.description,
+      });
+    });
+    expect(shown).toEqual(clauses);
+  });
+
   it("attributes the security-trash reaction to Lilithmon's printed clause", () => {
     const event: ServerEvent = {
       kind: "effectTriggered",

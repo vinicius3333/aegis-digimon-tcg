@@ -39,6 +39,7 @@ export type NoticeBody =
       triggerTiming?: string;
       /** Resolving clause identity, shared with the decision that asks for its targets. */
       effectKey?: string;
+      beforeRemoval?: boolean;
       description?: string;
       /** The chosen bullet of an "activate 1 of the effects below" clause; shown in place of the clause. */
       effectTextPart?: string;
@@ -157,6 +158,7 @@ export function effectNoticeFromEvent(
       timing: event.printedTiming ?? event.timing,
       triggerTiming: event.timing,
       effectKey: event.effectKey,
+      ...(event.beforeRemoval === true ? { beforeRemoval: true } : {}),
       description: event.description,
       isInherited: event.isInherited,
       ...(event.sourceInstanceId ? { sourceInstanceId: event.sourceInstanceId } : {}),
@@ -358,8 +360,19 @@ export function noticeRemaining(notice: MatchNotice, nowMs: number): number {
  * names the card and prints the clause, so the notice would repeat it word for word.
  * The opponent's notices stay: their dialog is not on this screen.
  */
-export function isOwnEffectNotice(notice: MatchNotice, cardId: string): boolean {
-  return notice.side === Side.Viewer && notice.body.variant === "effect" && notice.body.cardId === cardId;
+export interface EffectNoticeScope {
+  timing?: string;
+  sourceInstanceId?: string;
+}
+
+export function isOwnEffectNotice(notice: MatchNotice, cardId: string, scope?: EffectNoticeScope): boolean {
+  return (
+    notice.side === Side.Viewer &&
+    notice.body.variant === "effect" &&
+    notice.body.cardId === cardId &&
+    (scope?.timing === undefined || notice.body.timing === scope.timing) &&
+    (scope?.sourceInstanceId === undefined || notice.body.sourceInstanceId === scope.sourceInstanceId)
+  );
 }
 
 /**

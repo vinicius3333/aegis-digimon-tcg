@@ -8,9 +8,69 @@ import "../ST1/ST1-07.js";
 import "../BT1/BT1-090.js";
 import "../BT24/index.js";
 import "../BT26/index.js";
+import "../BT12/BT12-024.js";
+import "../EX13/EX13-060.js";
 import "./index.js";
 
 describe("BT20-060 Alphamon: Ouryuken", () => {
+  it("Discord 1556343982546755625: Blast DNA against Lanamon consumes the selected copies from four legal combinations", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-060", as: "alphamon" }],
+          hand: [
+            { card: "BT20-060", as: "ace1" },
+            { card: "BT20-060", as: "ace2" },
+            { card: "BT20-018", as: "partner1" },
+            { card: "BT20-018", as: "partner2" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+          security: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT12-024", as: "lanamon" }], security: ["BT1-010", "BT1-010"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("lanamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter did not open");
+    expect(opened.eligibleCounters).toHaveLength(4);
+    const effectKey = `blast-dna-digivolve:${JSON.stringify([
+      s.perm("alphamon").permanentId,
+      s.inst("alphamon").instanceId,
+      s.inst("partner2").instanceId,
+      0,
+    ])}`;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: s.inst("ace2").instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("ace1").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("partner1").instanceId);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("ace2").instanceId);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("partner2").instanceId,
+      s.inst("alphamon").instanceId,
+    ]);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.events.some(({ kind }) => kind === "securityChecked")).toBe(false);
+  });
   it("provides Blast DNA Digivolve from hand", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Counter")).toMatchObject({
       isFromHand: true,

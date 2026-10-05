@@ -65,7 +65,7 @@ describe("BT10-088 Kiriha Aonuma", () => {
     expect(s.perm("otherTamer").stack).toHaveLength(0);
   });
 
-  it("does not mix materials under two different Tamers", async () => {
+  it("Discord 1556119607822254110 sweep: mixes materials under two different Tamers", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -89,10 +89,13 @@ describe("BT10-088 Kiriha Aonuma", () => {
           underTamerHostPermanentId: s.perm("firstTamer").permanentId,
         },
       }),
-    ).toEqual({ ok: false, reason: "invalid-material" });
-    expect(s.perm("kiriha").isSuspended).toBe(false);
-    expect(s.perm("firstTamer").stack).toHaveLength(1);
-    expect(s.perm("secondTamer").stack).toHaveLength(1);
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("kiriha").isSuspended).toBe(true);
+    expect(s.perm("firstTamer").stack).toHaveLength(0);
+    expect(s.perm("secondTamer").stack).toHaveLength(0);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("rejects duplicate material IDs before paying the expander cost", async () => {

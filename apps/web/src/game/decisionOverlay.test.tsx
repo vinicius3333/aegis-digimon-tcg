@@ -4127,3 +4127,19 @@ it("keeps the decline entry apart from the printed bullets", () => {
   fireEvent.click(screen.getByRole("button", { name: "Don't use" }));
   expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 2 });
 });
+
+it.each(["Add 1 yellow card with the [Data] trait", "1 card with the [Witchelny] trait among them to the hand."])(
+  "Discord 1556041043550408755: identifies the Candlemon selection category: %s",
+  (effectTextPart) => {
+    renderDecision({
+      decisionId: "candlemon-reveal-category",
+      seat: 0,
+      kind: "selectCards",
+      promptText: "Candlemon",
+      sourceCardId: "BT18-030",
+      options: { timing: "OnPlay", min: 1, max: 1, effectTextPart },
+    });
+    expect(document.querySelector(".decision-overlay__effect-text")?.textContent).toBe(effectTextPart);
+    expect(screen.queryByText(/Return the rest to the bottom/)).toBeNull();
+  },
+);

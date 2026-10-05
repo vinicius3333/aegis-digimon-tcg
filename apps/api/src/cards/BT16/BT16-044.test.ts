@@ -17,8 +17,8 @@ describe("BT16-044", () => {
       expect(effect.actions?.[2]).toMatchObject({
         kind: "Restrict",
         target: { fromSelectionRef: "suspended" },
-        restriction: "unsuspend",
-        duration: "untilOpponentTurnEnd",
+        restriction: "unsuspendDuringOwnUnsuspendPhase",
+        duration: "untilOpponentNextUnsuspendPhase",
       });
       expect(effect.actions?.[3]).toMatchObject({
         kind: "GainMemory",
@@ -61,7 +61,7 @@ describe("BT16-044", () => {
     await settle(() => s.perm("opponent").isSuspended && s.state.memory === 2);
 
     expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     expect(s.state.memory).toBe(2);
   });
 
@@ -90,7 +90,7 @@ describe("BT16-044", () => {
 
     expect(s.state.memory).toBe(5);
     expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 
   it("does not select an already suspended Digimon for the suspend-and-restrict branch", async () => {
@@ -113,8 +113,8 @@ describe("BT16-044", () => {
     });
     await settle(() => s.perm("unsuspended").isSuspended && s.state.memory === 2);
 
-    expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspend")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("unsuspended"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("unsuspended"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 
   it("naturally pays the inherited security cost and unsuspends after attacking", async () => {
@@ -164,12 +164,14 @@ describe("BT16-044 Pistmon — KB Q&A rulings", () => {
 
     const exactlyThree = await playPistmonWithSecurity(3);
     expect(exactlyThree.perm("opponent").isSuspended).toBe(true);
-    expect(observe(exactlyThree.engine).isRestricted(exactlyThree.perm("opponent"), "unsuspend")).toBe(true);
+    expect(
+      observe(exactlyThree.engine).isRestricted(exactlyThree.perm("opponent"), "unsuspendDuringOwnUnsuspendPhase"),
+    ).toBe(true);
     expect(exactlyThree.state.memory).toBe(2);
 
     const two = await playPistmonWithSecurity(2);
     expect(two.perm("opponent").isSuspended).toBe(false);
-    expect(observe(two.engine).isRestricted(two.perm("opponent"), "unsuspend")).toBe(false);
+    expect(observe(two.engine).isRestricted(two.perm("opponent"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(two.state.memory).toBe(2);
   });
 });

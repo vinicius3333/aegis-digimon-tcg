@@ -11,28 +11,20 @@ export const compiled: CompiledCard = {
           revealCount: 3,
           add: [
             {
+              effectTextPart: "Add 1 yellow card with the [Data] trait",
               filter: {
                 controllerDefault: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Witchelny"],
-                    match: "trait",
-                  },
-                ],
+                colors: ["Yellow"],
+                nameOrTrait: [{ tokens: ["Data"], match: "trait" }],
               },
               count: 1,
               to: "hand",
             },
             {
+              effectTextPart: "1 card with the [Witchelny] trait among them to the hand.",
               filter: {
                 controllerDefault: "mine",
-                colors: ["Yellow"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Data"],
-                    match: "trait",
-                  },
-                ],
+                nameOrTrait: [{ tokens: ["Witchelny"], match: "trait" }],
               },
               count: 1,
               to: "hand",

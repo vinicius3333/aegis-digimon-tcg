@@ -28,7 +28,7 @@ describe("BT13-059 Examon", () => {
         { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
         {
           kind: "Restrict",
-          restriction: "unsuspend",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
           duration: "untilOpponentNextUnsuspendPhase",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
         },
@@ -58,7 +58,7 @@ describe("BT13-059 Examon", () => {
       ok: true,
     });
     await settle(() => s.perm("target").isSuspended, 3000);
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"));
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.state.memory).toBe(-4);
   });

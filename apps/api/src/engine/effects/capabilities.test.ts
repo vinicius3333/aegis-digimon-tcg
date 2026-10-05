@@ -79,6 +79,8 @@ const DEFS: Record<string, DefShape> = {
   DNA_RESULT7: { level: 7, colors: ["Red"], kinds: ["Digimon"], nameEn: "DnaResult" },
   OPT_COST1: { kinds: ["Option"], colors: ["Purple"], playCost: 1 },
   OPT_COST7: { kinds: ["Option"], colors: ["Purple"], playCost: 7 },
+  DIGI_COST4: { kinds: ["Digimon"], colors: ["Purple"], playCost: 4 },
+  DIGI_COST7: { kinds: ["Digimon"], colors: ["Purple"], playCost: 7 },
   OPT_COST4: { kinds: ["Option"], colors: ["Purple"], playCost: 4 },
 };
 
@@ -792,15 +794,15 @@ describe("filter.playCostGte + filter.playCostOneOf (EX9-068, ST6-04)", () => {
 
   it("touches only the cost-7 target through a real ModifyDP resolution (playCostGte)", async () => {
     const src = source("EX9-068", perm("SRC", 0 as Seat, "SRC"));
-    const cheap = perm("CHEAP", 0 as Seat, "OPT_COST4");
-    const dear = perm("DEAR", 0 as Seat, "OPT_COST7");
+    const cheap = perm("CHEAP", 0 as Seat, "DIGI_COST4");
+    const dear = perm("DEAR", 0 as Seat, "DIGI_COST7");
     const { ctx, sink } = makeCtx({ source: src, own: [src.permanent()!, cheap, dear] });
     await runMain(
       "EX9-068",
       [
         {
           kind: "ModifyDP",
-          target: { filter: { controller: "mine", kind: ["Option"], playCostGte: 7 }, count: "all" },
+          target: { filter: { controller: "mine", kind: ["Digimon"], playCostGte: 7 }, count: "all" },
           amount: 1000,
           duration: "forTheTurn",
         },

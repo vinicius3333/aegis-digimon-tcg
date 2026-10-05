@@ -24,8 +24,8 @@ describe("BT16-046", () => {
       expect(effect.actions?.[2]).toMatchObject({
         kind: "Restrict",
         target: { fromSelectionRef: "effectSuspended" },
-        restriction: "unsuspend",
-        duration: "untilOpponentTurnEnd",
+        restriction: "unsuspendDuringOwnUnsuspendPhase",
+        duration: "untilOpponentNextUnsuspendPhase",
       });
       expect(effect.actions?.[3]).toMatchObject({
         kind: "Delete",
@@ -72,8 +72,8 @@ describe("BT16-046", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gran").instanceId })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-085"));
 
-    expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-085")).toBe(false);
   });
 
@@ -105,7 +105,7 @@ describe("BT16-046", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("opponentDigimon").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 
   it("gains Security Attack +1 only when the host itself becomes suspended", async () => {
@@ -178,7 +178,7 @@ describe("BT16-046 GranKuwagamon — KB Q&A rulings", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === tamerInstanceId));
 
     expect(s.perm("chosenDigimon").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("chosenDigimon"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("chosenDigimon"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     expect(s.perm("untouchedDigimon").isSuspended).toBe(false);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009", "BT1-009"]);
   });

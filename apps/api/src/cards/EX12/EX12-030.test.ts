@@ -423,4 +423,91 @@ describe("EX12-030 Thetismon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
     ).toBe(true);
   });
+
+  it.each([
+    { mistymonInPlay: true, securityCount: 3, deletedByEffect: true },
+    { mistymonInPlay: false, securityCount: 3, deletedByEffect: false },
+    { mistymonInPlay: true, securityCount: 5, deletedByEffect: false },
+  ])(
+    "Discord 1556410279602946198: Mistymon in play=$mistymonInPlay, security=$securityCount, effect deletion=$deletedByEffect",
+    async ({ mistymonInPlay, securityCount, deletedByEffect }) => {
+      // Production match bf500886, 2026-10-04 17:08:33 UTC: both cards had 7000 DP
+      // at reveal, but the field Mistymon's removal trigger deleted Thetismon first.
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: cardId, as: "attacker", under: ["RB1-002", "LM-002", "EX12-027"] }],
+            hand: Array.from({ length: 7 }, () => "BT1-032"),
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+          1: {
+            battleArea: mistymonInPlay
+              ? [{ card: "EX13-033", as: "mistymon", under: ["EX13-004", "BT25-030", "BT18-036"] }]
+              : [],
+            security: ["EX13-033", ...Array.from({ length: securityCount - 1 }, () => "BT1-009")],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const attacker = s.perm("attacker");
+      expect(observe(s.engine).hasKeyword(attacker, "Jamming")).toBe(true);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: attacker.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "attackEnded") && !s.state.pendingDecision);
+
+      const checked = s.events.find((event) => event.kind === "securityChecked");
+      expect(checked).toMatchObject({
+        revealedCardId: "EX13-033",
+        resolution: deletedByEffect ? "trashed" : "battle",
+      });
+      expect(s.state.players[1]!.security).toHaveLength(securityCount - 1);
+      expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toEqual(["EX13-033"]);
+      const mistymonTriggers = s.events.filter(
+        (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX13-033",
+      );
+      expect(mistymonTriggers).toHaveLength(mistymonInPlay ? 1 : 0);
+      expect(s.state.players[0]!.battleArea).toHaveLength(deletedByEffect ? 0 : 1);
+      expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(
+        deletedByEffect ? ["BT1-032", "RB1-002", "LM-002", "EX12-027", cardId] : ["BT1-032"],
+      );
+      expect(checked?.battle).toEqual(
+        deletedByEffect
+          ? undefined
+          : {
+              attackerDeleted: false,
+              securityDigimonDeleted: !mistymonInPlay,
+              securityCardDP: 7000,
+              attackerDP: mistymonInPlay ? 1000 : 7000,
+            },
+      );
+      const securitySequence = s.events
+        .filter(
+          (event) =>
+            event.kind === "securityRevealed" ||
+            event.kind === "securityChecked" ||
+            ((event.kind === "effectTriggered" || event.kind === "effectResolved") &&
+              event.sourceCardId === "EX13-033") ||
+            (event.kind === "cardsMoved" &&
+              event.deletedPermanents?.some(({ permanentId }) => permanentId === attacker.permanentId)),
+        )
+        .map(({ kind }) => kind);
+      expect(securitySequence).toEqual(
+        mistymonInPlay
+          ? [
+              "securityRevealed",
+              "effectTriggered",
+              ...(deletedByEffect ? ["cardsMoved"] : []),
+              "effectResolved",
+              "securityChecked",
+            ]
+          : ["securityRevealed", "securityChecked"],
+      );
+    },
+  );
 });

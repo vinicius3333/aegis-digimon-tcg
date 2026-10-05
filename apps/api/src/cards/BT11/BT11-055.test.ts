@@ -47,13 +47,13 @@ describe("BT11-055 MetalTyrannomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalTyrannomon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspendDuringOwnUnsuspendPhase"));
 
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("first"), "unsuspend")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("second"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("first"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("second"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 
   it("trashes security after its host wins a public battle, only once that turn and again next turn", async () => {

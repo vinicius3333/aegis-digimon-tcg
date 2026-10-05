@@ -131,7 +131,7 @@ const compiled: CompiledCard = {
                 count: 1,
                 fromSelectionRef: "warudamonTarget",
               },
-              restriction: "unsuspend",
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
               duration: "untilOpponentNextUnsuspendPhase",
             },
           ],

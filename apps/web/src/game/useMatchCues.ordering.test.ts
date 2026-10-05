@@ -3,10 +3,11 @@
 import { act, cleanup, render as renderDom, renderHook } from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
-import type { GameState, ServerEvent } from "@aegis/shared";
+import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
-import { recordSnapshot, type StateSnapshot } from "../net/presentedState";
+import { recordSnapshot, selectPresentedState, type StateSnapshot } from "../net/presentedState";
+import { presentedSeats } from "./screen/model/presentedSeats";
 import { TIMINGS } from "./timings";
 import { NarrationStack } from "./NarrationStack";
 import { I18nProvider } from "../i18n";
@@ -73,7 +74,11 @@ interface OrderingProps {
   snapshots: readonly StateSnapshot[];
 }
 
-function renderOrderingCues(initialState: GameState = BOARD) {
+function renderOrderingCues(
+  initialState: GameState = BOARD,
+  cueAnchors: MatchCueAnchors = anchors,
+  viewerSeat: Seat = VIEWER,
+) {
   const feed = batchFeed();
   let snapshots = recordSnapshot([], initialState);
   const view = renderHook(
@@ -83,10 +88,10 @@ function renderOrderingCues(initialState: GameState = BOARD) {
         batches,
         state,
         snapshots: taken,
-        viewerSeat: VIEWER,
+        viewerSeat,
         mulliganOpen: false,
         decisionPending,
-        anchors,
+        anchors: cueAnchors,
         onActionRejected: vi.fn<(reason: string) => void>(),
       }),
     {
@@ -145,6 +150,175 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
 });
+
+it.each([
+  { redacted: false, viewerSeat: 0 as Seat, skip: false, destination: "hand" },
+  { redacted: true, viewerSeat: 0 as Seat, skip: false, destination: "hand" },
+  { redacted: false, viewerSeat: 1 as Seat, skip: false, destination: "hand" },
+  { redacted: true, viewerSeat: 0 as Seat, skip: true, destination: "hand" },
+  { redacted: true, viewerSeat: 0 as Seat, skip: false, destination: "deck" },
+])(
+  "issue #4905: source peels precede Merciful returning to $destination ($redacted, viewer $viewerSeat, skip $skip)",
+  async ({ redacted, viewerSeat, skip, destination }) => {
+    const sources = ["AD1-025", "EX9-019", "BT21-061", "ST20-02", "ST21-08", "ST20-06"].map((cardId, index) => ({
+      instanceId: `source-${index}`,
+      cardId,
+    }));
+    const merciful = { instanceId: "merciful", cardId: "EX13-077" };
+    const before = {
+      ...BOARD,
+      stateVersion: 0,
+      players: [
+        { ...BOARD.players[0], handCount: 0 },
+        {
+          ...BOARD.players[1],
+          handCount: 0,
+          battleArea: [{ permanentId: "perm-1", topCard: merciful, stack: [...sources].reverse(), currentDP: 22000 }],
+        },
+      ],
+    } as unknown as GameState;
+    const { hand: _privateHand, ...publicOpponent } = before.players[1]!;
+    const after = {
+      ...before,
+      stateVersion: 3,
+      players: [
+        before.players[0],
+        {
+          ...publicOpponent,
+          battleArea: [],
+          trash: sources,
+          ...(redacted ? {} : { hand: destination === "deck" ? [] : [merciful] }),
+          handCount: destination === "hand" ? 1 : 0,
+        },
+      ],
+    } as unknown as GameState;
+    const node = document.createElement("div");
+    node.getBoundingClientRect = () => ({
+      left: 0,
+      top: 0,
+      width: 100,
+      height: 100,
+      right: 100,
+      bottom: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    const view = renderOrderingCues(
+      before,
+      {
+        ...anchors,
+        board: { current: node },
+        oppDeck: { current: node },
+        oppHandStrip: { current: node },
+        yourDeck: { current: node },
+        yourHandDock: { current: node },
+      },
+      viewerSeat,
+    );
+    await advance(0);
+    const trigger: ServerEvent = {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "ST17-13",
+      sourcePermanentId: "perm-3",
+      effectKey: "magnamon-colors",
+      timing: "WhenDigivolving",
+      description:
+        "[When Digivolving] Trash the top digivolution card of 1 of your opponent's Digimon for each of that Digimon's colors. Then, return 1 of your opponent's Digimon with no digivolution cards to the hand.",
+    };
+    view.feedBatches(
+      [
+        [trigger],
+        [
+          {
+            kind: "cardsMoved",
+            instanceIds: sources.map((card) => card.instanceId),
+            cardIds: sources.map((card) => card.cardId),
+            seat: 1,
+            from: "various",
+            to: "trash",
+            trashedSources: { permanentId: "perm-1", hostCardId: "EX13-077", sourceCardId: "ST17-13" },
+          },
+        ],
+        [
+          {
+            kind: "cardsMoved",
+            instanceIds: ["merciful"],
+            from: "various",
+            to: destination as "hand" | "deck",
+            ...(destination === "deck"
+              ? {
+                  returnedPermanents: [
+                    { permanentId: "perm-1", seat: 1 as Seat, instanceId: "merciful", cardId: "EX13-077" },
+                  ],
+                }
+              : {}),
+          },
+        ],
+      ],
+      after,
+    );
+    const snapshots = recordSnapshot(recordSnapshot([], before), after);
+    const shown = () => {
+      const cues = view.result.current;
+      return presentedSeats({
+        shownState: selectPresentedState({
+          live: after,
+          snapshots,
+          presentedStateVersion: cues.presentedStateVersion,
+        })!,
+        viewer: after.players[viewerSeat]!,
+        opponent: after.players[viewerSeat === 0 ? 1 : 0]!,
+        viewerSeat,
+        heldPhaseState: cues.heldPhaseState,
+        heldBlowState: cues.heldBlowState,
+        heldSecurityEffectState: cues.heldSecurityEffectState,
+        heldDrawState: cues.heldDrawState,
+        heldBreedingState: cues.heldBreedingState,
+        heldDeletions: cues.heldDeletions,
+        heldStackStrips: cues.heldStackStrips,
+        heldTrashArrivals: cues.heldTrashArrivals,
+        optimisticPlayedInstanceId: undefined,
+      });
+    };
+    const peelsSeen: string[] = [];
+    const frames: { shown: ReturnType<typeof shown>; peelCount: number; flightCount: number }[] = [];
+    for (let elapsed = 0; elapsed < 6000; elapsed += 16) {
+      const peel = view.result.current.deleteBursts.find((burst) => burst.stackStrip);
+      if (peel?.cardId && peelsSeen.at(-1) !== peel.cardId) peelsSeen.push(peel.cardId);
+      if (peel) {
+        frames.push({
+          shown: shown(),
+          peelCount: peelsSeen.length,
+          flightCount: view.result.current.drawFlights.length,
+        });
+        if (skip) act(() => view.result.current.skipAnimations());
+      }
+      await advance(16);
+    }
+    expect(frames.length).toBeGreaterThan(0);
+    for (const frame of frames) {
+      const field = (viewerSeat === 0 ? frame.shown.shownOpponent : frame.shown.shownViewer).battleArea;
+      expect(field.map((permanent) => permanent.topCard.instanceId)).toContain("merciful");
+      expect(field.find((permanent) => permanent.permanentId === "perm-1")?.stack).toHaveLength(7 - frame.peelCount);
+      expect(viewerSeat === 0 ? frame.shown.shownOpponentHandCount : frame.shown.shownHandCount).toBe(0);
+      expect(frame.shown.shownHand.some((card) => card.instanceId === "merciful")).toBe(false);
+      expect(frame.flightCount).toBe(0);
+    }
+    expect(peelsSeen).toEqual((skip ? sources.slice(0, 1) : sources).map((card) => card.cardId));
+    expect((viewerSeat === 0 ? shown().shownOpponent : shown().shownViewer).battleArea).toHaveLength(0);
+    expect(viewerSeat === 0 ? shown().shownOpponentHandCount : shown().shownHandCount).toBe(
+      destination === "hand" ? 1 : 0,
+    );
+    expect((viewerSeat === 0 ? shown().shownOpponent : shown().shownViewer).hand).toEqual(
+      redacted ? undefined : after.players[1]!.hand,
+    );
+    expect(view.result.current.heldStackStrips.size).toBe(0);
+    expect(view.result.current.deleteBursts).toHaveLength(0);
+    expect(shown().shownHand).toEqual(viewerSeat === 1 ? [merciful] : after.players[0]!.hand);
+  },
+);
 
 describe("an effect's consequences follow the toast that names it", () => {
   const batches: ServerEvent[][] = [];
@@ -988,3 +1162,102 @@ describe("a ＜Delay＞ Option paying its cost", () => {
     ).toBe(false);
   });
 });
+
+it("presents the resolving clause, its public target, then the opponent's leave protection", async () => {
+  vi.useFakeTimers();
+  const view = renderOrderingCues();
+  view.feedBatch([
+    {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "AD1-002",
+      sourcePermanentId: "perm-3",
+      sourceInstanceId: "s0-27",
+      effectKey: "on-play",
+      timing: "OnPlay",
+      description: "Delete 1 of your opponent's Digimon.",
+    },
+    { kind: "effectTargetsSelected", seat: 0, sourcePermanentId: "perm-3", targetPermanentIds: ["perm-1"] },
+    {
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "BT18-015",
+      sourcePermanentId: "perm-1",
+      sourceInstanceId: "s1-17",
+      effectKey: "protection",
+      timing: "AllTurns",
+      beforeRemoval: true,
+      description: "When this Digimon would leave, it doesn't leave.",
+    },
+  ]);
+  const order = await firstSeenOrder(
+    {
+      onPlay: () =>
+        view.result.current.notices.some(
+          (notice) => notice.body.variant === "effect" && notice.body.timing === "OnPlay",
+        ),
+      target: () => view.result.current.effectSources.some((source) => source.targetPermanentIds?.includes("perm-1")),
+      protection: () =>
+        view.result.current.notices.some(
+          (notice) => notice.body.variant === "effect" && notice.body.timing === "AllTurns",
+        ),
+    },
+    6000,
+  );
+  expect(order).toEqual(["onPlay", "target", "protection"]);
+});
+
+it.each([0, 1] as const)(
+  "does not cycle when interrupted source on seat %s is deleted later in the same batch",
+  async (deletedSeat) => {
+    vi.useFakeTimers();
+    const { observeGateExpiry } = await import("./match/presentationGate");
+    const expiries: string[] = [];
+    const stop = observeGateExpiry(({ label }) => expiries.push(label));
+    onTestFinished(stop);
+    const view = renderOrderingCues();
+    const after = structuredClone(BOARD);
+    after.players[deletedSeat]!.battleArea.splice(0);
+    view.feedBatch(
+      [
+        {
+          kind: "effectTriggered",
+          seat: 0,
+          sourceCardId: "AD1-002",
+          sourcePermanentId: "perm-3",
+          sourceInstanceId: "s0-27",
+          effectKey: "on-play",
+          timing: "OnPlay",
+          description: "Delete 1 of your opponent's Digimon.",
+        },
+        { kind: "effectTargetsSelected", seat: 0, sourcePermanentId: "perm-3", targetPermanentIds: ["perm-1"] },
+        {
+          kind: "effectTriggered",
+          seat: 1,
+          sourceCardId: "BT18-015",
+          sourcePermanentId: "perm-1",
+          sourceInstanceId: "s1-17",
+          effectKey: "protection",
+          timing: "AllTurns",
+          beforeRemoval: true,
+          description: "When this Digimon would leave, by deleting 1 Digimon, it doesn't leave.",
+        },
+        { kind: "effectTargetsSelected", seat: 1, sourcePermanentId: "perm-1", targetPermanentIds: ["perm-3"] },
+        {
+          kind: "cardsMoved",
+          instanceIds: deletedSeat === 1 ? ["s1-51", "s1-17"] : ["s0-27"],
+          from: "battleArea",
+          to: "trash",
+          deletedPermanents: [
+            deletedSeat === 1
+              ? { permanentId: "perm-1", instanceId: "s1-17", cardId: "BT18-015", seat: 1 }
+              : { permanentId: "perm-3", instanceId: "s0-27", cardId: "AD1-002", seat: 0 },
+          ],
+        },
+      ],
+      after,
+    );
+    await advance(12_000);
+    expect(expiries).toEqual([]);
+  },
+);

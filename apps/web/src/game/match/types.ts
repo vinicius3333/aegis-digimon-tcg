@@ -46,6 +46,15 @@ export type DrawBurst = { key: number; x: number; y: number };
 
 export type AttackLunge = { permanentId: string; direction: LungeDirection };
 
+/** The stack host and pending hand return held while its sources peel away. */
+export interface HeldStackStrip {
+  seat: Seat;
+  permanent: Permanent;
+  index: number;
+  stateVersion: number;
+  returnedInstanceId: string | undefined;
+}
+
 /**
  * A deleted permanent the board keeps in place until the shatter that shows it leaving has
  * begun. The batch that deletes it is presented before the clause that caused the deletion
@@ -244,6 +253,8 @@ export interface MatchCues {
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** Deleted permanents still on the board, by the key of the shatter that will take them. */
   heldDeletions: ReadonlyMap<number, HeldDeletion>;
+  /** Stack hosts stay on the field until their source peels finish. */
+  heldStackStrips: ReadonlyMap<number, HeldStackStrip>;
   /** Cards the server has already trashed whose move to the trash is not on screen yet. */
   heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
   /** The last announced phase persists through the gaps between ribbons. */

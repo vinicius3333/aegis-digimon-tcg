@@ -1,8 +1,9 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat, ServerEvent } from "@aegis/shared";
-import type { AnimationQueue, AnimationStepContext } from "../animationQueue";
+import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
+import { waitForStackStrips } from "./stackStripBarrier";
 import { TIMINGS } from "../timings";
 import { CueTrack } from "./enums";
 import type { DrawBurst, DrawFlight, DrawFlightCard, MatchCueAnchors } from "./types";
@@ -21,6 +22,7 @@ export interface CueFlightsDeps {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
   viewerSeat: Seat;
+  presentationBatchRef: MutableRefObject<AnimationStep["origin"]>;
   /** The clause a flight is a consequence of, which is read out before the cards move. */
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   securityGainKeyRef: MutableRefObject<number>;
@@ -38,6 +40,7 @@ export function cueFlights(deps: CueFlightsDeps) {
     anchors,
     viewerSeat,
     causingEffectGateRef,
+    presentationBatchRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,
@@ -115,7 +118,13 @@ export function cueFlights(deps: CueFlightsDeps) {
    * centre-stage track behind it instead of flying into the hand while the reveal is still
    * being read.
    */
-  function launchDrawFlight(side: Side, turnStart = false, waitBeforeMs = 0, card?: DrawFlightCard) {
+  function launchDrawFlight(
+    side: Side,
+    turnStart = false,
+    waitBeforeMs = 0,
+    card?: DrawFlightCard,
+    afterStackStripKey?: number,
+  ) {
     // A turn's own draw is not the consequence of any clause; every other draw is.
     const causingEffectGate = turnStart ? null : causingEffectGateRef.current;
     const board = anchors.board.current;
@@ -155,6 +164,7 @@ export function cueFlights(deps: CueFlightsDeps) {
     // than queueing behind the other side's.
     queue.enqueue({
       id: `draw-flight-${key}`,
+      origin: presentationBatchRef.current,
       side,
       track: card ? CueTrack.CenterStage : `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
@@ -162,6 +172,11 @@ export function cueFlights(deps: CueFlightsDeps) {
           waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "drawFlight/causingEffect"),
           waitBeforeMs > 0 ? context.wait(waitBeforeMs) : Promise.resolve(),
         ]);
+        // A hand-count fallback can be a bounce resolved in the same patch as source
+        // trashing. Its flight must follow the peels, just like the presented hand count.
+        if (afterStackStripKey !== undefined) {
+          await waitForStackStrips({ queue, context, throughKey: afterStackStripKey, side });
+        }
         if (context.cancelled) return;
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(duration);

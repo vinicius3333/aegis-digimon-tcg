@@ -92,6 +92,17 @@ describe("printedClauseForEffect", () => {
 });
 
 describe("printedClauseForWatcher", () => {
+  it("distinguishes BT11-032's unsuspend action from its when-unsuspended trigger", () => {
+    const definition = definitionOf("BT11-032");
+    const effect: CardEffect = { trigger: "YourTurn", actions: [] };
+    expect(printedClauseForWatcher({ definition, effect, event: "whenPlayed", action: {} })).toBe(
+      "[Your Turn] When you play a blue Tamer, unsuspend this Digimon.",
+    );
+    expect(printedClauseForWatcher({ definition, effect, event: "whenUnsuspended", action: {} })).toMatch(
+      /^\[Your Turn\]\[Once Per Turn\] When this Digimon becomes unsuspended, return/,
+    );
+  });
+
   it("picks the continuous clause by the watcher's event phrase", () => {
     const definition = definitionOf("BT11-112");
     const effect: CardEffect = { trigger: "Static", actions: [] };

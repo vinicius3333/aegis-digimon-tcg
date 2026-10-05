@@ -1,3 +1,4 @@
+import { waitForStackStrips } from "../stackStripBarrier";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat } from "@aegis/shared";
 import { DELETE_BURST_SIZE } from "../constants";
@@ -149,6 +150,8 @@ export function deleteBurstStep({
         if (blow !== null && blow.key === blowKey)
           await waitForGate(blow.gate, context, TIMINGS.securityDockMax, "deleteBurst/securityBlow");
       }
+      if (context.cancelled) return leaveUnshown();
+      await waitForStackStrips({ queue, context, throughKey: key, permanentId: anchorId });
       if (context.cancelled) return leaveUnshown();
       if (removal) await waitForRemovalTurn(removal, context);
       if (context.cancelled) return leaveUnshown();

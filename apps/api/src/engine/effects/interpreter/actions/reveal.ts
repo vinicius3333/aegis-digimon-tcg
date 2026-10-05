@@ -384,10 +384,26 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     return { spec, eligible: matches, requireDifferentColors, costBudget, capacity, allocation };
   };
   const slotPlans = action.add.map(planSlot);
+  // Same-destination categories may assign their shared card to either slot (Q1050/Q1985).
+  // Reuse ordinary selectCards decisions: skipping a sole overlap reserves it for slot two.
+  const canDeferToSecond =
+    slotPlans.length === 2 &&
+    slotPlans.every(
+      (plan) =>
+        plan?.allocation?.mandatory === true &&
+        plan.allocation.capacity === 1 &&
+        (plan.spec.to ?? "hand") === "hand" &&
+        !plan.spec.orDispositions?.length,
+    );
+  let deferredInstanceId: string | undefined;
 
   for (const [slotIndex, plan] of slotPlans.entries()) {
     if (plan === undefined) continue;
     const { spec, requireDifferentColors, costBudget, capacity, allocation } = plan;
+    // Scope the category text to this slot's decisions. The parent context still describes
+    // the full reveal when the remaining cards are ordered or later actions resolve.
+    const selectionCtx =
+      spec.effectTextPart === undefined ? ctx : { ...ctx, activeEffectTextPart: spec.effectTextPart };
     let matches = plan.eligible.filter((card) => !taken.has(card.instanceId));
     let minimum: number | undefined;
     // "Perform as much of the effect as possible": a slot may not take a card that leaves a
@@ -406,6 +422,18 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       matches = matches.filter((card) => allowed.candidates.has(card.instanceId));
       minimum = allowed.minimum;
     }
+    if (canDeferToSecond) {
+      if (
+        slotIndex === 0 &&
+        matches.length === 1 &&
+        slotPlans[1]?.eligible.some((card) => card.instanceId === matches[0]!.instanceId)
+      ) {
+        minimum = 0;
+      } else if (deferredInstanceId !== undefined) {
+        matches = matches.filter((card) => card.instanceId === deferredInstanceId);
+        minimum = 1;
+      }
+    }
     // Budget-constrained free play: choose any subset whose SUMMED play cost <= costBudget
     // ("total play costs add up to N or less", BT11-044 / "N play cost's total worth", BT14-068).
     // The card count is bounded by the budget, not a fixed `count`; the pick is always optional.
@@ -415,7 +443,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       // A card can only ever be part of a within-budget subset if it individually fits.
       const affordable = matches.filter((c) => playCostOf(c) <= budget);
       if (affordable.length > 0) {
-        const ids = await ctx.ask.selectCards(ctx, {
+        const ids = await ctx.ask.selectCards(selectionCtx, {
           candidates: affordable.map((c) => c.instanceId),
           visible: revealed.map((c) => c.instanceId),
           visibleCards: revealed.map((c) => ({
@@ -451,7 +479,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // the player inspect the full reveal, including ineligible cards shown as disabled. Slots
     // that take every matching card remain forced; optional/up-to slots still allow 0.
     if (matches.length > 0 && (spec.optional || spec.upTo || spec.count !== "all")) {
-      const ids = await ctx.ask.selectCards(ctx, {
+      const ids = await ctx.ask.selectCards(selectionCtx, {
         candidates: matches.map((c) => c.instanceId),
         visible: revealed.map((c) => c.instanceId),
         visibleCards: revealed.map((c) => ({
@@ -480,6 +508,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         chosen = [];
       }
     }
+    if (canDeferToSecond && slotIndex === 0 && minimum === 0 && chosen.length === 0) {
+      deferredInstanceId = matches[0]?.instanceId;
+    }
     for (const c of chosen) {
       taken.add(c.instanceId);
       let disposition: {
@@ -504,7 +535,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           return true;
         });
         const labels = choices.map((choice) => choice.to ?? "hand");
-        const picked = choices.length > 1 ? await ctx.ask.chooseOption(ctx, labels) : 0;
+        const picked = choices.length > 1 ? await ctx.ask.chooseOption(selectionCtx, labels) : 0;
         disposition = choices[picked] ?? disposition;
       }
       if (disposition.to === "play") {

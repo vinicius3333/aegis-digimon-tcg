@@ -47,7 +47,7 @@ describe("EX5-041 Ebonwumon", () => {
           },
           {
             kind: "Restrict",
-            restriction: "unsuspend",
+            restriction: "unsuspendDuringOwnUnsuspendPhase",
             duration: "untilOpponentNextUnsuspendPhase",
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
           },
@@ -86,12 +86,15 @@ describe("EX5-041 Ebonwumon", () => {
     await settle(() => s.perm("opponentOne").isSuspended && s.perm("opponentTwo").isSuspended);
     expect(s.perm("opponentOne").isSuspended).toBe(true);
     expect(s.perm("opponentTwo").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponentOne"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponentTwo"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponentOne"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponentTwo"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     // CR 15-11-2-2: a Digimon that enters after the effect resolves is locked too.
-    expect(observe(s.engine).isRestricted(s.putOnBoard(1, { card: "BT1-012", suspended: true }), "unsuspend")).toBe(
-      true,
-    );
+    expect(
+      observe(s.engine).isRestricted(
+        s.putOnBoard(1, { card: "BT1-012", suspended: true }),
+        "unsuspendDuringOwnUnsuspendPhase",
+      ),
+    ).toBe(true);
   });
 
   it("publicly suspends two opponents through legal digivolution scaling", async () => {
@@ -195,12 +198,12 @@ describe("EX5-041 Ebonwumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "unsuspendDuringOwnUnsuspendPhase"));
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -259,6 +262,6 @@ describe("EX5-041 Ebonwumon", () => {
     });
     await settle();
     expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 });

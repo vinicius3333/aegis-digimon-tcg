@@ -121,7 +121,7 @@ scenario("attack-permanent", () => {
     expect(opponent.room.state.gameOver).toBe(false);
     const clash = await screen.findByTestId("security-clash", {}, { timeout: 10_000 });
     expect(clash.getAttribute("role")).toBe("status");
-    expect(within(clash).getByText(/security check/i)).toBeTruthy();
+    expect(within(clash).getByText(/^Security check$/i)).toBeTruthy();
     await vi.waitFor(() => expect(screen.queryByTestId("security-clash")).toBeNull(), { timeout: 10_000 });
 
     opponent.endPhase();

@@ -14,8 +14,8 @@ describe("BT14-047", () => {
           { kind: "Suspend" },
           {
             kind: "Restrict",
-            restriction: "unsuspend",
-            duration: "untilOpponentTurnEnd",
+            restriction: "unsuspendDuringOwnUnsuspendPhase",
+            duration: "untilOpponentNextUnsuspendPhase",
             whileMatchesTargetFilter: true,
             target: { count: "all", filter: { dp: { op: "lte", value: 5000 } } },
           },
@@ -48,9 +48,9 @@ describe("BT14-047", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dokugumon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"));
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
 
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);

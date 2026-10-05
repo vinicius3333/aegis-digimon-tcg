@@ -70,12 +70,7 @@ it("runs the Kotone arena scenario through DigiXros and the retained EX6 attack"
     });
     expect(expanderDecision.options?.effectText).toContain("DigiXros");
     expect(expanderDecision.options?.effectText).not.toContain("level 5");
-    const hostDecision = s.decisions.find(
-      ({ req }) =>
-        req.kind === "chooseTargets" && req.options?.candidateInstanceIds?.includes(materialTaiki.permanentId),
-    )!.req;
-    expect(hostDecision).toMatchObject({ sourceCardId: "BT10-087" });
-    expect(hostDecision.options?.effectText).toContain("Select 1 Tamer");
+    expect(s.decisions.some(({ req }) => req.options?.effectText?.includes("Select 1 Tamer"))).toBe(false);
     const materialsDecision = s.decisions.find(({ req }) => req.options?.digiXrosCardId === "BT19-014")!.req;
     expect(materialsDecision).toMatchObject({ sourceCardId: "BT19-014", sourceInstanceId: ex6.instanceId });
     expect(materialsDecision.options?.effectText).toContain("Select DigiXros materials");

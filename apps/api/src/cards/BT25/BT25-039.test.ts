@@ -441,11 +441,22 @@ describe("BT25-039 Sirenmon", () => {
     preferred.push(s.perm("protected").permanentId);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-16"));
+    await settle(() =>
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" &&
+          event.sourceCardId === "BT25-039" &&
+          event.timing === EffectTiming[EffectTiming.OnDestroyedAnyone],
+      ),
+    );
     const optionResolved = s.events.findIndex(
       (event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-16",
     );
     const sirenResolved = s.events.findIndex(
-      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-039",
+      (event) =>
+        event.kind === "effectResolved" &&
+        event.sourceCardId === "BT25-039" &&
+        event.timing === EffectTiming[EffectTiming.OnDestroyedAnyone],
     );
     expect(optionResolved).toBeGreaterThanOrEqual(0);
     expect(sirenResolved).toBeGreaterThan(optionResolved);

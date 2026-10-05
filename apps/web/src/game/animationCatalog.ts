@@ -261,6 +261,7 @@ export const EVENT_ANIMATIONS = {
   deckShuffled: { families: ["shuffle"], changesBoard: true },
   cardRevealed: { families: ["zone"], changesBoard: true },
   effectActivated: { families: ["effect"], changesBoard: false },
+  effectTargetsSelected: { families: ["effect"], changesBoard: false },
   effectTriggered: { families: ["effect"], changesBoard: false },
   resolutionOrderChosen: { families: ["choice", "effect"], changesBoard: false },
   effectOptionChosen: { families: ["choice"], changesBoard: false },

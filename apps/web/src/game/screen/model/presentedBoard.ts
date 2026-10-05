@@ -1,5 +1,5 @@
 import type { Permanent, PlayerState } from "@aegis/shared";
-import type { HeldDeletion, HeldTrashArrival } from "../../match/types";
+import type { HeldDeletion, HeldStackStrip, HeldTrashArrival } from "../../match/types";
 
 /**
  * Keep transient server-resolved abilities current while the presentation queue is still
@@ -123,4 +123,22 @@ export function deletionField(input: { player: PlayerState; held: readonly HeldD
   }
   if (!restored) return player;
   return { ...player, battleArea, trash: held[0]!.trash } as PlayerState;
+}
+
+/** Restore only the host whose sources the current peel sequence is removing. */
+export function stackStripField({
+  player,
+  held,
+}: {
+  player: PlayerState;
+  held: readonly HeldStackStrip[];
+}): PlayerState {
+  if (held.length === 0) return player;
+  const battleArea = [...player.battleArea];
+  for (const strip of held) {
+    const index = battleArea.findIndex((permanent) => permanent.permanentId === strip.permanent.permanentId);
+    if (index >= 0) battleArea[index] = strip.permanent;
+    else battleArea.splice(Math.min(strip.index, battleArea.length), 0, strip.permanent);
+  }
+  return { ...player, battleArea } as PlayerState;
 }

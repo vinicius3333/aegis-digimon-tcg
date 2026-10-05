@@ -23,7 +23,7 @@ describe("ST9-11 Dinobeemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 
   it("suspends and freezes the selected Digimon after DNA digivolving", async () => {
@@ -49,9 +49,9 @@ describe("ST9-11 Dinobeemon", () => {
         instanceId: s.inst("dinobee").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"));
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
   });
 
   it("freezes exactly the Digimon selected for suspension and counts only the host's two colors", async () => {
@@ -92,12 +92,12 @@ describe("ST9-11 Dinobeemon", () => {
         instanceId: s.inst("dinobee").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("chosen"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("chosen"), "unsuspendDuringOwnUnsuspendPhase"));
 
     expect(s.perm("chosen").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("chosen"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("chosen"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     expect(s.perm("other").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("other"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("other"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
 
     const dnaHost = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST9-11")!;
     s.state.memory = 10;

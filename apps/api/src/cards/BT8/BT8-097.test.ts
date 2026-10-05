@@ -23,6 +23,7 @@ import "../BT19/BT19-034.js";
 import "../BT19/BT19-040.js";
 import "../BT19/BT19-083.js";
 import "../BT21/BT21-029.js";
+import "../BT23/BT23-013.js";
 import "../BT24/BT24-017.js";
 import "../BT7/BT7-063.js";
 import "../BT7/BT7-105.js";
@@ -1031,5 +1032,67 @@ describe("BT8-097 Crimson Blaze — KB Q&A rulings", () => {
 
     const control = await opponentActivatesPatamon(false);
     expect(patamonInBreeding(control)).toBe(true);
+  });
+});
+
+describe("Discord 1556299783898005544 — Crimson Blaze versus Jesmon tokens", () => {
+  it("blocks Jesmon's next-turn token after Decoy sacrifices the previous token", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT8-007"],
+          hand: [{ card: "BT8-097", as: "crimsonBlaze" }],
+          deck: [...DECK],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT23-013", as: "jesmon" },
+            { card: "BT1-009", as: "protected" },
+            { card: "TOKEN-AthoRenePor-Token", as: "decoy" },
+            ...opposingDigimon(3, 3000),
+          ],
+          deck: [...DECK],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("decoy").instanceId, s.inst("protected").instanceId);
+    s.state.memory = 0;
+    await s.ready();
+    await useCrimsonBlaze(s);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "deletionPrevented",
+        keyword: "Decoy",
+        permanentId: s.perm("protected").permanentId,
+      }),
+    );
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard.cardId).sort()).toEqual(["BT1-009", "BT23-013"]);
+    expect(opponentEffectPlayBlocked(s)).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(1, { type: "respondAlliance" })).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "attackEnded") && s.state.pendingDecision === undefined);
+    const tokens = s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "TOKEN-AthoRenePor-Token");
+    const stillBlocked = opponentEffectPlayBlocked(s);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    expect(tokens).toHaveLength(0);
+    expect(stillBlocked).toBe(true);
+    expect(opponentEffectPlayBlocked(s)).toBe(false);
+    assertNoLoudGap(s);
   });
 });

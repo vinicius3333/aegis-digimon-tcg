@@ -19,12 +19,14 @@ import {
 } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { createPartitionReactions } from "./partition.js";
 
 /**
  * Returning permanents and loose cards to a hand or deck.
  */
 
 export function createReturnsVerbs(pc: PrimitivesContext) {
+  const partition = createPartitionReactions(pc);
   const { engine, access, currentHandAddProvenance, dropPermanentLedgers, effectSeatStack, player, state } = pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
@@ -43,26 +45,26 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
   ): Promise<CardInstance[]> => {
     if (opts?.detachPermanentTop === true) return detachPermanentTopsToHand(instanceIds, opts);
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
+    // Partition's source plays may replace this permanent before the return resumes.
+    const targetedPermanentByInstance = new Map(
+      instanceIds.flatMap((instanceId) => {
+        const permanentId = pc.helpers.permanentByTopInstance(instanceId);
+        return permanentId === undefined ? [] : [[instanceId, permanentId] as const];
+      }),
+    );
+    const partitionCandidates = partition.captureReturns(instanceIds, opts?.byEffectSeat);
     instanceIds = await filterBouncePrevented(instanceIds);
+    await partition.resolve(partitionCandidates);
     // Bind each battle-area target to the permanent identity selected by the return effect.
     // A would-be-returned reaction can replace that Digimon with a new permanent (BT20-074
     // DNA digivolving one of the materials; Q4400). The original return must then lose its
     // target rather than re-finding the same card instance underneath the new Digimon.
-    const targetedPermanentByInstance = new Map<string, string>();
     // Fire `wouldBeReturned` for each battle-area permanent whose top-card is about to land in
     // hand (CAP-C-11). Fires BEFORE the move so a watcher (BT20-074 DNA digivolve) can respond.
     if (engine.fireSubTrigger) {
       for (const instanceId of instanceIds) {
-        let foundPermId: string | undefined;
-        outer: for (const owner of state.players) {
-          for (const perm of owner.battleArea) {
-            if (perm.topCard?.instanceId === instanceId) {
-              foundPermId = perm.permanentId;
-              break outer;
-            }
-          }
-        }
-        if (foundPermId !== undefined) {
+        const foundPermId = targetedPermanentByInstance.get(instanceId);
+        if (foundPermId !== undefined && access.permanentById(foundPermId)?.topCard?.instanceId === instanceId) {
           targetedPermanentByInstance.set(instanceId, foundPermId);
           await engine.fireSubTrigger("wouldBeReturned", {
             subjectPermanentId: foundPermId,
@@ -223,7 +225,16 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
     },
   ): Promise<CardInstance[]> => {
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
+    // Partition's source plays may replace this permanent before the return resumes.
+    const targetedPermanentByInstance = new Map(
+      instanceIds.flatMap((instanceId) => {
+        const permanentId = pc.helpers.permanentByTopInstance(instanceId);
+        return permanentId === undefined ? [] : [[instanceId, permanentId] as const];
+      }),
+    );
+    const partitionCandidates = partition.captureReturns(instanceIds, opts?.byEffectSeat);
     instanceIds = await filterBouncePrevented(instanceIds);
+    await partition.resolve(partitionCandidates);
     const toTop = opts?.toTop ?? false;
     const returnedFromTrashById = new Map<string, Seat>();
     for (const instanceId of instanceIds) {
@@ -235,21 +246,12 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
     // A would-be-returned reaction can replace that Digimon with a new permanent (BT20-074
     // DNA digivolving one of the materials; Q4400). The original deck return must then lose its
     // target rather than re-finding the same card instance underneath the new Digimon.
-    const targetedPermanentByInstance = new Map<string, string>();
     // Fire `wouldBeReturned` for each battle-area permanent whose top-card is about to land in
     // the deck (CAP-C-11). Fires BEFORE the move, consistent with returnToHand.
     if (engine.fireSubTrigger) {
       for (const instanceId of instanceIds) {
-        let foundPermId: string | undefined;
-        outer: for (const owner of state.players) {
-          for (const perm of owner.battleArea) {
-            if (perm.topCard?.instanceId === instanceId) {
-              foundPermId = perm.permanentId;
-              break outer;
-            }
-          }
-        }
-        if (foundPermId !== undefined) {
+        const foundPermId = targetedPermanentByInstance.get(instanceId);
+        if (foundPermId !== undefined && access.permanentById(foundPermId)?.topCard?.instanceId === instanceId) {
           targetedPermanentByInstance.set(instanceId, foundPermId);
           await engine.fireSubTrigger("wouldBeReturned", {
             subjectPermanentId: foundPermId,

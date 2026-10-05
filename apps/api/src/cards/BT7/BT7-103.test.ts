@@ -16,8 +16,8 @@ describe("BT7-103 Mugen", () => {
         sameTarget: true,
         filter: { controllerDefault: "opponent", kind: ["Digimon"] },
       },
-      restriction: "unsuspend",
-      duration: "untilOpponentTurnEnd",
+      restriction: "unsuspendDuringOwnUnsuspendPhase",
+      duration: "untilOpponentNextUnsuspendPhase",
     });
   });
 
@@ -39,9 +39,13 @@ describe("BT7-103 Mugen", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(
+      () =>
+        s.perm("target").isSuspended &&
+        observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"),
+    );
 
-    expect(observe(s.engine).isRestricted(s.perm("other"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("other"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 
   it("suspends one opposing Digimon from Security without adding the Main unsuspend restriction", async () => {
@@ -56,6 +60,6 @@ describe("BT7-103 Mugen", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
 
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 });

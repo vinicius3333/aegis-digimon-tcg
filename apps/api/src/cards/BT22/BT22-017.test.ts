@@ -87,6 +87,70 @@ describe("BT22-017 Gabumon", () => {
     ).toBe(false);
   });
 
+  it.each(["AD1-025", "BT22-015"])(
+    "Discord 1556299408700735548: Gabumon offers end-of-turn DNA into %s",
+    async (destination) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-026", under: ["BT22-017"], as: "host" },
+              { card: "BT22-013", under: ["BT22-008"], as: "partner" },
+            ],
+            hand: [{ card: destination, as: "dna" }],
+            deck: Array(8).fill("BT1-009"),
+          },
+          1: { deck: Array(8).fill("BT1-009"), security: Array(5).fill("BT1-009") },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, declinePrompts: ["attack"] },
+      );
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
+      expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual([destination]);
+      expect(s.state.players[0]!.battleArea[0]!.stack.map((c) => c.cardId)).toEqual(
+        expect.arrayContaining(["BT22-017", "BT22-026", "BT22-008", "BT22-013"]),
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+      s.engine.applyIntent(0, { type: "surrender" });
+      await loop;
+    },
+  );
+
+  it.each(["BT22-022", "BT1-019"])(
+    "Discord 1556299408700735548: rejects AD1-025 DNA with illegal partner %s",
+    async (partner) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-026", under: ["BT22-017"], as: "host" },
+              { card: partner, as: "partner" },
+            ],
+            hand: ["AD1-025"],
+            deck: Array(8).fill("BT1-009"),
+          },
+          1: { deck: Array(8).fill("BT1-009") },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const loop = s.engine.startTurnLoop();
+      try {
+        await advance(s.engine).waitForMainPhase(0);
+        await s.ready();
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await settle(() => s.state.turnSeat === 1 && s.state.pendingDecision === undefined);
+        expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT22-026", partner]);
+        expect(s.state.players[0]!.hand.some((c) => c.cardId === "AD1-025")).toBe(true);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+        await loop;
+      }
+    },
+  );
+
   it("DNA digivolves a realistic blue host carrying Gabumon with a green level-4 partner", async () => {
     const s = setupEngine(
       {
