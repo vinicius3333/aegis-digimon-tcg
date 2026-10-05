@@ -496,6 +496,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Compre a carta do turno, encerre a criação e jogue DarkKnightmon (BT10-066) com DigiXros. Mighty Axe Mode na mão deve ser oferecido nos dois espaços: como [DeadlyAxemon] junto com SkullKnightmon, ou como [SkullKnightmon]. Ele sozinho não pode preencher os dois espaços.",
     en: "Draw the turn card, end breeding, and play DarkKnightmon (BT10-066) with DigiXros. Mighty Axe Mode in hand must be offered for both slots: as [DeadlyAxemon] next to SkullKnightmon, or as [SkullKnightmon]. It cannot fill both slots on its own.",
   },
+  "arena-ex13-examon-option-dp": {
+    ptBR: "Compre a carta do turno e encerre a criação. Faça DNA de Wingdramon + Groundramon em Examon EX13-045; ataque a segurança e recuse os efeitos opcionais. Examon fica com 25000 DP e Monochromon com 15000. Alexandrite Memory Boost!, Unleash the Dragon Gene e Tai Kamiya devem continuar sem DP e sem bônus de +10000. Depois use a segunda Alexandrite e jogue Monochromon da mão: a Option continua sem DP e o novo Digimon recebe +10000 até o fim do turno do oponente.",
+    en: "Draw the turn card and end breeding. DNA digivolve Wingdramon + Groundramon into EX13-045 Examon; attack security and decline optional effects. Examon reaches 25000 DP and Monochromon reaches 15000. Alexandrite Memory Boost!, Unleash the Dragon Gene, and Tai Kamiya must still have no DP or +10000 bonus. Then use the second Alexandrite and play Monochromon from hand: the Option stays without DP and the new Digimon gets +10000 until the opponent's turn ends.",
+  },
   "arena-ex13-examon-battle-win-timing": {
     ptBR: "Faça a DNA digivolução de Wingdramon + Groundramon em Examon. Examon ataca a segurança e depois batalha com o Digimon do bot. O efeito de vencer a batalha não pode resolver sozinho: ele deve aparecer no mesmo prompt de ordem que o efeito de suspensão do Wingdramon e o [When Attacking] do Bebydomon, e você escolhe a ordem.",
     en: "DNA digivolve Wingdramon + Groundramon into Examon. Examon attacks security, then battles the bot's Digimon. The win-battle effect must not resolve on its own: it must appear in the same order prompt as Wingdramon's suspend effect and Bebydomon's [When Attacking], and you choose the order.",
@@ -813,6 +817,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-kingsukamon-machinedramon-dp", "EX13 KingSukamon · Machinedramon becomes 3000 DP"],
   ["arena-ex13-kingsukamon-vulcanusmon-link", "EX13 KingSukamon · Vulcanusmon loses Divine Arms link"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
+  ["arena-ex13-examon-option-dp", "EX13 Examon · DP bonus excludes Options/Tamers"],
   ["arena-ex13-examon-battle-win-timing", "EX13 Examon · win-battle trigger order"],
   ["arena-bt23-examon-opponent-turn-dna", "BT23 Examon · Delay DNA in opponent's turn, no attack"],
   ["arena-ex13-chirinmon-cost-choice", "EX13 Chirinmon · either-or cost choice"],

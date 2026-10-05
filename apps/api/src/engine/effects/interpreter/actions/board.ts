@@ -15,8 +15,8 @@ import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
 import { processBlitzGrant } from "./combat.js";
 import { playEffectInstances } from "./effectPlayAssembly.js";
 
-/** Filter keys every permanent a player-wide effect reaches already satisfies. */
-const PLAYER_WIDE_SCOPE_KEYS: ReadonlySet<string> = new Set(["controller", "controllerDefault", "kind", "zone"]);
+/** Seat and zone are enforced by the player ledger; kind still needs a live check. */
+const PLAYER_WIDE_SCOPE_KEYS: ReadonlySet<string> = new Set(["controller", "controllerDefault", "zone"]);
 
 /**
  * A narrowed "all" target ("all of your opponent's suspended Digimon") is a live condition, not a
