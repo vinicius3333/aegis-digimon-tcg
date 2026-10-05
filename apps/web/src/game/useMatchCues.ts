@@ -88,7 +88,13 @@ import {
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
-import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
+import {
+  isOwnEffectNotice,
+  noticeRemaining,
+  rejectionNotice,
+  type EffectNoticeScope,
+  type MatchNotice,
+} from "./notices";
 import { TIMINGS } from "./timings";
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
@@ -1206,21 +1212,22 @@ export function useMatchCues({
     narrationLock,
     sidePanels,
     notices,
-    dismissOwnEffectNotice: (cardId: string) => {
+    dismissOwnEffectNotice: (cardId: string, scope?: EffectNoticeScope) => {
       const reopened = suppressedOwnEffectsRef.current.get(cardId);
       if (reopened !== undefined) {
         clearTimeout(reopened.releaseTimer);
         delete reopened.releaseTimer;
       }
       const dialog = reopened ?? { deferred: [] };
+      dialog.scope = scope;
       suppressedOwnEffectsRef.current.set(cardId, dialog);
-      const held = heldNoticesRef.current.filter((notice) => isOwnEffectNotice(notice, cardId));
+      const held = heldNoticesRef.current.filter((notice) => isOwnEffectNotice(notice, cardId, scope));
       heldNoticesRef.current = heldNoticesRef.current.filter((notice) => !held.includes(notice));
       // Already on screen: the dialog is about to print the same clause, so the item gives
       // its notice to the dialog and keeps only its panel, if it has one.
       const shownIds = new Set<string>();
       for (const item of narrationRef.current.values()) {
-        if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId)) continue;
+        if (item.notice === undefined || !isOwnEffectNotice(item.notice, cardId, scope)) continue;
         shownIds.add(item.id);
         dialog.deferred.push(item.notice);
       }

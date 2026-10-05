@@ -1013,3 +1013,38 @@ describe("EX13-015 Gallantmon — KB Q&A rulings", () => {
     }
   });
 });
+
+describe("Discord 1556325649071870043 — Gallantmon standoff", () => {
+  it("offers the nested leave prevention and fails the opponent's deletion cost when it is prevented", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "ourGallantmon" }],
+          deck: Array(8).fill("BT1-009"),
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: CARD_ID, as: "theirGallantmon", under: ["EX13-007", "EX13-010"] },
+            { card: "EX13-007", as: "theirGuilmon" },
+          ],
+          deck: Array(8).fill("BT1-010"),
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ourGallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID));
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([CARD_ID]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("EX13-007");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain(CARD_ID);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

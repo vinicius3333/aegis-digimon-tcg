@@ -141,6 +141,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-merciful-repeat-barrier"
     | "arena-st17-magnamon-merciful-colors"
     | "arena-ad1-gallantmon-deletion-attack-order"
+    | "arena-ex13-gallantmon-standoff"
     | "arena-bt20-cool-boy-stacked-omekamon"
     | "arena-ex10-god-grade-raising-color"
     | "arena-ex10-malomyotismon-trash-main"

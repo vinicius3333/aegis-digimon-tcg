@@ -348,7 +348,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
               ownDeletion?.stateVersion !== undefined &&
               itemVersion !== undefined &&
               ownDeletion.stateVersion > itemVersion;
+            // A failed prevention may lose its source later in this same server batch.
+            // Its announcement must precede that deletion, even at the same state version.
             const shatter =
+              body.beforeRemoval === true ||
               deletedLater ||
               (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? ""))
                 ? undefined

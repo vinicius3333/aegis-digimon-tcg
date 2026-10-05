@@ -167,7 +167,7 @@ export interface MatchCues {
    * Holds back the viewer's own effect notice for a card whose decision dialog is now open —
    * the dialog already names the card and prints the clause the notice would repeat.
    */
-  dismissOwnEffectNotice: (cardId: string) => void;
+  dismissOwnEffectNotice: (cardId: string, scope?: import("../notices").EffectNoticeScope) => void;
   /**
    * The dialog for that card has closed. The notices it held back read out once the answer
    * settles, unless another dialog for the same card opens first.

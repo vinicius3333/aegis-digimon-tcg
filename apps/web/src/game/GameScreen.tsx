@@ -408,9 +408,12 @@ export function GameScreen({
   ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {
     if (promptedOwnEffectCardId === undefined) return;
-    ownEffectNoticeRef.current.dismiss(promptedOwnEffectCardId);
+    ownEffectNoticeRef.current.dismiss(promptedOwnEffectCardId, {
+      timing: decision?.options?.timing,
+      sourceInstanceId: decision?.sourceInstanceId,
+    });
     return () => ownEffectNoticeRef.current.release(promptedOwnEffectCardId);
-  }, [promptedOwnEffectCardId]);
+  }, [promptedOwnEffectCardId, decision?.options?.timing, decision?.sourceInstanceId]);
   const {
     attackLunge,
     combatImpactIds,
@@ -449,6 +452,13 @@ export function GameScreen({
     picks,
     viewerSeat,
     fieldClash,
+    effectSelection: effectSources
+      .flatMap((source) =>
+        source.targetPermanentIds && source.site.zone === "field"
+          ? [{ sourcePermanentId: source.site.permanentId, targetPermanentIds: source.targetPermanentIds }]
+          : [],
+      )
+      .at(-1),
     boardRef,
     permRefs,
     permCentersRef,
@@ -478,7 +488,9 @@ export function GameScreen({
      the steady light it holds for as long as its clause is on screen. Overlapping them
      would leave two animations fighting over the same filter. */
   const effectSourcePermanentIds = new Set(
-    announcing.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+    announcing.flatMap((activation) =>
+      activation.site.zone === "field" ? [activation.site.permanentId, ...(activation.targetPermanentIds ?? [])] : [],
+    ),
   );
   const effectLinkedPermanentIds = new Set(
     effectSources.flatMap((activation) =>

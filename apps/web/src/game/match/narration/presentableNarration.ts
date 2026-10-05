@@ -1,5 +1,5 @@
 import { narrationReadingTime, TOUCH_NARRATION_LIFETIME_SCALE, type NarrationItem } from "../../narration";
-import { isOwnEffectNotice, type MatchNotice } from "../../notices";
+import { isOwnEffectNotice, type EffectNoticeScope, type MatchNotice } from "../../notices";
 
 /**
  * One decision dialog for the viewer's own card, open or answered moments ago.
@@ -9,6 +9,7 @@ import { isOwnEffectNotice, type MatchNotice } from "../../notices";
  * raises while the dialog is open waits here and reads out once the viewer has answered.
  */
 export interface OwnEffectDialog {
+  scope?: EffectNoticeScope;
   /** The card's notices held back until the dialog is answered, oldest first. */
   deferred: MatchNotice[];
   /** Pending read-out of {@link deferred}; a dialog reopening for the card cancels it. */
@@ -24,7 +25,8 @@ function deferringDialog(
   notice: MatchNotice,
   suppressedOwnEffects: ReadonlyMap<string, OwnEffectDialog>,
 ): OwnEffectDialog | undefined {
-  for (const [cardId, dialog] of suppressedOwnEffects) if (isOwnEffectNotice(notice, cardId)) return dialog;
+  for (const [cardId, dialog] of suppressedOwnEffects)
+    if (isOwnEffectNotice(notice, cardId, dialog.scope)) return dialog;
   return undefined;
 }
 
