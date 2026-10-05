@@ -61,7 +61,6 @@ export function createRelocateVerbs(pc: PrimitivesContext) {
     const shed = opts?.shedOwnCards ?? false;
     const toShed: CardInstance[] = shed ? [...source.stack, ...source.linked] : [];
     for (const card of toShed) {
-      card.faceUp = false;
       insertCard(player(card.ownerSeat), Zone.Trash, card);
     }
     if (toShed.length > 0 && emitMovementEvents) {

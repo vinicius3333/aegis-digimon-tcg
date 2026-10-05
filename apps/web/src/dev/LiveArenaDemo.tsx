@@ -209,6 +209,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
   },
+  "arena-ex9-metal-mamemon-face-down-deletion": {
+    ptBR: "Encerre a fase de criação. Jogue EX12-076 Susanoomon com Assembly, escolhendo os 8 materiais diferentes da lixeira. O [Ao Jogar] dá -9000 DP ao MetalMamemon EX9-018 do bot e ele morre. Seu Kokuwamon EX13-046 estava virado para baixo: o herdado [Ao Ser Deletado] não deve ativar nem oferecer De-Digivolve. Susanoomon permanece no campo com os 8 materiais; as duas cartas vão viradas para cima para a lixeira do bot, visíveis para ambos os jogadores.",
+    en: "End breeding. Play EX12-076 Susanoomon with Assembly, selecting all 8 different materials from trash. Its [On Play] gives the bot's EX9-018 MetalMamemon -9000 DP and deletes it. Its EX13-046 Kokuwamon was face down: the inherited [On Deletion] must not trigger or offer De-Digivolve. Susanoomon stays on the field with all 8 materials; both cards enter the bot's trash face up, visible to both players.",
+  },
   "arena-ex13-sampson-face-down-sources": {
     ptBR: "Você e o bot controlam EX13-071 Richard Sampson com 1 carta virada para baixo embaixo. No início da sua Fase Principal, aceite colocar a carta do topo do deck virada para baixo embaixo do seu Sampson. Abra a pilha do seu Sampson: as 2 cartas embaixo mostram o nome e a marca “Virada para baixo”, e tocar nelas amplia a carta. Abra a pilha do Sampson do bot: a carta embaixo continua como “Carta virada para baixo”, sem nome e sem ampliar.",
     en: "You and the bot each control EX13-071 Richard Sampson with 1 face-down card under it. At the start of your Main phase, accept placing your deck's top card face down under your Sampson. Open your Sampson's stack: both cards under it show their name with a “Face down” mark, and tapping one enlarges it. Open the bot's Sampson stack: its card stays “Face-down card”, with no name and no enlarge.",
@@ -376,6 +380,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-vikemon-live-source-lock": {
     ptBR: "Encerre a criação e ataque a segurança com Monodramon. O bot faz Blast Digivolve de Zudomon para Vikemon ACE. Gomamon, com 1 fonte, fica impedido de suspender/atacar. Evolua esse Gomamon para Gorillamon: com 2 fontes, ele deve poder atacar a segurança. Jogue o outro Gomamon da mão: ele também recebe a trava, embora tenha entrado depois do efeito. A trava dura até o fim deste turno.",
     en: "End breeding and attack security with Monodramon. The bot Blast Digivolves Zudomon into Vikemon ACE. Gomamon, with 1 source, cannot suspend/attack. Evolve that Gomamon into Gorillamon: with 2 sources, it must be able to attack security. Play the other Gomamon from hand: it also receives the lock despite entering after the effect. The lock expires at the end of this turn.",
+  },
+  "arena-bt25-ceresmon-homeros-suspend": {
+    ptBR: "Discord 1556518401655054436. Encerre a criação e resolva Homeros: memória de 6 para 7, ele suspende e compra 1. Nenhuma Ceresmon deve ativar, nem a BT25-059 nem a recebida por Succession da BT26-032; Omnimon continua com 17000 DP. Ataque a segurança com Muchomon BT1-013: agora as duas Ceresmon ativam. Escolha Omnimon para ambas. Há 2 Digimon suspensos (Muchomon e Omnimon), então cada efeito dá -6000 DP e Omnimon fica com 5000 DP. Homeros não conta nem consome o uma vez por turno.",
+    en: "Discord 1556518401655054436. End breeding and resolve Homeros: memory rises from 6 to 7, it suspends and draws 1. Neither BT25-059 Ceresmon nor its effect received through BT26-032 Succession should trigger; Omnimon stays at 17000 DP. Attack security with Muchomon BT1-013: both Ceresmon effects now trigger. Choose Omnimon for both. With 2 suspended Digimon (Muchomon and Omnimon), each effect gives -6000 DP, leaving Omnimon at 5000 DP. Homeros does not count or spend the once-per-turn effects.",
   },
   "arena-p224-kotone-own-source": {
     ptBR: "Entre na Principal com 3 de memória. Jogue P-224 Kotone Amano da mão e, no [Ao Jogar], coloque AD1-006 Shoutmon X7 sob ela para comprar 1. Com memória 0, ative o [Principal] da Kotone e aceite suspendê-la. X7 deve aparecer para seleção. Escolha X7 e use BT11-015 OmniShoutmon da mão como material de DigiXros. O custo é 10 (13 − 1 da Kotone − 2 do DigiXros), e o turno passa com 10 de memória para o bot. Reprodução do bug 1556113288599834624 e da condição de custo da partida 9b9ea6cc.",
@@ -612,6 +620,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt26-monimon-optional-cost": {
     ptBR: "Ataque um Agumon suspenso com DarkKnightmon (EX10-031), que tem Monimon BT26-006 nas fontes. Recuse o custo: nenhuma das 3 fontes deve ir para a lixeira, a mão e a memória ficam iguais e o ataque continua. Reinicie o cenário e aceite: descarte Monimon e SkullKnightmon P-115. Depois você pode recusar jogar, mantendo as 2 fontes na lixeira, ou jogar Yuu Amano por 1 de memória / ChuuChuumon BT14-057 por 1. O custo exige exatamente 2 fontes; pagar consome o [Uma Vez Por Turno], mesmo sem jogar.",
     en: "Attack a suspended Agumon with DarkKnightmon (EX10-031), which has BT26-006 Monimon in its sources. Decline the cost: none of its 3 sources should enter the trash, hand and memory stay unchanged, and the attack continues. Restart and accept: trash Monimon and P-115 SkullKnightmon. You may then decline to play, leaving both sources in the trash, or play Yuu Amano for 1 memory / BT14-057 ChuuChuumon for 1. The cost requires exactly 2 sources; paying spends [Once Per Turn] even without playing.",
+  },
+  "arena-bt26-cerberusmon-optional-cost": {
+    ptBR: "Discord 1556544429438013471, partida f659486e de taurusfire110 contra bageko3 (05:47:53 UTC). Encerre a criação e evolua o Digimon Nv.4 TS em Cerberusmon BT26-074 pela rota alternativa (custo 3). Na seleção do descarte, confirme sem escolher cartas: a mão e a lixeira ficam iguais e a memória fica em 7. Ataque o bot com Cerberusmon: a seleção volta porque recusar não gastou o Uma Vez Por Turno. Descarte uma carta, aceite usar a Opção e escolha Cerberusmon: Werewolf Mode BT26-056 da lixeira. Inferno Divide custa 1 (3 menos 2); descarte outra carta para a Opção e o DarkTyrannomon Nv.4 do bot regride para Monodramon Nv.3. Reinicie para testar Ao Jogar (custo 7), ou recuse usar a Opção depois de pagar: o descarte continua pago e consome o uso do turno.",
+    en: "Discord 1556544429438013471, match f659486e: taurusfire110 vs bageko3 (05:47:53 UTC). End breeding and digivolve the level 4 TS Digimon into BT26-074 Cerberusmon through its alternate route (cost 3). Confirm the trash selection with no cards: hand and trash stay unchanged and memory stays at 7. Attack the bot with Cerberusmon: the selection returns because declining preserved Once Per Turn. Trash a card, accept using the Option and select BT26-056 Cerberusmon: Werewolf Mode from the trash. Inferno Divide costs 1 (3 minus 2); trash another hand card for the Option and the bot's level 4 DarkTyrannomon de-digivolves into level 3 Monodramon. Restart to test On Play (cost 7), or decline using the Option after paying: the card stays trashed and the turn's use is consumed.",
   },
   "arena-ex13-flamewizardmon-optional-cost": {
     ptBR: "Evolua o BT18-030 em EX13-029 FlameWizardmon (custo 2). O [Quando Evolui] deve perguntar se você quer descartar a carta do topo da segurança: recuse. Sua segurança continua com 4 cartas e o Digimon do bot continua com 6000 DP. Depois ataque o bot com o FlameWizardmon: a mesma pergunta volta, porque a recusa não gastou o [Uma Vez Por Turno]. Aceite: o topo da segurança vai para a lixeira, o Digimon do bot cai para 2000 DP e, com 3 cartas na segurança, é deletado.",
@@ -873,6 +885,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex12-thetismon-mistymon-deletion", "EX12 Thetismon · Mistymon effect deletion before battle"],
   ["arena-ex12-thetismon-jamming-control", "EX12 Thetismon · Jamming security battle control"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],
+  ["arena-ex9-metal-mamemon-face-down-deletion", "EX9 MetalMamemon · face-down On Deletion"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
   ["arena-p240-arcturusmon-ordered-placement", "P-240 Arcturusmon · order two bottom sources"],
   ["arena-ex12-proximamon-dual-siriusmon", "EX12 Proximamon · use DUAL Siriusmon from sources"],
@@ -942,6 +955,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt18-candlemon-data-selection", "BT18 Candlemon · yellow Data / Witchelny selection"],
   ["arena-bt26-monimon-optional-cost", "BT26 Monimon · optional source-trash cost"],
   ["arena-ex13-flamewizardmon-optional-cost", "EX13 FlameWizardmon · optional security cost"],
+  ["arena-bt26-cerberusmon-optional-cost", "BT26 Cerberusmon · optional hand-trash cost"],
   ["arena-sukamon-transform-digivolve", "EX13 KingSukamon · white Sukamon can't take green digivolve"],
   ["arena-sukamon-transform-digivolve-viewer", "Sukamon rewrite · your Blossomon refused"],
   ["arena-p097-zubamon-reveal-order", "P-097 Zubamon · reveal before top/bottom"],
@@ -974,6 +988,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-moon-pending-source-deleted", "MoonMillenniummon · pending source deleted"],
   ["arena-mirage-hidden-hand", "Mirage BM · concealed hand selection"],
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
+  ["arena-bt25-ceresmon-homeros-suspend", "BT25 Ceresmon · Homeros e Succession / suspension"],
   ["arena-p224-kotone-own-source", "P-224 Kotone · X7 das próprias fontes / own sources"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],

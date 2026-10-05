@@ -91,6 +91,13 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.10.1-beta.summary": releaseMessages["releases.1.10.1-beta.summary"]["pt-BR"],
+  "releases.1.10.1-beta.fix.faceDownDeletion": releaseMessages["releases.1.10.1-beta.fix.faceDownDeletion"]["pt-BR"],
+  "releases.1.10.1-beta.fix.trashVisibility": releaseMessages["releases.1.10.1-beta.fix.trashVisibility"]["pt-BR"],
+  "releases.1.10.1-beta.fix.cerberusmonOptionalCost":
+    releaseMessages["releases.1.10.1-beta.fix.cerberusmonOptionalCost"]["pt-BR"],
+  "releases.1.10.1-beta.fix.digimonSuspensionTriggers":
+    releaseMessages["releases.1.10.1-beta.fix.digimonSuspensionTriggers"]["pt-BR"],
   "releases.1.10.0-beta.summary": releaseMessages["releases.1.10.0-beta.summary"]["pt-BR"],
   "releases.1.10.0-beta.fix.blastCounters": releaseMessages["releases.1.10.0-beta.fix.blastCounters"]["pt-BR"],
   "releases.1.10.0-beta.fix.digixros": releaseMessages["releases.1.10.0-beta.fix.digixros"]["pt-BR"],

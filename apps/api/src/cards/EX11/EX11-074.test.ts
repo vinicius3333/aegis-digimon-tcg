@@ -1095,6 +1095,8 @@ describe("EX11-074 Vortexdramon", () => {
     );
 
     expect(observe(s.engine).hasRestriction(s.perm("base"), "beAffected", "Digimon")).toBe(true);
+    // Discord 1556518401655054436 sweep: the suspended attacker left in the immediate
+    // Battle, but Shoto's already-triggered +3000 DP still resolves afterward.
     expect(s.perm("base").currentDP).toBe(26000);
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("base").permanentId)).toBe(
       true,

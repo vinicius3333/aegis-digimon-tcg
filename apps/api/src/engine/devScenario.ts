@@ -52,6 +52,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
   "arena-bt26-monimon-optional-cost",
+  "arena-bt26-cerberusmon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
   "field-grouping",
@@ -87,6 +88,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt10-taiki-x7-xros-heart",
   "arena-bt10-taiki-reveal-under-self",
   "arena-ex13-sampson-face-down-sources",
+  "arena-ex9-metal-mamemon-face-down-deletion",
   "arena-p240-arcturusmon-vb-routes",
   "arena-p240-arcturusmon-ordered-placement",
   "arena-ex12-proximamon-dual-siriusmon",
@@ -186,6 +188,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
   "arena-p224-kotone-own-source",
+  "arena-bt25-ceresmon-homeros-suspend",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
@@ -1053,6 +1056,47 @@ function layEx13SampsonFaceDownSourcesScenario(state: GameState, decks: readonly
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Discord 1556527556319252540, match 24a8a257: Susanoomon deletes MetalMamemon at 0 DP. */
+function layMetalMamemonFaceDownDeletionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Trash);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-hidden-deletion-susanoo", "EX12-076", 0));
+    for (const [index, cardId] of [
+      "EX12-006",
+      "EX12-009",
+      "EX12-011",
+      "EX12-015",
+      "EX12-020",
+      "EX12-025",
+      "EX12-031",
+      "EX12-036",
+    ].entries()) {
+      const card = faceDownCard(`dev-hidden-deletion-material-${index}`, cardId, 0);
+      card.faceUp = true;
+      insertCard(human, Zone.Trash, card);
+    }
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    const metal = establishedDigimon(1, ["EX9-018"], "-hidden-deletion-metal");
+    pushOnStack(metal, faceDownCard("dev-hidden-deletion-kokuwa", "EX13-046", 1));
+    placePermanent(opponent, metal);
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Same physical Ravemon evolves again before its earlier deletion chain has finished. */
@@ -2990,6 +3034,41 @@ function layEx13ChirinmonCostChoiceScenario(state: GameState, decks: readonly [D
   state.memory = 3;
 }
 
+/** Reduced reproduction of Taurus vs bageko3, Discord 1556544429438013471.
+ * Decline the hand-trash processing condition on evolution, then accept it on attack.
+ */
+function layBt26CerberusmonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 8; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-cerberusmon-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-cerberusmon-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-038"], "-cerberusmon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt26-cerberusmon", "BT26-074", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-cerberusmon-hand-cost", "BT1-010", 0));
+    insertCard(human, Zone.Trash, faceDownCard("dev-cerberusmon-titan-option", "BT26-056", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-009", "BT1-019"], "-cerberusmon-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 /**
  * EX13-029 FlameWizardmon's "By trashing your top security card" is optional (Discord
  * 1555472780571705354, KB Q7291). Declining on digivolve must keep the security stack and the
@@ -4522,6 +4601,27 @@ function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Dec
   }
 }
 
+/** Discord 1556518401655054436, match da48b9f0: Homeros suspended at 6 → 7 memory. */
+function layBt25CeresmonHomerosSuspendScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT24-102"], "-ceresmon-homeros"));
+  placePermanent(human, establishedDigimon(0, ["BT25-059"], "-ceresmon-native"));
+  placePermanent(human, establishedDigimon(0, ["BT25-059", "BT26-032"], "-ceresmon-successor"));
+  placePermanent(human, establishedDigimon(0, ["BT1-013"], "-ceresmon-attacker"));
+  const target = establishedDigimon(1, ["EX13-077"], "-ceresmon-target");
+  target.isSuspended = true;
+  placePermanent(opponent, target);
+  // Keep the attack's security check neutral and the two start-of-turn draws unambiguous.
+  clearZone(opponent, Zone.Security);
+  insertCard(opponent, Zone.Security, faceDownCard("dev-ceresmon-security", "BT1-013", 1));
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-ceresmon-draw-${index}`, "BT1-085", 0), "top");
+  }
+}
+
 /** Discord 1556113288599834624, match 9b9ea6cc: X7 needs DigiXros at zero memory. */
 function layP224KotoneOwnSourceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 3);
@@ -5677,6 +5777,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt10-taiki-x7-xros-heart": layBt10TaikiX7XrosHeartScenario,
   "arena-bt10-taiki-reveal-under-self": layBt10TaikiRevealUnderSelfScenario,
   "arena-ex13-sampson-face-down-sources": layEx13SampsonFaceDownSourcesScenario,
+  "arena-ex9-metal-mamemon-face-down-deletion": layMetalMamemonFaceDownDeletionScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-p240-arcturusmon-ordered-placement": layP240ArcturusmonOrderedPlacementScenario,
   "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,
@@ -5755,6 +5856,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex13-wisemon-witchelny-cost": layEx13WisemonWitchelnyCostScenario,
   "arena-ex13-flamewizardmon-optional-cost": layEx13FlameWizardmonOptionalCostScenario,
+  "arena-bt26-cerberusmon-optional-cost": layBt26CerberusmonOptionalCostScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
@@ -5780,6 +5882,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
+  "arena-bt25-ceresmon-homeros-suspend": layBt25CeresmonHomerosSuspendScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,

@@ -80,6 +80,15 @@ export function isOverMaxPerTurn(effect: Effect, tracker: UseTracker, instanceId
   return tracker.count(instanceId, effect.effectKey) >= effect.maxPerTurn;
 }
 
+/** A source hidden at deletion had no effect to trigger, even after trash reveals it. */
+function wasHiddenAtDeletion(ctx: EffectContext): boolean {
+  return (
+    ctx.trigger?.deletedPermanentSnapshots?.some((snapshot) =>
+      snapshot.faceDownSourceInstanceIds?.includes(ctx.source.instanceId),
+    ) === true
+  );
+}
+
 /**
  * Whether this effect's source card is currently placed such that an
  * inherited/linked effect may activate. Mirrors the inherited/linked branch of
@@ -98,6 +107,7 @@ export function isOverMaxPerTurn(effect: Effect, tracker: UseTracker, instanceId
  * are deferred to the inherited-effects and advanced-mechanics subsystems.
  */
 export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolean {
+  if (wasHiddenAtDeletion(ctx)) return false;
   // This proof is captured for one discard event and remains on the deferred context. Once the
   // source or host moves again, it is stale: do not let the ordinary inherited branch below
   // reinterpret a reattached source as the original discarded card.
@@ -214,6 +224,7 @@ export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolea
  * so it is not duplicated here.
  */
 export function canTrigger(effect: Effect, ctx: EffectContext, tracker: UseTracker): boolean {
+  if (wasHiddenAtDeletion(ctx)) return false;
   if (isOverMaxPerTurn(effect, tracker, ctx.source.instanceId)) return false;
   return effect.canTrigger(ctx);
 }

@@ -1428,6 +1428,9 @@ export class CombatController {
       const sacrifice = candidates.find((p) => p.topCard?.instanceId === chosenInstanceId);
       if (sacrifice === undefined) continue;
       const sacrificeStackIds = sacrifice.stack.map((c) => c.instanceId);
+      const sacrificeFaceDownSourceInstanceIds = [...sacrifice.stack, ...sacrifice.linked]
+        .filter((card) => !card.faceUp)
+        .map((card) => card.instanceId);
       const sacrificeHostInstanceId = sacrifice.topCard!.instanceId;
       const sacrificeHasFortitude = sacrificeStackIds.length > 0 && this.hasKeyword(sacrifice.permanentId, "Fortitude");
       const sacrificeMoved = this.access.deletePermanent(sacrifice.permanentId);
@@ -1443,6 +1446,7 @@ export class CombatController {
                   permanentId: sacrifice.permanentId,
                   controllerSeat: sacrifice.controllerSeat,
                   topCardId: sacrifice.topCard.cardId,
+                  faceDownSourceInstanceIds: sacrificeFaceDownSourceInstanceIds,
                 },
               ]
             : [],
@@ -1533,6 +1537,9 @@ export class CombatController {
               permanentId,
               controllerSeat: permanent.controllerSeat,
               topCardId: permanent.topCard.cardId,
+              faceDownSourceInstanceIds: [...permanent.stack, ...permanent.linked]
+                .filter((card) => !card.faceUp)
+                .map((card) => card.instanceId),
             },
           ];
     });

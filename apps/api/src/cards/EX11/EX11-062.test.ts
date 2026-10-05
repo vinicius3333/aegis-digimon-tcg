@@ -19,6 +19,51 @@ describe("EX11-062 Shoto Kazama", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
+  it("Discord bug 1556518401655054436 sweep: ignores Homeros suspension and still reacts to a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-013", "BT1-013", "BT1-013"],
+          battleArea: [
+            { card: "BT24-102", as: "homeros" },
+            { card: "EX11-062", as: "shoto" },
+            { card: "EX11-026", as: "bird" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.perm("homeros").isSuspended).toBe(true);
+      expect(s.perm("shoto").isSuspended).toBe(false);
+      expect(s.perm("bird").currentDP).toBe(1000);
+      expect(s.state.players[0]!.hand).toHaveLength(1);
+      expect(
+        s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX11-062"),
+      ).toHaveLength(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("bird").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      expect(s.perm("shoto").isSuspended).toBe(true);
+      expect(s.perm("bird").currentDP).toBe(4000);
+      expect(s.state.players[0]!.hand).toHaveLength(1);
+    } finally {
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    }
+  });
+
   it("draws and grants +3000 DP when an effect suspends a Digimon (Q5917/Q5918)", async () => {
     const s = setupEngine(
       {
