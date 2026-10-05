@@ -1,3 +1,4 @@
+import "../index.js";
 import { describe, expect, it } from "vitest";
 import { compiledEffects, digivolutionRequirementsFor, EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
@@ -521,4 +522,56 @@ describe("EX12-059 Machinedramon — KB Q&A rulings", () => {
     expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(stackBefore);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
+});
+
+describe("Discord October 5 report regressions", () => {
+  it.each(["effect", "battle"] as const)(
+    "1556702668754387095: Chaosdramon X uses Machinedramon stack lock and Fragment against %s",
+    async (cause) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT12-072", as: "chaos", under: ["EX12-059", "EX12-054", "EX12-055"] }],
+            hand: ["EX12-054"],
+            trash: ["EX12-055"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-085", as: "red" },
+              { card: "BT1-009", as: "enemy", dp: 20000, suspended: true },
+            ],
+            hand: [{ card: "ST1-16", as: "gaia" }],
+            security: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("chaos").permanentId,
+          target:
+            cause === "effect" ? { kind: "player" } : { kind: "permanent", permanentId: s.perm("enemy").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      if (cause === "effect")
+        expect(advance(s.engine).ledgers.continuous.stackTrashLocked(s.perm("chaos").permanentId)).toBe(true);
+      if (cause === "effect") {
+        s.state.turnSeat = 1;
+        s.state.memory = 10;
+        expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(
+          () =>
+            s.events.some((e) => e.kind === "deletionPrevented" && e.keyword === "Fragment") &&
+            s.state.pendingDecision === undefined,
+        );
+      }
+      expect(s.events.some((e) => e.kind === "deletionPrevented" && e.keyword === "Fragment")).toBe(true);
+      expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    },
+  );
 });

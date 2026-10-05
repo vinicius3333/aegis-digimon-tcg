@@ -36,6 +36,8 @@ export interface ContinuousLegalityReader {
     opts?: { byOpponentEffect?: boolean; byEffect?: boolean },
   ): boolean;
   hasKeyword(permanentId: string, keyword: string): boolean;
+  /** Parameters of conferred keywords, including Fragment's trash count. */
+  grantedKeywords?(permanentId: string): { keyword: string; amount?: number }[];
   /** Target-scoped "this attacker can't attack this Digimon" prohibitions. */
   cannotAttackTarget?(attackerPermanentId: string, targetPermanentId: string): boolean;
   /**
