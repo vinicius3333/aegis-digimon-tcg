@@ -34,7 +34,13 @@ visible movement. Paused and hidden animations therefore differ from visibly mov
 Ancestor visibility and viewport bounds are checked; infinite decorative motion is
 recorded in JSON but excluded from the inspector's finite-animation table.
 
-Frame gaps over 50 ms mark affected animations as undersampled. A p95 over 50 ms makes
+Frame gaps over 50 ms mark an animation as undersampled when more than 50 ms of
+its active native interval was traversed, accounting for its delay and playback rate.
+A pending start, a lead-in or a retained completed pose can span a wall-clock gap
+without losing that animation's motion. Unknown native clocks remain conservative:
+finishing after an unavailable prior clock does not prove the gap was only a final hold.
+Raw frame gaps remain recorded, independently of this per-animation classification.
+A p95 over 50 ms makes
 the capture unusable for the automatic verdict. This is a local measurement policy,
 not a sourced universal threshold. Hidden-tab time is excluded from frame gaps. Removal
 before a finite animation's end is flagged only with sufficient frames and a two-frame

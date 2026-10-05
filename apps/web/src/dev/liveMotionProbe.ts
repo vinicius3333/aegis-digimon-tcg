@@ -7,6 +7,7 @@ export interface MotionSample {
   firstAt: number;
   lastAt: number;
   durationMs: number | null;
+  delayMs: number;
   infinite: boolean;
   visibleFrames: number;
   movingFrames: number;
@@ -40,7 +41,7 @@ export function createLiveMotionProbe(doc: Document = document) {
   const moments: VisibleMoment[] = [];
   const gaps: number[] = [];
   let seen = new WeakMap<Animation, MotionSample>();
-  const active = new Map<Animation, { sample: MotionSample; time: number | null; visual: string }>();
+  const active = new Map<Animation, { sample: MotionSample; time: number | null; rate: number; visual: string }>();
   const visible = new Map<Element, VisibleMoment>();
   const limit = 600;
 
@@ -145,6 +146,7 @@ export function createLiveMotionProbe(doc: Document = document) {
             typeof timing.activeDuration === "number" && Number.isFinite(timing.activeDuration)
               ? timing.activeDuration
               : null,
+          delayMs: Number(timing.delay ?? 0),
           infinite: timing.iterations === Infinity,
           visibleFrames: 0,
           movingFrames: 0,
@@ -181,7 +183,21 @@ export function createLiveMotionProbe(doc: Document = document) {
           ].join("|")
         : "";
       const earlier = active.get(animation);
-      sample.undersampled ||= !!earlier && now - sample.lastAt > 50;
+      if (earlier && now - sample.lastAt > 50) {
+        // A pending start, CSS delay or filled final pose can outlive a frame gap
+        // without losing motion. Judge only the traversed active native interval.
+        const nativeGapMs =
+          time !== null && earlier.time !== null
+            ? Math.max(
+                0,
+                Math.min(Math.max(time, earlier.time), sample.delayMs + (sample.durationMs ?? Infinity)) -
+                  Math.max(Math.min(time, earlier.time), sample.delayMs),
+              ) / Math.min(Math.abs(earlier.rate) || 1, Math.abs(animation.playbackRate ?? 1) || 1)
+            : earlier.sample.ended && animation.playState === "finished"
+              ? 0
+              : Infinity;
+        sample.undersampled ||= nativeGapMs > 50;
+      }
       sample.lastAt = now;
       if (isVisible) {
         sample.visibleFrames += 1;
@@ -190,14 +206,15 @@ export function createLiveMotionProbe(doc: Document = document) {
       }
       if (animation.playState === "paused") sample.pausedFrames += 1;
       sample.ended = animation.playState === "finished";
-      active.set(animation, { sample, time, visual });
+      active.set(animation, { sample, time, rate: animation.playbackRate ?? 1, visual });
     }
     for (const [animation, entry] of active) {
       if (animations.has(animation)) continue;
+      const completed = entry.sample.ended;
       entry.sample.ended = true;
       const end = animation.effect?.getComputedTiming().endTime;
       // Allow two 60 Hz frames at unmount. Delayed shards must finish too.
-      entry.sample.undersampled ||= now - entry.sample.lastAt > 50;
+      entry.sample.undersampled ||= !completed && now - entry.sample.lastAt > 50;
       entry.sample.cutShort =
         !entry.sample.undersampled &&
         !entry.sample.infinite &&

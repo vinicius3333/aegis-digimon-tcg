@@ -4,6 +4,102 @@ import { createLiveMotionProbe } from "./liveMotionProbe";
 
 afterEach(() => vi.restoreAllMocks());
 
+it.each([
+  {
+    label: "an unknown start through completion",
+    previous: null,
+    current: 80,
+    delay: 0,
+    duration: 80,
+    finished: true,
+    missing: true,
+  },
+  { label: "a pending start", previous: 0, current: 0, delay: 0, duration: 250, finished: false, missing: false },
+  { label: "a CSS lead-in", previous: 0, current: 100, delay: 150, duration: 233, finished: false, missing: false },
+  {
+    label: "a short active interval after a lead-in",
+    previous: 100,
+    current: 180,
+    delay: 150,
+    duration: 233,
+    finished: false,
+    missing: false,
+  },
+  {
+    label: "the last eight native milliseconds",
+    previous: 375,
+    current: 383,
+    delay: 150,
+    duration: 233,
+    finished: true,
+    missing: false,
+  },
+  {
+    label: "a retained final pose",
+    previous: 250,
+    current: 250,
+    delay: 0,
+    duration: 250,
+    finished: true,
+    missing: false,
+  },
+  { label: "active motion", previous: 50, current: 150, delay: 0, duration: 250, finished: false, missing: true },
+  {
+    label: "a gap crossing the lead-in",
+    previous: 100,
+    current: 250,
+    delay: 150,
+    duration: 233,
+    finished: false,
+    missing: true,
+  },
+])(
+  "classifies a 100ms frame gap during $label using the native clock",
+  ({ previous, current, delay, duration, finished, missing }) => {
+    let nextFrame: FrameRequestCallback = () => {};
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      nextFrame = callback;
+      return 1;
+    });
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    const card = document.createElement("div");
+    card.getBoundingClientRect = () => new DOMRect(10, 10, 100, 140);
+    document.body.append(card);
+    const animation = {
+      currentTime: previous,
+      playState: previous !== null && previous >= delay + duration ? "finished" : "running",
+      playbackRate: 1,
+      effect: {
+        target: card,
+        getComputedTiming: () => ({ delay, activeDuration: duration, iterations: 1, endTime: delay + duration }),
+      },
+    };
+    let animations = [animation];
+    Object.defineProperty(document, "getAnimations", { configurable: true, value: () => animations });
+    const probe = createLiveMotionProbe();
+    try {
+      probe.start();
+      nextFrame(0);
+      animation.currentTime = current;
+      animation.playState = finished ? "finished" : "running";
+      nextFrame(100);
+      expect(probe.read().animations[0]!.undersampled).toBe(missing);
+      animations = [];
+      nextFrame(200);
+      expect(probe.read().animations[0]).toMatchObject({
+        ended: true,
+        // A missed removal remains uncertain unless native completion was observed.
+        undersampled: finished ? missing : true,
+        cutShort: false,
+      });
+    } finally {
+      probe.stop();
+      card.remove();
+      Reflect.deleteProperty(document, "getAnimations");
+    }
+  },
+);
+
 it("excludes hidden time even when the browser suspends every hidden frame", () => {
   let nextFrame: FrameRequestCallback = () => {};
   vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
@@ -101,7 +197,7 @@ it("reads shared animation geometry and normal styles once per frame", () => {
   });
   vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
   const card = document.createElement("div");
-  const bounds = vi.fn(() => new DOMRect(10, 10, 100, 140));
+  const bounds = vi.fn<() => DOMRect>(() => new DOMRect(10, 10, 100, 140));
   card.getBoundingClientRect = bounds;
   document.body.append(card);
   const animations = ["reveal", "glow"].map((animationName) => ({
