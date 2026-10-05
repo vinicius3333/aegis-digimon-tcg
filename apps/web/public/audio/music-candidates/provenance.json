@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "original": true,
+  "selectedId": "warm-drive",
+  "selectionReason": "Strong measured105 BPM pulse near requested104, strongest proposed loop-boundary harmonic similarity0.907, modest0.974% tempo alignment; no subjective listening certification",
+  "generator": {
+    "repository": "https://github.com/Stability-AI/stable-audio-3",
+    "sourceCommit": "3a82c807b69cf4b7c5c05270011a5d5e47abac18",
+    "scriptSha256": "312c2833fac5ca270cbeebe7037b3fbeacd87b10c9b5d057587c5eaf824fb951",
+    "weights": "https://huggingface.co/stabilityai/stable-audio-3-optimized",
+    "model": "sm-music",
+    "decoder": "same-s",
+    "steps": 8,
+    "cfg": 1.8,
+    "offline": true,
+    "negativePrompt": "vocals, singing, speech, ocean, wind, watery noise, shaker, maraca, hi-hat, continuous noise, ambient wash"
+  },
+  "reference": {
+    "referenceUrl": "https://www.youtube.com/watch?v=MuhkUzGAeHA",
+    "sourceSha256": "42adc3affa0a810d699df36fdf17e8ee5885d5d9d13dcb130ddb0edfa466b63b",
+    "duration": 258.48454166666664,
+    "sampleRate": 48000,
+    "channels": 2,
+    "analysisSeconds": 120,
+    "method": "First120s: scipy polyphase downsample11025Hz, 1024-point STFT/256-hop positive log spectral flux, median novelty suppression and normalized FFT autocorrelation; full file30s RMS windows",
+    "tempoCandidates": [
+      {
+        "bpm": 83.35433467741936,
+        "normalizedAutocorrelation": 0.48875561356544495
+      },
+      {
+        "bpm": 161.4990234375,
+        "normalizedAutocorrelation": 0.4571862816810608
+      },
+      {
+        "bpm": 54.978390957446805,
+        "normalizedAutocorrelation": 0.4544059634208679
+      },
+      {
+        "bpm": 66.25600961538461,
+        "normalizedAutocorrelation": 0.4304007291793823
+      },
+      {
+        "bpm": 46.98153409090909,
+        "normalizedAutocorrelation": 0.4106903374195099
+      },
+      {
+        "bpm": 107.666015625,
+        "normalizedAutocorrelation": 0.4016338288784027
+      }
+    ],
+    "tempoConfidence": "moderate; integer-hop estimates and half/double beat interpretation require listening",
+    "onsetsPerSecond": 5.725,
+    "onsetCountsPer15Seconds": [78, 84, 81, 93, 88, 88, 87, 88],
+    "spectralEnergyFractions": {
+      "lowBelow150Hz": 0.26580801606178284,
+      "mid150to2000Hz": 0.6202138066291809,
+      "highAbove2000Hz": 0.11397822201251984
+    },
+    "peak": 1.0,
+    "rms": 0.2539299428462982,
+    "oneSecondRmsPercentiles": [0.20353274643421174, 0.24580524861812592, 0.27531297206878663],
+    "sections": [
+      {
+        "start": 0,
+        "end": 30,
+        "rms": 0.21906886994838715,
+        "peak": 1.0
+      },
+      {
+        "start": 30,
+        "end": 60,
+        "rms": 0.23338869214057922,
+        "peak": 1.0
+      },
+      {
+        "start": 60,
+        "end": 90,
+        "rms": 0.2615358233451843,
+        "peak": 1.0
+      },
+      {
+        "start": 90,
+        "end": 120,
+        "rms": 0.21897414326667786,
+        "peak": 1.0
+      },
+      {
+        "start": 120,
+        "end": 150,
+        "rms": 0.25182434916496277,
+        "peak": 1.0
+      },
+      {
+        "start": 150,
+        "end": 180,
+        "rms": 0.2394268661737442,
+        "peak": 1.0
+      },
+      {
+        "start": 180,
+        "end": 210,
+        "rms": 0.2555714547634125,
+        "peak": 1.0
+      },
+      {
+        "start": 210,
+        "end": 240,
+        "rms": 0.2673110365867615,
+        "peak": 1.0
+      },
+      {
+        "start": 240,
+        "end": 258.48454166666664,
+        "rms": 0.22395120561122894,
+        "peak": 1.0
+      }
+    ],
+    "inferenceLimit": "No semantic audio interpretation tool available; instrument names, vocals and formal verse/chorus labels are not acoustically verified"
+  },
+  "sourceConditioning": "None; original text-only generation with random seeds, no reference recording, vocal, melody or hook supplied",
+  "candidates": [
+    {
+      "id": "warm-drive",
+      "seed": 20261021,
+      "bpm": 104,
+      "seconds": 40,
+      "prompt": "TrackType: Music, an original melodic instrumental for a lively strategic card game, warm clean electric rhythm guitar playing syncopated original chords, rounded melodic electric bass, bright electric piano playing an original memorable short melody, dry close-mic kick snare and tom drum groove, steady 104 BPM in four four throughout, upbeat optimistic forward motion with controlled moderately engaging energy, clear eight bar repeated musical phrases, coherent chord changes, instruments and beat present from the first beat, intimate polished studio mix, space for game actions, purely instrumental, clean defined tones and silence between notes, no ambience or atmospheric beds",
+      "status": "generated",
+      "wallSeconds": 7.768,
+      "command": [
+        "/tmp/aegis-audio-generation/venv/bin/python",
+        "/tmp/aegis-audio-generation/source/scripts/sa3_mlx.py",
+        "--dit",
+        "sm-music",
+        "--decoder",
+        "same-s",
+        "--seconds",
+        "40",
+        "--seed",
+        "20261021",
+        "--steps",
+        "8",
+        "--cfg",
+        "1.8",
+        "--negative-prompt",
+        "vocals, singing, speech, ocean, wind, watery noise, shaker, maraca, hi-hat, continuous noise, ambient wash",
+        "--prompt",
+        "TrackType: Music, an original melodic instrumental for a lively strategic card game, warm clean electric rhythm guitar playing syncopated original chords, rounded melodic electric bass, bright electric piano playing an original memorable short melody, dry close-mic kick snare and tom drum groove, steady 104 BPM in four four throughout, upbeat optimistic forward motion with controlled moderately engaging energy, clear eight bar repeated musical phrases, coherent chord changes, instruments and beat present from the first beat, intimate polished studio mix, space for game actions, purely instrumental, clean defined tones and silence between notes, no ambience or atmospheric beds",
+        "--out",
+        "/tmp/aegis-audio-generation/reference-scores/warm-drive.wav"
+      ],
+      "sourceSha256": "3e07d11d16ca9ca356ff8ca092317a208236239331c48bb3527c33d587e14822",
+      "sourceSampleRate": 44100,
+      "sourceChannels": 2,
+      "sourceDuration": 40.0,
+      "sourcePeak": 0.999969482421875,
+      "sourceRms": 0.15928915143013,
+      "tempoCandidates": [
+        {
+          "bpm": 105.02324819208111,
+          "correlation": 0.679754376411438
+        },
+        {
+          "bpm": 52.48975319624063,
+          "correlation": 0.6178241968154907
+        },
+        {
+          "bpm": 69.99343942040616,
+          "correlation": 0.5135399699211121
+        },
+        {
+          "bpm": 210.4421807369846,
+          "correlation": 0.5111255645751953
+        },
+        {
+          "bpm": 139.4547674078192,
+          "correlation": 0.006241310387849808
+        },
+        {
+          "bpm": 83.81521063212551,
+          "correlation": -0.021800627931952477
+        }
+      ],
+      "sourceBpm": 105.02324819208111,
+      "tempoConfidence": 0.679754376411438,
+      "loopBeats": 64,
+      "cropStart": 2.3103854875283445,
+      "sourceLoopSeconds": 36.56333303438563,
+      "boundaryChromaCosine": 0.9065326829911248,
+      "onsetsPerSecond": 2.575,
+      "highBandEnergyFraction": 0.005185152404010296,
+      "selectionLimit": "Beat/chroma consistency is measured; actual instrument timbre, wash/shaker absence and musical phrase resolution need listening",
+      "label": "Warm drive \u00b7 guitar and keys",
+      "sourceFile": "sources/warm-drive.wav.gz",
+      "masterSettings": {
+        "startSeconds": 2.3103854875283445,
+        "sourceBpm": 105.02324819208111,
+        "bpm": 104,
+        "beats": 64,
+        "peak": 0.075,
+        "crossfadeBeats": 0.5,
+        "lowpassHz": 5200
+      }
+    },
+    {
+      "id": "bright-motion",
+      "seed": 20261022,
+      "bpm": 108,
+      "seconds": 40,
+      "prompt": "TrackType: Music, original bright melodic pop rock game instrumental, clean lightly crunchy electric guitar chord stabs with a fresh original melody played by warm piano and soft rounded synthesizer lead, active melodic bass guitar, tight dry kick and snare backbeat with small tom accents, consistent steady 108 BPM four four, energetic but restrained and friendly tactical game atmosphere, recurring eight bar phrases and coherent original harmonic progression, continuous ensemble from the beginning, balanced low mids, short natural room reverb, clean quiet spaces, purely instrumental, no sustained atmospheric pad",
+      "status": "generated",
+      "wallSeconds": 5.823,
+      "command": [
+        "/tmp/aegis-audio-generation/venv/bin/python",
+        "/tmp/aegis-audio-generation/source/scripts/sa3_mlx.py",
+        "--dit",
+        "sm-music",
+        "--decoder",
+        "same-s",
+        "--seconds",
+        "40",
+        "--seed",
+        "20261022",
+        "--steps",
+        "8",
+        "--cfg",
+        "1.8",
+        "--negative-prompt",
+        "vocals, singing, speech, ocean, wind, watery noise, shaker, maraca, hi-hat, continuous noise, ambient wash",
+        "--prompt",
+        "TrackType: Music, original bright melodic pop rock game instrumental, clean lightly crunchy electric guitar chord stabs with a fresh original melody played by warm piano and soft rounded synthesizer lead, active melodic bass guitar, tight dry kick and snare backbeat with small tom accents, consistent steady 108 BPM four four, energetic but restrained and friendly tactical game atmosphere, recurring eight bar phrases and coherent original harmonic progression, continuous ensemble from the beginning, balanced low mids, short natural room reverb, clean quiet spaces, purely instrumental, no sustained atmospheric pad",
+        "--out",
+        "/tmp/aegis-audio-generation/reference-scores/bright-motion.wav"
+      ],
+      "sourceSha256": "b8515e294d25a78926549874d2e46ffca2396f1d5ad4c9a36f8c1600d7f5249a",
+      "sourceSampleRate": 44100,
+      "sourceChannels": 2,
+      "sourceDuration": 40.0,
+      "sourcePeak": 0.999969482421875,
+      "sourceRms": 0.2100997418165207,
+      "tempoCandidates": [
+        {
+          "bpm": 119.98760609874421,
+          "correlation": 0.7428537607192993
+        },
+        {
+          "bpm": 60.00869668890712,
+          "correlation": 0.7390006184577942
+        },
+        {
+          "bpm": 79.94612253017176,
+          "correlation": 0.30196109414100647
+        },
+        {
+          "bpm": 48.00112537183468,
+          "correlation": 0.28307947516441345
+        },
+        {
+          "bpm": 163.78646253218346,
+          "correlation": 0.006524072494357824
+        },
+        {
+          "bpm": 70.42908741189827,
+          "correlation": -0.0076138731092214584
+        }
+      ],
+      "sourceBpm": 119.98760609874421,
+      "tempoConfidence": 0.7428537607192993,
+      "loopBeats": 64,
+      "cropStart": 1.0565079365079366,
+      "sourceLoopSeconds": 32.003305381723,
+      "boundaryChromaCosine": 0.7033475556922176,
+      "onsetsPerSecond": 3.175,
+      "highBandEnergyFraction": 0.0033410147298127413,
+      "selectionLimit": "Beat/chroma consistency is measured; actual instrument timbre, wash/shaker absence and musical phrase resolution need listening",
+      "label": "Bright motion \u00b7 piano and guitar",
+      "sourceFile": "sources/bright-motion.wav.gz",
+      "masterSettings": {
+        "startSeconds": 1.0565079365079366,
+        "sourceBpm": 119.98760609874421,
+        "bpm": 108,
+        "beats": 64,
+        "peak": 0.075,
+        "crossfadeBeats": 0.5,
+        "lowpassHz": 5200
+      }
+    }
+  ],
+  "rejected": [
+    {
+      "id": "focused-groove",
+      "seed": 20261023,
+      "reason": "No reliable intended100 BPM peak; near-target candidate autocorrelation negative and strong60/120 BPM ambiguity; excluded from selected loops"
+    }
+  ]
+}
