@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import { createRequire } from "node:module";
 import { mkdir, writeFile } from "node:fs/promises";
-import { parseArgs } from "node:util";
+import { visualProbeOptions } from "./visual-probe-options.mjs";
 
 const { chromium } = createRequire(new URL("../../apps/web/package.json", import.meta.url))("@playwright/test");
-const { values } = parseArgs({ options: { base: { type: "string", default: "http://localhost:5174" } } });
-const output = new URL("../../.local/motion-reference/aegis-field-light/", import.meta.url);
+const values = visualProbeOptions("aegis-field-light");
+const { output } = values;
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const results = [];
@@ -19,7 +19,10 @@ try {
       const errors = [];
       page.on("pageerror", (error) => errors.push(error.message));
       try {
-        await page.addInitScript(() => localStorage.setItem("aegis:locale", "en"));
+        await page.addInitScript((speed) => {
+          localStorage.setItem("aegis:locale", "en");
+          localStorage.setItem("aegis.effect-speed", speed);
+        }, values.speed);
         await page.goto(new URL("/dev/arena?mode=visual", values.base).href);
         await page.getByRole("button", { name: "Demo tools", exact: true }).waitFor();
         await page.evaluate(() => document.fonts.ready);
@@ -254,6 +257,8 @@ try {
     new URL("capture.json", output),
     JSON.stringify(
       {
+        speed: values.speed,
+        base: values.base,
         results,
         note: "Eight natural Arena fixtures and four retained reduced-motion production-component probes; no animation clock sought. The renderer's silhouette is an adaptation, not reconstructed source particles/camera.",
       },

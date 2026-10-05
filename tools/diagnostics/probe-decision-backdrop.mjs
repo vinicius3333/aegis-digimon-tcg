@@ -2,8 +2,10 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { mkdir, writeFile } from "node:fs/promises";
+import { visualProbeOptions } from "./visual-probe-options.mjs";
 const { chromium } = createRequire(new URL("../../apps/web/package.json", import.meta.url))("@playwright/test");
-const output = new URL("../../.local/motion-reference/aegis-decision-backdrop/", import.meta.url);
+const values = visualProbeOptions("aegis-decision-backdrop");
+const { output } = values;
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const results = [];
@@ -18,8 +20,11 @@ try {
           console.error(error.message);
         });
         try {
-          await page.addInitScript(() => localStorage.setItem("aegis:locale", "en"));
-          await page.goto(`http://localhost:5174${route}`);
+          await page.addInitScript((speed) => {
+            localStorage.setItem("aegis:locale", "en");
+            localStorage.setItem("aegis.effect-speed", speed);
+          }, values.speed);
+          await page.goto(new URL(route, values.base).href);
           await page.locator(".game-hand-dock").waitFor();
           // Mount the production decision at the same portal destination as MatchOverlays.
           await page.evaluate(async (decisionKind) => {
@@ -125,6 +130,8 @@ try {
     JSON.stringify(
       {
         capturedAt: new Date().toISOString(),
+        speed: values.speed,
+        base: values.base,
         results,
         note: "Production decision components retained on Arena and live Effects Lab boards; verifies backdrop geometry/hit testing and view/return lifecycle, not event legality.",
       },

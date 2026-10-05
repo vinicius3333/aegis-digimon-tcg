@@ -2,11 +2,11 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { mkdir, writeFile } from "node:fs/promises";
-import { parseArgs } from "node:util";
+import { visualProbeOptions } from "./visual-probe-options.mjs";
 
 const { chromium } = createRequire(new URL("../../apps/web/package.json", import.meta.url))("@playwright/test");
-const { values } = parseArgs({ options: { base: { type: "string", default: "http://localhost:5174" } } });
-const output = new URL("../../.local/motion-reference/aegis-notice-lanes/", import.meta.url);
+const values = visualProbeOptions("aegis-notice-lanes");
+const { output } = values;
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const results = [];
@@ -20,7 +20,10 @@ try {
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     try {
-      await page.addInitScript(() => localStorage.setItem("aegis:locale", "en"));
+      await page.addInitScript((speed) => {
+        localStorage.setItem("aegis:locale", "en");
+        localStorage.setItem("aegis.effect-speed", speed);
+      }, values.speed);
       await page.goto(new URL("/dev/arena?mode=visual", values.base).href);
       await page.getByRole("button", { name: "Demo tools", exact: true }).waitFor();
       await page.evaluate(async () => {
@@ -214,6 +217,8 @@ try {
     new URL("capture.json", output),
     JSON.stringify(
       {
+        speed: values.speed,
+        base: values.base,
         results,
         note: "Production narration/decision components on the real Arena board with supplemental records; geometry/count/entry checks, not engine-rule or complete reference parity.",
       },
