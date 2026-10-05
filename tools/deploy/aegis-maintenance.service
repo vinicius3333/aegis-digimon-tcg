@@ -1,0 +1,12 @@
+[Unit]
+Description=Reclaim empty Aegis generations and expired artifacts
+Requires=docker.service
+After=docker.service
+ConditionPathExists=!/opt/aegis-rollout/deploy.lock
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/aegis-maintenance
+TimeoutStartSec=infinity
+Nice=10
+IOSchedulingClass=idle
