@@ -94,9 +94,11 @@ it.each(["viewer", "opponent"] as const)(
     rerender(view([...established, newcomer], new Set(["target", "second"])));
     const entrance = (id: string) => container.querySelector(`[data-id="${id}"] .game-card-enter`)!;
     expect(container.querySelector<HTMLElement>('[data-id="target"]')!.style.transform).toBe("none");
+    expect(container.querySelector<HTMLElement>('[data-id="target"]')!.style.transition).toBe("opacity 160ms");
     expect(container.querySelector('[data-id="target"]')?.hasAttribute("data-stationary-departure")).toBe(true);
     expect(container.querySelector('[data-id="first"]')?.hasAttribute("data-stationary-departure")).toBe(true);
     expect(container.querySelector('[data-id="newcomer"]')?.hasAttribute("data-stationary-departure")).toBe(false);
+    expect(container.querySelector<HTMLElement>('[data-id="newcomer"]')!.style.transition).toContain("transform 160ms");
     expect(entrance("target").classList.contains("game-card-enter--quiet")).toBe(true);
     expect(entrance("first").classList.contains("game-card-enter--quiet")).toBe(true);
     expect(entrance("newcomer").classList.contains("game-card-enter--quiet")).toBe(false);

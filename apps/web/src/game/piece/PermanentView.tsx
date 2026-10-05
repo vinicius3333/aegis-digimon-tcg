@@ -218,7 +218,9 @@ export function PermanentView({
           (isVisuallySuspended ? suspendedInlineMargin : 0) +
           linkCardOverhang(perm.linked.length, permanentWidth) +
           copyEdgeCount(copies) * COPY_EDGE_STEP,
-        transition: "transform 160ms, opacity 160ms, margin-inline-start 200ms, margin-inline-end 200ms",
+        transition: stationaryDeparture
+          ? "opacity 160ms"
+          : "transform 160ms, opacity 160ms, margin-inline-start 200ms, margin-inline-end 200ms",
       }}
     >
       {copies > 1 ? (
