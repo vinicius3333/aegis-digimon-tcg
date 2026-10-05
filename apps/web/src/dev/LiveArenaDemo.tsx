@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-bt11-hades-force-target-selection": {
+    ptBR: "Entre na Principal e use Hades Force (custo 5 com X Antibody nas fontes). WarGreymon tem custo 12. A seleção deve oferecer Thomas (3), Gaomon (3) e Hexeblaumon (12) juntos. Escolha apenas Hexeblaumon e confirme: os dois alvos baratos permanecem. Também é possível escolher os dois baratos ou nenhuma carta. Depois, recuse o ataque opcional para inspecionar o resultado. Baseado na partida c8383f3a, 15:02 UTC, bug 1556322403456520223.",
+    en: "Enter Main and use Hades Force (cost 5 with X Antibody in the sources). WarGreymon's play cost is 12. The target selection must offer Thomas (3), Gaomon (3), and Hexeblaumon (12) together. Select only Hexeblaumon and confirm: both cheap targets remain. You can also select both cheap targets or no cards. Then decline the optional attack to inspect the result. Based on match c8383f3a at 15:02 UTC, bug 1556322403456520223.",
+  },
   "arena-bt22-gabumon-eot-dna": {
     ptBR: "Entre na Principal e ative o efeito [Mão] [Principal] de MetalGarurumon BT22-026 (custo 6). Resolva Nokia EX13-067 primeiro: suspenda-a, jogue Agumon BT22-008 da lixeira e recupere Omnimon AD1-025. Depois escolha evoluir Agumon em WarGreymon pelo efeito de MetalGarurumon. No fim automático do turno, aceite a DNA herdada de Gabumon (ou Agumon) e escolha AD1-025: os dois níveis 6 devem formar Omnimon por custo 0, preservando as quatro fontes. Reprodução da partida 8ca7da4d, bug 1556299408700735548.",
     en: "Enter Main and activate BT22-026 MetalGarurumon's [Hand] [Main] effect (cost 6). Resolve EX13-067 Nokia first: suspend her, play BT22-008 Agumon from trash and recover AD1-025 Omnimon. Then choose to digivolve Agumon into WarGreymon with MetalGarurumon's effect. At the automatic end of turn, accept Gabumon's (or Agumon's) inherited DNA and choose AD1-025: the two level 6 Digimon must form Omnimon for cost 0, keeping all four sources. Reproduces match 8ca7da4d, bug 1556299408700735548.",
@@ -659,6 +663,7 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-bt11-hades-force-target-selection", "BT11 Hades Force · escolha dos alvos"],
   ["arena-bt23-examon-partition-return", "BT23 Examon · Partition on deck return"],
   ["arena-bt23-examon-piercing-end-turn", "BT23 Examon · end-turn DNA and Piercing"],
   ["arena", "Attack steps · Counter/Blocker"],

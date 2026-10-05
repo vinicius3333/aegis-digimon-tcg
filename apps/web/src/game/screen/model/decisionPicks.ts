@@ -1,3 +1,4 @@
+import { playCostBudgetAllowsCandidate } from "../../overlay/choice/decisionPlayCost";
 import { dpBudgetAllowsCandidate } from "../../overlay/choice/decisionDpBudget";
 import { differentColorsAllowCandidate, distinctCardIdsAllow, distinctNamesAllow } from "../../decisionModel";
 
@@ -12,6 +13,7 @@ export function decisionAllowsPick(input: {
   decisionVisibleCardIds: ReadonlyMap<string, string | undefined>;
   decisionDistinctCardIds: boolean;
   decisionDistinctNames?: boolean;
+  decisionMaxTotalPlayCost?: number;
   decisionMaxTotalDP?: number;
   decisionCandidateDP?: ReadonlyMap<string, number>;
 }): boolean {
@@ -24,6 +26,7 @@ export function decisionAllowsPick(input: {
     decisionVisibleCardIds,
     decisionDistinctCardIds,
     decisionDistinctNames,
+    decisionMaxTotalPlayCost,
     decisionMaxTotalDP,
     decisionCandidateDP,
   } = input;
@@ -32,6 +35,12 @@ export function decisionAllowsPick(input: {
     differentColorsAllowCandidate(instanceId, picks, decisionInstanceColors, decisionDifferentColors) &&
     distinctCardIdsAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctCardIds) &&
     distinctNamesAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctNames === true) &&
+    playCostBudgetAllowsCandidate({
+      candidateInstanceId: instanceId,
+      picks,
+      candidates: Array.from(decisionVisibleCardIds, ([id, cardId]) => ({ instanceId: id, cardId })),
+      maxTotalPlayCost: decisionMaxTotalPlayCost,
+    }) &&
     dpBudgetAllowsCandidate({
       candidateInstanceId: instanceId,
       picks,
