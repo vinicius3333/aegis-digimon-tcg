@@ -10,6 +10,7 @@ import ast
 import copy
 import hashlib
 import importlib.util
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -54,6 +55,7 @@ def original() -> Any:
 
 
 def expert_inputs(ctx: dict[str, Any]) -> None:
+    require("AEGIS_QUALIFIED_ROOT" not in os.environ, "Local test runtime override is forbidden")
     pin(Path(__file__), ctx["operatorSha256"])
     pin(ctx["requestPath"], ctx["requestSha256"])
     pin(BASE_OPERATOR, BASE_SHA)

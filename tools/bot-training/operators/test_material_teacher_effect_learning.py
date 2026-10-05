@@ -4,6 +4,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -266,6 +267,15 @@ class ExpertAdmissionTests(unittest.TestCase):
         self.base_path.write_text("# mutated\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "pin changed"):
             ADAPTER.api()
+
+    def test_local_runtime_override_cannot_admit_production(self) -> None:
+        for value in ("", str(self.lab)):
+            with (
+                self.subTest(value=value),
+                patch.dict(os.environ, {"AEGIS_QUALIFIED_ROOT": value}),
+                self.assertRaisesRegex(ValueError, "runtime override"),
+            ):
+                self.context()
 
 
 if __name__ == "__main__":
