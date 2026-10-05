@@ -4,6 +4,50 @@ import { advance } from "./testkit/advance.js";
 import { setupEngine } from "./testkit/harness.js";
 import "../cards/index.js";
 
+it.each([0, 1] as const)(
+  "seat %s: KingEtemon's reduction converges as UlforceVeedramon's immunity changes",
+  async (seat) => {
+    const opponent = seat === 0 ? 1 : 0;
+    const s = setupEngine({
+      [seat]: {
+        battleArea: [
+          { card: "EX13-035", as: "kingEtemon" },
+          { card: "EX13-028", as: "sukamonOne" },
+          { card: "EX13-028", as: "sukamonTwo" },
+        ],
+      },
+      [opponent]: {
+        battleArea: [
+          { card: "EX13-023", as: "ulforce" },
+          { card: "BT1-009", as: "ordinary", dp: 10000 },
+        ],
+      },
+    });
+    await s.ready();
+    expect(s.perm("ulforce").currentDP).toBe(12000);
+    expect(s.perm("ordinary").currentDP).toBe(7000);
+    for (let pass = 0; pass < 3; pass += 1) {
+      await s.engine.recomputeContinuousEffects();
+      expect(s.perm("ulforce").currentDP).toBe(12000);
+      expect(s.perm("ordinary").currentDP).toBe(7000);
+    }
+
+    s.perm("ulforce").isSuspended = true;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("ulforce").currentDP).toBe(9000);
+    s.perm("ulforce").isSuspended = false;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("ulforce").currentDP).toBe(12000);
+
+    // Falling below the real three-name gate removes the aura even without immunity.
+    s.perm("ulforce").isSuspended = true;
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("sukamonTwo").permanentId], "byRule")).toBe(1);
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("ulforce").currentDP).toBe(12000);
+    expect(s.perm("ordinary").currentDP).toBe(10000);
+  },
+);
+
 it("EX10-010 ignores an opposing Digimon's player-wide DP reduction while another target receives it", async () => {
   const s = setupEngine(
     {

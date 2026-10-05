@@ -54,7 +54,11 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           }
           case "modifyDP": {
             const amount = action.effect.amount * (action.scaling === undefined ? 1 : scaleFactor(ctx, action.scaling));
-            ctx.fx.modifyDP(id, amount, duration, { continuous: true });
+            ctx.fx.modifyDP(id, amount, duration, {
+              continuous: true,
+              sourceSeat: ctx.source.ownerSeat,
+              sourceKinds: [...(ctx.effectSourceKinds ?? ctx.source.definition.kinds)],
+            });
             break;
           }
           case "modifySecurityDP":
