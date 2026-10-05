@@ -79,7 +79,7 @@ Two columns (clauses 54%, cards 46%) × two rows. A clause and its result share 
 
 The newest moment gets a two-line spotlight. The older clause and card list collapse to art stubs. No reserved band.
 
-- **Fails:** it covers the opponent name and counters (and their tooltips) while a notice is live. The stubs are 44×40 targets, 4px short.
+- **Fails:** it covers the opponent name and counters (and their tooltips) while a notice is live. The stubs are drawn 44×40 and the spotlight 40px tall; the measured hit areas (inside the 1px border) are 43×38 for a stub and 38px tall for the spotlight, under 44px.
 - It shows one readable event.
 - Field art at 320×568 is restored to 44×62.
 
@@ -89,7 +89,8 @@ A ledger hosted in the same header region was also tried. It fails on the same h
 
 40px rails at the screen edges beside the two battle rows. Clauses go left and moved cards go right, the same sides as desktop. Tiles show 32×45 art and a one-word label.
 
-- **Fails:** battle lanes lose 60px of width at every height: 288→228 at 320 and 358→298 at 390. At 320×740 the opponent row already scrolls sideways with three cards.
+- **Fails:** each rail tile is 40px wide, so its measured hit area is 38px wide, under the 44px target width.
+- Battle lanes lose 60px of width at every height: 288→228 at 320 and 358→298 at 390. At 320×740 the opponent row already scrolls sideways with three cards.
 - Bottom-sheet decisions cover the lower slot.
 - No action text, so every notice needs a tap.
 
@@ -101,7 +102,7 @@ A ledger hosted in the same header region was also tried. It fails on the same h
 | Field art | 32×45 m | 44×62 floor | ≈26×37 e | 44×62 m | 44×62 m |
 | Field scroll | 12px m | ≈50px e | more e | ≈0 e | ≈0 e |
 | Events visible | 2, as 4 toasts | 2 + Earlier in sheet | 2L+2R | 1 + 2 stubs | 2 |
-| Own 44px target per event | yes | yes, 150×48 | no (lane) | no (44×40) | yes |
+| Own 44px target per event | yes | yes, 150×48 | no (lane) | no (43×38 hit) | no (38px wide hit) |
 | Action text | ≈40px × 1 line | 79–110px × 2 lines p | 84–97px × 1 line p | ≈78px × 2 lines | label only |
 | Covers | nothing | nothing | nothing | opponent name + counters | lane edges |
 
@@ -116,7 +117,8 @@ Headless Chromium (Playwright 1.63 from the main checkout) ran the standalone fi
 - No notice panel outside the phone frame.
 - Details sheet: opens from the keyboard, focus moves inside, the title is fully visible at every viewport, Escape closes it, and focus returns.
 - No "1 cards" anywhere.
-- Only B has a target under 44px (40px tall).
+- The 108 cases above are functional checks of the standalone file, and every layout passes them. They are separate from the 44px enhanced target criterion ([WCAG 2.2, 2.5.5](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html)). The validator fails a case on that criterion only for A2. For the other layouts it only flagged targets under 44px tall, so it missed the C width failure.
+- Against that criterion, measured hit areas show **B and C fail**: B stubs 43×38 and spotlight 38px tall; C rail tiles 38px wide. Current (70×46), A2 (148×46) and A lane targets (at least 138×48) meet it.
 
 ## Uncertainty
 

@@ -496,7 +496,7 @@ function renderSpotlight({ vp, scenario, paused, phone }) {
     el("button", { class: "hit", "aria-haspopup": "dialog", "aria-label": `Show the full notice: ${ownerName(newest.side)} ${newest.label}`, onclick: () => open(newest.id) })));
   panel.append(stub(olderCards, "right"));
   phone.append(panel);
-  phone.append(measure(`spotlight ${width - 2 * (stubW + 2)}×44 · stubs 44×44 · text ≈${width - 2 * (stubW + 2) - 64}px ×2 lines`, { left: "4px", top: "46px" }));
+  phone.append(measure(`spotlight ${width - 2 * (stubW + 2)}×40 · stubs 44×40 · text ≈${width - 2 * (stubW + 2) - 64}px ×2 lines`, { left: "4px", top: "46px" }));
   phone.append(measure(`field art ${vp.art.none}`, { left: "8px", top: (state.viewport === "320x568" ? vp.rows.none[0] : vp.rows.gutter[0] - 24) + 2 + "px" }));
 }
 
@@ -574,8 +574,8 @@ const NOTES = {
   A2: ["A2 · Moment cards (recommended)", "The existing 48px band holds the two newest moments as complete cards, about 150×48 each at 320: twice the per-event width of today. Each card is one event and one 44px+ target. It shows the owner in words (You / Opp), the label, two lines of action text, and the result card when the clause moved cards. Cause and result stay in one card. The opponent header is untouched. At 320×568 the battle rows keep their 96px floor, so field art stays 44×62 and the field scrolls locally; scroll the field to try it. Older moments stay in the queue and are listed under Earlier in the sheet."],
   current: ["Current checkpoint (9f366325f)", "Four 72×48 targets in a permanent 48px gutter. One moment that carries a clause and its revealed cards is split into two toasts, so four slots show two moments. Text area is about 40px wide: roughly six characters (\"Reveal 5…\", \"1 cards\"). 16px art is not recognisable. Owner is not shown."],
   A: ["A · Lane ledger (exploration)", "Two columns keep the lanes: clauses left, moved cards right, at most two entries each, so 2 left + 2 right are visible at once (see '4 unrelated items'). A clause and the cards it moved share a row and render joined; unrelated entries sit in separate cells. Each lane column is one target at least 44px tall; the tapped row selects its tab in the sheet. The opponent header stays untouched. Large (64px band, 30px rows, 12px text, 20×28 art) is the requested bigger size; Compact keeps today's 48px."],
-  B: ["B · Spotlight + stubs in the header", "Newest moment gets a two-line spotlight with art and its result card; the older clause and older card list become 44×44 art stubs at each end. Every item is its own 44×44 target. No reserved band. Downside: at 320 the header leaves about 74px of text per line, so the older entries carry no text at all."],
-  C: ["C · Edge rails beside the battle rows", "Desktop places clauses left and moved cards right; the rails mirror that. Two slots per rail, aligned so a clause and its result sit at the same height. Tiles show 32×45 art and a one-word label. No gutter, but battle lanes lose 60px of width permanently, the lower slot is covered by bottom-sheet decisions, and action text disappears."],
+  B: ["B · Spotlight + stubs in the header", "Newest moment gets a two-line spotlight with art and its result card; the older clause and older card list become 44×40 art stubs at each end. Every item is its own target, but the measured hit areas (43×38 stubs, 38px-tall spotlight) are under 44px. No reserved band. Downside: at 320 the header leaves about 74px of text per line, so the older entries carry no text at all."],
+  C: ["C · Edge rails beside the battle rows", "Desktop places clauses left and moved cards right; the rails mirror that. Two slots per rail, aligned so a clause and its result sit at the same height. Tiles show 32×45 art and a one-word label. Each 40px tile leaves a 38px-wide hit area, under the 44px target width. No gutter, but battle lanes lose 60px of width permanently, the lower slot is covered by bottom-sheet decisions, and action text disappears."],
 };
 function renderNotes() {
   const [title, body] = NOTES[state.option];
@@ -589,7 +589,7 @@ function renderNotes() {
       ["Field art", "32×45 m", "44×62 floor", "≈26×37 e", "44×62 m", "44×62 m"],
       ["Field scroll", "12px m", "≈50px e", "more e", "≈0 e", "≈0 e"],
       ["Events visible", "2 (as 4 toasts)", "2", "2L+2R", "1 + 2 stubs", "2"],
-      ["Own 44px target per event", "yes", "yes", "no (lane)", "no (40px)", "yes"],
+      ["Own 44px target per event", "yes", "yes", "no (lane)", "no (43×38 hit)", "no (38px wide hit)"],
       ["Action text", "≈40px × 1", "≈95px × 2 p", "≈90px × 1 p", "≈78px × 2", "label only"],
       ["Covers", "nothing", "nothing", "nothing", "opp name + counters", "lane edges"],
     ]),
