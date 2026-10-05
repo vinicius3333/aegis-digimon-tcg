@@ -1773,3 +1773,68 @@ comparison is claimed by this checkpoint.
 After updating this worktree's API on port 2571, a separate 320px native browser
 paid WarGrowlmon's Digi-Burst and reached the 8,000-DP outcome through the private
 HTTPS/WSS route, with no page errors. Its report is retained with the cost captures.
+
+### Engine-resolved intermediate stack tops, 2026-10-05
+
+The De-Digivolve gap above is corrected. Deriving DP only from the old ledger
+retained the previous top's continuous contribution. The engine now runs the
+existing complete passive derivation after each physical peel, while publishing
+memory thresholds and affordances at the final atomic boundary. This preserves
+temporary modifiers, immunity, overrides and floors without opening a new rule
+or effect window between peeled cards. Regressions cover an inherited bonus
+ceasing when its source becomes the top, a timed bonus remaining, intermediate
+zero DP surviving until the final floor, unchanged intermediate memory thresholds,
+and a normal recompute joining an in-flight intermediate derivation.
+
+Each actual `cardsMoved` receipt is emitted before the asynchronous derivation,
+so an intervening patch cannot expose the new art before the departing top can
+be held. A passive `stackTopResolved` receipt supplies the engine's resolved DP
+and base DP, scoped to the invocation and departing/promoted instances. The
+client receives this data independently of presentation gates and consumes only
+the matching peel's result. Late arrival, cancellation, skip, clear and different
+host handling have regressions. A targeted React commit after native completion
+puts the promoted artwork and DP on screen before the next peel starts.
+
+Independent review caught a harness blind spot: projected board changes alone
+did not prove the artwork or DP chip had painted. The observer now samples the
+actual CardMini title and adjacent TokenInfo DP text, including compact K notation,
+on the same frame clock as the native animations. Each De-Digivolve promotion
+must show its exact artwork and 7,000 / 4,000 / 3,000 DP in the projection's frame,
+after the preceding peel and before the following one. Digi-Burst's surviving
+target must paint its 8,000-DP chip after both paid source peels. Every moving
+case requires all four lift/sway/fade/rim clocks per peel at the existing authored
+595 ms, without cuts or insufficient sampling.
+
+The final sixteen stack cases passed at desktop Normal/Fast, 320px and reduced
+motion, with sixteen captures and no failures/skips/flakiness, expired gates,
+dropped/failed steps or truncation. Superseded same-card DP decorations are
+checked for their completed replacements. Moving De-Digivolve peels retained
+35–38 painted frames; promoted artwork appeared 50–83.3 ms after the preceding
+peel's last sampled frame, with matching DP. These are bounded browser samples,
+not server execution times or statistical benchmarks. Evidence lives under
+`.local/keyword-pacing/stack-dom-final`.
+
+Earlier reports remain retained. The first sixteen-case run lost one startup
+capture to a Vite reload caused by our formatting edits; its isolated repeat
+passed. A subsequent thirty-case stack/Armor/group run passed twenty-eight cases
+and rejected two De-Digivolve captures for sampling gaps: a 100 ms phone gap and
+a reduced-motion p95 of 66.6 ms. All eight Armor cases and six grouping cases
+passed in that run. The final sixteen-case run used the strengthened DOM checks
+without source edits or concurrent browser jobs; neither quality thresholds nor
+automatic retries were changed. The failed reports are kept under
+`.local/keyword-pacing/stack-resolved-first` and
+`.local/keyword-pacing/stack-group-protection-first`.
+
+Focused engine continuous/keyword/stack tests, the 300-test client presentation
+run and the subsequent fourteen-peel regression suite passed, as did production
+and E2E TypeScript checks, the client build, scoped format/lint and
+`git diff --check`. Existing lint/build warnings remain. After updating this
+worktree's API on port 2571, a separate 320px native browser completed all three
+De-Digivolve artwork/DP promotions through private HTTPS on port 9445 and WSS on
+9446, without page errors; its report and inspected screenshot accompany the
+final stack captures.
+
+Native keyword coverage is now **11/46**, with 35 pending. The full expanded
+72-case matrix was not run at this checkpoint. Consecutive reference-video review
+remains **756/40,622 frames**; remaining keywords, full frame comparison and the
+original effect/background-audio pass remain open.
