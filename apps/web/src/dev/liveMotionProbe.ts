@@ -79,10 +79,28 @@ export function createLiveMotionProbe(doc: Document = document) {
     if (previousFrame !== undefined) capped(gaps, now - previousFrame);
     previousFrame = now;
     const visibility = new Map<Element, boolean>();
+    const styles = new Map<Element, CSSStyleDeclaration>();
+    const boxes = new Map<Element, DOMRect>();
+    function styleOf(element: Element): CSSStyleDeclaration {
+      let style = styles.get(element);
+      if (!style) {
+        style = win.getComputedStyle(element);
+        styles.set(element, style);
+      }
+      return style;
+    }
+    function boxOf(element: Element): DOMRect {
+      let box = boxes.get(element);
+      if (!box) {
+        box = element.getBoundingClientRect();
+        boxes.set(element, box);
+      }
+      return box;
+    }
     function ancestorsVisible(element: Element): boolean {
       const cached = visibility.get(element);
       if (cached !== undefined) return cached;
-      const style = win.getComputedStyle(element);
+      const style = styleOf(element);
       const result =
         element.isConnected &&
         style.display !== "none" &&
@@ -93,7 +111,7 @@ export function createLiveMotionProbe(doc: Document = document) {
       return result;
     }
     function painted(element: Element): boolean {
-      const box = element.getBoundingClientRect();
+      const box = boxOf(element);
       return (
         box.width > 0 &&
         box.height > 0 &&
@@ -139,23 +157,29 @@ export function createLiveMotionProbe(doc: Document = document) {
         seen.set(animation, sample);
         capped(samples, sample);
       }
-      const style = win.getComputedStyle(target, effect?.pseudoElement);
-      const box = target.getBoundingClientRect();
-      const visual = [
-        style.opacity,
-        style.transform,
-        style.translate,
-        style.rotate,
-        style.scale,
-        style.filter,
-        style.clipPath,
-        style.boxShadow,
-        style.strokeDashoffset,
-        box.x.toFixed(1),
-        box.y.toFixed(1),
-        box.width.toFixed(1),
-        box.height.toFixed(1),
-      ].join("|");
+      const style = isVisible
+        ? effect?.pseudoElement
+          ? win.getComputedStyle(target, effect.pseudoElement)
+          : styleOf(target)
+        : undefined;
+      const box = boxOf(target);
+      const visual = style
+        ? [
+            style.opacity,
+            style.transform,
+            style.translate,
+            style.rotate,
+            style.scale,
+            style.filter,
+            style.clipPath,
+            style.boxShadow,
+            style.strokeDashoffset,
+            box.x.toFixed(1),
+            box.y.toFixed(1),
+            box.width.toFixed(1),
+            box.height.toFixed(1),
+          ].join("|")
+        : "";
       const earlier = active.get(animation);
       sample.undersampled ||= !!earlier && now - sample.lastAt > 50;
       sample.lastAt = now;

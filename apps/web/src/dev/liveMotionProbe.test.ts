@@ -86,3 +86,44 @@ it("observes a painted card through boxless layout ancestors while respecting hi
     Reflect.deleteProperty(document, "getAnimations");
   }
 });
+
+it("reads shared animation geometry and normal styles once per frame", () => {
+  const originalStyle = window.getComputedStyle.bind(window);
+  const style = vi.spyOn(window, "getComputedStyle").mockImplementation((element, pseudo) => {
+    const computed = originalStyle(element, pseudo);
+    if (computed.opacity === "") computed.opacity = "1";
+    return computed;
+  });
+  let nextFrame: FrameRequestCallback = () => {};
+  vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+    nextFrame = callback;
+    return 1;
+  });
+  vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+  const card = document.createElement("div");
+  const bounds = vi.fn(() => new DOMRect(10, 10, 100, 140));
+  card.getBoundingClientRect = bounds;
+  document.body.append(card);
+  const animations = ["reveal", "glow"].map((animationName) => ({
+    animationName,
+    currentTime: 16,
+    playState: "running",
+    effect: { target: card, getComputedTiming: () => ({ activeDuration: 200, iterations: 1, endTime: 200 }) },
+  }));
+  Object.defineProperty(document, "getAnimations", { configurable: true, value: () => animations });
+  const probe = createLiveMotionProbe();
+  try {
+    probe.start();
+    nextFrame(16);
+    expect(bounds).toHaveBeenCalledOnce();
+    expect(style.mock.calls.filter(([element, pseudo]) => element === card && !pseudo)).toHaveLength(1);
+    expect(probe.read().animations.map((entry) => entry.visibleFrames)).toEqual([1, 1]);
+    nextFrame(32);
+    expect(bounds).toHaveBeenCalledTimes(2);
+    expect(probe.read().animations.map((entry) => entry.visibleFrames)).toEqual([2, 2]);
+  } finally {
+    probe.stop();
+    card.remove();
+    Reflect.deleteProperty(document, "getAnimations");
+  }
+});
