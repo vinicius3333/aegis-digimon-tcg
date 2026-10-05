@@ -1,5 +1,68 @@
 [
   {
+    "version": "1.10.2-beta",
+    "releasedAt": "2026-10-05",
+    "summaryKey": "releases.1.10.2-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.10.2-beta.fix.ruliReduction",
+        "issue": 4938
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.lilamonProtection",
+        "issue": 4933
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.lordKnightmonReduction",
+        "issue": 4931
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.venusmonProtection",
+        "issue": 4930
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.noirTarget",
+        "issue": 4929
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.battlePriority",
+        "issue": 4926
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.securitySearch",
+        "issue": 4924
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.seitenAssembly",
+        "issue": 4923
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.seventhLightning",
+        "issue": 4919
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.raidBlocking",
+        "issue": 4916
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.junomonHomeros",
+        "issue": 4915
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.coolBoy",
+        "issue": 4913
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.takatoOptionalCost",
+        "issue": 4907
+      },
+      {
+        "textKey": "releases.1.10.2-beta.fix.scenarioLinks"
+      }
+    ]
+  },
+  {
     "version": "1.10.1-beta",
     "releasedAt": "2026-10-05",
     "summaryKey": "releases.1.10.1-beta.summary",
