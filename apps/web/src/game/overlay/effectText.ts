@@ -397,6 +397,16 @@ export function playerFacingEffectClause({
     boxes.some((text) => normalize(text ?? "").includes(normalize(supplied)))
       ? supplied
       : undefined;
+  // Older watchers may paraphrase the payload while retaining the printed "When ...,"
+  // condition. A unique condition identifies its catalog clause without substituting the
+  // first effect that happens to share its timing (Titamon's two [All Turns] effects).
+  const suppliedCondition = supplied?.match(/^(?:\[[^\]]*\]\s*)+((?:When|If|While)\b[^,]+,)/)?.[1];
+  const conditionMatches = suppliedCondition
+    ? cardEffectClausesForTiming(cardId, effectiveTiming, inherited).filter((candidate) =>
+        normalize(candidate).includes(normalize(suppliedCondition)),
+      )
+    : [];
+  const conditionPrintedClause = conditionMatches.length === 1 ? conditionMatches[0] : undefined;
   // A full card text can start with a keyword preamble (e.g. Use Req.).
   // Keyword activations are standalone or followed by explanatory prose.
   const keywordPrefix = supplied?.match(/^＜[^＞]+＞/)?.[0];
@@ -425,8 +435,11 @@ export function playerFacingEffectClause({
       keywordActivation ||
       matchingKeyword ||
       delayClause ||
-      ((exactPrintedClause || containedPrintedClause) &&
-        effectClauseForTiming(exactPrintedClause || containedPrintedClause, effectiveTiming))) ??
+      ((exactPrintedClause || containedPrintedClause || conditionPrintedClause) &&
+        effectClauseForTiming(
+          exactPrintedClause || containedPrintedClause || conditionPrintedClause,
+          effectiveTiming,
+        ))) ??
     (effectiveTiming === undefined || grantedPrefix
       ? undefined
       : resolvedEffectClause(cardId, effectiveTiming, inherited));

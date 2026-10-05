@@ -201,6 +201,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt13-omnimon-later-token-rush",
   "arena-st12-blanc-rush-second-attack",
   "arena-bt26-zombie-plutomon-removed-trigger",
+  "arena-bt25-titamon-trigger-text",
   "arena-bt24-hyogamon-pending-trash-digivolve",
   "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-ex10-tactimon-digixros-material",
@@ -4853,6 +4854,24 @@ function layBt13OmnimonLaterTokenRushScenario(state: GameState, decks: readonly 
   placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-omnimon-rush-target"));
 }
 
+/** Discord 1556765492197326870: two hand-trash watchers were displayed as different clauses. */
+function layTitamonTriggerTextScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT25-084"], "-titamon-text-first"));
+  placePermanent(human, establishedDigimon(0, ["BT25-084"], "-titamon-text-second"));
+  placePermanent(human, establishedDigimon(0, ["BT24-015"], "-titamon-text-base"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-titamon-text-plutomon", "BT26-059", 0));
+  for (let index = 0; index < 5; index += 1) {
+    insertCard(human, Zone.Hand, faceDownCard(`dev-titamon-text-cost-${index}`, "BT1-013", 0));
+  }
+  insertCard(human, Zone.Deck, faceDownCard("dev-titamon-text-evolution-draw", "BT1-013", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-titamon-text-turn-draw", "BT1-013", 0), "top");
+  placePermanent(opponent, establishedDigimon(1, ["BT1-080"], "-titamon-text-victim"));
+}
+
 /** Discord 1555883726292914187: a nested evolution removes a pending field watcher. */
 function layZombiePlutomonRemovedTriggerScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 10);
@@ -5920,6 +5939,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt13-omnimon-later-token-rush": layBt13OmnimonLaterTokenRushScenario,
   "arena-st12-blanc-rush-second-attack": laySt12BlancRushSecondAttackScenario,
   "arena-bt26-zombie-plutomon-removed-trigger": layZombiePlutomonRemovedTriggerScenario,
+  "arena-bt25-titamon-trigger-text": layTitamonTriggerTextScenario,
   "arena-bt24-hyogamon-pending-trash-digivolve": layBt24HyogamonPendingTrashDigivolveScenario,
   "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-ex10-tactimon-digixros-material": layEx10TactimonDigiXrosMaterialScenario,
