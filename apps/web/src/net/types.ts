@@ -65,6 +65,7 @@ export interface AegisJoinOptions {
     | "arena-bt22-gabumon-eot-dna"
     | "arena-bt11-hades-force-target-selection"
     | "arena-ex13-sampson-face-down-sources"
+    | "arena-ex9-metal-mamemon-face-down-deletion"
     | "arena-p240-arcturusmon-vb-routes"
     | "arena-p240-arcturusmon-ordered-placement"
     | "arena-ex12-proximamon-dual-siriusmon"
