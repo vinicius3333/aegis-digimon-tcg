@@ -6,7 +6,7 @@ The rejected 320/390 captures put translucent 64px cards over the opponent utili
 
 [Fluent toast guidance](https://fluent2.microsoft.design/components/web/react/core/toast/usage) recommends predictable placement that avoids main content, brief titles and skimmable bodies. Our inference is to keep the two established semantic lanes, truncate the preview, and let a deliberate tap open the full occurrence. Its notification-center recommendations do not justify adding a history feed here.
 
-[Material snackbar guidance](https://m3.material.io/components/snackbar/guidelines) provides a transient-feedback reference; its single snackbar pattern is unsuitable for the explicitly requested two left and two right notices on this board.
+The [Material snackbar component page](https://m3.material.io/components/snackbar/guidelines) is a background reference. It rendered as JavaScript-only in this session, so no detailed placement or accessibility recommendation is attributed to it. The requirement for two left and two right notices independently excludes a single shared snackbar.
 
 [W3C target-size guidance](https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html) recommends 44×44px targets. The whole 48px toast becomes one target; dismissal moves to a 44px-minimum detail action. [W3C modal dialog guidance](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) specifies focus containment, Escape, a visible close action and focus return. We reuse the existing dialog, keeping the selected occurrence after live expiry.
 
@@ -54,6 +54,7 @@ These are design explorations, not screenshots of the implementation. A omits th
 Base: `4266ec62f5c02930a85e8be148c12d0175c8d05c`. The child implementation changes only compact notice rendering/styles, its focused tests/probe, and the two hand-discard translations. GameScreen, animation timing, queues, occurrence IDs, desktop layout, engine, card/audio assets and the parent checkout are unchanged.
 
 - Focused suites: **83 tests passed** across CompactNarration, NarrationStack, NoticeStack and sidePanels; the final CompactNarration rerun passed all **9 tests**, including the rejection reason preview and focus return after expiry.
+- Reviewer-requested existing hand-title regressions were updated; SidePanelStack and sidePanels passed **47 tests**. Across the five focused suites there are **96 distinct tests**; repeated runs are not counted as additional tests.
 - Exact source checks: web TypeScript, scoped oxlint, oxfmt check and `git diff --check` passed with Node 26.
 - Strict browser receipt: `.local/motion-reference/mobile-toasts-final-strict/capture.json` contains **14 successful layouts**, each of seven viewports with the production-sized game area and original development-toolbar stress area: 320×568, 320×740, 375×812, 390×844, 768×1024, 844×390 and 1440×900.
 - The receipt preserves before/after occupied card-art rectangles and actual clipping ancestors. It asserts two entries per physical side, 44px notice targets, no toast interception of card/utility/memory or decision controls, fixed decision/rejection/empty-lane boxes, horizontal clearance, modal focus/Escape, full detail persistence after expiry and reduced motion.
