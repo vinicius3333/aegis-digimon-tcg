@@ -13,23 +13,25 @@ export const CARD_IMAGE_ORIGINS = [
 
 const TOKEN_ID_PREFIX = "TOKEN-";
 
-/** Every image id `cardImageUrls` in @aegis/shared can request, read from the committed card data. */
-export function cardImageIds(source) {
+/**
+ * Each printing the client can show, with the image ids `cardImageUrls` in @aegis/shared tries
+ * for it, read from the committed card data. An errata printing falls back to the pre-errata art.
+ */
+export function cardPrintings(source) {
   const data = `${source}/packages/shared/src/cards/data`;
   const cards = JSON.parse(readFileSync(`${data}/cards.json`, "utf8"));
   const arts = JSON.parse(readFileSync(`${data}/arts.json`, "utf8"));
-  const ids = new Set();
-  const add = (imageId) => {
-    ids.add(imageId);
-    ids.add(imageId.replace(/-Errata$/, ""));
-  };
-  for (const card of cards) {
-    if (!card.cardId.startsWith(TOKEN_ID_PREFIX)) add(card.imageId ?? card.cardId);
-  }
-  for (const printings of Object.values(arts)) {
-    for (const art of printings) add(art.imageId);
-  }
-  return [...ids].sort();
+  const printing = (id, imageId) => ({ id, imageIds: [...new Set([imageId, imageId.replace(/-Errata$/, "")])] });
+  return [
+    ...cards
+      .filter((card) => !card.cardId.startsWith(TOKEN_ID_PREFIX))
+      .map((card) => printing(card.cardId, card.imageId ?? card.cardId)),
+    ...Object.values(arts).flatMap((printings) => printings.map((art) => printing(art.artId, art.imageId))),
+  ];
+}
+
+export function cardImageIds(source) {
+  return [...new Set(cardPrintings(source).flatMap((printing) => printing.imageIds))].sort();
 }
 
 function isWebp(bytes) {
@@ -59,7 +61,9 @@ async function download(fetch, name) {
  * A sample never blocks the real image: the next sync still looks for `<id>.webp`.
  */
 export async function syncCardImages({ source, destination, fetch = globalThis.fetch, concurrency = 16 }) {
-  const ids = cardImageIds(source);
+  const printings = cardPrintings(source);
+  const ids = [...new Set(printings.flatMap((printing) => printing.imageIds))];
+  const unavailable = new Set();
   mkdirSync(destination, { recursive: true, mode: 0o755 });
   const result = { present: 0, downloaded: 0, missing: [] };
   const write = (name, bytes) => {
@@ -89,7 +93,7 @@ export async function syncCardImages({ source, destination, fetch = globalThis.f
       result.downloaded += 1;
       return;
     }
-    result.missing.push(id);
+    unavailable.add(id);
   };
   const queue = [...ids];
   await Promise.all(
@@ -97,13 +101,18 @@ export async function syncCardImages({ source, destination, fetch = globalThis.f
       while (queue.length) await syncOne(queue.shift());
     }),
   );
-  result.missing.sort();
+  // The client also falls back to scans bundled with the web app (apps/web/public/cards/unpublished).
+  const bundled = (id) => existsSync(`${source}/apps/web/public/cards/unpublished/${id}.webp`);
+  result.missing = printings
+    .filter((printing) => printing.imageIds.every((id) => unavailable.has(id) && !bundled(id)))
+    .map((printing) => printing.id)
+    .sort();
   return result;
 }
 
 export function describeSync({ present, downloaded, missing }) {
   const preview = missing.slice(0, 20).join(" ");
-  return `card images: ${downloaded} downloaded, ${present} present, ${missing.length} missing${missing.length ? ` (${preview}${missing.length > 20 ? " ..." : ""})` : ""}`;
+  return `card images: ${downloaded} downloaded, ${present} present, ${missing.length} printings without art${missing.length ? ` (${preview}${missing.length > 20 ? " ..." : ""})` : ""}`;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
