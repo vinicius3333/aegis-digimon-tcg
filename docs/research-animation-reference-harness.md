@@ -1653,3 +1653,83 @@ Syakomon BT14-021. It uses public attack/response intents; Evade is not counted 
 browser coverage until its lab layout and measured presentation are integrated.
 Full reference-frame comparison, canvas families, remaining keyword cases and
 original effect/background audio remain open.
+
+### Optional protection and the visible stack handoff
+
+Four additional real-server layouts cover Evade and Armor Purge acceptance and
+refusal. Evade uses the printed Groundramon attack into Security Death Claw and
+the still-active Syakomon as its only eligible deletion target. Accepting Evade
+suspends Syakomon; refusal deletes it. Both paths consume one opposing security
+card. No battle claw belongs to this Option-effect deletion.
+
+Armor Purge uses a legal red Monodramon/Flamedramon stack attacking suspended
+Phoenixmon. Printed attack effects raise Flamedramon to 8,000 DP before it loses
+to Phoenixmon. The single impact finishes before the optional protection choice.
+Acceptance trashes Flamedramon and leaves suspended Monodramon with the retained
+3,000 attack bonus, at 6,000 DP. Refusal trashes the whole stack. These fixtures
+use ordinary public attack/response intents and the printed card implementations.
+
+The original Armor Purge movement receipt lacked card identity, owner and stack
+removal metadata, so its native server outcome had no source-removal animation.
+Adding that metadata exposed a second defect: the promoted art appeared before
+the peel. The engine yielded to continuous recalculation before publishing the
+move; an intervening batch already contained Monodramon. The hold lookup also
+selected that newer snapshot by permanent ID alone. The movement is now emitted
+before that asynchronous boundary, preserving the existing Overflow and trigger
+order. Stack removals look up the snapshot containing the departing top instance,
+and coalesced strips inherit and advance the preceding hold even when an
+intermediate top has no snapshot of its own. The lab's visible-board projection
+now includes the same stack holds used by GameScreen.
+
+The browser observer independently records the actual CardMini artwork title,
+public board identities/source counts and painted peel frames. It checks that
+Flamedramon remains drawn during its peel and Monodramon first appears afterwards.
+Peel visibility requires nonzero bounds and visible SVG face/rim opacity; reduced
+motion must produce no painted peel. The existing authored source-removal recipe
+remains 595 ms: 170 ms lift, an 85 ms lateral return, 170 ms hold and 170 ms fade.
+Its queue span also includes cause gates and browser completion observation and
+must not be described as the isolated animation duration.
+
+The 320px selection test initially tapped the suspended card's DP badge, then its
+source badge. Those badges correctly consume taps to show their explanations.
+The harness now hit-tests exposed artwork before its native click; it does not
+inject decisions, force covered clicks or change the production badge behavior.
+Independent desktop Normal/Fast and phone runs confirmed the completed handoff.
+Earlier failed reports remain in local evidence, including failures that ended
+before a canonical capture. They are not merged into a passing-only summary.
+
+Native browser coverage is now **9/46 keywords**, with 37 pending. The matrix
+definition contains **56 cases**, adding sixteen protection decision cases across
+desktop Normal/Fast, 320px phone and reduced motion to the previous forty. The
+remaining keywords, full consecutive-frame comparison and original effect/music
+audio remain open; this checkpoint does not establish complete visual parity.
+
+The full matrix passed **56 cases, zero failed/skipped/flaky**, with 56 canonical
+captures, no cancelled steps, expired gates or truncated evidence. The five
+moving group returns ended within **0.00055 px** of their measured destination.
+Desktop Normal/Fast Armor Purge peels each had 37 painted frames spanning
+633.3 ms; the phone had 36 spanning 583.4 ms. The promoted artwork appeared
+66.6–66.7 ms after the last painted peel sample in those runs. These are sampled
+observations, not authored durations or statistical timing benchmarks.
+
+Independent review then strengthened the moving Armor Purge checks to require
+all four native lift/sway/fade/rim clocks, each authored at 595 ms, without cuts
+or insufficient sampling. Fast and phone passed immediately. The first Normal
+capture failed that added quality check because of an 83.3 ms frame gap, while
+its 37 painted peel frames and all four durations remained recorded. One isolated
+Normal recapture passed with the same strict assertions. Both reports remain in
+`.local/keyword-pacing/protection-clock-checks`, whose summary retains the failed
+measurement; no threshold was relaxed or automatic retry enabled. The full
+matrix's earlier capture remains under `.local/keyword-pacing/final-56-protection`.
+
+Validation also passed 82 focused rules/keyword tests, 32 hold/projection tests,
+42 notice tests, production and E2E TypeScript checks, the client build, focused
+harness lint/format and `git diff --check`. Independent review found no remaining
+production blocker and its harness feedback is enforced. Existing unrelated lint
+warnings are not represented as a clean repository-wide lint run.
+
+After restarting this worktree's API on port 2571, a separate 320px browser
+completed a native attack and Armor Purge acceptance through the private
+HTTPS frontend on port 9445 and WSS API on port 9446, with no page errors.
+The access report and screenshot are retained locally; this verifies the
+private route and actual room connection rather than only an HTTP response.

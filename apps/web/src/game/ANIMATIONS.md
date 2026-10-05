@@ -527,7 +527,7 @@ clock and completion deadline. Resting board geometry stays unchanged; reduced
 motion removes the flight and turn.
 
 Effects Lab includes real-server layouts for Piercing, Jamming, Retaliation,
-Alliance/Barrier/Blocker accept/decline, Reboot, and `effects-lab-field-grouping`.
+Alliance/Barrier/Blocker/Evade/Armor Purge accept/decline, Reboot, and `effects-lab-field-grouping`.
 Blocker uses the real opponent turn and direct block decision. Reboot suspends
 two printed holders and a non-holder through three public attacks, then checks
 the opponent's Unsuspend phase: only the holders turn, staggered by 60 ms.
@@ -536,18 +536,29 @@ cards and native activation/selection decisions to split and reunite the group.
 The keyword layouts seed printed cards and resolve through public engine
 intents; they do not grant keywords or fabricate events/results.
 
+Evade uses Groundramon attacking Security Death Claw, which can delete the
+still-active Syakomon but cannot target the level-five attacker. Acceptance turns
+Syakomon; refusal deletes it. Armor Purge uses a legal Monodramon/Flamedramon
+stack attacking suspended Phoenixmon. The impact finishes before the protection
+choice. Acceptance peels Flamedramon while retaining the previous top and source
+on the field, then exposes suspended Monodramon with its retained attack DP bonus.
+Refusal removes both cards. The movement receipt precedes asynchronous continuous
+reactions; the presentation holds the snapshot containing the actual departing top,
+including progressive holds when several removals share one patch.
+
 Run `pnpm --filter @aegis/web exec playwright test e2e/effects-lab-pacing.spec.ts
 --grep 'real (keyword|group) pacing' --reporter=json` to capture the six
 basic Normal/Fast keyword cases, sixteen Alliance/Barrier decision cases,
-eight Blocker decision cases, four Reboot phase cases and six
-responsive/reduced-motion group cases (40 cases total). Pass
+eight Blocker decision cases, four Reboot phase cases, sixteen Evade/Armor Purge
+decision cases and six responsive/reduced-motion group cases (56 cases total). Pass
 the saved JSON report to `node tools/diagnostics/summarize-keyword-pacing.mjs`.
 The observer records real event batches, decisions, queue steps, native
-animations, arrow target changes, phase ribbons, board changes and sampled DOM
-poses. DOM poses and native animation observations share the requestAnimationFrame
+animations, arrow target changes, phase ribbons, board changes, painted stack
+peels and sampled DOM artwork identities/poses. Hidden reduced-motion peels are
+excluded using actual bounds and SVG opacity. DOM poses and native animation observations share the requestAnimationFrame
 clock; callback completion time is retained separately. Its batch timestamp is a
 browser presentation hook observation, not a server/network timestamp. Coverage
-is seven of 46 keywords; native clip candidates and remaining scenarios require
+is nine of 46 keywords; native clip candidates and remaining scenarios require
 review. Source report statuses retain failed cases even when they have no full
 capture, so keyword coverage alone does not mean the entire matrix passed.
 

@@ -5,7 +5,12 @@ import { test, expect, type Page, type TestInfo } from "@playwright/test";
 import { GamePage } from "./game-page";
 import { SPOTLIGHT_PADDING_PX, SPOTLIGHT_RADIUS_PX } from "../src/game/spotlight";
 import { DEFAULT_PACING } from "../src/game/pacing";
-import { KEYWORD_PACING_SCENARIOS, KEYWORD_TURN_PACING_SCENARIOS, type KeywordPacingScenario } from "@aegis/shared";
+import {
+  KEYWORD_PACING_SCENARIOS,
+  KEYWORD_TURN_PACING_SCENARIOS,
+  KEYWORD_PROTECTION_PACING_SCENARIOS,
+  type KeywordPacingScenario,
+} from "@aegis/shared";
 import { startPacingCapture, finishPacingCapture } from "./pacing-capture";
 
 /* A paced chain must keep moving in a real browser. The jsdom pacing harness replays the
@@ -57,7 +62,7 @@ interface LabState {
       turn?: { seat: number; count: number };
       players: {
         securityCount: number;
-        battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean }[];
+        battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean; currentDP: number }[];
       }[];
     };
   };
@@ -785,6 +790,189 @@ test.describe("effects lab pacing in the browser", () => {
           );
           expect(controlPoses.length).toBeGreaterThan(0);
           expect(controlPoses.every((pose) => pose.angle === 90)).toBe(true);
+        }
+      });
+    }
+  }
+
+  for (const scenario of KEYWORD_PROTECTION_PACING_SCENARIOS) {
+    for (const format of [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+      { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+    ]) {
+      test(`real keyword pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, format.speed);
+        await expect.poll(async () => (await lab.read()).queueIdle).toBe(true);
+        await startPacingCapture(page);
+        const actions = [{ label: "attack", observedAt: await page.evaluate(() => performance.now()) }];
+        await new GamePage(page).attack(
+          scenario.flow === "evade" ? "dev-perm-0-keyword-attacker" : "dev-perm-0-keyword-protected",
+          scenario.flow === "evade"
+            ? page.locator('[data-drop="opp-security"]')
+            : page.locator('[data-drop="perm-opp"][data-id="dev-perm-1-keyword-defender"]'),
+        );
+        let label: string;
+        if (scenario.flow === "evade") {
+          label = "＜Evade＞";
+          const prompt = page.getByRole("region", { name: label, exact: true });
+          await expect(prompt).toBeVisible();
+          await waitForDecisionPaint(page, label);
+          actions.push({
+            label: scenario.accept ? "accept-evade" : "decline-evade",
+            observedAt: await page.evaluate(() => performance.now()),
+          });
+          await prompt
+            .getByRole("button", {
+              name: scenario.accept ? "Yes, suspend to evade" : "No, let it be deleted",
+              exact: true,
+            })
+            .click();
+        } else {
+          await expect.poll(async () => (await lab.read()).decision?.kind).toBe("selectCards");
+          const prompt = page.locator('[data-testid="board-prompt"], [role="dialog"]').filter({ visible: true }).last();
+          await expect(prompt).toBeVisible();
+          label = (await prompt.getAttribute("aria-label"))!;
+          expect(["Confirm targets", "Flamedramon · effect"]).toContain(label);
+          await waitForDecisionPaint(page, label);
+          actions.push({
+            label: scenario.accept ? "accept-armor-purge" : "decline-armor-purge",
+            observedAt: await page.evaluate(() => performance.now()),
+          });
+          if (scenario.accept) {
+            if ((await prompt.getAttribute("role")) === "dialog")
+              await prompt.getByRole("button", { name: /^Flamedramon/ }).click();
+            else {
+              const art = page
+                .locator('[data-drop="perm-you"][data-id="dev-perm-0-keyword-protected"]')
+                .locator('[title="Flamedramon"][data-state]');
+              // Field badges overlap small suspended cards. Find exposed art using real hit testing.
+              const position = await art.evaluate((element) => {
+                const bounds = element.getBoundingClientRect();
+                for (const [x, y] of [
+                  [0.85, 0.35],
+                  [0.5, 0.5],
+                  [0.25, 0.75],
+                ]) {
+                  const point = { x: bounds.width * x!, y: bounds.height * y! };
+                  const hit = document.elementFromPoint(bounds.left + point.x, bounds.top + point.y);
+                  if (hit && element.contains(hit) && !hit.closest("[data-badge-hint], button")) return point;
+                }
+                return null;
+              });
+              expect(position, "the target card has exposed clickable art").not.toBeNull();
+              await art.click({ position: position! });
+            }
+            await prompt.getByRole("button", { name: "Confirm targets", exact: true }).click();
+          } else await prompt.getByRole("button", { name: /^(Pass|None)$/ }).click();
+        }
+        await expect
+          .poll(
+            async () => {
+              const state = await lab.read();
+              expect(state.gateExpiries).toEqual([]);
+              expect(state.steps.filter((step) => step.failed || step.phase === "dropped")).toEqual([]);
+              return (
+                state.events.some((event) => event.kind === "attackEnded") &&
+                state.queueIdle &&
+                state.pendingSteps === 0 &&
+                state.board?.live.stateVersion === state.board?.displayed.stateVersion
+              );
+            },
+            { timeout: 40_000 },
+          )
+          .toBe(true);
+        const capture = await finishPacingCapture(page);
+        const state = await lab.read();
+        await info.attach("real-keyword-pacing.json", {
+          body: Buffer.from(
+            JSON.stringify({ scenario, format, speed: format.speed, actions, capture, state }, null, 2),
+          ),
+          contentType: "application/json",
+        });
+        await info.attach("protected-field.png", { body: await page.screenshot(), contentType: "image/png" });
+        expect(errors).toEqual([]);
+        expect(capture.truncated || state.truncated).toBe(false);
+        expect(capture.motion.captureQuality).toBe("usable");
+        expectOnlyCompletedDpReplacements(state.steps);
+        const holder = state.board!.visible.players[0]!.battleArea.find(
+          (card) => card.permanentId === "dev-perm-0-keyword-protected",
+        );
+        expect(Boolean(holder)).toBe(scenario.accept);
+        if (holder) expect(holder.isSuspended).toBe(true);
+        expect(state.board!.visible.players[1]!.securityCount).toBe(scenario.flow === "evade" ? 4 : 5);
+        const decision = capture.decisions.find(
+          (candidate) => candidate.label === label && candidate.closedAt !== undefined,
+        );
+        expect(decision).toBeDefined();
+        const blows = capture.motion.animations.filter((animation) => animation.name === "battle-claw");
+        if (scenario.flow === "evade") {
+          expect(blows).toHaveLength(0);
+          const turns = capture.timings.filter(
+            (timing) =>
+              timing.permanentId === "dev-perm-0-keyword-protected" &&
+              timing.duration === 200 &&
+              timing.properties.includes("rotate"),
+          );
+          expect(turns).toHaveLength(scenario.accept && !format.reduced ? 1 : 0);
+          if (holder) expect(holder.topCard.cardId).toBe("BT14-021");
+        } else {
+          expect(blows).toHaveLength(format.reduced ? 0 : 1);
+          expect(blows.every((blow) => !blow.cutShort && blow.lastAt <= decision!.openedAt)).toBe(true);
+          if (holder) {
+            expect(holder.topCard.cardId).toBe("BT1-009");
+            expect(holder.currentDP).toBe(6000);
+          }
+          const peels = capture.peels.filter(
+            (peel) => peel.permanentId === "dev-perm-0-keyword-protected" && peel.cardId === "BT8-012",
+          );
+          if (scenario.accept && !format.reduced) {
+            expect(peels).toHaveLength(1);
+            expect(peels[0]!.frames).toBeGreaterThan(2);
+            const peelClocks = capture.motion.animations.filter((animation) =>
+              animation.name.startsWith("battle-stack-strip-"),
+            );
+            expect(peelClocks.map((animation) => animation.name).sort()).toEqual([
+              "battle-stack-strip-fade",
+              "battle-stack-strip-lift",
+              "battle-stack-strip-rim",
+              "battle-stack-strip-sway",
+            ]);
+            // The authored source-removal recipe is 170 +85 +170 +170 ms.
+            expect(
+              peelClocks.every(
+                (animation) => animation.durationMs === 595 && !animation.cutShort && !animation.undersampled,
+              ),
+            ).toBe(true);
+            expect(peels[0]!.firstAt).toBeGreaterThanOrEqual(decision!.closedAt!);
+            const promoted = capture.boards.find((board) =>
+              board.permanents.some(
+                (permanent) =>
+                  permanent.permanentId === "dev-perm-0-keyword-protected" && permanent.cardId === "BT1-009",
+              ),
+            );
+            expect(promoted).toBeDefined();
+            expect(promoted!.at).toBeGreaterThanOrEqual(peels[0]!.lastAt);
+            const promotedArt = capture.poses.find(
+              (pose) => pose.permanentId === "dev-perm-0-keyword-protected" && pose.cardName === "Monodramon",
+            );
+            expect(promotedArt).toBeDefined();
+            expect(promotedArt!.at).toBeGreaterThanOrEqual(peels[0]!.lastAt);
+            expect(
+              capture.poses.some(
+                (pose) =>
+                  pose.permanentId === "dev-perm-0-keyword-protected" &&
+                  pose.cardName === "Flamedramon" &&
+                  pose.at >= peels[0]!.firstAt,
+              ),
+            ).toBe(true);
+          } else expect(peels).toHaveLength(0);
         }
       });
     }

@@ -6,6 +6,7 @@ interface CardPose {
   fieldKey: string | undefined;
   permanentId: string | undefined;
   returning: boolean;
+  cardName?: string;
   returnId?: number;
   x: number;
   y: number;
@@ -30,7 +31,15 @@ interface Capture {
   poses: CardPose[];
   timings: AnimationTiming[];
   decisions: { label: string | null; openedAt: number; closedAt?: number }[];
-  boards: { at: number; turnSeat: number; suspendedIds: string[]; securityCounts: number[]; permanentIds: string[] }[];
+  boards: {
+    at: number;
+    turnSeat: number;
+    suspendedIds: string[];
+    securityCounts: number[];
+    permanentIds: string[];
+    permanents: { permanentId: string; cardId: string; stackCount: number }[];
+  }[];
+  peels: { key: string; permanentId?: string; cardId?: string; firstAt: number; lastAt: number; frames: number }[];
   phaseRibbons: { at: number; label: string; side: string | undefined }[];
   arrows: {
     at: number;
@@ -72,6 +81,7 @@ export async function startPacingCapture(page: Page) {
       timings: [],
       decisions: [],
       boards: [],
+      peels: [],
       phaseRibbons: [],
       arrows: [],
       returnLifecycle: [],
@@ -82,6 +92,7 @@ export async function startPacingCapture(page: Page) {
     let returnSequence = 0;
     let decision: { element: Element; observation: Capture["decisions"][number] } | undefined;
     let boardKey = "";
+    const peelObservations = new WeakMap<Element, Capture["peels"][number]>();
     let ribbonElement: Element | null = null;
     let arrowSignature = "";
     const returnId = (element: Element) => {
@@ -129,7 +140,15 @@ export async function startPacingCapture(page: Page) {
             board?: {
               visible?: {
                 turn: { seat: number };
-                players: { securityCount: number; battleArea: { permanentId: string; isSuspended: boolean }[] }[];
+                players: {
+                  securityCount: number;
+                  battleArea: {
+                    permanentId: string;
+                    isSuspended: boolean;
+                    topCard: { cardId: string };
+                    stack?: unknown[];
+                  }[];
+                }[];
               };
             };
           };
@@ -144,12 +163,42 @@ export async function startPacingCapture(page: Page) {
           ),
           securityCounts: visible.players.map((player) => player.securityCount),
           permanentIds: visible.players.flatMap((player) => player.battleArea.map((card) => card.permanentId)),
+          permanents: visible.players.flatMap((player) =>
+            player.battleArea.map((card) => ({
+              permanentId: card.permanentId,
+              cardId: card.topCard.cardId,
+              stackCount: card.stack?.length ?? 0,
+            })),
+          ),
         };
         const key = JSON.stringify(sample);
         if (key !== boardKey) {
           capture.boards.push({ at, ...sample });
           boardKey = key;
         }
+      }
+      for (const peel of document.querySelectorAll<HTMLElement>(".game-stack-strip-peel")) {
+        const bounds = peel.getBoundingClientRect();
+        const painted = [...peel.querySelectorAll(".game-stack-strip-peel__face, .game-stack-strip-peel__rim")].some(
+          (part) => Number(getComputedStyle(part).opacity) > 0.01,
+        );
+        if (bounds.width <= 0 || bounds.height <= 0 || Number(getComputedStyle(peel).opacity) <= 0 || !painted)
+          continue;
+        let observation = peelObservations.get(peel);
+        if (!observation) {
+          observation = {
+            key: peel.dataset.stackStrip ?? "",
+            permanentId: peel.dataset.permanentId,
+            cardId: peel.dataset.cardId,
+            firstAt: at,
+            lastAt: at,
+            frames: 0,
+          };
+          peelObservations.set(peel, observation);
+          capture.peels.push(observation);
+        }
+        observation.lastAt = at;
+        observation.frames++;
       }
       const ribbon = document.querySelector<HTMLElement>(".game-phase-banner");
       if (ribbon !== ribbonElement) {
@@ -246,6 +295,7 @@ export async function startPacingCapture(page: Page) {
           permanentId: element.dataset.id,
           returning: element.dataset.testid === "field-group-return",
           returnId: returnId(element),
+          cardName: art.getAttribute("title") ?? undefined,
           x: rect.x + rect.width / 2,
           y: rect.y + rect.height / 2,
           angle: Number.parseFloat(getComputedStyle(art).rotate) || 0,

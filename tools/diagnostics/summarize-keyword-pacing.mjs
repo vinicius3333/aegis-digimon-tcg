@@ -93,6 +93,10 @@ for (const path of positionals) {
                 "battle-security-hit",
                 "battle-clash-in",
                 "battle-clash-out",
+                "battle-stack-strip-lift",
+                "battle-stack-strip-sway",
+                "battle-stack-strip-fade",
+                "battle-stack-strip-rim",
               ].includes(animation.name),
             )
             .map((animation) => ({
@@ -138,6 +142,7 @@ for (const path of positionals) {
             phaseRibbons: capture.phaseRibbons ?? [],
             arrowTargetChanges: capture.arrows ?? [],
             visibleBoardChanges: capture.boards ?? [],
+            stackPeels: (capture.peels ?? []).map((peel) => ({ ...peel, observedMs: peel.lastAt - peel.firstAt })),
             cardRotations: capture.timings
               .filter((timing) => timing.properties.includes("rotate") && timing.duration === 200)
               .map((timing) => {
