@@ -230,8 +230,19 @@ export function narrationStream(deps: NarrationStreamDeps) {
     }
     // A clause is read once the board shows what the clauses before it did. Without this, the
     // next Yoshino's clause lit up while the previous one's draw was still in the air.
+    // Draws from this clause's own batch wait for its announcement gate; waiting on them
+    // here would cycle until the timeout and let the security check overtake the clause.
     const earlierDrawFlights =
-      body?.variant === "effect" ? pendingStepIds(queue, isEffectDrawFlight) : new Set<string>();
+      body?.variant === "effect"
+        ? pendingStepIds(
+            queue,
+            (step) =>
+              isEffectDrawFlight(step) &&
+              step.origin !== undefined &&
+              itemVersion !== undefined &&
+              step.origin.stateVersion < itemVersion,
+          )
+        : new Set<string>();
     queue.enqueue({
       id: `narration-step-${item.id}`,
       origin,

@@ -1,6 +1,6 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat } from "@aegis/shared";
-import type { AnimationQueue, AnimationStepContext } from "../animationQueue";
+import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
 import { TIMINGS } from "../timings";
@@ -12,6 +12,7 @@ export interface CueFlightsDeps {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
   viewerSeat: Seat;
+  presentationBatchRef: MutableRefObject<AnimationStep["origin"]>;
   /** The clause a flight is a consequence of, which is read out before the cards move. */
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   securityGainKeyRef: MutableRefObject<number>;
@@ -29,6 +30,7 @@ export function cueFlights(deps: CueFlightsDeps) {
     anchors,
     viewerSeat,
     causingEffectGateRef,
+    presentationBatchRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,
@@ -146,6 +148,7 @@ export function cueFlights(deps: CueFlightsDeps) {
     // than queueing behind the other side's.
     queue.enqueue({
       id: `draw-flight-${key}`,
+      origin: presentationBatchRef.current,
       side,
       track: card ? CueTrack.CenterStage : `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {

@@ -37,6 +37,7 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-bt5-koromon-attack-draw",
   "arena-taiki-digixros-any-tamer-hand",
   "arena-kotone-digixros-any-tamer-effect",
   "arena-mervamon-trash-digixros",
@@ -668,6 +669,28 @@ function layBt22GabumonEotDnaScenario(state: GameState, _decks: readonly [Deckli
   insertCard(human, Zone.Hand, faceDownCard("dev-gabu-war", "BT22-013", 0));
   insertCard(human, Zone.Trash, faceUpCard("dev-gabu-agu", "BT22-008", 0));
   insertCard(human, Zone.Trash, faceUpCard("dev-gabu-omni", "AD1-025", 0));
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Discord 1556321937188196474: c8383f3a at 14:57 UTC, Greymon checks Gaogamon. */
+function layBt5KoromonAttackDrawScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-koromon-egg-${seat}`, "BT5-001", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-koromon-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-koromon-security-${seat}-${index}`, "EX4-017", seat));
+    }
+  }
+  placePermanent(
+    state.players[0]!,
+    establishedDigimon(0, ["BT5-001", "BT12-059", "BT9-008", "BT12-062"], "-koromon-greymon"),
+  );
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
@@ -5273,6 +5296,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-diarbbitmon-dual-option-immunity": layDiarbbitmonDualOptionImmunityScenario,
+  "arena-bt5-koromon-attack-draw": layBt5KoromonAttackDrawScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
   "arena-ad1-adventure-tamers-security": layAd1AdventureTamersSecurityScenario,
   "arena-lm067-gundramon-free-option": layLm067GundramonFreeOptionScenario,
