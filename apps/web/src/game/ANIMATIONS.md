@@ -5,6 +5,13 @@ typography, components, slot geometry and resting card sizes. The gameplay refer
 guides movement, timing and effects. Validate motion relative to each renderer's own
 card and destination bounds; every animation must settle back into the Aegis layout.
 
+The 2026-10-05 closeout uses representative evolution/play/raising/attack/choice
+and simultaneous-effect comparisons. The user excluded the remaining 28 keyword
+validations and exhaustive reference-frame review. Historical keyword checkpoints
+below retain their evidence, but those excluded validations are no longer pending
+acceptance work. See `docs/plans/2026-10-05-visual-reference-closeout.md` for current
+scope, measured limits and focused browser results.
+
 Start with `animationCatalog.ts`. It exhaustively assigns every server event to its
 presentation families and to the board snapshot policy. `presentBatch.ts` consumes that
 policy; the effects lab consumes the same catalog, reports observed recipes, and links the
