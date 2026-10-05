@@ -174,3 +174,16 @@ synthetic and never load models. Preserved external-source fixtures explicitly s
 on hosts missing those read-only helper references. Local Python is 3.12.12 for
 syntax/fixture checks; actual execution rejects it and requires 3.12.14. Ignored
 logs and the pending request are under `artifacts/bot-training/material-teacher-runtime/`.
+
+
+## Integrated review correction
+
+ROOT replaces blanket engine/teacher log substring checks with complete anchored
+Vitest all-passed summary counts. Actual successful negative engine fixtures print
+`combat resolve failed`, so prose cannot classify a test failure. The phase must
+still close zero; every test/file must appear in an all-passed total, teacher files
+must equal two, and the full suite must contain at least 819 files/13783 tests.
+The new regression rejects failed/skipped/mismatched/missing/duplicate summaries
+and retains expected negative-fixture log text. ROOT reruns all 13 operator guard
+methods successfully. This external operator correction leaves the frozen teacher
+archive and production source unchanged; actual desktop qualification is pending.

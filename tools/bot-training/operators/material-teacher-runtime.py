@@ -393,6 +393,22 @@ def helpers(ctx: dict[str, Any]) -> dict[str, Any]:
     return {**selected, "foundation": foundation}
 
 
+def vitest_counts(log: str) -> tuple[int, int]:
+    """Require complete all-passed summaries; negative fixtures may log errors."""
+    counts = []
+    for label in ("Test Files", "Tests"):
+        rows = re.findall(
+            r"(?m)^[ \t]*" + re.escape(label) + r"[ \t]+(\d+) passed[ \t]+\((\d+)\)[ \t]*$",
+            log,
+        )
+        require(
+            len(rows) == 1 and int(rows[0][0]) == int(rows[0][1]) > 0,
+            "Complete all-passed Vitest summary required",
+        )
+        counts.append(int(rows[0][0]))
+    return counts[0], counts[1]
+
+
 def qualification(ctx: dict[str, Any]) -> dict[str, Any]:
     run = ctx["paths"]["prepare"]
     h = helpers(ctx)
@@ -412,12 +428,8 @@ def qualification(ctx: dict[str, Any]) -> dict[str, Any]:
     teacherlog = re.sub(
         r"\x1b\[[0-9;]*m", "", (run / "teacher-tests.log").read_text(encoding="utf-8")
     )
-    require(
-        re.search(r"\bTest Files\s+2 passed \(2\)", teacherlog) is not None
-        and "skipped" not in teacherlog
-        and "failed" not in teacherlog,
-        "Both named teacher suites must be wholly green",
-    )
+    teacher_files, _ = vitest_counts(teacherlog)
+    require(teacher_files == 2, "Both named teacher suites must be wholly green")
     for name in ("materialTeacher.test.ts", "effectMaterialTeacher.test.ts"):
         for seat in (0, 1):
             require(
@@ -477,17 +489,8 @@ def qualification(ctx: dict[str, Any]) -> dict[str, Any]:
     engine_log = re.sub(
         r"\x1b\[[0-9;]*m", "", (run / "engine-tests.log").read_text(encoding="utf-8")
     )
-    tests = re.search(r"\bTests\s+(\d+) passed", engine_log)
-    files = re.search(r"\bTest Files\s+(\d+) passed", engine_log)
-    require(
-        tests is not None
-        and files is not None
-        and int(tests[1]) >= 13783
-        and int(files[1]) >= 819
-        and "skipped" not in engine_log
-        and "failed" not in engine_log,
-        "Full fresh engine/audit suite required",
-    )
+    files, tests = vitest_counts(engine_log)
+    require(files >= 819 and tests >= 13783, "Full fresh engine/audit suite required")
     return {
         "sourceCommit": ctx["request"]["source"]["commit"],
         "requestSha256": ctx["requestSha256"],
@@ -499,8 +502,8 @@ def qualification(ctx: dict[str, Any]) -> dict[str, Any]:
         "runtimeMapSha256": digest(run / "runtime-files.json"),
         "metadataSha256": digest(run / "metadata.json"),
         "curriculumSha256": digest(run / "curriculum.json"),
-        "engineTests": int(tests[1]),
-        "engineTestFiles": int(files[1]),
+        "engineTests": tests,
+        "engineTestFiles": files,
         "engineEvidenceReused": False,
         "reviewedCompiledTeacherPaths": sorted(OUTPUTS),
         "commands": h["commands"](),

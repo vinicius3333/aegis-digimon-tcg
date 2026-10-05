@@ -259,6 +259,21 @@ class TeacherRuntimeGuards(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "still live"):
             helpers["verify_whole"](identity, "a" * 64)
 
+    def test_vitest_summaries_allow_negative_fixture_logs_but_reject_incomplete_totals(
+        self,
+    ) -> None:
+        green = "[engine] combat resolve failed: expected negative fixture\n Test Files 819 passed (819)\n      Tests 13783 passed (13783)\n"
+        self.assertEqual(operator.vitest_counts(green), (819, 13783))
+        for broken in (
+            green.replace("819 passed (819)", "818 passed | 1 failed (819)"),
+            green.replace("13783 passed (13783)", "13782 passed | 1 skipped (13783)"),
+            green.replace("13783 passed (13783)", "13782 passed (13783)"),
+            green.replace("Tests 13783 passed (13783)", ""),
+            green + " Test Files 819 passed (819)\n",
+        ):
+            with self.assertRaises(ValueError):
+                operator.vitest_counts(broken)
+
     def test_sealed_ast_migration_and_admission_preserve_original_order_without_top_level_torch(
         self,
     ) -> None:
