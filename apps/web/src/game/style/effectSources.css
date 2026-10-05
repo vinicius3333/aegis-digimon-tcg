@@ -233,6 +233,10 @@ body:has(.game-board > .game-effect-focus) .game-hand-hover__face::after {
   z-index: calc(var(--ds-z-sheet, 80) - 2);
   pointer-events: none;
 }
+/* A portaled hover face must yield to the decision sheet's controls. */
+body:has([aria-modal="true"]) .game-hand-hover {
+  display: none;
+}
 .game-hand-hover__anchor {
   position: absolute;
 }
