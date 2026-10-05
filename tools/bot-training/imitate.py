@@ -14,6 +14,7 @@ from numpy.typing import NDArray
 
 from adaptation import IdentityAdaptation, VocabularyAdaptation
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
+from learning_mechanisms import MECHANISMS, coverage, inspect_dataset, require_coverage, sample_context
 from model import CandidatePolicy
 
 type Sample = tuple[NDArray[np.float32], NDArray[np.float32], int]
@@ -41,6 +42,7 @@ def cache_demonstrations(
     split: dict[str, list[str]] = {"training": [], "validation": []}
     references: dict[str, list[tuple[int, int, int]]] = {"training": [], "validation": []}
     action_types: dict[str, list[str]] = {"training": [], "validation": []}
+    contexts: dict[str, list[dict[str, Any]]] = {"training": [], "validation": []}
     cache_path = output / "encoded-samples.f32"
     offset = 0
     with cache_path.open("wb") as cache:
@@ -61,10 +63,15 @@ def cache_demonstrations(
                 actions.tofile(cache)
                 references[name].append((offset, len(actions), row["action"]))
                 action_types[name].append(row["window"]["actions"][row["action"]]["intent"]["type"])
+                contexts[name].append(sample_context(row))
                 offset += state.size + actions.size
     if not references["training"] or not references["validation"]:
         raise click.ClickException("Need completed episodes in both training and validation folds")
     (output / "sample-types.json").write_text(json.dumps(action_types), encoding="utf-8")
+    (output / "sample-mechanisms.json").write_text(json.dumps(contexts), encoding="utf-8")
+    (output / "mechanism-coverage.json").write_text(
+        json.dumps(coverage(contexts), indent=2), encoding="utf-8"
+    )
     features = np.memmap(cache_path, dtype=np.float32, mode="r")
 
     def samples(name: str) -> list[Sample]:
@@ -231,6 +238,42 @@ def epoch_order(
     return order, anchored
 
 
+def mechanism_epoch_order(
+    contexts: list[dict[str, Any]], rng: np.random.Generator, share: float
+) -> tuple[NDArray[np.int64], NDArray[np.bool_]]:
+    """Keep all originals, then preferentially fill scarce mechanism/seat bins.
+
+    Only training-fold indices enter here. Validation coverage is checked separately
+    before training; resampling cannot invent missing labels in either fold.
+    """
+    if not math.isfinite(share) or not 0 < share < 1:
+        raise ValueError("Mechanism share must be finite and strictly between zero and one")
+    bins = {(family, seat): [] for family in MECHANISMS for seat in (0, 1)}
+    for index, row in enumerate(contexts):
+        key = (row["mechanism"], row["seat"])
+        if key in bins:
+            bins[key].append(index)
+    missing = [f"{family}:seat{seat}" for (family, seat), rows in bins.items() if not rows]
+    if missing:
+        raise ValueError(f"Missing training-fold mechanism/seat labels: {missing}")
+    keys = list(bins)
+    totals = np.array([len(bins[key]) for key in keys], dtype=np.int64)
+    extra = max(0, math.ceil((share * len(contexts) - int(totals.sum())) / (1 - share)))
+    order = list(rng.permutation(len(contexts)))
+    for _ in range(extra):
+        # Randomized ties retain seeded reproducibility without favoring seat 0.
+        candidates = np.flatnonzero(totals == totals.min())
+        group = int(rng.choice(candidates))
+        order.append(int(rng.choice(bins[keys[group]])))
+        totals[group] += 1
+    rng.shuffle(order)
+    indexes = np.array(order, dtype=np.int64)
+    anchored = np.array(
+        [contexts[index]["mechanism"] not in MECHANISMS for index in indexes], dtype=np.bool_
+    )
+    return indexes, anchored
+
+
 def save_checkpoint(output: Path, saved: dict[str, Any], *, epoch: int, selected: bool) -> None:
     temporary = output / "checkpoint.tmp"
     torch.save(saved, temporary)
@@ -258,6 +301,12 @@ def save_checkpoint(output: Path, saved: dict[str, Any], *, epoch: int, selected
     help="Reach at least this training fraction with compound resamples; anchor other types.",
 )
 @click.option(
+    "--mechanism-share",
+    type=click.FloatRange(min=0, max=1, max_open=True),
+    default=0.0,
+    help="Balance all material/declaration families by learner seat; requires both original folds.",
+)
+@click.option(
     "--compound-only",
     is_flag=True,
     help="Teach compound labels while retaining the source policy on all other label types.",
@@ -283,6 +332,7 @@ def main(
     learning_rate: float | None,
     policy_anchor: float,
     compound_share: float,
+    mechanism_share: float,
     compound_only: bool,
     new_card_columns_only: bool,
     adapt_card_ids: tuple[str, ...],
@@ -296,15 +346,31 @@ def main(
     if (
         not np.isfinite(policy_anchor)
         or not np.isfinite(compound_share)
+        or not np.isfinite(mechanism_share)
         or (learning_rate is not None and not np.isfinite(learning_rate))
     ):
         raise click.ClickException("Learning rate, policy anchor and compound share must be finite")
+    if mechanism_share > 0 and (
+        checkpoint is None or policy_anchor <= 0 or compound_share > 0 or compound_only
+    ):
+        raise click.ClickException(
+            "--mechanism-share requires --checkpoint, positive --policy-anchor, "
+            "and no --compound-share/--compound-only"
+        )
     if compound_only and (checkpoint is None or policy_anchor <= 0 or compound_share <= 0):
         raise click.ClickException(
             "--compound-only requires --checkpoint, positive --policy-anchor and --compound-share"
         )
     manifest = json.loads((dataset / "config.json").read_text(encoding="utf-8"))
     metadata = manifest["metadata"]
+    if mechanism_share > 0:
+        # Reject data gaps before loading a model or creating encoded artifacts.
+        from_report = inspect_dataset(dataset)
+        if not from_report["allMechanismsBothSeatsBothFolds"]:
+            raise click.ClickException(
+                "Missing mechanism/seat supervision in original episode folds: "
+                + str(from_report["missingMechanismSeatsByFold"])
+            )
     if manifest["featureVersion"] != FEATURE_VERSION or metadata["statusFields"] != list(
         STATUS_FIELDS
     ):
@@ -339,6 +405,9 @@ def main(
     output.mkdir(parents=True, exist_ok=True)
     training, validation, source_hashes, split = cache_demonstrations(dataset, output, encoder)
     action_types = json.loads((output / "sample-types.json").read_text(encoding="utf-8"))
+    contexts = json.loads((output / "sample-mechanisms.json").read_text(encoding="utf-8"))
+    if mechanism_share > 0:
+        require_coverage(contexts)
     config = {
         "dataset": str(dataset.resolve()),
         "sourceHashes": source_hashes,
@@ -352,6 +421,8 @@ def main(
         "learningRateOverride": learning_rate,
         "policyAnchor": policy_anchor,
         "compoundShare": compound_share,
+        "mechanismShare": mechanism_share,
+        "mechanismFamilies": list(MECHANISMS) if mechanism_share > 0 else [],
         "compoundPolicyAnchor": 0 if compound_share > 0 else policy_anchor,
         "teacherLossScope": "compound" if compound_only else "all",
         "newCardColumnsOnly": new_card_columns_only,
@@ -367,7 +438,10 @@ def main(
         "encodedCacheBytes": (output / "encoded-samples.f32").stat().st_size,
         "implementationHashes": {
             name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-            for name in ["imitate.py", "features.py", "model.py", "adaptation.py", "migrate.py"]
+            for name in [
+                "imitate.py", "features.py", "model.py", "adaptation.py", "migrate.py",
+                "learning_mechanisms.py",
+            ]
         },
     }
     (output / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
@@ -408,7 +482,11 @@ def main(
     (output / "results.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
     click.echo(json.dumps(history[0]))
     for epoch in range(epochs):
-        order, anchored = epoch_order(action_types["training"], rng, compound_share)
+        order, anchored = (
+            mechanism_epoch_order(contexts["training"], rng, mechanism_share)
+            if mechanism_share > 0
+            else epoch_order(action_types["training"], rng, compound_share)
+        )
         for start in range(0, len(order), 128):
             samples = [training[index] for index in order[start : start + 128]]
             states, actions, mask, labels = batch_tensors(samples, target)
@@ -443,6 +521,14 @@ def main(
             "updates": updates,
             "trainingSamples": len(order),
             "unanchoredSamples": int((~anchored).sum()),
+            "mechanismSamplesBySeat": {
+                f"{family}:seat{seat}": sum(
+                    contexts["training"][index] == {"mechanism": family, "seat": seat}
+                    for index in order
+                )
+                for family in MECHANISMS
+                for seat in (0, 1)
+            },
             "parameterChangeNorm": float(
                 torch.sqrt(
                     sum(

@@ -125,6 +125,25 @@ def infer(
         )
 
 
+def greedy_action(
+    model: CandidatePolicy,
+    encoder: FeatureEncoder,
+    message: dict[str, Any],
+    device: torch.device,
+) -> int:
+    """Exact greedy choice without retaining PPO features or constructing a distribution."""
+    state, actions = encoder.encode(message)
+    with torch.no_grad(), model_lock:
+        logits, _ = model(
+            torch.from_numpy(state[None]).to(device),
+            torch.from_numpy(actions[None]).to(device),
+            torch.ones((1, len(actions)), dtype=torch.bool, device=device),
+        )
+        if not torch.isfinite(logits).all():
+            raise ValueError("Nonfinite evaluation logits")
+        return int(logits.argmax(dim=-1).item())
+
+
 def episode(
     model: CandidatePolicy,
     encoder: FeatureEncoder,
@@ -135,7 +154,10 @@ def episode(
     device: torch.device,
     greedy: bool,
     opponent: CandidatePolicy | None = None,
+    stream_evaluation: bool = False,
 ) -> tuple[list[Transition], dict[str, Any]]:
+    if stream_evaluation and not greedy:
+        raise ValueError("Streaming choices require greedy evaluation")
     transitions: list[Transition] = []
     coverage = ActionCoverage()
     # A per-episode stream keeps sampling reproducible regardless of thread scheduling.
@@ -162,10 +184,14 @@ def episode(
                 bridge.send({"decisionId": message["decisionId"], "action": choice.selected})
                 continue
             if message["type"] == "decision":
-                transition = infer(model, encoder, message, device, greedy, generator)
-                coverage.observe(message, transition.selected)
-                transitions.append(transition)
-                bridge.send({"decisionId": message["decisionId"], "action": transition.selected})
+                if stream_evaluation:
+                    selected = greedy_action(model, encoder, message, device)
+                else:
+                    transition = infer(model, encoder, message, device, greedy, generator)
+                    transitions.append(transition)
+                    selected = transition.selected
+                coverage.observe(message, selected)
+                bridge.send({"decisionId": message["decisionId"], "action": selected})
                 continue
             if message["type"] == "truncated":
                 return [], {
@@ -235,10 +261,14 @@ def tolerated_episode(
     device: torch.device,
     greedy: bool,
     opponent: CandidatePolicy | None = None,
+    stream_evaluation: bool = False,
 ) -> tuple[list[Transition], dict[str, Any]]:
     """Record a failed episode as unusable evidence; the caller enforces the failure budget."""
     try:
-        return episode(model, encoder, config, node, worker, output, device, greedy, opponent)
+        return episode(
+            model, encoder, config, node, worker, output, device, greedy, opponent,
+            stream_evaluation,
+        )
     except (RuntimeError, TimeoutError, ValueError) as error:
         failure = output / f"failure-{config['seed']}.json"
         if not failure.exists():
@@ -415,6 +445,10 @@ def action_coverage(records: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
 @click.option("--checkpoint", type=click.Path(path_type=Path, exists=True, dir_okay=False))
 @click.option("--evaluate", is_flag=True, help="Greedy held-out evaluation; never updates weights.")
 @click.option(
+    "--stream-evaluation", is_flag=True,
+    help="With --evaluate, retain terminal records/coverage without unused PPO feature buffers.",
+)
+@click.option(
     "--learning-rate",
     type=click.FloatRange(min=0, min_open=True),
     default=None,
@@ -439,9 +473,12 @@ def main(
     device: str,
     checkpoint: Path | None,
     evaluate: bool,
+    stream_evaluation: bool,
     learning_rate: float | None,
     curriculum: bool,
 ) -> None:
+    if stream_evaluation and not evaluate:
+        raise click.ClickException("--stream-evaluation requires --evaluate")
     if learning_rate is not None:
         if not math.isfinite(learning_rate):
             raise click.ClickException("Learning rate must be positive and finite")
@@ -543,6 +580,7 @@ def main(
         "featureVersion": FEATURE_VERSION,
         "metadata": metadata,
         "evaluate": evaluate,
+        "streamEvaluation": stream_evaluation,
         "forfeitOnCostRefusal": not evaluate,
         "torchVersion": str(torch.__version__),
         "parameters": sum(parameter.numel() for parameter in model.parameters()),
@@ -583,7 +621,8 @@ def main(
         if opponent is not None:
             config = {**config, "opponent": "external", "opponentName": name}
         return tolerated_episode(
-            model, encoder, config, node, worker, output, target_device, evaluate, opponent
+            model, encoder, config, node, worker, output, target_device, evaluate, opponent,
+            stream_evaluation,
         )
 
     def episode_config(index: int) -> dict[str, Any]:
