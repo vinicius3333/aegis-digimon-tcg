@@ -1038,6 +1038,26 @@ export function useMatchCues({
     setPendingRevealKey,
   });
 
+  // A timed answer cannot wait behind cosmetic beats: the authoritative reserve
+  // may be almost empty. Catch the board up and release the security hold as soon
+  // as the question arrives, without asking the server for additional free time.
+  const timedDecisionPending = state?.matchTimer === true && decisionPending;
+  useEffect(() => {
+    if (!timedDecisionPending) return;
+    const revision = decisionStateVersion ?? state?.stateVersion;
+    if (revision !== undefined) progress.raiseFloor(revision);
+    if (pendingRevealKey !== null) {
+      handOverSecurityBlow(pendingRevealKey);
+      const held = securityHoldRef.current;
+      if (held?.key === pendingRevealKey) held.handedOver = true;
+      setPendingRevealKey(null);
+    }
+    setDecisionBarrier(null);
+    fastForward();
+    // The queue and progress are stable; the other helpers read current refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timedDecisionPending, decisionStateVersion, state?.stateVersion, pendingRevealKey, queue, progress]);
+
   useDpPulses({
     state,
     queue,
@@ -1232,9 +1252,9 @@ export function useMatchCues({
     securityBreak,
     securityBranch,
     optionBranch,
-    securityRevealPending: pendingRevealKey !== null,
-    decisionBarrierPending: decisionBarrier !== null,
-    decisionAnimationsPending: decisionAnimationsPending && !decisionStalled,
+    securityRevealPending: pendingRevealKey !== null && !timedDecisionPending,
+    decisionBarrierPending: decisionBarrier !== null && !timedDecisionPending,
+    decisionAnimationsPending: decisionAnimationsPending && !decisionStalled && !timedDecisionPending,
     presentedStateVersion,
     presenting: presentedStateVersion !== undefined || pendingPhaseBanners > 0,
     unsuspendSweep,
