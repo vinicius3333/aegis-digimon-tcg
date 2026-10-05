@@ -47,6 +47,20 @@ describe("deletionField", () => {
     expect(presented.battleArea.map((p) => p.permanentId)).toEqual(["b"]);
   });
 
+  it("removes only the shattered physical copy from an older presented snapshot through the light tail", () => {
+    const shown = player([permanent("a"), permanent("b"), permanent("c")]);
+    const departing = { ...held, departed: true };
+    const waiting = { ...held, permanent: permanent("c"), index: 2 };
+    const tail = deletionField({ player: shown, held: [departing, waiting] });
+    expect(tail.battleArea.map((p) => p.permanentId)).toEqual(["a", "c"]);
+    expect(deletionField({ player: tail, held: [departing, waiting] }).battleArea).toEqual(tail.battleArea);
+    expect(
+      deletionField({ player: shown, held: [departing, { ...waiting, departed: true }] }).battleArea.map(
+        (p) => p.permanentId,
+      ),
+    ).toEqual(["a"]);
+  });
+
   it("does nothing with no hold", () => {
     const shown = player([permanent("a")]);
     expect(deletionField({ player: shown, held: [] })).toBe(shown);

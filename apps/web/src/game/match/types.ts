@@ -92,6 +92,8 @@ export interface HeldStackStrip {
  * was reached and broke apart over an empty slot a beat later.
  */
 export interface HeldDeletion {
+  /** The shards own this physical card; older presented revisions must omit its face. */
+  departed?: boolean;
   seat: Seat;
   permanent: Permanent;
   /** Where in the battle area it stood, so the row does not reflow ahead of the shatter. */

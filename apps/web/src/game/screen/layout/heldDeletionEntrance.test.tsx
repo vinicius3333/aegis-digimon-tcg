@@ -3,6 +3,7 @@ import { afterEach, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { CardInstance, Permanent } from "@aegis/shared";
 import { I18nProvider } from "../../../i18n";
+import { pendingFateBadge } from "../../pendingFate";
 import { FieldLayout, setFieldLayout } from "../../../design/fieldLayout";
 import type { PermanentChrome } from "../types";
 import { ViewerBattleRow } from "./ViewerBattleRow";
@@ -51,6 +52,8 @@ it.each(["viewer", "opponent"] as const)(
     const established = [target, first, second];
     const view = (permanents: Permanent[], held: ReadonlySet<string> = new Set(), newArrival = false) => {
       const cues = chrome(held);
+      cues.fateBadges = new Map([["target", pendingFateBadge("delete")]]);
+      cues.decisionPickedInstanceIds = new Set(["target"]);
       if (newArrival)
         cues.permanentBursts = new Map([
           ["target", { permanentId: "target", key: 1, variant: "evolve", color: "Purple", inBreeding: false }],
@@ -90,6 +93,7 @@ it.each(["viewer", "opponent"] as const)(
     rerender(view([]));
     rerender(view([...established, newcomer], new Set(["target", "second"])));
     const entrance = (id: string) => container.querySelector(`[data-id="${id}"] .game-card-enter`)!;
+    expect(container.querySelector<HTMLElement>('[data-id="target"]')!.style.transform).toBe("none");
     expect(entrance("target").classList.contains("game-card-enter--quiet")).toBe(true);
     expect(entrance("first").classList.contains("game-card-enter--quiet")).toBe(true);
     expect(entrance("newcomer").classList.contains("game-card-enter--quiet")).toBe(false);

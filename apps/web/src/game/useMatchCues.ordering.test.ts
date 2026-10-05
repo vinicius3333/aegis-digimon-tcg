@@ -1,3 +1,4 @@
+import { deletionField } from "./screen/model/presentedBoard";
 // @vitest-environment jsdom
 
 import { act, cleanup, render as renderDom, renderHook } from "@testing-library/react";
@@ -1324,6 +1325,8 @@ it.each([
   [true, 2, "live"],
   [true, 2, "skip"],
   [true, 2, "cancel"],
+  [true, 2, "skip-tail"],
+  [true, 2, "cancel-tail"],
 ] as const)(
   "keeps Titan Delay costs physical with earlier reactions queued=%s and copies=%s, %s",
   async (queuedReactions, copies, exit) => {
@@ -1450,6 +1453,8 @@ it.each([
     }
     view.feedBatches(batches, after);
     const assertBothHeld = () => expect(view.result.current.heldDeletions.size).toBe(2);
+    const assertDepartureBegan = () =>
+      expect([...view.result.current.heldDeletions.values()].some((held) => held.departed)).toBe(true);
     const assertSettled = () => {
       expect(controls?.queue.isIdle()).toBe(true);
       expect(expiries).toEqual([]);
@@ -1461,20 +1466,43 @@ it.each([
     if (exit !== "live") {
       await advance(16);
       assertBothHeld();
-      if (exit === "skip") act(() => view.result.current.skipAnimations());
+      if (exit.endsWith("tail")) {
+        await firstSeenOrder({ break: () => view.result.current.deleteBursts.length > 0 }, 8000);
+        assertDepartureBegan();
+      }
+      if (exit.startsWith("skip")) act(() => view.result.current.skipAnimations());
       else view.unmount();
       await advance(1000);
-      if (exit === "skip") assertDecorationClean();
+      if (exit.startsWith("skip")) assertDecorationClean();
       assertSettled();
       return;
     }
+    const visibleBrokenCopies: string[] = [];
+    let breakFrames = 0;
     const moments = await firstSeenOrder(
       {
         firstFocus: () =>
           view.result.current.effectSources.some(
             (source) => source.site.zone === "field" && source.site.permanentId === "delay-first",
           ),
-        firstBreak: () => view.result.current.deleteBursts.some((burst) => burst.face?.x === 200),
+        firstBreak: () => {
+          const breaking = view.result.current.deleteBursts.some((burst) => burst.face?.x === 200);
+          if (breaking) {
+            breakFrames++;
+            // An old paced snapshot must not repaint any already shattered copy.
+            const shown = deletionField({
+              player: before.players[0]!,
+              held: [...view.result.current.heldDeletions.values()],
+            });
+            const brokenIds: string[] = view.result.current.deleteBursts.map((burst) =>
+              burst.face?.x === 200 ? "delay-first" : "delay-second",
+            );
+            visibleBrokenCopies.push(
+              ...shown.battleArea.map((permanent) => permanent.permanentId).filter((id) => brokenIds.includes(id)),
+            );
+          }
+          return breaking;
+        },
         firstClause: () =>
           view.result.current.notices.some(
             (notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId === "option-first",
@@ -1499,6 +1527,8 @@ it.each([
       "firstClause",
       ...(copies === 2 ? ["secondFocus", "secondBreak", "secondClause"] : []),
     ]);
+    expect(breakFrames).toBeGreaterThan(0);
+    expect(visibleBrokenCopies).toEqual([]);
     assertDecorationClean();
     assertSettled();
   },
