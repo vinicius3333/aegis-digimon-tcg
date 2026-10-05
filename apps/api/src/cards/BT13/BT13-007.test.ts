@@ -1,4 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
+import "../index.js";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
@@ -731,5 +732,68 @@ describe("BT13-007 King Drasil_7D6 — KB Q&A rulings", () => {
       withDpBearingDigimon.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-007"),
     ).toBe(true);
     expect(withDpBearingDigimon.perm("gennai").isSuspended).toBe(true);
+  });
+});
+
+describe("Discord October 5 report regressions", () => {
+  it("1556732255148179569: King Drasil never offers Your Turn reduction for Omekamon's opponent-turn free play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 6000 }], deck: ["BT1-009"] },
+        1: {
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT20-102"] },
+          battleArea: [{ card: "EX11-053", as: "omeka", suspended: true }],
+          security: ["BT1-009"],
+          hand: ["BT1-009", { card: "BT13-040", as: "prime" }],
+          deck: ["BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        declinePrompts: ["reduce the play cost by 4"],
+      },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("prime").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT13-040") &&
+        s.state.pendingDecision === undefined,
+    );
+    s.state.turnSeat = 0;
+    s.state.turnCount++;
+    s.state.memory = 0;
+    const reducers = advance(s.engine).ledgers.subTriggers;
+    expect(
+      reducers.potentialInteractiveReductionFor("wouldBePlayed", 1, s.perm("prime"), getCardDefinition("BT13-040")!),
+    ).toBe(0);
+    expect(
+      reducers.hasApplicablePlayReductions(1, s.perm("prime"), getCardDefinition("BT13-040")!, {
+        hasFired: () => false,
+        markFired: () => {},
+      }),
+    ).toBe(false);
+    const priorDecisions = s.decisions.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("omeka").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "cardPlayed" && e.cardId === "BT20-102") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(
+      s.decisions.slice(priorDecisions).filter(({ req }) => req.sourceCardId === "BT13-007" && req.kind === "optional"),
+    ).toEqual([]);
+    expect(s.state.memory).toBe(0);
   });
 });
