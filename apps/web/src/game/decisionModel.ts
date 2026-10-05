@@ -49,6 +49,8 @@ export type CandidateZone =
   | "opponentTrash"
   | "battle"
   | "opponentBattle"
+  | "linkedCards"
+  | "opponentLinkedCards"
   | "digivolutionCards"
   | "opponentDigivolutionCards"
   | "breeding"
@@ -67,7 +69,7 @@ export function buildInstanceZoneIndex(state: GameState, viewerSeat: Seat): Map<
     if (!perm) return;
     add(perm.topCard, zone);
     perm.stack?.forEach((ci) => add(ci, stackZone));
-    perm.linked?.forEach((ci) => add(ci, zone));
+    perm.linked?.forEach((ci) => add(ci, zone === "opponentBattle" ? "opponentLinkedCards" : "linkedCards"));
     if (perm.permanentId) zones.set(perm.permanentId, zone);
   };
   state.players.forEach((player, seat) => {

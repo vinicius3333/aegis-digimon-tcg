@@ -1,8 +1,17 @@
 import { CardKind, CardInstance, Permanent, Zone, getCardDefinition, type GameState, type Seat } from "@aegis/shared";
 import { loadDeckInto, setSecurityStack, type Decklist } from "./setup.js";
-import { clearZone, insertCard, placePermanent, setBreeding } from "./state/access.js";
+import {
+  clearBattleArea,
+  clearZone,
+  insertCard,
+  linkCard,
+  placePermanent,
+  pushOnStack,
+  setBreeding,
+  setTopCard,
+} from "./state/access.js";
 
-type FieldCard = { card: string; under?: string[]; suspended?: boolean };
+type FieldCard = { card: string; under?: string[]; linked?: string[]; faceDownUnder?: boolean; suspended?: boolean };
 type PlayerLayout = {
   field?: FieldCard[];
   breeding?: FieldCard;
@@ -113,6 +122,140 @@ const ISSUE_LAYOUTS = {
     ],
   },
 
+  "arena-issue-4965-optional-raid": {
+    memory: 10,
+    players: [
+      { field: [{ card: "ST24-07" }] },
+      { field: [{ card: "BT1-080" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
+  "arena-issue-4967-assembly-with-dna": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "ST20-11" }, { card: "ST21-11" }],
+        hand: ["EX13-016"],
+        trash: ["ST20-11", "ST21-11", "ST20-10", "ST21-10"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-4968-hand-trash-draw": {
+    memory: 10,
+    players: [
+      { hand: ["BT11-057", "BT24-045", "BT26-069", "BT1-010", "BT1-011"], field: [{ card: "BT1-076" }] },
+      { field: [{ card: "BT1-010" }, { card: "BT1-011" }] },
+    ],
+  },
+  "arena-issue-4969-grandgalemon-dp": {
+    memory: 10,
+    players: [{ hand: ["ST22-13"] }, { field: [{ card: "BT1-009" }] }],
+  },
+  "arena-issue-4971-imperial-effect-evolution": {
+    memory: 10,
+    players: [{ field: [{ card: "EX13-008" }], hand: ["BT21-046", "EX13-018"] }, { field: [{ card: "AD1-024" }] }],
+  },
+  "arena-issue-4972-burst-marcus-rule": {
+    memory: 10,
+    players: [
+      { field: [{ card: "ST24-07" }, { card: "ST24-13" }], hand: ["BT25-104"] },
+      { field: [{ card: "BT1-080" }] },
+    ],
+  },
+  "arena-issue-4973-dual-option-immunity": {
+    memory: 10,
+    players: [
+      { field: [{ card: "ST24-13" }], hand: ["ST24-07"] },
+      { field: [{ card: "ST23-08" }], hand: ["ST23-09"] },
+    ],
+  },
+  "arena-issue-4974-gaiomon-reboot": {
+    players: [
+      { field: [{ card: "BT9-068", under: ["BT11-069"], suspended: true }] },
+      { field: [{ card: "BT1-010", suspended: true }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
+  "arena-issue-4977-kingetemon-continuous": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "EX13-031" }, { card: "EX13-028" }, { card: "EX13-028" }],
+        hand: ["EX13-035"],
+        trash: ["EX13-027", "EX13-027"],
+      },
+      { field: [{ card: "BT1-080" }, { card: "EX13-023" }] },
+    ],
+  },
+  "arena-issue-4978-rosemon-tamer-reaction": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "ST24-10" }, { card: "ST24-14", under: ["BT1-009", "BT1-010"], faceDownUnder: true }],
+        hand: ["BT26-049", "ST24-03"],
+      },
+      { field: [{ card: "BT1-080" }, { card: "BT1-080" }] },
+    ],
+  },
+  "arena-issue-4979-weather-detach": {
+    memory: 10,
+    players: [{ field: [{ card: "BT26-037", linked: ["BT26-063"] }] }, { hand: ["EX9-018"], trash: ["BT1-010"] }],
+  },
+  "arena-issue-4981-dantemon-seven-code": {
+    memory: 1,
+    players: [
+      {
+        field: [{ card: "BT26-010", under: ["BT26-007"] }],
+        hand: ["BT26-102", "BT26-086"],
+        trash: ["BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-084", "BT26-010", "BT26-063"],
+      },
+      {
+        field: [{ card: "BT1-080" }, { card: "BT1-084" }],
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-009", "BT1-010"],
+      },
+    ],
+  },
+  "arena-issue-4983-feedback-form": { players: [{ field: [{ card: "BT1-010" }] }, { field: [{ card: "BT1-011" }] }] },
+  "arena-issue-4984-super-hacking-security": {
+    players: [
+      { field: [{ card: "BT24-099" }, { card: "BT26-010" }], security: ["BT26-084", "BT1-010", "BT1-011"] },
+      { field: [{ card: "BT1-010" }] },
+    ],
+  },
+  "arena-issue-4985-double-alliance": {
+    memory: 10,
+    players: [
+      { field: [{ card: "EX13-012" }, { card: "ST12-12" }, { card: "BT6-082" }], hand: ["BT23-013", "BT6-084"] },
+      { security: ["BT1-009", "BT1-010", "BT1-011", "BT1-009", "BT1-010"] },
+    ],
+  },
+  "arena-issue-4988-examon-tamers": {
+    memory: 10,
+    players: [
+      { field: [{ card: "BT1-080" }, { card: "BT1-044" }], hand: ["BT23-047"] },
+      { field: [{ card: "ST24-13" }, { card: "ST24-14" }] },
+    ],
+  },
+  "arena-issue-4989-linked-card-labels": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT26-010", linked: ["BT26-019"] }, { card: "BT26-028" }],
+        hand: ["BT26-102", "BT26-086", "BT26-084"],
+        trash: ["BT26-037", "BT26-051", "BT26-063", "BT26-084"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-4990-end-of-turn-label": {
+    memory: 1,
+    players: [
+      {
+        field: [{ card: "BT9-111", under: ["BT9-062", "BT9-064"] }, { card: "EX13-013" }],
+        hand: ["BT1-009", "BT1-009"],
+      },
+      { field: [{ card: "BT1-011" }] },
+    ],
+  },
   "arena-issue-4905-magnamon-merciful-colors": {
     memory: 6,
     players: [
@@ -418,7 +561,7 @@ export function layIssueReproScenario(
     const spec = layout.players[seat];
     clearZone(player, Zone.Hand);
     clearZone(player, Zone.Trash);
-    player.battleArea.clear();
+    clearBattleArea(player);
     setBreeding(player, undefined);
     for (const [index, cardId] of (spec.hand ?? []).entries())
       insertCard(player, Zone.Hand, card(cardId, seat, "hand", index, false));
@@ -433,14 +576,16 @@ export function layIssueReproScenario(
       const permanent = new Permanent();
       permanent.permanentId = `${id}-${seat}-field-${index}`;
       permanent.controllerSeat = seat;
-      permanent.topCard = card(field.card, seat, "field", index, true);
+      setTopCard(permanent, card(field.card, seat, "field", index, true));
       permanent.enterFieldTurnCount = -1;
       permanent.isSuspended = field.suspended === true;
       permanent.baseDP = getCardDefinition(field.card)?.dp ?? 0;
       permanent.currentDP = permanent.baseDP;
       permanent.placedByEffect = getCardDefinition(field.card)?.kinds.includes(CardKind.Option) === true;
       for (const [sourceIndex, cardId] of (field.under ?? []).entries())
-        permanent.stack.push(card(cardId, seat, `source-${index}`, sourceIndex, true));
+        pushOnStack(permanent, card(cardId, seat, `source-${index}`, sourceIndex, field.faceDownUnder !== true));
+      for (const [linkIndex, cardId] of (field.linked ?? []).entries())
+        linkCard(permanent, card(cardId, seat, `linked-${index}`, linkIndex, true), "bottom");
       if (field === spec.breeding) {
         permanent.inBreeding = true;
         setBreeding(player, permanent);

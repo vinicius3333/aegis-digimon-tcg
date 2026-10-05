@@ -95,7 +95,7 @@ export function boardActions({
   selection: SelectionControls;
   overlays: OverlayControls;
   setAppFusionChoice: (choice: { handInstanceId: string; hostPermanentId: string } | null) => void;
-  playCard: (instanceId: string, confirmDrop?: boolean) => void;
+  playCard: (instanceId: string, confirmDrop?: boolean, preferDna?: boolean) => void;
   attack: (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => void;
   linkCard: (instanceId: string, targetPermanentId: string) => void;
   digivolveWithChoice: (
@@ -247,7 +247,7 @@ export function boardActions({
             : undefined;
         if (perm && evolutionRoute?.kind === "normal")
           return digivolveWithChoice(perm.permanentId, d.instanceId, d.cardId, perm, true);
-        if (evolutionRoute?.kind === "dna") return playCard(d.instanceId);
+        if (evolutionRoute?.kind === "dna") return playCard(d.instanceId, false, true);
         if (perm && evolutionRoute?.kind === "both") {
           setActionConfirm({
             kind: "dna",
@@ -322,7 +322,7 @@ export function boardActions({
             materialPermanentIds: route.materialPermanentIds,
             normalPermanentId: perm.permanentId,
           });
-      if (route?.kind === "dna") return () => playCard(handSel);
+      if (route?.kind === "dna") return () => playCard(handSel, false, true);
       if (route?.kind === "normal") return () => digivolveWithChoice(perm.permanentId, handSel, selCardId, perm);
     }
     if (handSel) return undefined;

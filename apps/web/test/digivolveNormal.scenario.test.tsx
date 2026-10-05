@@ -109,7 +109,7 @@ scenario("digivolve-normal", () => {
     // Agumon is already placed, and the crossing simply hands the turn to the
     // opponent (whose own pass banks the protagonist's next-turn +3 bonus).
     await endBreedingStep();
-    // Clicking "end phase" only sends the intent; the client's own phase state
+    // Clicking "end turn" only sends the intent; the client's own phase state
     // updates asynchronously once the server round-trip lands. Wait for it — every
     // subsequent interaction below depends on genuinely being in the Main phase.
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });

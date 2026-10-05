@@ -30,6 +30,13 @@ function renderSidebar(overrides: Partial<React.ComponentProps<typeof Sidebar>> 
 afterEach(cleanup);
 
 describe("the match sidebar", () => {
+  it("#4990 displays four phases without adding turn-end processing as a fifth", () => {
+    renderSidebar();
+    for (const name of ["Active", "Draw", "Breeding", "Main"]) {
+      expect(screen.getByText(name, { exact: true })).toBeTruthy();
+    }
+    expect(screen.queryByText("End of Turn", { exact: true })).toBeNull();
+  });
   // The floating report button the rest of the client shows is hidden during a match, so this is
   // the only way to report the card that just misbehaved without leaving the game.
   it("offers reporting a bug next to surrendering", () => {

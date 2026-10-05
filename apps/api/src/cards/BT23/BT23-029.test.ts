@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, settleAcrossTimers, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-029.js";
@@ -618,6 +618,8 @@ describe("BT23-029 Antylamon", () => {
   });
 
   it("keeps the restriction through every opponent phase and drops it at the opponent turn end", async () => {
+    let readRestriction: (() => boolean) | undefined;
+    const snapshots: Array<{ event: string; restricted: boolean }> = [];
     const s = setupEngine(
       {
         0: {
@@ -634,7 +636,19 @@ describe("BT23-029 Antylamon", () => {
           deck: Array(12).fill("BT1-012"),
         },
       },
-      { autoSelectCards: true },
+      {
+        autoSelectCards: true,
+        onEvent: (event) => {
+          if (readRestriction === undefined) return;
+          if (event.kind === "phaseChanged" || event.kind === "turnEnded") {
+            snapshots.push({
+              event:
+                event.kind === "phaseChanged" ? `${event.turnSeat}:${event.phase}` : `${event.endingSeat}:turnEnded`,
+              restricted: readRestriction(),
+            });
+          }
+        },
+      },
     );
     await s.ready();
     s.state.memory = 10;
@@ -644,30 +658,26 @@ describe("BT23-029 Antylamon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
     expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
 
-    const phaseLog = () =>
-      s.events
-        .filter((event) => event.kind === "phaseChanged")
-        .map((event) => `${(event as { turnSeat: number }).turnSeat}:${(event as { phase: string }).phase}`);
     const restricted = () => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving");
-    const beforeOpponentTurn = phaseLog().length;
+    readRestriction = restricted;
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    expect(phaseLog().slice(beforeOpponentTurn)).toContain("0:End");
+    expect(snapshots).toEqual([
+      { event: "0:turnEnded", restricted: true },
+      { event: "1:Active", restricted: true },
+      { event: "1:Draw", restricted: true },
+      { event: "1:Breeding", restricted: true },
+      { event: "1:Main", restricted: true },
+    ]);
     expect(restricted()).toBe(true);
 
-    const beforeOpponentEnd = phaseLog().length;
     advance(s.engine).endMainPhaseIfOpen(1);
-    let flipAfter: string[] | undefined;
-    await settleAcrossTimers(() => {
-      if (flipAfter === undefined && !restricted()) flipAfter = phaseLog().slice(beforeOpponentEnd);
-      return flipAfter !== undefined;
-    });
-    expect(flipAfter).toBeDefined();
-    expect(flipAfter![0]).toBe("1:End");
-    expect(flipAfter!.filter((entry) => entry.startsWith("1:"))).toEqual(["1:End"]);
-
     await advance(s.engine).waitForMainPhase(0);
+    expect(snapshots.find((snapshot) => snapshot.event === "1:turnEnded")).toEqual({
+      event: "1:turnEnded",
+      restricted: false,
+    });
     expect(restricted()).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

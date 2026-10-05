@@ -4,7 +4,7 @@ export class GamePage {
   constructor(readonly page: Page) {}
   async endBreeding() {
     await this.page.getByRole("button", { name: /^end breeding$/i }).click();
-    await expect(this.page.getByRole("button", { name: /^end phase$/i })).toBeEnabled();
+    await expect(this.page.getByRole("button", { name: /^end turn$/i })).toBeEnabled();
   }
   async play(name: RegExp) {
     // Copies are interchangeable before play; assertions capture the actual played instance.

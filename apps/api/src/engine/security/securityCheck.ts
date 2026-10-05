@@ -371,11 +371,17 @@ export async function runSecurityCheck(
           ...(battle === undefined ? {} : { battle }),
         });
       };
-      const battle = battlesAttacker ? await battleSecurityDigimon(deps, attacker, revealed, emitChecked) : undefined;
+      let trashedFromSecurity = false;
+      const finishBattleMovement = () => {
+        trashedFromSecurity ||=
+          peekCheckedCard(state, revealed.instanceId) !== undefined && trashIfStillLoose(state, defenderSeat, revealed);
+        takeCheckedCard(state, revealed.instanceId);
+      };
+      const battle = battlesAttacker
+        ? await battleSecurityDigimon(deps, attacker, revealed, emitChecked, finishBattleMovement)
+        : undefined;
       emitChecked(battle);
-      const trashedFromSecurity =
-        peekCheckedCard(state, revealed.instanceId) !== undefined && trashIfStillLoose(state, defenderSeat, revealed);
-      takeCheckedCard(state, revealed.instanceId);
+      finishBattleMovement();
       if (trashedFromSecurity) {
         await deps.fireSubTrigger?.("whenCardTrashedFromSecurity", {
           attackerPermanentId: attacker.permanentId,
@@ -421,6 +427,7 @@ async function battleSecurityDigimon(
   attacker: SecurityCheckAttacker,
   revealed: CardInstance,
   emitChecked: (battle: SecurityBattleResult | undefined) => void,
+  finishBattleMovement: () => void,
 ): Promise<SecurityBattleResult | undefined> {
   // The removal watchers that ran between the check and this battle may have
   // removed the attacker from play; there is nothing left to battle then.
@@ -458,7 +465,12 @@ async function battleSecurityDigimon(
       deps.hasKeyword?.(attackerPermanent.permanentId, "Jamming") === true ||
       deps.hasRestriction?.(attackerPermanent.permanentId, "beDeletedInBattle") === true;
     if (!spared) {
-      await deps.deletePermanents([attacker.permanentId], () => emitChecked(buildResult()));
+      await deps.deletePermanents([attacker.permanentId], () => {
+        emitChecked(buildResult());
+        // CR 13-1-8-4: finish the checked card's movement before the deletion's
+        // triggered effects activate (for example, Super Hacking linking it from trash).
+        finishBattleMovement();
+      });
       emitChecked(buildResult());
       return buildResult();
     }

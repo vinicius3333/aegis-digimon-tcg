@@ -7,6 +7,7 @@ import { useTranslation } from "../../../i18n";
 import { MemoryGauge, TurnControl } from "../../piece";
 import type { PhaseBanner } from "../../phaseBanner";
 import type { TurnControlState } from "../../turnControl";
+import { PHASES } from "../constants";
 
 export function MemoryBand({
   phaseBanner,
@@ -53,8 +54,8 @@ export function MemoryBand({
         onEndPhase={() => !endPhaseBlocked && onEndPhase()}
       />
       {/* A visual summary only: the phase banner above announces each change. */}
-      <ol className="game-phase-rail" aria-hidden="true">
-        {PHASE_RAIL.map((phase) => (
+      <ol className="game-phase-rail" aria-hidden="true" data-testid="turn-phases">
+        {PHASES.map((phase) => (
           <li
             key={phase}
             className="game-phase-rail__step"
@@ -67,6 +68,3 @@ export function MemoryBand({
     </div>
   );
 }
-
-/** The phases a turn passes through before it can end, in order. */
-const PHASE_RAIL = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main] as const;

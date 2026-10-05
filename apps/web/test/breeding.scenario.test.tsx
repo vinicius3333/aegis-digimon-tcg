@@ -107,7 +107,7 @@ scenario("breeding", () => {
       }
     });
     await waitForBoardActions();
-    fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^end turn$/i }));
 
     // Back on the protagonist's second turn, the breeding step reopens — the
     // raising slot now moves out instead of hatching, since the raised Biyomon is
@@ -158,7 +158,7 @@ scenario("breeding", () => {
       }
     });
     await waitForBoardActions();
-    fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^end turn$/i }));
 
     await moveFromBreedingArea();
 

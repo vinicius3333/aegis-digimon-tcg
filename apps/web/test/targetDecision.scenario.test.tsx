@@ -85,12 +85,12 @@ scenario("target-decision", () => {
     // and just passes, banking the +3 bonus for turn 2.
     await endBreedingStep();
     // The board's one turn control reads "End breeding" during the breeding step
-    // and "End phase" after it, so waiting for the first label to go is what
+    // and "End turn" after it, so waiting for the first label to go is what
     // proves the step closed.
     await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), {
       timeout: 10_000,
     });
-    fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
 
     // Turn 2 (memory +3 from the pass-turn bonus): play the first Monodramon
     // (cost 2, memory 3 -> 1, not crossed — Main stays open) then the second

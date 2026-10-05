@@ -497,6 +497,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       const tamerDigivolved = fromTamer && baseWasDigimon !== true;
       const digivolveTrigger = {
         subjectPermanentId: permanent.permanentId,
+        digivolvedInstanceId: permanent.topCard.instanceId,
         previousDigivolutionLevel: previousLevel,
         ...(fromTamer ? { digivolvedFromTamer: true } : {}),
         ...(tamerDigivolved ? { tamerDigivolved: true } : {}),

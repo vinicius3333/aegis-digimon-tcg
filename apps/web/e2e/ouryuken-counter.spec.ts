@@ -36,7 +36,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
       await page.goto("/e2e/harness.html");
       const game = new GamePage(page);
       await game.endBreeding();
-      await page.getByRole("button", { name: /^end phase$/i }).click();
+      await page.getByRole("button", { name: /^end turn$/i }).click();
       await page.getByRole("button", { name: /^don't use$/i }).click();
       await page
         .getByRole("region", { name: "Grademon · effect" })

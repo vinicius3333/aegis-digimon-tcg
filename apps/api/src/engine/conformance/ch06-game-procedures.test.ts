@@ -91,7 +91,7 @@ describe("§6-1 Turn Procedures (comprehensive-0103)", () => {
 
     await machine.runTurn();
 
-    expect(phaseLog).toEqual([Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End]);
+    expect(phaseLog).toEqual([Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main]);
   });
 
   it("6-1-3: the next phase does not begin until the current phase's hook has resolved (Active's unsuspend runs before Draw fires)", async () => {
@@ -525,7 +525,7 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
     expect(phaseLog.filter((p) => p === Phase.Main).length).toBe(1);
     expect(endTurnWindows).toBe(2);
     // ...and then the turn actually ended — postponement is not a hang.
-    expect(phaseLog.at(-1)).toBe(Phase.End);
+    expect(phaseLog.at(-1)).toBe(Phase.Main);
   });
 
   it("6-6-4: a turn whose gauge never crossed is not postponed (the rule needs a MOVE, not a value)", async () => {
@@ -533,7 +533,7 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
       "comprehensive-0110",
       "6-6-4 read together with 6-1-4-1: the turn end condition is the memory reaching 1 or more " +
         "on the opponent's side. A turn that ends without the gauge ever being over there has " +
-        "nothing to move BACK, so no postponement applies and the End phase follows directly.",
+        "nothing to move BACK, so no postponement applies and the turn closes directly.",
       "f9f5cfa75ac379673e9728afe910b1d8fb6c69c088fc27db80dc43203515bdba",
     );
 
@@ -555,6 +555,6 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
     await machine.runTurn();
 
     expect(phaseLog.filter((p) => p === Phase.Main).length).toBe(1);
-    expect(phaseLog.at(-1)).toBe(Phase.End);
+    expect(phaseLog.at(-1)).toBe(Phase.Main);
   });
 });

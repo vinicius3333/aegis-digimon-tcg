@@ -64,6 +64,78 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Relato 1556677140253249656: sua segurança começa como na partida c77fc6f3 de 05/10/2026 às 14:35 UTC: Jesmon BT20-017 para cima e 3 cartas para baixo. O contador deve mostrar 4, inclusive em telas horizontais baixas. Abra a segurança para conferir 1 carta para cima de 4. Encerre a criação e evolua MetalGreymon em Invisimon BT20-055 por 3 e escolha “2 cartas”: a primeira segurança adversária vira para cima, mas ambos os contadores continuam em 4. Confira também a inspeção adversária.",
     en: "Report 1556677140253249656: your security starts as in match c77fc6f3 on 2026-10-05 at 14:35 UTC: face-up BT20-017 Jesmon and 3 face-down cards. The count must read 4, including short landscape screens. Open security to confirm 1 face-up card out of 4. End breeding and digivolve MetalGreymon into BT20-055 Invisimon for 3 and choose “2 cards”: the opponent's first security turns face up while both counts stay at 4. Check the opponent's inspection too.",
   },
+  "arena-issue-4965-optional-raid": {
+    ptBR: "Ataque a segurança com ShineGreymon. Recuse jogar um Tamer e, na seleção de Raid, escolha nenhuma carta. O ataque deve continuar contra a segurança.",
+    en: "Attack security with ShineGreymon. Decline the Tamer play and choose no Raid target. The attack continues against security.",
+  },
+  "arena-issue-4967-assembly-with-dna": {
+    ptBR: "Use Jogar em Omnimon e selecione as quatro cartas da lixeira para Assembly. WarGreymon e MetalGarurumon do campo devem permanecer. Para DNA, selecione Omnimon e toque em um dos materiais do campo.",
+    en: "Use Play on Omnimon and select all four trash materials for Assembly. The field WarGreymon and MetalGarurumon remain. For DNA, select Omnimon and tap a field material.",
+  },
+  "arena-issue-4968-hand-trash-draw": {
+    ptBR: "Evolua em Titamon BT11-057. Descarte Ogremon e Dobermon juntos: a mão fica com quatro cartas antes dos dois Draw 1. Resolva os efeitos e confira as compras.",
+    en: "Digivolve into BT11-057 Titamon. Trash Ogremon and Dobermon together: four cards remain before both Draw 1 effects. Resolve the effects and verify the draws.",
+  },
+  "arena-issue-4969-grandgalemon-dp": {
+    ptBR: "Jogue GrandGalemon e recuse suspender um Digimon. Ele deve ter 10000 DP mesmo com a recusa; o Digimon adversário permanece ativo.",
+    en: "Play GrandGalemon and decline suspending a Digimon. It still has 10000 DP; the opposing Digimon remains unsuspended.",
+  },
+  "arena-issue-4971-imperial-effect-evolution": {
+    ptBR: "Evolua Dracomon em Dracomon X e aceite evoluir em Coredramon pelo efeito. Depois, pelo adversário, aceite Imperialdramon e o retorno ao fundo do deck. A reação à evolução por efeito tem prioridade sobre a reação pendente à evolução normal, compartilhando Once Per Turn.",
+    en: "Digivolve Dracomon into Dracomon X and accept its effect evolution into Coredramon. Then, on the opposing side, accept Imperialdramon and the bottom-deck return. The effect-evolution reaction resolves before the older normal-evolution reaction; both share Once Per Turn.",
+  },
+  "arena-issue-4972-burst-marcus-rule": {
+    ptBR: "Evolua ShineGreymon em Burst Mode por 0, devolvendo Marcus Damon & Thomas H. Norstein. A Rule também o trata como Marcus Damon. Recuse jogar o Tamer novamente para conferir o retorno à mão.",
+    en: "Burst Digivolve ShineGreymon for 0, returning Marcus Damon & Thomas H. Norstein. Its Rule also treats it as Marcus Damon. Decline replaying the Tamer to inspect the returned hand card.",
+  },
+  "arena-issue-4973-dual-option-immunity": {
+    ptBR: "Passe o turno. Pelo adversário, evolua em Atratusmon para obter imunidade a Digimon. No seu próximo turno, use ShineGreymon como Opção: -6000 DP e a deleção por até 7000 DP afetam Atratusmon.",
+    en: "Pass the turn. On the opposing side, digivolve into Atratusmon to gain Digimon-effect immunity. On your next turn, use ShineGreymon as an Option: -6000 DP and the 7000-DP deletion affect Atratusmon.",
+  },
+  "arena-issue-4974-gaiomon-reboot": {
+    ptBR: "Ataque com Gaiomon e encerre o turno. Ao Reboot no turno adversário, sua Rule Greymon satisfaz a herança de MetalGreymon X: descarte uma segurança adversária.",
+    en: "Attack with Gaiomon and end the turn. Its Reboot on the opposing turn and Greymon Rule name satisfy MetalGreymon X’s inheritance: trash one opposing security card.",
+  },
+  "arena-issue-4977-kingetemon-continuous": {
+    ptBR: "Evolua KingSukamon em KingEtemon por 4. Jogue Chuumon da lixeira. A partida deve continuar; Titamon recebe -3000 DP, mas Slayerdramon ativo mantém a imunidade e seu DP.",
+    en: "Digivolve KingSukamon into KingEtemon for 4 and play Chuumon from trash. The match continues; Titamon gets -3000 DP while unsuspended Slayerdramon keeps its immunity and DP.",
+  },
+  "arena-issue-4978-rosemon-tamer-reaction": {
+    ptBR: "Ataque com Lilamon, suspenda um alvo e aceite descartar duas cartas viradas para baixo sob Yoshino & Keenan para evoluir em Rosemon. Resolva a suspensão de Rosemon e a reação do Tamer. Confira a reação Once Per Turn de Rosemon para jogar Falcomon.",
+    en: "Attack with Lilamon, suspend a target, and accept trashing two face-down cards under Yoshino & Keenan to evolve into Rosemon. Resolve Rosemon’s suspension and the Tamer reaction. Verify Rosemon’s Once Per Turn reaction can play Falcomon.",
+  },
+  "arena-issue-4979-weather-detach": {
+    ptBR: "Passe o turno. Pelo adversário, jogue MetalMamemon e pague o custo com Agumon da lixeira. Escolha Weatherdramon para retornar ao fundo. Pelo seu lado, aceite Detach e descarte Tellermon: Weatherdramon permanece.",
+    en: "Pass the turn. On the opposing side, play MetalMamemon and pay its cost with Agumon from trash. Target Weatherdramon for bottom-deck return. Accept Detach and trash Tellermon on your side: Weatherdramon remains.",
+  },
+  "arena-issue-4981-dantemon-seven-code": {
+    ptBR: "Use Seven Code PAD sobre Weathermon, pagando com seis cartas da lixeira, e evolua em Dantemon. Linke seis cartas; resolva Copipemon primeiro para linkar Tellermon como sétima. A nova reação de Dantemon participa da janela derivada; recusar a deleção não cancela o retorno de segurança com sete links. Recuse o ataque e a batalha opcional para conferir que os sete links permanecem no turno adversário.",
+    en: "Use Seven Code PAD on Weathermon with six trash cards, then evolve into Dantemon. Link six cards and resolve Copipemon first to link Tellermon seventh. Dantemon’s new reaction joins the derived window; declining deletion does not cancel the security return with seven links. Decline attacking and the optional battle to verify seven links remain on the opposing turn.",
+  },
+  "arena-issue-4983-feedback-form": {
+    ptBR: "Abra Reportar bug/Feedback no menu da partida. Confira que o formulário abre e valida o texto. Não é necessário enviar outro relato; a issue #4983 já comprova que esse envio chegou ao GitHub.",
+    en: "Open Report bug/Feedback from the match menu and verify the form opens and validates its text. No duplicate report is needed; issue #4983 already confirms that submission reached GitHub.",
+  },
+  "arena-issue-4984-super-hacking-security": {
+    ptBR: "Passe o turno. Pelo adversário, ataque a segurança com Agumon (3000 DP), que perde para Copipemon (4000 DP). Aceite Delay do Super Hacking: Copipemon recém-descartado deve aparecer para linkar em Weathermon. O Agumon reduz a batalha do Coredramon de 3000 DP registrada em produção.",
+    en: "Pass the turn. On the opposing side, attack security with Agumon (3000 DP), which loses to Copipemon (4000 DP). Accept Super Hacking’s Delay: the just-trashed Copipemon is available to link to Weathermon. Agumon reduces the production battle involving a 3000-DP Coredramon.",
+  },
+  "arena-issue-4985-double-alliance": {
+    ptBR: "Evolua em Jesmon e jogue Sistermon. Ataque a segurança e resolva os dois Alliance, suspendendo primeiro Sistermon Blanc ST12-12 e depois Sistermon Blanc BT6-082. O ataque deve continuar após a segunda escolha.",
+    en: "Evolve into Jesmon and play Sistermon. Attack security and resolve both Alliance instances, suspending Sistermon Blanc ST12-12 then Sistermon Blanc BT6-082. The attack continues after the second choice.",
+  },
+  "arena-issue-4988-examon-tamers": {
+    ptBR: "Faça DNA Digivolve em Examon usando os dois Digimon do campo. Os dois Tamers adversários devem ser suspensos mesmo sem cinco alvos. Recuse o ataque opcional para inspecionar. Ao iniciar o turno adversário, Tamers podem desvirar: o bloqueio da fase de desvirar se aplica somente aos Digimon.",
+    en: "DNA Digivolve into Examon using both field Digimon. Both opposing Tamers suspend even with fewer than five targets. Decline attacking to inspect. Tamers may unsuspend when their turn starts: the next-unsuspend restriction applies only to Digimon.",
+  },
+  "arena-issue-4989-linked-card-labels": {
+    ptBR: "Use Seven Code PAD. Na seleção de seis materiais, Mailmon linkado aparece no grupo Cartas linkadas, separado da área de batalha e da lixeira. Também linke Copipemon da mão em Medicmon e confira a descrição no log.",
+    en: "Use Seven Code PAD. In the six-material selection, linked Mailmon appears under Linked cards, separately from Battle area and Trash. Also link Copipemon from hand to Medicmon and inspect the log label.",
+  },
+  "arena-issue-4990-end-of-turn-label": {
+    ptBR: "A lista mostra somente quatro fases. Jogue um Monodramon: a memória passa de +1 para -1. No fim do turno, recuse Engage de WarGrowlmon e aceite Alphamon: devolva as duas fontes X Antibody para ganhar 2 memórias. A principal continua em +1, no mesmo turno. Jogue o segundo Monodramon e recuse Engage novamente: há outro fim de turno, e só então o turno passa ao adversário, sem uma quinta fase ou banner de End Phase.",
+    en: "The phase list contains only four phases. Play one Monodramon: memory moves from +1 to -1. At end of turn, decline WarGrowlmon’s Engage and accept Alphamon: return both X Antibody sources for 2 memory. Main continues at +1 in the same turn. Play the second Monodramon and decline Engage again: end-of-turn timing occurs again, and only then does the turn pass, without a fifth phase or End Phase banner.",
+  },
   "arena-issue-4964-burst-own-tamer": {
     ptBR: "Encerre a criação e evolua ShineGreymon em Burst Mode por 5. Sem Marcus no campo, a UI não deve oferecer Burst Digivolve por 0. Aceite ativar o efeito: a seleção deve mostrar o [Main] da Opção, com -15000 DP e jogo gratuito de um Tamer da sua mão. A mão adversária não deve aparecer.",
     en: "End breeding and evolve ShineGreymon into Burst Mode for 5. Without Marcus in play, the UI must not offer Burst Digivolve for 0. Activate the effect: selection must show the Option [Main], with -15000 DP and free play of a Tamer from your hand. The opponent's hand must not appear.",
@@ -972,6 +1044,24 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-discord-1556732255148179569-drasil-turn", "King Drasil · opponent turn"],
   ["arena-discord-1556745762682183811-giant-slayer-execute", "Giant Slayer · Execute replacement"],
   ["arena-discord-1556745762682183811-holy-succession", "Giant Slayer · Holy Mode Succession"],
+  ["arena-issue-4965-optional-raid", "#4965 · Raid opcional"],
+  ["arena-issue-4967-assembly-with-dna", "#4967 · Omnimon · Assembly e DNA"],
+  ["arena-issue-4968-hand-trash-draw", "#4968 · Ogremon / Dobermon · descarte"],
+  ["arena-issue-4969-grandgalemon-dp", "#4969 · GrandGalemon · bônus de DP"],
+  ["arena-issue-4971-imperial-effect-evolution", "#4971 · Imperialdramon · evolução por efeito"],
+  ["arena-issue-4972-burst-marcus-rule", "#4972 · Burst · Marcus pela Rule"],
+  ["arena-issue-4973-dual-option-immunity", "#4973 · DUAL Opção · Atratusmon"],
+  ["arena-issue-4974-gaiomon-reboot", "#4974 · Gaiomon · herança MetalGreymon X"],
+  ["arena-issue-4977-kingetemon-continuous", "#4977 · KingEtemon · travamento de DP"],
+  ["arena-issue-4978-rosemon-tamer-reaction", "#4978 · Rosemon · reação do Tamer"],
+  ["arena-issue-4979-weather-detach", "#4979 · Weatherdramon · Detach"],
+  ["arena-issue-4981-dantemon-seven-code", "#4981 · Dantemon · #4981 / #4986 / #4987"],
+  ["arena-issue-4983-feedback-form", "#4983 · Feedback · formulário"],
+  ["arena-issue-4984-super-hacking-security", "#4984 · Super Hacking · segurança na lixeira"],
+  ["arena-issue-4985-double-alliance", "#4985 · Double Alliance"],
+  ["arena-issue-4988-examon-tamers", "#4988 · Examon · suspender Tamers"],
+  ["arena-issue-4989-linked-card-labels", "#4989 · UI · cartas linkadas"],
+  ["arena-issue-4990-end-of-turn-label", "#4990 · Four phases / repeated turn-end"],
   ["arena-issue-4964-burst-own-tamer", "#4964 · Burst Mode · own hand Tamer"],
   ["arena-issue-4962-seiten-ex12-assembly", "#4962 · SeitenGokuumon · EX12 Assembly"],
   ["arena-issue-4961-takato-raid-attack", "#4961 · Takato · Gallantmon attack"],

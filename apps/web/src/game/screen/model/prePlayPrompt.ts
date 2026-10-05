@@ -51,18 +51,22 @@ export function prePlayPromptFor({
   viewer,
   confirmDrop,
   actionConfirmationsEnabled,
+  preferDna = false,
 }: {
   entry: HandEntry | undefined;
   viewer: PlayerState;
   /** True when the play came from a drop, which is the gesture confirmations are for. */
   confirmDrop: boolean;
   actionConfirmationsEnabled: boolean;
+  /** A gesture on a DNA material selects evolution before any Assembly play route. */
+  preferDna?: boolean;
 }): PrePlayPrompt | undefined {
   if (!entry) return undefined;
   const { instanceId, cardId } = entry;
   if (getCardDefinition(cardId)?.isDualCard) return { kind: "dual", instanceId, cardId };
   const materialPermanentIds = entry.dnaDigivolveRoutes?.[0]?.materialPermanentIds;
-  if (materialPermanentIds) return { kind: "dna", instanceId, cardId, materialPermanentIds: [...materialPermanentIds] };
+  if (preferDna && materialPermanentIds)
+    return { kind: "dna", instanceId, cardId, materialPermanentIds: [...materialPermanentIds] };
   const requirements = digiXrosRequirementFor(cardId);
   if (requirements && requirements.length > 0)
     return {
@@ -86,6 +90,7 @@ export function prePlayPromptFor({
     if (assemblyPossible(assemblyRequirements, candidateDefinitions, getCardDefinition(cardId)))
       return { kind: "assembly", instanceId, cardId, requirements: [...assemblyRequirements], candidates };
   }
+  if (materialPermanentIds) return { kind: "dna", instanceId, cardId, materialPermanentIds: [...materialPermanentIds] };
   if (confirmDrop && actionConfirmationsEnabled) return { kind: DragKind.Play, instanceId, cardId };
   return undefined;
 }

@@ -31,6 +31,35 @@ it("BT25-104 shows its Option Main text when an attack asks to play a hand Tamer
   expect(s.state.pendingDecision).toBeUndefined();
 });
 
+it.each(["ST24-13", "AD1-021"])("#4972 Burst Digivolves for zero by returning the Marcus Rule alias %s", async (id) => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "ST24-07", as: "shine" },
+          { card: id, as: "marcus" },
+        ],
+        hand: [{ card: "BT25-104", as: "burst" }],
+      },
+    },
+    { autoDeclineOptional: true },
+  );
+  await s.ready();
+  const before = s.state.memory;
+  const marcusId = s.perm("marcus").permanentId;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("shine").permanentId,
+      instanceId: s.inst("burst").instanceId,
+      alternateRequirementIndex: 1,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("shine").burstDigivolvePendingTrash);
+  expect(s.state.memory).toBe(before);
+  expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === marcusId)).toBe(false);
+});
+
 interface ActivatableEntry {
   instanceId: string;
   effectKey: string;

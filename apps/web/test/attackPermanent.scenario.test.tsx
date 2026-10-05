@@ -99,7 +99,7 @@ scenario("attack-permanent", () => {
     // match moving identically to the other scenarios' pattern).
     await vi.waitFor(() => expect(opponent.room.state.turnSeat).toBe(0), { timeout: 10_000 });
     await endBreedingStep();
-    fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 }));
 
     // Turn 4 (opponent): Frigimon entered turn 2, so summoning sickness has cleared
     // by turn 4 — attack the protagonist's security directly, suspending Frigimon.

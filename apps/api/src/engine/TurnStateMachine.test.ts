@@ -102,12 +102,40 @@ describe("TurnStateMachine - single turn", () => {
     });
     await new TurnStateMachine(state, hooks, undefined, (event) => events.push(event)).runTurn();
     expect(mainWindows).toBe(2);
+    expect(endWindows).toBe(2);
     expect(timings.filter((timing) => timing === EffectTiming.OnStartMainPhase)).toHaveLength(1);
     expect(events.filter((event) => event.kind === "phaseChanged" && event.phase === Phase.Main)).toHaveLength(1);
     expect(events.filter((event) => event.kind === "turnEnded")).toHaveLength(1);
+    expect(events.filter((event) => event.kind === "phaseChanged" && event.phase === Phase.End)).toHaveLength(0);
   });
 
-  it("runs Active -> Draw -> Breeding -> Main -> End in order", async () => {
+  it("#4990 finishes pending end-turn processing before deciding whether Main resumes", async () => {
+    let mainWindows = 0;
+    let endWindows = 0;
+    const { hooks } = makeHooks(state, {
+      runMainPhase: async () => {
+        mainWindows++;
+        state.memory = -1;
+        return "crossed";
+      },
+      fireTiming: async (timing) => {
+        if (timing !== EffectTiming.OnEndTurn) return;
+        endWindows++;
+        // A gain and a later loss belong to the same unresolved window. No open
+        // Main game state occurs between them, so this cannot retrigger turn end.
+        state.memory = 0;
+        await Promise.resolve();
+        expect(mainWindows).toBe(1);
+        expect(state.phase).toBe(Phase.Main);
+        state.memory = -1;
+      },
+    });
+    await new TurnStateMachine(state, hooks).runTurn();
+    expect(mainWindows).toBe(1);
+    expect(endWindows).toBe(1);
+  });
+
+  it("#4990 runs four phases then closes the turn without announcing a fifth phase", async () => {
     const phases: string[] = [];
     const events: ServerEvent[] = [];
     const { hooks } = makeHooks(state);
@@ -118,7 +146,8 @@ describe("TurnStateMachine - single turn", () => {
 
     await machine.runTurn();
 
-    expect(phases).toEqual([Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End]);
+    expect(phases).toEqual([Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main]);
+    expect(events.at(-1)?.kind).toBe("turnEnded");
   });
 
   it("fires per-phase timing windows in the right order", async () => {

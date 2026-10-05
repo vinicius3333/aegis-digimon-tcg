@@ -60,7 +60,7 @@ scenario("end-turn", () => {
     // non-empty) and is ended on the board's own turn control.
     await endBreedingStep();
 
-    // The turn control only reads "End phase" once the step has closed, so wait
+    // The turn control only reads "End turn" once the step has closed, so wait
     // for its breeding label to go — the sidebar badge reads "Your turn" for the
     // whole of the protagonist's turn, Breeding included, and can't stand in.
     await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), {
@@ -71,7 +71,7 @@ scenario("end-turn", () => {
 
     // End the protagonist's own Main phase — this passes the turn.
     await waitForBoardActions();
-    fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^end turn$/i }));
 
     // The turn indicator flips to the opponent. A transient "Opponent's turn"
     // banner (2.5s, GameScreen.tsx's turnTransition) shares this exact text with

@@ -1,5 +1,6 @@
 import {
   CardKind,
+  effectiveExactNames,
   baseGrantedDigivolveFor,
   nameIncludesToken,
   type BaseGrantedDigivolve,
@@ -83,7 +84,11 @@ export class DigivolveSupport {
     return player.battleArea.filter((perm) => {
       if (perm.topCard === undefined) return false;
       const def = lookupDefinition(perm.topCard.cardId);
-      return def !== undefined && names.includes(def.nameEn);
+      return (
+        def !== undefined &&
+        def.kinds.includes(CardKind.Tamer) &&
+        effectiveExactNames(def).some((name) => names.some((wanted) => wanted.toLowerCase() === name.toLowerCase()))
+      );
     });
   }
 

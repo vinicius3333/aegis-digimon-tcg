@@ -1,6 +1,6 @@
 /* The match log: turning server events into the lines the ticker prints. */
 
-import { getCardDefinition, type DecisionRequest, type Seat, type ServerEvent } from "@aegis/shared";
+import { Phase, getCardDefinition, type DecisionRequest, type Seat, type ServerEvent } from "@aegis/shared";
 import type { Translate, TranslationKey } from "../i18n";
 import { otherSeat } from "./boardModel";
 
@@ -33,6 +33,7 @@ const LOG_ZONE_KEYS: Record<string, TranslationKey> = {
   delay: "log.zone.delay",
   underTamer: "log.zone.underTamer",
   various: "log.zone.various",
+  linkedCards: "log.zone.linkedCards",
   suspended: "log.zone.suspended",
   unsuspended: "log.zone.unsuspended",
 };
@@ -150,6 +151,9 @@ export function describeEvent(
     case "matchStarted":
       return { text: t(event.firstSeat === viewerSeat ? "log.matchStartedYou" : "log.matchStartedOpp"), kind: "sys" };
     case "phaseChanged":
+      // Older servers announced their cleanup marker as a phase. The actual turn
+      // handoff has its own turnEnded record, including in those replays.
+      if (event.phase === Phase.End) return null;
       return {
         text: t(event.turnSeat === viewerSeat ? "log.phaseYours" : "log.phaseOpponents", {
           phase: phaseName(event.phase),

@@ -109,7 +109,7 @@ scenario("digivolve-alternate", () => {
     // is already placed, and the crossing simply hands the turn to the opponent
     // (whose own pass banks the protagonist's next-turn +3 bonus).
     await endBreedingStep();
-    // Clicking "end phase" only sends the intent; wait for the server round-trip to
+    // Clicking "end turn" only sends the intent; wait for the server round-trip to
     // actually land before interacting further (see digivolveNormal.scenario.test.tsx).
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 

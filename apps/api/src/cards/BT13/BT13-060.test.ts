@@ -124,12 +124,12 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(priorTopId);
   });
 
-  it("requires an exact Yoshino Fujieda Tamer for Burst Digivolve", async () => {
+  it("rejects an unrelated Tamer for Burst Digivolve", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT13-057", as: "base" },
-          { card: "ST24-14", as: "nearName" },
+          { card: "BT1-085", as: "unrelatedTamer" },
         ],
         hand: [{ card: "BT13-060", as: "burst" }],
       },

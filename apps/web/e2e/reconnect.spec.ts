@@ -143,7 +143,7 @@ test("resumes the same seat after an edge outage longer than the old retry budge
   await expect(page.getByTestId("hand")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("Reconnecting…")).toHaveCount(0);
   expect(await persistedRoomId(page)).toBe(roomId);
-  await page.getByRole("button", { name: /^end phase$/i }).click();
+  await page.getByRole("button", { name: /^end turn$/i }).click();
   await expect.poll(() => match.state().turnSeat).toBe(1);
 });
 
@@ -160,6 +160,6 @@ test("a reload late in a long match resumes the same seat", async ({ page, match
 
   await expect(page.getByTestId("hand")).toBeVisible({ timeout: 20_000 });
   await expect.poll(() => persistedRoomId(page)).toBe(roomId);
-  await page.getByRole("button", { name: /^end phase$/i }).click();
+  await page.getByRole("button", { name: /^end turn$/i }).click();
   await expect.poll(() => match.state().turnSeat).toBe(1);
 });

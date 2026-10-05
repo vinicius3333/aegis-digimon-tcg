@@ -44,7 +44,7 @@ export function turnControlState({
 }
 
 const CONTROL_LABEL_KEYS = {
-  endTurn: "game.endPhase",
+  endTurn: "game.endTurn",
   endBreeding: "game.endBreeding",
   waiting: "game.opponentsTurn",
   resolving: "game.resolvingPhase",

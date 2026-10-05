@@ -22,6 +22,40 @@ const PLAIN_TAMER = "BT12-088";
 const GUILMON_DIGIMON = "EX13-007";
 
 describe("EX13-013 WarGrowlmon", () => {
+  it.each(["EX13-013", "EX12-019", "EX12-060"])(
+    "%s identifies Engage and its rules text in the end-turn prompt",
+    async (cardId) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: cardId, as: "engage" }], deck: [LV3_RED, LV3_RED], security: [LV3_RED] },
+        1: { deck: [LV3_RED, LV3_RED], security: [LV3_RED] },
+      });
+      await s.ready();
+      s.state.memory = 3;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const request = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+      expect(request.options?.effectText).toBe("＜Engage＞: at the end of this turn, this Digimon may attack.");
+      expect(
+        s.events.find(
+          (event) => event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "OnEndTurn",
+        ),
+      ).toMatchObject({
+        description: "＜Engage＞: at the end of this turn, this Digimon may attack.",
+      });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: request.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await turn;
+      expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
+    },
+  );
+
   it("matches the catalog printing", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       cardId: CARD_ID,

@@ -249,8 +249,10 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
       engine.emit({
         kind: "cardsMoved",
         instanceIds: linked.map((c) => c.instanceId),
+        cardIds: linked.map((c) => c.cardId),
+        seat: permanent.controllerSeat,
         from: "various",
-        to: Zone.BattleArea,
+        to: "linkedCards",
       });
       // Recompute after mutation so the newly linked cards can install their own
       // [When Linking] subscriptions. Publishing host and linked-card identities through ONE

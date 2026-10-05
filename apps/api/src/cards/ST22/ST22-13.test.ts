@@ -4,6 +4,31 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST22-13 GrandGalemon", () => {
+  it("#4969 gains 3000 DP after declining the optional suspension", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "ST22-13", as: "grand" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grand").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST22-13") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("grand").currentDP).toBe(10000);
+    expect(s.perm("opponent").isSuspended).toBe(false);
+  });
+
   it("suspends an opposing Digimon and gains 3000 DP on play", async () => {
     const s = setupEngine(
       {

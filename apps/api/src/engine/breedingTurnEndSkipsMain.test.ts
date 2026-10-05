@@ -81,7 +81,10 @@ describe("breeding-phase turn end (§6-1-4-1)", () => {
           eggDeck: ["BT1-001"],
         },
         1: {
-          battleArea: [{ card: "BT8-094", dp: 0, as: "emperor" }, { card: "BT1-009", as: "blocker" }],
+          battleArea: [
+            { card: "BT8-094", dp: 0, as: "emperor" },
+            { card: "BT1-009", as: "blocker" },
+          ],
           deck: ["BT1-010"],
         },
       },
@@ -103,7 +106,7 @@ describe("breeding-phase turn end (§6-1-4-1)", () => {
     // The +2 from BT8-094 puts the opponent at 1 memory: the turn ends with breeding.
     expect(s.state.memory).toBe(-1);
     expect(phases).not.toContain(Phase.Main);
-    expect(phases.at(-1)).toBe(Phase.End);
+    expect(phases.at(-1)).toBe(Phase.Breeding);
   });
 
   it("does not open Main or fire its start timing when breeding left the gauge on the opponent's side", async () => {
@@ -118,7 +121,7 @@ describe("breeding-phase turn end (§6-1-4-1)", () => {
 
     expect(calls).not.toContain("main");
     expect(calls).not.toContain(`fireTiming:${EffectTiming[EffectTiming.OnStartMainPhase]}`);
-    expect(phases).toEqual([Phase.Active, Phase.Draw, Phase.Breeding, Phase.End]);
+    expect(phases).toEqual([Phase.Active, Phase.Draw, Phase.Breeding]);
   });
 
   it("§6-6-4: when an OnEndTurn effect hands the memory back, the postponed turn continues into Main", async () => {
@@ -147,6 +150,6 @@ describe("breeding-phase turn end (§6-1-4-1)", () => {
     // entered as a new phase with its start-of-main timing, not resumed mid-phase.
     expect(calls.filter((call) => call === "main")).toHaveLength(1);
     expect(calls).toContain(`fireTiming:${EffectTiming[EffectTiming.OnStartMainPhase]}`);
-    expect(phases).toEqual([Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End]);
+    expect(phases).toEqual([Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main]);
   });
 });

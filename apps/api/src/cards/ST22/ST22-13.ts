@@ -37,7 +37,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           optional: true,
-          abortOnDecline: true,
         },
         {
           effectTextPart: "Then, this Digimon gains +3000 DP for the turn.",
@@ -68,7 +67,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           optional: true,
-          abortOnDecline: true,
         },
         {
           effectTextPart: "Then, this Digimon gains +3000 DP for the turn.",
@@ -99,7 +97,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           optional: true,
-          abortOnDecline: true,
         },
         {
           effectTextPart: "Then, this Digimon gains +3000 DP for the turn.",

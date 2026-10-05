@@ -51,7 +51,7 @@ scenario("alternate-arts", () => {
       fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
       await endBreedingStep();
       await screen.findAllByText(/no digimon in play/i, {}, { timeout: 10_000 });
-      await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 });
+      await screen.findByRole("button", { name: /^end turn$/i }, { timeout: 10_000 });
       await waitForBoardActions();
       const images = within(screen.getByTestId("hand")).getAllByRole("img", {
         name: /^monodramon$/i,

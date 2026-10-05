@@ -122,7 +122,9 @@ export function combatWindowsFor({
     rolledBackRejectionSeqRef.current = lastCombatRejection;
     answeredCombatWindowKeyRef.current = undefined;
   }
-  const answeredCombatWindow = (key: string) => answeredCombatWindowKeyRef.current === key;
+  const answerKey = (key: string) =>
+    `${key}:${openCombatWindow?.promptSeq ?? openCombatWindow?.stateVersion ?? "mirror"}`;
+  const answeredCombatWindow = (key: string) => answeredCombatWindowKeyRef.current === answerKey(key);
 
   return {
     blockWindow:
@@ -139,7 +141,7 @@ export function combatWindowsFor({
     barrierWindow:
       barrierWindowRaw && !answeredCombatWindow(`barrier:${barrierWindowRaw.permanentId}`) ? barrierWindowRaw : null,
     markCombatWindowAnswered() {
-      if (openCombatWindow !== null) answeredCombatWindowKeyRef.current = openCombatWindow.key;
+      if (openCombatWindow !== null) answeredCombatWindowKeyRef.current = answerKey(openCombatWindow.key);
     },
   };
 }
