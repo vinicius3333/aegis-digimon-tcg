@@ -9,6 +9,7 @@ import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { recordSnapshot, selectPresentedState, type StateSnapshot } from "../net/presentedState";
 import { presentedSeats } from "./screen/model/presentedSeats";
 import { TIMINGS } from "./timings";
+import { observeGateExpiry } from "./match/presentationGate";
 import type { PresentationPacing, PresentationProbe, PresentationControls } from "./presentationProbe";
 import { NarrationStack } from "./NarrationStack";
 import { I18nProvider } from "../i18n";
@@ -257,8 +258,6 @@ it.each([
       y: 0,
       toJSON: () => ({}),
     });
-    let controls: PresentationControls | undefined;
-    const pendingSteps = new Set<string>();
     const view = renderOrderingCues(
       before,
       {
@@ -1328,6 +1327,8 @@ it.each([
 ] as const)(
   "keeps Titan Delay costs physical with earlier reactions queued=%s and copies=%s, %s",
   async (queuedReactions, copies, exit) => {
+    const expiries: string[] = [];
+    onTestFinished(observeGateExpiry(({ label }) => expiries.push(label)));
     const option = (permanentId: string, instanceId: string) => ({
       permanentId,
       topCard: { instanceId, cardId: "BT24-098" },
@@ -1459,6 +1460,7 @@ it.each([
         expect(view.result.current.heldDeletions.size).toBe(0);
         expect(view.result.current.deleteBursts).toHaveLength(0);
       }
+      expect(expiries).toEqual([]);
       return;
     }
     const moments = await firstSeenOrder(
@@ -1495,5 +1497,6 @@ it.each([
     expect(view.result.current.heldDeletions.size).toBe(0);
     expect(view.result.current.deleteBursts).toHaveLength(0);
     expect(controls?.queue.isIdle()).toBe(true);
+    expect(expiries).toEqual([]);
   },
 );
