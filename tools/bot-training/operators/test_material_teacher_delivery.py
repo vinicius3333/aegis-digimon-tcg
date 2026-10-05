@@ -400,6 +400,54 @@ class DeliveryGuards(unittest.TestCase):
             operator.closed_phase({}, "package-probe", HASH)
         reader.assert_not_called()
 
+    def test_source_adapter_whole_uses_only_bound_original_with_selected_paths(self):
+        original = SimpleNamespace(whole=Mock())
+        adapter = SimpleNamespace()  # Actual public adapter deliberately has no whole.
+        paths = {
+            "checkout": self.root / "checkout",
+            "prepare": self.root / "actual-prepare",
+            "migrate": self.root / "actual-migration",
+            "prepareIdentity": self.root / "actual-prepare-id.json",
+        }
+        runtime_ctx = {"paths": paths, "_adapterRuntime": original, "operatorSha256": "b" * 64}
+        ctx = {
+            "runtime": adapter,
+            "runtimeContext": runtime_ctx,
+            "operatorSha256": HASH,
+            "request": {
+                "phaseBindings": {
+                    phase: {
+                        "run": str(self.root / phase),
+                        "identity": str(self.root / (phase + "-identity.json")),
+                    }
+                    for phase in ("package-probe", "rooms")
+                }
+            },
+        }
+        for phase in ("package-probe", "rooms"):
+            for closed in (False, True):
+                operator.whole(ctx, phase, HASH, closed=closed)
+                selected, mechanism_phase, identity = original.whole.call_args.args
+                self.assertEqual((mechanism_phase, identity), ("prepare", HASH))
+                self.assertEqual(selected["paths"]["prepare"], self.root / phase)
+                self.assertEqual(
+                    selected["paths"]["prepareIdentity"], self.root / (phase + "-identity.json")
+                )
+                self.assertEqual(selected["paths"]["checkout"], paths["checkout"])
+                self.assertEqual(selected["paths"]["migrate"], paths["migrate"])
+                self.assertEqual(selected["operatorSha256"], HASH)
+                self.assertEqual(original.whole.call_args.kwargs, {"closed": closed})
+        self.assertEqual(runtime_ctx["paths"], paths)
+        self.assertEqual(runtime_ctx["operatorSha256"], "b" * 64)
+        del runtime_ctx["_adapterRuntime"]
+        ctx["runtime"].whole = Mock()  # No permissive old-reader/module fallback.
+        with self.assertRaisesRegex(ValueError, "source-adapter"):
+            operator.whole(ctx, "package-probe", HASH, closed=False)
+        ctx["runtime"].whole.assert_not_called()
+        runtime_ctx["_adapterRuntime"] = SimpleNamespace()
+        with self.assertRaises(ValueError):
+            operator.whole(ctx, "rooms", HASH, closed=True)
+
     def test_rooms_require_actual_closed_probe_pins_and_exact_root_go(self):
         ctx, path, expected = self.go_context()
         expected.update(
