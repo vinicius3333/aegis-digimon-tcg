@@ -316,19 +316,25 @@ export async function resolveTotalPlayCostBudgetTargets(ctx: EffectContext, targ
         candidate.cost !== undefined && candidate.cost <= budget,
     )
     .sort((left, right) => left.cost - right.cost || left.permanentId.localeCompare(right.permanentId));
-  const selected: string[] = [];
-  let spent = 0;
-  for (const candidate of candidates) {
-    if (spent + candidate.cost > budget) continue;
-    if (
-      !(await ctx.ask.optional(
-        ctx,
-        `Return ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${budget})?`,
-      ))
-    )
-      continue;
-    selected.push(candidate.permanentId);
-    spent += candidate.cost;
+  if (candidates.length === 0) {
+    ctx.lastResolvedPermanentIds = [];
+    return [];
+  }
+  const max =
+    target.count === "all" ? candidates.length : Math.min(effectiveTargetCount(ctx, target), candidates.length);
+  const selected = await ctx.ask.chooseTargets(ctx, {
+    candidates: candidates.map(({ permanentId }) => permanentId),
+    min: 0,
+    max,
+    maxTotalPlayCost: budget,
+  });
+  const totalCost = selected.reduce(
+    (sum, id) => sum + (candidates.find(({ permanentId }) => permanentId === id)?.cost ?? 0),
+    0,
+  );
+  if (totalCost > budget) {
+    ctx.lastResolvedPermanentIds = [];
+    return [];
   }
   const affectable = filterAffectable(ctx, selected);
   ctx.lastResolvedPermanentIds = affectable;

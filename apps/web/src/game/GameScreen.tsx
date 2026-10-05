@@ -837,6 +837,7 @@ export function GameScreen({
     decisionDifferentColors,
     decisionDistinctCardIds,
     decisionDistinctNames,
+    decisionMaxTotalPlayCost,
     decisionMaxTotalDP,
     decisionCandidateDP,
     decisionMax,
@@ -854,9 +855,15 @@ export function GameScreen({
       decisionVisibleCardIds,
       decisionDistinctCardIds,
       decisionDistinctNames,
+      decisionMaxTotalPlayCost,
       decisionMaxTotalDP,
       decisionCandidateDP,
     });
+
+  const decisionAllowsPermanent = (perm: Permanent) => {
+    const candidateId = decisionCandidateIdFor(perm);
+    return candidateId !== undefined && decisionAllowsPick(candidateId);
+  };
 
   const toggleDecisionPick = (instanceId: string) => {
     if (!decisionAllowsPick(instanceId)) return;
@@ -1152,7 +1159,7 @@ export function GameScreen({
                 : pickingSourceHost
                   ? sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true
                   : fieldDecision
-                    ? decisionCandidateIdFor(perm) !== undefined
+                    ? decisionAllowsPermanent(perm)
                     : (handIsDigi && eligibleBase(perm)) ||
                       dragBasePermanentIds.has(perm.permanentId) ||
                       (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
@@ -1161,7 +1168,7 @@ export function GameScreen({
           combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId) === true ||
           combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) === true ||
           (pickingSourceHost && sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true) ||
-          (fieldDecision && decisionCandidateIdFor(perm) !== undefined),
+          (fieldDecision && decisionAllowsPermanent(perm)),
       }}
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
       handDock={{
@@ -1179,7 +1186,9 @@ export function GameScreen({
             }
           : !fieldDecision && decisionView.answerOnBoard && decisionView.viewerDecision?.kind === "selectCards"
             ? {
-                selectableInstanceIds: decisionView.viewerDecision.options?.candidateInstanceIds ?? [],
+                selectableInstanceIds: (decisionView.viewerDecision.options?.candidateInstanceIds ?? []).filter(
+                  decisionAllowsPick,
+                ),
                 pickedInstanceIds: picks,
                 onToggle: toggleDecisionPick,
                 onInspect: setHandPreview,

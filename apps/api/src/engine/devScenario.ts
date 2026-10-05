@@ -43,6 +43,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-kotone-digixros-any-tamer-effect",
   "arena-mervamon-trash-digixros",
   "arena-bt22-gabumon-eot-dna",
+  "arena-bt11-hades-force-target-selection",
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
   "arena-bt26-monimon-optional-cost",
@@ -677,6 +678,29 @@ function layDiarbbitmonDualOptionImmunityScenario(state: GameState, decks: reado
   insertCard(bot, Zone.Deck, faceDownCard("dev-eclipse-draw", "BT1-001", 1), "top");
   state.turnSeat = 0;
   state.turnCount = 2;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** Discord 1556322403456520223: choose the full Hades Force budget, not per-target yes/no. */
+function layBt11HadesForceTargetSelectionScenario(state: GameState, _decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    insertCard(player, Zone.EggDeck, faceDownCard(`dev-hades-egg-${seat}`, "BT1-003", seat));
+    for (let index = 0; index < 12; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-hades-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-hades-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  placePermanent(state.players[0]!, establishedDigimon(0, ["BT9-109", "BT12-070"], "-hades-greymon"));
+  insertCard(state.players[0]!, Zone.Hand, faceDownCard("dev-hades-option", "BT11-107", 0));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["BT4-093"], "-hades-tamer"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["EX4-015"], "-hades-rookie"));
+  placePermanent(state.players[1]!, establishedDigimon(1, ["EX7-023"], "-hades-hexeblau"));
+  state.turnSeat = 0;
+  state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
 }
@@ -5343,6 +5367,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-taiki-digixros-any-tamer-hand": layTaikiAnyTamerDigiXrosScenario,
   "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
   "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
+  "arena-bt11-hades-force-target-selection": layBt11HadesForceTargetSelectionScenario,
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,
