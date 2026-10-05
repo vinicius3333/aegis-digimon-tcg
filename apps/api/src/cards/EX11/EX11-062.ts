@@ -23,6 +23,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { controllerDefault: "any", kind: ["Digimon"] },
           effectTextPart:
             "[All Turns] When any Digimon suspend, by suspending this Tamer, if effects suspended those Digimon, ＜Draw 1＞.",
           actions: [

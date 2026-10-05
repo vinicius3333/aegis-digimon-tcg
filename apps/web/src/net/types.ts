@@ -164,6 +164,7 @@ export interface AegisJoinOptions {
     | "arena-moon-pending-source-deleted"
     | "arena-mirage-hidden-hand"
     | "arena-p224-kotone-own-source"
+    | "arena-bt25-ceresmon-homeros-suspend"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
     | "arena-bt20-saviorhuckmon-end-turn-sistermon"
