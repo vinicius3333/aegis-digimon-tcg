@@ -50,6 +50,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
   "arena-bt26-monimon-optional-cost",
+  "arena-bt26-cerberusmon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
   "field-grouping",
@@ -2988,6 +2989,41 @@ function layEx13ChirinmonCostChoiceScenario(state: GameState, decks: readonly [D
   state.memory = 3;
 }
 
+/** Reduced reproduction of Taurus vs bageko3, Discord 1556544429438013471.
+ * Decline the hand-trash processing condition on evolution, then accept it on attack.
+ */
+function layBt26CerberusmonOptionalCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Deck);
+    clearZone(player, Zone.Security);
+    for (let index = 0; index < 8; index += 1) {
+      insertCard(player, Zone.Deck, faceDownCard(`dev-cerberusmon-deck-${seat}-${index}`, "BT1-009", seat));
+    }
+    for (let index = 0; index < 3; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-cerberusmon-security-${seat}-${index}`, "BT1-009", seat));
+    }
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-038"], "-cerberusmon-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt26-cerberusmon", "BT26-074", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-cerberusmon-hand-cost", "BT1-010", 0));
+    insertCard(human, Zone.Trash, faceDownCard("dev-cerberusmon-titan-option", "BT26-056", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-009", "BT1-019"], "-cerberusmon-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 /**
  * EX13-029 FlameWizardmon's "By trashing your top security card" is optional (Discord
  * 1555472780571705354, KB Q7291). Declining on digivolve must keep the security stack and the
@@ -5743,6 +5779,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex13-wisemon-witchelny-cost": layEx13WisemonWitchelnyCostScenario,
   "arena-ex13-flamewizardmon-optional-cost": layEx13FlameWizardmonOptionalCostScenario,
+  "arena-bt26-cerberusmon-optional-cost": layBt26CerberusmonOptionalCostScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),

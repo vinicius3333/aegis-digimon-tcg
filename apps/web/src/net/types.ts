@@ -29,6 +29,7 @@ export interface AegisJoinOptions {
     | "arena-marcus-alliance"
     | "arena-bt18-candlemon-data-selection"
     | "arena-bt26-monimon-optional-cost"
+    | "arena-bt26-cerberusmon-optional-cost"
     | "arena-bt11-analogman-redirect-timing"
     | "arena-bt11-rina-ulforce-immunity"
     | "arena-bt11-rina-ulforce-effect-choice"
