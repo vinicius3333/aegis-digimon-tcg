@@ -6,6 +6,31 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT25-104.js";
 import "../index.js";
 
+it("BT25-104 shows its Option Main text when an attack asks to play a hand Tamer", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT25-104", as: "burst" }], hand: [{ card: "BT1-085", as: "tamer" }] },
+      1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("burst").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  const choice = s.decisions.find((d) => d.req.sourceCardId === "BT25-104" && d.req.kind === "selectCards");
+  expect(choice?.req.options?.timing).toBe("Main");
+  expect(choice?.req.options?.effectText).toContain("[Main]");
+  expect(choice?.req.options?.effectText).toContain("-15000 DP");
+  expect(choice?.req.options?.effectText).not.toContain("Activate 1 [Main] effect");
+  expect(s.state.pendingDecision).toBeUndefined();
+});
+
 interface ActivatableEntry {
   instanceId: string;
   effectKey: string;

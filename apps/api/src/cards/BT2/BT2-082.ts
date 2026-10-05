@@ -26,26 +26,20 @@ const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: {
-                  controller: "mine",
-                  excludeSelf: true,
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Diaboromon"],
-                      match: "nameExact",
-                    },
-                  ],
-                },
-                count: 1,
+          optional: true,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Diaboromon"], match: "nameExact" }],
               },
-              optional: true,
+              count: 1,
             },
-          ],
+            raw: "by deleting 1 of your other Diaboromon",
+          },
         },
       ],
     },

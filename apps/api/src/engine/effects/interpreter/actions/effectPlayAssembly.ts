@@ -1,5 +1,9 @@
 import type { EffectContext } from "../../EffectContext.js";
-import { materialMatchesAssemblySlot, satisfiedAssemblyRequirement } from "../../../actions/assembly.js";
+import {
+  assemblyMaterialOrder,
+  materialMatchesAssemblySlot,
+  satisfiedAssemblyRequirement,
+} from "../../../actions/assembly.js";
 import { type LooseCandidate, looseCardsInZone } from "../targeting/loose.js";
 import { prepareEffectPlayDigiXros } from "./effectPlayDigiXros.js";
 import { assemblyRequirementFor, type AssemblyRequirement, type Permanent } from "@aegis/shared";
@@ -141,7 +145,9 @@ export async function prepareEffectPlayAssembly(
     const requirement = satisfiedAssemblyRequirement(requirements, selectedDefinitions, playedDefinition);
     if (requirement === undefined) continue;
 
-    assemblyMaterialInstanceIdsByPlay[playedCard.instanceId] = selected;
+    assemblyMaterialInstanceIdsByPlay[playedCard.instanceId] = (
+      assemblyMaterialOrder(selectedDefinitions, requirement.materials, playedDefinition) ?? []
+    ).map((index) => selected[index]!);
     assemblyReductionByPlay[playedCard.instanceId] = requirement.reduceCost;
     for (const instanceId of selected) reservedMaterialIds.add(instanceId);
   }

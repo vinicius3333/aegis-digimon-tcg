@@ -66,3 +66,39 @@ describe("BT4-089 Plutomon", () => {
     expect(player.deck).toHaveLength(0);
   });
 });
+
+it("#4964 mechanism sweep: Plutomon never offers a purple Option from the opponent's hand", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT4-085", as: "base" }],
+        hand: [
+          { card: "BT4-089", as: "pluto" },
+          { card: "ST6-15", as: "own" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { hand: [{ card: "ST6-15", as: "opponent" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  const ownId = s.inst("own").instanceId;
+  const opponentId = s.inst("opponent").instanceId;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("pluto").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () => s.state.players[0]!.trash.some((c) => c.instanceId === ownId) && s.state.pendingDecision === undefined,
+  );
+  const offered = s.decisions
+    .filter((d) => d.req.sourceCardId === "BT4-089" && d.req.kind === "selectCards")
+    .flatMap((d) => d.req.options?.candidateInstanceIds ?? []);
+  expect(offered).not.toContain(opponentId);
+  expect(s.state.players[1]!.hand.some((c) => c.instanceId === opponentId)).toBe(true);
+});

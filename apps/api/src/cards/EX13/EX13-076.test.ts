@@ -96,12 +96,6 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
         target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "paladinBattleTarget" },
       },
       {
-        kind: "GainKeyword",
-        keyword: { keyword: "IceClad", raw: "＜Ice Clad＞" },
-        duration: "untilEndOfBattle",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-      },
-      {
         kind: "ReturnTopDigivolutionCards",
         cardsPerTarget: 99,
         position: "bottom",
@@ -113,6 +107,7 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
       },
       {
         kind: "Battle",
+        comparison: "digivolutionCards",
         attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         defender: {
           filter: { controller: "opponent", kind: ["Digimon"] },
@@ -131,7 +126,7 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     }
     const onPlay = compiled.effects.find(({ trigger }) => trigger === "OnPlay")!;
     expect(onPlay.actions[0]).not.toHaveProperty("abortOnDecline");
-    expect(onPlay.actions[4]).not.toHaveProperty("optional");
+    expect(onPlay.actions[3]).not.toHaveProperty("optional");
 
     const battleWon = compiled.effects.find(({ trigger }) => trigger === "AllTurns")!;
     expect(battleWon).toMatchObject({

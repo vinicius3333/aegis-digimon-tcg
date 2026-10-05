@@ -2,16 +2,9 @@ import { describe, expect, it } from "vitest";
 import { type PlayerState, EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT5-092.js";
 import "../BT16/BT16-027.js";
 import "../BT16/BT16-028.js";
-
-type ActivatableEffect = { effectKey: string };
-
-function activatableEffects(s: ReturnType<typeof setupEngine>, alias: string): ActivatableEffect[] {
-  return observe(s.engine).activatableEffects(s.perm(alias)) as ActivatableEffect[];
-}
 
 describe("BT5-092 Nokia Shiramine", () => {
   it("may play exactly one literally named Agumon or Gabumon from hand for free", async () => {
@@ -84,9 +77,9 @@ describe("BT5-092 Nokia Shiramine", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === agumonId)).toBe(false);
   });
 
-  it("keeps the cost reducer under the printed Main activation timing", async () => {
+  it("arms the optional digivolution reaction only during its printed Main phase", async () => {
     const onPlay = compiled.effects.find((effect) => effect.trigger === "OnPlay");
-    const main = compiled.effects.find((effect) => effect.trigger === "Main");
+    const main = compiled.effects.find((effect) => effect.trigger === "YourTurn");
     expect(onPlay).toMatchObject({
       actions: [
         {
@@ -105,14 +98,16 @@ describe("BT5-092 Nokia Shiramine", () => {
       ],
     });
     expect(main).toMatchObject({
-      trigger: "Main",
+      trigger: "YourTurn",
+      condition: { kind: "phaseIs", phase: "Main" },
       actions: [
         {
-          kind: "CostModifier",
-          costType: "digivolve",
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "reduceCost",
           amount: 1,
-          restriction: "suspendThisTamer",
-          duration: "forTheTurn",
+          optional: true,
+          cost: { kind: "suspend", target: { isSelf: true } },
           into: {
             nameOrTrait: [{ tokens: ["Garurumon", "Omnimon", "Greymon"], match: "name" }],
             excludeNameOrTrait: [
@@ -142,15 +137,6 @@ describe("BT5-092 Nokia Shiramine", () => {
     s.state.memory = 2;
     await s.ready();
 
-    const [effect] = activatableEffects(s, "nokia");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("nokia").topCard.instanceId,
-        effectKey: effect!.effectKey,
-      }),
-    ).toEqual({ ok: true });
-
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -178,14 +164,6 @@ describe("BT5-092 Nokia Shiramine", () => {
     );
     s.state.memory = 4;
     await s.ready();
-    const [effect] = activatableEffects(s, "nokia");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("nokia").topCard.instanceId,
-        effectKey: effect!.effectKey,
-      }),
-    ).toEqual({ ok: true });
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -213,14 +191,6 @@ describe("BT5-092 Nokia Shiramine", () => {
     );
     s.state.memory = 2;
     await s.ready();
-    const [effect] = activatableEffects(s, "nokia");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("nokia").topCard.instanceId,
-        effectKey: effect!.effectKey,
-      }),
-    ).toEqual({ ok: true });
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -248,14 +218,6 @@ describe("BT5-092 Nokia Shiramine", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    const [effect] = activatableEffects(s, "nokia");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("nokia").topCard.instanceId,
-        effectKey: effect!.effectKey,
-      }),
-    ).toEqual({ ok: true });
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

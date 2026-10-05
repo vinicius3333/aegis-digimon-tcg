@@ -16,6 +16,7 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
+              controller: "mine",
               colors: ["Purple"],
               kind: ["Option"],
               playCostLte: 6,

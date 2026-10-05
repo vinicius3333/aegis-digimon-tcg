@@ -113,7 +113,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "PlayWithoutCost",
-          target: { filter: { kind: ["Tamer"] }, count: 1, upTo: true },
+          target: { filter: { controller: "mine", kind: ["Tamer"] }, count: 1, upTo: true },
           optional: true,
           payCost: false,
           from: ["hand"],

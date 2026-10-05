@@ -159,7 +159,8 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         await resolvePermanentTargets(ctx, defenderTarget, { preserveUnaffectableSelection: true })
       )[0];
       if (defenderId === undefined) return false;
-      await ctx.fx.forceBattle?.(attackerId, defenderId);
+      if (action.comparison === undefined) await ctx.fx.forceBattle?.(attackerId, defenderId);
+      else await ctx.fx.forceBattle?.(attackerId, defenderId, { comparison: action.comparison });
       return false;
     }
     case "RedirectAttack": {

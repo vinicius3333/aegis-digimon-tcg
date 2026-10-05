@@ -151,7 +151,16 @@ export function validateAssembly(
   const cost = Math.max(0, base - requirement.reduceCost);
   if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
 
-  return { ok: true, instance, definition, requirement, materialInstanceIds: materialIds, cost };
+  return {
+    ok: true,
+    instance,
+    definition,
+    requirement,
+    materialInstanceIds: (assemblyMaterialOrder(materialDefs, requirement.materials, definition) ?? []).map(
+      (index) => materialIds[index]!,
+    ),
+    cost,
+  };
 }
 
 /** Apply a validated Assembly play. */
@@ -318,6 +327,30 @@ export function materialsSatisfyAssemblyRecipe(
     if (claimed !== slot.count) return false;
   }
   return remaining.length === 0;
+}
+
+/** Material indices in the printed top-to-bottom slot order; repeated slots retain the player's order. */
+export function assemblyMaterialOrder(
+  materials: readonly CardDefinition[],
+  slots: readonly AssemblyMaterial[],
+  destination?: CardDefinition,
+): number[] | undefined {
+  if (slots.length === 1) return materials.map((_material, index) => index);
+  const expanded = slots.flatMap((slot) => Array.from({ length: slot.count }, () => slot));
+  if (expanded.length !== materials.length) return undefined;
+  const order: number[] = [];
+  function assign(slotIndex: number): boolean {
+    if (slotIndex === expanded.length) return true;
+    for (let index = 0; index < materials.length; index++) {
+      if (order.includes(index) || !materialMatchesAssemblySlot(materials[index]!, expanded[slotIndex]!, destination))
+        continue;
+      order.push(index);
+      if (assign(slotIndex + 1)) return true;
+      order.pop();
+    }
+    return false;
+  }
+  return assign(0) ? order : undefined;
 }
 
 /**
