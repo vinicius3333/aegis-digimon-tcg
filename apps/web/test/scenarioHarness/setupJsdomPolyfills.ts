@@ -14,6 +14,19 @@ import { WebSocket } from "ws";
 // merely existing, so it must be replaced outright.
 globalThis.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket;
 
+// Landscape phone layouts observe their field rows to fit cards. jsdom has no
+// ResizeObserver or layout engine, so scenarios keep the hook's preferred widths.
+// Resize behavior needs tests with explicit observer callbacks and measurements.
+if (typeof window !== "undefined" && typeof window.ResizeObserver !== "function") {
+  class ResizeObserverPolyfill {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  window.ResizeObserver = ResizeObserverPolyfill as unknown as typeof ResizeObserver;
+  globalThis.ResizeObserver = window.ResizeObserver;
+}
+
 // jsdom ships no `PointerEvent` constructor at all (only the base `Event`).
 // `@testing-library/dom`'s `fireEvent.pointerDown/Move/Up` shorthands look up
 // `window.PointerEvent` to build the native event (falling back to plain `Event`
