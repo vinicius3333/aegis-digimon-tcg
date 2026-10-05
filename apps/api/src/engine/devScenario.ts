@@ -7,6 +7,7 @@ import {
   KEYWORD_DECK_PACING_SCENARIOS,
   KEYWORD_ATTACK_PACING_SCENARIOS,
   KEYWORD_END_ATTACK_PACING_SCENARIOS,
+  PHASE_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -22,6 +23,8 @@ import {
   type KeywordDeckPacingScenario,
   type KeywordAttackPacingScenario,
   type KeywordEndAttackPacingScenario,
+  type PhasePacingScenario,
+  type PhasePacingScenarioId,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -71,6 +74,7 @@ export const DEV_SCENARIO_IDS = [
   ...KEYWORD_DECK_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_ATTACK_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_END_ATTACK_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...PHASE_PACING_SCENARIOS.map((scenario) => scenario.id),
   "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -6181,7 +6185,97 @@ function layKeywordAttackPacingScenario(
   startEffectsLabTurn(state, scenario.flow === "blitz" ? 3 : 10);
 }
 
+function layPhasePacingScenario(
+  state: GameState,
+  _decks: readonly [Decklist, Decklist],
+  scenario: PhasePacingScenario,
+): void {
+  const security = ["BT1-011", "BT1-014", "BT1-017", "BT1-025"];
+  const fillerIds = [
+    "BT1-009",
+    "BT1-010",
+    "BT1-011",
+    "BT1-014",
+    "BT1-017",
+    "BT1-050",
+    "BT1-054",
+    "BT1-067",
+    "BT1-071",
+    "BT1-074",
+    "BT1-077",
+    "BT1-081",
+  ];
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    const prepared =
+      seat === 0
+        ? ["BT1-009"]
+        : [
+            ...scenario.handCardIds,
+            ...scenario.fieldCardIds,
+            ...scenario.breedingCardIds.filter((id) => !getCardDefinition(id)?.kinds.includes(CardKind.DigiEgg)),
+          ];
+    const extras = ["BT1-089", ...security, ...Array<string>(4).fill("ST2-16"), ...prepared];
+    const fillers = fillerIds.flatMap((id) =>
+      Array<string>(4 - extras.filter((extra) => extra === id).length).fill(id),
+    );
+    const mainDeck = [...extras, ...fillers.slice(0, 50 - extras.length)];
+    if (mainDeck.length !== 50) throw new Error("Phase pacing scenario needs fifty main-deck cards");
+    loadDeckInto(player, seat, {
+      mainDeck,
+      eggDeck: Array<string>(4).fill(seat === 0 ? "ST1-01" : scenario.eggCardId),
+    });
+    const take = (cardId: string) => {
+      const zone = getCardDefinition(cardId)?.kinds.includes(CardKind.DigiEgg) ? Zone.EggDeck : Zone.Deck;
+      const cards = zone === Zone.EggDeck ? player.eggDeck : player.deck;
+      const card = extractCardAt(
+        player,
+        zone,
+        cards.findIndex((candidate) => candidate.cardId === cardId),
+      );
+      if (!card) throw new Error(`Phase pacing scenario is missing ${cardId}`);
+      return card;
+    };
+    const place = (ids: readonly string[], slot: string, breeding = false) => {
+      const permanent = new Permanent();
+      permanent.permanentId = `dev-perm-${seat}-phase-pacing-${slot}`;
+      permanent.controllerSeat = seat;
+      permanent.enterFieldTurnCount = ESTABLISHED_TURN;
+      permanent.inBreeding = breeding;
+      const cards = ids.map(take);
+      for (const card of cards) card.faceUp = true;
+      setTopCard(permanent, cards.at(-1)!);
+      for (const card of cards.slice(0, -1)) pushOnStack(permanent, card);
+      permanent.baseDP = getCardDefinition(cards.at(-1)!.cardId)?.dp ?? 0;
+      permanent.currentDP = permanent.baseDP;
+      if (breeding) setBreeding(player, permanent);
+      else placePermanent(player, permanent);
+    };
+    place(["BT1-089"], "control");
+    if (seat === 0) {
+      const reserve = take("BT1-009");
+      reserve.instanceId = "dev-phase-pacing-reserve";
+      insertCard(player, Zone.Hand, reserve);
+    } else {
+      for (const cardId of scenario.handCardIds) insertCard(player, Zone.Hand, take(cardId));
+      scenario.fieldCardIds.forEach((id, index) => place([id], `field-${index}`));
+      if (scenario.breedingCardIds.length) place(scenario.breedingCardIds, "raising", true);
+    }
+    for (const id of security) insertCard(player, Zone.Security, take(id));
+    // Real draws remain mandatory; the blue options have no color source on these boards.
+    const draws = Array.from({ length: 4 }, () => take("ST2-16"));
+    fillZone(player, Zone.Deck, [...draws, ...player.deck]);
+  }
+  startEffectsLabTurn(state, 5);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  ...(Object.fromEntries(
+    PHASE_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layPhasePacingScenario(state, decks, scenario),
+    ]),
+  ) as Record<PhasePacingScenarioId, typeof layBattleScenario>),
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
   "arena-bt18-candlemon-data-selection": layBt18CandlemonDataSelectionScenario,

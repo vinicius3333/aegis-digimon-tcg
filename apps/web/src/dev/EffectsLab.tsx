@@ -8,6 +8,7 @@ import {
   KEYWORD_DECK_PACING_SCENARIOS,
   KEYWORD_ATTACK_PACING_SCENARIOS,
   KEYWORD_END_ATTACK_PACING_SCENARIOS,
+  PHASE_PACING_SCENARIOS,
   getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -54,6 +55,7 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...PHASE_PACING_SCENARIOS.map((scenario) => [scenario.id, `Phase pacing · ${scenario.label}`] as const),
   ...KEYWORD_END_ATTACK_PACING_SCENARIOS.map(
     (scenario) =>
       [scenario.id, `Keyword pacing · ${scenario.keyword} · ${scenario.accept ? "accept" : "decline"}`] as const,
@@ -117,6 +119,18 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "phase-pacing-bot-raising-evolution": {
+    en: "End breeding and your turn. The bot evolves Koromon into Agumon, Birdramon and Garudamon in raising. Follow each physical top and mandatory draw; its When Digivolving effect stays inactive there.",
+    ptBR: "Encerre a criação e seu turno. O bot evolui Koromon para Agumon, Birdramon e Garudamon na criação. Acompanhe cada carta no topo e compra obrigatória; o efeito Ao Digievoluir fica inativo nessa área.",
+  },
+  "phase-pacing-bot-play-grouping": {
+    en: "End breeding and your turn. The bot hatches Tanemon and plays two physical Monodramon copies. Follow both showcases, arrivals and the field regrouping before the turn changes.",
+    ptBR: "Encerre a criação e seu turno. O bot choca Tanemon e joga duas cópias físicas de Monodramon. Acompanhe as apresentações, chegadas e o reagrupamento do campo antes da troca de turno.",
+  },
+  "phase-pacing-bot-raising-move": {
+    en: "End breeding and your turn. The bot moves its Birdramon stack from raising, evolves one copy into Garudamon and makes three ordinary attacks. Follow the move, regrouping, evolution choice and each security check.",
+    ptBR: "Encerre a criação e seu turno. O bot move a pilha de Birdramon da criação, evolui uma cópia para Garudamon e faz três ataques comuns. Acompanhe a saída, reagrupamento, escolha da evolução e cada checagem de segurança.",
+  },
   ...Object.fromEntries(
     KEYWORD_END_ATTACK_PACING_SCENARIOS.map((scenario) => [
       scenario.id,

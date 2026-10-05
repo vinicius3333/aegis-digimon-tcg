@@ -11,3 +11,4 @@ export * from "./tournaments/index.js";
 export * from "./decks/index.js";
 export * from "./account/avatars.js";
 export * from "./dev/keywordPacing.js";
+export * from "./dev/phasePacing.js";
