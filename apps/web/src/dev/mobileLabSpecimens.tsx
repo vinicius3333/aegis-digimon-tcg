@@ -153,16 +153,16 @@ function NarrationSpecimen({
   const layout = useArenaLayout();
   const root = useRef<HTMLDivElement>(null);
   const [narration] = useState(() => new Map(items.map((item) => [item.id, item])));
-  // The column opens only from a tap on the folded band, which is exactly what this does.
+  // The detail specimen opens the same individual toast control as a touch on the board.
   useEffect(() => {
-    if (expand) root.current?.querySelector<HTMLButtonElement>(".narration-peek")?.click();
+    if (expand) root.current?.querySelector<HTMLButtonElement>(".compact-toast__open")?.click();
   }, [expand]);
   return (
     <div ref={root} className={`mobile-lab-fill${decision ? " aegis-stage" : ""}`}>
       <NarrationStack
         narration={narration}
         rejection={rejection}
-        compact={layout.collapseNotices}
+        compact={layout.collapseNotices || layout.portraitArena || layout.landscapePhone}
         onAdvance={noop}
         onDismissRejection={noop}
       />
@@ -446,35 +446,35 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "narration-single",
     group: "Narration",
-    title: "Narration band, one moment",
+    title: "Compact effect toast",
     surface: "board",
     render: () => <NarrationSpecimen items={[effectNarration()]} />,
   },
   {
     id: "narration-queued",
     group: "Narration",
-    title: "Narration band, +N queued",
+    title: "Compact effect and card columns",
     surface: "board",
     render: () => <NarrationSpecimen items={queuedNarration()} />,
   },
   {
     id: "narration-expanded",
     group: "Narration",
-    title: "Narration column, expanded",
+    title: "Selected toast details",
     surface: "board",
     render: () => <NarrationSpecimen items={queuedNarration()} expand />,
   },
   {
     id: "narration-decision",
     group: "Narration",
-    title: "Two complete toasts beside a decision",
+    title: "Compact toasts beside a decision",
     surface: "board",
     render: (locale) => <NarrationSpecimen items={queuedNarration()} decision={optionalDecision(locale)} />,
   },
   {
     id: "narration-hand-selection",
     group: "Narration",
-    title: "Two complete toasts above a selectable hand",
+    title: "Compact toasts above a selectable hand",
     surface: "board",
     render: (locale) => <NarrationHandSelectionSpecimen locale={locale} />,
   },
@@ -488,7 +488,7 @@ export const SPECIMENS: readonly Specimen[] = [
   {
     id: "narration-notice-kinds",
     group: "Narration",
-    title: "Notice kinds, expanded",
+    title: "Selected notice details",
     surface: "board",
     render: () => (
       <NarrationSpecimen

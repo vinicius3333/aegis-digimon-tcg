@@ -575,3 +575,7 @@ do not reuse recordings, samples, melodies or authored sound recipes.
 
 This is queued scope, not completed audio coverage. The current short synthesized
 feedback in `design/sound.ts` remains the starting implementation.
+
+## Compact mobile narration
+
+Phones, portrait tablets and phone landscape use two compact notice columns with at most two toasts each. Each row is 64 px with 24 px artwork and a truncated clause. Tapping an individual toast opens its complete occurrence in a detail dialog; expiry of the live notification does not interrupt reading. The desktop notice layout remains separate. See `docs/plans/2026-10-05-mobile-toasts-design.md` and `tools/diagnostics/probe-mobile-notices.mjs` for the interaction and browser checks.

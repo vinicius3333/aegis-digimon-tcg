@@ -4,7 +4,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { CardOpenerProvider } from "./cardLinks";
 import { NarrationStack } from "./NarrationStack";
-import { narrationReadingTime, type NarrationItem } from "./narration";
+import { type NarrationItem } from "./narration";
 import type { MatchNotice } from "./notices";
 import { Side } from "./side";
 import { TIMINGS } from "./timings";
@@ -33,7 +33,7 @@ it("reserves space for the security dock and releases it when the dock closes", 
   rerender(view(false, false));
   expect(container.querySelector("[data-security-dock]")).toBeNull();
   rerender(view(true, true));
-  expect(container.querySelector('[data-slot="narration"][data-security-dock]')).toBeTruthy();
+  expect(container.querySelector('[data-slot="narration-cards"][data-security-dock]')).toBeTruthy();
 });
 
 function cardItem(id: string): NarrationItem {
@@ -153,32 +153,6 @@ it("counts each card panel when one occurrence contains two card toasts", () => 
   expect(onAdvance).toHaveBeenCalledExactlyOnceWith("dual");
 });
 
-it("gives notices opened during a long decision their remaining reading time after resuming", () => {
-  const original = item("paused-effect");
-  const paused = { ...original, pausedAt: 1000 };
-  const view = (entry: NarrationItem, nowMs: number) => (
-    <I18nProvider>
-      <NarrationStack
-        narration={new Map([[entry.id, entry]])}
-        compact
-        nowMs={nowMs}
-        rejection={null}
-        onAdvance={() => {}}
-        onDismissRejection={() => {}}
-      />
-    </I18nProvider>
-  );
-  const { container, rerender } = render(view(paused, 12_000));
-  const expected = `${narrationReadingTime(original) - 1000}ms`;
-  expect(container.querySelector<HTMLElement>(".narration-peek__life")!.style.animationDuration).toBe(expected);
-  fireEvent.click(container.querySelector(".narration-peek")!);
-  expect(container.querySelector<HTMLElement>(".match-notice__erode")!.style.animationDuration).toBe(expected);
-  expect(container.querySelector("[data-reading-paused]")).not.toBeNull();
-  rerender(view({ ...original, createdAt: 11_000 }, 12_000));
-  expect(container.querySelector<HTMLElement>(".match-notice__erode")!.style.animationDuration).toBe(expected);
-  expect(container.querySelector("[data-reading-paused]")).toBeNull();
-});
-
 it("shows Wizardmon's End of Your Turn clause in the effect toast", () => {
   const endTurn: NarrationItem = {
     id: "wizardmon-end-turn",
@@ -220,97 +194,15 @@ it("shows Wizardmon's End of Your Turn clause in the effect toast", () => {
 
 /* The portrait column collapses whole: the accordion stands in for every record until the
    viewer opens it, so the band is all the board carries. */
-it("collapses the whole portrait column into the accordion", () => {
-  const { container } = render(
-    <I18nProvider>
-      <NarrationStack
-        narration={new Map([item("one"), item("two")].map((entry) => [entry.id, entry]))}
-        compact
-        nowMs={0}
-        rejection={null}
-        onAdvance={() => {}}
-        onDismissRejection={() => {}}
-      />
-    </I18nProvider>,
-  );
-  expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(0);
-  expect(container.querySelectorAll(".narration-peek")).toHaveLength(1);
-});
-
-it("opens the whole portrait column from the accordion, and dismisses only the selected ID", () => {
-  const onAdvance = vi.fn<(id: string) => void>();
-  const { container } = render(
-    <I18nProvider>
-      <NarrationStack
-        narration={new Map([item("one"), item("two")].map((entry) => [entry.id, entry]))}
-        compact
-        nowMs={0}
-        rejection={null}
-        onAdvance={onAdvance}
-        onDismissRejection={() => {}}
-      />
-    </I18nProvider>,
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Show the full notice" }));
-  expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(2);
-  fireEvent.click(screen.getAllByRole("button", { name: "Dismiss notice" })[1]!);
-  expect(onAdvance).toHaveBeenCalledExactlyOnceWith("two");
-  fireEvent.click(screen.getByRole("button", { name: "Fold the notice back" }));
-  expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(0);
-});
 
 /* Wide, the eye reads the clause on the left and the cards it moved on the right. Folded,
    that same order has to survive as top-then-bottom, or an [On Play] that reveals three
    cards shows the three cards first and names the clause underneath — the result before
    the cause. */
-it("folds a moment clause-first, the way the two columns read", () => {
-  const moment: NarrationItem = { ...item("moment"), panel: cardItem("moment").panel };
-  const { container } = render(
-    <I18nProvider>
-      <CardOpenerProvider onOpenCard={() => {}}>
-        <NarrationStack
-          narration={new Map([[moment.id, moment]])}
-          compact
-          nowMs={0}
-          rejection={null}
-          onAdvance={() => {}}
-          onDismissRejection={() => {}}
-        />
-      </CardOpenerProvider>
-    </I18nProvider>,
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Show the full notice" }));
-  const folded = container.querySelector('[data-slot="narration"] .narration-item') as HTMLElement;
-  const clause = folded.querySelector(".match-notice-stack");
-  const cards = folded.querySelector(".side-panel-stack");
-  expect(clause).toBeTruthy();
-  expect(cards).toBeTruthy();
-  // DOCUMENT_POSITION_FOLLOWING: the cards half is drawn after the clause half.
-  expect(clause!.compareDocumentPosition(cards!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-});
 
 /* The opened column is taller than the phone it is read on, so a control at the end of it
    is only reachable by scrolling past every moment. Leading the column is what lets it
    stick to the top edge from the first paint. */
-it("leads the opened portrait column with its close control", () => {
-  const { container } = render(
-    <I18nProvider>
-      <NarrationStack
-        narration={new Map([item("one"), item("two")].map((entry) => [entry.id, entry]))}
-        compact
-        nowMs={0}
-        rejection={null}
-        onAdvance={() => {}}
-        onDismissRejection={() => {}}
-      />
-    </I18nProvider>,
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Show the full notice" }));
-  const close = screen.getByRole("button", { name: "Fold the notice back" });
-  expect(container.querySelector('[data-slot="narration"]')?.firstElementChild).toBe(close);
-  // Named in words, not left as a bare chevron to be guessed at.
-  expect(close.textContent).toContain("Close");
-});
 
 it("does not accelerate an existing countdown when another record arrives", () => {
   const first = item("one");
@@ -336,115 +228,9 @@ it("does not accelerate an existing countdown when another record arrives", () =
 /* The band is one row reused for every moment. Rewritten in place it would swap its text
    with nothing to see, on the layout where it is the only thing a moment gets — so each
    moment gets its own row, and with it the row's entrance and its own running clock. */
-it("replaces the folded band per moment and runs its clock from that moment", () => {
-  const first = item("one");
-  const view = (items: NarrationItem[], nowMs: number) => (
-    <I18nProvider>
-      <NarrationStack
-        narration={new Map(items.map((entry) => [entry.id, entry]))}
-        compact
-        nowMs={nowMs}
-        rejection={null}
-        onAdvance={() => {}}
-        onDismissRejection={() => {}}
-      />
-    </I18nProvider>
-  );
-  const { container, rerender } = render(view([first], 0));
-  const band = container.querySelector(".narration-peek");
-  const life = container.querySelector(".narration-peek__life") as HTMLElement;
-  expect(life.style.animationDuration).toBe(`${TIMINGS.noticeLifetime}ms`);
-  rerender(view([first, { ...item("two"), createdAt: 2000 }], 2000));
-  expect(container.querySelector(".narration-peek")).not.toBe(band);
-  // The newest moment's own reading time, not what is left of the one it replaced.
-  const next = container.querySelector(".narration-peek__life") as HTMLElement;
-  expect(next.style.animationDuration).toBe(`${TIMINGS.noticeLifetime}ms`);
-  // One named, one queued behind it.
-  expect(container.querySelector(".narration-peek__more")?.textContent).toBe("+1");
-});
-
-it("keeps the folded band naming accepted effects and counting the whole stack during a decision", () => {
-  const clause = (id: string, cardId: string): NarrationItem => ({
-    id,
-    side: Side.Viewer,
-    batchId: "b1",
-    createdAt: 0,
-    notice: {
-      id,
-      side: Side.Viewer,
-      fromSecurity: false,
-      createdAt: 0,
-      body: { variant: "effect", cardId, timing: "YourTurn", description: `[Your Turn] clause of ${cardId}.` },
-    },
-  });
-  const view = (items: NarrationItem[], promptSourceCardId: string | undefined) => (
-    <I18nProvider>
-      <NarrationStack
-        narration={new Map(items.map((entry) => [entry.id, entry]))}
-        compact
-        promptSourceCardId={promptSourceCardId}
-        nowMs={0}
-        rejection={null}
-        onAdvance={() => {}}
-        onDismissRejection={() => {}}
-      />
-    </I18nProvider>
-  );
-  const band = () => document.querySelector(".narration-peek");
-  const named = () => band()?.querySelector(".narration-peek__name")?.textContent;
-  const clauseLine = () => band()?.querySelector(".narration-peek__clause");
-  const earlier = clause("earlier", "BT1-029");
-
-  const { rerender } = render(view([earlier], undefined));
-  const earlierName = named();
-  expect(clauseLine()).not.toBeNull();
-
-  rerender(view([earlier], "BT20-091"));
-  expect(named()).toBe(earlierName);
-  expect(clauseLine()).not.toBeNull();
-  expect(band()?.querySelector(".narration-peek__more")).toBeNull();
-  expect(band()?.querySelector(".narration-peek__art")).not.toBeNull();
-  const promptName = named();
-
-  rerender(view([earlier, clause("prompt", "BT20-091")], "BT20-091"));
-  expect(named()).not.toBe(promptName);
-  expect(clauseLine()).not.toBeNull();
-  expect(band()?.querySelector(".narration-peek__more")?.textContent).toBe("+1");
-});
 
 /* The band is a glance before it is a sentence: its accent says what kind of moment it is
    without the viewer reading a word of it. */
-it("draws the folded band in the tone its newest moment earns", () => {
-  const tone = (entry: NarrationItem) => {
-    const { container } = render(
-      <I18nProvider>
-        <NarrationStack
-          narration={new Map([[entry.id, entry]])}
-          compact
-          nowMs={0}
-          rejection={null}
-          onAdvance={() => {}}
-          onDismissRejection={() => {}}
-        />
-      </I18nProvider>,
-    );
-    const band = container.querySelector(".narration-peek")?.getAttribute("data-tone");
-    cleanup();
-    return band;
-  };
-  const noticeItem = (id: string, body: MatchNotice["body"]): NarrationItem => ({
-    id,
-    side: Side.Viewer,
-    batchId: "batch",
-    createdAt: 0,
-    notice: { id, side: Side.Viewer, fromSecurity: false, createdAt: 0, body },
-  });
-  expect(tone(noticeItem("a", { variant: "effect", cardId: "BT1-010", timing: "OnPlay" }))).toBe("effect");
-  expect(tone(noticeItem("b", { variant: "deletion", cards: [{ cardId: "BT1-010" }] }))).toBe("deletion");
-  expect(tone(noticeItem("c", { variant: "keyword", keyword: "digiXros", cardId: "BT1-010" }))).toBe("keyword");
-  expect(tone(noticeItem("d", { variant: "recovery", amount: 1 }))).toBe("gain");
-  expect(tone(noticeItem("e", { variant: "securityGain", amount: 2 }))).toBe("gain");
-});
 
 /* A deletion is drawn by the panel component, not by the notice frame: the two are read out
    of the same column and used to arrive in two different backgrounds. */
@@ -484,48 +270,6 @@ it("draws a deletion as a titled panel, keeping the art the card was deleted in"
   expect(panel.querySelector('img[src*="BT1-010_P2"]')).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Open Agumon" }));
   expect(opened).toEqual([["BT1-010", "BT1-010_P2"]]);
-});
-
-it("swipes the folded band sideways to dismiss every moment it stands for, without opening it", () => {
-  vi.useFakeTimers();
-  try {
-    const onAdvance = vi.fn<(id: string) => void>();
-    const { container } = render(
-      <I18nProvider>
-        <NarrationStack
-          narration={new Map([item("one"), item("two")].map((entry) => [entry.id, entry]))}
-          compact
-          nowMs={0}
-          rejection={null}
-          onAdvance={onAdvance}
-          onDismissRejection={() => {}}
-        />
-      </I18nProvider>,
-    );
-    const band = container.querySelector(".narration-peek") as HTMLElement;
-    vi.spyOn(band, "getBoundingClientRect").mockReturnValue({ width: 300 } as DOMRect);
-    const setPointerCapture = vi.fn<(pointerId: number) => void>();
-    Object.defineProperty(band, "setPointerCapture", { value: setPointerCapture });
-
-    fireEvent.pointerDown(band, { pointerId: 1, clientX: 100 });
-    fireEvent.pointerMove(band, { pointerId: 1, clientX: 140 });
-    vi.advanceTimersByTime(1000);
-    fireEvent.pointerUp(band, { pointerId: 1, clientX: 140 });
-    fireEvent.click(band);
-    vi.runAllTimers();
-    expect(onAdvance).not.toHaveBeenCalled();
-    expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(0);
-
-    fireEvent.pointerDown(band, { pointerId: 2, clientX: 100 });
-    fireEvent.pointerMove(band, { pointerId: 2, clientX: 260 });
-    vi.advanceTimersByTime(1000);
-    fireEvent.pointerUp(band, { pointerId: 2, clientX: 260 });
-    vi.runAllTimers();
-    expect(setPointerCapture.mock.calls).toEqual([[1], [2]]);
-    expect(onAdvance.mock.calls.map(([id]) => id)).toEqual(["one", "two"]);
-  } finally {
-    vi.useRealTimers();
-  }
 });
 
 it("marks the prompt's own clause while retaining other accepted effects", () => {

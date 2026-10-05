@@ -293,7 +293,7 @@ export function BoardStage({
             <NarrationStack
               narration={cues.narration}
               rejection={cues.rejection}
-              compact={layout.collapseNotices}
+              compact={layout.collapseNotices || layout.portraitArena || layout.landscapePhone}
               promptSourceCardId={promptSourceCardId}
               securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
               onAdvance={cues.advanceNarration}

@@ -58,3 +58,6 @@ apps/web/.pacing-report/
 # Downloaded motion references and decoded frames (local development only)
 .local/motion-reference/
 apps/web/.motion-reference/
+
+# Local UI concept images and browser captures
+.local/mobile-toast-prototypes/

@@ -20,6 +20,7 @@
     "motion:probe:stack-strips": "node tools/diagnostics/probe-stack-strips.mjs",
     "motion:probe:central-shatter": "node tools/diagnostics/probe-central-shatter.mjs",
     "motion:probe:particle-light": "node tools/diagnostics/probe-particle-light.mjs",
+    "motion:probe:mobile-notices": "node tools/diagnostics/probe-mobile-notices.mjs",
     "motion:probe:notice-lanes": "node tools/diagnostics/probe-notice-lanes.mjs",
     "motion:probe:particle-queue": "node tools/diagnostics/probe-particle-queue.mjs",
     "motion:probe:particle-lifecycle": "node tools/diagnostics/probe-particle-lifecycle.mjs",

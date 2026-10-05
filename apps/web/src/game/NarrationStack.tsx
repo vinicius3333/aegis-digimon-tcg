@@ -2,29 +2,23 @@
    rather than by whose moment it is: the clause to read on the left, the cards the moment
    moved on the right. Both players' moments use both columns, so the eye always looks in
    the same place for the same kind of thing. Each item owns its reading lifetime and
-   dismissal; a portrait phone folds the two columns into one. */
+   dismissal; a phone keeps compact versions of both columns. */
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { CardMini } from "../design/cards";
+import { useTranslation } from "../i18n";
 import { Icons } from "../design/icons";
-import { useTranslation, type Translate } from "../i18n";
-import { cardDisplayName } from "./cardLinks";
-import { TIMING_LABELS, noticeEffectClause } from "./overlay";
+import { CompactNarration } from "./CompactNarration";
 import { NoticeStack } from "./NoticeStack";
-import { useSwipeToDismiss } from "./useSwipeToDismiss";
 import { SidePanelStack } from "./SidePanelStack";
 import {
   deletionPanel,
   isCardListNotice,
-  narrationRemaining,
   narrationReadingTime,
   type NarrationItem,
   type NarrationSlot,
 } from "./narration";
 import { noticeRemaining, type MatchNotice } from "./notices";
 
-/** The art on the folded band: enough to recognise the card, not enough to read it. */
-const PEEK_ART_WIDTH = 34;
 const MAX_VISIBLE_TOASTS = 2;
 
 /**
@@ -210,174 +204,6 @@ function Slot({
   );
 }
 
-/**
- * What the folded band says about one moment: the label its notice leads with, and the
- * card it is about. Built here rather than read off the drawn notice, because the folded
- * line is a summary of a moment, not a shrunken copy of the panel that presents it.
- */
-/**
- * The accent the band is drawn in, which is what it says before it is read. The variants
- * fold into four because the band is a glance, not a legend: what an effect did, a card
- * leaving the board, a named mechanic, and something gained.
- */
-type PeekTone = "effect" | "deletion" | "keyword" | "gain" | "rejection";
-
-function peekSummary(
-  item: NarrationItem,
-  t: Translate,
-): { label: string; name: string; tone: PeekTone; cardId?: string; artId?: string; clause?: string } {
-  const body = item.notice?.body;
-  if (body?.variant === "effect") {
-    const clause = noticeEffectClause({
-      cardId: body.cardId,
-      timing: body.timing,
-      description: body.description,
-      effectTextPart: body.effectTextPart,
-      ...(body.isInherited ? { isInherited: body.isInherited } : {}),
-    });
-    return {
-      label: (body.timing ? TIMING_LABELS[body.timing] : undefined) ?? t("overlay.effect"),
-      name: `${cardDisplayName(body.cardId, t)}${body.count !== undefined && body.count > 1 ? ` ×${body.count}` : ""}`,
-      tone: "effect",
-      cardId: body.cardId,
-      ...(body.artId ? { artId: body.artId } : {}),
-      ...(clause ? { clause } : {}),
-    };
-  }
-  if (body?.variant === "keyword")
-    return {
-      label: t(`notice.keyword.${body.keyword}` as const),
-      name: body.keyword === "guard" ? "" : cardDisplayName(body.cardId, t),
-      tone: "keyword",
-      cardId: body.cardId,
-    };
-  if (body?.variant === "stackStrip")
-    return {
-      label: t(`notice.stackStrip.${body.reason}` as const),
-      name: cardDisplayName(body.cardId, t),
-      tone: "deletion",
-      cardId: body.cardId,
-    };
-  if (body?.variant === "deletion")
-    return {
-      label: t("notice.deletion"),
-      name: cardDisplayName(body.cards[0]?.cardId, t),
-      tone: "deletion",
-      ...(body.cards[0]?.cardId ? { cardId: body.cards[0].cardId } : {}),
-    };
-  if (body?.variant === "recovery" || body?.variant === "securityGain")
-    return {
-      label: t(body.variant === "recovery" ? "overlay.recovery" : "overlay.securityGain", { count: body.amount }),
-      name: "",
-      tone: "gain",
-    };
-  if (body?.variant === "rejection") return { label: t("notice.rejected"), name: body.reason, tone: "rejection" };
-  const panel = item.panel;
-  if (panel)
-    return {
-      label: t(panel.titleKey as "panel.revealedCards"),
-      name: cardDisplayName(panel.cards[0]?.cardId, t),
-      tone: "effect",
-      ...(panel.cards[0]?.cardId ? { cardId: panel.cards[0].cardId } : {}),
-    };
-  return { label: t("overlay.effect"), name: "", tone: "effect" };
-}
-
-/**
- * The phone's folded band: one row saying what the newest moment is, how many more are
- * still running, and nothing else. It is the whole control — tapping anywhere on it opens
- * the column — so no close button or eroding ring competes for the 44px it stands in.
- */
-/**
- * How many toasts a set of moments draws, which is not how many moments it holds: one
- * moment carrying both halves — the clause on the left, the cards it moved on the right —
- * is two toasts on the board. The band counts what the viewer would see, so a moment with
- * both halves is not reported as one.
- */
-function isEffectOf(item: NarrationItem, cardId: string | undefined): boolean {
-  return cardId !== undefined && item.notice?.body.variant === "effect" && item.notice.body.cardId === cardId;
-}
-
-function toastCount(items: readonly NarrationItem[]): number {
-  return items.reduce((total, item) => total + (item.notice ? 1 : 0) + (item.panel ? 1 : 0), 0);
-}
-
-function PeekLine({
-  items,
-  label,
-  nowMs,
-  onOpen,
-  onDismiss,
-}: {
-  items: readonly NarrationItem[];
-  label: string;
-  nowMs: number;
-  onOpen: () => void;
-  /** Swiping the band sideways clears every moment it stands for, like a phone notification. */
-  onDismiss: () => void;
-}) {
-  const { t } = useTranslation();
-  // Frozen at arrival so the running bar keeps its duration when a neighbour expires.
-  const [remainingMs] = useState(() => {
-    const newest = items.at(-1);
-    return newest ? narrationRemaining(newest, nowMs) : 0;
-  });
-  const swipe = useSwipeToDismiss(onDismiss);
-  const newest = items.at(-1);
-  const summary = newest ? peekSummary(newest, t) : undefined;
-  if (!summary) return null;
-  // The band already names one of them, so the badge counts the rest.
-  const queued = toastCount(items) - 1;
-  return (
-    <button
-      className="narration-peek"
-      type="button"
-      data-tone={summary.tone}
-      data-reading-paused={newest?.pausedAt !== undefined || undefined}
-      data-swipe={swipe.phase}
-      style={{ "--swipe-offset": `${swipe.offset}px`, "--swipe-fade": swipe.fade } as CSSProperties}
-      {...swipe.handlers}
-      onClick={onOpen}
-      aria-label={label}
-      aria-expanded={false}
-    >
-      {summary.cardId ? (
-        <span className="narration-peek__art" aria-hidden="true">
-          <CardMini cardId={summary.cardId} artId={summary.artId} width={PEEK_ART_WIDTH} zoomOnHover={false} />
-        </span>
-      ) : null}
-      <span className="narration-peek__copy">
-        <span className="narration-peek__head">
-          <span className="narration-peek__label">{summary.label}</span>
-          {summary.name ? <span className="narration-peek__name">{summary.name}</span> : null}
-        </span>
-        {summary.clause ? (
-          <span className="narration-peek__detail">
-            {/* One line of the clause: enough to know whether this is worth opening. */}
-            <span className="narration-peek__clause">{summary.clause}</span>
-          </span>
-        ) : null}
-      </span>
-      {/* Keyed on the count so the badge replays its pop when a moment queues behind this
-          one without replacing it: the band would otherwise change a digit in silence. */}
-      {queued > 0 ? (
-        <span className="narration-peek__more" key={queued}>
-          +{queued}
-        </span>
-      ) : null}
-      <span className="narration-peek__chevron" aria-hidden="true">
-        <Icons.ChevronDown size={18} />
-      </span>
-      {/* The folded band is the only thing a moment gets on this layout, so it carries the
-          same running clock the opened notices draw — a band with nothing running on it
-          reads as a fixture of the board rather than as something that just happened. */}
-      {newest ? (
-        <span className="narration-peek__life" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
-      ) : null}
-    </button>
-  );
-}
-
 function RejectionView({ notice, nowMs, onDismiss }: { notice: MatchNotice; nowMs: number; onDismiss: () => void }) {
   const [mountedAt] = useState(nowMs);
   return <NoticeStack notice={notice} remainingMs={noticeRemaining(notice, mountedAt)} onDismiss={onDismiss} />;
@@ -399,7 +225,7 @@ export function NarrationStack({
   rejection: MatchNotice | null;
   /** Injected so the eroding borders start at the right point after a re-render. */
   nowMs?: number;
-  /** The portrait phone folds both sides into one centred slot. */
+  /** Small screens keep both columns as compact, individually expandable toasts. */
   compact?: boolean;
   /**
    * The card whose effect the viewer's open decision is about. Marks its notices while
@@ -415,30 +241,23 @@ export function NarrationStack({
   const now = nowMs ?? Date.now();
   // A refusal is a sentence about the viewer's own tap, so it reads with the clauses —
   // which on a phone is the only column there is.
-  const textSlot: NarrationSlot = compact ? "narration" : "narration-text";
+  const textSlot: NarrationSlot = "narration-text";
   const items = [...narration.values()];
   const hasText = (item: NarrationItem) => Boolean(item.notice && !isCardListNotice(item.notice));
-  const textItems = compact ? items : items.filter(hasText);
-  /* The phone's slot lies over the opponent's field, so the whole column collapses to the
-     accordion: one line naming the newest moment and counting the rest, with the board
-     readable behind it. One tap opens everything, another closes it, and a column that
-     empties closes itself again. */
-  const [expanded, setExpanded] = useState(false);
-  useEffect(() => {
-    if (textItems.length === 0) setExpanded(false);
-  }, [textItems.length]);
+  const textItems = items.filter(hasText);
   // A record may carry two card toasts. Count the rendered panels, not records,
   // while keeping the original occurrence and lifetime for either dismissal.
-  const cardItems = compact
-    ? []
-    : items
-        .flatMap((item) => [
-          ...(item.panel ? [{ ...item, notice: undefined }] : []),
-          ...(item.notice && isCardListNotice(item.notice) ? [{ ...item, panel: undefined }] : []),
-        ])
-        .slice(-MAX_VISIBLE_TOASTS);
-  const shownTextItems = compact ? textItems : textItems.slice(-(MAX_VISIBLE_TOASTS - (rejection ? 1 : 0)));
-  const isPromptEffect = (item: NarrationItem) => isEffectOf(narration.get(item.id) ?? item, promptSourceCardId);
+  const cardItems = items
+    .flatMap((item) => [
+      ...(item.panel ? [{ ...item, notice: undefined }] : []),
+      ...(item.notice && isCardListNotice(item.notice) ? [{ ...item, panel: undefined }] : []),
+    ])
+    .slice(-MAX_VISIBLE_TOASTS);
+  const shownTextItems = textItems.slice(-(MAX_VISIBLE_TOASTS - (rejection ? 1 : 0)));
+  const isPromptEffect = (item: NarrationItem) => {
+    const body = (narration.get(item.id) ?? item).notice?.body;
+    return body?.variant === "effect" && body.cardId === promptSourceCardId;
+  };
   const body = (half: "text" | "cards") => (shown: NarrationItem) => (
     <div
       className="narration-item"
@@ -451,26 +270,18 @@ export function NarrationStack({
       <NarrationItemView item={shown} half={half} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>
   );
-  /**
-   * The folded column draws both halves of a moment, one after the other — in the order the
-   * two columns read on a wide screen, left then right: the clause that did something, then
-   * the cards it moved. Folded the other way round an [On Play] that reveals three cards
-   * showed the three cards first and named the clause underneath, so the result arrived
-   * before the cause and the reader had to work backwards.
-   */
-  const compactBody = (shown: NarrationItem) => (
-    <div
-      className="narration-item"
-      key={shown.id}
-      data-narration-id={shown.id}
-      data-reading-paused={shown.pausedAt !== undefined || undefined}
-      data-superseded={shown.superseded || undefined}
-      data-prompt-effect={isPromptEffect(shown) || undefined}
-    >
-      <NarrationItemView item={shown} half="text" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
-      <NarrationItemView item={shown} half="cards" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
-    </div>
-  );
+  if (compact)
+    return (
+      <CompactNarration
+        narration={narration}
+        rejection={rejection}
+        nowMs={now}
+        promptSourceCardId={promptSourceCardId}
+        securityDockActive={securityDockActive}
+        onAdvance={onAdvance}
+        onDismissRejection={onDismissRejection}
+      />
+    );
   return (
     <>
       {cardItems.length > 0 ? (
@@ -478,31 +289,15 @@ export function NarrationStack({
           {cardItems.map(body("cards"))}
         </Slot>
       ) : null}
-      {/* A refusal answers the viewer's own tap, so it never folds: while one is on screen
-          the phone's column opens whatever the band was doing. */}
-      {compact && !expanded && !rejection && textItems.length > 0 ? (
-        <Slot slot="narration" count={1} securityDockActive={securityDockActive}>
-          {/* Keyed on the moment it names: the band is one row reused for every moment, and
-              without a remount a new moment would slide into it with no entrance to see. */}
-          <PeekLine
-            key={textItems.at(-1)?.id}
-            items={textItems}
-            label={t("notice.expand")}
-            nowMs={now}
-            onOpen={() => setExpanded(true)}
-            onDismiss={() => textItems.forEach((item) => onAdvance(item.id))}
-          />
-        </Slot>
-      ) : textItems.length > 0 || rejection ? (
+      {textItems.length > 0 || rejection ? (
         <Slot
           slot={textSlot}
           count={shownTextItems.length + (rejection ? 1 : 0)}
           securityDockActive={securityDockActive}
-          {...(compact ? { onTogglePeek: () => setExpanded(false), anchor: "top" as const } : {})}
           peekLabel={t("notice.collapse")}
           closeLabel={t("notice.close")}
         >
-          {shownTextItems.map(compact ? compactBody : body("text"))}
+          {shownTextItems.map(body("text"))}
           {rejection ? (
             <RejectionView key={rejection.id} notice={rejection} nowMs={now} onDismiss={onDismissRejection} />
           ) : null}
