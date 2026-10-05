@@ -88,11 +88,22 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
         if (instanceIds.includes(card.instanceId)) trashOriginIds.add(card.instanceId);
       }
     }
+    const deckOriginIds = new Set(
+      Array.from(state.players).flatMap((owner) =>
+        owner.deck.filter((card) => instanceIds.includes(card.instanceId)).map((card) => card.instanceId),
+      ),
+    );
     const moved: CardInstance[] = [];
     const movedToHand: CardInstance[] = [];
+    const returnedPermanents: NonNullable<Extract<ServerEvent, { kind: "cardsMoved" }>["returnedPermanents"]> = [];
     const trashedAttachments: CardInstance[] = [];
     const overflowOrigins = overflowOriginInstanceIds(state);
     for (const instanceId of instanceIds) {
+      // Only a public field top describes a whole permanent leaving. Private zone
+      // additions and detached tops must never disclose or animate a field stack.
+      const host = Array.from(state.players)
+        .flatMap((owner) => Array.from(owner.battleArea))
+        .find((permanent) => permanent.topCard?.instanceId === instanceId);
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
       if (collected === undefined) continue;
       for (const card of collected) {
@@ -114,6 +125,14 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
             insertCard(player(card.ownerSeat), Zone.Hand, card);
             moved.push(card);
             movedToHand.push(card);
+            if (host && opts?.silent !== true)
+              returnedPermanents.push({
+                permanentId: host.permanentId,
+                instanceId,
+                cardId: card.cardId,
+                ...(card.artId ? { artId: card.artId } : {}),
+                seat: card.ownerSeat,
+              });
           }
         } else {
           insertCard(player(card.ownerSeat), Zone.Trash, card);
@@ -140,24 +159,33 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       // A hand is redacted per seat, so the identities have to ride on the event for the
       // opponent to read them — but only when the rules already made these cards public
       // (a card taken from a reveal), never for an ordinary private hand addition.
-      const artIds = movedToHand.map((c) => c.artId ?? "");
-      // The opponent's client cannot resolve the owner of a card that came from a hidden
-      // deck, so without the seat it cannot place the "added to hand" panel.
-      const ownerSeats = new Set(movedToHand.map((c) => c.ownerSeat));
-      const [ownerSeat] = ownerSeats;
-      engine.emit({
-        kind: "cardsMoved",
-        instanceIds: movedToHand.map((c) => c.instanceId),
-        from: "various",
-        to: Zone.Hand,
-        ...(opts?.publicIdentities === true
-          ? {
-              cardIds: movedToHand.map((c) => c.cardId),
-              ...(artIds.some((artId) => artId !== "") ? { artIds } : {}),
-              ...(ownerSeats.size === 1 ? { seat: ownerSeat } : {}),
-            }
-          : {}),
-      });
+      // Keep contiguous owner/origin groups in requested order. A revealed card still
+      // leaves the deck, and a multi-owner return must not assign both hands to one seat.
+      const groups: { seat: Seat; from: "deck" | "various"; cards: CardInstance[] }[] = [];
+      for (const card of movedToHand) {
+        const from = deckOriginIds.has(card.instanceId) ? "deck" : "various";
+        const last = groups.at(-1);
+        if (last?.seat === card.ownerSeat && last.from === from) last.cards.push(card);
+        else groups.push({ seat: card.ownerSeat, from, cards: [card] });
+      }
+      for (const { seat, from, cards } of groups) {
+        const artIds = cards.map((card) => card.artId ?? "");
+        const fieldReturns = returnedPermanents.filter((returned) =>
+          cards.some((card) => card.instanceId === returned.instanceId),
+        );
+        engine.emit({
+          kind: "cardsMoved",
+          instanceIds: cards.map((card) => card.instanceId),
+          from,
+          to: Zone.Hand,
+          handAddition: opts?.silent === true ? "staging" : "transfer",
+          seat,
+          ...(fieldReturns.length ? { returnedPermanents: fieldReturns } : {}),
+          ...(opts?.publicIdentities === true
+            ? { cardIds: cards.map((card) => card.cardId), ...(artIds.some((artId) => artId !== "") ? { artIds } : {}) }
+            : {}),
+        });
+      }
       // A card can carry a hand-resident static effect whose eligibility changes at the
       // instant it reaches hand (for example, BT6-105 waives its own color requirement
       // while its controller has a Three Musketeers Digimon). Re-derive the continuous

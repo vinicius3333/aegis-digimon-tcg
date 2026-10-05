@@ -49,7 +49,7 @@ export function RightPileColumn({
   raisingWidth: number;
   compactPiles: boolean;
   opponentSecurityRef: RefObject<HTMLDivElement | null>;
-  opponentEggDeckRiffling: boolean;
+  opponentEggDeckRiffling: boolean | number;
   breedingBurst: PermanentBurst | undefined;
   breedingEffectSource: boolean;
   breedingEffectLinked: boolean;

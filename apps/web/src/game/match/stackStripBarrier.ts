@@ -23,7 +23,7 @@ export async function waitForStackStrips({
       (step) =>
         step.id.startsWith("stack-strip-peel-") &&
         Number(step.id.slice("stack-strip-peel-".length)) <= throughKey &&
-        (permanentId === undefined || step.track === `stackStripPeel-${permanentId}`) &&
+        (permanentId === undefined || step.track === "stackStripPeel" || step.track === `stackStripPeel-${permanentId}`) &&
         (side === undefined || step.side === side),
     )
   )

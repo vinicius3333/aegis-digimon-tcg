@@ -61,6 +61,7 @@ describe("animation engine contract", () => {
   it.each([
     ["security-deal-flight-2", "opening"],
     ["zone-change-1", "play"],
+    ["arrival-light-1", "play"],
     ["effect-source-1", "effect"],
     ["field-clash-1", "battle"],
     ["security-destroyed-1", "securityChange"],

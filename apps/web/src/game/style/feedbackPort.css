@@ -327,17 +327,60 @@
   }
 }
 
+/* A battle shakes the artwork independently of the masked claw. The source's
+   vibrato is a rate: floor(30 * .25) = seven segments, with durations weighted
+   1 through 7 and a linearly decaying strength. Every segment uses OutQuad.
+   These fixed directions are one reproducible planar variant of its random
+   path; they do not claim to reproduce a particular recording's random seed.
+   Strength is relative to the source's 100 x 140 card at field scale .9. */
+.game-permanent-shake[data-combat-impact] {
+  animation: none;
+}
+
+.game-permanent[data-combat-impact] > .game-card-enter > [data-state],
+.game-field-clash-ghost[data-combat-impact] > :not(.game-claw) {
+  --combat-shake-x: 8.888889%;
+  --combat-shake-y: 6.349206%;
+  animation: battle-card-impact var(--t-card-shake, 250ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+
+@keyframes battle-card-impact {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  3.571429% {
+    translate: calc(var(--combat-shake-x) * -0.866025) calc(var(--combat-shake-y) * 0.5);
+  }
+  10.714286% {
+    translate: calc(var(--combat-shake-x) * 0.606092) calc(var(--combat-shake-y) * -0.606092);
+  }
+  21.428571% {
+    translate: calc(var(--combat-shake-x) * -0.703434) calc(var(--combat-shake-y) * -0.124034);
+  }
+  35.714286% {
+    translate: calc(var(--combat-shake-x) * 0.536967) calc(var(--combat-shake-y) * -0.19544);
+  }
+  53.571429% {
+    translate: calc(var(--combat-shake-x) * -0.214286) calc(var(--combat-shake-y) * 0.371154);
+  }
+  75% {
+    translate: calc(var(--combat-shake-x) * 0.120748) calc(var(--combat-shake-y) * -0.258945);
+  }
+}
+
 /* --- Field battle ghost --------------------------------------------------- */
 
 /* A battle loser's stand-in: the board has already dropped the permanent, so its
-   card is held where it stood while the arrow, the lunge and the claw play out.
-   `translate` animations (lunge, shake) compose with the left/top placement. */
+   card is held where it stood while the arrow and the claw play out.
+   The artwork trembles independently of the fixed left/top placement. */
 .game-field-clash-ghost {
   position: absolute;
   z-index: 61;
   pointer-events: none;
   border-radius: 9px;
-  overflow: hidden;
+  /* The claw clips itself; the struck card can tremble past its resting edge. */
+  overflow: visible;
 }
 
 /* --- Combat claw --------------------------------------------------------- */
@@ -358,6 +401,10 @@
 .game-claw svg {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  /* Exact cubic acceleration: x(t) = t and y(t) = t³. The filled final
+     frame remains visible until the impact owner removes this component. */
+  animation: battle-claw var(--t-claw-slash, 250ms) cubic-bezier(0.333333, 0, 0.666667, 0) both;
 }
 
 .game-claw__tine {
@@ -366,31 +413,15 @@
   stroke-width: 5;
   stroke-linecap: round;
   filter: drop-shadow(0 0 6px rgb(255 120 90 / 85%));
-  /* Ease.InCubic — the swipe accelerates into the card. */
-  animation: battle-claw var(--t-claw-slash, 250ms) cubic-bezier(0.55, 0.055, 0.675, 0.19) both;
-  animation-delay: calc(var(--claw-index) * 24ms);
 }
 
 @keyframes battle-claw {
   0% {
-    opacity: 0;
-    stroke-dasharray: 0 260;
-    stroke-dashoffset: 0;
-  }
-
-  22% {
-    opacity: 1;
-  }
-
-  70% {
-    stroke-dasharray: 120 260;
-    stroke-dashoffset: -60;
+    transform: translate(-100%, -100%);
   }
 
   100% {
-    opacity: 0;
-    stroke-dasharray: 0 260;
-    stroke-dashoffset: -260;
+    transform: translate(0, 0);
   }
 }
 
@@ -737,9 +768,7 @@
 
 /* --- Result splash ------------------------------------------------------- */
 
-/* The whole screen, the way the reference client ends a match: the board goes
-   dark behind it, one enormous word scales and lights up, and then everything
-   settles and stops moving. */
+/* The Aegis result screen appears at rest when the match ends. */
 .game-result {
   --result-tint: rgb(255 214 102);
 
@@ -752,7 +781,6 @@
   overflow: auto;
   overflow-x: hidden;
   background: rgb(0 0 0 / 82%);
-  animation: battle-result-in var(--t-result-splash-in, 520ms) ease-out both;
 }
 
 .game-result--loss {
@@ -800,7 +828,6 @@
   text-shadow:
     0 0 28px color-mix(in srgb, var(--result-tint) 55%, transparent),
     0 4px 0 rgb(0 0 0 / 45%);
-  animation: battle-result-title var(--t-result-splash-in, 520ms) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .game-result__reason {
@@ -879,35 +906,6 @@
   }
 }
 
-@keyframes battle-result-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes battle-result-title {
-  0% {
-    opacity: 0;
-    scale: 1.5;
-    filter: blur(8px);
-  }
-
-  60% {
-    opacity: 1;
-    filter: blur(0);
-  }
-
-  100% {
-    opacity: 1;
-    scale: 1;
-    filter: blur(0);
-  }
-}
-
 /* --- Reduced motion ------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -931,7 +929,9 @@
      and the refreshed figure on the card already say what happened. */
   .game-permanent-shake,
   .game-permanent-freeze,
-  .game-hand-card--shake {
+  .game-hand-card--shake,
+  .game-permanent[data-combat-impact] > .game-card-enter > [data-state],
+  .game-field-clash-ghost[data-combat-impact] > :not(.game-claw) {
     animation: none;
   }
 

@@ -171,6 +171,15 @@ export type ServerEvent =
   | { kind: "evadeResolved"; permanentId: string; accepted: boolean }
   | { kind: "barrierPrompt"; permanentId: string }
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
+  /** A declared attack's permanent battle, before optional deletion protection.
+   * Losers are deletion candidates after unconditional immunity, and may still survive
+   * Barrier/Evade/etc. combatResolved carries the final deletions. */
+  | {
+      kind: "battleCompared";
+      attackerPermanentId: string;
+      defenderPermanentId: string;
+      loserPermanentIds: string[];
+    }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
   /**
    * The attack `attackDeclared` opened is over, after End of Attack and after any
@@ -358,7 +367,7 @@ export type ServerEvent =
         seat: Seat;
       }[];
       /**
-       * Field permanents a move returned whole to a deck, captured before removal so the client
+       * Field permanents a move returned whole to hand or deck, captured before removal so the client
        * can send each one from where it stood. Absent for cards returned from any other zone.
        */
       returnedPermanents?: {
@@ -413,6 +422,9 @@ export type ServerEvent =
        * still on the board.
        */
       battleDeletion?: true;
+      /** A draw, another hand addition, or an internal bridge to an immediate play/use.
+       * Carries no card identity. A staging move is not a visible hand arrival. */
+      handAddition?: "draw" | "transfer" | "staging";
       /** Automatic bonus draw from digivolution, rather than a card effect. */
       drawReason?: "digivolution";
       /** The card finished resolving after it was used as an Option, not discarded by an effect. */
@@ -512,6 +524,7 @@ export const SERVER_EVENT_KINDS = [
   "evadeResolved",
   "barrierPrompt",
   "barrierResolved",
+  "battleCompared",
   "combatResolved",
   "attackEnded",
   "deletionPrevented",

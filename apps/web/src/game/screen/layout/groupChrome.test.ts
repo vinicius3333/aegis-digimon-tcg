@@ -30,7 +30,6 @@ function chrome(): PermanentChrome {
     dpPulses: new Map(),
     dpBadgeSuppressedIds: new Set(),
     freezePulses: new Map(),
-    attackLunge: null,
     heldSuspendedIds: new Set(),
     suspendDelayMs: () => 0,
   };

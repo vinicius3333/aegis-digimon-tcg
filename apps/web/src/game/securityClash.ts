@@ -5,10 +5,10 @@
 
 import { getCardDefinition, isDigimon, type SecurityBattleResult, type Seat, type ServerEvent } from "@aegis/shared";
 import { Side } from "./side";
+import type { ParticleLightOwner } from "./independentParticleLight";
 import {
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_AT_MS,
-  CLASH_TOTAL_MS,
   SECURITY_BRANCH_TOTAL_MS as BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS as BREAK_TOTAL_MS,
   SECURITY_DESTROY_OUTCOME_AT_MS as DESTROY_OUTCOME_AT_MS,
@@ -68,17 +68,29 @@ export interface SecurityClashScene {
    */
   outcomeAtMs?: number;
   /**
-   * What put the card on stage. A `check` is the security check the printed rules run;
+   * What put the card on stage. A `check` disposes its revealed card by narrowing upward;
    * a `destruction` is an effect that trashed the stack outright (Ragnarok Cannon), which
-   * faces no attacker and compares no DP. Only what the scene calls itself differs — the
-   * card is revealed and broken the same way either way. Defaults to `check`.
+   * faces no attacker, compares no DP and breaks the card into shards. Defaults to `check`.
    */
   cause?: SecurityClashCause;
   /**
-   * The card is on its way to the side dock: the scene fades out now, ahead of any outcome,
-   * which the dock and the close will show. Only a `pending` scene ever departs.
+   * The card is on its way to the side dock; the old stage retains hidden source geometry
+   * until the dock finishes carrying its card. Same-batch resolved effects also depart.
    */
   departing?: boolean;
+  /** The checked card has finished its result and is narrowing upward for disposal. */
+  exiting?: boolean;
+  /** A docked, already readable card returns for battle without repeating its reveal. */
+  revealedReady?: boolean;
+  /** The queue owns the fracture light after this scene gives the board back. */
+  lightOwner?: Omit<ParticleLightOwner, "id">;
+}
+
+/** Checked cards leave after their battle; effect-driven destruction keeps its shards. */
+export function securityClashTailMs(scene: SecurityClashScene): number {
+  if (scene.cause === "destruction") return TIMINGS.cardShatter + TIMINGS.clashExit;
+  if (scene.resolution !== "battle") return TIMINGS.securityCardExit;
+  return TIMINGS.clashOutcome + (scene.loser?.attacker ? TIMINGS.cardShatter : TIMINGS.securityCardExit);
 }
 
 export type SecurityClashCause = "check" | "destruction";
@@ -86,22 +98,23 @@ export type SecurityClashCause = "check" | "destruction";
 /**
  * Timeline of the scene, in the order the beats play. The reveal and the outcome
  * beat mirror the reference client (a 233 ms `EnterSecurity` clip, then a 250 ms
- * claw slash plus a 100 ms settle); the hold is still longer than the reference's
- * 170 + 300 ms because a web client has to stay readable without a camera cut.
+ * claw slash plus a 100 ms settle), with 170 + 300 ms recognition/preparation,
+ * followed by a 140 ms narrow/upward disposal. A no-battle check omits the claw/settle.
+ * A still-resolving check can hold beyond those beats until its real verdict.
  */
 export const SECURITY_CLASH_TIMINGS = {
   attackerEnterMs: TIMINGS.clashAttackerEnter,
   revealMs: TIMINGS.clashReveal,
   holdMs: TIMINGS.clashHold,
   outcomeMs: TIMINGS.clashOutcome,
-  exitMs: TIMINGS.clashExit,
+  exitMs: TIMINGS.securityCardExit,
 } as const;
 
 export const SECURITY_CLASH_REVEAL_AT_MS = CLASH_REVEAL_AT_MS;
 
 export const SECURITY_CLASH_OUTCOME_AT_MS = CLASH_OUTCOME_AT_MS;
 
-export const SECURITY_CLASH_TOTAL_MS = CLASH_TOTAL_MS;
+export const SECURITY_CLASH_TOTAL_MS = CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.securityCardExit;
 
 /**
  * The beat before the reveal: the defender's shield arms, its glass shatters, and the

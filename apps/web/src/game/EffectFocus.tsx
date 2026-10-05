@@ -1,17 +1,19 @@
-import { useEffect, useId, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
+import { playSound } from "../design/sound";
 import type { EffectActivation } from "./effectSource";
 import { permanentVisualElement } from "./screen/dropZones";
 import { spotlightHoles, type SpotlightSubject } from "./spotlight";
+import { FieldActivationLight } from "./FieldActivationLight";
 
 /** A brief focus on the accepted effect's source. The mask never captures input. */
 export function EffectFocus({
   sources,
-  field,
+  board,
   permanents,
   choosingTargets,
 }: {
   sources: readonly EffectActivation[];
-  field: RefObject<HTMLDivElement | null>;
+  board: RefObject<HTMLDivElement | null>;
   permanents: RefObject<Record<string, HTMLDivElement | null>>;
   choosingTargets: boolean;
 }) {
@@ -21,6 +23,8 @@ export function EffectFocus({
     .find((activation) => activation.linked !== true && activation.site.zone === "field");
   const permanentId = source?.site.zone === "field" ? source.site.permanentId : undefined;
   const [geometry, setGeometry] = useState<{ subject: SpotlightSubject; width: number; height: number }>();
+  const lastSoundedKey = useRef(-1);
+  const sourceKey = source?.key;
 
   useEffect(() => {
     setGeometry(undefined);
@@ -29,7 +33,7 @@ export function EffectFocus({
     let previous = "";
     function measure() {
       frame = requestAnimationFrame(measure);
-      const root = field.current;
+      const root = board.current;
       const permanent = permanents.current[permanentId!];
       if (!root || !permanent?.isConnected) {
         if (previous) setGeometry(undefined);
@@ -65,7 +69,28 @@ export function EffectFocus({
     }
     measure();
     return () => cancelAnimationFrame(frame);
-  }, [permanentId, choosingTargets, field, permanents]);
+  }, [permanentId, choosingTargets, board, permanents]);
+
+  useEffect(() => {
+    if (
+      sourceKey === undefined ||
+      sourceKey <= lastSoundedKey.current ||
+      choosingTargets ||
+      !geometry ||
+      !permanentId ||
+      geometry.subject.id !== permanentId ||
+      !permanents.current[permanentId]?.isConnected ||
+      geometry.subject.width <= 0 ||
+      geometry.subject.height <= 0 ||
+      geometry.width <= 0 ||
+      geometry.height <= 0
+    )
+      return;
+    // Match the visible focus, rather than a receipt that can arrive before the
+    // announcement. Geometry changes and the same source resuming stay silent.
+    lastSoundedKey.current = sourceKey;
+    playSound("effectFocus");
+  }, [sourceKey, choosingTargets, geometry, permanentId, permanents]);
 
   const hole = geometry && spotlightHoles([geometry.subject])[0];
   if (!source || choosingTargets || !geometry || !hole || geometry.width <= 0 || geometry.height <= 0) return null;
@@ -86,7 +111,12 @@ export function EffectFocus({
           <rect x={hole.x} y={hole.y} width={hole.width} height={hole.height} rx={hole.radius} fill="black" />
         </mask>
       </defs>
-      <rect width={geometry.width} height={geometry.height} fill="black" fillOpacity="0.42" mask={`url(#${maskId})`} />
+      <rect
+        className="game-effect-focus__shade"
+        width={geometry.width}
+        height={geometry.height}
+        mask={`url(#${maskId})`}
+      />
       <rect
         className="game-effect-focus__source"
         x={hole.x}
@@ -95,6 +125,24 @@ export function EffectFocus({
         height={hole.height}
         rx={hole.radius}
       />
+      <g
+        key={source.key}
+        className="game-effect-focus__pulse"
+        data-activation-key={source.key}
+        mask={`url(#${maskId})`}
+      >
+        <svg
+          x={hole.x - hole.width * 0.6}
+          y={hole.y - hole.height * 0.6}
+          width={hole.width * 2.2}
+          height={hole.height * 2.2}
+          viewBox="-110 -154 220 308"
+          preserveAspectRatio="none"
+          overflow="visible"
+        >
+          <FieldActivationLight />
+        </svg>
+      </g>
     </svg>
   );
 }

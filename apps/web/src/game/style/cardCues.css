@@ -61,6 +61,159 @@
 
 /* --- Card entering the battle area --------------------------------------- */
 
+.game-draw-presentation {
+  position: absolute;
+  z-index: 62;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  visibility: hidden;
+}
+
+.game-draw-presentation--ready {
+  visibility: visible;
+}
+.game-draw-presentation__face {
+  position: absolute;
+  inset: 0;
+}
+.game-draw-presentation__face > :first-child {
+  width: 100% !important;
+  height: 100% !important;
+}
+.game-draw-presentation__wash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+}
+.game-draw-presentation--ready .game-draw-presentation__face {
+  animation: battle-draw-presentation var(--t-draw-presentation) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+.game-draw-presentation--ready .game-draw-presentation__wash {
+  animation: battle-draw-presentation-wash var(--t-draw-presentation) linear both;
+}
+@keyframes battle-draw-presentation {
+  0% {
+    transform: translate(var(--draw-entry-x), var(--draw-entry-y)) rotate(60deg) scale(0.444444);
+  }
+  24%,
+  44% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  72% {
+    transform: translate(0, 0) rotate(0deg) scale(0.133333, 3.111111);
+  }
+  100% {
+    transform: translate(0, var(--draw-exit-y)) rotate(0deg) scale(0.133333, 3.111111);
+  }
+}
+@keyframes battle-draw-presentation-wash {
+  0%,
+  44% {
+    opacity: 0;
+  }
+  58%,
+  100% {
+    opacity: 1;
+  }
+}
+.game-draw-presentation--viewer.game-draw-presentation--ready .game-draw-presentation__face {
+  animation-name: battle-draw-presentation-viewer;
+}
+.game-draw-presentation--viewer.game-draw-presentation--ready .game-draw-presentation__wash {
+  animation-name: battle-draw-presentation-wash-viewer;
+}
+@keyframes battle-draw-presentation-viewer {
+  0% {
+    transform: translate(var(--draw-entry-x), var(--draw-entry-y)) rotate(60deg) scale(0.444444);
+  }
+  20.689655%,
+  51.724138% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  75.862069% {
+    transform: translate(0, 0) rotate(0deg) scale(0.133333, 3.111111);
+  }
+  100% {
+    transform: translate(0, var(--draw-exit-y)) rotate(0deg) scale(0.133333, 3.111111);
+  }
+}
+@keyframes battle-draw-presentation-wash-viewer {
+  0%,
+  51.724138% {
+    opacity: 0;
+  }
+  63.793103%,
+  100% {
+    opacity: 1;
+  }
+}
+.game-draw-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.game-draw-light__rays {
+  position: absolute;
+  left: -750%;
+  top: -235.714286%;
+  width: 1600%;
+  height: 571.428571%;
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: battle-draw-light-rays var(--t-draw-light-rays) linear var(--t-draw-light-delay) both paused;
+}
+.game-draw-light__glow {
+  position: absolute;
+  inset: -50% -90%;
+  background: radial-gradient(ellipse, var(--draw-light-base) 5%, var(--draw-light-edge) 32%, transparent 70%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: battle-draw-light-glow var(--t-draw-light-glow) linear var(--t-draw-light-delay) both paused;
+}
+.game-draw-presentation--ready .game-draw-light__rays,
+.game-draw-presentation--ready .game-draw-light__glow {
+  animation-play-state: running;
+}
+/* Approximate the measured inward-light envelope in the decoded draw interval.
+   The source particle material and camera remain separate comparisons. */
+@keyframes battle-draw-light-rays {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.47;
+  }
+  25% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.98;
+  }
+  57% {
+    opacity: 0.86;
+  }
+  74% {
+    opacity: 0.61;
+  }
+  90% {
+    opacity: 0.2;
+  }
+}
+@keyframes battle-draw-light-glow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.35;
+  }
+  52.631579% {
+    opacity: 0.65;
+  }
+}
+
 .game-card-enter {
   animation: battle-card-enter var(--t-card-enter, 320ms) ease-out both;
 }
@@ -147,24 +300,51 @@
 /* --- Colour-keyed burst ---------------------------------------------------
    One component for every landing, coloured by the moment rather than by the
    element it sits behind (battle-animation-spec.md, "Effect colour vocabulary"):
-   an arrival takes the card's own colour, an evolution burns red into orange, a
+   an arrival takes the card's own colour, an evolution opens white into that colour, a
    hatch opens white into blue. The two tones arrive as custom properties from
    `burstPalette`, so the vocabulary has one home in TypeScript. */
 
 .battle-burst {
   position: absolute;
   z-index: 0;
-  inset: -28%;
+  inset: -55%;
   display: block;
   pointer-events: none;
 }
 
+.battle-burst__particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* One painted clock also lets queue owners retain late mounts and lab playback. */
+.battle-burst__clock {
+  position: absolute;
+  width: 0;
+  height: 0;
+  animation: battle-particle-clock 1150ms linear both;
+}
+
+@keyframes battle-particle-clock {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+
 .battle-burst__core {
   position: absolute;
-  inset: 24%;
+  inset: 10%;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--battle-burst-base) 0%, transparent 68%);
-  animation: battle-burst-core var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+  background: radial-gradient(
+    ellipse,
+    rgb(255 255 255 / 90%) 0%,
+    color-mix(in srgb, var(--battle-burst-edge) 65%, transparent) 30%,
+    transparent 80%
+  );
+  animation: battle-burst-core var(--t-card-burst, 1150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 .battle-burst__rays {
@@ -172,20 +352,21 @@
   inset: 0;
 }
 
-/* Eight rays on a 45° wheel, each grown lengthwise from the centre and then
-   rotated into its spoke — the scale runs before the transform, so the ray
-   stretches along its own axis rather than along the board's. */
+/* Tapered beams grow from the same source, with fixed differences in angle,
+   reach and width. The transparent tip dissolves instead of ending abruptly. */
 .battle-burst__rays i {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 5%;
-  height: 46%;
-  margin-left: -2.5%;
-  background: linear-gradient(180deg, var(--battle-burst-base) 0%, transparent 100%);
+  width: var(--battle-burst-ray-width, 2%);
+  height: calc(48% * var(--battle-burst-ray-length, 1));
+  margin-left: calc(var(--battle-burst-ray-width, 2%) / -2);
+  background: linear-gradient(180deg, #fff 0%, #fff 45%, var(--battle-burst-edge) 65%, transparent 100%);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  filter: drop-shadow(0 0 3px var(--battle-burst-edge));
   transform: rotate(var(--battle-burst-ray, 0deg));
   transform-origin: 50% 0;
-  animation: battle-burst-ray var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation: battle-burst-ray var(--t-card-burst, 1150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 .battle-burst__ring {
@@ -193,28 +374,21 @@
   inset: 20%;
   border: 2px solid var(--battle-burst-edge);
   border-radius: 50%;
-  animation: battle-burst-ring var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation: battle-burst-ring var(--t-card-burst, 1150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 .battle-burst__ring--late {
   border-color: var(--battle-burst-base);
   animation-delay: 140ms;
+  animation-duration: calc(var(--t-card-burst, 1150ms) - 140ms);
 }
 
-/* An evolution reads as arcs rather than closed rings: two sides of each ring
-   are dropped and the pair counter-rotates. */
-.battle-burst--evolve .battle-burst__ring {
-  border-width: 3px;
-  border-inline-color: transparent;
-  animation-name: battle-burst-arc;
-}
-
-.battle-burst--evolve .battle-burst__ring--late {
-  animation-name: battle-burst-arc-reverse;
-}
-
-.battle-burst--hatch .battle-burst__core {
-  background: radial-gradient(circle, var(--battle-burst-base) 0%, var(--battle-burst-edge) 38%, transparent 72%);
+/* Field arrivals radiate light. Closed rings belong to draw/security/deletion
+   cues; an evolution's selection outline is owned by the permanent itself. */
+.battle-burst--play .battle-burst__ring,
+.battle-burst--evolve .battle-burst__ring,
+.battle-burst--hatch .battle-burst__ring {
+  display: none;
 }
 
 /* The flying card back is a thumbnail, so the starburst reaches well past it to
@@ -229,6 +403,10 @@
   animation-duration: var(--t-draw-burst, 600ms);
 }
 
+.battle-burst--draw .battle-burst__ring--late {
+  animation-duration: calc(var(--t-draw-burst, 600ms) - 140ms);
+}
+
 @keyframes battle-burst-core {
   0% {
     scale: 0.3;
@@ -236,7 +414,7 @@
   }
   25% {
     scale: 1.1;
-    opacity: 0.85;
+    opacity: 1;
   }
   100% {
     scale: 1.35;
@@ -246,15 +424,15 @@
 
 @keyframes battle-burst-ray {
   0% {
-    scale: 1 0;
+    scale: 0.35 0.12;
     opacity: 0;
   }
   25% {
     scale: 1 1;
-    opacity: 0.95;
+    opacity: 1;
   }
   100% {
-    scale: 1 0.3;
+    scale: 0.4 1.2;
     opacity: 0;
   }
 }
@@ -269,38 +447,6 @@
   }
   100% {
     scale: 1.5;
-    opacity: 0;
-  }
-}
-
-@keyframes battle-burst-arc {
-  0% {
-    rotate: -60deg;
-    scale: 0.3;
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  100% {
-    rotate: 40deg;
-    scale: 1.55;
-    opacity: 0;
-  }
-}
-
-@keyframes battle-burst-arc-reverse {
-  0% {
-    rotate: 70deg;
-    scale: 0.3;
-    opacity: 0;
-  }
-  25% {
-    opacity: 1;
-  }
-  100% {
-    rotate: -30deg;
-    scale: 1.4;
     opacity: 0;
   }
 }
@@ -328,7 +474,7 @@
   border-radius: 50%;
   content: "";
   pointer-events: none;
-  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+  animation: battle-hatch-vignette var(--t-card-burst, 1150ms) ease-out both;
 }
 
 .game-breeding-slot--lit[data-burst="evolve"]::before {
@@ -339,7 +485,7 @@
   border-radius: 50%;
   content: "";
   pointer-events: none;
-  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+  animation: battle-hatch-vignette var(--t-card-burst, 1150ms) ease-out both;
 }
 
 @keyframes battle-hatch-vignette {
@@ -373,95 +519,103 @@
 /* Left where a permanent was deleted: the board has already dropped the card, so the
    burst is placed from the position it last held. */
 .game-delete-burst {
-  --t-card-burst: calc(var(--t-deletion-burst, 350ms) - 90ms);
   position: absolute;
   z-index: 62;
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 101px;
   pointer-events: none;
 }
 
-.game-delete-burst .battle-burst__ring--late {
-  animation-delay: 90ms;
-}
-
-/* A top card stripped off a permanent that stays on the field (＜De-Digivolve＞): the
-   card lifts off where it stood and falls away toward the trash, so the new top card
-   underneath reads as a consequence rather than a silent swap. */
+/* A small source vignette: lift170ms, side return85ms, hold170ms, fade170ms.
+   Local offsets use the authored20x28 face. Its printed host stays in place. */
 .game-stack-strip-peel {
   position: absolute;
   z-index: 62;
   pointer-events: none;
-  animation: battle-stack-strip-peel var(--t-stack-strip-peel, 560ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+  width: 16px;
+  height: 22.4px;
+  animation: battle-stack-strip-lift var(--t-stack-strip-peel, 595ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
 }
 
-@keyframes battle-stack-strip-peel {
+.game-stack-strip-peel__sway {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: battle-stack-strip-sway var(--t-stack-strip-peel, 595ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+
+.game-stack-strip-peel svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.game-stack-strip-peel__face {
+  animation: battle-stack-strip-fade var(--t-stack-strip-peel, 595ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+
+.game-stack-strip-peel__rim {
+  animation: battle-stack-strip-rim var(--t-stack-strip-peel, 595ms) linear both;
+}
+
+@keyframes battle-stack-strip-lift {
   0% {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
+    translate: 0 0;
   }
-  35% {
+  28.5714285714%,
+  100% {
+    translate: 0 calc(var(--stack-strip-direction) * -78.5714285714%);
+  }
+}
+
+@keyframes battle-stack-strip-sway {
+  0%,
+  42.8571428571%,
+  100% {
+    translate: 0 0;
+  }
+  14.2857142857%,
+  28.5714285714% {
+    translate: calc(var(--stack-strip-direction) * 75%) 0;
+  }
+}
+
+@keyframes battle-stack-strip-fade {
+  0%,
+  71.4285714286% {
     opacity: 1;
-    transform: translateY(-18px) rotate(-6deg) scale(1.04);
   }
   100% {
     opacity: 0;
-    transform: translate(28px, 36px) rotate(12deg) scale(0.8);
+  }
+}
+
+@keyframes battle-stack-strip-rim {
+  0% {
+    opacity: 1;
+    animation-timing-function: steps(1, end);
+  }
+  71.4285714286%,
+  100% {
+    opacity: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .game-stack-strip-peel {
+  .game-stack-strip-peel,
+  .game-stack-strip-peel__sway,
+  .game-stack-strip-peel__face,
+  .game-stack-strip-peel__rim {
     animation: none;
-    opacity: 0;
   }
-}
-
-/* Effect deletion lands with a short energy pulse around the card's last position.
-   Battle deletions already have the claw/shake impact, so they keep the plain shatter. */
-.game-delete-burst--effect::before,
-.game-delete-burst--effect::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  content: "";
-  border: 2px solid var(--battle-arrow-effect);
-  border-radius: 50%;
-  pointer-events: none;
-  translate: -50% -50%;
-  animation: battle-effect-deletion-pulse var(--t-card-burst, 800ms) ease-out both;
-}
-
-.game-delete-burst--effect::before {
-  width: 58px;
-  height: 58px;
-}
-
-.game-delete-burst--effect::after {
-  width: 28px;
-  height: 28px;
-  animation-delay: 90ms;
-}
-
-@keyframes battle-effect-deletion-pulse {
-  0% {
-    opacity: 0;
-    scale: 0.25;
-    box-shadow: 0 0 0 0 rgb(255 159 67 / 0%);
-  }
-  22% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    scale: 2.2;
-    box-shadow: 0 0 20px 5px rgb(255 159 67 / 0%);
+  .game-stack-strip-peel {
+    display: none;
   }
 }
 
 /* --- Centre-screen zone showcase ------------------------------------------
    Sits above the board-mode decision rail and below the dialogs: it is the
-   opponent's moment, and no decision of the viewer's is ever waiting under it. */
+   public card reveal. Captions and card styling use the existing design system. */
 
 .battle-showcase {
   position: absolute;
@@ -470,8 +624,8 @@
   display: grid;
   place-items: center;
   pointer-events: none;
-  animation: battle-showcase-fade var(--t-showcase-out, 160ms) cubic-bezier(0.32, 0, 0.67, 0)
-    var(--t-showcase-out-at, 1660ms) both;
+  animation: battle-showcase-fade var(--t-reveal-showcase-out, 160ms) cubic-bezier(0.32, 0, 0.67, 0)
+    var(--t-reveal-showcase-out-at, 2360ms) both;
 }
 
 .battle-showcase__frame {
@@ -481,7 +635,7 @@
   gap: var(--ds-space-2);
   flex-direction: column;
   align-items: center;
-  animation: battle-showcase-in var(--t-showcase-in, 160ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: battle-showcase-in var(--t-reveal-showcase-in, 160ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .battle-showcase__halo {
@@ -516,6 +670,133 @@
    wrapped rather than cropped when a phone cannot fit it on one line. */
 .battle-showcase--reveal {
   animation-delay: var(--t-reveal-showcase-out-at, 2360ms);
+}
+
+.battle-showcase--arrival,
+.battle-showcase--arrival .battle-showcase__frame {
+  animation: none;
+}
+
+.battle-showcase--arrival .battle-showcase__halo {
+  --t-card-burst: var(--t-showcase-total, 560ms);
+}
+
+.battle-showcase--arrival .battle-showcase__art {
+  perspective: 900px;
+  animation:
+    battle-showcase-turn var(--t-showcase-in, 100ms) ease-out both,
+    battle-showcase-exit var(--t-showcase-out, 140ms) ease-in var(--t-showcase-out-at, 420ms) forwards;
+}
+
+.battle-showcase--arrival .battle-showcase__art > div {
+  animation: battle-showcase-face-ready 0s linear var(--t-showcase-in, 100ms) both;
+}
+
+.battle-showcase--arrival .battle-showcase__art::before,
+.battle-showcase--arrival .battle-showcase__art::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: white;
+  pointer-events: none;
+  content: "";
+}
+
+.battle-showcase--arrival .battle-showcase__art::before {
+  animation: battle-showcase-white-turn var(--t-showcase-in, 100ms) linear both;
+}
+
+.battle-showcase--arrival .battle-showcase__art::after {
+  opacity: 0;
+  animation:
+    battle-showcase-face-light var(--t-showcase-face, 160ms) linear var(--t-showcase-in, 100ms) forwards,
+    battle-showcase-white-exit var(--t-showcase-out, 140ms) linear var(--t-showcase-out-at, 420ms) forwards;
+}
+
+.battle-showcase--arrival .battle-showcase__caption {
+  animation:
+    battle-showcase-face var(--t-showcase-face, 160ms) linear var(--t-showcase-in, 100ms) both,
+    battle-showcase-caption-out var(--t-showcase-out, 140ms) linear var(--t-showcase-out-at, 420ms) forwards;
+}
+
+@keyframes battle-showcase-turn {
+  from {
+    transform: perspective(900px) rotateY(35deg);
+  }
+  to {
+    transform: perspective(900px) rotateY(0);
+  }
+}
+
+@keyframes battle-showcase-white-turn {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes battle-showcase-face {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-showcase-face-ready {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-showcase-face-light {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes battle-showcase-exit {
+  0% {
+    scale: 1;
+    translate: 0 0;
+  }
+  50% {
+    scale: 0.06 1.4;
+    translate: 0 0;
+  }
+  100% {
+    scale: 0.06 1.4;
+    translate: 0 -220px;
+  }
+}
+
+@keyframes battle-showcase-white-exit {
+  0% {
+    opacity: 0;
+  }
+  25%,
+  100% {
+    opacity: 1;
+    background: #cdcdcd;
+  }
+}
+
+@keyframes battle-showcase-caption-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .battle-showcase__row {
@@ -557,37 +838,7 @@
   }
 }
 
-/* --- Security attack: lunge, shield hit, arrow double shot ---------------- */
-
-/* The attacker leans at the shield it declared on. `translate` is used rather
-   than `transform` so the permanent's inline highlight offset still applies. */
-.game-permanent-lunge--up {
-  animation: battle-lunge-up var(--t-attack-lunge, 240ms) ease-out both;
-}
-
-.game-permanent-lunge--down {
-  animation: battle-lunge-down var(--t-attack-lunge, 240ms) ease-out both;
-}
-
-@keyframes battle-lunge-up {
-  0%,
-  100% {
-    translate: 0 0;
-  }
-  50% {
-    translate: 0 -14px;
-  }
-}
-
-@keyframes battle-lunge-down {
-  0%,
-  100% {
-    translate: 0 0;
-  }
-  50% {
-    translate: 0 14px;
-  }
-}
+/* --- Security attack: shield hit and arrow double shot ------------------ */
 
 /* The reference client shatters the security glass pane on every check; the web port reads that
    as a white flash plus a short shake on the shield badge. */
@@ -675,6 +926,10 @@
 .game-security-shield__burst .battle-burst__rays i,
 .game-security-shield__burst .battle-burst__ring {
   animation-duration: var(--t-shield-break, 250ms);
+}
+
+.game-security-shield__burst .battle-burst__ring--late {
+  animation-duration: calc(var(--t-shield-break, 250ms) - 140ms);
 }
 
 @keyframes battle-shield-shard {
@@ -769,21 +1024,73 @@
   --security-branch-lift: 0rem;
 }
 
-/* A check whose reveal and close arrived together plays the whole detour as one clip. */
+/* The isolated settled specimen retains its own full clip. Live checks use the dock. */
 .battle-security-branch[data-state="settled"] {
-  animation: battle-security-branch var(--t-security-branch, 1340ms) ease-out both;
+  animation:
+    battle-security-branch-in var(--t-security-branch-in, 120ms) ease-out both,
+    battle-security-branch-out var(--t-security-branch-out, 220ms) ease-in
+      calc(var(--t-security-branch-in, 120ms) + var(--t-security-branch-hold, 900ms)) forwards;
 }
 
 /* A check the server is still resolving docks the card and leaves it there for as long
    as that takes, so the slide in and the exit are two animations with no clock between
    them (CardController.cs:4062, the brainstorm slot). */
 .battle-security-branch[data-state="docked"] {
-  animation: battle-security-branch-in var(--t-security-branch-in, 220ms) ease-out both;
+  animation: battle-security-branch-in var(--t-security-branch-in, 120ms) ease-out both;
 }
 
+/* A live security reveal transfers its existing art rather than disappearing and
+   entering again. The layout effect measures both cards before the first paint. */
+.battle-security-branch[data-transfer][data-state="docked"] {
+  translate: 0 calc(-50% - var(--security-branch-lift));
+  animation: none;
+}
+
+.battle-security-branch[data-transfer="ready"] .battle-security-branch__art {
+  transform-origin: center;
+  animation: battle-security-dock-transfer var(--t-security-branch-in, 120ms)
+    cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+
+.battle-security-branch[data-transfer="ready"] .battle-security-branch__frame {
+  animation: battle-security-dock-frame var(--t-security-branch-in, 120ms) steps(1, end) both;
+}
+
+.battle-security-branch[data-transfer="ready"] .battle-security-branch__caption {
+  animation: battle-security-dock-caption var(--t-security-branch-in, 120ms) steps(1, end) both;
+}
+
+@keyframes battle-security-dock-transfer {
+  from {
+    transform: translate(var(--security-dock-x, 2.5rem), var(--security-dock-y, 0px))
+      scale(var(--security-dock-scale-x, 0.72), var(--security-dock-scale-y, 0.72));
+  }
+  to {
+    transform: translate(0, 0) scale(1, 1);
+  }
+}
+
+@keyframes battle-security-dock-frame {
+  from {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes battle-security-dock-caption {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* A closed execution slot has no additional motion or readable hold. */
 .battle-security-branch[data-state="closing"] {
-  animation: battle-security-branch-out var(--t-security-branch-out, 220ms) ease-in var(--t-security-dock-hold, 300ms)
-    both;
+  visibility: hidden;
+  animation: none;
 }
 
 .battle-security-branch__frame {
@@ -821,29 +1128,6 @@
 
 @keyframes battle-security-branch-out {
   0% {
-    translate: 0 calc(-50% - var(--security-branch-lift));
-    opacity: 1;
-    scale: 1;
-  }
-  100% {
-    translate: 0 calc(-50% - var(--security-branch-lift) - 2.5rem);
-    opacity: 0;
-    scale: 0.82;
-  }
-}
-
-@keyframes battle-security-branch {
-  0% {
-    translate: 2.5rem calc(-50% - var(--security-branch-lift));
-    opacity: 0;
-    scale: 0.72;
-  }
-  11.3% {
-    translate: 0 calc(-50% - var(--security-branch-lift));
-    opacity: 1;
-    scale: 1;
-  }
-  88.7% {
     translate: 0 calc(-50% - var(--security-branch-lift));
     opacity: 1;
     scale: 1;
@@ -1002,4 +1286,86 @@
     opacity: 0;
     transform: translateX(16vw);
   }
+}
+
+/* Whole hand return preserves orientation and stays opaque through arrival. */
+.game-hand-return {
+  position: absolute;
+  z-index: 75;
+  pointer-events: none;
+  animation: battle-hand-return-move var(--t-hand-return, 250ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+.game-hand-return__stack {
+  position: absolute;
+  inset: 0;
+}
+@keyframes battle-hand-return-move {
+  from {
+    translate: 0 0;
+    scale: 1;
+  }
+  to {
+    translate: var(--hand-return-dx) var(--hand-return-dy);
+    scale: var(--hand-return-scale);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-hand-return {
+    display: none;
+    animation: none;
+  }
+}
+
+/* Full upright field stack travels250ms, then only the printed face fades160ms. */
+.game-deck-return {
+  position: absolute;
+  z-index: 75;
+  pointer-events: none;
+  animation: battle-deck-return-move var(--t-deck-return, 410ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+.game-deck-return__fallback {
+  animation: battle-deck-return-fade var(--t-deck-return, 410ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+@keyframes battle-deck-return-move {
+  0% {
+    translate: 0 0;
+  }
+  60.975609%,
+  100% {
+    translate: var(--deck-return-dx) var(--deck-return-dy);
+  }
+}
+@keyframes battle-deck-return-fade {
+  0%,
+  60.975609% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes battle-deck-return-extra {
+  0% {
+    opacity: 1;
+    animation-timing-function: steps(1, end);
+  }
+  60.975609%,
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-deck-return {
+    display: none;
+    animation: none;
+  }
+  .game-deck-return * {
+    animation: none !important;
+  }
+}
+.battle-independent-light {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
 }

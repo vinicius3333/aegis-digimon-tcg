@@ -63,6 +63,96 @@ function item(id: string): NarrationItem {
   };
 }
 
+it("shows only two recent toasts per side without dismissing older occurrences", () => {
+  const onAdvance = vi.fn<(id: string) => void>();
+  const entries = [
+    item("left-old"),
+    item("left-middle"),
+    item("left-new"),
+    cardItem("right-old"),
+    cardItem("right-middle"),
+    cardItem("right-new"),
+  ];
+  const view = (shown: NarrationItem[]) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map(shown.map((entry) => [entry.id, entry]))}
+        nowMs={0}
+        rejection={null}
+        onAdvance={onAdvance}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(view(entries));
+  const ids = (slot: string) =>
+    [...container.querySelectorAll(`[data-slot="${slot}"] .narration-item`)].map((node) =>
+      node.getAttribute("data-narration-id"),
+    );
+  expect(ids("narration-text")).toEqual(["left-middle", "left-new"]);
+  expect(ids("narration-cards")).toEqual(["right-middle", "right-new"]);
+  expect(onAdvance).not.toHaveBeenCalled();
+  rerender(view(entries.filter((entry) => !entry.id.endsWith("new"))));
+  expect(ids("narration-text")).toEqual(["left-old", "left-middle"]);
+  expect(ids("narration-cards")).toEqual(["right-old", "right-middle"]);
+});
+
+it("counts a rejection toward the left limit and keeps its own dismissal", () => {
+  const dismissRejection = vi.fn<() => void>();
+  const rejected: MatchNotice = {
+    id: "refused",
+    side: Side.Viewer,
+    fromSecurity: false,
+    createdAt: 0,
+    body: { variant: "rejection", reason: "Cannot play" },
+  };
+  const { container } = render(
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([item("old"), item("new")].map((entry) => [entry.id, entry]))}
+        nowMs={0}
+        rejection={rejected}
+        onAdvance={() => {}}
+        onDismissRejection={dismissRejection}
+      />
+    </I18nProvider>,
+  );
+  const left = container.querySelector('[data-slot="narration-text"]')!;
+  expect(left.querySelectorAll(".match-notice")).toHaveLength(2);
+  expect(left.querySelectorAll(".narration-item")).toHaveLength(1);
+  fireEvent.click(left.querySelector('[data-variant="rejection"] .match-notice__close')!);
+  expect(dismissRejection).toHaveBeenCalledOnce();
+});
+
+it("counts each card panel when one occurrence contains two card toasts", () => {
+  const onAdvance = vi.fn<(id: string) => void>();
+  const dual: NarrationItem = {
+    ...cardItem("dual"),
+    notice: {
+      id: "dual",
+      side: Side.Opponent,
+      fromSecurity: false,
+      createdAt: 0,
+      body: { variant: "deletion", cards: [{ cardId: "BT1-010" }] },
+    },
+  };
+  const { container } = render(
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([cardItem("old"), dual].map((entry) => [entry.id, entry]))}
+        nowMs={0}
+        rejection={null}
+        onAdvance={onAdvance}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>,
+  );
+  const right = container.querySelector('[data-slot="narration-cards"]')!;
+  expect(right.querySelectorAll(".side-panel")).toHaveLength(2);
+  fireEvent.click(right.querySelector(".side-panel__close")!);
+  expect(onAdvance).toHaveBeenCalledExactlyOnceWith("dual");
+});
+
 it("gives notices opened during a long decision their remaining reading time after resuming", () => {
   const original = item("paused-effect");
   const paused = { ...original, pausedAt: 1000 };

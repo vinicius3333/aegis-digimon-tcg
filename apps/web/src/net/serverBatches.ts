@@ -6,6 +6,7 @@
    tick and React's scheduling rather than the rules. */
 
 import type { SequencedServerEvent, ServerEvent } from "@aegis/shared";
+import { inheritEventIdentity } from "./eventIdentity";
 
 /** One closed server batch: everything the rules resolved together, in emission order. */
 export interface ServerBatch {
@@ -99,6 +100,10 @@ export function singleServerBatch(events: readonly ServerEvent[], stateVersion =
   return {
     id,
     stateVersion,
-    events: events.map((event, index) => ({ ...event, seq: index + 1, batch: id, stateVersion })),
+    events: events.map((event, index) => {
+      const copy = { ...event, seq: index + 1, batch: id, stateVersion };
+      inheritEventIdentity(event, copy);
+      return copy;
+    }),
   };
 }

@@ -9,6 +9,7 @@ import { Side } from "../../side";
 import { hasFaceUpSecurity } from "../../securityChrome";
 import type { SecurityBreakCue } from "../../match/types";
 import type { PresentedPlayer } from "../types";
+import type { TrashEffectCard } from "../../effectSource";
 
 export function LeftPileColumn({
   opponent,
@@ -19,6 +20,7 @@ export function LeftPileColumn({
   viewerSecurityRef,
   opponentDeckRiffling,
   opponentTrashClassName,
+  opponentTrashEffectCard,
   securityCount,
   securityBreak,
   securityBreakMine,
@@ -33,9 +35,10 @@ export function LeftPileColumn({
   compactPiles: boolean;
   opponentDeckRef: RefObject<HTMLDivElement | null>;
   viewerSecurityRef: RefObject<HTMLDivElement | null>;
-  opponentDeckRiffling: boolean;
+  opponentDeckRiffling: boolean | number;
   /** The trash marks itself when an effect is resolving from the pile. */
   opponentTrashClassName: string;
+  opponentTrashEffectCard?: TrashEffectCard;
   /** What the shield shows: a scene still holding a card keeps the higher figure. */
   securityCount: number;
   securityBreak: SecurityBreakCue | null;
@@ -87,6 +90,7 @@ export function LeftPileColumn({
           label={t("game.pile.trash")}
           topCardId={opponent.trash[opponent.trash.length - 1]?.cardId}
           topArtId={opponent.trash[opponent.trash.length - 1]?.artId}
+          effectCard={opponentTrashEffectCard}
           onClick={onOpenOpponentTrash}
           useSelectedSleeve={false}
         />

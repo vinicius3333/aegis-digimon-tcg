@@ -9,7 +9,7 @@
    fallback stops matching the table. */
 
 import type { CSSProperties } from "react";
-import { CARD_SHARD_SPREAD_MS } from "./cardShatter";
+import { CARD_SUSPEND_MOTION } from "../design/cardMotion";
 
 export const TIMINGS = {
   /** Card back flying from a deck pile to the hand that just grew. */
@@ -17,15 +17,21 @@ export const TIMINGS = {
   /** The same trip on a phone, where a 340ms flicker across the screen went unnoticed. */
   drawFlightTouch: 520,
   /** The drawn card dropping into its hand slot. */
-  handDraw: 120,
+  handDraw: 80,
+  /** Draw beside the deck: move, recognition hold, narrowing and upward exit. */
+  drawPresentationIn: 60,
+  drawPresentationHold: 90,
+  drawPresentationOpponentHold: 50,
+  drawPresentationNarrow: 70,
+  drawPresentationUp: 70,
+  drawLightRays: 100,
+  drawLightGlow: 190,
+  /** The hand starts while the last 80 ms of the temporary card are still visible. */
+  drawPresentationHandoff: 60,
   /** The accent ring left on the new hand card on touch, so the eye can find it in the strip. */
   handDrawRing: 900,
   /** A card arriving in the battle area. */
   cardEnter: 320,
-  /** A confirmed card moving from its source zone or reveal to its field slot. */
-  playFlight: 460,
-  /** Touch layouts keep the same move readable at smaller card sizes. */
-  playFlightTouch: 540,
   /** The stars that pop over a card that just landed. */
   cardSparkle: 900,
   /** The memory marker landing on its new chip. */
@@ -36,11 +42,9 @@ export const TIMINGS = {
   memoryArc: 520,
   /** One breath of the yellow ring around the chip memory currently sits on. */
   memoryGlow: 1600,
-  /** The attack arrow drawing itself from attacker to target. */
+  /** Two 85 ms extensions, two 70 ms holds and a final 70 ms settle. */
   attackArrow: 380,
   attackArrowChevron: 160,
-  /** The attacker leaning at the security stack it declared on. */
-  attackLunge: 240,
   /** How long the attack call-out stays up. Long enough to read a card name, and no longer. */
   attackAnnounce: 800,
   /** The call-out fading in. */
@@ -67,17 +71,11 @@ export const TIMINGS = {
    */
   securityBreakHold: 100,
   /** The revealed security card sliding out to its own side of the screen. */
-  securityBranchIn: 220,
+  securityBranchIn: 120,
   /** How long the revealed card holds there while its effect notice reads. The notice outlives it. */
   securityBranchHold: 900,
   /** The card leaving for the trash or the field. */
   securityBranchOut: 220,
-  /**
-   * How long the docked card is held after its check finally closes, before it leaves.
-   * The reference client holds 300 ms there (`CardController.cs:4106`) — the card has
-   * been on screen for the whole resolution by then, so this is a beat, not a read.
-   */
-  securityDockHold: 300,
   /**
    * How long a docked security card keeps the centre of the screen once its [Security]
    * clause is on screen, before the check moves on to the next beat or opens a prompt.
@@ -102,15 +100,10 @@ export const TIMINGS = {
    * it is longer than any hold the check itself takes.
    */
   securityDestroyHold: 500,
-  /**
-   * How long the cracks take to spread over a destroyed security card before it breaks.
-   * Spent inside the hold, so the card is still readable under the fractures.
-   */
-  securityDestroyCrack: 180,
   /** The security counter popping as it decrements. */
   securityCountPop: 300,
   /** One permanent's 90° suspend or unsuspend rotation. */
-  suspendRotate: 200,
+  suspendRotate: CARD_SUSPEND_MOTION.durationMs,
   /** Delay added per board slot so an unsuspend phase sweeps rather than snaps. */
   suspendStagger: 60,
   /** One lap of the stars orbiting a permanent that cannot attack yet. */
@@ -119,31 +112,37 @@ export const TIMINGS = {
   clashAttackerEnter: 150,
   /** The revealed security card growing into place. */
   clashReveal: 233,
-  /** How long the two cards stay readable before they resolve. The reference client holds 170 + 300ms. */
-  clashHold: 900,
+  /** Blue rays at the revealed card, before battle preparation. */
+  securityRevealLight: 170,
+  /** Recognition after the reveal: 170 ms, then the 300 ms battle preparation. */
+  clashHold: 470,
   /**
    * The outcome beat: the reference client's parallel 250ms claw and shake, then its 100ms
    * settle (`Effects.cs:2039-2160`).
-   *
-   * `CLASH_SHATTER_MS` allows the last shard to finish within this beat; field deletions
-   * use the same 260ms shard duration plus their 90ms spread.
    */
   clashOutcome: 350,
   /** The scene fading back out, on the turn banner's 160ms wipe. */
   clashExit: 160,
-  /** The centre-screen card growing in on a zone change. */
-  showcaseIn: 160,
-  /** How long the announced card is held centre-screen before the board takes over. */
-  showcaseHold: 1500,
-  /** The centre-screen card clearing out of the way. */
-  showcaseOut: 160,
+  /** A checked card narrows for 70 ms, then rises for 70 ms after its result. */
+  securityCardExit: 140,
+  /** The white card turning face-on before its art appears. */
+  showcaseIn: 100,
+  /** White into the printed face. */
+  showcaseFace: 160,
+  /** Brief recognition hold after the face is visible. */
+  showcaseHold: 160,
+  /** Two equal beats: narrow/stretch, then move upward. */
+  showcaseOut: 140,
+  /** Multi-card reveals retain their own reading and entrance/exit budgets. */
+  revealShowcaseIn: 160,
+  revealShowcaseOut: 160,
   /**
    * How long cards an opponent's effect revealed stay centre-screen. Longer than a single
    * played card's hold: the viewer reads a row of cards, not one.
    */
   revealShowcaseHold: 2200,
-  /** The colour-keyed rays and rings behind a card that just landed. */
-  cardBurst: 800,
+  /** The six colour-light emitters, including their last continuous-rate birth. */
+  cardBurst: 1150,
   /** The starburst at the hand slot where a turn-start draw lands. */
   drawBurst: 600,
   /** Full-width turn announcement, including its entrance and exit. */
@@ -152,6 +151,8 @@ export const TIMINGS = {
   noticeLifetime: 6000,
   /** A notice sliding in from its anchor. */
   noticeIn: 200,
+  /** The accepted effect clause slides in over100 ms with OutQuad. */
+  effectNoticeIn: 100,
   /** How long one opponent action stays up in the corner feed. */
   feedAction: 3600,
   /** A feed entry carrying effect text to read is held longer than a bare title. */
@@ -213,8 +214,6 @@ export const TIMINGS = {
   turnControlPulse: 3200,
   /** How long the turn control refuses a second click after the first (a UI guard, not a rule). */
   turnControlCover: 1500,
-  /** The WIN / LOSE word scaling and glowing into place. */
-  resultSplashIn: 520,
   /** The play log sliding out of, and back into, the right edge. */
   logSidebar: 160,
   /** The jolt a permanent takes when an attack or block lock lands on it (0.2 s). */
@@ -223,8 +222,6 @@ export const TIMINGS = {
   deckRiffle: 180,
   /** A card that just landed settling on its OutBounce drop. */
   landingBounce: 100,
-  /** The dust kicked up where a card landed. */
-  landingDust: 420,
   /** A recovered card spinning back onto the security stack. */
   securityFlight: 200,
   /** The gap between two cards of the opening five-card security deal. Paced in the cue
@@ -233,8 +230,12 @@ export const TIMINGS = {
   /** The gap between the card backs of one multi-card effect draw. Paced in the cue queue
    * for the same reason the deal is: each card is its own flight on its own track. */
   drawFlightStagger: 110,
-  /** One of the target arrow's two opening flashes. */
+  /** The defender's attack label flashing. */
   arrowFlash: 85,
+  /** Each of the target arrow's two extensions (`TargetArrow.cs`). */
+  arrowExtend: 85,
+  /** The hold after an extension, also used for the final settle. */
+  arrowHold: 70,
   /** A card growing to its inspected size. */
   cardMagnify: 120,
   /**
@@ -250,6 +251,8 @@ export const TIMINGS = {
    * without becoming the thing being looked at.
    */
   effectLinkedBreath: 1600,
+  /** Short source-local activation halo; the accepted effect's orientation hold continues after it. */
+  effectSourcePulse: 360,
   /**
    * How long a security check waits for the clauses the attack already raised.
    *
@@ -279,21 +282,32 @@ export const TIMINGS = {
    * and the clause is read without a break to wait for.
    */
   costClauseDeparture: 1200,
-  /** A card flying up out of the trash pile as its effect activates. */
-  effectTrashRise: 620,
+  /** Two 250ms enlargements and a 250ms hold before clause reading. */
+  effectTrashPreparation: 750,
+  /** The final 80ms shrink overlaps clause reading. */
+  effectTrashRise: 830,
   /** An Option rising out of the hand fan as it activates. */
   effectHandRise: 540,
+  /** Hand source: 250ms enlargement followed by a 250ms hold. */
+  effectHandPreparation: 500,
+  /** The hand source's pivot adjusts during the enlargement. */
+  effectHandPivot: 120,
   /** The card's own art breaking into shards where it was deleted. */
-  cardShatter: 260,
-  /** A field deletion, including the last shard and the delayed energy ring. */
-  deletionBurst: 350,
+  cardShatter: 250,
+  /** All field fragments leave together: 100 ms, then 150 ms at twentyfold velocity. */
+  deletionBurst: 250,
   /**
    * The gap between cards one effect takes off the field. Each leaves as the previous card's
    * art finishes breaking, so a board wipe reads one Digimon at a time.
    */
   removalStagger: 350,
-  /** A stripped top card (＜De-Digivolve＞) lifting off its permanent toward the trash. */
-  stackStripPeel: 560,
+  /** Source vignette: 170ms lift +85ms lateral return +170ms hold +170ms fade. */
+  stackStripPeel: 595,
+  /** Full upright stack moves250ms, then its printed face fades160ms. */
+  deckReturn: 410,
+  /** Whole stack approaches the hand250ms, then pauses100ms before hand entry. */
+  handReturn: 250,
+  handReturnPause: 100,
 } as const;
 
 export type TimingName = keyof typeof TIMINGS;
@@ -315,21 +329,13 @@ export const CLASH_REVEAL_SHOWN_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal
 export const CLASH_TOTAL_MS = CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
 
 /**
- * When a card bound for its dock leaves the centre. It takes the same hold every other
- * check takes, so a reveal reads the same whatever follows it; the fork is at the beat
- * the outcome would start.
+ * A card bound for its effect dock moves once the reveal's 170 ms light/recognition
+ * beat finishes. The additional 300 ms battle preparation belongs only to the compare.
  */
-export const CLASH_DOCK_AT_MS = CLASH_OUTCOME_AT_MS;
+export const CLASH_DOCK_AT_MS = CLASH_REVEAL_SHOWN_AT_MS + TIMINGS.securityRevealLight;
 
-/** The docking scene end to end: the hold, then the fade the dock slides in behind. */
-export const CLASH_DOCK_LEAVE_MS = CLASH_DOCK_AT_MS + TIMINGS.clashExit;
-
-/**
- * How long a card's shards fly inside the centre-stage clash. The shards, and
- * the stagger that starts the last of them, have to finish within it or they are cut off
- * mid-flight.
- */
-export const CLASH_SHATTER_MS = TIMINGS.clashOutcome - CARD_SHARD_SPREAD_MS;
+/** The revealed card has reached the dock; there is no intervening fade or second entrance. */
+export const CLASH_DOCK_LEAVE_MS = CLASH_DOCK_AT_MS + TIMINGS.securityBranchIn;
 
 /** Shield break, end to end: the arm, the shatter, and the held frames after it. */
 export const SECURITY_BREAK_TOTAL_MS = TIMINGS.securityArm + TIMINGS.shieldBreak + TIMINGS.securityBreakHold;
@@ -345,17 +351,17 @@ export const SECURITY_DESTROY_OUTCOME_AT_MS =
   TIMINGS.clashAttackerEnter + TIMINGS.clashReveal + TIMINGS.securityDestroyHold;
 
 /** One destroyed security card, end to end: the reveal, the hold, the break and the fade. */
-export const SECURITY_DESTROY_TOTAL_MS = SECURITY_DESTROY_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
+export const SECURITY_DESTROY_TOTAL_MS = SECURITY_DESTROY_OUTCOME_AT_MS + TIMINGS.cardShatter + TIMINGS.clashExit;
 
-/** What the docked card still owes the screen once its check has closed: the hold, then the exit. */
-export const SECURITY_DOCK_CLOSE_MS = TIMINGS.securityDockHold + TIMINGS.securityBranchOut;
+/** A resolved execution slot closes directly; its clause and consequences have already read. */
+export const SECURITY_DOCK_CLOSE_MS = 0;
 
 /** The security-effect branch, end to end: the slide out, the hold, and the exit. */
 export const SECURITY_BRANCH_TOTAL_MS =
   TIMINGS.securityBranchIn + TIMINGS.securityBranchHold + TIMINGS.securityBranchOut;
 
 /** The centre-screen showcase, end to end: how long it stays mounted. */
-export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIMINGS.showcaseOut;
+export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseFace + TIMINGS.showcaseHold + TIMINGS.showcaseOut;
 
 /**
  * The ceiling on how long the beats that explain a play may hold back what the play
@@ -390,22 +396,21 @@ export const PLAY_LEAD_IN_BUDGET_MS = 4000;
  */
 export const DECISION_STALL_BUDGET_MS = 10_000;
 
-/** When the showcase starts clearing out, which is also when the field may reveal. */
-export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
+/** When the card begins its narrow upward exit. The field waits until that exit finishes. */
+export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseFace + TIMINGS.showcaseHold;
 
 /** The revealed-cards showcase, end to end: how long it stays mounted. */
-export const REVEAL_SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.revealShowcaseHold + TIMINGS.showcaseOut;
+export const REVEAL_SHOWCASE_TOTAL_MS =
+  TIMINGS.revealShowcaseIn + TIMINGS.revealShowcaseHold + TIMINGS.revealShowcaseOut;
 
 /** When the revealed-cards showcase starts clearing out. */
-export const REVEAL_SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.revealShowcaseHold;
+export const REVEAL_SHOWCASE_OUT_AT_MS = TIMINGS.revealShowcaseIn + TIMINGS.revealShowcaseHold;
 
 /**
- * When a landing burst has peaked. Its core, rays and rings all reach full opacity at 25%
- * of `cardBurst` and only fade from there, so a cue that must read *after* the burst can
- * start here instead of waiting out the fade — the digivolution draw did the latter and
- * left a visible dead beat between the card landing and the deck flying.
+ * The landing/draw handoff remains 200ms while the independent particles continue.
+ * This is a presentation gate, not the peak of every emitter's alpha curve.
  */
-export const CARD_BURST_PEAK_MS = Math.round(TIMINGS.cardBurst * 0.25);
+export const CARD_BURST_PEAK_MS = 200;
 
 /** A shake and the beat held after it — how long a shake cue owns its track. */
 export const CARD_SHAKE_TOTAL_MS = TIMINGS.cardShake + TIMINGS.cardShakeHold;
@@ -413,19 +418,19 @@ export const CARD_SHAKE_TOTAL_MS = TIMINGS.cardShake + TIMINGS.cardShakeHold;
 /** The claw and the shake run together, so the impact ends when the held beat does. */
 export const COMBAT_IMPACT_TOTAL_MS = Math.max(TIMINGS.clawSlash, TIMINGS.cardShake) + TIMINGS.cardShakeHold;
 
-/** Two opening flashes before the target arrow settles into its persistent draw. */
-export const ARROW_FLASH_COUNT = 2;
+/** The accepted arrow extends twice, then stays attached to its live endpoints. */
+export const ARROW_SWEEP_COUNT = 2;
 
-/** How long the arrow spends flashing before it stays extended. */
-export const ARROW_FLASH_TOTAL_MS = TIMINGS.arrowFlash * ARROW_FLASH_COUNT * 2;
+/** Each extension and its readable hold share one CSS animation cycle. */
+export const ARROW_SWEEP_CYCLE_MS = TIMINGS.arrowExtend + TIMINGS.arrowHold;
 
-/** A board battle leans the attacker at its target once the arrow has extended. */
-export const FIELD_CLASH_LUNGE_AT_MS = ARROW_FLASH_TOTAL_MS;
+/** Both sweeps and the final settle before the next attack beat. */
+export const ARROW_SWEEP_TOTAL_MS = ARROW_SWEEP_CYCLE_MS * ARROW_SWEEP_COUNT + TIMINGS.arrowHold;
 
-/** The blow lands when the lunge peaks into the defender. */
-export const FIELD_CLASH_IMPACT_AT_MS = FIELD_CLASH_LUNGE_AT_MS + TIMINGS.attackLunge;
+/** The cards stay in their slots; the blow follows the target-arrow sequence. */
+export const FIELD_CLASH_IMPACT_AT_MS = ARROW_SWEEP_TOTAL_MS;
 
-/** A board battle end to end: the arrow, the lunge, and the claw-and-shake it lands. */
+/** A board battle end to end: target arrow followed by claw, shake and settle. */
 export const FIELD_CLASH_TOTAL_MS = FIELD_CLASH_IMPACT_AT_MS + COMBAT_IMPACT_TOTAL_MS;
 
 /** A DP pulse, end to end: the particles plus the beat the new figure is held on. */
@@ -445,7 +450,6 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-memory-arc": TIMINGS.memoryArc,
   "--t-memory-glow": TIMINGS.memoryGlow,
   "--t-attack-arrow-chevron": TIMINGS.attackArrowChevron,
-  "--t-attack-lunge": TIMINGS.attackLunge,
   "--t-attack-announce-in": TIMINGS.attackAnnounceIn,
   "--t-security-hit": TIMINGS.securityHit,
   "--t-security-arm": TIMINGS.securityArm,
@@ -453,18 +457,23 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-shield-flash": TIMINGS.shieldFlash,
   "--t-security-branch": SECURITY_BRANCH_TOTAL_MS,
   "--t-security-branch-in": TIMINGS.securityBranchIn,
+  "--t-security-branch-hold": TIMINGS.securityBranchHold,
   "--t-security-branch-out": TIMINGS.securityBranchOut,
-  "--t-security-dock-hold": TIMINGS.securityDockHold,
   "--t-security-count-pop": TIMINGS.securityCountPop,
   "--t-summoning-orbit": TIMINGS.summoningOrbit,
   "--t-clash-enter": TIMINGS.clashAttackerEnter,
   "--t-clash-reveal": TIMINGS.clashReveal,
+  "--t-security-reveal-light": TIMINGS.securityRevealLight,
   "--t-clash-outcome": TIMINGS.clashOutcome,
   "--t-clash-outcome-at": CLASH_OUTCOME_AT_MS,
   "--t-clash-exit": TIMINGS.clashExit,
-  "--t-clash-crack": TIMINGS.securityDestroyCrack,
+  "--t-security-card-exit": TIMINGS.securityCardExit,
+  "--t-showcase-total": SHOWCASE_TOTAL_MS,
   "--t-showcase-in": TIMINGS.showcaseIn,
+  "--t-showcase-face": TIMINGS.showcaseFace,
   "--t-showcase-out": TIMINGS.showcaseOut,
+  "--t-reveal-showcase-in": TIMINGS.revealShowcaseIn,
+  "--t-reveal-showcase-out": TIMINGS.revealShowcaseOut,
   "--t-showcase-out-at": SHOWCASE_OUT_AT_MS,
   "--t-reveal-showcase-out-at": REVEAL_SHOWCASE_OUT_AT_MS,
   "--t-card-burst": TIMINGS.cardBurst,
@@ -472,6 +481,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-turn-banner": TIMINGS.turnBanner,
   "--t-side-panel-in": TIMINGS.sidePanelIn,
   "--t-notice-in": TIMINGS.noticeIn,
+  "--t-effect-notice-in": TIMINGS.effectNoticeIn,
   "--t-dialog-in": TIMINGS.dialogIn,
   "--t-board-prompt-in": TIMINGS.boardPromptIn,
   "--t-fate-badge-in": TIMINGS.fateBadgeIn,
@@ -483,23 +493,24 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-dp-pulse": TIMINGS.dpPulse,
   "--t-phase-banner": TIMINGS.phaseBanner,
   "--t-turn-control-pulse": TIMINGS.turnControlPulse,
-  "--t-result-splash-in": TIMINGS.resultSplashIn,
   "--t-log-sidebar": TIMINGS.logSidebar,
   "--t-freeze-shake": TIMINGS.freezeShake,
   "--t-deck-riffle": TIMINGS.deckRiffle,
   "--t-landing-bounce": TIMINGS.landingBounce,
-  "--t-landing-dust": TIMINGS.landingDust,
   "--t-security-flight": TIMINGS.securityFlight,
   "--t-arrow-flash": TIMINGS.arrowFlash,
+  "--t-arrow-sweep-cycle": ARROW_SWEEP_CYCLE_MS,
   "--t-card-magnify": TIMINGS.cardMagnify,
   "--t-effect-source-hold": TIMINGS.effectSourceHold,
   "--t-effect-linked-breath": TIMINGS.effectLinkedBreath,
+  "--t-effect-source-pulse": TIMINGS.effectSourcePulse,
   "--t-effect-trash-rise": TIMINGS.effectTrashRise,
   "--t-effect-hand-rise": TIMINGS.effectHandRise,
   "--t-card-shatter": TIMINGS.cardShatter,
   "--t-deletion-burst": TIMINGS.deletionBurst,
   "--t-stack-strip-peel": TIMINGS.stackStripPeel,
-  "--t-clash-shatter": CLASH_SHATTER_MS,
+  "--t-deck-return": TIMINGS.deckReturn,
+  "--t-hand-return": TIMINGS.handReturn,
 };
 
 /**

@@ -16,6 +16,8 @@ import {
 export interface RemovalLink {
   started: PresentationGate;
   startedAt?: number;
+  /** A physical return holds the following removal until its face has faded. */
+  finished?: PresentationGate;
 }
 
 /** A removal's place in the run: the one it follows, if that one is still leaving. */
@@ -25,13 +27,17 @@ export interface RemovalTurn {
 }
 
 /** Takes the next place in the run of removals. */
-export function joinRemovalChain(chainRef: MutableRefObject<RemovalLink | null>): RemovalTurn {
+export function joinRemovalChain(chainRef: MutableRefObject<RemovalLink | null>, untilFinished = false): RemovalTurn {
   const latest = chainRef.current;
   const stillLeaving =
     latest !== null &&
     (!latest.started.open ||
+      (latest.finished !== undefined && !latest.finished.open) ||
       (latest.startedAt !== undefined && Date.now() - latest.startedAt < TIMINGS.removalStagger));
-  const link: RemovalLink = { started: createPresentationGate() };
+  const link: RemovalLink = {
+    started: createPresentationGate(),
+    ...(untilFinished ? { finished: createPresentationGate() } : {}),
+  };
   chainRef.current = link;
   return stillLeaving ? { previous: latest, link } : { link };
 }
@@ -41,6 +47,8 @@ export async function waitForRemovalTurn(turn: RemovalTurn, context: AnimationSt
   const { previous } = turn;
   if (previous === undefined) return;
   await waitForGate(previous.started, context, CONSEQUENCE_GATE_MAX_MS, "removal/previous");
+  if (context.cancelled) return;
+  await waitForGate(previous.finished ?? null, context, CONSEQUENCE_GATE_MAX_MS, "removal/finished");
   if (context.cancelled) return;
   await context.wait(Math.max(0, (previous.startedAt ?? Date.now()) + TIMINGS.removalStagger - Date.now()));
 }

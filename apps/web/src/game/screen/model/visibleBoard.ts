@@ -48,6 +48,7 @@ type BoardCues = Pick<
   | "heldBreedingState"
   | "heldDeletions"
   | "heldTrashArrivals"
+  | "heldHandArrivals"
   | "pendingPermanentIds"
   | "heldSuspendedIds"
   | "heldSecurityCounts"
@@ -92,6 +93,7 @@ export function visibleBoard({
     heldBreedingState: cues.heldBreedingState,
     heldDeletions: cues.heldDeletions,
     heldTrashArrivals: cues.heldTrashArrivals,
+    heldHandArrivals: cues.heldHandArrivals,
     optimisticPlayedInstanceId,
     presentationPacing,
   });

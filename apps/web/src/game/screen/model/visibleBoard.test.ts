@@ -39,6 +39,7 @@ function cues(): Parameters<typeof visibleBoard>[0]["cues"] {
     heldBreedingState: undefined,
     heldDeletions: new Map(),
     heldTrashArrivals: new Map(),
+    heldHandArrivals: new Map(),
     pendingPermanentIds: new Set(),
     heldSuspendedIds: new Set(),
     heldSecurityCounts: new Map(),

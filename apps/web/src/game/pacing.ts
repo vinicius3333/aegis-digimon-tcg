@@ -91,7 +91,7 @@ const SEQUENTIAL_PACING: PacingConfig = {
 /* Long chains shorten clause and settle beats after their second effect. Every physical
    source keeps the full orientation moment so the viewer can find a different card.
    Recent clauses stay readable in the stack. The
-   normal field lead-in is 920 ms (720 ms focus + 200 ms clause), close to DCGO's ~0.9 s,
+   normal field lead-in is 920 ms (720 ms focus + 200 ms clause), close to the reference's ~0.9 s,
    without speeding up card travel or truncating result visuals. The reading floor includes
    frame sampling margin at every speed; see pacing/REFERENCES.md. */
 const STACKED_PACING: PacingConfig = {

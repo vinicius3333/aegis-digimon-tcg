@@ -17,7 +17,7 @@ export function enqueueDeckRiffles({
   fresh: readonly ServerEvent[];
   /** Mutated: incremented per event so each riffle gets its own key. */
   deckRiffleKeyRef: MutableRefObject<number>;
-  setDeckRiffles: Dispatch<SetStateAction<ReadonlySet<string>>>;
+  setDeckRiffles: Dispatch<SetStateAction<ReadonlyMap<string, number>>>;
   enqueue: (step: AnimationStep) => void;
 }) {
   for (const event of fresh) {

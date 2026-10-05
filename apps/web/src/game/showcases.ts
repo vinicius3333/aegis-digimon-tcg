@@ -1,12 +1,12 @@
 /* Zone-change showcases: what the board plays when a card leaves one zone and
    appears in another.
 
-   The reference client never flies a card from one zone rectangle to another. A
-   zone change is hide → centre-screen overlay → reveal (battle-animation-spec.md,
-   "Cross-cutting notes" §1), and every landing is punctuated by the same
+   A public play is hide → centre-screen overlay → reveal (battle-animation-spec.md,
+   "Cross-cutting notes" §1). Plays, evolutions and hatches share a
    colour-keyed burst — one component, keyed by the effect's colour vocabulary:
-   a play takes the card's own colour, an evolution burns red/orange, a hatch
+   a play takes the card's own colour, an evolution opens white into that colour, a hatch
    opens white/blue.
+   A raised permanent moves between its existing slots without that burst.
 
    This module is the pure half: it decides, from a server event alone, which
    showcase and which burst an event earns. It reads no rules and infers no game
@@ -14,19 +14,18 @@
 
 import type { Seat, ServerEvent } from "@aegis/shared";
 import { getCardDefinition } from "@aegis/shared";
-import { COLORS, colorKey, type ColorName } from "../design/theme";
+import { colorKey, type ColorName } from "../design/theme";
 
 export interface ZoneShowcase {
   key: number;
   cardId: string;
   artId?: string;
   seat: Seat;
+  mine: boolean;
   /** What the hold announces: a card arriving from hand or one digivolving in breeding. */
   kind: "play" | "digivolve";
   /** Card colour, so the halo behind the card matches the card. */
   color: ColorName;
-  /** Keep the reveal visible until a confirmed flight takes it to the field. */
-  departToField?: boolean;
 }
 
 /** The looks the shared burst component can wear. */
@@ -39,6 +38,8 @@ export interface PermanentBurst {
   color: ColorName;
   /** The breeding area rather than the battle area, which is lit differently. */
   inBreeding: boolean;
+  /** A raised stack travels to the battle area without the play burst. */
+  moveFromBreeding?: true;
 }
 
 /** The palette key a card's burst is drawn in. */
@@ -49,27 +50,25 @@ export function burstColorFor(cardId: string): ColorName {
 /**
  * The centre-screen showcase an event earns, or null when it earns none.
  *
- * Only the opponent's arrivals are announced this way: the viewer dragged their
- * own card and already watched it leave their hand, so their move keeps the
- * field burst and skips the hold. Every opponent digivolution is held up too,
- * whatever the area — the stack changes where the viewer is not watching.
+ * Both seats reveal public plays and digivolutions before their destination
+ * lights up. The event supplies the identity; no private hand is inspected.
  */
 export function zoneShowcaseFromEvent(event: ServerEvent, viewerSeat: Seat, key: number): ZoneShowcase | null {
   if (event.kind !== "cardPlayed" && event.kind !== "digivolved") return null;
-  if (event.seat === viewerSeat) return null;
   return {
     key,
     cardId: event.cardId,
     ...(event.artId ? { artId: event.artId } : {}),
     seat: event.seat,
+    mine: event.seat === viewerSeat,
     kind: event.kind === "digivolved" ? "digivolve" : "play",
     color: burstColorFor(event.cardId),
   };
 }
 
 /**
- * The burst a permanent earns where it lands, for either seat. A play and a move
- * out of breeding are both arrivals in the battle area; a digivolution burns over
+ * The arrival a permanent earns, for either seat. A raised stack transfers without
+ * the burst used by a newly played card; a digivolution burns over
  * the stack it grew; a hatch opens in the breeding slot.
  */
 export function permanentBurstFromEvent(event: ServerEvent, key: number): PermanentBurst | null {
@@ -92,6 +91,7 @@ export function permanentBurstFromEvent(event: ServerEvent, key: number): Perman
         variant: "play",
         color: burstColorFor(event.cardId),
         inBreeding: false,
+        moveFromBreeding: true,
       };
     case "digivolved":
       return {
@@ -120,28 +120,41 @@ export interface BurstPalette {
   edge: string;
 }
 
+/* Emissive light needs brighter colours than the muted card rims. Magenta
+   follows the observed purple evolution; the other hues follow card identity. */
+const BURST_LIGHT: Record<ColorName, string> = {
+  Red: "#ff4765",
+  Blue: "#5db9ff",
+  Yellow: "#fff16b",
+  Green: "#67f794",
+  Purple: "#f555dc",
+  Black: "#b4bfdb",
+  White: "#edf8ff",
+  Neutral: "#e2ecff",
+};
+
 /**
  * The effect-colour vocabulary of the reference client
  * (battle-animation-spec.md, "Effect colour vocabulary"): an arrival takes the
- * card's own colour, an evolution burns red into orange, a hatch opens white
+ * card's own colour, an evolution opens white into that colour, a hatch opens white
  * into blue, and a drawn card lands on the same blue starburst.
  */
 export function burstPalette(variant: BurstVariant, color: ColorName = "Neutral"): BurstPalette {
   switch (variant) {
     case "evolve":
-      return { base: "#ffb347", edge: "#e0362c" };
+      return { base: "#ffffff", edge: BURST_LIGHT[color] };
     case "hatch":
       return { base: "#ffffff", edge: "#7fc4ff" };
     case "draw":
       return { base: "#d6e9ff", edge: "#2f6fe0" };
-    // A deletion burns orange out of a green ring, the reference client's colour for a
-    // Digimon leaving the field; a shattering pane is the same blue as the security glass.
+    // Legacy central security-card fracture palette. Field deletion uses the card-coloured
+    // evolution light separately; security fracture/material comparison remains pending.
     case "delete":
       return { base: "#ff9f43", edge: "#3ddc84" };
     case "shatter":
       return { base: "#e4f1ff", edge: "#3b82f6" };
     case "play":
-      return { base: COLORS[color].base, edge: COLORS[color].edge };
+      return { base: BURST_LIGHT[color], edge: BURST_LIGHT[color] };
   }
 }
 

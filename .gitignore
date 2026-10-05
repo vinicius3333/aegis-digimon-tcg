@@ -54,3 +54,7 @@ apps/web/public/battlefield/test-dw/
 
 # Pacing harness reports (pnpm --filter @aegis/web pacing:measure)
 apps/web/.pacing-report/
+
+# Downloaded motion references and decoded frames (local development only)
+.local/motion-reference/
+apps/web/.motion-reference/

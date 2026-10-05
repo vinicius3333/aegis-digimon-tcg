@@ -8,6 +8,7 @@ import type { RefObject } from "react";
 import { useTranslation } from "../../../i18n";
 import { Pile } from "../../piece";
 import type { PresentedPlayer } from "../types";
+import type { TrashEffectCard } from "../../effectSource";
 
 export function ViewerPiles({
   viewer,
@@ -17,6 +18,7 @@ export function ViewerPiles({
   viewerDeckRef,
   viewerDeckRiffling,
   viewerTrashClassName,
+  viewerTrashEffectCard,
   onOpenViewerTrash,
 }: {
   viewer: PresentedPlayer;
@@ -25,9 +27,10 @@ export function ViewerPiles({
   pileWidth: number;
   compactPiles: boolean;
   viewerDeckRef: RefObject<HTMLDivElement | null>;
-  viewerDeckRiffling: boolean;
+  viewerDeckRiffling: boolean | number;
   /** The trash marks itself when an effect is resolving from the pile. */
   viewerTrashClassName: string;
+  viewerTrashEffectCard?: TrashEffectCard;
   onOpenViewerTrash: (() => void) | undefined;
 }) {
   const { t } = useTranslation();
@@ -60,6 +63,7 @@ export function ViewerPiles({
         label={t("game.pile.trash")}
         topCardId={topTrashCard?.cardId}
         topArtId={topTrashCard?.artId}
+        effectCard={viewerTrashEffectCard}
         onClick={onOpenViewerTrash}
       />
     </div>

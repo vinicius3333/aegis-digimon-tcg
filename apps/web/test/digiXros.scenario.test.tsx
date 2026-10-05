@@ -130,7 +130,9 @@ scenario("digi-xros", () => {
     // Shoutmon + StarSword now renders in the battle area and the memory gauge
     // reflects the reduced cost: 0 - (5 - 1) = -4.
     await screen.findByText(/memory -4/i, {}, { timeout: 10_000 });
-    expect(within(yourBattleArea()).getAllByRole("img", { name: /^shoutmon \+ starsword$/i })).toHaveLength(1);
+    expect(
+      await within(yourBattleArea()).findAllByRole("img", { name: /^shoutmon \+ starsword$/i }, { timeout: 10_000 }),
+    ).toHaveLength(1);
 
     // The material left the hand (it was consumed as a DigiXros material, not
     // discarded loose) — the plain "Shoutmon" card is gone from hand, and the

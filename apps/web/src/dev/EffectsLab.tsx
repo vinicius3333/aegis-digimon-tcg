@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
-import { CATALOG_DECKS } from "@aegis/shared";
+import { CATALOG_DECKS, KEYWORD_PACING_SCENARIOS, type KeywordPacingScenario } from "@aegis/shared";
 import { colorKey } from "../design/theme";
 import { GameScreen } from "../game/GameScreen";
 import type { AnimationStep } from "../game/animationQueue";
@@ -40,8 +40,17 @@ import { LiveMotionHarness } from "./LiveMotionHarness";
 import "./effectsLab.css";
 
 type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
+const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...keywordScenarios.map(
+    (scenario) =>
+      [
+        scenario.id,
+        `Keyword pacing · ${scenario.keyword}${scenario.decision ? ` · ${scenario.decision.accept ? "accept" : "decline"}` : ""}`,
+      ] as const,
+  ),
+  ["effects-lab-field-grouping", "Field grouping · activate both copies"],
   ["effects-lab-own-chain", "Effects lab · own trigger chain"],
   ["effects-lab-opponent-chain", "Effects lab · opponent trigger chain"],
   ["effects-lab-opponent-play", "Effects lab · opponent confirmed play and On Play"],
@@ -61,6 +70,19 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "effects-lab-field-grouping": {
+    en: "End breeding and activate each Izzy Izumi's Main effect. The first suspended copy leaves the group; the second rejoins it. Watch the artwork turn separately from the group movement.",
+    ptBR: "Encerre a criação e ative o efeito Principal de cada Izzy Izumi. A primeira cópia suspensa sai do grupo; a segunda volta a se agrupar com ela. A rotação da carta tem seu próprio tempo, separado do deslocamento.",
+  },
+  ...Object.fromEntries(
+    keywordScenarios.map((scenario) => [
+      scenario.id,
+      {
+        en: `Real server ${scenario.keyword} scenario. End breeding, then drag your Digimon onto ${scenario.target === "player" ? "the opponent's security" : "the suspended opposing Digimon"}.${scenario.decision ? ` ${scenario.decision.accept ? "Accept" : "Decline"} the keyword decision${scenario.decision.kind === "Alliance" && scenario.decision.accept ? " by choosing Monodramon on the field" : ""}.` : ""} The printed cards and engine resolve the result.`,
+        ptBR: `Cenário de ${scenario.keyword} no servidor real. Encerre a criação e arraste seu Digimon para ${scenario.target === "player" ? "a segurança do oponente" : "o Digimon suspenso do oponente"}.${scenario.decision ? ` ${scenario.decision.accept ? "Aceite" : "Recuse"} a decisão da keyword${scenario.decision.kind === "Alliance" && scenario.decision.accept ? " escolhendo Monodramon no campo" : ""}.` : ""} As cartas e a engine resolvem o resultado.`,
+      },
+    ]),
+  ),
   "effects-lab-own-chain": {
     en: "Pass breeding, then digivolve Golemon into Megadramon. Six of your effects trigger at once: plan their order and watch each resolve.",
     ptBR: "Passe a criação e digievolua Golemon em Megadramon. Seis efeitos seus disparam juntos: planeje a ordem e acompanhe cada um.",
@@ -172,6 +194,7 @@ export function EffectsLab() {
     decision: undefined as unknown,
     steps: [] as LabStepEvent[],
     events: [] as unknown[],
+    batches: [] as { id: string; receivedAt: number; stateVersion: number; events: unknown[] }[],
     gateExpiries: [] as string[],
     truncated: false,
   });
@@ -191,6 +214,7 @@ export function EffectsLab() {
         reset() {
           observedRef.current.steps = [];
           observedRef.current.events = [];
+          observedRef.current.batches = [];
           observedRef.current.gateExpiries = [];
           observedRef.current.truncated = false;
           presentationTelemetry.reset();
@@ -256,12 +280,23 @@ export function EffectsLab() {
       },
       onBatch(batch) {
         if (!current()) return;
+        const receivedAt = performance.now();
+        observedRef.current.batches.push({
+          id: batch.id,
+          receivedAt,
+          stateVersion: batch.stateVersion,
+          events: JSON.parse(JSON.stringify(batch.events)),
+        });
+        if (observedRef.current.batches.length > 500) {
+          observedRef.current.batches.shift();
+          observedRef.current.truncated = true;
+        }
         observedRef.current.events.push(...JSON.parse(JSON.stringify(batch.events)));
         if (observedRef.current.events.length > 2000) {
           observedRef.current.events.splice(0, observedRef.current.events.length - 2000);
           observedRef.current.truncated = true;
         }
-        record({ type: "batch", batch, at: performance.now() });
+        record({ type: "batch", batch, at: receivedAt });
       },
       onDecision(decision) {
         if (!current()) return;

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Dispatch, SetStateAction } from "react";
 import type { GameState } from "@aegis/shared";
-import { createAnimationQueue } from "../../animationQueue";
+import { createAnimationQueue, type AnimationStep } from "../../animationQueue";
 import { buildSecurityRevealScene } from "../../securityClash";
 import { securityRevealScene, type SecurityRevealSceneDeps } from "./securityRevealScene";
 import type { PresentationGate } from "../presentationGate";
@@ -15,6 +15,7 @@ import type { PresentationGate } from "../presentationGate";
 
 function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
   const queue = createAnimationQueue();
+  const steps: AnimationStep[] = [];
   const securityBlowRef: SecurityRevealSceneDeps["securityBlowRef"] = {
     current: null as { key: number; landed: boolean; gate: PresentationGate } | null,
   };
@@ -22,7 +23,7 @@ function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
   const noop = () => {};
   const stage = securityRevealScene({
     queue,
-    enqueue: (step) => queue.enqueue(step),
+    enqueue: (step) => steps.push(step),
     viewerSeat: 0,
     replayingHistory: false,
     stateVersion: 1,
@@ -31,7 +32,7 @@ function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
     securityDockRef: { current: null },
     securityHoldRef: { current: null },
     securityBlowRef,
-    blowHoldState: () => undefined,
+    blowHoldState: () => ({ players: [] }) as unknown as GameState,
     setHeldBlowState,
     securityEffectHoldState: () => undefined,
     setHeldSecurityEffectState: noop,
@@ -59,7 +60,7 @@ function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
     attacker: { seat: 1, cardId: "BT24-018", permanentId: "perm-6" },
   });
   stage.stageSecurityReveal(1, scene, 0, { docking: !overrides.battlePending, battlePending: overrides.battlePending });
-  return { securityBlowRef, setHeldBlowState };
+  return { securityBlowRef, setHeldBlowState, stage, steps };
 }
 
 describe("security check blow arming", () => {
@@ -68,6 +69,16 @@ describe("security check blow arming", () => {
     expect(securityBlowRef.current?.landed).toBe(false);
     expect(securityBlowRef.current?.gate.open).toBe(false);
     expect(setHeldBlowState).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not restore the board after a queued shield break outlives its released blow", async () => {
+    const { stage, steps, setHeldBlowState, securityBlowRef } = stageFor({ battlePending: true, isDigimon: true });
+    expect(setHeldBlowState.mock.calls[0]?.[0]).toEqual({ players: [] });
+    stage.releaseSecurityBlow(1);
+    setHeldBlowState.mockClear();
+    await steps[0]!.run({ mode: "replay", cancelled: false, skipping: false, wait: async () => {} });
+    expect(securityBlowRef.current?.landed).toBe(true);
+    expect(setHeldBlowState).not.toHaveBeenCalled();
   });
 
   it("arms nothing for a check with no battle coming", () => {

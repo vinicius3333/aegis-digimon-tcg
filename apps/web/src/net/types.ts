@@ -21,6 +21,7 @@ export interface AegisJoinOptions {
   devScenario?:
     | "arena-bt23-examon-partition-return"
     | "arena-bt23-examon-piercing-end-turn"
+    | import("@aegis/shared").KeywordPacingScenarioId
     | "battle"
     | "field-grouping"
     | "arena-field-grouping-dense"
@@ -207,6 +208,7 @@ export interface AegisJoinOptions {
     | "arena-mobile-blast-counter-tap"
     | "security-battle"
     | "effects-lab-own-chain"
+    | "effects-lab-field-grouping"
     | "effects-lab-opponent-chain"
     | "effects-lab-opponent-play"
     | "effects-lab-nested"

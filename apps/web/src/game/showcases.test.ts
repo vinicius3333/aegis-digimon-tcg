@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
-import { COLORS } from "../design/theme";
 import {
   burstPalette,
   deletionAnchorIdsFromEvent,
@@ -26,8 +25,8 @@ describe("centre-screen showcase", () => {
     expect(zoneShowcaseFromEvent(PLAYED, VIEWER, 1)).toMatchObject({ key: 1, cardId: "BT1-010", kind: "play" });
   });
 
-  it("stays out of the way of the viewer's own play", () => {
-    expect(zoneShowcaseFromEvent({ ...PLAYED, seat: VIEWER }, VIEWER, 1)).toBeNull();
+  it("reveals the viewer's accepted play", () => {
+    expect(zoneShowcaseFromEvent({ ...PLAYED, seat: VIEWER }, VIEWER, 1)).toMatchObject({ mine: true, kind: "play" });
   });
 
   it("holds up the opponent's battle-area digivolution, which changes a stack in place", () => {
@@ -48,8 +47,11 @@ describe("centre-screen showcase", () => {
     });
   });
 
-  it("stays out of the way of the viewer's own breeding digivolution", () => {
-    expect(zoneShowcaseFromEvent({ ...DIGIVOLVED, seat: VIEWER, inBreeding: true }, VIEWER, 1)).toBeNull();
+  it("reveals the viewer's own breeding digivolution", () => {
+    expect(zoneShowcaseFromEvent({ ...DIGIVOLVED, seat: VIEWER, inBreeding: true }, VIEWER, 1)).toMatchObject({
+      mine: true,
+      kind: "digivolve",
+    });
   });
 
   it("announces nothing for an event that changes no zone", () => {
@@ -77,10 +79,10 @@ describe("field burst", () => {
     ).toMatchObject({ variant: "hatch", inBreeding: true });
   });
 
-  it("treats a move out of breeding as an arrival in the battle area", () => {
+  it("moves a raised stack without treating it as a newly played card", () => {
     expect(
       permanentBurstFromEvent({ kind: "movedFromBreeding", seat: VIEWER, permanentId: "perm-2", cardId: "ST1-03" }, 1),
-    ).toMatchObject({ permanentId: "perm-2", variant: "play", inBreeding: false });
+    ).toMatchObject({ permanentId: "perm-2", moveFromBreeding: true, inBreeding: false });
   });
 
   it("bursts for both seats, because the field is shared", () => {
@@ -94,13 +96,16 @@ describe("field burst", () => {
 
 describe("burst palette", () => {
   it("takes the card's own colour for an arrival", () => {
-    expect(burstPalette("play", "Green")).toEqual({ base: COLORS.Green.base, edge: COLORS.Green.edge });
+    expect(burstPalette("play", "Green")).toEqual({ base: "#67f794", edge: "#67f794" });
   });
 
-  it("keeps the fixed vocabulary for evolution, hatch and draw", () => {
-    // The spec keys these to the moment, not to the card: an evolution always
-    // burns red/orange and a hatch always opens white/blue.
-    expect(burstPalette("evolve", "Green")).toEqual(burstPalette("evolve", "Blue"));
+  it("gives evolution a white centre and the card's primary colour", () => {
+    expect(burstPalette("evolve", "Green")).toEqual({ base: "#ffffff", edge: "#67f794" });
+    expect(burstPalette("evolve", "Blue")).toEqual({ base: "#ffffff", edge: "#5db9ff" });
+    expect(burstPalette("evolve", "Purple")).toEqual({ base: "#ffffff", edge: "#f555dc" });
+  });
+
+  it("keeps the fixed vocabulary for hatch and draw", () => {
     expect(burstPalette("hatch", "Red")).toEqual(burstPalette("hatch", "Black"));
     expect(burstPalette("draw")).toEqual(burstPalette("draw", "Yellow"));
   });

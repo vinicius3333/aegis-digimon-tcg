@@ -19,6 +19,7 @@ import { NarrationStack } from "../../NarrationStack";
 import { AttackAnnouncementBanner } from "../../SidePanelStack";
 import { TargetingSpotlight } from "../../TargetingSpotlight";
 import { EffectFocus } from "../../EffectFocus";
+import { trashEffectCardFromSources, type EffectActivation } from "../../effectSource";
 import { BATTLE_TIMING_STYLE } from "../../timings";
 import { shieldSecurityCount } from "../../securityClash";
 import { turnControlState } from "../../turnControl";
@@ -50,6 +51,8 @@ import { Sidebar } from "./Sidebar";
 import { TurnBanner } from "./TurnBanner";
 import { ViewerBattleRow } from "./ViewerBattleRow";
 import { ViewerPiles } from "./ViewerPiles";
+import { useBreedingTransferOrigins } from "../../breedingTransfer";
+import { useFieldShatterOrigins } from "../../fieldShatter";
 
 export interface BoardAnchors {
   board: RefObject<HTMLDivElement | null>;
@@ -113,6 +116,7 @@ export interface BoardChrome {
 /** The hand strip's own inputs, which the field does not share. */
 export interface HandDockInputs {
   effectSourceInstanceId: string | undefined;
+  effectSource?: EffectActivation;
   shakeInstanceId: string | undefined;
   selection:
     | {
@@ -193,13 +197,15 @@ export function BoardStage({
   overlayStack: ReactNode;
   /** The app's stage element, when the document has one to portal the overlays into. */
   stageEl: HTMLElement | null;
-  onStartHandDrag: (index: number, event: ReactPointerEvent) => void;
+  onStartHandDrag: (index: number, event: ReactPointerEvent, origin?: HTMLElement) => void;
   onStartPermanentDrag: (perm: Permanent, event: ReactPointerEvent) => void;
   onInspectPermanent: { viewer: (perm: Permanent) => void; opponent: (perm: Permanent) => void };
   onOpenCard: (cardId: string, artId?: string) => void;
   onResetScenario?: () => void;
 }) {
   const { t } = useTranslation();
+  useBreedingTransferOrigins(anchors.board);
+  useFieldShatterOrigins(anchors.board);
   const other = otherSeat(viewerSeat);
   const { shownViewer, shownOpponent, breedingViewer, breedingOpponent } = seats;
   const surrenderDialog = overlays.surrenderConfirmOpen ? (
@@ -218,8 +224,9 @@ export function BoardStage({
       pileWidth={layout.arenaPileWidth}
       compactPiles={layout.compactPiles}
       viewerDeckRef={anchors.viewerDeck}
-      viewerDeckRiffling={cues.deckRiffles.has(`${viewerSeat}:deck`)}
+      viewerDeckRiffling={cues.deckRiffles.get(`${viewerSeat}:deck`) ?? false}
       viewerTrashClassName={chrome.trashEffectSource(viewerSeat) ?? ""}
+      viewerTrashEffectCard={trashEffectCardFromSources(cues.effectSources, viewerSeat, shownViewer.trash)}
       onOpenViewerTrash={shownViewer.trash.length ? () => overlays.setTrashView(Side.Viewer) : undefined}
     />
   );
@@ -230,6 +237,7 @@ export function BoardStage({
     <CardOpenerProvider onOpenCard={onOpenCard}>
       <main
         className="game-layout aegis-arena"
+        data-viewer-seat={viewerSeat}
         style={{
           height: "100%",
           display: "flex",
@@ -311,17 +319,18 @@ export function BoardStage({
 
           {cues.turnTransition ? <TurnBanner transition={cues.turnTransition} viewerSeat={viewerSeat} /> : null}
 
+          <EffectFocus
+            sources={cues.effectSources}
+            board={anchors.board}
+            permanents={anchors.permanents}
+            choosingTargets={targeting.spotlight.open}
+          />
+
           <div
             className="game-field"
             ref={anchors.field}
             style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
           >
-            <EffectFocus
-              sources={cues.effectSources}
-              field={anchors.field}
-              permanents={anchors.permanents}
-              choosingTargets={targeting.spotlight.open}
-            />
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}
@@ -342,8 +351,9 @@ export function BoardStage({
               compactPiles={layout.compactPiles}
               opponentDeckRef={anchors.opponentDeck}
               viewerSecurityRef={anchors.viewerSecurity}
-              opponentDeckRiffling={cues.deckRiffles.has(`${other}:deck`)}
+              opponentDeckRiffling={cues.deckRiffles.get(`${other}:deck`) ?? false}
               opponentTrashClassName={chrome.trashEffectSource(other) ?? ""}
+              opponentTrashEffectCard={trashEffectCardFromSources(cues.effectSources, other, shownOpponent.trash)}
               securityCount={
                 cues.securityDealCounts.get(viewerSeat) ??
                 shieldSecurityCount(shownViewer.securityCount, cues.heldSecurityCounts.get(viewerSeat))
@@ -413,7 +423,7 @@ export function BoardStage({
               raisingWidth={layout.arenaRaisingWidth}
               compactPiles={layout.compactPiles}
               opponentSecurityRef={anchors.opponentSecurity}
-              opponentEggDeckRiffling={cues.deckRiffles.has(`${other}:eggDeck`)}
+              opponentEggDeckRiffling={cues.deckRiffles.get(`${other}:eggDeck`) ?? false}
               breedingBurst={
                 breedingOpponent.breeding ? cues.permanentBursts.get(breedingOpponent.breeding.permanentId) : undefined
               }
@@ -473,6 +483,7 @@ export function BoardStage({
             cards={seats.shownHandEntries}
             selectedInstanceId={selection.handSel ?? undefined}
             effectSourceInstanceId={handDock.effectSourceInstanceId}
+            effectSource={handDock.effectSource}
             selection={handDock.selection}
             draggingInstanceId={drag.isPlay && drag.state?.kind === DragKind.Play ? drag.state.instanceId : undefined}
             shakeInstanceId={handDock.shakeInstanceId}
@@ -498,7 +509,6 @@ export function BoardStage({
             permanentCenters={anchors.permanentCenters}
             permanentCardIds={anchors.permanentCardIds}
             combatImpactIds={cues.combatImpactIds}
-            attackLunge={cues.attackLunge}
           />
 
           <BoardBurstLayer

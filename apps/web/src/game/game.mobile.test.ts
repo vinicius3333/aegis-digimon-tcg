@@ -756,10 +756,10 @@ describe("centre-stage cards are sized by the viewport", () => {
   it("drives the security branch's lift from a property the short blocks retune", () => {
     // 8rem above the middle of a 390px board puts the card's top edge off screen.
     expect(gameCss).toMatch(/\.battle-security-branch \{[^}]*--security-branch-lift:\s*8rem/);
-    expect(gameCss).toMatch(/@keyframes battle-security-branch \{[^}]*var\(--security-branch-lift\)/);
+    expect(gameCss).toMatch(/@keyframes battle-security-branch-in \{[^}]*var\(--security-branch-lift\)/);
     expect(gameCss).not.toMatch(/translate:\s*[^;]*calc\(-50% - 8rem\)/);
     expect(landscapeRules).toMatch(/\.battle-security-branch \{[^}]*--security-branch-lift:\s*2\.5rem/);
-    expect(landscapeRules).toMatch(/\.battle-security-branch__frame > div \{[^}]*width:\s*92px/);
+    expect(landscapeRules).toMatch(/\.battle-security-branch__frame > div,[^{]*\{[^}]*width:\s*92px/);
   });
 });
 

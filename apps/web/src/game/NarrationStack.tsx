@@ -25,6 +25,7 @@ import { noticeRemaining, type MatchNotice } from "./notices";
 
 /** The art on the folded band: enough to recognise the card, not enough to read it. */
 const PEEK_ART_WIDTH = 34;
+const MAX_VISIBLE_TOASTS = 2;
 
 /**
  * How much a column may have left to scroll before it counts as scrolled to the end. Below
@@ -416,7 +417,6 @@ export function NarrationStack({
   // which on a phone is the only column there is.
   const textSlot: NarrationSlot = compact ? "narration" : "narration-text";
   const items = [...narration.values()];
-  const hasCards = (item: NarrationItem) => Boolean(item.panel || (item.notice && isCardListNotice(item.notice)));
   const hasText = (item: NarrationItem) => Boolean(item.notice && !isCardListNotice(item.notice));
   const textItems = compact ? items : items.filter(hasText);
   /* The phone's slot lies over the opponent's field, so the whole column collapses to the
@@ -427,12 +427,22 @@ export function NarrationStack({
   useEffect(() => {
     if (textItems.length === 0) setExpanded(false);
   }, [textItems.length]);
-  const cardItems = compact ? [] : items.filter(hasCards);
-  const isPromptEffect = (item: NarrationItem) => isEffectOf(item, promptSourceCardId);
+  // A record may carry two card toasts. Count the rendered panels, not records,
+  // while keeping the original occurrence and lifetime for either dismissal.
+  const cardItems = compact
+    ? []
+    : items
+        .flatMap((item) => [
+          ...(item.panel ? [{ ...item, notice: undefined }] : []),
+          ...(item.notice && isCardListNotice(item.notice) ? [{ ...item, panel: undefined }] : []),
+        ])
+        .slice(-MAX_VISIBLE_TOASTS);
+  const shownTextItems = compact ? textItems : textItems.slice(-(MAX_VISIBLE_TOASTS - (rejection ? 1 : 0)));
+  const isPromptEffect = (item: NarrationItem) => isEffectOf(narration.get(item.id) ?? item, promptSourceCardId);
   const body = (half: "text" | "cards") => (shown: NarrationItem) => (
     <div
       className="narration-item"
-      key={shown.id}
+      key={half === "cards" ? `${shown.id}:${shown.panel ? "panel" : "notice"}` : shown.id}
       data-narration-id={shown.id}
       data-reading-paused={shown.pausedAt !== undefined || undefined}
       data-superseded={shown.superseded || undefined}
@@ -486,13 +496,13 @@ export function NarrationStack({
       ) : textItems.length > 0 || rejection ? (
         <Slot
           slot={textSlot}
-          count={textItems.length + (rejection ? 1 : 0)}
+          count={shownTextItems.length + (rejection ? 1 : 0)}
           securityDockActive={securityDockActive}
           {...(compact ? { onTogglePeek: () => setExpanded(false), anchor: "top" as const } : {})}
           peekLabel={t("notice.collapse")}
           closeLabel={t("notice.close")}
         >
-          {textItems.map(compact ? compactBody : body("text"))}
+          {shownTextItems.map(compact ? compactBody : body("text"))}
           {rejection ? (
             <RejectionView key={rejection.id} notice={rejection} nowMs={now} onDismiss={onDismissRejection} />
           ) : null}

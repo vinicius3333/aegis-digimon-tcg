@@ -12,6 +12,54 @@
    Pure: the caller supplies the lookup, this module decides what the cue is. */
 
 import type { Seat, ServerEvent } from "@aegis/shared";
+import { TIMINGS } from "./timings";
+import { EFFECT_SPEED_SCALE, getEffectSpeed } from "./pacing";
+
+export interface TrashEffectCard {
+  key: number;
+  cardId: string;
+  instanceId: string;
+  artId?: string;
+  linked?: boolean;
+  motionScale?: number;
+}
+
+/** The accepted physical source, which can be buried below another trash card. */
+export function trashEffectCardFromSources(
+  sources: readonly EffectActivation[],
+  seat: Seat,
+  trash: Iterable<{ instanceId: string; cardId: string; artId?: string }>,
+): TrashEffectCard | undefined {
+  const matching = sources.filter((source) => source.seat === seat && source.site.zone === "trash");
+  const activation = matching.find((source) => source.linked !== true) ?? matching.at(-1);
+  if (!activation || activation.site.zone !== "trash") return undefined;
+  const instanceId = activation.site.instanceId;
+  let artId: string | undefined;
+  for (const card of trash) {
+    if (card.instanceId !== instanceId || card.cardId !== activation.cardId) continue;
+    artId = card.artId;
+    break;
+  }
+  return {
+    key: activation.key,
+    cardId: activation.cardId,
+    instanceId,
+    artId,
+    linked: activation.linked,
+    ...(activation.motionScale === undefined ? {} : { motionScale: activation.motionScale }),
+  };
+}
+
+/** Preparation completes before reading; the final trash shrink can overlap it. */
+export function effectActivationPreparationMs(
+  site: EffectSourceSite,
+  defaultMs: number,
+  scale = EFFECT_SPEED_SCALE[getEffectSpeed()],
+): number {
+  if (site.zone === "trash") return Math.max(defaultMs, TIMINGS.effectTrashPreparation * scale);
+  if (site.zone === "hand") return Math.max(defaultMs, TIMINGS.effectHandPreparation * scale);
+  return defaultMs;
+}
 
 /** The zones the board can actually play a distinct moment for. */
 export type EffectSourceZone = "field" | "trash" | "hand";
@@ -36,6 +84,8 @@ export interface EffectActivation {
   seat: Seat;
   cardId: string;
   site: EffectSourceSite;
+  /** Freeze the physical source's queue and CSS speed together when preparation starts. */
+  motionScale?: number;
   /**
    * The narration item this activation belongs to. The announcement is a punch of half a
    * second, but the clause it announces reads for many: the source stays lit for as long

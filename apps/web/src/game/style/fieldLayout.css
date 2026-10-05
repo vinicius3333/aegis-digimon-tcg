@@ -4,6 +4,9 @@
    every breakpoint's `.game-battle-zones > .game-battle-row` rule on purpose. */
 
 .game-board .game-field .game-battle-zones > .game-battle-row[data-field-layout="organized"] {
+  /* Every permanent follows the shared field size, including on compact boards. */
+  --field-support-scale: 1;
+  --field-reserve-support: 1;
   display: flex !important;
   flex-direction: column;
   gap: 0 !important;

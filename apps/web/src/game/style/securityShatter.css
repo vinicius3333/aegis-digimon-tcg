@@ -1,104 +1,8 @@
-/* A destroyed security card: the pane cracks, then breaks, and the battle
-   outcome that follows. */
-
-/* --- Destroyed security card: the pane cracks, then breaks -----------------
-   The reference client's `DestroySecurityEffect` (`Effects.cs:1948-2027`) runs a
-   `BreakGlass` over the card itself. The web port draws the fractures over the art
-   during the last of the hold — they spread from the centre along the seams the
-   shards then part on — so the break that follows is the glass giving way rather
-   than a card popping. */
-.game-card-cracks {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-  fill: none;
-  stroke: rgb(255 255 255 / 92%);
-  stroke-width: 1.1;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 1.5px rgb(255 255 255 / 85%)) drop-shadow(0 0 4px rgb(140 200 255 / 55%));
-  /* `pathLength="1"` on every path, so one dash covers each crack whatever its length. */
-  stroke-dasharray: 1;
-  opacity: 0;
-  animation: battle-clash-cracks-in var(--t-clash-crack, 180ms) steps(1, end)
-    calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) forwards;
-}
-
-.game-card-cracks path {
-  stroke-dashoffset: 1;
-  animation: battle-clash-crack-draw var(--t-clash-crack, 180ms) cubic-bezier(0.22, 1, 0.36, 1)
-    calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) forwards;
-}
-
-/* The forks open a touch after the seam they hang off. */
-.game-card-cracks path:nth-child(3n + 2),
-.game-card-cracks path:nth-child(3n) {
-  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms) * 0.55);
-}
-
-@keyframes battle-clash-cracks-in {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes battle-clash-crack-draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* The impact flash under the cracks: the pane catches the light as it gives. */
+/* An effect-driven destruction replaces the whole face at the break beat. */
 .battle-clash[data-cause="destruction"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
-    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-crack-flash var(--t-clash-crack, 180ms) ease-out
-      calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) both,
-    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
-}
-
-@keyframes battle-clash-crack-flash {
-  0% {
-    filter: brightness(1);
-    translate: 0 0;
-  }
-  18% {
-    filter: brightness(1.9);
-    translate: -2px 0;
-  }
-  40% {
-    filter: brightness(1.25);
-    translate: 2px 0;
-  }
-  62% {
-    translate: -1px 0;
-  }
-  100% {
-    filter: brightness(1.1);
-    translate: 0 0;
-  }
-}
-
-/* The card underneath goes as its shards leave. The whole chain is restated because
-   the revealed card already carries its entrance and its impact on this element, and
-   an `animation` shorthand replaces rather than adds to them. */
-.battle-clash[data-resolution="battle"]
-  .battle-clash__card[data-role="revealed"][data-spent="true"]
-  .battle-clash__art {
-  animation:
-    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
-    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+    battle-security-reveal var(--t-clash-reveal, 233ms) linear var(--t-clash-enter, 150ms) both,
+    battle-clash-spent var(--t-card-shatter, 250ms) steps(1, end) var(--t-clash-outcome-at, 853ms) forwards;
 }
 
 /* An attacker the compare deleted goes the same way, keeping its own entrance. */
@@ -107,8 +11,10 @@
   .battle-clash__art {
   animation:
     battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
-    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+    battle-clash-spent var(--t-card-shatter, 250ms) steps(1, end)
+      calc(var(--t-clash-outcome-at, 853ms) + var(--t-clash-outcome, 350ms)) forwards,
+    battle-card-impact var(--t-card-shake, 250ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1)
+      var(--t-clash-outcome-at, 853ms) forwards;
 }
 
 .battle-clash[data-resolution="battle"]
@@ -116,51 +22,22 @@
   .battle-clash__art {
   animation:
     battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
-    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
-}
-
-/* A card the check simply trashes breaks apart the same way, so a security card
-   leaving play always reads as a deletion. It takes no impact, and it breaks instead
-   of falling: the shatter replaces the `battle-clash-fall` the resolution otherwise
-   carries, which is why the chain is restated here. */
-.battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art {
-  animation:
-    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+    battle-clash-spent var(--t-card-shatter, 250ms) steps(1, end)
+      calc(var(--t-clash-outcome-at, 853ms) + var(--t-clash-outcome, 350ms)) forwards,
+    battle-card-impact var(--t-card-shake, 250ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1)
+      var(--t-clash-outcome-at, 853ms) forwards;
 }
 
 @keyframes battle-clash-spent {
-  0% {
-    opacity: 1;
-  }
-  18% {
-    opacity: 0;
-  }
+  0%,
   100% {
     opacity: 0;
   }
 }
 
-/* The beaten side dims behind its claw; the side that stands is lit for a beat. */
-.battle-clash__card[data-fate="beaten"] {
-  animation: battle-clash-beaten var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
-}
-
-@keyframes battle-clash-beaten {
-  0% {
-    filter: none;
-  }
-  40% {
-    filter: brightness(0.6) saturate(0.5);
-  }
-  100% {
-    filter: brightness(0.45) saturate(0.35);
-  }
-}
-
+/* Surviving cards retain the existing Aegis verdict highlight. */
 .battle-clash__card[data-fate="stands"] {
-  animation: battle-clash-stands var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+  animation: battle-clash-stands var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 853ms) both;
 }
 
 @keyframes battle-clash-stands {
@@ -175,39 +52,45 @@
   }
 }
 
-/* The claw waits for the outcome beat. Its own per-tine stagger is kept, so the
-   three gashes still land one behind the other. */
-.battle-clash__card[data-fate="beaten"] .game-claw__tine {
-  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) + var(--claw-index) * 24ms);
+/* The complete claw waits for the outcome; all three paths share its clock. */
+.battle-clash__card[data-fate="beaten"] .game-claw svg {
+  animation-delay: var(--t-clash-outcome-at, 853ms);
 }
 
-/* The loser is knocked about under its claw (`Effects.cs:2143` shakes every loser
-   for the same 0.25 s the claw takes to land). */
-.battle-clash__card[data-fate="beaten"] .battle-clash__frame {
-  animation: battle-clash-hit var(--t-clash-outcome, 350ms) linear var(--t-clash-outcome-at, 1283ms) both;
+/* Only the losing artwork shakes: its claw remains on an independent canvas.
+   Security uses the same seven-segment 250 ms path as a field battle, followed
+   by the existing 100 ms settle. The source's revealed card has scale .6, so
+   eight parent units correspond to 8/60 of its width and 8/84 of its height.
+   `translate` composes with the separately owned reveal/disposal transform. */
+.battle-clash__card[data-fate="beaten"] .battle-clash__art {
+  --combat-shake-x: 13.333333%;
+  --combat-shake-y: 9.52381%;
 }
 
-/* Percentages of the 350ms outcome beat: the shake is the reference client's 0.25s
-   (`--t-card-shake`, so 71%) and the rest is its 0.1s settle. They have to be restated
-   whenever `clashOutcome` moves — `timings.test.ts` pins the 71% to the two numbers. */
-@keyframes battle-clash-hit {
-  0%,
-  71%,
-  100% {
-    translate: 0 0;
-  }
-  14% {
-    translate: -6px 3px;
-  }
-  29% {
-    translate: 5px -3px;
-  }
-  43% {
-    translate: -4px -2px;
-  }
-  57% {
-    translate: 2px 2px;
-  }
+.battle-clash__card[data-role="attacker"][data-fate="beaten"] .battle-clash__art {
+  --combat-shake-x: 8.888889%;
+  --combat-shake-y: 6.349206%;
+}
+
+.battle-clash .battle-clash__card[data-role="revealed"][data-fate="beaten"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) linear var(--t-clash-enter, 150ms) both,
+    battle-card-impact var(--t-card-shake, 250ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1)
+      var(--t-clash-outcome-at, 853ms) forwards;
+}
+
+/* A restored card has already revealed. Keep the delayed impact, without
+   restarting its entrance or suppressing the shake along with that entrance. */
+.battle-clash[data-revealed-ready="true"]
+  .battle-clash__card[data-role="revealed"][data-fate="beaten"]
+  .battle-clash__art {
+  animation: battle-card-impact var(--t-card-shake, 250ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1)
+    var(--t-clash-outcome-at, 853ms) forwards;
+}
+
+.battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"][data-fate="beaten"] .battle-clash__art {
+  animation: battle-security-exit var(--t-security-card-exit, 140ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+  translate: 0 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -220,8 +103,11 @@
 
   .battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art,
   .battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art,
+  .battle-clash[data-resolution] .battle-clash__card[data-role][data-side][data-spent] .battle-clash__art,
+  .battle-clash[data-cause="destruction"] .battle-clash__card[data-role="revealed"] .battle-clash__art,
   .battle-clash__card[data-fate="beaten"],
   .battle-clash__card[data-fate="beaten"] .battle-clash__frame,
+  .battle-clash[data-resolution] .battle-clash__card[data-fate="beaten"][data-role][data-side] .battle-clash__art,
   .battle-clash__card[data-fate="stands"] {
     animation: none;
   }

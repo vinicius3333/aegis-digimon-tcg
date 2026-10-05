@@ -8,8 +8,8 @@ import type { DpPulse } from "../dpPulse";
 import type { FreezePulse } from "../freezePulse";
 import type { PendingFateBadge } from "../pendingFate";
 import type { PermanentBurst } from "../showcases";
-import type { AttackLunge } from "../match/types";
 import type { TrackingArrow } from "../trackingArrow";
+import type { AttackArrowClock } from "../attackArrowClock";
 import { DragKind } from "./enums";
 
 /** A solved target arrow: the ids resolved to real positions in board coordinates. */
@@ -18,6 +18,8 @@ export interface TrackingArrowGeometry {
   kind: TrackingArrow["kind"];
   from: { x: number; y: number };
   to: { x: number; y: number }[];
+  sourcePermanentId?: string;
+  clock?: AttackArrowClock;
 }
 
 /**
@@ -101,7 +103,6 @@ export interface PermanentChrome {
   dpPulses: ReadonlyMap<string, DpPulse>;
   dpBadgeSuppressedIds: ReadonlySet<string>;
   freezePulses: ReadonlyMap<string, FreezePulse>;
-  attackLunge: AttackLunge | null;
   heldSuspendedIds: ReadonlySet<string>;
   /** The sweep's stagger for the permanent at this position in its owner's row. */
   suspendDelayMs: (index: number) => number;

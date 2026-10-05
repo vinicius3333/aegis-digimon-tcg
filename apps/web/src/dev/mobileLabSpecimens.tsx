@@ -797,7 +797,9 @@ export const SPECIMENS: readonly Specimen[] = [
     title: "Opponent played a card",
     surface: "board",
     render: () => (
-      <ZoneShowcase showcase={{ key: 1, cardId: CARDS.opponentChampion, seat: 1, kind: "play", color: "Blue" }} />
+      <ZoneShowcase
+        showcase={{ key: 1, cardId: CARDS.opponentChampion, seat: 1, mine: false, kind: "play", color: "Blue" }}
+      />
     ),
   },
   ...(["win", "loss"] as const).map((result): Specimen => ({

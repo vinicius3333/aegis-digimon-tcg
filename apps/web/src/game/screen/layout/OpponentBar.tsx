@@ -12,6 +12,7 @@ import { useTranslation } from "../../../i18n";
 import { Icons } from "../../../design/icons";
 import { CardBack } from "../../../design/cards";
 import { ArenaCounters } from "../../ArenaCounters";
+import { useEnterAnimation } from "../../animations";
 import { Side } from "../../side";
 import { PlayerLine } from "./PlayerLine";
 
@@ -65,6 +66,7 @@ export function OpponentBar({
 }) {
   const { t } = useTranslation();
   const fanned = Math.max(0, handCount);
+  const entering = useEnterAnimation(Array.from({ length: fanned }, (_, index) => String(index)));
   return (
     <header
       className="game-opponent-bar"
@@ -104,6 +106,8 @@ export function OpponentBar({
         {Array.from({ length: fanned }).map((_, i) => (
           <div
             key={i}
+            data-opponent-hand-slot={i}
+            className={entering.has(String(i)) ? "game-opponent-hand-card--arriving" : undefined}
             aria-hidden
             style={
               {

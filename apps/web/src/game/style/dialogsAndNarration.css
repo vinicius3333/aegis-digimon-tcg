@@ -457,6 +457,26 @@ button.side-panel__name:focus-visible {
   pointer-events: none;
 }
 
+/* Accepted clauses enter fully opaque from one panel width beyond their anchor. */
+.match-notice[data-variant="effect"] {
+  animation: effect-notice-in var(--t-effect-notice-in, 100ms) cubic-bezier(0.333333, 0.666667, 0.666667, 1) both;
+}
+
+@keyframes effect-notice-in {
+  from {
+    translate: -100.659077% 0;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-notice[data-variant="effect"] {
+    animation: none;
+  }
+}
+
 .match-notice::before {
   top: 0;
   left: 0;
@@ -638,7 +658,7 @@ button.side-panel__name:focus-visible {
   font-size: 1.2rem;
 }
 
-/* The attack call-out: a glance at the attacker while the arc and lunge play. */
+/* The attack call-out: a glance at the attacker while the target arrow advances. */
 .attack-announcement {
   position: absolute;
   z-index: calc(var(--ds-z-dialog) - 5);

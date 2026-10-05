@@ -5,6 +5,8 @@ import { test, expect, type Page, type TestInfo } from "@playwright/test";
 import { GamePage } from "./game-page";
 import { SPOTLIGHT_PADDING_PX, SPOTLIGHT_RADIUS_PX } from "../src/game/spotlight";
 import { DEFAULT_PACING } from "../src/game/pacing";
+import { KEYWORD_PACING_SCENARIOS, type KeywordPacingScenario } from "@aegis/shared";
+import { startPacingCapture, finishPacingCapture } from "./pacing-capture";
 
 /* A paced chain must keep moving in a real browser. The jsdom pacing harness replays the
    same scenarios on a fake clock, but a wait cycle between presentation steps only closes
@@ -22,6 +24,7 @@ interface LabState {
     key: string;
     stepId: string;
     phase: string;
+    at: number;
     failed: boolean;
     cancelled: boolean;
     timing?: string;
@@ -42,14 +45,20 @@ interface LabState {
     live: {
       stateVersion: number;
       pendingDecision?: unknown;
-      players: { battleArea: { topCard: { cardId: string }; isSuspended: boolean; keywords?: string[] }[] }[];
+      players: {
+        battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean; keywords?: string[] }[];
+      }[];
     };
     displayed: { stateVersion: number };
     visible: {
-      players: { battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean }[] }[];
+      players: {
+        securityCount: number;
+        battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean }[];
+      }[];
     };
   };
   gateExpiries: string[];
+  batches: { id: string; receivedAt: number; stateVersion: number; events: { kind: string }[] }[];
   truncated: boolean;
   counters: { boardBudgetHits: number; decisionBudgetHits: number; decisionStallHits: number };
 }
@@ -57,10 +66,9 @@ type LabReader = (() => LabState) & { reset(): void };
 interface ArrivalPaint {
   cardId: string;
   permanentId: string;
-  flightAt?: number;
+  revealAt?: number;
+  revealExitAt?: number;
   landingAt?: number;
-  from?: { x: number; y: number };
-  to?: { x: number; y: number };
   landedAt?: { x: number; y: number };
 }
 
@@ -69,16 +77,16 @@ class EffectsLabPage {
   button(name: RegExp) {
     return this.page.getByRole("button", { name }).filter({ visible: true });
   }
-  async start(scenario = "effects-lab-opponent-chain", endTurn = true) {
-    await this.page.addInitScript(() => {
+  async start(scenario = "effects-lab-opponent-chain", endTurn = true, speed = "normal") {
+    await this.page.addInitScript((initialSpeed) => {
       localStorage.setItem("aegis:locale", "en");
       // Obsolete tuning must not shorten effects or switch the lab out of stacked.
       localStorage.setItem(
         "aegis.dev.effects-lab.pacing",
         JSON.stringify({ sourceHoldMs: 120, shortSourceHoldMs: 80, clauseStackMs: 0 }),
       );
-      localStorage.setItem("aegis.effect-speed", "normal");
-    });
+      localStorage.setItem("aegis.effect-speed", initialSpeed);
+    }, speed);
     await this.page.goto(`/dev/effects-lab?scenario=${scenario}`);
     await expect(this.button(/END BREEDING/i)).toBeEnabled({ timeout: 45_000 });
     await expect(this.page.getByRole("combobox", { name: /^pacing$/i })).toHaveCount(0);
@@ -125,30 +133,27 @@ class EffectsLabPage {
         }
         if (source && focusKey && !focused)
           focused = { key: focusKey, cardId: source.dataset.sourceCardId!, at: performance.now() };
-        for (const element of document.querySelectorAll<HTMLElement>(
-          '[data-testid="confirmed-play-flight"], [data-testid="confirmed-play-landing"]',
-        )) {
+        const reveals = (globals.__labRevealTimes ??= new Map<string, { at: number; exitAt?: number }>()) as Map<
+          string,
+          { at: number; exitAt?: number }
+        >;
+        const showcase = document.querySelector<HTMLElement>('[data-testid="zone-showcase"]');
+        for (const [cardId, reveal] of reveals)
+          if (cardId !== showcase?.dataset.cardId) reveal.exitAt ??= performance.now();
+        if (showcase?.dataset.cardId && !reveals.has(showcase.dataset.cardId))
+          reveals.set(showcase.dataset.cardId, { at: performance.now() });
+        for (const element of document.querySelectorAll<HTMLElement>('[data-testid="confirmed-play-landing"]')) {
           if (element.getBoundingClientRect().width <= 0) continue;
-          const { cardId, permanentId, testid } = element.dataset;
+          const { cardId, permanentId } = element.dataset;
           if (!cardId || !permanentId) continue;
           const arrivals = globals.__labArrivals as Map<string, ArrivalPaint>;
+          const reveal = reveals.get(cardId);
           const entry = arrivals.get(permanentId) ?? { cardId, permanentId };
-          if (testid === "confirmed-play-flight") {
-            entry.flightAt ??= performance.now();
-            const board = element.parentElement!.getBoundingClientRect();
-            entry.from ??= {
-              x: board.left + parseFloat(element.style.left),
-              y: board.top + parseFloat(element.style.top),
-            };
-            entry.to ??= {
-              x: entry.from.x + parseFloat(element.style.getPropertyValue("--battle-flight-dx")),
-              y: entry.from.y + parseFloat(element.style.getPropertyValue("--battle-flight-dy")),
-            };
-          } else {
-            entry.landingAt ??= performance.now();
-            const art = (element.querySelector("img") ?? element).getBoundingClientRect();
-            entry.landedAt = { x: art.left + art.width / 2, y: art.top + art.height / 2 };
-          }
+          entry.revealAt = reveal?.at;
+          entry.revealExitAt = reveal?.exitAt;
+          entry.landingAt ??= performance.now();
+          const art = (element.querySelector("img") ?? element).getBoundingClientRect();
+          entry.landedAt = { x: art.left + art.width / 2, y: art.top + art.height / 2 };
           arrivals.set(permanentId, entry);
         }
         globals.__labPaintFrame = requestAnimationFrame(record);
@@ -181,8 +186,8 @@ class EffectsLabPage {
     await expect.poll(position).toBeGreaterThan(beforeDown + 24);
   }
   async captureArrival(cardId: string, info: TestInfo) {
-    await expect(this.page.locator(`[data-testid="confirmed-play-flight"][data-card-id="${cardId}"]`)).toBeVisible();
-    await this.page.screenshot({ path: info.outputPath("confirmed-play-flight.png") });
+    await expect(this.page.locator(`[data-testid="zone-showcase"][data-card-id="${cardId}"]`)).toBeVisible();
+    await this.page.screenshot({ path: info.outputPath("card-reveal.png") });
     await expect(this.page.locator(`[data-testid="confirmed-play-landing"][data-card-id="${cardId}"]`)).toBeVisible();
     await this.page.screenshot({ path: info.outputPath("confirmed-play-landing.png") });
   }
@@ -201,7 +206,7 @@ class EffectsLabPage {
               (element, config) => {
                 const overlay = element.getBoundingClientRect();
                 const field = element.parentElement!.getBoundingClientRect();
-                const dim = element.querySelector("rect[mask]");
+                const dim = element.querySelector(".game-effect-focus__shade");
                 const maskHole = element.querySelector('mask rect[fill="black"]');
                 const ring = element.querySelector<SVGRectElement>(".game-effect-focus__source");
                 const permanent = [
@@ -219,9 +224,19 @@ class EffectsLabPage {
                     Math.abs(overlay.height - field.height) < 1 &&
                     overlay.width > 0 &&
                     overlay.height > 0,
+                  coversDock: [".game-hand-dock", ".game-breeding-dock"].every((selector) => {
+                    const dock = element.closest(".game-board")?.querySelector(selector)?.getBoundingClientRect();
+                    return (
+                      !dock ||
+                      (overlay.left <= Math.max(field.left, dock.left) + 1 &&
+                        overlay.top <= Math.max(field.top, dock.top) + 1 &&
+                        overlay.right >= Math.min(field.right, dock.right) - 1 &&
+                        overlay.bottom >= Math.min(field.bottom, dock.bottom) - 1)
+                    );
+                  }),
                   currentViewBox:
                     Math.abs(viewBox.width - field.width) < 1 && Math.abs(viewBox.height - field.height) < 1,
-                  dimmed: Number(dim?.getAttribute("fill-opacity")) > 0,
+                  dimmed: Boolean(dim && Number(getComputedStyle(dim).fillOpacity) > 0),
                   holeAligned: Boolean(
                     art &&
                     hole &&
@@ -253,6 +268,7 @@ class EffectsLabPage {
         .toMatchObject({
           opaque: true,
           fillsField: true,
+          coversDock: true,
           currentViewBox: true,
           dimmed: true,
           holeAligned: true,
@@ -417,8 +433,210 @@ test.describe("effects lab pacing in the browser", () => {
     }
   });
 
+  for (const scenario of KEYWORD_PACING_SCENARIOS as readonly KeywordPacingScenario[]) {
+    const formats = [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      ...(scenario.decision
+        ? [
+            { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+            { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+          ]
+        : []),
+    ];
+    for (const format of formats) {
+      const { speed } = format;
+      test(`real keyword pacing: ${scenario.id} (${format.name}, ${speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, speed);
+        const before = await lab.read();
+        await startPacingCapture(page);
+        const target =
+          scenario.target === "player"
+            ? page.locator('[data-drop="opp-security"]')
+            : page.locator('[data-drop="perm-opp"][data-id="dev-perm-1-keyword-defender"]');
+        await new GamePage(page).attack("dev-perm-0-keyword-attacker", target);
+        if (scenario.decision?.kind === "Alliance") {
+          const prompt = page.getByRole("region", { name: "Alliance window", exact: true });
+          await expect(prompt).toBeVisible();
+          if (scenario.decision.accept) {
+            await page.locator('[data-drop="perm-you"][data-id="dev-perm-0-keyword-ally-0"]').click();
+            await page.getByRole("button", { name: "Use Alliance", exact: true }).click();
+          } else await prompt.getByRole("button", { name: "Pass", exact: true }).click();
+        }
+        if (scenario.decision?.kind === "Barrier") {
+          const prompt = page.getByRole("region", { name: "＜Barrier＞", exact: true });
+          await expect(prompt).toBeVisible();
+          await prompt
+            .getByRole("button", {
+              name: scenario.decision.accept ? "Yes, trash security" : "No, let it be deleted",
+              exact: true,
+            })
+            .click();
+        }
+        await expect
+          .poll(
+            async () => {
+              const state = await lab.read();
+              expect(state.gateExpiries).toEqual([]);
+              expect(state.steps.filter((step) => step.failed)).toEqual([]);
+              return (
+                state.events.some((event) => event.kind === "attackEnded") &&
+                state.queueIdle &&
+                state.pendingSteps === 0 &&
+                state.board?.live.stateVersion === state.board?.displayed.stateVersion
+              );
+            },
+            { timeout: 40_000 },
+          )
+          .toBe(true);
+        const state = await lab.read();
+        expect(state.board!.live.players[0]!.battleArea.some((p) => p.topCard.cardId === scenario.attackerCardId)).toBe(
+          scenario.attackerRemains,
+        );
+        expect(state.board!.live.players[1]!.battleArea.some((p) => p.topCard.cardId === scenario.defenderCardId)).toBe(
+          scenario.defenderRemains,
+        );
+        expect(state.events.filter((event) => event.kind === "securityChecked")).toHaveLength(scenario.securityRemoved);
+        expect(state.board!.visible.players[1]!.securityCount).toBe(
+          before.board!.visible.players[1]!.securityCount - scenario.securityRemoved,
+        );
+        expect(state.board!.visible.players[0]!.securityCount).toBe(
+          before.board!.visible.players[0]!.securityCount - (scenario.ownSecurityRemoved ?? 0),
+        );
+        if (scenario.decision?.kind === "Alliance") {
+          expect(
+            state.board!.live.players[0]!.battleArea.find((p) => p.permanentId === "dev-perm-0-keyword-ally-0")
+              ?.isSuspended,
+          ).toBe(scenario.decision.accept);
+          expect(
+            state.board!.live.players[0]!.battleArea.find((p) => p.permanentId === "dev-perm-0-keyword-ally-1")
+              ?.isSuspended,
+          ).toBe(false);
+        }
+        await expect(lab.button(/END PHASE/i)).toBeEnabled();
+        const capture = await finishPacingCapture(page);
+        await info.attach("real-keyword-pacing.json", {
+          body: Buffer.from(JSON.stringify({ scenario, speed, format, capture, state }, null, 2)),
+          contentType: "application/json",
+        });
+        expect(capture.truncated || state.truncated).toBe(false);
+        expect(capture.motion.captureQuality).toBe("usable");
+        if (scenario.decision) {
+          expect(
+            capture.decisions.some(
+              (decision) =>
+                decision.label === (scenario.decision!.kind === "Alliance" ? "Alliance window" : "＜Barrier＞") &&
+                decision.closedAt !== undefined,
+            ),
+          ).toBe(true);
+        }
+        if (scenario.decision?.kind === "Barrier") {
+          const decision = capture.decisions.find((item) => item.label === "＜Barrier＞")!;
+          const blows = capture.motion.animations.filter((animation) => animation.name === "battle-claw");
+          expect(blows).toHaveLength(format.reduced ? 0 : 1);
+          for (const blow of blows) {
+            expect(blow.cutShort).toBe(false);
+            expect(blow.lastAt).toBeLessThanOrEqual(decision.openedAt);
+          }
+          expect(
+            state.steps.filter((step) => step.stepId.startsWith("field-clash-") && step.phase === "started"),
+          ).toHaveLength(1);
+        }
+        expect(errors).toEqual([]);
+        expect(state.steps.filter((step) => step.cancelled)).toEqual([]);
+      });
+    }
+  }
+
+  const groupFormats = [
+    { name: "desktop", width: 1440, height: 1000, reduced: false },
+    { name: "phone", width: 320, height: 844, reduced: false },
+    { name: "tablet", width: 768, height: 1000, reduced: false },
+    { name: "compact desktop", width: 1024, height: 1000, reduced: false },
+    { name: "landscape", width: 844, height: 390, reduced: false },
+    { name: "reduced motion", width: 1440, height: 1000, reduced: true },
+  ];
+  for (const format of groupFormats) {
+    test(`real group pacing: activate, split and merge (${format.name})`, async ({ page }, info) => {
+      await page.setViewportSize({ width: format.width, height: format.height });
+      await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+      await page.addInitScript(() => localStorage.setItem("aegis.field-layout", "organized"));
+      const lab = new EffectsLabPage(page);
+      await lab.start("effects-lab-field-grouping", false);
+      await expect(page.getByRole("button", { name: "Izzy Izumi (2 copies)", exact: true })).toBeVisible();
+      await startPacingCapture(page);
+      for (let index = 0; index < 2; index++) {
+        await page.locator(`[data-drop="perm-you"][data-id="dev-perm-0-group-izzy-${index}"]`).click();
+        await page.getByRole("button", { name: /^Activate effect:/i }).click();
+        const decision = page.getByRole("dialog", { name: "Izzy Izumi · effect", exact: true });
+        await expect(decision).toBeVisible();
+        await decision.getByRole("button", { name: /^Agumon$/i }).click();
+        await decision.getByRole("button", { name: /^Confirm targets$/i }).click();
+        await expect
+          .poll(
+            async () => {
+              const state = await lab.read();
+              expect(state.gateExpiries).toEqual([]);
+              return (
+                state.queueIdle &&
+                state.pendingSteps === 0 &&
+                state.events.filter((event) => event.kind === "effectResolved").length >= index + 1
+              );
+            },
+            { timeout: 30_000 },
+          )
+          .toBe(true);
+      }
+      await expect(page.getByRole("button", { name: "Izzy Izumi (2 copies, Suspended)", exact: true })).toBeVisible();
+      if (!format.reduced)
+        await expect
+          .poll(() =>
+            page.evaluate(() =>
+              (window as unknown as { __keywordPacingCapture: { timings: { returning: boolean }[] } })[
+                "__keywordPacingCapture"
+              ].timings.some((item) => item.returning),
+            ),
+          )
+          .toBe(true);
+      await expect(page.getByTestId("field-group-return")).toHaveCount(0);
+      const capture = await finishPacingCapture(page);
+      const state = await lab.read();
+      await info.attach("real-group-pacing.json", {
+        body: Buffer.from(JSON.stringify({ format, capture, state }, null, 2)),
+        contentType: "application/json",
+      });
+      await info.attach("grouped-field.png", { body: await page.screenshot(), contentType: "image/png" });
+      expect(capture.truncated).toBe(false);
+      expect(capture.motion.captureQuality).toBe("usable");
+      if (format.reduced) {
+        expect(capture.timings.some((timing) => timing.returning)).toBe(false);
+        return;
+      }
+      const turns = capture.timings.filter(
+        (timing) => timing.properties.includes("rotate") && !timing.properties.includes("translate"),
+      );
+      expect(turns.length).toBeGreaterThan(0);
+      expect(turns.every((timing) => timing.duration === 200)).toBe(true);
+      const returns = capture.poses.filter((pose) => pose.returning);
+      expect(returns.length).toBeGreaterThan(2);
+      const lastReturn = returns.at(-1)!;
+      const firstReturn = returns.find((pose) => pose.returnId === lastReturn.returnId)!;
+      expect(Math.hypot(lastReturn.x - firstReturn.x, lastReturn.y - firstReturn.y)).toBeGreaterThan(10);
+      const destination = capture.poses.find(
+        (pose) => !pose.returning && pose.at === lastReturn.at && pose.fieldKey === lastReturn.fieldKey,
+      );
+      expect(destination, "return artwork must reach its surviving physical group").toBeDefined();
+      expect(Math.hypot(lastReturn.x - destination!.x, lastReturn.y - destination!.y)).toBeLessThan(3);
+    });
+  }
+
   for (const phone of [false, true])
-    test(`the opponent's hand play paints its field flight and landing before On Play (${phone ? "phone" : "desktop"})`, async ({
+    test(`the opponent's hand play reveals then lands before On Play (${phone ? "phone" : "desktop"})`, async ({
       page,
     }, info) => {
       if (phone) await page.setViewportSize({ width: 390, height: 844 });
@@ -461,16 +679,11 @@ test.describe("effects lab pacing in the browser", () => {
         };
       });
       const played = visual.arrivals.find((arrival) => arrival.cardId === "BT1-029");
-      expect(played?.flightAt).toBeDefined();
-      expect(played?.landingAt).toBeGreaterThan(played!.flightAt!);
-      expect(
-        Math.hypot(played!.to!.x - played!.from!.x, played!.to!.y - played!.from!.y),
-        "the flight must travel to a different field location",
-      ).toBeGreaterThan(4);
-      expect(
-        Math.hypot(played!.to!.x - played!.landedAt!.x, played!.to!.y - played!.landedAt!.y),
-        "the flight must land on the printed field card",
-      ).toBeLessThan(32);
+      expect(played?.revealAt).toBeDefined();
+      expect(played?.revealExitAt).toBeGreaterThan(played!.revealAt!);
+      expect(played?.landingAt).toBeGreaterThanOrEqual(played!.revealExitAt!);
+      expect(played!.revealExitAt! - played!.revealAt!).toBeGreaterThan(500);
+      expect(played!.revealExitAt! - played!.revealAt!).toBeLessThan(750);
       expect(visual.focusAt).toBeGreaterThan(played!.landingAt!);
       const clause = observed.steps.find(
         (step) =>
@@ -515,7 +728,12 @@ test.describe("effects lab pacing in the browser", () => {
           await expect(accepted).toHaveCount(1);
           await expect(accepted).toBeVisible();
           const occurrence = await accepted.getAttribute("data-narration-id");
-          await page.waitForTimeout(5500);
+          const readingStartedAt = await page.evaluate(
+            (id) => (window as unknown as { __labNoticeAt: Map<string, number> }).__labNoticeAt.get(id),
+            occurrence!,
+          );
+          expect(readingStartedAt, "the accepted notice must have painted before its reading clock").toBeDefined();
+          await page.waitForFunction((startedAt) => performance.now() - startedAt >= 5500, readingStartedAt!);
           await expect(accepted).toHaveAttribute("data-narration-id", occurrence!);
           await expect(accepted).toBeVisible();
           if (!phone) {
@@ -539,9 +757,42 @@ test.describe("effects lab pacing in the browser", () => {
         }
       }
       if (accept) {
-        const stack = page.locator("[data-narration-id]").filter({ hasText: "King Drasil" });
-        await expect(stack).toHaveCount(2);
-        await expect(stack.last()).toBeVisible();
+        // The first notice has already been read for 5.5 seconds. Its independent
+        // lifetime can expire during the second source focus; both accepted clauses
+        // must still paint, each with its own occurrence, without extending that clock.
+        await expect
+          .poll(async () => {
+            const observed = await lab.read();
+            const clauses = observed.steps.filter(
+              (step) =>
+                step.phase === "started" &&
+                step.sourceCardId === "BT23-072" &&
+                step.stepId.startsWith("narration-step-"),
+            );
+            return new Set(clauses.map((step) => step.stepId)).size;
+          })
+          .toBe(2);
+        const observed = await lab.read();
+        const clauseIds = [
+          ...new Set(
+            observed.steps
+              .filter(
+                (step) =>
+                  step.phase === "started" &&
+                  step.sourceCardId === "BT23-072" &&
+                  step.stepId.startsWith("narration-step-"),
+              )
+              .map((step) => step.stepId.slice("narration-step-".length)),
+          ),
+        ];
+        await expect
+          .poll(() =>
+            page.evaluate((ids) => {
+              const painted = (window as unknown as { __labPaintedNotices: Set<string> }).__labPaintedNotices;
+              return ids.every((id) => painted.has(id));
+            }, clauseIds),
+          )
+          .toBe(true);
       }
       await expect
         .poll(
@@ -577,13 +828,11 @@ test.describe("effects lab pacing in the browser", () => {
         return { arrivals: [...globals.__labArrivals.values()], focusAt: globals.__labFocusAt.get("BT23-072") };
       });
       const played = visual.arrivals.find((arrival) => arrival.cardId === "BT23-062");
-      expect(played?.flightAt, "the played hand card never painted its flight").toBeDefined();
-      expect(played?.landingAt, "the played hand card never painted its landing").toBeGreaterThan(played!.flightAt!);
-      expect(Math.hypot(played!.to!.x - played!.from!.x, played!.to!.y - played!.from!.y)).toBeGreaterThan(4);
-      expect(
-        Math.hypot(played!.to!.x - played!.landedAt!.x, played!.to!.y - played!.landedAt!.y),
-        "the own play must land on its printed field card",
-      ).toBeLessThan(32);
+      expect(played?.revealAt, "the played hand card never painted its reveal").toBeDefined();
+      expect(played?.revealExitAt).toBeGreaterThan(played!.revealAt!);
+      expect(played?.landingAt, "the played hand card never painted its landing").toBeGreaterThanOrEqual(
+        played!.revealExitAt!,
+      );
       if (accept)
         expect(visual.focusAt, "the accepting watcher focused before the play landed").toBeGreaterThan(
           played!.landingAt!,
@@ -604,7 +853,7 @@ test.describe("effects lab pacing in the browser", () => {
     { name: "reduced motion", viewport: { width: 1440, height: 1000 }, reduced: true },
   ];
   for (const phone of [false, true]) {
-    test(`a repeated Tamer lands on its physical flight destination before grouping (${phone ? "phone" : "desktop"})`, async ({
+    test(`a repeated Tamer reveals and lights its physical card before grouping (${phone ? "phone" : "desktop"})`, async ({
       page,
     }) => {
       if (phone) await page.setViewportSize({ width: 390, height: 844 });
@@ -625,30 +874,21 @@ test.describe("effects lab pacing in the browser", () => {
           };
         };
         const observe = () => {
-          const flight = document.querySelector<HTMLElement>('[data-testid="confirmed-play-flight"]');
-          if (flight?.dataset.cardId === "BT1-088") {
-            const board = flight.parentElement!.getBoundingClientRect();
-            globals["__groupedArrival"] = {
-              permanentId: flight.dataset.permanentId!,
-              target: {
-                x:
-                  board.left +
-                  parseFloat(flight.style.left) +
-                  parseFloat(flight.style.getPropertyValue("--battle-flight-dx")),
-                y:
-                  board.top +
-                  parseFloat(flight.style.top) +
-                  parseFloat(flight.style.getPropertyValue("--battle-flight-dy")),
-              },
-            };
-          }
-          const arrival = globals["__groupedArrival"];
           const landing = document.querySelector<HTMLElement>(
-            `[data-testid="confirmed-play-landing"][data-permanent-id="${arrival?.permanentId}"]`,
+            '[data-testid="confirmed-play-landing"][data-card-id="BT1-088"]',
           );
-          if (arrival && landing) {
+          if (landing) {
             const art = landing.querySelector("img")!.getBoundingClientRect();
-            arrival.landing = { x: art.left + art.width / 2, y: art.top + art.height / 2 };
+            const fieldArt = landing
+              .closest("[data-id]")
+              ?.querySelector<HTMLElement>("[data-state]")
+              ?.getBoundingClientRect();
+            if (fieldArt)
+              globals["__groupedArrival"] = {
+                permanentId: landing.dataset.permanentId!,
+                target: { x: fieldArt.left + fieldArt.width / 2, y: fieldArt.top + fieldArt.height / 2 },
+                landing: { x: art.left + art.width / 2, y: art.top + art.height / 2 },
+              };
           }
           requestAnimationFrame(observe);
         };
@@ -669,7 +909,7 @@ test.describe("effects lab pacing in the browser", () => {
             }
           )["__groupedArrival"],
       );
-      expect(arrival?.landing, "the flight's physical copy must keep its landing cue").toBeDefined();
+      expect(arrival?.landing, "the newly played physical copy must keep its landing cue").toBeDefined();
       expect(Math.abs(arrival!.landing!.x - arrival!.target.x)).toBeLessThan(3);
       expect(Math.abs(arrival!.landing!.y - arrival!.target.y)).toBeLessThan(3);
     });

@@ -1,10 +1,12 @@
-import type { CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { CardMini } from "../../design/cards";
 import { Icons } from "../../design/icons";
 import { useTranslation } from "../../i18n";
 import { linkCardOverhang, sourceFanStepLimit } from "../boardModel";
 import { CardBurst } from "../CardBurst";
+import { useFieldShatterOrigin } from "../fieldShatter";
+import { useCardLanding, CARD_LANDING_DEPTH } from "../cardLanding";
 import { hasBlocker, restrictionBadges, sourceCountBadge } from "../fieldBadges";
 import type { PendingFateBadge } from "../pendingFate";
 import type { DpPulse } from "../dpPulse";
@@ -18,7 +20,6 @@ import { resolvePermanentKeywordEntries } from "./permanentKeywords";
 import { PermanentBlockerBadge } from "./PermanentBlockerBadge";
 import { PermanentCardStack } from "./PermanentCardStack";
 import { COPY_EDGE_STEP, copyEdgeCount, PermanentCopiesBadge, PermanentCopyEdges } from "./PermanentCopies";
-import { PermanentEffectSourceParticles } from "./PermanentEffectSourceParticles";
 import { PermanentFateBadge } from "./PermanentFateBadge";
 import { PermanentKeywordBadges } from "./PermanentKeywordBadges";
 import { PermanentLinkedCards } from "./PermanentLinkedCards";
@@ -40,7 +41,6 @@ export function PermanentView({
   candidate,
   dimmed,
   compact,
-  lunge,
   burst,
   pending,
   fate,
@@ -76,8 +76,6 @@ export function PermanentView({
   candidate?: boolean;
   dimmed?: boolean;
   compact?: boolean;
-  /** Play the attack lunge, leaning toward the security stack in this direction. */
-  lunge?: "up" | "down";
   /** What an effect currently resolving is about to do to this permanent (server-projected). */
   fate?: PendingFateBadge;
   /** Shake the card: a refused action, or a battle it just lost. */
@@ -120,7 +118,18 @@ export function PermanentView({
   const isVisuallySuspended = heldSuspended || perm.isSuspended;
   const suspendedInlineMargin = Math.ceil(permanentWidth * 0.2);
   const { t } = useTranslation();
+  const movedEntrance = useRef<string | undefined>(undefined);
+  const fieldIdentity = entranceKey ?? perm.permanentId;
+  const landingBurst = burst?.moveFromBreeding ? undefined : burst;
+  if (burst?.moveFromBreeding) movedEntrance.current = fieldIdentity;
+  else if (landingBurst) movedEntrance.current = undefined;
+  const quietMove = movedEntrance.current === fieldIdentity;
+  const entranceBurst = useRef<number | undefined>(undefined);
+  if (landingBurst) entranceBurst.current = landingBurst.key;
   const topId = perm.topCard?.cardId;
+  const faceRef = useFieldShatterOrigin(perm.permanentId, perm.topCard?.instanceId ?? perm.permanentId, refCb);
+  const arrivalKey = `${fieldIdentity}:${entranceBurst.current ?? "first"}:${pending ? "held" : "shown"}`;
+  const landingRef = useCardLanding(arrivalKey);
   if (!topId) return null;
   const def = getCardDefinition(topId);
   const delta = perm.currentDP - originalDP(perm);
@@ -144,7 +153,7 @@ export function PermanentView({
   const interactive = !!activate || !!onPointerDown;
   return (
     <div
-      ref={refCb}
+      ref={faceRef}
       onClick={onClick}
       onPointerDown={onPointerDown}
       onKeyDown={
@@ -166,7 +175,6 @@ export function PermanentView({
           : undefined
       }
       className={permanentClassName({
-        lunge,
         shake,
         freezePulse,
         effectSource,
@@ -177,6 +185,8 @@ export function PermanentView({
       {...(drop ?? {})}
       data-suspended={isVisuallySuspended || undefined}
       data-tap-target={candidate || highlight || !!onPointerDown || undefined}
+      data-combat-impact={(shake && claw) || undefined}
+      data-permanent-id={perm.permanentId}
       style={{
         // The badges size themselves from the card, so a phone's smaller card gets smaller badges.
         ...({ "--permanent-width": `${permanentWidth}px` } as CSSProperties),
@@ -205,25 +215,36 @@ export function PermanentView({
       ) : null}
       <PermanentCardStack stack={perm.stack} width={permanentWidth} />
       <PermanentLinkedCards linked={perm.linked} width={permanentWidth} />
-      {/* Re-keying on the entry signature remounts the wrapper, which is what
+      {/* Re-keying on an accepted arrival remounts the wrapper, which is what
           restarts the CSS entrance: the card sparkles when it reaches the board
           and again on every digivolution. `pending` is part of the signature
           because the permanent mounts while it is still hidden behind the
           centre-screen showcase — without it the entrance ran out its whole
           duration under `visibility: hidden` and the card simply appeared. */}
       <div
-        key={`${entranceKey ?? perm.permanentId}:${perm.stack.length}:${pending ? "held" : "shown"}`}
-        className={`game-card-enter${quietEntrance ? " game-card-enter--quiet" : ""}${burst ? " game-card-landing" : ""}`}
-        data-testid={burst?.variant === "play" ? "confirmed-play-landing" : undefined}
-        data-card-id={burst?.variant === "play" ? topId : undefined}
-        data-permanent-id={burst?.variant === "play" ? perm.permanentId : undefined}
-        style={{ position: "relative", zIndex: 1 }}
+        key={arrivalKey}
+        ref={landingRef}
+        className={`game-card-enter${quietEntrance || quietMove || (!landingBurst && entranceBurst.current !== undefined) ? " game-card-enter--quiet" : ""}${landingBurst ? " game-card-landing" : ""}`}
+        data-testid={landingBurst?.variant === "play" ? "confirmed-play-landing" : undefined}
+        data-card-id={landingBurst?.variant === "play" ? topId : undefined}
+        data-permanent-id={landingBurst?.variant === "play" ? perm.permanentId : undefined}
+        style={
+          {
+            position: "relative",
+            zIndex: 1,
+            "--card-landing-start-depth": CARD_LANDING_DEPTH,
+          } as CSSProperties
+        }
       >
-        {burst ? <CardBurst key={burst.key} variant={burst.variant} color={burst.color} /> : null}
-        {/* The reference client drops a landing card onto an OutBounce and kicks up
-            dust where it hits; the dust is what sells the drop as weight. */}
-        {burst ? <span key={`dust-${burst.key}`} className="game-card-dust" aria-hidden="true" /> : null}
-        {effectSource ? <PermanentEffectSourceParticles /> : null}
+        {landingBurst ? (
+          <CardBurst
+            key={landingBurst.key}
+            cueKey={landingBurst.key}
+            variant={landingBurst.variant}
+            color={landingBurst.color}
+            landing={landingBurst.variant === "play" || landingBurst.variant === "evolve"}
+          />
+        ) : null}
         <CardMini
           cardId={topId}
           artId={perm.topCard?.artId}
@@ -242,7 +263,7 @@ export function PermanentView({
         {/* The claw the reference client sweeps over a permanent that lost its
             battle, a beat before the shatter. Purely decorative, so it sits above
             the art and takes no pointer events. */}
-        {claw ? <ClawSlash key={`claw-${perm.permanentId}`} /> : null}
+        {claw ? <ClawSlash key={`claw-${perm.permanentId}`} fixedFieldAnchor /> : null}
         {dpPulse ? <DpPulseParticles key={dpPulse.key} pulse={dpPulse} /> : null}
       </div>
       {sources ? <PermanentSourceBadge sources={sources} /> : null}

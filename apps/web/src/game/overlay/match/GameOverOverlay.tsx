@@ -4,11 +4,8 @@ import { useTranslation } from "../../../i18n";
 import { gameOverSplash, type GameOverOutcome } from "../../gameOverSplash";
 
 /**
- * The match's last moment. The reference client gives the ending the whole
- * screen — a black field, one enormous WIN or LOSE, the reason under it and a
- * single way out — rather than a dialog on top of a board nobody is playing any
- * more, so this does the same: the board is hidden behind it, the word scales and
- * lights up once, and then everything settles and stops moving.
+ * The match's last moment. The existing Aegis screen reveals the result at its
+ * resting size immediately, with the reason and actions ready on the same frame.
  *
  * Both halves of the ending are server truth. `gameOver` carries a discriminated
  * `result` and one of four `reason` codes; `gameOverSplash` only turns that pair
@@ -55,7 +52,7 @@ export function GameOverOverlay({
           ))}
         </div>
         <div className="game-actions-row">
-          <Button full icon={returnsToRoom ? Icons.Link2 : Icons.Swords} onClick={onRematch}>
+          <Button full autoFocus icon={returnsToRoom ? Icons.Link2 : Icons.Swords} onClick={onRematch}>
             {t(returnsToRoom ? "overlay.backToRoom" : "overlay.findRematch")}
           </Button>
           <Button full variant="secondary" icon={Icons.LayoutDashboard} onClick={onMenu}>

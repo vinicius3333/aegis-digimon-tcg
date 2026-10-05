@@ -11,11 +11,13 @@ import { combatWindowsFor } from "./screen/model/combatWindows";
 import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
+import { captureFieldShatterFace, takeFieldShatterOrigin, type FieldShatterFace } from "./fieldShatter";
 import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
 import { useBoardSelection } from "./screen/hooks/useBoardSelection";
 import { useOverlayState } from "./screen/hooks/useOverlayState";
 import { useDragPlumbing } from "./screen/hooks/useDragPlumbing";
 import { useTrackingArrow } from "./screen/hooks/useTrackingArrow";
+import { readAttackArrowClock } from "./attackArrowClock";
 import { boardActions } from "./screen/boardActions";
 import { matchIntents } from "./screen/matchIntents";
 import { PendingMatchBoard } from "./screen/layout/PendingMatchBoard";
@@ -293,6 +295,7 @@ export function GameScreen({
   // the board has already dropped the permanent, so the burst needs the last measurement
   // rather than the (gone) element.
   const permCentersRef = useRef<Record<string, { x: number; y: number }>>({});
+  const permFacesRef = useRef<Record<string, FieldShatterFace>>({});
   // The card that was standing at each position, kept for the same reason: the
   // shatter is drawn from the deleted card's own art, after the board dropped it.
   const permCardIdsRef = useRef<Record<string, string>>({});
@@ -404,6 +407,27 @@ export function GameScreen({
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
       permanentCardId: (permanentId) => permCardIdsRef.current[permanentId],
+      permanentStack: (id) => {
+        const cached = permFacesRef.current[id];
+        const element = permRefs.current[cached?.permanentId ?? id];
+        const board = boardRef.current;
+        return element?.isConnected && board
+          ? (captureFieldShatterFace(element, board, true) ?? cached)
+          : board
+            ? (takeFieldShatterOrigin(board, id) ?? cached)
+            : cached;
+      },
+      permanentFace: (id) => {
+        const cached = permFacesRef.current[id];
+        const element = permRefs.current[cached?.permanentId ?? id];
+        const board = boardRef.current;
+        return element?.isConnected && board
+          ? (captureFieldShatterFace(element, board) ?? cached)
+          : board
+            ? (takeFieldShatterOrigin(board, id) ?? cached)
+            : cached;
+      },
+      attackArrowClock: (permanentId, key) => readAttackArrowClock({ board: boardRef.current, key, permanentId }),
       yourDeck: yourDeckRef,
       oppDeck: oppDeckRef,
       yourHandDock: yourHandDockRef,
@@ -443,7 +467,6 @@ export function GameScreen({
     if (visible) onBoard({ live: state, displayed, visible, viewerSeat });
   }, [state, state?.stateVersion, snapshots, cues, viewerSeat, optimisticPlayedInstanceId, presentationPacing]);
   const {
-    attackLunge,
     combatImpactIds,
     fieldClash,
     deckRiffles,
@@ -495,15 +518,13 @@ export function GameScreen({
   });
 
   /* The activation moment for an effect fired from a zone rather than a card on
-     the field: the trash pile throws its top card up, the hand raises the Option.
+     the field: the trash pile lifts the physical source, the hand raises the Option.
      Which zone the source is in comes from the board (`effectSource.ts`), not from
      the event, which names only the card. */
   /* An activation outlives its own punch: it stays on for as long as the clause it raised is
-     being read (`effectSource.ts`). Only a permanent on the field has somewhere to hold that
-     light — it glows in place. The trash throwing its top card up and the hand raising an
-     Option are finite moves, so they answer to the announcing beat alone; left on the
-     sustained flag they stayed thrown up for the whole clause, which reads as the board
-     having frozen rather than as the card being pointed at. */
+     being read (`effectSource.ts`). A permanent glows in place. Hand and trash sources
+     keep their physical face raised through reading; the trash completes its final
+     shrink as reading begins. The clause releases their visual copies. */
   const announcing = effectSources.filter((activation) => activation.linked !== true);
   const trashEffectSource = (seat: Seat): string | undefined =>
     announcing.some((activation) => activation.seat === seat && activation.site.zone === "trash")
@@ -512,6 +533,10 @@ export function GameScreen({
   const handEffectSourceInstanceId = announcing.find(
     (activation) => activation.seat === viewerSeat && activation.site.zone === "hand",
   )?.site;
+  const handSources = effectSources.filter(
+    (activation) => activation.seat === viewerSeat && activation.site.zone === "hand",
+  );
+  const handEffectSource = handSources.find((activation) => activation.linked !== true) ?? handSources.at(-1);
   /* Two states, never both on one card: the half-second punch as the effect activates, and
      the steady light it holds for as long as its clause is on screen. Overlapping them
      would leave two animations fighting over the same filter. */
@@ -578,6 +603,7 @@ export function GameScreen({
     fieldRef,
     permRefs,
     permCentersRef,
+    permFacesRef,
     permCardIdsRef,
     opponentSecurityRef: oppSecRef,
   });
@@ -637,6 +663,7 @@ export function GameScreen({
     heldDeletions: cues.heldDeletions,
     heldStackStrips: cues.heldStackStrips,
     heldTrashArrivals: cues.heldTrashArrivals,
+    heldHandArrivals: cues.heldHandArrivals,
     optimisticPlayedInstanceId,
     presentationPacing,
   });
@@ -1049,7 +1076,7 @@ export function GameScreen({
       effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
       effectLinked={!!breedingYou.breeding && effectLinkedPermanentIds.has(breedingYou.breeding.permanentId)}
       highlight={!!breedingYou.breeding && decisionBreedingSourcePermanentId === breedingYou.breeding.permanentId}
-      eggDeckRiffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
+      eggDeckRiffling={deckRiffles.get(`${viewerSeat}:eggDeck`) ?? false}
       actionsOpen={breedingActionsOpen}
       canHatchEgg={canHatchEgg}
       canMoveOut={canMoveOutOfBreeding}
@@ -1176,7 +1203,6 @@ export function GameScreen({
     dpPulses,
     dpBadgeSuppressedIds,
     freezePulses,
-    attackLunge,
     heldSuspendedIds: cues.heldSuspendedIds,
   };
 
@@ -1243,6 +1269,7 @@ export function GameScreen({
       }}
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
       handDock={{
+        effectSource: handEffectSource,
         effectSourceInstanceId:
           handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined,
         shakeInstanceId: shakeHandInstanceId,
@@ -1350,7 +1377,7 @@ export function GameScreen({
       breedingDock={yourBreedingDock}
       overlayStack={overlays}
       stageEl={stageEl}
-      onStartHandDrag={(index, event) => startHandDrag(index, shownHandEntries[index], event)}
+      onStartHandDrag={(index, event, origin) => startHandDrag(index, shownHandEntries[index], event, origin)}
       onStartPermanentDrag={startPermDrag}
       onInspectPermanent={{
         viewer: (perm) => actions.onYourPerm(perm)?.(),

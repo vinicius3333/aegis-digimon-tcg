@@ -39,7 +39,7 @@ export function BreedingDock({
   effectSource: boolean;
   effectLinked: boolean;
   highlight: boolean;
-  eggDeckRiffling: boolean;
+  eggDeckRiffling: boolean | number;
   /** The breeding step is open and nothing is holding the board, so the dock answers. */
   actionsOpen: boolean;
   canHatchEgg: boolean;

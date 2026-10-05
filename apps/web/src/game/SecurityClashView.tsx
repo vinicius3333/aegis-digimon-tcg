@@ -3,13 +3,15 @@
    resolves between them. Decoration only — it never takes pointer input, and the
    contents and the timeline come from ./securityClash. */
 
-import type { CSSProperties } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { colorKey, type ColorName } from "../design/theme";
 import { Icons } from "../design/icons";
 import { ClawSlash } from "./piece";
-import { CardCracks, CardShatter } from "./CardShatterView";
+import { CardBurst } from "./CardBurst";
+import { CardShatter } from "./CardShatterView";
+import { TIMINGS } from "./timings";
 import { useTranslation } from "../i18n";
 import {
   orderSecurityClashFighters,
@@ -39,7 +41,7 @@ const RESOLUTION_LABEL_KEYS = {
 
 /* A card an effect trashed never had a chance to do anything, so nothing a check's scene
    prints applies: it was not checked, and "no effect" would read as a verdict on a card
-   that was never given one. The scene is the card alone — revealed, cracked and broken,
+   that was never given one. The scene is the card alone — revealed and broken,
    the way the reference client's `DestroySecurityEffect` plays it — and the one line it
    still owes is the accessible name of what happened. */
 const DESTRUCTION_ROLE_KEY = "overlay.trashedFromSecurity";
@@ -54,6 +56,7 @@ function ClashCard({
   spent,
   destroyed,
   width,
+  lightOwner,
 }: {
   fighter: SecurityClashFighter;
   role: "attacker" | "revealed";
@@ -64,6 +67,7 @@ function ClashCard({
   spent: boolean;
   /** An effect took this card out of the stack rather than a check flipping it. */
   destroyed: boolean;
+  lightOwner?: SecurityClashScene["lightOwner"] & { id: string };
 }) {
   const { t } = useTranslation();
   const cardName = getCardDefinition(fighter.cardId)?.nameEn ?? fighter.cardId;
@@ -76,10 +80,11 @@ function ClashCard({
       data-spent={spent ? "true" : undefined}
     >
       <div className="battle-clash__frame">
+        {role === "revealed" ? (
+          <CardBurst variant="play" color="Blue" className="battle-security-reveal-light" particleLight={false} />
+        ) : null}
         <div className="battle-clash__art">
           <CardFull cardId={fighter.cardId} artId={fighter.artId} width={width} />
-          {/* Inside the art box so the cracks go with the card the moment its shards fly. */}
-          {destroyed ? <CardCracks /> : null}
         </div>
         {/* Drawn outside the art box, which clips its own entrance: the shards and
             the claw both reach past the card's edge. */}
@@ -90,6 +95,7 @@ function ClashCard({
               artId={fighter.artId}
               width={width}
               color={clashShatterColor(fighter.cardId)}
+              lightOwner={lightOwner}
             />
           </span>
         ) : null}
@@ -123,17 +129,13 @@ function clashFate(scene: SecurityClashScene, role: "attacker" | "revealed"): Cl
 }
 
 /**
- * Whether the card breaks apart at the end of the beat. The checked card does whenever
- * the check ends with it in the trash — CR 13-1-8-4 trashes it whichever way a compare
- * went, and a card with nothing to resolve is trashed outright. The attacker breaks only
- * when the compare deleted it, so a security battle it loses reads as a deletion here,
- * where the two cards are on stage, rather than only on the board behind the overlay. A
- * card that resolves an effect is excluded: it detours through the branch scene, which
- * plays its own exit.
+ * A destroyed stack card and a deleted attacker break apart. A checked card instead
+ * narrows and rises after its result, whichever side won the compare. An effect card
+ * follows its separate execution-slot disposal.
  */
 function clashSpent(scene: SecurityClashScene, role: "attacker" | "revealed"): boolean {
   if (role === "attacker") return scene.resolution === "battle" && scene.loser?.attacker === true;
-  return scene.resolution === "battle" || scene.resolution === "trashed";
+  return scene.cause === "destruction";
 }
 
 /** The revealed card breaks in its own colour, the way a deleted permanent does. */
@@ -147,6 +149,13 @@ function revealedName(scene: SecurityClashScene): string {
 
 export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
   const { t } = useTranslation();
+  const lightOwners = useMemo(
+    () => ({
+      attacker: scene.lightOwner ? { ...scene.lightOwner, id: `security-light-${scene.key}-attacker` } : undefined,
+      revealed: scene.lightOwner ? { ...scene.lightOwner, id: `security-light-${scene.key}-revealed` } : undefined,
+    }),
+    [scene.lightOwner, scene.key],
+  );
   const fighters = orderSecurityClashFighters(scene);
   const destroyed = scene.cause === "destruction";
   const cardWidth = destroyed ? DESTROYED_CARD_WIDTH : CLASH_CARD_WIDTH;
@@ -154,16 +163,26 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
     <div
       className="battle-clash"
       data-testid="security-clash"
+      data-scene-key={scene.key}
       data-resolution={scene.resolution}
       data-cause={scene.cause ?? "check"}
       data-departing={scene.departing ? "true" : undefined}
+      data-exiting={scene.exiting ? "true" : undefined}
+      data-revealed-ready={scene.revealedReady ? "true" : undefined}
       // A scene that names its own outcome beat runs the break and the fade behind it from
       // that moment: zero for a check that held on stage while it resolved and has already
       // spent the lead-in, and the shorter destruction beat for a card no attacker faced.
       style={
-        scene.outcomeAtMs === undefined
-          ? undefined
-          : ({ "--t-clash-outcome-at": `${scene.outcomeAtMs}ms` } as CSSProperties)
+        {
+          ...(scene.outcomeAtMs === undefined ? {} : { "--t-clash-outcome-at": `${scene.outcomeAtMs}ms` }),
+          ...(destroyed ? { "--t-clash-outcome": `${TIMINGS.cardShatter}ms` } : {}),
+          ...(scene.loser?.attacker
+            ? {
+                "--t-clash-stage-out-at":
+                  "calc(var(--t-clash-outcome-at, 853ms) + var(--t-clash-outcome, 350ms) + var(--t-card-shatter, 250ms))",
+              }
+            : {}),
+        } as CSSProperties
       }
       role="status"
       aria-live="assertive"
@@ -183,6 +202,7 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
           spent={clashSpent(scene, fighters[0]!.role)}
           destroyed={destroyed}
           width={cardWidth}
+          lightOwner={lightOwners[fighters[0]!.role]}
         />
         {fighters.length > 1 ? (
           <span
@@ -206,6 +226,7 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
             spent={clashSpent(scene, fighters[1].role)}
             destroyed={destroyed}
             width={cardWidth}
+            lightOwner={lightOwners[fighters[1].role]}
           />
         ) : null}
       </div>
@@ -237,10 +258,37 @@ export function SecurityEdgeFlash({ scene }: { scene: SecurityBreakScene }) {
  */
 export function SecurityBranch({ scene, compact = false }: { scene: SecurityBranchScene; compact?: boolean }) {
   const { t } = useTranslation();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const artRef = useRef<HTMLDivElement>(null);
+  const [transfer, setTransfer] = useState<CSSProperties | null>(null);
+  const securityDock = scene.source !== "option" && scene.state === "docked";
+  useLayoutEffect(() => {
+    if (scene.source === "option" || scene.state !== "docked") return;
+    const root = rootRef.current;
+    const art = artRef.current;
+    if (!root || !art) return;
+    const source = root.parentElement?.querySelector<HTMLElement>(
+      `.battle-clash[data-scene-key="${scene.key}"][data-departing="true"] .battle-clash__card[data-role="revealed"] .battle-clash__art`,
+    );
+    const from = source?.getBoundingClientRect();
+    const to = art.getBoundingClientRect();
+    setTransfer(
+      from && to.width > 0 && to.height > 0
+        ? ({
+            "--security-dock-x": `${from.x + from.width / 2 - to.x - to.width / 2}px`,
+            "--security-dock-y": `${from.y + from.height / 2 - to.y - to.height / 2}px`,
+            "--security-dock-scale-x": from.width / to.width,
+            "--security-dock-scale-y": from.height / to.height,
+          } as CSSProperties)
+        : {},
+    );
+    // A closing state retains the completed transfer rather than measuring a new origin.
+  }, [scene.key, scene.source, scene.state]);
   const cardName = getCardDefinition(scene.cardId)?.nameEn ?? scene.cardId;
   return (
     <div
       className="battle-security-branch"
+      ref={rootRef}
       data-testid="security-branch"
       data-side={scene.side}
       data-source={scene.source ?? "security"}
@@ -248,10 +296,14 @@ export function SecurityBranch({ scene, compact = false }: { scene: SecurityBran
       // The dock is open-ended, so its slide-in and its exit are two animations rather
       // than one fixed clip: the state says which of them the card is playing.
       data-state={scene.state}
+      data-transfer={transfer ? "ready" : securityDock ? "measuring" : undefined}
+      style={transfer ?? undefined}
       role="status"
     >
       <figure className="battle-security-branch__frame">
-        <CardFull cardId={scene.cardId} artId={scene.artId} width={compact ? 92 : BRANCH_CARD_WIDTH} />
+        <div ref={artRef} className="battle-security-branch__art">
+          <CardFull cardId={scene.cardId} artId={scene.artId} width={compact ? 92 : BRANCH_CARD_WIDTH} />
+        </div>
         <figcaption className="battle-security-branch__caption">
           {scene.source === "option" ? t("overlay.optionResolving") : t("overlay.securityResolving")}
           <br />

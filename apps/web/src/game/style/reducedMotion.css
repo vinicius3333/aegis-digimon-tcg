@@ -6,6 +6,9 @@
    specificity. The entrances are decoration only: without them every element
    still renders in its resting state and the sparkles stay invisible. */
 @media (prefers-reduced-motion: reduce) {
+  .game-draw-presentation {
+    display: none;
+  }
   .game-card-enter,
   .game-card-sparkle,
   .game-hand-card--drawn,
@@ -13,13 +16,18 @@
   .game-memory-coin--marker::before,
   .game-memory-coin--swept,
   .game-draw-flight,
-  .game-permanent-lunge--up,
-  .game-permanent-lunge--down,
   .game-security-shield--hit,
   .game-attack-arrow__chevron,
   .game-attack-arrow__head,
   .battle-clash,
+  .battle-clash:not([data-resolution="pending"]),
+  .battle-clash[data-departing="true"],
+  .battle-clash[data-exiting="true"],
   .battle-clash__art,
+  .battle-clash__card[data-role="attacker"][data-side] .battle-clash__art,
+  .battle-clash__card[data-role="revealed"] .battle-clash__art,
+  .battle-clash[data-resolution] .battle-clash__card[data-role="revealed"] .battle-clash__art,
+  .battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] .battle-clash__art,
   .game-turn-banner,
   .game-turn-banner span,
   .game-memory-gauge__phase--sweeping,
@@ -61,9 +69,10 @@
     display: none;
   }
 
-  /* The clash burst and the cracks are pure motion flourishes; the scene still reads without them. */
+  /* The clash burst is pure motion flourishes; the scene still reads without it. */
   .battle-clash__flash,
-  .game-card-cracks {
+  .battle-clash__card[data-role="revealed"] .battle-clash__art::after,
+  .battle-clash[data-exiting="true"] .battle-clash__card[data-role="revealed"] .battle-clash__art::after {
     display: none;
   }
 
@@ -87,6 +96,12 @@
   .battle-security-branch[data-state="docked"],
   .battle-security-branch[data-state="closing"] {
     translate: 0 calc(-50% - var(--security-branch-lift));
+    animation: none;
+  }
+
+  .battle-security-branch[data-transfer="ready"] .battle-security-branch__art,
+  .battle-security-branch[data-transfer="ready"] .battle-security-branch__frame,
+  .battle-security-branch[data-transfer="ready"] .battle-security-branch__caption {
     animation: none;
   }
 
@@ -115,8 +130,16 @@
   /* The showcase is text-free motion; the queue never enqueues it under reduced
      motion, and this covers the showcase page rendering one statically. */
   .battle-showcase,
-  .battle-showcase__frame {
+  .battle-showcase__frame,
+  .battle-showcase--arrival .battle-showcase__art,
+  .battle-showcase--arrival .battle-showcase__art > div,
+  .battle-showcase--arrival .battle-showcase__caption {
     animation: none;
+  }
+
+  .battle-showcase--arrival .battle-showcase__art::before,
+  .battle-showcase--arrival .battle-showcase__art::after {
+    display: none;
   }
 
   /* CardMini sets its suspend rotation inline, so only !important can reach it. */

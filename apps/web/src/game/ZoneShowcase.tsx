@@ -1,12 +1,5 @@
-/* The centre-screen card the board holds up when the opponent plays a card. A
-   digivolution is left to the board itself, which shows the stack changing
-   under its own burst. The reference client never flies a card between zone rectangles:
-   the source is hidden, the card is shown large in the middle of the screen, and
-   only then does it appear in its destination (battle-animation-spec.md §3 and
-   the cross-cutting notes). This is that middle beat.
-
-   Decoration with a caption: it takes no pointer input, and the queue owns how
-   long it stays. */
+/* Public arrival: white turn, readable face, then a narrow upward exit.
+   The queue owns the lifetime; the existing card, caption and board design stay ours. */
 
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../design/cards";
@@ -22,20 +15,29 @@ export function ZoneShowcase({ showcase }: { showcase: ZoneShowcaseModel }) {
   const digivolving = showcase.kind === "digivolve";
   return (
     <div
-      className="battle-showcase"
+      className="battle-showcase battle-showcase--arrival"
       data-testid="zone-showcase"
+      data-card-id={showcase.cardId}
       role="status"
-      style={showcase.departToField ? { animation: "none" } : undefined}
     >
       <figure className="battle-showcase__frame">
         <span className="battle-showcase__halo" aria-hidden="true">
           <CardBurst variant={digivolving ? "evolve" : "play"} color={showcase.color} />
         </span>
         <div className="battle-showcase__art">
-          <CardFull cardId={showcase.cardId} artId={showcase.artId} width={SHOWCASE_CARD_WIDTH} />
+          <CardFull cardId={showcase.cardId} artId={showcase.artId} width={SHOWCASE_CARD_WIDTH} zoomOnHover={false} />
         </div>
         <figcaption className="battle-showcase__caption">
-          {t(digivolving ? "showcase.opponentDigivolved" : "showcase.opponentPlayed", { card: cardName })}
+          {t(
+            showcase.mine
+              ? digivolving
+                ? "showcase.youDigivolved"
+                : "showcase.youPlayed"
+              : digivolving
+                ? "showcase.opponentDigivolved"
+                : "showcase.opponentPlayed",
+            { card: cardName },
+          )}
         </figcaption>
       </figure>
     </div>

@@ -23,31 +23,22 @@ export const ANIMATION_FAMILIES = {
     sequence: "Finish prior action → announce turn/phase → open actions",
   },
   draw: {
-    label: "Draw",
+    label: "Draw and hand addition",
     owner: "match/flights.ts",
     timings: ["drawFlight", "drawFlightTouch", "drawFlightStagger", "handDraw"],
-    sequence: "Cause → deck/visible reveal → hand → count",
+    sequence: "Cause → draw presentation or public reveal → physical hand entry → count",
   },
   play: {
     label: "Play and landing",
     owner: "match/present/arrivals.ts",
-    timings: [
-      "playFlight",
-      "playFlightTouch",
-      "cardEnter",
-      "showcaseIn",
-      "showcaseHold",
-      "showcaseOut",
-      "landingBounce",
-      "cardBurst",
-    ],
-    sequence: "Server accepts → show card → travel → land → On Play",
+    timings: ["cardEnter", "showcaseIn", "showcaseFace", "showcaseHold", "showcaseOut", "landingBounce", "cardBurst"],
+    sequence: "Server accepts → white turn → face → read → narrow exit → field light → On Play",
   },
   evolve: {
     label: "Digivolution and fusion",
     owner: "match/present/arrivals.ts",
-    timings: ["showcaseHold", "cardBurst"],
-    sequence: "Accept route/materials → change stack → burst → triggered clause",
+    timings: ["showcaseIn", "showcaseFace", "showcaseHold", "showcaseOut", "cardBurst"],
+    sequence: "Accept route/materials → reveal card → change stack → burst → bonus draw/triggered clause",
   },
   breeding: {
     label: "Hatch and promote",
@@ -58,7 +49,14 @@ export const ANIMATION_FAMILIES = {
   effect: {
     label: "Effect activation",
     owner: "match/narration/narrationStream.ts",
-    timings: ["effectSourceHold", "effectTrashRise", "effectHandRise", "effectAnnounce", "effectLinkedBreath"],
+    timings: [
+      "effectSourceHold",
+      "effectTrashRise",
+      "effectHandRise",
+      "effectAnnounce",
+      "effectNoticeIn",
+      "effectLinkedBreath",
+    ],
     sequence: "Accept optional effect → focus source → clause → consequences → settle",
   },
   choice: {
@@ -69,39 +67,48 @@ export const ANIMATION_FAMILIES = {
   },
   attack: {
     label: "Attack declaration",
-    owner: "match/present/attackLunge.ts",
-    timings: ["attackAnnounce", "attackArrow", "attackLunge", "suspendRotate"],
-    sequence: "Declare → suspend → source/target arrow → attack effects",
+    owner: "screen/hooks/useTrackingArrow.ts",
+    timings: ["attackAnnounce", "attackArrow", "arrowExtend", "arrowHold", "suspendRotate"],
+    sequence: "Declare → suspend → two source-to-target sweeps → attack effects",
   },
   battle: {
     label: "Field battle",
     owner: "match/present/combatImpact.ts",
     timings: ["clawSlash", "cardShake", "cardShakeHold", "cardShatter"],
-    sequence: "Target → lunge → compare → impact → losing cards depart",
+    sequence: "Target → compare → impact → losing cards depart",
   },
   security: {
     label: "Security check",
     owner: "match/present/securityRevealScene.ts",
-    timings: ["securityArm", "shieldBreak", "clashReveal", "clashHold", "clashOutcome", "securityClauseRead"],
-    sequence: "Arm → break → reveal → battle or effect dock → route card",
+    timings: [
+      "securityArm",
+      "shieldBreak",
+      "clashReveal",
+      "securityRevealLight",
+      "securityCardExit",
+      "clashHold",
+      "clashOutcome",
+      "securityClauseRead",
+    ],
+    sequence: "Arm → break → white face/reveal → light/recognition → battle or effect dock → route card",
   },
   securityChange: {
     label: "Recover and destroy security",
     owner: "match/present/securityDestructions.ts",
-    timings: ["securityFlight", "securityDestroyHold", "securityDestroyCrack", "securityCountPop"],
+    timings: ["securityFlight", "securityDestroyHold", "securityCountPop"],
     sequence: "Clause → add hidden card, or reveal/shatter public loss → count",
   },
   removal: {
     label: "Delete, trash and return",
     owner: "match/present/deletionBursts.ts",
-    timings: ["cardShatter", "deletionBurst", "removalStagger", "drawFlight"],
+    timings: ["cardShatter", "deletionBurst", "removalStagger", "deckReturn", "handReturn", "handReturnPause"],
     sequence: "Clause/impact → retain field card → shatter or return flight → remove",
   },
   stack: {
     label: "Digivolution cards and links",
     owner: "match/present/stackStripPeels.ts",
     timings: ["stackStripPeel", "drawFlight", "cardEnter"],
-    sequence: "Clause → peel/attach source or linked card → update stack",
+    sequence: "Clause → source lift/sway → hold → rim off/face fade, or attach linked card → update stack",
   },
   zone: {
     label: "Reveal and zone movement",
@@ -142,8 +149,8 @@ export const ANIMATION_FAMILIES = {
   result: {
     label: "Match result",
     owner: "overlay/match/GameOverOverlay.tsx",
-    timings: ["resultSplashIn", "dialogIn"],
-    sequence: "Finish outcome → show winner/draw and reason",
+    timings: [],
+    sequence: "Finish outcome → reveal the settled winner/draw, reason and actions immediately",
   },
   interaction: {
     label: "Selection and inspection",
@@ -156,6 +163,12 @@ export const ANIMATION_FAMILIES = {
 export type AnimationFamily = keyof typeof ANIMATION_FAMILIES;
 /** Entry points for actual rules, scripted visual recipes and component-only motion. */
 export const ANIMATION_HARNESSES = [
+  {
+    label: "Animation frame reference",
+    href: "/dev/motion-reference",
+    kind: "decoded reference / live comparison",
+    families: ["effect", "evolve", "play", "attack", "security", "removal"],
+  },
   {
     label: "Engine chains and queue trace",
     href: "/dev/effects-lab",
@@ -252,6 +265,7 @@ export const EVENT_ANIMATIONS = {
   evadeResolved: { families: ["restriction"], changesBoard: true },
   barrierPrompt: { families: ["choice"], changesBoard: true },
   barrierResolved: { families: ["securityChange"], changesBoard: true },
+  battleCompared: { families: ["battle"], changesBoard: false },
   combatResolved: { families: ["battle", "removal"], changesBoard: true },
   attackEnded: { families: ["attack"], changesBoard: true },
   deletionPrevented: { families: ["choice", "stack", "restriction"], changesBoard: true },
@@ -283,7 +297,7 @@ export function eventChangesPresentedBoard(event: ServerEvent): boolean {
 export function animationFamiliesForEvent(event: ServerEvent): readonly AnimationFamily[] {
   if (event.kind !== "cardsMoved") return EVENT_ANIMATIONS[event.kind].families;
   const families = new Set<AnimationFamily>(["zone"]);
-  if (event.to === "hand") families.add("draw");
+  if (event.to === "hand" && event.handAddition !== "staging") families.add("draw");
   if (event.from === "security" || event.to === "security") families.add("securityChange");
   if (event.deletedPermanents?.length || event.trashedPermanents?.length || event.returnedPermanents?.length)
     families.add("removal");
@@ -298,13 +312,13 @@ export function animationFamilyForStep(step: Pick<AnimationStep, "id" | "track">
   if (/^(security-deal)/.test(id)) return "opening";
   if (/^(turn-banner|phase-banner)/.test(id)) return "phase";
   if (/^(draw-flight|draw-burst)/.test(id)) return "draw";
-  if (/^(zone-change|play-flight|burst-)/.test(id)) return "play";
+  if (/^(zone-change|play-flight|burst-|arrival-light)/.test(id)) return "play";
   if (/^(effect-unit|effect-source|effect-resume|narration-step)/.test(id)) return "effect";
-  if (/^(attack-|lunge)/.test(id)) return "attack";
+  if (/^attack-/.test(id)) return "attack";
   if (/^(combat-|field-clash)/.test(id)) return "battle";
   if (/^(security-gain|security-destroyed|security-flight|security-destruction)/.test(id)) return "securityChange";
   if (/^(security-|option-dock)/.test(id)) return "security";
-  if (/^(delete-burst|deck-return)/.test(id)) return "removal";
+  if (/^(delete-burst|delete-light|deck-return|hand-return)/.test(id)) return "removal";
   if (/^(stack-strip|deck-under|option-under)/.test(id)) return "stack";
   if (/^(reveal-showcase)/.test(id)) return "zone";
   if (/^(memory-)/.test(id)) return "memory";

@@ -3,13 +3,18 @@ import { defineConfig } from "vite";
 import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { motionReferenceAssets } from "./dev/motionReferenceAssets";
 
 const requestedTestMaxThreads = Number(process.env.TEST_MAX_THREADS ?? 4);
 const testMaxThreads =
   Number.isInteger(requestedTestMaxThreads) && requestedTestMaxThreads > 0 ? requestedTestMaxThreads : 4;
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    motionReferenceAssets(fileURLToPath(new URL("./.motion-reference", import.meta.url))),
+  ],
   resolve: {
     alias: {
       // Scenario tests (test/) render the real client against the real

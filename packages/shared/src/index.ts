@@ -10,3 +10,4 @@ export * from "./banlist.js";
 export * from "./tournaments/index.js";
 export * from "./decks/index.js";
 export * from "./account/avatars.js";
+export * from "./dev/keywordPacing.js";

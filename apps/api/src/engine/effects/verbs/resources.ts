@@ -35,6 +35,7 @@ export function createResourcesVerbs(pc: PrimitivesContext) {
         instanceIds: drawn.map((c) => c.instanceId),
         from: Zone.Deck,
         to: Zone.Hand,
+        handAddition: "draw",
         seat,
         ...(opts?.drawReason ? { drawReason: opts.drawReason } : {}),
       });

@@ -167,6 +167,7 @@ function previewRecipe(recipeId: string) {
 export function createArenaDemoState(
   drawCounts: readonly [number, number] = [0, 0],
   crowdedTamers?: CrowdedTamers,
+  hatchSeats: readonly [boolean, boolean] = [false, false],
 ): GameState {
   const scenario = new URLSearchParams(window.location.search).get("scenario");
   if (scenario === "security") return createArenaSecurityDemoState(drawCounts);
@@ -209,8 +210,14 @@ export function createArenaDemoState(
     player.displayName = preview.name;
     player.avatarId = seat === 0 ? "herculeskabuterimon" : "piximon";
     player.sessionId = `arena-demo-${seat}`;
-    player.breeding = permanent(preview.breeding);
-    player.breeding.inBreeding = true;
+    if (scenario === "hatch") {
+      if (hatchSeats[seat]) {
+        player.breeding = permanent({ cardId: preview.breeding.sources![0]!, id: `hatch-${seat}` });
+      }
+    } else {
+      player.breeding = permanent(preview.breeding);
+    }
+    if (player.breeding) player.breeding.inBreeding = true;
     player.battleArea.push(...preview.battle.map(permanent));
     player.trash.push(...preview.trash.map((cardId, index) => card(take(cardId), `trash-${seat}-${index}`, seat)));
 
@@ -240,6 +247,10 @@ export function ArenaDemo() {
   const { locale, t } = useTranslation();
   const portuguese = locale === "pt-BR";
   const securityScenario = new URLSearchParams(window.location.search).get("scenario") === "security";
+  const hatchScenario = new URLSearchParams(window.location.search).get("scenario") === "hatch";
+  const [hatchSeats, setHatchSeats] = useState<readonly [boolean, boolean]>([false, false]);
+  const [movedBreedingSeats, setMovedBreedingSeats] = useState<ReadonlySet<Seat>>(() => new Set());
+  const [previewOutcome, setPreviewOutcome] = useState<"win" | "loss" | "draw" | undefined>();
   const [imperialStep, setImperialStep] = useState<0 | 1 | 2 | 3>(() =>
     new URLSearchParams(window.location.search).get("scenario") === "imperial" ? 1 : 0,
   );
@@ -321,6 +332,9 @@ export function ArenaDemo() {
   >(null);
   const [effectPreviewRun, setEffectPreviewRun] = useState(0);
   const [effectDemoDeleted, setEffectDemoDeleted] = useState(false);
+  const [deckReturnPreview, setDeckReturnPreview] = useState<Seat | null>(null);
+  const [handReturnPreview, setHandReturnPreview] = useState<{ seat: Seat; count: 1 | 2 } | null>(null);
+  const [stackStripPreview, setStackStripPreview] = useState<{ seat: Seat; kind: "sources" | "top" } | null>(null);
   const [phase, setPhase] = useState(Phase.Main);
   const [batches, setBatches] = useState<ServerBatch[]>([]);
   const [keywordGrants, setKeywordGrants] = useState<DemoKeywordGrants>({});
@@ -334,6 +348,7 @@ export function ArenaDemo() {
   const [noticeBurstStep, setNoticeBurstStep] = useState<number | null>(null);
   /** How many batches of the real security check have been emitted, or null when idle. */
   const [securityReplayStep, setSecurityReplayStep] = useState<number | null>(null);
+  const [dockedBattlePreview, setDockedBattlePreview] = useState<{ attackerDP: number; run: number } | null>(null);
   /** The board the replay has reached, kept after it ends: 0 none, 2 Taiki played, 6 Xros'd. */
   const [securityBoardStep, setSecurityBoardStep] = useState(0);
   /** Which beat of the Plutomon preview has been emitted, or null when idle. */
@@ -354,12 +369,58 @@ export function ArenaDemo() {
   const [crowdedTamers, setCrowdedTamers] = useState<CrowdedTamers>({ turnedAmiAiba: 0, allReady: false });
   const [deepStackSuspended, setDeepStackSuspended] = useState(false);
   const state = useMemo(() => {
-    const next = createArenaDemoState(drawCounts, crowdedTamers);
+    const next = createArenaDemoState(drawCounts, crowdedTamers, hatchSeats);
+    for (const seat of movedBreedingSeats) {
+      const player = next.players[seat]!;
+      if (player.breeding) {
+        player.battleArea.push(player.breeding);
+        player.breeding = undefined;
+      }
+    }
     if (crowdedScenario) {
       const deepStack = next.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT25-075");
       if (deepStack) deepStack.isSuspended = deepStackSuspended;
     }
     next.phase = phase;
+    if (deckReturnPreview !== null) {
+      const owner = next.players[deckReturnPreview]!;
+      const host = owner.battleArea.find((permanent) => permanent.stack.length >= 2);
+      if (host) {
+        owner.battleArea.splice(owner.battleArea.indexOf(host), 1);
+        owner.deckCount += 1;
+        owner.trash.push(...host.stack, ...host.linked);
+      }
+    }
+    if (handReturnPreview) {
+      const owner = next.players[handReturnPreview.seat]!;
+      const hosts = [
+        ...owner.battleArea.filter((permanent) => permanent.stack.length >= 2),
+        ...owner.battleArea.filter((permanent) => permanent.stack.length < 2),
+      ].slice(0, handReturnPreview.count);
+      for (const host of hosts) {
+        owner.battleArea.splice(owner.battleArea.indexOf(host), 1);
+        owner.hand.push(host.topCard);
+        owner.handCount += 1;
+        owner.trash.push(...host.stack, ...host.linked);
+      }
+    }
+    if (stackStripPreview) {
+      const owner = next.players[stackStripPreview.seat]!;
+      const host = owner.battleArea.find((permanent) => permanent.stack.length >= 2);
+      if (host) {
+        if (stackStripPreview.kind === "top") {
+          owner.trash.push(host.topCard);
+          host.topCard = host.stack.pop()!;
+          host.baseDP = getCardDefinition(host.topCard.cardId)?.dp ?? 0;
+          host.currentDP = host.baseDP;
+        } else owner.trash.push(...host.stack.splice(-2));
+      }
+    }
+    if (previewOutcome) {
+      next.gameOver = true;
+      next.winnerSeat = previewOutcome === "draw" ? -1 : previewOutcome === "win" ? 0 : 1;
+      next.phase = Phase.End;
+    }
     if (imperialStep !== 0) {
       const imperial = fighter("AD1-024", "demo-imperial", 0);
       imperial.isSuspended = !imperialActivated;
@@ -425,12 +486,223 @@ export function ArenaDemo() {
     securityScenario,
     securityFaceDownCount,
     effectDemoDeleted,
+    stackStripPreview,
+    deckReturnPreview,
+    handReturnPreview,
     plutomonDeleted,
     securityBoardStep,
     imperialStep,
     imperialReturned,
     imperialActivated,
+    hatchSeats,
+    movedBreedingSeats,
+    previewOutcome,
   ]);
+  function previewDeckReturn(seat: Seat) {
+    const host = state.players[seat]?.battleArea.find((permanent) => permanent.stack.length >= 2);
+    if (!host) return;
+    setDeckReturnPreview(seat);
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "effectTriggered",
+          seat,
+          sourceCardId: host.topCard.cardId,
+          sourcePermanentId: host.permanentId,
+          effectKey: `demo/return-deck/${seat}`,
+          timing: "Main",
+          description: "Return this Digimon to the bottom of its owner's deck.",
+        },
+        {
+          kind: "cardsMoved",
+          seat,
+          from: "battleArea",
+          to: "deckBottom",
+          instanceIds: [host.topCard.instanceId],
+          cardIds: [host.topCard.cardId],
+          returnedPermanents: [
+            {
+              permanentId: host.permanentId,
+              instanceId: host.topCard.instanceId,
+              cardId: host.topCard.cardId,
+              artId: host.topCard.artId,
+              seat,
+            },
+          ],
+        },
+        ...(host.stack.length
+          ? [
+              {
+                kind: "cardsMoved" as const,
+                seat,
+                from: "various",
+                to: "trash",
+                instanceIds: host.stack.map((sourceCard) => sourceCard.instanceId),
+                cardIds: host.stack.map((sourceCard) => sourceCard.cardId),
+              },
+            ]
+          : []),
+      ]),
+    ]);
+  }
+  function previewHandReturn(seat: Seat, count: 1 | 2) {
+    const owner = state.players[seat]!;
+    const hosts = [
+      ...owner.battleArea.filter((permanent) => permanent.stack.length >= 2),
+      ...owner.battleArea.filter((permanent) => permanent.stack.length < 2),
+    ].slice(0, count);
+    if (!hosts.length) return;
+    setHandReturnPreview({ seat, count });
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "effectTriggered",
+          seat,
+          sourceCardId: hosts[0]!.topCard.cardId,
+          sourcePermanentId: hosts[0]!.permanentId,
+          effectKey: `demo/return-hand/${seat}`,
+          timing: "Main",
+          description: `Return ${hosts.length} Digimon to their owners' hands.`,
+        },
+        {
+          kind: "cardsMoved",
+          seat,
+          from: "various",
+          to: "hand",
+          handAddition: "transfer",
+          instanceIds: hosts.map((host) => host.topCard.instanceId),
+          returnedPermanents: hosts.map((host) => ({
+            permanentId: host.permanentId,
+            instanceId: host.topCard.instanceId,
+            cardId: host.topCard.cardId,
+            artId: host.topCard.artId,
+            seat,
+          })),
+        },
+        {
+          kind: "cardsMoved",
+          seat,
+          from: "battleArea",
+          to: "trash",
+          instanceIds: hosts.flatMap((host) =>
+            [...host.stack, ...host.linked].map((sourceCard) => sourceCard.instanceId),
+          ),
+        },
+      ]),
+    ]);
+  }
+  function previewStackStrip(seat: Seat, kind: "sources" | "top") {
+    const owner = createArenaDemoState(drawCounts).players[seat]!;
+    const host = owner.battleArea.find((permanent) => permanent.stack.length >= 2);
+    if (!host) return;
+    const cards = kind === "top" ? [host.topCard] : host.stack.slice(-2);
+    setStackStripPreview({ seat, kind });
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "effectTriggered",
+          seat,
+          sourceCardId: host.topCard.cardId,
+          sourcePermanentId: host.permanentId,
+          effectKey: `demo/stack-strip/${seat}/${kind}`,
+          timing: "Main",
+          description:
+            kind === "top" ? "Trash the top card of this Digimon." : "Trash 2 digivolution cards from this Digimon.",
+        },
+        {
+          kind: "cardsMoved",
+          seat,
+          from: "battleArea",
+          to: "trash",
+          instanceIds: cards.map((sourceCard) => sourceCard.instanceId),
+          cardIds: cards.map((sourceCard) => sourceCard.cardId),
+          artIds: cards.map((sourceCard) => sourceCard.artId || sourceCard.cardId),
+          ...(kind === "top"
+            ? { strippedStackTops: { permanentId: host.permanentId, reason: "trashTop" as const } }
+            : { trashedSources: { permanentId: host.permanentId, hostCardId: host.topCard.cardId } }),
+        },
+      ]),
+    ]);
+  }
+  function previewResult(outcome: "win" | "loss" | "draw") {
+    setPreviewOutcome(outcome);
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "gameOver",
+          result: outcome === "draw" ? { outcome: "draw" } : { outcome: "win", winnerSeat: outcome === "win" ? 0 : 1 },
+          reason: "security",
+        },
+      ]),
+    ]);
+  }
+  function previewBreedingMove(seat: Seat) {
+    const raised = state.players[seat]?.breeding;
+    if (!raised) return;
+    setMovedBreedingSeats((previous) => new Set(previous).add(seat));
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        { kind: "movedFromBreeding", seat, permanentId: raised.permanentId, cardId: raised.topCard.cardId },
+      ]),
+    ]);
+  }
+  function previewHatch(seat: Seat) {
+    if (hatchSeats[seat]) return;
+    const cardId = ARENA_DECKS[seat]!.breeding.sources![0]!;
+    setHatchSeats((previous) => (seat === 0 ? [true, previous[1]] : [previous[0], true]));
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([{ kind: "hatched", seat, permanentId: `hatch-${seat}`, cardId }]),
+    ]);
+  }
+  function previewTrashSource(seat: Seat) {
+    const source = state.players[seat]?.trash[0];
+    if (!source) return;
+    // A presentation fixture, not printed-card rules validation.
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "effectTriggered",
+          seat,
+          sourceCardId: source.cardId,
+          sourceInstanceId: source.instanceId,
+          effectKey: `trash-source-preview-${Date.now()}`,
+          timing: "Trash",
+          description: portuguese
+            ? "Prévia visual: ativação da carta sob o topo do lixo."
+            : "Visual preview: activate the card below the top of the trash.",
+        },
+      ]),
+    ]);
+  }
+  function previewHandSource(position: "first" | "last") {
+    const hand = state.players[0]?.hand;
+    const source = position === "first" ? hand?.[0] : hand?.[hand.length - 1];
+    if (!source) return;
+    // Accepted public presentation fixture; no printed-card legality claim.
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "effectTriggered",
+          seat: 0,
+          sourceCardId: source.cardId,
+          sourceInstanceId: source.instanceId,
+          effectKey: `hand-source-preview-${Date.now()}`,
+          timing: "Hand",
+          description: portuguese
+            ? "Prévia visual: ativação de uma carta da mão."
+            : "Visual preview: activate a card in hand.",
+        },
+      ]),
+    ]);
+  }
   const playback = useArenaVisualPlayback(state, keywordLabels, portuguese);
   const handSource = state.players[0]!.battleArea[0]?.topCard.cardId;
   /**
@@ -504,6 +776,32 @@ export function ArenaDemo() {
   function drawCard(seat: Seat) {
     if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
     setDrawCounts((previous) => (seat === 0 ? [previous[0] + 1, previous[1]] : [previous[0], previous[1] + 1]));
+  }
+  /** Visual hand-addition fixture through the same public event pipeline as a search. */
+  function previewHandTransfer(seat: Seat, revealed: boolean) {
+    if (!state.players[seat]?.deckCount) return;
+    const index = drawCounts[seat];
+    const nextCounts: [number, number] = [drawCounts[0], drawCounts[1]];
+    nextCounts[seat] += 1;
+    const after = createArenaDemoState(nextCounts);
+    const cardId =
+      seat === 0
+        ? after.players[0]!.hand.find((entry) => entry.instanceId === `draw-${seat}-${index}`)!.cardId
+        : ARENA_DECKS[seat]!.hand[0]!;
+    const transferEvents: ServerEvent[] = [
+      ...(revealed ? [{ kind: "cardRevealed" as const, seat, cardId }] : []),
+      {
+        kind: "cardsMoved",
+        seat,
+        from: "deck",
+        to: "hand",
+        handAddition: "transfer",
+        instanceIds: [`draw-${seat}-${index}`],
+        ...(revealed ? { cardIds: [cardId] } : {}),
+      },
+    ];
+    setDrawCounts(nextCounts);
+    setBatches((previous) => [...previous, singleServerBatch(transferEvents)]);
   }
   function previewPhase(next: Phase) {
     setPhase(next);
@@ -631,6 +929,101 @@ export function ArenaDemo() {
     setSecurityBoardStep(0);
     setSecurityReplayStep(0);
   }
+  function previewResolvedSecurityEffect() {
+    setSecurityReplayStep(null);
+    setSecurityBoardStep(2);
+    setBatches([
+      singleServerBatch([
+        ...SECURITY_CHECK_REPLAY[0]!,
+        ...SECURITY_CHECK_REPLAY[1]!,
+        ...SECURITY_CHECK_REPLAY[2]!,
+        ...SECURITY_CHECK_REPLAY[3]!,
+        ...SECURITY_CHECK_REPLAY[7]!,
+        ...SECURITY_CHECK_REPLAY.at(-1)!,
+      ]),
+    ]);
+  }
+  /** Controlled presentation events, independent of printed-card engine legality. */
+  function previewPlainSecurityCheck(seat: Seat) {
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "securityRevealed",
+          seat,
+          revealedCardId: "BT1-085",
+          attackerPermanentId: "preview-absent-attacker",
+          isDigimon: false,
+          hasSecurityEffect: false,
+        },
+        { kind: "securityChecked", seat, revealedCardId: "BT1-085", resolution: "trashed" },
+      ]),
+    ]);
+  }
+  function previewDockedSecurityBattle() {
+    const attacker = state.players[0]!.battleArea.find(
+      (permanent) => getCardDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Digimon) ?? false,
+    );
+    if (!attacker) return;
+    setDockedBattlePreview({ attackerDP: attacker.currentDP, run: Date.now() });
+    setBatches((previous) => [
+      ...previous,
+      singleServerBatch([
+        {
+          kind: "attackDeclared",
+          seat: 0,
+          attackerPermanentId: attacker.permanentId,
+          attackerCardId: attacker.topCard.cardId,
+          target: { kind: "player" },
+        },
+        {
+          kind: "securityRevealed",
+          seat: 1,
+          revealedCardId: "BT1-010",
+          attackerPermanentId: attacker.permanentId,
+          attackerDP: attacker.currentDP,
+          securityCardDP: 2000,
+          isDigimon: true,
+          hasSecurityEffect: true,
+        },
+        {
+          kind: "effectTriggered",
+          seat: 1,
+          sourceCardId: "BT1-010",
+          timing: "Security",
+          effectKey: "demo/security-before-battle",
+          description: portuguese
+            ? "Prévia visual: resolva o efeito de segurança antes da batalha."
+            : "Visual preview: resolve the security effect before battle.",
+        },
+      ]),
+    ]);
+  }
+  useEffect(() => {
+    if (!dockedBattlePreview) return;
+    // A controlled later server batch closes the check after its clause has read.
+    const timer = setTimeout(() => {
+      setBatches((previous) => [
+        ...previous,
+        singleServerBatch([
+          {
+            kind: "securityChecked",
+            seat: 1,
+            revealedCardId: "BT1-010",
+            resolution: "battle",
+            battle: {
+              attackerDP: dockedBattlePreview.attackerDP,
+              securityCardDP: 2000,
+              attackerDeleted: false,
+              securityDigimonDeleted: true,
+            },
+          },
+        ]),
+      ]);
+      setDockedBattlePreview(null);
+    }, 3200);
+    return () => clearTimeout(timer);
+  }, [dockedBattlePreview]);
   function previewTurnStart() {
     if (turnStartStep !== null || !state.players[0]!.deckCount) return;
     // A fresh screen clears any individually queued phase previews and establishes
@@ -1015,6 +1408,11 @@ export function ArenaDemo() {
         </button>
         <ArenaDemoTools
           portuguese={portuguese}
+          onHatch={hatchScenario ? previewHatch : undefined}
+          onBreedingMove={previewBreedingMove}
+          onResult={previewResult}
+          onTrashSource={previewTrashSource}
+          onHandSource={previewHandSource}
           deckCounts={[state.players[0]!.deckCount, state.players[1]!.deckCount]}
           onKeywords={() => setKeywordEditorOpen(true)}
           onSecurityFlip={
@@ -1033,6 +1431,10 @@ export function ArenaDemo() {
           onReadyTamers={crowdedScenario ? () => setCrowdedTamers({ turnedAmiAiba: 0, allReady: true }) : undefined}
           onToggleDeepStack={crowdedScenario ? () => setDeepStackSuspended((current) => !current) : undefined}
           onDraw={drawCard}
+          onShuffle={(seat, deck) =>
+            setBatches((previous) => [...previous, singleServerBatch([{ kind: "deckShuffled", seat, deck }])])
+          }
+          onHandTransfer={previewHandTransfer}
           onVisualPlayback={playback.controller.controls.start}
           onSecurityBattle={playback.controller.controls.startSecurityBattle}
           onOpeningSecurityDeal={playback.controller.controls.startOpeningSecurityDeal}
@@ -1043,7 +1445,13 @@ export function ArenaDemo() {
           onHandSelection={previewHandSelection}
           onMixedSelection={previewMixedSelection}
           onEffectActivation={previewEffectActivation}
+          onStackStrip={previewStackStrip}
+          onDeckReturn={previewDeckReturn}
+          onHandReturn={previewHandReturn}
           onSecurityEffect={previewSecurityEffect}
+          onPlainSecurityCheck={previewPlainSecurityCheck}
+          onDockedSecurityBattle={previewDockedSecurityBattle}
+          onResolvedSecurityEffect={previewResolvedSecurityEffect}
           onNoticeOrdering={previewNoticeOrdering}
           onSplitToasts={previewSplitToasts}
           onPlutomon={previewPlutomon}

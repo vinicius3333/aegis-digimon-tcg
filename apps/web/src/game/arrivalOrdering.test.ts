@@ -200,3 +200,72 @@ it.each(["sequential", "current"] as const)(
     expect(view.result.current.pendingPermanentIds.size).toBe(0);
   },
 );
+
+it("a receipt before a play cannot gate that play behind its own On Play", async () => {
+  const state = new GameState();
+  state.stateVersion = 1;
+  const viewer = new PlayerState();
+  const opponent = new PlayerState();
+  opponent.seat = 1;
+  const card = new CardInstance();
+  card.instanceId = "played";
+  card.cardId = "BT1-010";
+  const permanent = new Permanent();
+  permanent.permanentId = "played-permanent";
+  permanent.topCard = card;
+  permanent.stack.push(card);
+  viewer.battleArea.push(permanent);
+  state.players.push(viewer, opponent);
+  const anchors = geometry();
+  const view = renderHook(
+    ({ fed }: { fed: readonly ServerBatch[] }) =>
+      useMatchCues({
+        state,
+        batches: fed,
+        viewerSeat: 0,
+        anchors,
+        mulliganOpen: false,
+        presentationPacing: "current",
+        onActionRejected: vi.fn<(reason: string) => void>(),
+      }),
+    { initialProps: { fed: [] as readonly ServerBatch[] } },
+  );
+  await act(async () => vi.advanceTimersByTimeAsync(0));
+  view.rerender({
+    fed: [
+      singleServerBatch(
+        [
+          {
+            kind: "effectActivated",
+            seat: 0,
+            sourceCardId: "BT1-010",
+            effectKey: "receipt",
+            description: "Activation receipt",
+            receiptOnly: true,
+          },
+          { kind: "cardPlayed", seat: 0, cardId: card.cardId, permanentId: permanent.permanentId },
+          {
+            kind: "effectTriggered",
+            seat: 0,
+            sourceCardId: card.cardId,
+            sourcePermanentId: permanent.permanentId,
+            sourceInstanceId: card.instanceId,
+            effectKey: "onPlay",
+            timing: "OnPlay",
+            description: "[On Play] Draw 1.",
+          },
+        ],
+        1,
+      ),
+    ],
+  });
+  await act(async () => vi.advanceTimersByTimeAsync(0));
+  expect(view.result.current.zoneShowcase?.cardId).toBe(card.cardId);
+  await act(async () => vi.advanceTimersByTimeAsync(2200));
+  expect(view.result.current.pendingPermanentIds.size).toBe(0);
+  expect(
+    view.result.current.notices.some(
+      (notice) => notice.body.variant === "effect" && notice.body.cardId === card.cardId,
+    ),
+  ).toBe(true);
+});

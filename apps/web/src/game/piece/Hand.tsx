@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useLayoutEffect, useState, type HTMLAttributes } from "react";
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../../design/cards";
 import { Icons } from "../../design/icons";
@@ -21,6 +21,10 @@ import type { HandEntry, HandSelection } from "./types";
 import { useElementWidth } from "./useElementWidth";
 import { useHandPickGesture } from "./useHandPickGesture";
 import { useScrollOverflow } from "./useScrollOverflow";
+import { HandSourceFocus } from "./HandSourceFocus";
+import { HandHoverFace } from "./HandHoverFace";
+import { useHandArrivalArt } from "./useHandArrivalArt";
+import type { EffectActivation } from "../effectSource";
 
 export function Hand({
   cards,
@@ -31,13 +35,14 @@ export function Hand({
   selection,
   shakeInstanceId,
   effectSourceInstanceId,
+  effectSource,
   onHoverChange,
   cardWidth = HAND_CARD_WIDTH,
   minExposure = HAND_MIN_EXPOSURE,
 }: {
   cards: HandEntry[];
   selectedInstanceId?: string;
-  startDrag: (index: number, e: React.PointerEvent) => void;
+  startDrag: (index: number, e: React.PointerEvent, origin?: HTMLElement) => void;
   selectCard?: (index: number) => void;
   draggingInstanceId?: string;
   selection?: HandSelection;
@@ -45,6 +50,7 @@ export function Hand({
   shakeInstanceId?: string;
   /** An Option activating out of the hand: it rises out of the fan with an orange outline. */
   effectSourceInstanceId?: string;
+  effectSource?: EffectActivation;
   /** Which card the pointer is over, so the memory gauge can predict its play. */
   onHoverChange?: (instanceId: string | undefined) => void;
   cardWidth?: number;
@@ -53,10 +59,28 @@ export function Hand({
 }) {
   const { t } = useTranslation();
   const n = cards.length;
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredInstanceId, setHoveredInstanceId] = useState<string | null>(null);
+  const [coveredHoverKey, setCoveredHoverKey] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    if (hoveredInstanceId && !cards.some((entry) => entry.instanceId === hoveredInstanceId)) {
+      setHoveredInstanceId(null);
+      setCoveredHoverKey(null);
+    }
+  }, [cards, hoveredInstanceId]);
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null);
+  const [coveredSourceKey, setCoveredSourceKey] = useState<number | null>(null);
+  const [preparedSourceKey, setPreparedSourceKey] = useState<number | null>(null);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const sourceSite = effectSource?.site;
+  const sourceEntry =
+    sourceSite?.zone === "hand"
+      ? cards.find((entry) => entry.instanceId === sourceSite.instanceId && entry.cardId === effectSource?.cardId)
+      : undefined;
+  const sourcePreparing =
+    !reducedMotion && sourceEntry && effectSource?.linked !== true && preparedSourceKey !== effectSource?.key;
   const rowWidth = useElementWidth(rowEl);
   const drawn = useEnterAnimation(cards.map((entry) => entry.instanceId));
+  const arrivalArtReady = useHandArrivalArt(rowEl, drawn);
   // The strip only scrolls on the touch layout; everywhere else the fan is whole
   // and the cues would point at nothing.
   const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
@@ -98,7 +122,15 @@ export function Hand({
           const pickable = selection?.selectableInstanceIds.includes(entry.instanceId) ?? false;
           const sel = selection ? picked : selectedInstanceId === entry.instanceId;
           const dragging = draggingInstanceId === entry.instanceId;
-          const hov = hoveredIndex === i;
+          const hov = hoveredInstanceId === entry.instanceId;
+          const hoverKey = `${entry.instanceId}/${entry.artId ?? ""}`;
+          const showHover =
+            hov &&
+            !reducedMotion &&
+            !sourcePreparing &&
+            sourceEntry !== entry &&
+            !draggingInstanceId &&
+            (!drawn.has(entry.instanceId) || arrivalArtReady.has(entry.instanceId));
           const playable = selection
             ? pickable
             : entry.playableFromHand ||
@@ -113,92 +145,65 @@ export function Hand({
             hovered: hov,
             dragging,
           });
-          return (
-            <div
-              key={entry.instanceId}
-              onPointerDown={selection ? (e) => beginPick(entry.instanceId, e) : (e) => startDrag(i, e)}
-              onPointerMove={selection ? movePick : undefined}
-              onPointerUp={selection ? (e) => finishPick(entry.instanceId, e) : undefined}
-              onPointerCancel={selection ? cancelPick : undefined}
-              onContextMenu={
-                selection?.onInspect
-                  ? (event) => {
-                      event.preventDefault();
-                      inspect(entry.instanceId);
-                    }
-                  : undefined
-              }
-              onKeyDown={(event) => {
-                if (selection?.onInspect && event.key === "Enter" && event.altKey) {
+          const events: HTMLAttributes<HTMLDivElement> = {
+            onPointerDown: selection ? (e) => beginPick(entry.instanceId, e) : (e) => startDrag(i, e),
+            onPointerMove: selection ? movePick : undefined,
+            onPointerUp: selection ? (e) => finishPick(entry.instanceId, e) : undefined,
+            onPointerCancel: selection ? cancelPick : undefined,
+            onContextMenu: selection?.onInspect
+              ? (event) => {
                   event.preventDefault();
-                  selection.onInspect(entry.instanceId);
-                  return;
+                  inspect(entry.instanceId);
                 }
-                if (event.key !== "Enter" && event.key !== " ") return;
+              : undefined,
+            onKeyDown: (event) => {
+              if (selection?.onInspect && event.key === "Enter" && event.altKey) {
                 event.preventDefault();
-                if (selection) {
-                  if (pickable) selection.onToggle(entry.instanceId);
+                selection.onInspect(entry.instanceId);
+                return;
+              }
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              if (selection) {
+                if (pickable) selection.onToggle(entry.instanceId);
+                return;
+              }
+              selectCard?.(i);
+            },
+            onClick: (event) => {
+              if (selection) {
+                if (pointerPicked.current === entry.instanceId) {
+                  pointerPicked.current = null;
                   return;
                 }
-                selectCard?.(i);
-              }}
-              onClick={(event) => {
-                if (selection) {
-                  // The gesture that already answered on `pointerup` sends this click
-                  // too; anything else (keyboard, assistive activation, a browser that
-                  // reports no pointerup here) is still a pick.
-                  if (pointerPicked.current === entry.instanceId) {
-                    pointerPicked.current = null;
-                    return;
-                  }
-                  tapSelection(entry.instanceId);
-                  return;
-                }
-                // Pointer taps are resolved by GameScreen's drag/tap recognizer.
-                // A zero-detail click is keyboard/assistive activation and needs a
-                // direct deterministic selection path without toggling twice.
-                if (event.detail === 0) selectCard?.(i);
-              }}
-              onMouseEnter={() => {
-                setHoveredIndex(i);
-                onHoverChange?.(entry.instanceId);
-              }}
-              onMouseLeave={() => {
-                setHoveredIndex(null);
-                onHoverChange?.(undefined);
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={
-                t(selection ? "game.pickCard" : "game.selectCard", {
-                  card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId,
-                }) +
-                (copyLabels.has(entry.instanceId) ? `, ${copyLabels.get(entry.instanceId)}` : "") +
-                (picked ? t("overlay.selected") : "")
+                tapSelection(entry.instanceId);
+                return;
               }
-              aria-disabled={selection && !pickable ? true : undefined}
-              aria-pressed={sel}
-              className={[
-                "game-hand-card",
-                playable ? "game-hand-card--playable" : "",
-                drawn.has(entry.instanceId) ? "game-hand-card--drawn" : "",
-                selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
-                selection && pickable && !picked ? "game-hand-card--pickable" : "",
-                picked ? "game-hand-card--picked" : "",
-                shakeInstanceId === entry.instanceId ? "game-hand-card--shake" : "",
-                effectSourceInstanceId === entry.instanceId ? "game-hand-card--effect-source" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              style={
-                selection
-                  ? // Nothing is dragged out of a hand that is answering a decision, so
-                    // the row keeps its sideways pan on touch instead of claiming the
-                    // gesture for a drag that cannot happen.
-                    { ...style, cursor: pickable ? "pointer" : "default", touchAction: "pan-x" }
-                  : style
+              if (event.detail === 0) selectCard?.(i);
+            },
+            onPointerEnter: (event) => {
+              if (event.pointerType === "touch") return;
+              if (!sourcePreparing && hoveredInstanceId !== entry.instanceId) {
+                setCoveredHoverKey(null);
+                setHoveredInstanceId(entry.instanceId);
               }
-            >
+              onHoverChange?.(entry.instanceId);
+            },
+            onPointerLeave: (event) => {
+              const related = event.relatedTarget;
+              if (
+                related instanceof Element &&
+                (related.closest<HTMLElement>("[data-hand-hover-instance-id]")?.dataset.handHoverInstanceId ===
+                  entry.instanceId ||
+                  related.closest<HTMLElement>("[data-hand-instance-id]")?.dataset.handInstanceId === entry.instanceId)
+              )
+                return;
+              if (!sourcePreparing) setHoveredInstanceId(null);
+              onHoverChange?.(undefined);
+            },
+          };
+          const face = (
+            <>
               <CardFull
                 cardId={entry.cardId}
                 artId={entry.artId}
@@ -232,10 +237,105 @@ export function Hand({
                   {pickPosition + 1}
                 </span>
               ) : null}
-            </div>
+            </>
+          );
+          return (
+            <Fragment key={entry.instanceId}>
+              <div
+                data-hand-instance-id={entry.instanceId}
+                data-hand-card-id={entry.cardId}
+                data-hand-hovered={hov ? "true" : undefined}
+                data-hand-hover-covered={showHover && coveredHoverKey === hoverKey ? "true" : undefined}
+                data-effect-covered={
+                  !reducedMotion && sourceEntry === entry && coveredSourceKey === effectSource?.key ? "true" : undefined
+                }
+                {...events}
+                role="button"
+                tabIndex={0}
+                aria-label={
+                  t(selection ? "game.pickCard" : "game.selectCard", {
+                    card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId,
+                  }) +
+                  (copyLabels.has(entry.instanceId) ? `, ${copyLabels.get(entry.instanceId)}` : "") +
+                  (picked ? `${t("overlay.selected")}, ${t("game.pickPosition", { position: pickPosition + 1 })}` : "")
+                }
+                aria-disabled={selection && !pickable ? true : undefined}
+                aria-pressed={sel}
+                className={[
+                  "game-hand-card",
+                  playable ? "game-hand-card--playable" : "",
+                  drawn.has(entry.instanceId)
+                    ? reducedMotion || arrivalArtReady.has(entry.instanceId)
+                      ? "game-hand-card--drawn"
+                      : "game-hand-card--arrival-pending"
+                    : "",
+                  selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
+                  selection && pickable && !picked ? "game-hand-card--pickable" : "",
+                  picked ? "game-hand-card--picked" : "",
+                  shakeInstanceId === entry.instanceId ? "game-hand-card--shake" : "",
+                  (reducedMotion && sourceEntry === entry) ||
+                  (!effectSource && effectSourceInstanceId === entry.instanceId)
+                    ? "game-hand-card--effect-source"
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                style={
+                  selection
+                    ? // Nothing is dragged out of a hand that is answering a decision, so
+                      // the row keeps its sideways pan on touch instead of claiming the
+                      // gesture for a drag that cannot happen.
+                      { ...style, cursor: pickable ? "pointer" : "default", touchAction: "pan-x" }
+                    : style
+                }
+              >
+                {face}
+              </div>
+              {showHover && rowEl ? (
+                <HandHoverFace
+                  key={hoverKey}
+                  instanceId={entry.instanceId}
+                  row={rowEl}
+                  className={[
+                    playable ? "game-hand-card--playable" : "",
+                    selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
+                    selection && pickable && !picked ? "game-hand-card--pickable" : "",
+                    picked ? "game-hand-card--picked" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  events={events}
+                  onReady={() => setCoveredHoverKey(hoverKey)}
+                  onPress={(event, origin) => {
+                    if (selection) beginPick(entry.instanceId, event);
+                    else {
+                      setHoveredInstanceId(null);
+                      startDrag(i, event, origin);
+                    }
+                  }}
+                >
+                  {face}
+                </HandHoverFace>
+              ) : null}
+            </Fragment>
           );
         })}
       </div>
+      {!reducedMotion && effectSource && sourceEntry && rowEl ? (
+        <HandSourceFocus
+          key={effectSource.key}
+          source={effectSource}
+          entry={sourceEntry}
+          row={rowEl}
+          onReady={setCoveredSourceKey}
+          onPrepared={setPreparedSourceKey}
+          selected={
+            selection
+              ? selection.pickedInstanceIds.includes(sourceEntry.instanceId)
+              : selectedInstanceId === sourceEntry.instanceId
+          }
+        />
+      ) : null}
       {touchLayout && overflow.start ? <HandScrollCue direction="start" onClick={() => scrollByCard(-1)} /> : null}
       {touchLayout && overflow.end ? <HandScrollCue direction="end" onClick={() => scrollByCard(1)} /> : null}
     </div>

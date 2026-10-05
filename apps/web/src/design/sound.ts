@@ -16,6 +16,7 @@ export type SoundKind =
   | "securityHit"
   | "turnChange"
   | "hatch"
+  | "effectFocus"
   | "win"
   | "lose";
 
@@ -67,6 +68,14 @@ const TONES: Record<SoundKind, Tone> = {
     gain: 0.22,
     then: { type: "sine", from: 880, to: 1180, duration: 0.1, gain: 0.2 },
   },
+  effectFocus: {
+    type: "triangle",
+    from: 740,
+    to: 1040,
+    duration: 0.09,
+    gain: 0.18,
+    then: { type: "sine", from: 1040, to: 880, duration: 0.12, gain: 0.16 },
+  },
   win: {
     type: "sine",
     from: 523,
@@ -99,7 +108,7 @@ function readVolume(): number {
 let enabled = readEnabled();
 let masterVolume = readVolume();
 let context: AudioContext | null = null;
-let lastPlayedAt = 0;
+let lastPlayedAt = Number.NEGATIVE_INFINITY;
 
 function ensureContext(): AudioContext | null {
   if (typeof window === "undefined") return null;

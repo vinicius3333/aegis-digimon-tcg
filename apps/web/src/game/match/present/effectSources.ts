@@ -8,6 +8,11 @@ import {
   type EffectSourceLookup,
 } from "../../effectSource";
 import { TIMINGS } from "../../timings";
+import { EFFECT_SPEED_SCALE, getEffectSpeed } from "../../pacing";
+import { waitForTrashSourceClock } from "./trashSourceClock";
+import { waitForHandSourceClock } from "./handSourceClock";
+import { effectActivationPreparationMs } from "../../effectSource";
+import { waitForGate, CONSEQUENCE_GATE_MAX_MS, type PresentationGate } from "../presentationGate";
 
 /**
  * The activation moment plays where the effect came from: a permanent glows in place, a card
@@ -21,6 +26,7 @@ export function enqueueEffectSources({
   groupedTriggers = [],
   usedOption,
   combatLeadInMs,
+  combatCompletionGate,
   cardSiteRef,
   effectSourceKeyRef,
   setEffectSources,
@@ -32,6 +38,7 @@ export function enqueueEffectSources({
   /** The Option this batch played, if any: its dock below is the more legible presentation. */
   usedOption: ServerEvent | undefined;
   combatLeadInMs: number;
+  combatCompletionGate?: PresentationGate;
   /** Where every card the viewer can see currently sits, refreshed per commit. */
   cardSiteRef: MutableRefObject<{ locate: EffectSourceLookup }>;
   /** Mutated: incremented per event so each activation gets its own key. */
@@ -78,10 +85,25 @@ export function enqueueEffectSources({
       async run(context) {
         if (context.mode !== "live") return;
         await context.wait(combatLeadInMs);
+        await waitForGate(combatCompletionGate, context, CONSEQUENCE_GATE_MAX_MS, "effectSource/paintedImpact");
         if (context.cancelled) return;
         try {
+          if (activation.site.zone === "trash" || activation.site.zone === "hand")
+            activation.motionScale = EFFECT_SPEED_SCALE[getEffectSpeed()];
           setEffectSources((sources) => [...sources, activation]);
-          await context.wait(TIMINGS.effectSourceHold);
+          // This standalone cue has no clause owner to keep its final shrink mounted.
+          const duration =
+            activation.site.zone === "trash"
+              ? TIMINGS.effectTrashRise * (activation.motionScale ?? 1)
+              : effectActivationPreparationMs(activation.site, TIMINGS.effectSourceHold, activation.motionScale);
+          await context.wait(duration);
+          if (activation.site.zone === "trash") await waitForTrashSourceClock(activation.key, duration, context);
+          if (activation.site.zone === "hand")
+            await waitForHandSourceClock(
+              activation.key,
+              TIMINGS.effectHandPreparation * (activation.motionScale ?? 1),
+              context,
+            );
         } finally {
           setEffectSources((sources) => sources.filter((candidate) => candidate.key !== activation.key));
         }

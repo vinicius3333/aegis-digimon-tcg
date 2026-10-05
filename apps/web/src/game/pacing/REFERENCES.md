@@ -49,9 +49,9 @@ estimates; it is background, not a specification for the new implementation.
 | Digimon TCG (rules)        | Simultaneous triggers: turn player first; each player picks the next effect one at a time; new triggers form a new list.                                                          | none found                                                                       | https://digimoncard.io/article/effect-resolution-and-trigger-timings-guide-63                                                                         |
 | General (essay)            | "If your game needs a skip button, it's too slow." Compares a ~5 s attack with a ~1.5 s version.                                                                                  | estimate: 5 s vs 1.5 s (author measurement)                                      | https://parryeverything.com/2022/01/21/if-your-game-needs-a-skip-animations-option-its-too-slow/                                                      |
 
-## DCGO (source code)
+## Animation reference (source code)
 
-DCGO is the Digimon simulator our players know, so we treat it as the baseline. Numbers are cited from its source code (https://github.com/DCGO2/DCGO, commit 541bc287a, paths under `Assets/Scripts/Script/`).
+The reference simulator provides the animation baseline. Numbers were collected from source snapshot `541bc287a`, with paths under `Assets/Scripts/Script/`.
 
 | Pattern                                                                                                                             | Timing / number                                                 | Source file                            |
 | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------- |
@@ -71,10 +71,10 @@ DCGO is the Digimon simulator our players know, so we treat it as the baseline. 
 
 What this means for us (estimates, to verify with the harness):
 
-- Our Normal sequential benchmark beats (720 ms focus + 700 ms announce + 300 ms settle, about 1.72 s plus results) are already slower per effect than DCGO (about 0.95 s plus results).
-- DCGO gets readability from text that persists and stacks while the board moves on, not from long blocking beats.
-- DCGO keeps cause before result. We must keep it too.
-- DCGO coalesces repeated DP pulses on one card. Grouping repeated effects (×N) goes further.
+- Our Normal sequential benchmark beats (720 ms focus + 700 ms announce + 300 ms settle, about 1.72 s plus results) are already slower per effect than the reference (about 0.95 s plus results).
+- The reference keeps text readable by retaining and stacking it while the board moves on.
+- The reference keeps cause before result. We must keep it too.
+- The reference coalesces repeated DP pulses on one card. Grouping repeated effects (×N) goes further.
 
 ## 2. General UX timing guidance
 
@@ -108,9 +108,9 @@ What this means for us (estimates, to verify with the harness):
 9. **Persistent history is an alternative, not the selected UI.** Hearthstone keeps ~7-10 actions; Master Duel and LoR keep full replays (cited). The requested Aegis layout uses recent scrollable toasts and omits the last-chain recap and effect-history panel.
 10. **Respect reduced motion.** WCAG 2.3.3 (AAA) and Shadowverse's "simple card effects" option both point to a low-motion path (cited). Under `prefers-reduced-motion`, drop glow and travel animation, keep the text beat and the toasts.
 
-11. **DCGO is the baseline (all watched beats).** DCGO spends about 0.95 s per field effect before its results and keeps each clause on screen for 5.5 s in a stacked list (cited, source code). Keep blocking beats near DCGO's total, and let the scrollable toast stack carry the text afterwards, instead of stretching the blocking beat to the full reading time.
+11. **Use the reference baseline for watched beats.** The reference spends about 0.95 s per field effect before its results and keeps each clause on screen for 5.5 s in a stacked list (cited, source code). Keep blocking beats near that total, and let the scrollable toast stack carry the text afterwards, instead of stretching the blocking beat to the full reading time.
 
-12. **The `stacked` pacing style follows takeaway 11.** It keeps DCGO's shape: a brief active beat (720 ms focus + 200 ms announce and 100 ms settle at Normal) and earlier clauses that stay in the scrollable column at full opacity for 5 s from when they appeared (DCGO: 5.5 s), at most five under the one resolving now. The 920 ms field lead-in approximates DCGO's roughly 0.9 s before results; reducing announcement and settle waits preserves existing card travel and result animation durations. Readable time counts the active beat plus the retained time, at 3 words/s. The harness compares it with `sequential` on every scenario and speed (`apps/web/test/pacing/`).
+12. **The `stacked` pacing style follows takeaway 11.** It keeps the reference's shape: a brief active beat (720 ms focus + 200 ms announce and 100 ms settle at Normal) and earlier clauses that stay in the scrollable column at full opacity for 5 s from when they appeared (reference: 5.5 s), at most five under the one resolving now. The 920 ms field lead-in approximates the reference's roughly 0.9 s before results; reducing announcement and settle waits preserves existing card travel and result animation durations. Readable time counts the active beat plus the retained time, at 3 words/s. The harness compares it with `sequential` on every scenario and speed (`apps/web/test/pacing/`).
 
 13. **Long chains speed up; a floor keeps them readable.** The earlier harness tuning used short minor/repeated beats, 40% beats after the second effect, and a 150 ms beat after an answer. The current reading floor is 1.72 s at Normal: 360 ms orientation plus 4 words at 3 words/s, with frame sampling margin. Those are headline and continuity budgets, not time to read a full clause. Use the current committed `test/pacing/pacing-baseline.json` for reproducible scenario durations; historical per-effect averages do not establish current performance after the acceptance protocol and flight changes.
 

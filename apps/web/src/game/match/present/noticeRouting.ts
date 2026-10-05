@@ -8,6 +8,7 @@ import { CueTrack } from "../enums";
 import { fieldDeparturesFromEvent } from "../../showcases";
 import type { NarrationPlacement } from "../narration/narrationStream";
 import type { RevealOnStage } from "../types";
+import { waitForGate, CONSEQUENCE_GATE_MAX_MS, type PresentationGate } from "../presentationGate";
 
 /** Where one batch's notices and panels go, and what the cues ahead of them cost. */
 export type NoticeRouting = {
@@ -51,6 +52,7 @@ export function routeBatchNotices({
   firstArrivalIndex,
   zoneChanges,
   combatLeadInMs,
+  combatCompletionGate,
   securityReveal,
   revealOnStageRef,
   noticeSequenceRef,
@@ -75,6 +77,7 @@ export function routeBatchNotices({
   firstArrivalIndex: number;
   zoneChanges: readonly AnimationStep[];
   combatLeadInMs: number;
+  combatCompletionGate?: PresentationGate;
   securityReveal: ServerEvent | undefined;
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
   /** Mutated: incremented per notice id handed out. */
@@ -179,6 +182,7 @@ export function routeBatchNotices({
       // collapses it and the notices read at once.
       async run(context) {
         await context.wait(combatLeadInMs);
+        await waitForGate(combatCompletionGate, context, CONSEQUENCE_GATE_MAX_MS, "combatNotices/paintedImpact");
         if (context.cancelled) return;
         narrate(held, heldForCombat, batchId, undefined, { next: true });
       },

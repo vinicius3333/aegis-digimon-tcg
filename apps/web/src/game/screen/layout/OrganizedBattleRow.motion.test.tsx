@@ -4,10 +4,58 @@ import { cleanup, render } from "@testing-library/react";
 import { CardInstance, Permanent } from "@aegis/shared";
 import { OrganizedBattleRow } from "./OrganizedBattleRow";
 import { I18nProvider } from "../../../i18n";
+import { CARD_SUSPEND_MOTION } from "../../../design/cardMotion";
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+it("replaces a departing card with its guide before measuring the remaining cards' motion", () => {
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(900);
+  vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(245);
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+    const siblings = [...(this.parentElement?.children ?? [])];
+    const x = siblings.indexOf(this) * 100 - siblings.length * 50;
+    return { x, y: 0, left: x, top: 0, right: x + 100, bottom: 140, width: 100, height: 140, toJSON: () => ({}) };
+  });
+  const animate = vi.fn<() => Partial<Animation>>(() => ({
+    startTime: null,
+    playState: "finished",
+    cancel: vi.fn<() => void>(),
+  }));
+  const originalAnimate = HTMLElement.prototype.animate;
+  HTMLElement.prototype.animate = animate as unknown as typeof originalAnimate;
+  const permanents = Array.from({ length: 5 }, (_, index) => {
+    const permanent = new Permanent();
+    permanent.permanentId = `card-${index}`;
+    return permanent;
+  });
+  const view = (digimon: Permanent[]) => (
+    <I18nProvider>
+      <OrganizedBattleRow
+        arrangement={{ digimon, support: [] }}
+        layoutWidth={100}
+        supportFirst={false}
+        digimonLabel="Digimon"
+        supportLabel="Support"
+        emptyLabel={null}
+        rowProps={{}}
+        isSuspended={(p) => p.isSuspended}
+        renderCard={(card) => <div key={card.fieldKey} data-field-key={card.fieldKey} style={{ width: card.width }} />}
+      />
+    </I18nProvider>
+  );
+  try {
+    const { container, rerender } = render(view(permanents));
+    animate.mockClear();
+    rerender(view(permanents.slice(0, 4)));
+    expect(container.querySelectorAll(".game-battle-lane--digimon .game-field-card-slot")).toHaveLength(1);
+    // The four surviving cards never moved: the fifth card's guide already holds its place.
+    expect(animate).not.toHaveBeenCalled();
+  } finally {
+    HTMLElement.prototype.animate = originalAnimate;
+  }
 });
 
 it("slides reordered groups from their old positions to rest without restarting on unrelated renders", () => {
@@ -90,6 +138,8 @@ it("turns only the artwork when a suspended copy leaves its group", () => {
   vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(900);
   vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(245);
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+    const field = this.closest<HTMLElement>("[data-field-key]");
+    if (field && field !== this) return field.getBoundingClientRect();
     const index = [...(this.parentElement?.querySelectorAll("[data-field-key]") ?? [])].indexOf(this);
     return {
       x: index * 100,
@@ -103,12 +153,28 @@ it("turns only the artwork when a suspended copy leaves its group", () => {
       toJSON: () => ({}),
     };
   });
-  const calls: { element: HTMLElement; frames: Keyframe[] }[] = [];
+  const calls: { element: HTMLElement; frames: Keyframe[]; options: KeyframeAnimationOptions; animation: Animation }[] =
+    [];
   const cancelTurn = vi.fn<() => void>();
+  let nativeProgress = 1;
   const originalAnimate = HTMLElement.prototype.animate;
-  HTMLElement.prototype.animate = function (frames) {
-    calls.push({ element: this, frames: frames as Keyframe[] });
-    return { startTime: null, playState: "running", cancel: cancelTurn } as unknown as Animation;
+  HTMLElement.prototype.animate = function (frames, options) {
+    const animation = {
+      startTime: null,
+      playState: "running",
+      effect: { getComputedTiming: () => ({ progress: nativeProgress }) },
+      cancel() {
+        cancelTurn();
+        this.playState = "idle";
+      },
+    } as unknown as Animation;
+    calls.push({
+      element: this,
+      frames: frames as Keyframe[],
+      options: options as KeyframeAnimationOptions,
+      animation,
+    });
+    return animation;
   };
   const copies = ["a", "b"].map((id) => {
     const permanent = new Permanent();
@@ -117,7 +183,7 @@ it("turns only the artwork when a suspended copy leaves its group", () => {
     permanent.topCard.cardId = "BT22-093";
     return permanent;
   });
-  const view = (split: boolean) => (
+  const view = (split: boolean, mergedMembers = copies) => (
     <I18nProvider>
       <OrganizedBattleRow
         arrangement={{
@@ -127,7 +193,7 @@ it("turns only the artwork when a suspended copy leaves its group", () => {
                 { key: "group", members: [copies[1]!] },
                 { key: "leaver", members: [copies[0]!] },
               ]
-            : [{ key: "group", members: copies }],
+            : [{ key: "group", members: mergedMembers }],
         }}
         layoutWidth={100}
         supportFirst={false}
@@ -151,12 +217,21 @@ it("turns only the artwork when a suspended copy leaves its group", () => {
     </I18nProvider>
   );
   try {
-    const { rerender } = render(view(false));
+    const { container, rerender } = render(view(false));
     calls.length = 0;
     copies[0]!.isSuspended = true;
     rerender(view(true));
     const artwork = calls.find(({ element }) => element.hasAttribute("data-state"));
     expect(artwork?.frames).toEqual([{ rotate: "0deg" }, { rotate: "90deg" }]);
+    expect(artwork?.options).toMatchObject({
+      duration: CARD_SUSPEND_MOTION.durationMs,
+      easing: CARD_SUSPEND_MOTION.easing,
+    });
+    expect(
+      calls
+        .filter(({ element }) => element.hasAttribute("data-field-key"))
+        .every(({ options }) => options.duration === 420),
+    ).toBe(true);
     expect(
       calls
         .filter(({ element }) => element.hasAttribute("data-field-key"))
@@ -171,6 +246,22 @@ it("turns only the artwork when a suspended copy leaves its group", () => {
     expect(cancelTurn).toHaveBeenCalled();
     const reversed = calls.find(({ element }) => element === originalArt);
     expect(reversed?.frames).toEqual([{ rotate: "45deg" }, { rotate: "0deg" }]);
+    nativeProgress = 0.15625;
+    calls.length = 0;
+    rerender(view(false, [copies[1]!, copies[0]!]));
+    const returning = container.querySelector<HTMLElement>('[data-testid="field-group-return"]');
+    expect(returning?.getAttribute("aria-hidden")).toBe("true");
+    expect(returning?.inert).toBe(true);
+    expect(returning?.hasAttribute("data-field-key")).toBe(false);
+    const interruptedTurn = calls.find(
+      ({ element, frames }) => element === returning && frames.some((frame) => frame.rotate),
+    );
+    expect(interruptedTurn?.frames).toEqual([{ rotate: "37.96875deg" }, { rotate: "0deg" }]);
+    const slide = calls.find(({ element, frames }) => element === returning && frames.some((frame) => frame.translate));
+    expect(slide?.options.duration).toBe(420);
+    expect(slide?.frames[1]?.translate).toBe("-100px 0px");
+    slide!.animation.onfinish!(new Event("finish") as AnimationPlaybackEvent);
+    expect(container.querySelector('[data-testid="field-group-return"]')).toBeNull();
   } finally {
     HTMLElement.prototype.animate = originalAnimate;
   }

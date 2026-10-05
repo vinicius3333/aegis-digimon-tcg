@@ -5,7 +5,7 @@
 
    Steps are grouped into tracks. A track runs its steps one after another;
    different tracks run side by side, which is what keeps independent cues (the
-   lunge, the banner, a draw flight) on their own clocks. A step marked
+   impact, the banner, a draw flight) on their own clocks. A step marked
    `replace` cancels whatever its track was holding, the way a fresh cue used to
    clear the previous timeout.
 
@@ -33,6 +33,10 @@ export interface AnimationStepContext {
   readonly mode: AnimationQueueMode;
   /** True while the user is fast-forwarding the current cues. */
   readonly skipping: boolean;
+  /** Whether this run is frozen; a stepOnce permit keeps its own run moving while the queue is paused. */
+  readonly paused?: boolean;
+  /** Queue-owned cancellation, for child beats waiting on another step's lifetime. */
+  readonly signal?: AbortSignal;
 }
 
 export interface AnimationStep {
@@ -42,6 +46,8 @@ export interface AnimationStep {
   /** Originating server batch, retained by steps spawned after later batches arrive. */
   origin?: { batchId: string; stateVersion: number; sourceCardId?: string; timing?: string; phaseOrder?: number };
   run(context: AnimationStepContext): void | Promise<void>;
+  /** Release owned handoffs when a queued step is discarded before its run/finally can execute. */
+  onDiscard?: () => void;
   /**
    * Which side of the screen the step draws on, for the diagnostic report. Only the cues
    * that exist once per side set it; the track name says the rest.
@@ -151,6 +157,7 @@ interface Waiter {
 interface StepRun {
   step: AnimationStep;
   cancelled: boolean;
+  cancellation: AbortController;
   waiters: Set<Waiter>;
   /** Released by `stepOnce`: its waits keep running while the queue is paused. */
   stepped: boolean;
@@ -203,8 +210,12 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
 
   function contextFor(step: AnimationStep, run: StepRun): AnimationStepContext {
     return {
+      signal: run.cancellation.signal,
       get skipping() {
         return fastForward;
+      },
+      get paused() {
+        return frozen(run);
       },
       get cancelled() {
         return run.cancelled;
@@ -275,7 +286,12 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
 
   function cancelTrack(track: Track) {
     for (const entry of track.queued)
-      for (const step of entry.steps)
+      for (const step of entry.steps) {
+        try {
+          step.onDiscard?.();
+        } catch (error) {
+          options.onError?.(error, step);
+        }
         options.onStep?.({
           step,
           phase: "dropped",
@@ -284,10 +300,12 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
           skipping: fastForward,
           failed: false,
         });
+      }
     track.queued.length = 0;
     openGate(track, false);
     for (const run of track.running) {
       run.cancelled = true;
+      run.cancellation.abort();
       settleWaiters(run, false);
     }
   }
@@ -335,7 +353,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
         if (!entry) break;
         const runs = entry.steps.map((step) => ({
           step,
-          run: { step, cancelled: false, waiters: new Set<Waiter>(), stepped },
+          run: { step, cancelled: false, cancellation: new AbortController(), waiters: new Set<Waiter>(), stepped },
         }));
         track.running = runs.map((pair) => pair.run);
         await Promise.all(
@@ -356,6 +374,9 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
               failed = true;
               options.onError?.(error, step);
             } finally {
+              // A run can race its timed beat against cancellation. Retire the
+              // losing wait too, including one frozen by playback pause.
+              settleWaiters(run, false);
               options.onStep?.({
                 step,
                 phase: "finished",

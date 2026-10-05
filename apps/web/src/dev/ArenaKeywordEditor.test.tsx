@@ -111,7 +111,11 @@ it("keeps more than ten grants summarized on the field and individually accessib
   ];
   for (const keyword of keywords) ui.grant(keyword);
   ui.close();
-  expect(ui.field().querySelector('[aria-label="11 more keywords"]')).toBeTruthy();
+  const summary = ui.field().querySelector('[aria-label$="more keywords"]');
+  expect(summary).toBeTruthy();
+  const hiddenCount = Number(summary!.getAttribute("aria-label")!.split(" ")[0]);
+  const visibleCount = ui.field().querySelectorAll(".game-keyword-badge:not(.game-keyword-badge--more)").length;
+  expect(hiddenCount + visibleCount).toBe(keywords.length);
   expect(ui.field().querySelector('[aria-label^="Active keywords:"]')?.getAttribute("aria-label")).toContain(
     "Succession",
   );

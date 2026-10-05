@@ -103,6 +103,8 @@ export function createDeckVerbs(pc: PrimitivesContext) {
         instanceIds: added.map((c) => c.instanceId),
         from: Zone.Deck,
         to: Zone.Hand,
+        seat,
+        handAddition: "transfer",
       });
     }
     return added;

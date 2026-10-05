@@ -7,6 +7,15 @@
    the clause takes a body size instead of a caption size, and the art beside it
    grows to the width NoticeStack picks on the same breakpoint. */
 @media (width >= 768px) and (height >= 520px) {
+  /* Each side keeps one fixed lane, independent of decision visibility. Long
+     contents scroll inside it; only the two most recent toasts are rendered. */
+  .narration-slot[data-slot="narration-text"],
+  .narration-slot[data-slot="narration-cards"] {
+    top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    bottom: auto;
+    height: min(24rem, calc(100dvh - 15.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+    max-height: none;
+  }
   .narration-slot[data-slot="narration-text"],
   .narration-slot[data-slot="narration"] {
     width: min(32rem, calc(100% - var(--ds-space-8)));
@@ -18,8 +27,8 @@
      is clipped. */
   .narration-slot[data-slot="narration-cards"] {
     width: min(26rem, calc(100% - var(--ds-space-8)));
+    height: min(34rem, calc(100dvh - 15.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
     top: calc(4.5rem + env(safe-area-inset-top, 0px));
-    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -189,42 +198,46 @@
 /* The effect clauses and the decision rail both read out of the left edge, so on a board
    with the room they stack rather than overlap: the clauses hold the top (see the
    narration-text rule above, which anchors them there), and the rail sits above the hand
-   dock at the bottom. Its height is capped so a long clause cannot grow it back up into
-   them. */
+   dock at the bottom. Decisions grow to their content and only scroll when they
+   exceed the space between the header and the hand. */
 @media (width >= 768px) and (height >= 520px) {
+  /* A growing decision can reach the notice column. Its text and answer controls
+     take priority over earlier announcements, which must not intercept their clicks. */
+  .aegis-stage:has(.board-prompt, .decision-overlay) .narration-slot {
+    z-index: 79;
+  }
+
   .board-prompt {
+    --decision-dock-clearance: 11rem;
     top: auto;
-    bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
-    max-height: min(92%, calc(100% - 24rem));
+    bottom: calc(var(--decision-dock-clearance) + env(safe-area-inset-bottom, 0px));
+    height: auto;
+    max-height: calc(
+      100dvh - 4.5rem - var(--decision-dock-clearance) - env(safe-area-inset-top, 0px) -
+        env(safe-area-inset-bottom, 0px)
+    );
     translate: 0 0;
     animation-name: battle-board-sheet-in;
   }
 }
 
-/* Decisions share the left edge with the recent effects. Reserve a scrollable lane
-   above the tallest permitted rail, so accepting another effect keeps its predecessors
-   accessible without covering the decision's buttons. */
+/* Decisions keep their natural content height beside the stable notice lanes. */
 @media (width >= 768px) and (height >= 520px) {
-  .aegis-stage:has(.board-prompt, .decision-overlay--side) .narration-slot[data-slot="narration-text"] {
-    top: calc(4.5rem + env(safe-area-inset-top, 0px));
-    bottom: auto;
-    max-height: 8rem;
-  }
-
   .aegis-stage .decision-overlay.decision-overlay--side {
+    --decision-dock-clearance: 11rem;
     top: auto;
-    bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
-    max-height: calc(100% - 24rem);
+    bottom: calc(var(--decision-dock-clearance) + env(safe-area-inset-bottom, 0px));
+    height: auto;
+    max-height: calc(
+      100dvh - 4.5rem - var(--decision-dock-clearance) - env(safe-area-inset-top, 0px) -
+        env(safe-area-inset-bottom, 0px)
+    );
     overflow-y: auto;
     translate: none;
   }
 }
 
 @media (width >= 1024px) and (height >= 760px) {
-  .narration-slot[data-slot="narration-text"] {
-    top: calc(15rem + env(safe-area-inset-top, 0px));
-  }
-
   .board-prompt {
     bottom: calc(11.75rem + env(safe-area-inset-bottom, 0px));
     width: min(22rem, 42vw);
@@ -319,10 +332,9 @@
   flex-shrink: 0;
 }
 
-/* The left column keeps its recent queue in a bounded lane above the hand. */
+/* The left lane scrolls full clauses without changing its outer height. */
 @media (height >= 520px) {
   .narration-slot[data-slot="narration-text"] {
-    max-height: min(24rem, calc(100dvh - 14.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -335,32 +347,23 @@
 }
 
 @media (width >= 1024px) and (height >= 760px) {
-  .narration-slot[data-slot="narration-text"] {
-    max-height: min(24rem, calc(100dvh - 26rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
-  }
-
   .aegis-stage .decision-overlay.decision-overlay--side {
+    --decision-dock-clearance: 11.75rem;
     top: auto;
-    bottom: calc(11.75rem + env(safe-area-inset-bottom, 0px));
-    max-height: calc(100% - 37.5rem);
+    bottom: calc(var(--decision-dock-clearance) + env(safe-area-inset-bottom, 0px));
   }
 }
 
-/* A tall board keeps room for two complete effect notices beside an open decision.
-   The column starts below the header; the decision stays below that reading lane. */
+/* A tall board's decision uses the height its content needs. */
 @media (width >= 768px) and (height >= 760px) {
-  .aegis-stage:has(.board-prompt, .decision-overlay--side) .narration-slot[data-slot="narration-text"] {
-    top: calc(4.5rem + env(safe-area-inset-top, 0px));
-    max-height: 24rem;
-  }
-
   .aegis-stage .board-prompt,
   .aegis-stage .decision-overlay.decision-overlay--side {
     --decision-dock-clearance: 8rem;
 
     bottom: calc(var(--decision-dock-clearance) + env(safe-area-inset-bottom, 0px));
     max-height: calc(
-      100% - 29.5rem - var(--decision-dock-clearance) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+      100dvh - 4.5rem - var(--decision-dock-clearance) - env(safe-area-inset-top, 0px) -
+        env(safe-area-inset-bottom, 0px)
     );
   }
 

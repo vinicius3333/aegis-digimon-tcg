@@ -104,12 +104,9 @@ runs as a single process, which is what `pnpm dev` does.
 | Test files            | 3,694                                                      |
 | Rules knowledge base  | official rules, rulings, errata and ban list in `data/kb/` |
 
-## Why not DCGO?
+## Play in your browser
 
-DCGO works, and it is a good client. It also asks you to install a desktop
-build.
-
-I wanted the option to play in a browser, so I built one.
+Aegis lets you play directly in a browser without installing a desktop client.
 
 ## Quick start
 

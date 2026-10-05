@@ -5,6 +5,21 @@ import { linkCardSlots, sourceFanStepLimit } from "../../boardModel";
 const crowded = { digimonCount: 6, supportCount: 6 };
 
 describe("fitLanes", () => {
+  it("keeps uniform cards in compact stacked and side-by-side rows, including deep support stacks", () => {
+    const content = {
+      ...crowded,
+      supportScale: 1,
+      reserveSupport: true,
+      digimonSources: 3,
+      supportSources: 8,
+    };
+    for (const height of [0, 90, 180, 320]) {
+      const lanes = fitLanes({ width: 720, height }, 88, content);
+      expect(lanes.support).toBe(lanes.digimon);
+      expect(fitLanes({ width: 720, height }, 88, { ...content, supportCount: 0 })).toEqual(lanes);
+    }
+  });
+
   it("shrinks a crowded lane to fit the row before it scrolls, down to a floor", () => {
     const upright = { suspended: false, sources: 0, links: 0, copies: 1 };
     const suspended = { ...upright, suspended: true };

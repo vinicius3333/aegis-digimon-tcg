@@ -11,10 +11,12 @@ import {
 } from "../../narration";
 import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
-import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
+import { effectActivationPreparationMs, type EffectActivation, type EffectSourceLookup } from "../../effectSource";
 import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
-import { CueTrack } from "../enums";
+import { waitForTrashSourceClock } from "../present/trashSourceClock";
+import { waitForHandSourceClock } from "../present/handSourceClock";
+import { EFFECT_SPEED_SCALE, getEffectSpeed } from "../../pacing";
 import type { PresentationPacing } from "../../presentationProbe";
 import { activePacing } from "../../pacing";
 import { announceMsFor, sequentialSourceHoldMs, type EffectSequence } from "../effectSequence";
@@ -187,13 +189,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
         : undefined;
     // Follow the actual arrival track, including its field burst, rather than
     // estimating when a normal play or evolution will be finished.
-    const onPlay = /on.?play/i.test(timing) && initialSite?.zone === "field";
-    const arrivalTrack =
-      /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field"
-        ? onPlay
-          ? CueTrack.CenterStage
-          : `burst-${initialSite.permanentId}`
-        : undefined;
+    const followsArrival = /on.?play|when.?digivolving/i.test(timing) && initialSite?.zone === "field";
+    // A security cue replaces the visual centre stage. Accepted clauses must
+    // survive that replacement, and cannot own the burst track they await.
+    const arrivalTrack = followsArrival ? `arrival-narration-${initialSite.permanentId}` : undefined;
     // A mechanic call-out ("DigiXros!") names the play itself, so it is never the consequence
     // of an effect. Waiting on the latest announcement would wait on the [On Play] that the
     // same play raised, which queues behind this call-out and deadlocks until the ceiling.
@@ -242,7 +241,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
     const sharedTrack =
-      opts?.beside || reactsToDeletion
+      body?.variant === "keyword" || opts?.beside || reactsToDeletion
         ? "narration"
         : (arrivalTrack ??
           (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack)
@@ -310,7 +309,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
             queue,
             (step) =>
               isEffectDrawFlight(step) &&
-              (!unit || (step.origin?.stateVersion !== undefined && step.origin.stateVersion < (itemVersion ?? 0))),
+              (step.origin?.stateVersion === undefined ? !unit : step.origin.stateVersion < (itemVersion ?? 0)),
           )
         : new Set<string>();
     queue.enqueue({
@@ -320,6 +319,12 @@ export function narrationStream(deps: NarrationStreamDeps) {
       ...(opts?.next === true ? { next: true } : {}),
       holdsBoard: false,
       blocksDecision: false,
+      onDiscard() {
+        announceGate?.release();
+        unitAnnouncement?.release();
+        costClause?.focused.release();
+        costClause?.read.release();
+      },
       async run(context) {
         /* The source card is lit before its clause and stays lit until the clause leaves
            (the prune in `useMatchCues`). A run that ends before the clause is ever published —
@@ -376,7 +381,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
               await waitForGate(option.settled, context, TIMINGS.securityDockMax, "narration/optionSettled");
             if (context.cancelled || narrationSkipRef.current) return;
           }
-          if (onPlay && initialSite?.zone === "field") {
+          if (followsArrival && initialSite?.zone === "field") {
             while (
               queue.hasPendingStep(
                 (step) =>
@@ -463,11 +468,32 @@ export function narrationStream(deps: NarrationStreamDeps) {
                 seat,
                 site,
                 itemId: item.id,
+                ...(site.zone === "trash" || site.zone === "hand"
+                  ? { motionScale: EFFECT_SPEED_SCALE[getEffectSpeed()] }
+                  : {}),
               };
               setEffectSources((sources) => [...sources, activation as EffectActivation]);
               reportShown(`effect-source-${activation.key}`, context);
               // The punch this card earns on its own, ahead of the clause it raised.
-              await context.wait(unit ? sequentialSourceHoldMs(effectSourceHoldMs, unit) : effectSourceHoldMs);
+              await context.wait(
+                effectActivationPreparationMs(
+                  site,
+                  unit ? sequentialSourceHoldMs(effectSourceHoldMs, unit) : effectSourceHoldMs,
+                  activation.motionScale,
+                ),
+              );
+              if (site.zone === "trash")
+                await waitForTrashSourceClock(
+                  activation.key,
+                  TIMINGS.effectTrashPreparation * (activation.motionScale ?? 1),
+                  context,
+                );
+              if (site.zone === "hand")
+                await waitForHandSourceClock(
+                  activation.key,
+                  TIMINGS.effectHandPreparation * (activation.motionScale ?? 1),
+                  context,
+                );
             }
           }
           if (context.cancelled || narrationSkipRef.current) return;

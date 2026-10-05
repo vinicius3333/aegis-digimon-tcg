@@ -303,12 +303,21 @@ export function createSharedHelpers(pc: PrimitivesContext) {
     // omitting the permanent leave event above.
     applyOverflow(engine.memory, moved, state.turnSeat);
     if (movedToHand.length > 0) {
-      engine.emit({
-        kind: "cardsMoved",
-        instanceIds: movedToHand.map((card) => card.instanceId),
-        from: Zone.BattleArea,
-        to: Zone.Hand,
-      });
+      const groups: { seat: Seat; cards: CardInstance[] }[] = [];
+      for (const card of movedToHand) {
+        const last = groups.at(-1);
+        if (last?.seat === card.ownerSeat) last.cards.push(card);
+        else groups.push({ seat: card.ownerSeat, cards: [card] });
+      }
+      for (const { seat, cards } of groups)
+        engine.emit({
+          kind: "cardsMoved",
+          instanceIds: cards.map((card) => card.instanceId),
+          from: Zone.BattleArea,
+          to: Zone.Hand,
+          seat,
+          handAddition: opts?.silent === true ? "staging" : "transfer",
+        });
       await engine.recomputeContinuousEffects?.();
       if (opts?.silent !== true) {
         const recipientSeats = new Set(movedToHand.map((card) => card.ownerSeat));

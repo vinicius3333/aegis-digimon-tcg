@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
-import type { AnimationStep, AnimationStepContext } from "../../animationQueue";
+import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "../../animationQueue";
 import { Side } from "../../side";
 import { REVEAL_SHOWCASE_TOTAL_MS } from "../../timings";
 import { CueTrack } from "../enums";
@@ -41,7 +41,9 @@ function enqueued(showcases: readonly RevealShowcase[], gate = createPresentatio
   const steps: AnimationStep[] = [];
   const shown: (RevealShowcase | null)[] = [];
   let current: RevealShowcase | null = null;
+  const queue = createAnimationQueue();
   enqueueRevealShowcases({
+    queue,
     showcases,
     causingEffectGate: gate,
     setRevealShowcase: (next) => {
@@ -50,7 +52,7 @@ function enqueued(showcases: readonly RevealShowcase[], gate = createPresentatio
     },
     enqueue: (step) => steps.push(step),
   });
-  return { steps, shown };
+  return { steps, shown, queue };
 }
 
 describe("revealShowcasesFromEvents", () => {
@@ -60,6 +62,7 @@ describe("revealShowcasesFromEvents", () => {
         key: 1,
         seat: OPPONENT,
         sourceCardId: "P-104",
+        eventIndices: [0, 1],
         cards: [
           { cardId: "BT4-109", artId: "BT4-109" },
           { cardId: "BT17-077", artId: "BT17-077" },
@@ -90,6 +93,8 @@ describe("revealShowcasesFromEvents", () => {
 });
 
 describe("enqueueRevealShowcases", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
   it("holds the revealed cards centre-stage once the causing clause has been read", async () => {
     const gate = createPresentationGate();
     const [showcase] = revealShowcasesFromEvents(opponentReveal, VIEWER, keys());
@@ -98,15 +103,16 @@ describe("enqueueRevealShowcases", () => {
       { id: "reveal-showcase-1", track: CueTrack.CenterStage },
     ]);
 
-    const context = liveContext();
+    const context = liveContext({ wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)) });
     const running = steps[0]!.run(context);
     await Promise.resolve();
     expect(shown).toEqual([]);
     gate.release();
+    await vi.advanceTimersByTimeAsync(REVEAL_SHOWCASE_TOTAL_MS + 16);
     await running;
 
-    expect(shown).toEqual([showcase, null]);
-    expect(context.waited).toEqual([REVEAL_SHOWCASE_TOTAL_MS]);
+    expect(shown.filter((entry) => entry !== null)).toEqual([showcase]);
+    expect(shown.at(-1)).toBeNull();
   });
 
   it.each([
@@ -132,7 +138,8 @@ function announce(fresh: readonly ServerEvent[]) {
     attackLeadInMs: 0,
     securityReveal: undefined,
     revealOnStageRef: { current: null },
-    pendingDigivolutionDrawRef: { current: new Set() },
+    pendingDigivolutionDrawRef: { current: new Map() },
+    arrivalPresentations: new Map(),
     eventDrawCountsRef: { current: {} },
     drawPhaseWaitingRef: { current: null },
     sidePanelLookupRef: {

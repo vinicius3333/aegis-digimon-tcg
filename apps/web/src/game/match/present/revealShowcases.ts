@@ -1,9 +1,10 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Seat, ServerEvent } from "@aegis/shared";
-import type { AnimationStep } from "../../animationQueue";
+import type { AnimationQueue, AnimationStep } from "../../animationQueue";
 import { REVEAL_SHOWCASE_TOTAL_MS } from "../../timings";
 import { CueTrack } from "../enums";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
+import { runCardReveal } from "../cardReveal";
 
 export interface RevealShowcaseCard {
   cardId: string;
@@ -17,6 +18,8 @@ export interface RevealShowcase {
   /** The card whose effect revealed them, when the server names it. */
   sourceCardId?: string;
   cards: readonly RevealShowcaseCard[];
+  /** Positions of the physical reveal occurrences in this batch. */
+  eventIndices: readonly number[];
 }
 
 /**
@@ -34,12 +37,16 @@ export function revealShowcasesFromEvents(
   nextKey: () => number,
 ): RevealShowcase[] {
   const showcases: RevealShowcase[] = [];
-  for (const event of fresh) {
+  for (const [eventIndex, event] of fresh.entries()) {
     if (event.kind !== "cardRevealed" || event.seat === viewerSeat) continue;
     const card = { cardId: event.cardId, ...(event.artId ? { artId: event.artId } : {}) };
     const last = showcases.at(-1);
     if (last && last.seat === event.seat && last.sourceCardId === event.sourceCardId) {
-      showcases[showcases.length - 1] = { ...last, cards: [...last.cards, card] };
+      showcases[showcases.length - 1] = {
+        ...last,
+        cards: [...last.cards, card],
+        eventIndices: [...last.eventIndices, eventIndex],
+      };
       continue;
     }
     showcases.push({
@@ -47,6 +54,7 @@ export function revealShowcasesFromEvents(
       seat: event.seat,
       ...(event.sourceCardId !== undefined ? { sourceCardId: event.sourceCardId } : {}),
       cards: [card],
+      eventIndices: [eventIndex],
     });
   }
   return showcases;
@@ -59,29 +67,45 @@ export function revealShowcasesFromEvents(
  * drops it.
  */
 export function enqueueRevealShowcases({
+  queue,
   showcases,
   causingEffectGate,
   setRevealShowcase,
   enqueue,
+  completionGates,
 }: {
+  queue: AnimationQueue;
   showcases: readonly RevealShowcase[];
   causingEffectGate: PresentationGate | null;
   setRevealShowcase: Dispatch<SetStateAction<RevealShowcase | null>>;
   enqueue: (step: AnimationStep) => void;
+  completionGates?: ReadonlyMap<number, PresentationGate>;
 }) {
   for (const showcase of showcases)
     enqueue({
       id: `reveal-showcase-${showcase.key}`,
       track: CueTrack.CenterStage,
+      onDiscard: () => {
+        completionGates?.get(showcase.key)?.after?.release();
+        completionGates?.get(showcase.key)?.release();
+      },
       async run(context) {
-        if (context.mode !== "live" || context.skipping) return;
-        await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "revealShowcase/causingEffect");
-        if (context.cancelled || context.skipping) return;
         try {
-          setRevealShowcase(showcase);
-          await context.wait(REVEAL_SHOWCASE_TOTAL_MS);
+          if (context.mode !== "live" || context.skipping) return;
+          await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "revealShowcase/causingEffect");
+          if (context.cancelled || context.skipping) return;
+          completionGates?.get(showcase.key)?.after?.release();
+          await runCardReveal({
+            queue,
+            context,
+            id: `card-reveal-row-${showcase.key}`,
+            duration: REVEAL_SHOWCASE_TOTAL_MS,
+            show: () => setRevealShowcase(showcase),
+            clear: () => setRevealShowcase((current) => (current?.key === showcase.key ? null : current)),
+          });
         } finally {
-          setRevealShowcase((current) => (current?.key === showcase.key ? null : current));
+          completionGates?.get(showcase.key)?.after?.release();
+          completionGates?.get(showcase.key)?.release();
         }
       },
     });

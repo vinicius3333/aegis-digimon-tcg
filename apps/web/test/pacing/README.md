@@ -102,7 +102,7 @@ effects. Effect speed still scales this orientation beat, but chain-tail acceler
 shortens clause and settle beats. The regression samples three actual field-source lifetimes
 at every speed and verifies that the first draw starts within the reference pace. Stacked
 Normal waits 200 ms between its clause and results, then rests 100 ms after results complete.
-The resulting 920 ms common field lead-in approximates DCGO without shortening visual result
+The resulting 920 ms common field lead-in approximates the reference without shortening visual result
 durations or retained text lifetimes. Sounds and arrivals waiting on a unit's announcement use that announcement's
 own safety ceiling, so a longer source focus after a Security reveal does not release them early.
 

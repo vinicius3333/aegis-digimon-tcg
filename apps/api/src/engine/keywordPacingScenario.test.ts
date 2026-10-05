@@ -1,0 +1,119 @@
+import { KEYWORD_PACING_SCENARIOS, Phase, type KeywordPacingScenario } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import "../cards/index.js";
+import { BLUE_DECK, RED_DECK } from "./testDecks.js";
+import { advance } from "./testkit/advance.js";
+import { setupEngine, settle } from "./testkit/harness.js";
+import { observe } from "./testkit/observe.js";
+
+describe("real keyword pacing boards", () => {
+  it("compares a printed tie once before either Barrier payment, then preserves both cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-041", as: "attacker" }], security: ["BT1-010", "BT1-010"] },
+      1: { battleArea: [{ card: "BT13-041", as: "defender", suspended: true }], security: ["BT1-010", "BT1-010"] },
+    });
+    await s.ready();
+    const attacker = s.perm("attacker");
+    const defender = s.perm("defender");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: defender.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    for (const [seat, permanent] of [
+      [0, attacker],
+      [1, defender],
+    ] as const) {
+      await settle(() =>
+        s.events.some((event) => event.kind === "barrierPrompt" && event.permanentId === permanent.permanentId),
+      );
+      expect(
+        s.engine.applyIntent(seat, { type: "respondBarrier", permanentId: permanent.permanentId, accept: true }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => !observe(s.engine).isAttacking());
+    const comparisons = s.events.filter((event) => event.kind === "battleCompared");
+    expect(comparisons).toHaveLength(1);
+    expect(comparisons[0]).toMatchObject({ loserPermanentIds: [attacker.permanentId, defender.permanentId] });
+    expect(s.events.indexOf(comparisons[0]!)).toBeLessThan(
+      s.events.findIndex((event) => event.kind === "barrierPrompt"),
+    );
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual([attacker.permanentId]);
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([defender.permanentId]);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.find((event) => event.kind === "combatResolved")).toMatchObject({ deletedPermanentIds: [] });
+  });
+  for (const scenario of KEYWORD_PACING_SCENARIOS as readonly KeywordPacingScenario[]) {
+    it(`${scenario.id} resolves through a public attack on printed cards`, async () => {
+      const s = setupEngine({ 0: {}, 1: {} });
+      s.engine.stagedDecks[0] = BLUE_DECK;
+      s.engine.stagedDecks[1] = RED_DECK;
+      s.engine.startDevScenario(scenario.id);
+      try {
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        const attacker = s.state.players[0]!.battleArea[0]!;
+        const defender = s.state.players[1]!.battleArea[0];
+        expect(attacker.topCard.cardId).toBe(scenario.attackerCardId);
+        expect(observe(s.engine).hasKeyword(attacker, scenario.keyword)).toBe(true);
+        const securityBefore = s.state.players[1]!.security.length;
+        const ownSecurityBefore = s.state.players[0]!.security.length;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: attacker.permanentId,
+            target:
+              scenario.target === "player"
+                ? { kind: "player" }
+                : { kind: "permanent", permanentId: defender!.permanentId },
+          }),
+        ).toEqual({ ok: true });
+        let reply;
+        if (scenario.decision?.kind === "Alliance") {
+          await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+          reply = s.engine.applyIntent(0, {
+            type: "respondAlliance",
+            ...(scenario.decision.accept ? { allyPermanentId: "dev-perm-0-keyword-ally-0" } : {}),
+          });
+        }
+        if (scenario.decision?.kind === "Barrier") {
+          await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+          reply = s.engine.applyIntent(0, {
+            type: "respondBarrier",
+            permanentId: attacker.permanentId,
+            accept: scenario.decision.accept,
+          });
+        }
+        expect(reply).toEqual(scenario.decision ? { ok: true } : undefined);
+        await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+        expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(
+          scenario.attackerRemains,
+        );
+        expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === defender?.permanentId)).toBe(
+          scenario.defenderRemains,
+        );
+        expect(s.state.players[1]!.security).toHaveLength(securityBefore - scenario.securityRemoved);
+        expect(s.state.players[0]!.security).toHaveLength(ownSecurityBefore - (scenario.ownSecurityRemoved ?? 0));
+        for (const [index] of (scenario.allies ?? []).entries()) {
+          expect(
+            s.state.players[0]!.battleArea.find((p) => p.permanentId === `dev-perm-0-keyword-ally-${index}`)
+              ?.isSuspended,
+          ).toBe(index === 0 && scenario.decision?.accept === true);
+        }
+        expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+        for (const prompt of s.events.filter((event) => event.kind === "barrierPrompt")) {
+          const comparison = s.events.find((event) => event.kind === "battleCompared");
+          expect(comparison).toMatchObject({ loserPermanentIds: [prompt.permanentId] });
+          expect(s.events.indexOf(comparison!)).toBeLessThan(s.events.indexOf(prompt));
+        }
+        expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(scenario.securityRemoved);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+      }
+    });
+  }
+});

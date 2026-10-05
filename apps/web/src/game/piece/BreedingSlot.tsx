@@ -1,9 +1,10 @@
-import type { Permanent } from "@aegis/shared";
+import { CardKind, getCardDefinition, type Permanent } from "@aegis/shared";
 import { CardBurst } from "../CardBurst";
 import type { PermanentBurst } from "../showcases";
 import { useTranslation } from "../../i18n";
 import type { DropAttrs } from "./types";
 import { PermanentView } from "./PermanentView";
+import { useBreedingTransferOrigin } from "../breedingTransfer";
 
 export function BreedingSlot({
   perm,
@@ -43,11 +44,14 @@ export function BreedingSlot({
   drop?: DropAttrs;
 }) {
   const { t } = useTranslation();
+  const transferOrigin = useBreedingTransferOrigin(perm?.permanentId);
   const w = width ?? (compact ? 66 : 100);
   return (
     <div
       className={`game-breeding-slot${burst ? " game-breeding-slot--lit" : ""}${focused ? " game-breeding-slot--focus" : ""}`}
       data-burst={burst?.variant}
+      data-permanent-id={perm?.permanentId}
+      data-card-id={perm?.topCard?.cardId}
       style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 2 : 5 }}
     >
       <div
@@ -79,14 +83,19 @@ export function BreedingSlot({
           animation: candidate ? "aegis-pulse 1.2s ease-in-out infinite" : "none",
         }}
       >
-        {burst ? (
+        {burst && burst.variant !== "evolve" ? (
           <span className="game-breeding-slot__burst" aria-hidden="true">
-            <CardBurst key={burst.key} variant={burst.variant} color={burst.color} />
+            <CardBurst key={burst.key} cueKey={burst.key} variant={burst.variant} color={burst.color} landing />
           </span>
         ) : null}
         {perm && perm.topCard?.cardId ? (
           <PermanentView
             perm={perm}
+            refCb={transferOrigin}
+            // An egg uses its accepted hatch cue rather than the ordinary field fade.
+            // Keep this quiet after the burst ends so clearing it cannot replay an entrance.
+            quietEntrance={getCardDefinition(perm.topCard.cardId)?.kinds.includes(CardKind.DigiEgg)}
+            burst={burst?.variant === "evolve" ? burst : undefined}
             keywordLabels={keywordLabels}
             compact={compact}
             width={w}

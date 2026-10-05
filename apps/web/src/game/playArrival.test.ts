@@ -1,13 +1,11 @@
-// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Dispatch, SetStateAction } from "react";
-import type { ServerEvent } from "@aegis/shared";
-import { createAnimationQueue } from "./animationQueue";
-import { cueFlights, playedCardSource } from "./match/flights";
-import type { DrawFlight, MatchCueAnchors } from "./match/types";
+import { createAnimationQueue, type AnimationQueue } from "./animationQueue";
 import { zoneChangeStep } from "./match/steps/zoneChangeStep";
+import { createArrivalPresentation } from "./match/cardReveal";
+import { CueTrack } from "./match/enums";
 import type { PermanentBurst, ZoneShowcase } from "./showcases";
-import { SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
+import { CARD_BURST_PEAK_MS, SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
 import { createPresentationGate, type PresentationGate } from "./match/presentationGate";
 
 function stateCell<T>(initial: T) {
@@ -18,247 +16,217 @@ function stateCell<T>(initial: T) {
   return { get: () => current, set };
 }
 
-function element(left: number, top: number, width: number, height: number) {
-  const node = document.createElement("div");
-  node.getBoundingClientRect = () => ({
-    left,
-    top,
-    width,
-    height,
-    right: left + width,
-    bottom: top + height,
-    x: left,
-    y: top,
-    toJSON() {},
-  });
-  return node;
-}
-
-function fixture(mode: "live" | "drain" = "live", options?: { opponent?: boolean; gate?: PresentationGate }) {
-  const board = element(20, 10, 1000, 800);
-  const hand = element(200, 710, 600, 100);
-  const opponentHand = element(200, 20, 600, 60);
-  const destination = element(476, 398, 88, 124);
-  destination.dataset.id = "p";
-  board.append(destination);
-  document.body.append(board);
-  const anchors: MatchCueAnchors = {
-    board: { current: board },
-    yourHandDock: { current: hand },
-    oppHandStrip: { current: opponentHand },
-    yourDeck: { current: element(900, 650, 60, 84) },
-    oppDeck: { current: element(50, 150, 60, 84) },
-    yourSecurity: { current: element(50, 650, 60, 84) },
-    oppSecurity: { current: element(900, 150, 60, 84) },
-    permanentCenter: () => ({ x: 500, y: 450 }),
-  };
-  const flights = stateCell<readonly DrawFlight[]>([]);
-  const pending = stateCell<ReadonlySet<string>>(new Set(["p"]));
+function fixture(mode: "live" | "drain" | "replay" = "live") {
+  const pending = stateCell<ReadonlySet<string>>(new Set());
   const bursts = stateCell<ReadonlyMap<string, PermanentBurst>>(new Map());
   const showcase = stateCell<ZoneShowcase | null>(null);
   const queue = createAnimationQueue({ mode });
-  const { flyPlayedCard } = cueFlights({
-    queue,
-    anchors,
-    viewerSeat: 0,
-    causingEffectGateRef: { current: null },
-    securityGainKeyRef: { current: 0 },
-    drawFlightKeyRef: { current: 0 },
-    setDrawFlights: flights.set,
-    setDrawBursts: () => {},
-    setSecurityFlights: () => {},
-    setSecurityDealCounts: () => {},
-  });
-  const event: Extract<ServerEvent, { kind: "cardPlayed" }> = {
-    kind: "cardPlayed",
-    seat: options?.opponent ? 1 : 0,
-    cardId: "BT1-010",
-    permanentId: "p",
-    artId: "alternate",
-  };
-  queue.enqueue(
-    zoneChangeStep({
-      queue,
-      presentationBatchRef: { current: { batchId: "accepted", stateVersion: 2 } },
-      enqueuePhaseOrderRef: { current: 1 },
-      setPendingPermanentIds: pending.set,
-      setPermanentBursts: bursts.set,
-      setZoneShowcase: showcase.set,
-      key: 1,
-      showcase: options?.opponent ? { key: 1, cardId: "BT1-010", seat: 1, kind: "play", color: "Red" } : null,
-      ...(options?.gate ? { waitFor: options.gate } : {}),
-      burst: { key: 1, permanentId: "p", variant: "play", color: "Red", inBreeding: false },
-      play: { event, fly: flyPlayedCard },
-    }),
-  );
-  return { board, destination, anchors, flights, pending, bursts, showcase, queue };
+  const trace: { key: number; at: number }[] = [];
+  function arrive(
+    key = 1,
+    options: {
+      mine?: boolean;
+      track?: string;
+      waitFor?: PresentationGate;
+      noShowcase?: boolean;
+      permanentId?: string;
+    } = {},
+  ) {
+    const presentation = createArrivalPresentation();
+    const permanentId = options.permanentId ?? `p-${key}`;
+    pending.set((held) => new Set(held).add(permanentId));
+    queue.enqueue(
+      zoneChangeStep({
+        queue,
+        presentationBatchRef: { current: { batchId: "accepted", stateVersion: 2 } },
+        enqueuePhaseOrderRef: { current: 1 },
+        setPendingPermanentIds: pending.set,
+        setPermanentBursts: bursts.set,
+        setZoneShowcase: (next) => {
+          showcase.set(next);
+          if (showcase.get()) trace.push({ key: showcase.get()!.key, at: Date.now() });
+        },
+        key,
+        showcase: options.noShowcase
+          ? null
+          : {
+              key,
+              cardId: "BT1-010",
+              artId: "alternate",
+              seat: options.mine ? 0 : 1,
+              mine: options.mine ?? false,
+              kind: "play",
+              color: "Red",
+            },
+        ...(options.waitFor ? { waitFor: options.waitFor } : {}),
+        ...(options.track ? { track: options.track } : {}),
+        burst: { key, permanentId, variant: "play", color: "Red", inBreeding: false },
+        presentation,
+      }),
+    );
+    return presentation;
+  }
+  return { pending, bursts, showcase, queue, trace, arrive };
 }
 
-beforeEach(() => {
-  vi.useFakeTimers();
-  Object.defineProperty(window, "matchMedia", { configurable: true, value: () => ({ matches: false }) });
-});
-afterEach(() => {
+const queues: AnimationQueue[] = [];
+beforeEach(() => vi.useFakeTimers());
+afterEach(async () => {
+  for (const queue of queues.splice(0)) queue.clear();
+  await vi.advanceTimersByTimeAsync(0);
   vi.useRealTimers();
-  document.body.replaceChildren();
 });
+function run(mode: "live" | "drain" | "replay" = "live") {
+  const result = fixture(mode);
+  queues.push(result.queue);
+  return result;
+}
 
-describe("confirmed play arrival", () => {
-  it("lands on the exact printed card among multiple slots despite a stale cached center", async () => {
-    const run = fixture();
-    run.anchors.permanentCenter = () => ({ x: 100, y: 100 });
-    const other = element(100, 100, 100, 140);
-    other.dataset.id = "other";
-    run.board.prepend(other);
-    const entered = document.createElement("div");
-    entered.className = "game-card-enter";
-    const art = element(720, 430, 116, 162);
-    art.dataset.state = "upright";
-    entered.append(art);
-    run.destination.append(entered);
+describe("public card arrival", () => {
+  it.each([false, true])("reveals the accepted art before the field for mine=%s", async (mine) => {
+    const f = run();
+    const gates = f.arrive(1, { mine });
     await vi.advanceTimersByTimeAsync(0);
-    const [flight] = run.flights.get();
-    expect(flight).toMatchObject({ targetPermanentId: "p", toWidth: 116 });
-    expect(flight!.x + flight!.dx).toBe(758);
-    expect(flight!.y + flight!.dy).toBe(501);
-    expect(run.pending.get().has("p")).toBe(true);
-    await vi.advanceTimersByTimeAsync(TIMINGS.playFlight);
-    expect(run.pending.get().size).toBe(0);
-    expect(run.bursts.get().has("p")).toBe(true);
-    run.queue.clear();
-  });
-
-  it("waits for the exact destination to mount without flying to an existing row slot", async () => {
-    const run = fixture();
-    run.destination.remove();
-    const row = element(100, 300, 600, 140);
-    row.className = "game-battle-row--you";
-    run.board.append(row);
-    await vi.advanceTimersByTimeAsync(48);
-    expect(run.flights.get()).toHaveLength(0);
-    expect(run.pending.get().has("p")).toBe(true);
-    run.board.append(run.destination);
-    await vi.advanceTimersByTimeAsync(16);
-    expect(run.flights.get()).toMatchObject([{ targetPermanentId: "p", dx: 20, dy: -300 }]);
-    run.queue.clear();
-  });
-
-  it("releases the field hold without fabricated travel when the destination stays unavailable", async () => {
-    const run = fixture();
-    run.destination.remove();
-    const row = element(100, 300, 600, 140);
-    row.className = "game-battle-row--you";
-    run.board.append(row);
-    await vi.advanceTimersByTimeAsync(128);
-    expect(run.flights.get()).toHaveLength(0);
-    expect(run.pending.get().size).toBe(0);
-    expect(run.bursts.get().has("p")).toBe(true);
-    run.queue.clear();
-  });
-
-  it("flies public art from the hand and keeps the field empty until the landing", async () => {
-    const run = fixture();
-    await vi.advanceTimersByTimeAsync(0);
-    expect(run.flights.get()).toMatchObject([
-      {
-        kind: "play",
-        targetPermanentId: "p",
-        card: { cardId: "BT1-010", artId: "alternate" },
-        x: 480,
-        y: 750,
-        dx: 20,
-        dy: -300,
-      },
-    ]);
-    expect(run.pending.get().has("p")).toBe(true);
-    expect(run.bursts.get().size).toBe(0);
-    await vi.advanceTimersByTimeAsync(TIMINGS.playFlight - 1);
-    expect(run.pending.get().has("p")).toBe(true);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(run.flights.get()).toHaveLength(0);
-    expect(run.pending.get().has("p")).toBe(false);
-    expect(run.bursts.get().get("p")?.variant).toBe("play");
-    run.queue.clear();
-  });
-
-  it("a cancelled flight releases the hidden destination and clears its art", async () => {
-    const run = fixture();
-    await vi.advanceTimersByTimeAsync(0);
-    run.queue.clear();
-    await vi.advanceTimersByTimeAsync(0);
-    expect(run.flights.get()).toHaveLength(0);
-    expect(run.pending.get().size).toBe(0);
-    expect(run.bursts.get().size).toBe(0);
-  });
-
-  it("transfers an opponent's readable showcase from its actual rectangle into the field", async () => {
-    const art = element(420, 280, 190, 266);
-    art.className = "battle-showcase__art";
-    document.body.append(art);
-    const run = fixture("live", { opponent: true });
+    expect(f.showcase.get()).toMatchObject({ mine, cardId: "BT1-010", artId: "alternate" });
+    expect(f.pending.get().has("p-1")).toBe(true);
+    expect(gates.revealed.open).toBe(false);
     await vi.advanceTimersByTimeAsync(SHOWCASE_TOTAL_MS - 1);
-    expect(run.showcase.get()?.departToField).toBe(true);
-    expect(run.flights.get()).toHaveLength(0);
-    expect(run.pending.get().has("p")).toBe(true);
+    expect(f.bursts.get().size).toBe(0);
     await vi.advanceTimersByTimeAsync(1);
-    expect(run.showcase.get()).toBeNull();
-    expect(run.flights.get()).toMatchObject([{ kind: "play", x: 495, y: 403, dx: 5, dy: 47, fromWidth: 190 }]);
-    expect(run.bursts.get().size).toBe(0);
-    await vi.advanceTimersByTimeAsync(TIMINGS.playFlight);
-    expect(run.pending.get().size).toBe(0);
-    expect(run.bursts.get().has("p")).toBe(true);
-    run.queue.clear();
+    expect(f.showcase.get()).toBeNull();
+    expect(f.pending.get().size).toBe(0);
+    expect(gates.revealed.open).toBe(true);
+    expect(gates.landed.open).toBe(false);
+    expect(f.bursts.get().get("p-1")?.variant).toBe("play");
+    await vi.advanceTimersByTimeAsync(CARD_BURST_PEAK_MS - 1);
+    expect(gates.landed.open).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(gates.landed.open).toBe(true);
+    expect(f.queue.hasPendingStep((step) => step.track === "burst-p-1" && step.blocksDecision !== false)).toBe(false);
+    await vi.advanceTimersByTimeAsync(TIMINGS.cardBurst - CARD_BURST_PEAK_MS);
+    expect(f.bursts.get().size).toBe(0);
   });
 
-  it("keeps an effect's result behind its accepted announcement gate", async () => {
-    const gate = createPresentationGate();
-    const run = fixture("live", { gate });
-    await vi.advanceTimersByTimeAsync(200);
-    expect(run.flights.get()).toHaveLength(0);
-    expect(run.bursts.get().size).toBe(0);
-    expect(run.pending.get().has("p")).toBe(true);
-    gate.release();
-    await vi.advanceTimersByTimeAsync(20);
-    expect(run.flights.get()).toHaveLength(1);
-    expect(run.pending.get().has("p")).toBe(true);
-    run.queue.clear();
+  it("serializes simultaneous effect results that run on independent tracks", async () => {
+    const f = run();
+    const at = Date.now();
+    f.arrive(1, { track: "result-1" });
+    f.arrive(2, { track: "result-2" });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(f.showcase.get()?.key).toBe(1);
+    await vi.advanceTimersByTimeAsync(SHOWCASE_TOTAL_MS - 1);
+    expect(f.showcase.get()?.key).toBe(1);
+    expect(f.pending.get().has("p-2")).toBe(true);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(f.showcase.get()?.key).toBe(2);
+    expect(f.bursts.get().has("p-1")).toBe(true);
+    await vi.advanceTimersByTimeAsync(SHOWCASE_TOTAL_MS + 16);
+    expect(f.showcase.get()).toBeNull();
+    expect(f.trace.filter((entry, index) => index === 0 || entry.key !== f.trace[index - 1]?.key)).toEqual([
+      { key: 1, at },
+      { key: 2, at: at + SHOWCASE_TOTAL_MS },
+    ]);
   });
 
-  it("reduced motion reveals the accepted field without travel or a stranded hold", async () => {
-    const run = fixture("drain");
-    await run.queue.idle();
-    expect(run.flights.get()).toHaveLength(0);
-    expect(run.pending.get().size).toBe(0);
-    expect(run.bursts.get().size).toBe(0);
+  it("does not reserve the reveal while a result waits for its cause", async () => {
+    const f = run();
+    const cause = createPresentationGate();
+    f.arrive(1, { track: "waiting-result", waitFor: cause });
+    f.arrive(2, { track: "ready-result" });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(f.showcase.get()?.key).toBe(2);
+    await vi.advanceTimersByTimeAsync(SHOWCASE_TOTAL_MS);
+    expect(f.pending.get().has("p-1")).toBe(true);
+    cause.release();
+    await vi.advanceTimersByTimeAsync(16);
+    expect(f.showcase.get()?.key).toBe(1);
   });
 
-  it("uses the confirmed trash origin and never substitutes an unknown zone with a hand", () => {
-    const run = fixture("drain");
-    const trash = element(900, 650, 60, 84);
-    trash.className = "game-utility-slot--opp-trash";
-    run.board.append(trash);
-    const event = { kind: "cardPlayed", seat: 1, cardId: "BT1-010", permanentId: "p", fromZone: "trash" } as Extract<
-      ServerEvent,
-      { kind: "cardPlayed" }
-    >;
-    expect(playedCardSource(event, run.anchors, 0)).toBe(trash);
-    expect(playedCardSource({ ...event, seat: 0 } as typeof event, run.anchors, 0)).toBeNull();
+  it("a replacing security cue cancels the reveal and releases the held field", async () => {
+    const f = run();
+    const gates = f.arrive();
+    await vi.advanceTimersByTimeAsync(100);
+    f.queue.pause();
+    f.queue.enqueue({ id: "security", track: CueTrack.CenterStage, replace: true, run: () => {} });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(f.showcase.get()).toBeNull();
+    expect(f.pending.get().size).toBe(0);
+    expect(gates.revealed.open && gates.landed.open).toBe(true);
+    f.queue.resume();
+    await vi.advanceTimersByTimeAsync(SHOWCASE_TOTAL_MS);
+    expect(f.bursts.get().size).toBe(0);
   });
 
-  it("uses the authoritative digivolution-card origin's exact host", () => {
-    const run = fixture("drain");
-    const host = element(300, 400, 116, 162);
-    host.dataset.id = "host";
-    run.board.append(host);
-    const event: Extract<ServerEvent, { kind: "cardPlayed" }> = {
-      kind: "cardPlayed",
-      seat: 0,
-      cardId: "BT1-010",
-      permanentId: "p",
-      fromZone: "digivolutionCards",
-      fromPermanentId: "host",
-    };
-    expect(playedCardSource(event, run.anchors, 0)).toBe(host);
-    expect(playedCardSource({ ...event, fromPermanentId: "absent" }, run.anchors, 0)).toBeNull();
+  it("releases handoffs for arrivals discarded before they start", async () => {
+    const f = run();
+    f.queue.enqueue({ id: "prior", track: CueTrack.CenterStage, run: (ctx) => ctx.wait(1000) });
+    const gates = f.arrive();
+    f.queue.enqueue({ id: "security", track: CueTrack.CenterStage, replace: true, run: () => {} });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(gates.revealed.open && gates.landed.open).toBe(true);
+    expect(f.pending.get().size).toBe(0);
+    expect(f.showcase.get()).toBeNull();
+    expect(f.queue.isIdle()).toBe(true);
+  });
+
+  it("keeps the reveal and both handoffs frozen during playback pause", async () => {
+    const f = run();
+    const gates = f.arrive();
+    await vi.advanceTimersByTimeAsync(100);
+    f.queue.pause();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(gates.revealed.open).toBe(false);
+    expect(f.showcase.get()?.key).toBe(1);
+    f.queue.resume();
+    await vi.advanceTimersByTimeAsync(SHOWCASE_TOTAL_MS - 100 + 16);
+    expect(gates.revealed.open).toBe(true);
+  });
+
+  it.each(["drain", "replay"] as const)(
+    "returns the field without a reveal or stranded handoff in %s",
+    async (mode) => {
+      const f = run(mode);
+      const gates = f.arrive();
+      await f.queue.idle();
+      expect(f.pending.get().size).toBe(0);
+      expect(f.showcase.get()).toBeNull();
+      expect(f.bursts.get().size).toBe(0);
+      expect(gates.revealed.open && gates.landed.open).toBe(true);
+    },
+  );
+
+  it("fast-forward clears active/queued reveals and their handoffs", async () => {
+    const f = run();
+    const one = f.arrive(1, { track: "result-1" });
+    const two = f.arrive(2, { track: "result-2" });
+    await vi.advanceTimersByTimeAsync(0);
+    f.queue.skip();
+    await f.queue.idle();
+    expect(f.showcase.get()).toBeNull();
+    expect(f.pending.get().size).toBe(0);
+    expect(one.landed.open && two.landed.open).toBe(true);
+  });
+
+  it.each(["clear", "skip"] as const)("%s cleans the non-blocking light after landing", async (action) => {
+    const f = run();
+    const gates = f.arrive(1, { noShowcase: true });
+    await vi.advanceTimersByTimeAsync(CARD_BURST_PEAK_MS);
+    expect(gates.landed.open).toBe(true);
+    expect(f.bursts.get().size).toBe(1);
+    expect(f.queue.hasPendingStep((step) => step.blocksDecision !== false)).toBe(false);
+    f.queue[action]();
+    await f.queue.idle();
+    expect(f.bursts.get().size).toBe(0);
+  });
+
+  it("the previous light cannot clean up a newer arrival on the same permanent", async () => {
+    const f = run();
+    f.arrive(1, { noShowcase: true });
+    await vi.advanceTimersByTimeAsync(250);
+    f.arrive(2, { noShowcase: true, permanentId: "p-1" });
+    await vi.advanceTimersByTimeAsync(TIMINGS.cardBurst - 250);
+    expect(f.bursts.get().get("p-1")?.key).toBe(2);
+    await vi.advanceTimersByTimeAsync(250);
+    expect(f.bursts.get().size).toBe(0);
   });
 });

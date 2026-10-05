@@ -9,6 +9,7 @@ import { Hand, type HandEntry } from "../../piece";
 import { Side } from "../../side";
 import { ActionBar } from "./ActionBar";
 import { PlayerLine } from "./PlayerLine";
+import type { EffectActivation } from "../../effectSource";
 
 export function PlayerDock({
   playerName,
@@ -21,6 +22,7 @@ export function PlayerDock({
   cards,
   selectedInstanceId,
   effectSourceInstanceId,
+  effectSource,
   selection,
   draggingInstanceId,
   shakeInstanceId,
@@ -48,6 +50,7 @@ export function PlayerDock({
   cards: HandEntry[];
   selectedInstanceId?: string;
   effectSourceInstanceId?: string;
+  effectSource?: EffectActivation;
   selection?: {
     selectableInstanceIds: readonly string[];
     pickedInstanceIds: readonly string[];
@@ -64,7 +67,7 @@ export function PlayerDock({
   handCount: number;
   deckCount: number;
   trashCount: number;
-  startDrag: (index: number, event: React.PointerEvent) => void;
+  startDrag: (index: number, event: React.PointerEvent, origin?: HTMLElement) => void;
   selectCard: (index: number) => void;
   onHoverChange: (instanceId: string | undefined) => void;
 }) {
@@ -102,6 +105,7 @@ export function PlayerDock({
           cards={cards}
           selectedInstanceId={selectedInstanceId}
           effectSourceInstanceId={effectSourceInstanceId}
+          effectSource={effectSource}
           selection={selection}
           startDrag={startDrag}
           selectCard={selectCard}

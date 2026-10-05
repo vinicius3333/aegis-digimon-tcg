@@ -1,5 +1,5 @@
 /* Everything the board plays back at the player because the server said
-   something happened: sounds, info panels, the attack call-out and lunge, the
+   something happened: sounds, info panels, the attack call-out and target arrow, the
    security clash, the recovery and effect notices, the turn banner and the draw
    flights.
 
@@ -40,7 +40,6 @@ import { useSecurityCountWatcher } from "./match/watchers/useSecurityCountWatche
 import { narrationStream } from "./match/narration/narrationStream";
 import { createEffectSequence } from "./match/effectSequence";
 import type {
-  AttackLunge,
   DeleteBurst,
   DrawBurst,
   DrawFlight,
@@ -55,7 +54,6 @@ import type {
 } from "./match/types";
 
 export type {
-  AttackLunge,
   DeleteBurst,
   DrawBurst,
   DrawFlight,
@@ -65,7 +63,7 @@ export type {
   TurnTransitionCue,
   UnsuspendSweep,
 } from "./match/types";
-export { CueTrack, LungeDirection, SecurityBreakPhase } from "./match/enums";
+export { CueTrack, AttackDirection, SecurityBreakPhase } from "./match/enums";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
@@ -89,11 +87,7 @@ import {
   type SidePanel,
   type SidePanelLookup,
 } from "./sidePanels";
-import {
-  noticeRemaining,
-  rejectionNotice,
-  type MatchNotice,
-} from "./notices";
+import { noticeRemaining, rejectionNotice, type MatchNotice } from "./notices";
 import { narrationReadingTime, trimNarration, NARRATION_QUEUE_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
@@ -296,7 +290,10 @@ export function useMatchCues({
     const counted = (step: AnimationStep): AnimationStep => {
       const phaseOrder = step.origin?.phaseOrder ?? enqueuePhaseOrderRef.current ?? completedPhaseOrderRef.current;
       const gated =
-        step.track === "phaseBanner" || step.track === "unsuspendSweep" || step.track?.startsWith("turnDrawFlight-")
+        step.track === "phaseBanner" ||
+        step.track === "unsuspendSweep" ||
+        step.track === CueTrack.DrawPresentation ||
+        step.track?.startsWith("turnDrawFlight-")
           ? step
           : {
               ...step,
@@ -406,7 +403,6 @@ export function useMatchCues({
   const [decisionBarrier, setDecisionBarrier] = useState<number | null>(null);
   const [unsuspendSweep, setUnsuspendSweep] = useState<UnsuspendSweep | null>(null);
   const [deleteBursts, setDeleteBursts] = useState<readonly DeleteBurst[]>([]);
-  const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
   const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
   const [drawFlights, setDrawFlights] = useState<readonly DrawFlight[]>([]);
   const [drawBursts, setDrawBursts] = useState<readonly DrawBurst[]>([]);
@@ -449,6 +445,7 @@ export function useMatchCues({
     ]),
   );
   const [heldTrashArrivals, setHeldTrashArrivals] = useState<MatchCues["heldTrashArrivals"]>(new Map());
+  const [heldHandArrivals, setHeldHandArrivals] = useState<MatchCues["heldHandArrivals"]>(new Map());
   const trashArrivalKeyRef = useRef(0);
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
   const [announcedTurn, setAnnouncedTurn] = useState<{ seat: Seat; count: number } | undefined>(
@@ -466,7 +463,7 @@ export function useMatchCues({
   const [dpBadgeSuppressions, setDpBadgeSuppressions] = useState<ReadonlyMap<string, number>>(new Map());
   const [freezePulses, setFreezePulses] = useState<ReadonlyMap<string, FreezePulse>>(new Map());
   const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
-  const [deckRiffles, setDeckRiffles] = useState<ReadonlySet<string>>(new Set());
+  const [deckRiffles, setDeckRiffles] = useState<ReadonlyMap<string, number>>(new Map());
   const [securityFlights, setSecurityFlights] = useState<ReadonlySet<number>>(new Set());
   const [securityDealCounts, setSecurityDealCounts] = useState<ReadonlyMap<Seat, number>>(new Map());
 
@@ -535,8 +532,8 @@ export function useMatchCues({
   // same way the dock is: the check closing is what releases the card into its outcome beat.
   const securityHoldRef = useRef<{ key: number; closed: boolean; handedOver?: boolean } | null>(null);
   // The blow a security battle has yet to land. A field battle makes its losers wait on
-  // FIELD_CLASH_TOTAL_MS, a constant, because its scene is a constant; a check's scene is
-  // not — its hold runs as long as the server takes to answer what the check asked. So the
+  // the remaining declaration-arrow beat plus its impact; a check's scene is open-ended —
+  // its hold runs as long as the server takes to answer what the check asked. So the
   // wait is a gate rather than a duration: it opens when the outcome beat has played, and
   // whatever the check deleted shatters then, not seconds ahead of the battle that did it.
   const securityBlowRef = useRef<{ key: number; landed: boolean; gate: PresentationGate } | null>(null);
@@ -619,7 +616,7 @@ export function useMatchCues({
   // same commit, which is what tells a turn-start draw from an effect draw.
   const turnStartDrawRef = useRef({ you: false, opp: false });
   const eventDrawCountsRef = useRef<{ you?: number; opp?: number }>({});
-  const pendingDigivolutionDrawRef = useRef(new Set<Seat>());
+  const pendingDigivolutionDrawRef = useRef(new Map<Seat, PresentationGate>());
 
   const playCue = (kind: SoundKind) => {
     const now = Date.now();
@@ -918,9 +915,9 @@ export function useMatchCues({
       flushHeldNotices,
       launchDrawFlight,
       launchDeckToUnderFlight,
-      flyPlayedCard,
       flyDockedOptionUnder,
       flyCardToDeck,
+      flyCardToHand,
       releaseTrashArrivalsThrough,
       launchSecurityGainFlight,
       securityCountOf,
@@ -990,7 +987,6 @@ export function useMatchCues({
       setSecurityFlights,
       setHeldMemory,
       setAttackAnnouncement,
-      setAttackLunge,
       setSecurityBreak,
       setSecurityHitSeat,
       setSecurityClash,
@@ -1234,19 +1230,21 @@ export function useMatchCues({
     launchDeckToUnderFlight,
     flyCardUnder,
     flyCardToDeck,
-    flyPlayedCard,
+    flyCardToHand,
   } = cueFlights({
     queue,
     anchors,
+    presentationBatchRef,
     viewerSeat,
     causingEffectGateRef,
-    presentationBatchRef,
+    stackStripKeyRef: deleteBurstKeyRef,
     securityGainKeyRef,
     drawFlightKeyRef,
     setSecurityFlights,
     setSecurityDealCounts,
     setDrawFlights,
     setDrawBursts,
+    setHeldHandArrivals,
   });
 
   /** The docked Option card, drawn over the board, flies into the permanent it went under. */
@@ -1264,6 +1262,7 @@ export function useMatchCues({
       anchors,
       viewerSeat,
       causingEffectGateRef: liveStateCauseRef,
+      stackStripKeyRef: deleteBurstKeyRef,
       presentationBatchRef,
       securityGainKeyRef,
       drawFlightKeyRef,
@@ -1271,6 +1270,7 @@ export function useMatchCues({
       setSecurityDealCounts,
       setDrawFlights,
       setDrawBursts,
+      setHeldHandArrivals,
     });
 
   useDrawWatcher({
@@ -1285,7 +1285,8 @@ export function useMatchCues({
     handCountsRef,
     turnStartDrawRef,
     eventDrawCountsRef,
-    launchDrawFlight: launchWatchedDrawFlight,
+    launchDrawFlight: (side, turnStart, waitBeforeMs, card, arrived, draw) =>
+      launchWatchedDrawFlight(side, turnStart, waitBeforeMs, card, arrived, draw, deleteBurstKeyRef.current),
   });
 
   useSecurityCountWatcher({
@@ -1396,7 +1397,6 @@ export function useMatchCues({
     revealShowcase,
     permanentBursts,
     pendingPermanentIds,
-    attackLunge,
     effectSources,
     deckRiffles,
     securityFlights,
@@ -1412,6 +1412,7 @@ export function useMatchCues({
     heldDeletions,
     heldStackStrips,
     heldTrashArrivals,
+    heldHandArrivals,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },
     heldSuspendedIds,

@@ -1156,6 +1156,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "feed.openCard": "Abrir {card}",
 
   "showcase.opponentPlayed": "O oponente jogou {card}",
+  "showcase.youPlayed": "Você jogou {card}",
+  "showcase.youDigivolved": "Você evoluiu para {card}",
   "showcase.opponentDigivolved": "O oponente evoluiu para {card}",
   "showcase.opponentRevealed": "O oponente revelou",
   "showcase.opponentRevealedWith": "O oponente revelou com {source}",

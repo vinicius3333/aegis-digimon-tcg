@@ -27,4 +27,15 @@ export class GamePage {
     await this.page.mouse.move(to!.x + to!.width / 2, to!.y + to!.height / 2, { steps: 20 });
     await this.page.mouse.up();
   }
+  async attack(permanentId: string, target: Locator) {
+    const attacker = this.page.locator(`[data-drop="perm-you"][data-id="${permanentId}"]`);
+    await expect(attacker).toBeVisible();
+    await expect(target).toBeVisible();
+    const from = (await attacker.boundingBox())!;
+    const to = (await target.boundingBox())!;
+    await this.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 20 });
+    await this.page.mouse.up();
+  }
 }

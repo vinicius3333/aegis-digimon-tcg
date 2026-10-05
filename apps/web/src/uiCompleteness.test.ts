@@ -66,6 +66,9 @@ function narratedEventKinds(relativePath: string, functionName: string): Set<str
  * the only difference between a deliberate silence and a forgotten event is this note.
  */
 const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
+  // Starts the physical clash before protection questions; it reports potential losses,
+  // not deletions. combatResolved narrates the final result after those questions.
+  battleCompared: "rendered as the field impact; final outcomes carry the log lines",
   // Terminates the ＜Alliance＞ prompt overlay and carries no outcome: the event says the
   // decision was answered, not whether an ally joined, so a log line could only repeat
   // that something was decided. The ally's own effects narrate themselves.

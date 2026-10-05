@@ -1,19 +1,23 @@
 /* The battle two Digimon fight on the board itself. A security check gets the
    centre-stage clash; a battle between permanents plays where the cards stand:
-   the arrow extends, the attacker lunges at its target, and the loser takes the
+   the arrow extends while the cards stay in their slots, and the loser takes the
    claw and the shake ahead of its burst.
 
    The declaration and the `combatResolved` that closes it usually arrive in one
    batch — the server resolves an uncontested attack in a single pass — so nothing
    here reads the live event log the way the tracking arrow does. The open attack
-   is remembered event by event instead, and the scene is cut from that memory at
-   the moment the combat resolves. */
+   is remembered event by event instead. The authoritative comparison starts the
+   blow before protection questions; deletion/resolution remain legacy fallbacks. */
 
 import type { ServerEvent, Seat } from "@aegis/shared";
-import { LungeDirection } from "./match/enums";
+import { AttackDirection } from "./match/enums";
+import type { AttackArrowClock } from "./attackArrowClock";
+import { COMBAT_IMPACT_TOTAL_MS, FIELD_CLASH_IMPACT_AT_MS } from "./timings";
 
 /** The attack currently declared and not yet resolved, remembered across batches. */
 export interface OpenAttack {
+  /** The declaration occurrence, shared with the target-arrow renderer. */
+  arrowKey?: string;
   seat: Seat;
   attackerPermanentId: string;
   attackerCardId: string;
@@ -23,7 +27,7 @@ export interface OpenAttack {
   /** The target's public identity at declaration; a blocker arrives without one. */
   targetCardId?: string;
   targetArtId?: string;
-  /** This battle's clash has already been staged from its deletion; `combatResolved` adds nothing. */
+  /** This battle's clash has already been staged; final deletion bookkeeping adds no blow. */
   staged?: true;
 }
 
@@ -42,8 +46,19 @@ export interface FieldClashScene {
   defender: FieldClashCombatant;
   /** Board identities the compare deleted; they take the claw and the shake. */
   loserPermanentIds: readonly string[];
-  /** The viewer's attacker leans up the board; the opponent's leans down. */
-  direction: LungeDirection;
+  /** The viewer attacks up the board; the opponent attacks down. */
+  direction: AttackDirection;
+  /** Present only when this declaration already has a measured arrow on screen. */
+  arrowClock?: AttackArrowClock;
+  arrowKey?: string;
+}
+
+export function fieldClashImpactAtMs(scene: FieldClashScene): number {
+  return scene.arrowClock?.remainingMs ?? FIELD_CLASH_IMPACT_AT_MS;
+}
+
+export function fieldClashDurationMs(scene: FieldClashScene): number {
+  return fieldClashImpactAtMs(scene) + COMBAT_IMPACT_TOTAL_MS;
 }
 
 /**
@@ -66,6 +81,9 @@ function closesAttack(event: ServerEvent): boolean {
  * the blocker, and anything that ends the attack forgets it.
  */
 export function trackOpenAttack(open: OpenAttack | null, event: ServerEvent): OpenAttack | null {
+  // Piercing checks happen before combatResolved. Remember the battle already staged
+  // from its deletion so the final seam cannot replace that blow with a second one.
+  if (event.kind === "securityChecked" && open?.staged) return open;
   if (event.kind === "attackDeclared") {
     return {
       seat: event.seat,
@@ -120,6 +138,40 @@ export function buildBattleDeletionScene({
     open,
     defenderPermanentId: open.targetPermanentId,
     loserPermanentIds: losers,
+    viewerSeat,
+    cardIdOf,
+    artIdOf,
+  });
+}
+
+/** A battle comparison precedes protection costs and can name a loser that survives. */
+export function buildComparedBattleScene({
+  key,
+  open,
+  event,
+  viewerSeat,
+  cardIdOf,
+  artIdOf,
+}: {
+  key: number;
+  open: OpenAttack | null;
+  event: Extract<ServerEvent, { kind: "battleCompared" }>;
+  viewerSeat: Seat;
+  cardIdOf: (permanentId: string) => string | undefined;
+  artIdOf?: (permanentId: string) => string | undefined;
+}): FieldClashScene | null {
+  if (
+    !open ||
+    open.staged ||
+    open.attackerPermanentId !== event.attackerPermanentId ||
+    open.targetPermanentId !== event.defenderPermanentId
+  )
+    return null;
+  return sceneOf({
+    key,
+    open,
+    defenderPermanentId: event.defenderPermanentId,
+    loserPermanentIds: event.loserPermanentIds,
     viewerSeat,
     cardIdOf,
     artIdOf,
@@ -195,6 +247,7 @@ function sceneOf({
       ...(defenderArtId ? { artId: defenderArtId } : {}),
     },
     loserPermanentIds,
-    direction: open.seat === viewerSeat ? LungeDirection.Up : LungeDirection.Down,
+    direction: open.seat === viewerSeat ? AttackDirection.Up : AttackDirection.Down,
+    ...(open.arrowKey ? { arrowKey: open.arrowKey } : {}),
   };
 }

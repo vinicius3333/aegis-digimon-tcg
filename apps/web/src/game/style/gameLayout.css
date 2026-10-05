@@ -509,9 +509,6 @@
   padding: 0 22px var(--decision-overlay-pad-bottom);
   overflow-y: auto;
 }
-/* The dimmed field is the sheet's own backdrop: a separate scrim element could not sit
-   between a panel that is positioned by these rules and the board under it. It fades on
-   its own — a keyframe that also moved it would slide the dimming off one edge. */
 /* `battle-dialog-in` animates `translate`, which on this sheet also carries the -50%
    that centres it — a shared keyframe would drop the sheet to the left edge and, with
    `both`, leave it there. This one rises without giving up the centring. */
@@ -529,13 +526,23 @@
   }
 }
 
-.decision-overlay::before {
-  content: "";
+/* Cover the arena independently of the sheet's translate, scrolling and height. */
+.decision-overlay-backdrop {
   position: fixed;
-  z-index: -1;
+  z-index: 79;
   inset: 0;
   background: var(--ds-scrim);
   animation: game-modal-scrim-in var(--t-dialog-in, 180ms) ease-out both;
+}
+@media (width < 600px) {
+  .decision-overlay-backdrop {
+    z-index: calc(var(--ds-z-dialog) - 1);
+  }
+}
+@media (min-width: 1024px) {
+  .decision-overlay-backdrop--side {
+    display: none;
+  }
 }
 .decision-overlay__view-board {
   flex: none;

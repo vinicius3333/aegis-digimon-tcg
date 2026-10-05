@@ -2,11 +2,12 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
 import type { SecurityBranchScene } from "../../securityClash";
-import { SECURITY_BRANCH_IN_MS, SECURITY_DOCK_CLOSE_MS, TIMINGS } from "../../timings";
+import { SECURITY_BRANCH_IN_MS, TIMINGS } from "../../timings";
 import { Side } from "../../side";
 import { CueTrack } from "../enums";
 import { createPresentationGate, type PresentationGate } from "../presentationGate";
 import type { DrawFlightCard } from "../types";
+import { waitForPresentation } from "../cardReveal";
 
 /**
  * The card an Option was played from, parked at the side of the screen for as long as that
@@ -39,6 +40,7 @@ export function enqueueOptionDock({
   queue,
   stateVersion,
   usedOption,
+  revealed,
   optionRouted,
   routedUnderPermanentId,
   viewerSeat,
@@ -55,6 +57,7 @@ export function enqueueOptionDock({
   /** The state version of the batch that used the Option. */
   stateVersion: number;
   usedOption: ServerEvent | undefined;
+  revealed?: PresentationGate;
   /** True when the server already confirmed where the card went, so the dock may close. */
   optionRouted: boolean;
   /** Where that same batch placed the card, if it went under a permanent. */
@@ -85,6 +88,7 @@ export function enqueueOptionDock({
     source: "option",
   };
   const settled = createPresentationGate();
+  const arrived = createPresentationGate();
   void queue.idle().then(() => settled.release());
   // A newer Option replacing this one in the ref leaves nothing waiting on this gate.
   optionDockRef.current?.settled.release();
@@ -95,14 +99,22 @@ export function enqueueOptionDock({
     ...(optionRouted ? { routedAtVersion: stateVersion } : {}),
     ...(routedUnderPermanentId !== undefined ? { routedUnderPermanentId } : {}),
   };
-  // The clause the Option raised and what it deleted are still on their way to the screen.
+  // The clause and its visible results finish before the execution slot closes.
   const consequencesPending = () => {
     const routedAt = optionDockRef.current?.key === key ? optionDockRef.current.routedAtVersion : undefined;
+    // Later clauses can wait on settled, so only results up to routing belong here.
     return (
       routedAt !== undefined &&
       queue.hasPendingStep(
         (step) =>
-          (step.id.startsWith("narration-step-") || step.id.startsWith("delete-burst-")) &&
+          (step.id.startsWith("narration-step-") ||
+            step.id.startsWith("delete-burst-") ||
+            step.id.startsWith("zone-change-") ||
+            step.id.startsWith("reveal-showcase-") ||
+            step.id.startsWith("draw-flight-") ||
+            step.id.startsWith("deck-under-flight-") ||
+            step.id.startsWith("deck-return-") ||
+            step.id.startsWith("security-gain-flight-")) &&
           step.origin !== undefined &&
           step.origin.stateVersion <= routedAt,
       )
@@ -116,9 +128,16 @@ export function enqueueOptionDock({
     track: CueTrack.OptionDock,
     skippable: false,
     blocksDecision: false,
+    onDiscard: () => arrived.release(),
     async run(context) {
-      setOptionBranch(dock);
-      await context.wait(SECURITY_BRANCH_IN_MS);
+      try {
+        await waitForPresentation(revealed, context);
+        if (context.cancelled) return;
+        setOptionBranch(dock);
+        await context.wait(SECURITY_BRANCH_IN_MS);
+      } finally {
+        arrived.release();
+      }
     },
   });
   enqueue({
@@ -128,6 +147,8 @@ export function enqueueOptionDock({
     blocksDecision: false,
     async run(context) {
       try {
+        await waitForPresentation(arrived, context);
+        if (context.cancelled) return;
         // Keep even a one-batch Option long enough for its activated effects to read.
         let waitedMs = 0;
         while (!context.cancelled && waitedMs < TIMINGS.optionDockHold) {
@@ -163,8 +184,6 @@ export function enqueueOptionDock({
           setOptionBranch((current) => (current?.key === key ? null : current));
           if (await flying) return;
         }
-        setOptionBranch((current) => (current?.key === key ? { ...current, state: "closing" } : current));
-        await context.wait(SECURITY_DOCK_CLOSE_MS);
         setOptionBranch((current) => (current?.key === key ? null : current));
       } finally {
         settled.release();

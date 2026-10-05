@@ -737,7 +737,7 @@ export class CombatController {
           this.access.isBattleAreaDigimon(defender, this.hooks.continuous) &&
           this.access.isBattleAreaDigimon(attacker, this.hooks.continuous)
         ) {
-          await this.resolveDigimonBattle(attacker, defender);
+          await this.resolveDigimonBattle(attacker, defender, true);
           // §11-1-4: the battle's [On Deletion] windows were parked behind the ordering
           // effect's window token; activate them before Piercing and End of Attack.
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
@@ -1232,12 +1232,12 @@ export class CombatController {
     await this.resolveDigimonBattle(attacker, defender);
   }
 
-  private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+  private async resolveDigimonBattle(attacker: Permanent, defender: Permanent, isAttackBattle = false): Promise<void> {
     const battleScopeId = this.hooks.beginBattleScope?.();
     this.battles.push({ attacker, defender });
     try {
       await this.hooks.recomputeBattleEffects?.();
-      await this.resolveDigimonBattleResult(attacker, defender);
+      await this.resolveDigimonBattleResult(attacker, defender, isAttackBattle);
       await this.hooks.sweepEndOfBattle?.(battleScopeId);
     } catch (error) {
       if (battleScopeId !== undefined) this.hooks.endBattleScope?.(battleScopeId);
@@ -1262,7 +1262,11 @@ export class CombatController {
     );
   }
 
-  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
+  private async resolveDigimonBattleResult(
+    attacker: Permanent,
+    defender: Permanent,
+    isAttackBattle: boolean,
+  ): Promise<void> {
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
       attackerDP: attacker.currentDP,
@@ -1276,6 +1280,16 @@ export class CombatController {
       attackerSparedFromDeletion: this.sparedFromBattleDeletion(attacker.permanentId),
       defenderSparedFromDeletion: this.sparedFromBattleDeletion(defender.permanentId),
     });
+
+    // The blow precedes the "would be deleted" questions. Final deletions are published
+    // later, so they cannot tell the client which surviving protected card took that blow.
+    if (isAttackBattle)
+      this.hooks.emit({
+        kind: "battleCompared",
+        attackerPermanentId: attacker.permanentId,
+        defenderPermanentId: defender.permanentId,
+        loserPermanentIds: [...outcome.deletedPermanentIds],
+      });
 
     // Capture the winner now, but publish only after every "would be deleted/leave" replacement
     // has resolved (Q7022). The win is based on the comparison, not successful deletion (Q7023).

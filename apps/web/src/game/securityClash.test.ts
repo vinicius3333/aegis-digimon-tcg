@@ -16,6 +16,7 @@ import {
   SECURITY_CLASH_TOTAL_MS,
   SECURITY_DESTROY_OUTCOME_AT_MS,
   securityDestructionsFromEvents,
+  securityClashTailMs,
 } from "./securityClash";
 
 // Agumon is a Digimon with DP; Brave Shield is an Option, so it has none to compare.
@@ -259,5 +260,39 @@ describe("security destroyed by an effect", () => {
     expect(scene.resolution).toBe("trashed");
     expect(scene.cause).toBe("destruction");
     expect(scene.outcomeAtMs).toBe(SECURITY_DESTROY_OUTCOME_AT_MS);
+  });
+});
+
+describe("central departure budget", () => {
+  it.each([false, true])(
+    "retains the losing attacker=%s without shortening checked-card disposal",
+    (attackerDeleted) => {
+      const scene = buildSecurityClashScene({
+        key: 1,
+        revealedCardId: DIGIMON_CARD_ID,
+        resolution: "battle",
+        defenderSeat: 1,
+        viewerSeat: 0,
+        attacker: { seat: 0, cardId: "BT1-019" },
+        battle: { attackerDP: 1000, securityCardDP: 2000, attackerDeleted, securityDigimonDeleted: !attackerDeleted },
+      });
+      expect(securityClashTailMs(scene)).toBe(350 + (attackerDeleted ? 250 : 140));
+    },
+  );
+
+  it("keeps a plain check's 140ms disposal", () => {
+    const scene = buildSecurityClashScene({
+      key: 1,
+      revealedCardId: OPTION_CARD_ID,
+      resolution: "trashed",
+      defenderSeat: 1,
+      viewerSeat: 0,
+    });
+    expect(securityClashTailMs(scene)).toBe(140);
+  });
+
+  it("gives effect destruction a full250ms fracture followed by the existing scene exit", () => {
+    const scene = buildSecurityDestructionScene({ key: 1, cardId: DIGIMON_CARD_ID, trashedSeat: 1, viewerSeat: 0 });
+    expect(securityClashTailMs(scene)).toBe(250 + 160);
   });
 });

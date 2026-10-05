@@ -380,7 +380,8 @@
   .battle-security-branch {
     --security-branch-lift: 2.5rem;
   }
-  .battle-security-branch__frame > div {
+  .battle-security-branch__frame > div,
+  .battle-security-branch__art > div {
     width: 92px !important;
     height: auto !important;
     aspect-ratio: 5 / 7;

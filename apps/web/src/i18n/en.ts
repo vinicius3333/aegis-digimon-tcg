@@ -1135,6 +1135,8 @@ export const en = {
   "feed.openCard": "Open {card}",
 
   "showcase.opponentPlayed": "Opponent played {card}",
+  "showcase.youPlayed": "You played {card}",
+  "showcase.youDigivolved": "You digivolved into {card}",
   "showcase.opponentDigivolved": "Opponent digivolved into {card}",
   "showcase.opponentRevealed": "Opponent revealed",
   "showcase.opponentRevealedWith": "Opponent revealed with {source}",

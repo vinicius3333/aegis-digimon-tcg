@@ -10,7 +10,7 @@ import type { DrawFlightCard, HeldDeletion, MatchCueAnchors } from "../types";
 
 export type FlyCardToDeck = (
   card: DrawFlightCard,
-  from: { x: number; y: number },
+  from: { x: number; y: number; width?: number; height?: number; stackClone?: HTMLElement },
   seat: Seat,
   context: AnimationStepContext,
 ) => Promise<boolean>;
@@ -31,7 +31,7 @@ export function enqueueDeckReturns({
   flyCardToDeck,
   enqueue,
 }: {
-  queue: AnimationQueue;
+  queue?: AnimationQueue;
   fresh: readonly ServerEvent[];
   snapshots: readonly StateSnapshot[];
   anchors: MatchCueAnchors;
@@ -46,7 +46,7 @@ export function enqueueDeckReturns({
   enqueue: (step: AnimationStep) => void;
 }) {
   for (const event of fresh) {
-    if (event.kind !== "cardsMoved") continue;
+    if (event.kind !== "cardsMoved" || (event.to !== "deckTop" && event.to !== "deckBottom")) continue;
     for (const returned of event.returnedPermanents ?? []) {
       const { seat, permanentId } = returned;
       const key = (holdKeyRef.current += 1);
@@ -59,36 +59,39 @@ export function enqueueDeckReturns({
         });
       const held = heldDeletionFrom({ snapshots, seat, permanentId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
-      const removal = joinRemovalChain(removalChainRef);
+      const removal = joinRemovalChain(removalChainRef, true);
       const card: DrawFlightCard = { cardId: returned.cardId, ...(returned.artId ? { artId: returned.artId } : {}) };
       enqueue({
         id: `deck-return-${key}`,
         track: `deckReturn-${key}`,
+        onDiscard() {
+          startRemoval(removal);
+          removal.link.finished?.release();
+          releaseHold();
+        },
         async run(context) {
           try {
-            if (context.mode !== "live") return;
+            if (context.mode !== "live" || context.skipping) return;
             await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "deckReturn/causingEffect");
-            if (context.cancelled) return;
-            await waitForStackStrips({ queue, context, throughKey: key, permanentId });
-            if (context.cancelled) return;
+            if (context.cancelled || context.skipping) return;
+            if (queue) await waitForStackStrips({ queue, context, throughKey: key, permanentId });
+            if (context.cancelled || context.skipping) return;
             await waitForRemovalTurn(removal, context);
-            if (context.cancelled) return;
-            const from = anchors.permanentCenter?.(permanentId);
+            if (context.cancelled || context.skipping) return;
+            const from =
+              anchors.permanentStack?.(permanentId) ??
+              anchors.permanentFace?.(permanentId) ??
+              anchors.permanentCenter?.(permanentId);
             startRemoval(removal);
             // The flying card takes over from the one on the board in the same commit.
             releaseHold();
             if (from) await flyCardToDeck(card, from, seat, context);
           } finally {
             startRemoval(removal);
+            removal.link.finished?.release();
             releaseHold();
           }
         },
-      });
-      // Registered after the enqueue, as with a deletion's hold: a step a later `replace` drops
-      // never runs, and on an idle queue the promise would settle before the step began.
-      void queue.idle().then(() => {
-        startRemoval(removal);
-        releaseHold();
       });
     }
   }

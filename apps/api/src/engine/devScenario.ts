@@ -1,5 +1,6 @@
 import {
   CATALOG_DECKS,
+  KEYWORD_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -7,6 +8,8 @@ import {
   getCardDefinition,
   type GameState,
   type Seat,
+  type KeywordPacingScenario,
+  type KeywordPacingScenarioId,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -49,6 +52,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-hades-force-target-selection",
   "arena-bt23-examon-partition-return",
   "arena-bt23-examon-piercing-end-turn",
+  ...KEYWORD_PACING_SCENARIOS.map((scenario) => scenario.id),
+  "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
   "battle",
@@ -5851,6 +5856,37 @@ function laySt17MagnamonMercifulColorsScenario(state: GameState, decks: readonly
   );
 }
 
+/** The engine derives keywords, legality and every result from the registered printed cards. */
+function layEffectsLabFieldGroupingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const player = state.players[0]!;
+  placePermanent(player, establishedDigimon(0, ["BT1-077"], "-group-green"));
+  for (let index = 0; index < 2; index++)
+    placePermanent(player, establishedDigimon(0, ["BT1-088"], `-group-izzy-${index}`));
+  for (let index = 0; index < 4; index++)
+    insertCard(player, Zone.Deck, faceDownCard(`dev-group-draw-${index}`, "BT1-010", 0), "top");
+  startEffectsLabTurn(state, 8);
+}
+
+function layKeywordPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  placePermanent(state.players[0]!, establishedDigimon(0, [scenario.attackerCardId], "-keyword-attacker"));
+  for (const [index, cardId] of (scenario.allies ?? []).entries())
+    placePermanent(state.players[0]!, establishedDigimon(0, [cardId], `-keyword-ally-${index}`));
+  if (scenario.defenderCardId) {
+    const defender = establishedDigimon(1, [scenario.defenderCardId], "-keyword-defender");
+    defender.isSuspended = true;
+    placePermanent(state.players[1]!, defender);
+  }
+  stackEffectsLabSecurity(state, 1, Array(Math.max(1, scenario.securityRemoved)).fill(scenario.securityCardId));
+  if (scenario.ownSecurityRemoved) stackEffectsLabSecurity(state, 0, [scenario.securityCardId]);
+  startEffectsLabTurn(state, 3);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
@@ -5860,6 +5896,13 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-kotone-digixros-any-tamer-effect": (state, decks) => layTaikiAnyTamerDigiXrosScenario(state, decks, true),
   "arena-bt22-gabumon-eot-dna": layBt22GabumonEotDnaScenario,
   "arena-bt11-hades-force-target-selection": layBt11HadesForceTargetSelectionScenario,
+  "effects-lab-field-grouping": layEffectsLabFieldGroupingScenario,
+  ...(Object.fromEntries(
+    KEYWORD_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordPacingScenario(state, decks, scenario),
+    ]),
+  ) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
   battle: layBattleScenario,
   "field-grouping": layFieldGroupingScenario,
   "arena-field-grouping-dense": layDenseFieldGroupingScenario,

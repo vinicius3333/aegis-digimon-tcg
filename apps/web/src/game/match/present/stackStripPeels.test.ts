@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GameState, ServerEvent } from "@aegis/shared";
-import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import { createAnimationQueue, type AnimationQueue, type AnimationStep } from "../../animationQueue";
 import type { StateSnapshot } from "../../../net/presentedState";
 import type { DeleteBurst, HeldStackStrip, MatchCueAnchors } from "../types";
 import { enqueueStackStripPeels } from "./stackStripPeels";
@@ -26,7 +26,7 @@ const deDigivolved: ServerEvent = {
   strippedStackTops: { permanentId: "perm-1", reason: "deDigivolve", sourceCardId: "BT25-025" },
 };
 
-function collect(fresh: readonly ServerEvent[], snapshots: readonly StateSnapshot[] = []) {
+function collect(fresh: readonly ServerEvent[], snapshots: readonly StateSnapshot[] = [], measured = anchors) {
   const steps: AnimationStep[] = [];
   let bursts: readonly DeleteBurst[] = [];
   let held: ReadonlyMap<number, HeldStackStrip> = new Map();
@@ -39,7 +39,7 @@ function collect(fresh: readonly ServerEvent[], snapshots: readonly StateSnapsho
       held = typeof next === "function" ? next(held) : next;
     },
     fresh,
-    anchors,
+    anchors: measured,
     deleteBurstKeyRef: { current: 0 },
     causingEffectGate: null,
     setDeleteBursts: (next) => {
@@ -51,10 +51,10 @@ function collect(fresh: readonly ServerEvent[], snapshots: readonly StateSnapsho
 }
 
 describe("enqueueStackStripPeels", () => {
-  it("peels the stripped card off the permanent it left, on that permanent's own track", () => {
+  it("peels the stripped card off the permanent it left, on the shared source-removal track", () => {
     const { steps } = collect([deDigivolved]);
     expect(steps.map(({ id, track }) => ({ id, track }))).toEqual([
-      { id: "stack-strip-peel-1", track: "stackStripPeel-perm-1" },
+      { id: "stack-strip-peel-1", track: "stackStripPeel" },
     ]);
   });
 
@@ -78,7 +78,36 @@ describe("enqueueStackStripPeels", () => {
         drawn.push(bursts());
       },
     });
-    expect(drawn).toEqual([[{ key: 1, x: 164, y: 250, cardId: "EX13-035", stackStrip: true }]]);
+    expect(drawn).toMatchObject([
+      [
+        {
+          key: 1,
+          x: 192,
+          y: 288.8,
+          cardId: "EX13-035",
+          stackStrip: true,
+          stackStripDirection: 1,
+          face: { width: 16, height: 22.4, angle: 0 },
+        },
+      ],
+    ]);
+    expect(bursts()).toEqual([]);
+  });
+
+  it("presents every stripped top when a multi-level removal arrives as one batch", async () => {
+    const { steps, bursts } = collect([
+      { ...deDigivolved, instanceIds: ["king", "queen", "rook"], cardIds: ["EX13-035", "BT16-024", "BT16-025"] },
+    ]);
+    const seen: string[] = [];
+    await steps[0]!.run({
+      mode: "live",
+      cancelled: false,
+      skipping: false,
+      wait: async () => {
+        seen.push(bursts()[0]!.cardId!);
+      },
+    });
+    expect(seen).toEqual(["EX13-035", "BT16-024", "BT16-025"]);
     expect(bursts()).toEqual([]);
   });
 
@@ -95,7 +124,7 @@ describe("enqueueStackStripPeels", () => {
     };
     const { steps, bursts } = collect([trashedSources]);
     expect(steps.map(({ id, track }) => ({ id, track }))).toEqual([
-      { id: "stack-strip-peel-1", track: "stackStripPeel-perm-1" },
+      { id: "stack-strip-peel-1", track: "stackStripPeel" },
     ]);
     const drawn: (readonly DeleteBurst[])[] = [];
     await steps[0]!.run({
@@ -106,9 +135,19 @@ describe("enqueueStackStripPeels", () => {
         drawn.push(bursts());
       },
     });
-    expect(drawn).toEqual([
-      [{ key: 1, x: 164, y: 250, cardId: "BT16-024", stackStrip: true }],
-      [{ key: 2, x: 164, y: 250, cardId: "BT16-025", artId: "BT16-025_P1", stackStrip: true }],
+    expect(drawn).toMatchObject([
+      [{ key: 1, x: 192, y: 288.8, cardId: "BT16-024", stackStrip: true, stackStripDirection: -1 }],
+      [
+        {
+          key: 2,
+          x: 192,
+          y: 288.8,
+          cardId: "BT16-025",
+          artId: "BT16-025_P1",
+          stackStrip: true,
+          stackStripDirection: -1,
+        },
+      ],
     ]);
     expect(bursts()).toEqual([]);
   });
@@ -164,6 +203,45 @@ describe("enqueueStackStripPeels", () => {
       expect(held().size).toBe(0);
     },
   );
+  it("serializes removals from different hosts using the real queue", async () => {
+    const { steps, bursts } = collect(
+      [deDigivolved, { ...deDigivolved, strippedStackTops: { permanentId: "perm-2", reason: "deDigivolve" } }],
+      [],
+      { ...anchors, permanentCenter: () => ({ x: 200, y: 300 }) },
+    );
+    const queue = createAnimationQueue();
+    let release!: () => void;
+    const firstWait = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let started!: () => void;
+    const firstStarted = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    const active: number[] = [];
+    steps.forEach((step, index) =>
+      queue.enqueue({
+        ...step,
+        run: (context) =>
+          step.run({
+            ...context,
+            wait: async () => {
+              active.push(bursts().length);
+              if (index === 0) {
+                started();
+                await firstWait;
+              }
+            },
+          }),
+      }),
+    );
+    await firstStarted;
+    expect(bursts().map((burst) => burst.key)).toEqual([1]);
+    release();
+    await queue.idle();
+    expect(active).toEqual([1, 1]);
+    expect(bursts()).toEqual([]);
+  });
 
   it.each([
     ["a replay", { mode: "replay", skipping: false }],

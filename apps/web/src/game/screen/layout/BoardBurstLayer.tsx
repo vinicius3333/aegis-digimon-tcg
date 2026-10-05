@@ -6,9 +6,12 @@
 import type { CSSProperties } from "react";
 import { CardFull } from "../../../design/cards";
 import { CardBurst } from "../../CardBurst";
-import { CardShatter } from "../../CardShatterView";
+import { FieldCardShatter } from "../../FieldCardShatter";
+import { StackStripPeel } from "../../StackStripPeel";
+import { DeckReturnFlight } from "../../DeckReturnFlight";
+import { HandReturnFlight } from "../../HandReturnFlight";
+import { DrawPresentation } from "../../DrawPresentationView";
 import type { DeleteBurst, DrawBurst, DrawFlight } from "../../match/types";
-import "../../style/playFlight.css";
 
 /** Matches `--draw-flight-w` on `.game-draw-flight--face`; the stylesheet has the final say. */
 const DRAW_FLIGHT_FACE_WIDTH = 60;
@@ -30,21 +33,44 @@ export function BoardBurstLayer({
             key={burst.key}
             aria-hidden="true"
             className="game-stack-strip-peel"
-            style={{ left: burst.x, top: burst.y }}
+            data-stack-strip={burst.key}
+            data-permanent-id={burst.permanentId}
+            data-card-id={burst.cardId}
+            style={
+              {
+                left: burst.x,
+                top: burst.y,
+                width: burst.face?.width,
+                height: burst.face?.height,
+                "--stack-strip-direction": burst.stackStripDirection ?? 1,
+              } as CSSProperties
+            }
           >
-            <CardFull cardId={burst.cardId} artId={burst.artId} width={72} />
+            <StackStripPeel color={burst.color ?? "Neutral"} />
           </span>
         ) : (
           <span
             key={burst.key}
             aria-hidden="true"
-            className={`game-delete-burst${burst.effectDeletion ? " game-delete-burst--effect" : ""}`}
-            style={{ left: burst.x, top: burst.y }}
+            className="game-delete-burst"
+            data-field-shatter={burst.key}
+            style={{
+              left: burst.x,
+              top: burst.y,
+              width: burst.face?.width,
+              height: burst.face?.height,
+              rotate: `${burst.face?.angle ?? 0}deg`,
+            }}
           >
             {/* The card's own art breaking apart where it stood, when the board still
               remembers which card that was; a plain burst otherwise. */}
             {burst.cardId ? (
-              <CardShatter cardId={burst.cardId} artId={burst.artId} width={72} color={burst.color ?? "Neutral"} />
+              <FieldCardShatter
+                cardId={burst.cardId}
+                artId={burst.artId}
+                color={burst.color ?? "Neutral"}
+                face={burst.face ?? { x: burst.x, y: burst.y, width: 72, height: 101, angle: 0 }}
+              />
             ) : (
               <CardBurst variant="delete" />
             )}
@@ -58,42 +84,41 @@ export function BoardBurstLayer({
         </span>
       ))}
 
-      {drawFlights.map((flight) => (
-        <div
-          key={flight.key}
-          aria-hidden="true"
-          data-testid={flight.kind === "play" ? "confirmed-play-flight" : undefined}
-          data-card-id={flight.kind === "play" ? flight.card?.cardId : undefined}
-          data-permanent-id={flight.targetPermanentId}
-          className={`game-draw-flight${flight.card ? " game-draw-flight--face" : ""}${flight.kind === "play" ? " game-play-flight" : ""}`}
-          style={
-            {
-              left: flight.x,
-              top: flight.y,
-              // The cue queue waits on this same number, so the card back is
-              // never unmounted part-way across the board.
-              "--t-draw-flight": `${flight.duration}ms`,
-              "--battle-flight-dx": `${flight.dx}px`,
-              "--battle-flight-dy": `${flight.dy}px`,
-              ...(flight.kind === "play"
-                ? {
-                    "--play-from-width": `${flight.fromWidth}px`,
-                    "--play-to-scale": (flight.toWidth ?? 88) / (flight.fromWidth ?? 100),
-                  }
-                : {}),
-            } as CSSProperties
-          }
-        >
-          {flight.card ? (
-            <CardFull
-              cardId={flight.card.cardId}
-              artId={flight.card.artId}
-              width={flight.kind === "play" ? flight.fromWidth : DRAW_FLIGHT_FACE_WIDTH}
-              zoomOnHover={false}
-            />
-          ) : null}
-        </div>
-      ))}
+      {drawFlights.map((flight) =>
+        flight.handReturn ? (
+          <HandReturnFlight key={flight.key} flight={flight} />
+        ) : flight.deckReturn ? (
+          <DeckReturnFlight key={flight.key} flight={flight} />
+        ) : flight.presentation ? (
+          <DrawPresentation key={flight.key} flight={flight} />
+        ) : (
+          <div
+            key={flight.key}
+            aria-hidden="true"
+            className={`game-draw-flight${flight.card ? " game-draw-flight--face" : ""}`}
+            style={
+              {
+                left: flight.x,
+                top: flight.y,
+                // The cue queue waits on this same number, so the card back is
+                // never unmounted part-way across the board.
+                "--t-draw-flight": `${flight.duration}ms`,
+                "--battle-flight-dx": `${flight.dx}px`,
+                "--battle-flight-dy": `${flight.dy}px`,
+              } as CSSProperties
+            }
+          >
+            {flight.card ? (
+              <CardFull
+                cardId={flight.card.cardId}
+                artId={flight.card.artId}
+                width={DRAW_FLIGHT_FACE_WIDTH}
+                zoomOnHover={false}
+              />
+            ) : null}
+          </div>
+        ),
+      )}
     </>
   );
 }

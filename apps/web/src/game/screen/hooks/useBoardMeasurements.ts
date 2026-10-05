@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MutableRefObject, type RefObject } fr
 import type { PlayerState } from "@aegis/shared";
 import { permanentVisualElement } from "../dropZones";
 import type { SpotlightSubject } from "../../spotlight";
+import { measureFieldShatterFace, type FieldShatterFace } from "../../fieldShatter";
 
 /** What the board's geometry gives the layers drawn over it. */
 export type BoardMeasurements = {
@@ -30,6 +31,7 @@ export function useBoardMeasurements({
   fieldRef,
   permRefs,
   permCentersRef,
+  permFacesRef,
   permCardIdsRef,
   opponentSecurityRef,
 }: {
@@ -40,6 +42,7 @@ export function useBoardMeasurements({
   permRefs: MutableRefObject<Record<string, HTMLDivElement | null>>;
   /** Mutated: every permanent's centre, keyed by permanent id and by top instance id. */
   permCentersRef: MutableRefObject<Record<string, { x: number; y: number }>>;
+  permFacesRef: MutableRefObject<Record<string, FieldShatterFace>>;
   /** Mutated: the card each of those two ids was showing. */
   permCardIdsRef: MutableRefObject<Record<string, string>>;
   opponentSecurityRef: RefObject<HTMLDivElement | null>;
@@ -72,10 +75,13 @@ export function useBoardMeasurements({
         y: rect.top + rect.height / 2 - boardRect.top,
       };
       permCentersRef.current[permanentId] = center;
+      const face = measureFieldShatterFace(element, board);
+      if (face) permFacesRef.current[permanentId] = face;
       // A deletion by an effect names the card instance rather than the permanent, so the top
       // card is remembered as a second way in to the same position.
       const topInstanceId = permInstanceIds.get(permanentId);
       if (topInstanceId) permCentersRef.current[topInstanceId] = center;
+      if (topInstanceId && face) permFacesRef.current[topInstanceId] = face;
       const topCardId = permCardIds.get(permanentId);
       if (topCardId) {
         permCardIdsRef.current[permanentId] = topCardId;

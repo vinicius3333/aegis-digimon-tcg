@@ -3,6 +3,8 @@ import type { GameState, PlayerState, Seat } from "@aegis/shared";
 import { snapshotGameState } from "../../../net/presentedState";
 import type { PhaseBanner } from "../../phaseBanner";
 import { Side } from "../../side";
+import type { DrawFlightCard, DrawHandArrival } from "../types";
+import type { PresentationGate } from "../presentationGate";
 
 /**
  * A hand that grew was drawn into.
@@ -44,7 +46,14 @@ export function useDrawWatcher({
   turnStartDrawRef: MutableRefObject<{ you: boolean; opp: boolean }>;
   /** Mutated: the hand count an event-driven draw already accounted for. */
   eventDrawCountsRef: MutableRefObject<{ you?: number; opp?: number }>;
-  launchDrawFlight: (side: Side, turnStart?: boolean) => void;
+  launchDrawFlight: (
+    side: Side,
+    turnStart?: boolean,
+    waitBeforeMs?: number,
+    card?: DrawFlightCard,
+    arrived?: PresentationGate,
+    draw?: DrawHandArrival,
+  ) => void;
 }) {
   useEffect(() => {
     if (drawPhaseWaitingRef.current === null) {
@@ -75,13 +84,33 @@ export function useDrawWatcher({
       opponent.handCount > previous.opp &&
       eventDrawCountsRef.current.opp !== opponent.handCount
     )
-      launchDrawFlight(Side.Opponent, turnStart.opp);
+      for (let index = previous.opp; index < opponent.handCount; index++)
+        launchDrawFlight(Side.Opponent, turnStart.opp, 0, undefined, undefined, {
+          stateVersion: state?.stateVersion ?? 0,
+          handCountAfter: opponent.handCount,
+          deckCountAfter: opponent.deckCount,
+        });
     if (
       heldSide !== Side.Viewer &&
       viewer.handCount > previous.you &&
       eventDrawCountsRef.current.you !== viewer.handCount
     )
-      launchDrawFlight(Side.Viewer, turnStart.you);
+      for (let index = previous.you; index < viewer.handCount; index++) {
+        const card = viewer.hand[viewer.hand.length - (viewer.handCount - index)];
+        launchDrawFlight(
+          Side.Viewer,
+          turnStart.you,
+          0,
+          card?.cardId ? { cardId: card.cardId, ...(card.artId ? { artId: card.artId } : {}) } : undefined,
+          undefined,
+          {
+            ...(card ? { instanceId: card.instanceId } : {}),
+            stateVersion: state?.stateVersion ?? 0,
+            handCountAfter: viewer.handCount,
+            deckCountAfter: viewer.deckCount,
+          },
+        );
+      }
     eventDrawCountsRef.current = heldSide ? { [heldSide]: eventDrawCountsRef.current[heldSide] } : {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewer?.handCount, opponent?.handCount, phaseBanner]);

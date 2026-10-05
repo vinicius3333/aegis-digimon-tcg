@@ -1,9 +1,13 @@
+import type { CSSProperties } from "react";
 import type { SecurityCardView } from "@aegis/shared";
 import { CardBack, CardMini } from "../../design/cards";
 import { deckLayerCount } from "../deckChrome";
 import type { Side } from "../side";
 import { SecurityShieldPile } from "./SecurityShieldPile";
 import type { DropAttrs } from "./types";
+import type { TrashEffectCard } from "../effectSource";
+import { TrashSourceCard } from "./TrashSourceCard";
+import { useMediaQuery } from "../../design/useMediaQuery";
 
 export function Pile({
   count,
@@ -11,6 +15,7 @@ export function Pile({
   className,
   topCardId,
   topArtId,
+  effectCard,
   dim,
   glow,
   selected,
@@ -37,6 +42,8 @@ export function Pile({
   className?: string;
   topCardId?: string;
   topArtId?: string;
+  /** The physical card activating from this pile, independently of its top card. */
+  effectCard?: TrashEffectCard;
   dim?: boolean;
   glow?: boolean;
   selected?: boolean;
@@ -55,8 +62,8 @@ export function Pile({
   securityCards?: ArrayLike<SecurityCardView>;
   /** What attacking this stack would be, while it is a legal target being aimed at. */
   attackLabel?: string;
-  /** The pile is being shuffled: it riffles once. */
-  riffling?: boolean;
+  /** Accepted occurrence key, or true for a static gallery specimen. */
+  riffling?: boolean | number;
   /** A card is flying back onto the stack. */
   landing?: boolean;
   refEl?: (el: HTMLDivElement | null) => void;
@@ -67,6 +74,8 @@ export function Pile({
   width?: number;
 }) {
   const w = width ?? (compact ? 42 : 62);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const shuffleMotion = riffling && !reducedMotion;
   if (shield) {
     return (
       <SecurityShieldPile
@@ -123,12 +132,13 @@ export function Pile({
           the reference client's own deck-out warning. */}
       <div
         aria-hidden
-        className={`game-pile${egg ? " game-pile--egg" : ""}${riffling ? " game-pile--riffling" : ""}`}
+        data-deck-riffle-key={typeof riffling === "number" ? riffling : undefined}
+        className={`game-pile${effectCard ? " game-pile--has-effect-card" : ""}${egg ? " game-pile--egg" : ""}${shuffleMotion ? " game-pile--riffling" : ""}`}
         style={{ position: "relative", width: w, height: w * 1.4 }}
       >
         {Array.from({ length: layers }, (_, index) => (
           <div
-            key={index}
+            key={`${riffling}:${index}`}
             className="game-pile__layer"
             style={{
               position: "absolute",
@@ -138,8 +148,19 @@ export function Pile({
               background: "var(--ds-surface-muted)",
               border: "1px solid var(--ds-border)",
             }}
-          />
+          >
+            {shuffleMotion ? <CardBack width={w} useSelectedSleeve={useSelectedSleeve} egg={egg} /> : null}
+          </div>
         ))}
+        {shuffleMotion && layers > 0 ? (
+          <div
+            key={String(riffling)}
+            className="game-pile__shuffle-face"
+            style={{ "--deck-riffle-sign": layers % 2 === 0 ? 1 : -1 } as CSSProperties}
+          >
+            <CardBack width={w} useSelectedSleeve={useSelectedSleeve} egg={egg} />
+          </div>
+        ) : null}
         {layers === 0 ? null : (
           <div
             className="game-pile__top"
@@ -160,10 +181,13 @@ export function Pile({
             )}
           </div>
         )}
+        {effectCard ? <TrashSourceCard key={effectCard.key} card={effectCard} width={w} /> : null}
         {topCardId && layers > 0 ? (
           <span
+            className="game-pile__count"
             style={{
               position: "absolute",
+              zIndex: 3,
               bottom: -2,
               right: -2,
               background: "var(--ds-foreground)",

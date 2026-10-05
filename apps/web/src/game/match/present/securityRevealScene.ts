@@ -8,9 +8,7 @@ import {
   CLASH_DOCK_AT_MS,
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_SHOWN_AT_MS,
-  CLASH_TOTAL_MS,
   SECURITY_BRANCH_IN_MS,
-  SECURITY_DOCK_CLOSE_MS,
   TIMINGS,
 } from "../../timings";
 import { CueTrack } from "../enums";
@@ -18,6 +16,7 @@ import type { NarrationPlacement } from "../narration/narrationStream";
 import type { SecurityBreakCue, SecurityClause } from "../types";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
 import { CONSEQUENCE_GATE_MAX_MS, createPresentationGate, type PresentationGate } from "../presentationGate";
+import { exitSecurityCard } from "./securityCardExit";
 
 /** The revealed card `stageSecurityReveal` currently holds on stage. */
 export interface RevealOnStage {
@@ -76,22 +75,6 @@ export interface SecurityRevealSceneDeps {
   securityCountOf: (seat: Seat) => number | undefined;
 }
 
-/**
- * A check now reaches the client as two events: `securityRevealed` the moment the card
- * is turned face up, and `securityChecked` once the server has resolved everything that
- * card caused. The scene follows the same split — the card goes on stage at the reveal
- * and plays its scene out there. A check that closes in the same batch takes its outcome
- * beat and its detour to the side; one the server is still resolving lets the card leave
- * at the end of the scene, so its effects read out on a board with nothing on it.
- *
- * The whole check runs on the one centre-screen track, in the reference client's
- * order (battle-animation-spec.md §4b): the shield arms, its glass breaks, the card
- * is revealed and held, and only then does what the card *did* reach the screen —
- * its notice, its detour to the side, the decision it asks for. Serial order is what
- * guarantees that: a parallel track with a fixed lead-in cannot know when this one
- * actually gets to the reveal, so it can and does run ahead of it. The break carries
- * the `replace`, so a check still cancels whatever showcase was mid-flight.
- */
 /**
  * How long a docked security card keeps the centre once its clauses start reading out: one
  * narration beat for each clause after the first, then the read of the last one. Prompts
@@ -213,7 +196,8 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
         ...(battlePending
           ? {
               afterClauses: () => {
-                if (securityBlowRef.current?.key === key) setHeldBlowState(blowHoldState(true));
+                if (securityBlowRef.current?.key === key && !securityBlowRef.current.landed)
+                  setHeldBlowState(blowHoldState(true));
               },
             }
           : {}),
@@ -240,20 +224,16 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
           await context.wait(CLASH_REVEAL_SHOWN_AT_MS);
           // The card is out of the stack and on the screen, so the shield may drop.
           releaseSecurityCard(scene.key);
-          // Every reveal holds for the same beat, whatever follows it.
-          await context.wait(CLASH_DOCK_AT_MS - CLASH_REVEAL_SHOWN_AT_MS);
+          await context.wait((docking ? CLASH_DOCK_AT_MS : CLASH_OUTCOME_AT_MS) - CLASH_REVEAL_SHOWN_AT_MS);
           if (!docking) return;
-          // A card that has a [Security] effect to resolve leaves the centre for its
-          // dock rather than holding the middle of the board through a resolution
-          // that takes as long as the server needs. It fades out first, so the dock's
-          // slide-in starts on a board it has already left.
+          // Keep the source geometry mounted through the next step's layout effect.
+          // The dock carries the same card directly to its final position, while this
+          // scene hides the old art and clears after the transfer finishes.
           setSecurityClash((current) => (current?.key === scene.key ? { ...current, departing: true } : current));
-          await context.wait(TIMINGS.clashExit);
         } finally {
           // A cancelled scene must not leave a card the shield keeps counting for good.
           releaseSecurityCard(scene.key);
-          if (context.cancelled || docking)
-            setSecurityClash((current) => (current?.key === scene.key ? null : current));
+          if (context.cancelled) setSecurityClash((current) => (current?.key === scene.key ? null : current));
         }
       },
     });
@@ -308,11 +288,16 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
       track: CueTrack.CenterStage,
       // It carries the revealed card, which is the one thing on screen worth reading.
       skippable: false,
+      onDiscard() {
+        releaseBoard();
+        setSecurityClash((current) => (current?.key === key ? null : current));
+      },
       async run(context) {
         try {
           clause.docking = true;
           setSecurityBranch(dock);
           await context.wait(SECURITY_BRANCH_IN_MS);
+          setSecurityClash((current) => (current?.key === key ? null : current));
           if (context.cancelled) return;
           // Docked and legible: the card's OWN clause may be read out now, and the decision
           // it asks for may open beside it — the reference client opens its panel here.
@@ -330,6 +315,8 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
           releaseBoard();
           await context.wait(TIMINGS.securityClauseRead - TIMINGS.effectAnnounce);
         } finally {
+          setSecurityClash((current) => (current?.key === key && current.departing ? null : current));
+          if (context.cancelled) setSecurityBranch((current) => (current?.key === key ? null : current));
           releaseBoard();
           setPendingRevealKey((current) => (current === key ? null : current));
         }
@@ -366,7 +353,7 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     });
   }
 
-  /** The check has closed, so the docked card holds a beat and then leaves. */
+  /** The check has closed; remove its execution card after the queued consequences. */
   function undockSecurityReveal(key: number) {
     const held = securityDockRef.current;
     if (held?.key === key) held.closed = true;
@@ -374,13 +361,11 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
       id: `security-dock-out-${key}`,
       track: CueTrack.CenterStage,
       skippable: false,
-      async run(context) {
-        try {
-          setSecurityBranch((current) => (current?.key === key ? { ...current, state: "closing" } : current));
-          await context.wait(SECURITY_DOCK_CLOSE_MS);
-        } finally {
-          setSecurityBranch((current) => (current?.key === key ? null : current));
-        }
+      onDiscard() {
+        setSecurityBranch((current) => (current?.key === key ? null : current));
+      },
+      run() {
+        setSecurityBranch((current) => (current?.key === key ? null : current));
       },
     });
   }
@@ -397,11 +382,16 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
       track: CueTrack.CenterStage,
       // The card is the one thing on screen worth reading, so its last beat keeps its time.
       skippable: false,
+      onDiscard() {
+        setSecurityClash((current) => (current?.key === key ? null : current));
+        setPendingRevealKey((current) => (current === key ? null : current));
+      },
       async run(context) {
         try {
-          await context.wait(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
+          await exitSecurityCard({ key, context, setSecurityClash });
         } finally {
           setSecurityClash((current) => (current?.key === key ? null : current));
+          if (context.cancelled) setPendingRevealKey((current) => (current === key ? null : current));
         }
       },
     });

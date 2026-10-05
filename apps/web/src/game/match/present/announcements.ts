@@ -19,7 +19,9 @@ import {
   type MatchNotice,
 } from "../../notices";
 import { CARD_BURST_PEAK_MS, TIMINGS } from "../../timings";
-import type { DrawFlightCard, RevealOnStage } from "../types";
+import type { DrawFlightCard, DrawHandArrival, RevealOnStage } from "../types";
+import type { PresentationGate } from "../presentationGate";
+import type { ArrivalPresentation } from "../cardReveal";
 
 /** What one pass over a live batch's events says the screen has to announce. */
 export type BatchAnnouncements = {
@@ -48,12 +50,17 @@ export function collectBatchAnnouncements({
   fresh,
   viewerSeat,
   state,
+  stateVersion = state?.stateVersion ?? 0,
+  deckDrawRevealGate,
+  handReturnEntryGates,
+  observedHandCounts,
   now,
   showcasePlays,
   attackLeadInMs,
   securityReveal,
   revealOnStageRef,
   pendingDigivolutionDrawRef,
+  arrivalPresentations,
   eventDrawCountsRef,
   drawPhaseWaitingRef,
   sidePanelLookupRef,
@@ -68,6 +75,16 @@ export function collectBatchAnnouncements({
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
   state: GameState | undefined;
+  stateVersion?: number;
+  handReturnEntryGates?: ReadonlyMap<string, PresentationGate>;
+  deckDrawRevealGate?: (move: {
+    seat: Seat;
+    cardId: string;
+    artId?: string;
+    eventIndex: number;
+  }) => PresentationGate | undefined;
+  /** Raw growth already claimed by these events, so the state watcher does not duplicate it. */
+  observedHandCounts?: { you?: number; opp?: number };
   /** One clock for the whole batch, so everything it raises shares a start time. */
   now: number;
   /** The beat an attack call-out owns before anything the attack caused may be drawn. */
@@ -81,7 +98,8 @@ export function collectBatchAnnouncements({
   securityReveal: ServerEvent | undefined;
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
   /** Mutated: the seats owed a digivolution draw, so its ribbon waits for the card burst. */
-  pendingDigivolutionDrawRef: MutableRefObject<Set<Seat>>;
+  pendingDigivolutionDrawRef: MutableRefObject<Map<Seat, PresentationGate>>;
+  arrivalPresentations: ReadonlyMap<ServerEvent, ArrivalPresentation>;
   /** Mutated: the hand count each side had when this batch's draw was announced. */
   eventDrawCountsRef: MutableRefObject<{ you?: number; opp?: number }>;
   /** Mutated: the seat whose draw-phase hold an effect draw releases. */
@@ -99,7 +117,14 @@ export function collectBatchAnnouncements({
    * battle ends, and the server announces that watcher too; it is the same clause.
    */
   securityClausesReadRef: MutableRefObject<Set<string>>;
-  launchDrawFlight: (side: Side, burst: boolean, delayMs: number, card?: DrawFlightCard) => void;
+  launchDrawFlight: (
+    side: Side,
+    burst: boolean,
+    delayMs: number,
+    card?: DrawFlightCard,
+    arrived?: PresentationGate,
+    draw?: DrawHandArrival,
+  ) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
 }): BatchAnnouncements {
@@ -115,34 +140,76 @@ export function collectBatchAnnouncements({
      exact card up, so the panel would name it twice, in the column the [On Play] result
      needs. */
   const dockedCardId =
-    securityReveal?.kind === "securityRevealed"
+    securityReveal?.kind === "securityRevealed" || securityReveal?.kind === "securityChecked"
       ? securityReveal.revealedCardId
       : revealOnStageRef.current?.scene.revealed.cardId;
   for (const [eventIndex, event] of fresh.entries()) {
     if (event.kind === "cardsMoved" && event.deletedPermanents?.length)
       precedingDeletions = event.deletedPermanents.map(({ seat, cardId }) => ({ seat, cardId }));
-    if (event.kind === "digivolved") pendingDigivolutionDrawRef.current.add(event.seat);
+    if (event.kind === "digivolved") {
+      const landed = arrivalPresentations.get(event)?.landed;
+      if (landed) pendingDigivolutionDrawRef.current.set(event.seat, landed);
+    }
+    if (
+      event.kind === "cardsMoved" &&
+      event.to === "hand" &&
+      event.handAddition === "staging" &&
+      event.seat !== undefined
+    ) {
+      const side = event.seat === viewerSeat ? Side.Viewer : Side.Opponent;
+      eventDrawCountsRef.current[side] = observedHandCounts?.[side] ?? state?.players[event.seat]?.handCount;
+    }
     // A card whose identity the move made public (one taken from a reveal) flies face-up;
     // a plain draw names no card, so it keeps flying as a card back.
-    if (event.kind === "cardsMoved" && event.to === "hand" && (event.from === "deck" || event.cardIds !== undefined)) {
+    if (
+      event.kind === "cardsMoved" &&
+      event.to === "hand" &&
+      event.handAddition !== "staging" &&
+      (event.from === "deck" || event.cardIds !== undefined || event.handAddition === "transfer")
+    ) {
       const seat =
         event.seat ??
         event.instanceIds.map((id) => sidePanelLookupRef.current.seat(id)).find((owner) => owner !== undefined);
       if (seat !== undefined) {
         const side = seat === viewerSeat ? Side.Viewer : Side.Opponent;
-        eventDrawCountsRef.current[side] = state?.players[seat]?.handCount;
+        const entryOnly =
+          event.handAddition === "transfer" ||
+          (event.handAddition !== "draw" && event.drawReason !== "digivolution" && event.cardIds !== undefined);
+        eventDrawCountsRef.current[side] = observedHandCounts?.[side] ?? state?.players[seat]?.handCount;
         const followsDigivolution = event.drawReason === "digivolution" && pendingDigivolutionDrawRef.current.has(seat);
-        const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : attackLeadInMs;
+        const arrived = followsDigivolution ? pendingDigivolutionDrawRef.current.get(seat) : undefined;
+        const waitBeforeMs = arrived ? 0 : followsDigivolution ? CARD_BURST_PEAK_MS : attackLeadInMs;
         // One flight per card. The server names a whole Draw 2 in a single event, so a
         // flight per event sent one card back for two cards and read as a single draw.
         for (const [drawIndex] of event.instanceIds.entries()) {
-          const cardId = event.cardIds?.[drawIndex];
-          const artId = event.artIds?.[drawIndex];
+          const ownCard =
+            seat === viewerSeat
+              ? state?.players[seat]?.hand.find((card) => card.instanceId === event.instanceIds[drawIndex])
+              : undefined;
+          const cardId = event.cardIds?.[drawIndex] ?? (event.from === "deck" ? ownCard?.cardId : undefined);
+          const artId = event.artIds?.[drawIndex] ?? ownCard?.artId;
+          const afterReveal = cardId ? deckDrawRevealGate?.({ seat, cardId, artId, eventIndex }) : undefined;
           launchDrawFlight(
             side,
             false,
-            waitBeforeMs + drawIndex * TIMINGS.drawFlightStagger,
+            waitBeforeMs + (entryOnly || event.from === "deck" ? 0 : drawIndex * TIMINGS.drawFlightStagger),
             cardId ? { cardId, ...(artId ? { artId } : {}) } : undefined,
+            arrived,
+            event.from === "deck" || entryOnly
+              ? {
+                  entryOnly,
+                  fromDeck: event.from === "deck",
+                  instanceId: event.instanceIds[drawIndex],
+                  stateVersion,
+                  handCountAfter: state?.players[seat]?.handCount ?? 0,
+                  deckCountAfter: state?.players[seat]?.deckCount ?? 0,
+                  ...(event.cardIds?.[drawIndex] ? { publicCard: true } : {}),
+                  ...(afterReveal ? { afterReveal } : {}),
+                  ...(handReturnEntryGates?.has(event.instanceIds[drawIndex]!)
+                    ? { beforeEntry: handReturnEntryGates.get(event.instanceIds[drawIndex]!) }
+                    : {}),
+                }
+              : undefined,
           );
         }
         /**

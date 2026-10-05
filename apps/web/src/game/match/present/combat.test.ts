@@ -53,6 +53,82 @@ function scenesOver(batches: readonly (readonly ServerEvent[])[]) {
 }
 
 describe("combatScenes across a ＜Raid＞ redirect", () => {
+  it.each([true, false])("lands the compared blow before Barrier's answer (%s), once", (accepted) => {
+    const compared: ServerEvent = {
+      kind: "battleCompared",
+      attackerPermanentId: "perm-1",
+      defenderPermanentId: "perm-3",
+      loserPermanentIds: ["perm-3"],
+    };
+    const observations = scenesOver([
+      [RAID_REDIRECT, compared, { kind: "barrierPrompt", permanentId: "perm-3" }],
+      [{ kind: "barrierResolved", permanentId: "perm-3", accepted }],
+      ...(accepted ? [] : [[BATTLE_DELETION]]),
+      [{ ...COMBAT_RESOLVED, deletedPermanentIds: accepted ? [] : ["perm-3"] }],
+    ]);
+    expect(observations[0]!.clashScenes[0]?.loserPermanentIds).toEqual(["perm-3"]);
+    expect(observations.flatMap((entry) => entry.clashScenes)).toHaveLength(1);
+    expect(observations.flatMap((entry) => [...entry.beaten])).toEqual([]);
+  });
+
+  it("keeps both initially losing cards in a tie before either protection question", () => {
+    const observations = scenesOver([
+      [
+        RAID_REDIRECT,
+        {
+          kind: "battleCompared",
+          attackerPermanentId: "perm-1",
+          defenderPermanentId: "perm-3",
+          loserPermanentIds: ["perm-1", "perm-3"],
+        },
+        { kind: "barrierPrompt", permanentId: "perm-1" },
+      ],
+    ]);
+    expect(observations[0]!.clashScenes[0]?.loserPermanentIds).toEqual(["perm-1", "perm-3"]);
+  });
+
+  it("ignores a different effect-driven battle during an open attack", () => {
+    const observations = scenesOver([
+      [
+        RAID_REDIRECT,
+        {
+          kind: "battleCompared",
+          attackerPermanentId: "perm-1",
+          defenderPermanentId: "other-defender",
+          loserPermanentIds: ["other-defender"],
+        },
+      ],
+    ]);
+    expect(observations[0]!.clashScenes).toEqual([]);
+  });
+  it("keeps the staged battle through Piercing's security checks until combatResolved", () => {
+    const securityRevealed = {
+      kind: "securityRevealed",
+      seat: 0,
+      revealedCardId: "BT1-010",
+      attackerPermanentId: "perm-1",
+      securityCardDP: 2000,
+      attackerDP: 11000,
+      securityCountBefore: 5,
+      hasSecurityEffect: false,
+      isDigimon: true,
+    } as ServerEvent;
+    const securityChecked = {
+      kind: "securityChecked",
+      seat: 0,
+      revealedCardId: "BT1-010",
+      resolution: "battle",
+    } as ServerEvent;
+    const observations = scenesOver([
+      [RAID_REDIRECT],
+      [BATTLE_DELETION],
+      [securityRevealed],
+      [securityChecked],
+      [COMBAT_RESOLVED],
+    ]);
+    expect(observations.flatMap((entry) => entry.clashScenes)).toHaveLength(1);
+    expect([...observations.at(-1)!.beaten]).toEqual([]);
+  });
   it("stages the clash with the battle deletion, not batches later with combatResolved", () => {
     const [redirect, deletion, resolved] = scenesOver([[RAID_REDIRECT], [BATTLE_DELETION], [COMBAT_RESOLVED]]);
     expect(redirect?.clashScenes).toHaveLength(0);

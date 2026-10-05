@@ -107,7 +107,7 @@ export function useDragPlumbing() {
   });
 
   /** The index is a position in the hand the viewer can see, so the entry is resolved there. */
-  function startHandDrag(index: number, entry: HandEntry | undefined, e: ReactPointerEvent) {
+  function startHandDrag(index: number, entry: HandEntry | undefined, e: ReactPointerEvent, origin = e.currentTarget) {
     if (!entry) return;
     const deferred = e.pointerType !== "mouse";
     const pending: DragState = {
@@ -122,11 +122,11 @@ export function useDragPlumbing() {
       oy: e.clientY,
       started: false,
       deferred,
-      capture: e.currentTarget,
+      capture: origin,
     };
     if (!deferred && canDragRef.current?.(pending) === true) {
       e.preventDefault();
-      e.currentTarget.setPointerCapture?.(e.pointerId);
+      origin.setPointerCapture?.(e.pointerId);
     }
     setDrag(pending);
   }

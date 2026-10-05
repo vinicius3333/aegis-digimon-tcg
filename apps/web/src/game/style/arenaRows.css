@@ -42,6 +42,8 @@
 
   .game-pile__top,
   .game-pile__top > div,
+  .game-pile__shuffle-face > div,
+  .game-pile__layer > div,
   .game-pile__layer,
   .game-breeding-slot__box {
     border-radius: 0.25rem !important;

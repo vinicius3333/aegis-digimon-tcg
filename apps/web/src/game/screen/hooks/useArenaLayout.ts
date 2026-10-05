@@ -109,6 +109,10 @@ export function useArenaLayout(): ArenaLayout {
             ? 100
             : 116;
   const sidelineArena = useMediaQuery(SIDELINE_ARENA_QUERY);
+  // Compact utility strips also contain raising cards. Their existing pile size
+  // caps the shared field size so matching the battle rows cannot overflow the strip.
+  const fieldWidthCeiling =
+    organized && !sidelineArena ? Math.min(arenaPermanentWidth, arenaPileWidth) : arenaPermanentWidth;
   const fieldCardWidth = useFieldCardWidth();
   const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const collapseNotices = narrowGameLayout && !landscapePhone;
@@ -122,8 +126,8 @@ export function useArenaLayout(): ArenaLayout {
     coarsePointer,
     collapseNotices,
     arenaPileWidth,
-    arenaPermanentWidth,
-    arenaRaisingWidth: sidelineArena ? (fieldCardWidth?.drawn ?? arenaPermanentWidth) : arenaPileWidth,
+    arenaPermanentWidth: fieldWidthCeiling,
+    arenaRaisingWidth: organized || sidelineArena ? (fieldCardWidth?.drawn ?? fieldWidthCeiling) : arenaPileWidth,
     arenaSidelineBasisWidth: sidelineArena ? (fieldCardWidth?.heightFitted ?? arenaPermanentWidth) : arenaPileWidth,
     handCardWidth: portraitArena
       ? tabletPortraitArena

@@ -28,7 +28,7 @@ import {
 } from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
 import { stackStripHand } from "../../match/heldStackStrip";
-import type { HeldDeletion, HeldStackStrip, HeldTrashArrival } from "../../match/types";
+import type { HeldDeletion, HeldStackStrip, HeldTrashArrival, HeldHandArrival } from "../../match/types";
 
 export function presentedSeats({
   shownState,
@@ -43,6 +43,7 @@ export function presentedSeats({
   heldDeletions,
   heldStackStrips = new Map(),
   heldTrashArrivals,
+  heldHandArrivals = new Map(),
   optimisticPlayedInstanceId,
   presentationPacing = "current",
 }: {
@@ -58,6 +59,7 @@ export function presentedSeats({
   heldDeletions: ReadonlyMap<number, HeldDeletion>;
   heldStackStrips?: ReadonlyMap<number, HeldStackStrip>;
   heldTrashArrivals: ReadonlyMap<number, HeldTrashArrival>;
+  heldHandArrivals?: ReadonlyMap<number, HeldHandArrival>;
   /** A card a play has already taken out of the hand, pending the server's word. */
   optimisticPlayedInstanceId: string | undefined;
   /** Paced effect results follow the narrated revision; live legality remains separate. */
@@ -132,14 +134,60 @@ export function presentedSeats({
   const heldViewer = heldDrawState?.seat === viewerSeat ? drawHold?.players[viewerSeat] : undefined;
   const heldOpponent =
     heldDrawState?.seat === otherSeat(viewerSeat) ? drawHold?.players[otherSeat(viewerSeat)] : undefined;
-  const handViewer = heldViewer ?? (paced ? (shownState.players[viewerSeat] ?? viewer) : viewer);
-  const handOpponent = heldOpponent ?? (paced ? (shownState.players[otherSeat(viewerSeat)] ?? opponent) : opponent);
-  const shownViewer: PresentedPlayer = heldViewer
-    ? { ...presentedViewer, hand: heldViewer.hand, handCount: heldViewer.handCount, deckCount: heldViewer.deckCount }
-    : { ...presentedViewer, hand: viewer.hand, handCount: viewer.handCount };
-  const shownOpponent: PresentedPlayer = heldOpponent
-    ? { ...presentedOpponent, handCount: heldOpponent.handCount, deckCount: heldOpponent.deckCount }
-    : { ...presentedOpponent, handCount: opponent.handCount };
+  function holdHand(player: PlayerState, seat: Seat, version: number) {
+    const holds = [...heldHandArrivals.values()].filter((hold) => hold.seat === seat && hold.stateVersion <= version);
+    const pending = holds.filter((hold) =>
+      seat === viewerSeat && hold.instanceId
+        ? player.hand?.some((card) => card.instanceId === hold.instanceId)
+        : player.handCount >= hold.handCountAfter,
+    );
+    if (!pending.length) return player;
+    const ids = new Set(pending.map((hold) => hold.instanceId));
+    return {
+      ...player,
+      // Private seat views omit this list. Opaque draws still hold their public
+      // counts without fabricating identities or requiring a decoded hand array.
+      hand: player.hand?.filter((card) => !ids.has(card.instanceId)),
+      handCount: Math.max(0, player.handCount - pending.length),
+      deckCount:
+        player.deckCount +
+        pending.filter((hold) => hold.fromDeck !== false && player.deckCount <= hold.deckCountAfter).length,
+    } as PlayerState;
+  }
+  const handViewer = holdHand(
+    heldViewer ?? (paced ? (shownState.players[viewerSeat] ?? viewer) : viewer),
+    viewerSeat,
+    heldViewer
+      ? drawHold!.stateVersion
+      : paced
+        ? shownState.stateVersion
+        : Math.max(shownState.stateVersion, ...[...heldHandArrivals.values()].map((hold) => hold.stateVersion)),
+  );
+  const handOpponent = holdHand(
+    heldOpponent ?? (paced ? (shownState.players[otherSeat(viewerSeat)] ?? opponent) : opponent),
+    otherSeat(viewerSeat),
+    heldOpponent
+      ? drawHold!.stateVersion
+      : paced
+        ? shownState.stateVersion
+        : Math.max(shownState.stateVersion, ...[...heldHandArrivals.values()].map((hold) => hold.stateVersion)),
+  );
+  const shownViewer: PresentedPlayer = {
+    ...presentedViewer,
+    hand: handViewer.hand,
+    handCount: handViewer.handCount,
+    deckCount: heldViewer
+      ? handViewer.deckCount
+      : holdHand(presentedViewer, viewerSeat, shownState.stateVersion).deckCount,
+  };
+  const shownOpponent: PresentedPlayer = {
+    ...presentedOpponent,
+    hand: handOpponent.hand,
+    handCount: handOpponent.handCount,
+    deckCount: heldOpponent
+      ? handOpponent.deckCount
+      : holdHand(presentedOpponent, otherSeat(viewerSeat), shownState.stateVersion).deckCount,
+  };
   return {
     shownViewer,
     shownOpponent,
@@ -156,6 +204,10 @@ export function presentedSeats({
     ),
     shownOpponentHandCount: handOpponent.handCount,
     /** Draw ribbons and paced snapshot membership both render the shown hand. */
-    handHeld: heldViewer !== undefined || paced || heldStripsOf(viewerSeat).some((strip) => strip.returnedInstanceId !== undefined),
+    handHeld:
+      heldViewer !== undefined ||
+      paced ||
+      heldHandArrivals.size > 0 ||
+      heldStripsOf(viewerSeat).some((strip) => strip.returnedInstanceId !== undefined),
   };
 }

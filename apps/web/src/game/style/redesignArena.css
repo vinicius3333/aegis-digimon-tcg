@@ -683,10 +683,6 @@ button.game-player-line__name {
     translate: none;
     animation: board-prompt-rail-in var(--t-dialog-in, 180ms) ease-out both !important;
   }
-
-  .decision-overlay.decision-overlay--side::before {
-    display: none;
-  }
 }
 
 @media (min-width: 1024px) and (min-height: 760px) {

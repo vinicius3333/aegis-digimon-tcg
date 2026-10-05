@@ -413,6 +413,41 @@ describe("playback controls", () => {
     expect(log.at(-1)).toBe("frozen:end");
   });
 
+  it("reports a run's frozen state separately from the queue's stepOnce pause", async () => {
+    const queue = createAnimationQueue();
+    let running: import("./animationQueue").AnimationStepContext | undefined;
+    queue.enqueue({
+      id: "running",
+      async run(context) {
+        running = context;
+        await context.wait(200);
+      },
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(running?.paused).toBe(false);
+    queue.pause();
+    expect(running?.paused).toBe(true);
+    queue.resume();
+    expect(running?.paused).toBe(false);
+    await vi.advanceTimersByTimeAsync(200);
+    queue.pause();
+    let stepped: import("./animationQueue").AnimationStepContext | undefined;
+    queue.enqueue({
+      id: "stepped",
+      async run(context) {
+        stepped = context;
+        await context.wait(200);
+      },
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(queue.stepOnce()).toBe(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(queue.isPaused()).toBe(true);
+    expect(stepped?.paused).toBe(false);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(queue.isIdle()).toBe(true);
+  });
+
   it("stepOnce with nothing at the gate keeps one permit for the next entry", async () => {
     const { log, step } = recorder();
     const queue = createAnimationQueue();
