@@ -28,7 +28,14 @@ export type Deck = {
   coverCardId?: string;
   revision: number;
 };
-export type AccountPreferences = { darkMode?: boolean; locale?: string; sleeve?: string };
+export type AccountPreferences = {
+  darkMode?: boolean;
+  locale?: string;
+  sleeve?: string;
+  deckShare?: number;
+  deckView?: "grid" | "list";
+  deckSort?: string;
+};
 export type AuthSession = { id: string; account: Account; expiresAt: number };
 export type RoomTicket = { account: Account; tournamentMatchId: string | null };
 export type PlayerStats = {

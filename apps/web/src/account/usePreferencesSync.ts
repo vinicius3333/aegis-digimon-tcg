@@ -1,11 +1,16 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { DEFAULT_CARD_SLEEVE, getCardSleeveId, setCardSleeveId, subscribeCardSleeve } from "../design/sleeve";
+import {
+  sanitizeDeckBuilderPreferences,
+  setDeckBuilderPreferences,
+  useDeckBuilderPreferences,
+} from "../screens/deckBuilderPreferences";
 import { useTranslation } from "../i18n";
 import { isLocale } from "../i18n/locales";
 import { accountApi, type AccountPreferences } from "./client";
 
 /**
- * Keeps the theme, language and sleeve in step with the signed-in account.
+ * Keeps the theme, language, sleeve and deck builder layout in step with the signed-in account.
  * localStorage stays the instant source, so guests and the first render never wait on the network.
  * On sign-in the account's stored values win; keys the account lacks are backfilled from this device.
  */
@@ -20,6 +25,7 @@ export function usePreferencesSync({
 }): void {
   const { locale, setLocale } = useTranslation();
   const sleeve = useSyncExternalStore(subscribeCardSleeve, getCardSleeveId, () => DEFAULT_CARD_SLEEVE.id);
+  const { deckShare, deckView, deckSort } = useDeckBuilderPreferences();
   const [synced, setSynced] = useState<{ accountId: string; preferences: AccountPreferences }>();
   const stored = synced && synced.accountId === accountId ? synced.preferences : undefined;
 
@@ -33,6 +39,7 @@ export function usePreferencesSync({
         if (typeof preferences.darkMode === "boolean") setDark(preferences.darkMode);
         if (isLocale(preferences.locale)) setLocale(preferences.locale);
         if (preferences.sleeve) setCardSleeveId(preferences.sleeve);
+        setDeckBuilderPreferences(sanitizeDeckBuilderPreferences(preferences));
         setSynced({ accountId, preferences });
       })
       .catch(() => undefined);
@@ -43,7 +50,7 @@ export function usePreferencesSync({
 
   useEffect(() => {
     if (!accountId || !stored) return;
-    const current: AccountPreferences = { darkMode: dark, locale, sleeve };
+    const current: AccountPreferences = { darkMode: dark, locale, sleeve, deckShare, deckView, deckSort };
     const changes = Object.fromEntries(
       Object.entries(current).filter(([key, value]) => stored[key as keyof AccountPreferences] !== value),
     ) as AccountPreferences;
@@ -52,5 +59,5 @@ export function usePreferencesSync({
       .updatePreferences(changes)
       .then((preferences) => setSynced({ accountId, preferences }))
       .catch(() => undefined);
-  }, [accountId, stored, dark, locale, sleeve]);
+  }, [accountId, stored, dark, locale, sleeve, deckShare, deckView, deckSort]);
 }

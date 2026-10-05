@@ -3,6 +3,7 @@ import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getCardSleeveId, setCardSleeveId } from "../design/sleeve";
+import { getDeckBuilderPreferences, setDeckBuilderPreferences } from "../screens/deckBuilderPreferences";
 import { I18nProvider, useTranslation } from "../i18n";
 import { accountApi, type AccountPreferences } from "./client";
 import { usePreferencesSync } from "./usePreferencesSync";
@@ -33,6 +34,7 @@ function echoUpdates(stored: AccountPreferences) {
 beforeEach(() => {
   localStorage.clear();
   setCardSleeveId("digimon-standard");
+  setDeckBuilderPreferences({ deckShare: 0.45, deckView: "grid", deckSort: "releaseDate" });
 });
 
 afterEach(() => {
@@ -48,13 +50,21 @@ describe("usePreferencesSync", () => {
   });
 
   it("applies the account's stored preferences on sign-in without writing them back", async () => {
-    const stored = { darkMode: true, locale: "pt-BR", sleeve: "omnimon" };
+    const stored = {
+      darkMode: true,
+      locale: "pt-BR",
+      sleeve: "omnimon",
+      deckShare: 0.7,
+      deckView: "list" as const,
+      deckSort: "level",
+    };
     vi.spyOn(accountApi, "preferences").mockResolvedValue(stored);
     const update = echoUpdates(stored);
     const { result } = renderSync("account-1");
     await waitFor(() => expect(result.current.locale).toBe("pt-BR"));
     expect(result.current.dark).toBe(true);
     expect(getCardSleeveId()).toBe("omnimon");
+    expect(getDeckBuilderPreferences()).toEqual({ deckShare: 0.7, deckView: "list", deckSort: "level" });
     expect(update).not.toHaveBeenCalled();
   });
 
@@ -63,9 +73,19 @@ describe("usePreferencesSync", () => {
     vi.spyOn(accountApi, "preferences").mockResolvedValue(stored);
     const update = echoUpdates(stored);
     const { result } = renderSync("account-1");
-    await waitFor(() => expect(update).toHaveBeenCalledWith({ darkMode: false, sleeve: "digimon-standard" }));
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith({
+        darkMode: false,
+        sleeve: "digimon-standard",
+        deckShare: 0.45,
+        deckView: "grid",
+        deckSort: "releaseDate",
+      }),
+    );
     act(() => result.current.setDark(true));
     await waitFor(() => expect(update).toHaveBeenLastCalledWith({ darkMode: true }));
-    expect(update).toHaveBeenCalledTimes(2);
+    act(() => setDeckBuilderPreferences({ deckView: "list" }));
+    await waitFor(() => expect(update).toHaveBeenLastCalledWith({ deckView: "list" }));
+    expect(update).toHaveBeenCalledTimes(3);
   });
 });
