@@ -76,3 +76,21 @@ test("keeps looking for the real image and replaces the sample once it is publis
   assert.equal(existsSync(`${paths.destination}/BT1-001.webp`), true);
   assert.equal(existsSync(`${paths.destination}/BT1-001-Sample.webp`), false);
 });
+
+test("reports only printings with no image under any fallback the client tries", async (t) => {
+  const paths = fixture(
+    t,
+    [{ cardId: "BT16-077", imageId: "BT16-077-Errata" }, { cardId: "P-147" }, { cardId: "BT1-001" }],
+    { "BT1-001": [{ artId: "BT1-001_P1", imageId: "BT1-001_P1" }] },
+  );
+  mkdirSync(`${paths.source}/apps/web/public/cards/unpublished`, { recursive: true });
+  writeFileSync(`${paths.source}/apps/web/public/cards/unpublished/P-147.webp`, "bundled");
+  const { fetch } = fakeFetch({
+    [`${bucket}/BT16-077-Errata.webp`]: webp("errata"),
+    [`${bucket}/BT1-001.webp`]: webp("base"),
+  });
+
+  const result = await syncCardImages({ ...paths, fetch });
+
+  assert.deepEqual(result.missing, ["BT1-001_P1"]);
+});
