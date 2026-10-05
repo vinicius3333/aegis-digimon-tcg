@@ -108,6 +108,37 @@ export const KEYWORD_TURN_PACING_SCENARIOS = [
   },
 ] as const;
 
+/** Optional protection keeps a real permanent, or exposes its departure and stack cost. */
+export const KEYWORD_PROTECTION_PACING_SCENARIOS = [
+  ...([true, false] as const).map(
+    (accept) =>
+      ({
+        id: accept ? "keyword-pacing-evade-accept" : "keyword-pacing-evade-decline",
+        keyword: "Evade",
+        flow: "evade",
+        attackerCardId: "BT1-020",
+        holderCardIds: ["BT14-021"],
+        securityCardId: "ST6-15",
+        accept,
+      }) as const,
+  ),
+  ...([true, false] as const).map(
+    (accept) =>
+      ({
+        id: accept ? "keyword-pacing-armor-purge-accept" : "keyword-pacing-armor-purge-decline",
+        keyword: "Armor Purge",
+        flow: "armor-purge",
+        holderCardIds: ["BT1-009", "BT8-012"],
+        defenderCardId: "ST1-10",
+        accept,
+      }) as const,
+  ),
+] as const;
+
+export type KeywordProtectionPacingScenario = (typeof KEYWORD_PROTECTION_PACING_SCENARIOS)[number];
 export type KeywordTurnPacingScenario = (typeof KEYWORD_TURN_PACING_SCENARIOS)[number];
-export type KeywordPacingScenarioId = (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] | KeywordTurnPacingScenario["id"];
+export type KeywordPacingScenarioId =
+  | (typeof KEYWORD_PACING_SCENARIOS)[number]["id"]
+  | KeywordTurnPacingScenario["id"]
+  | KeywordProtectionPacingScenario["id"];
 export type KeywordPacingScenario = KeywordPacingBoard & { id: (typeof KEYWORD_PACING_SCENARIOS)[number]["id"] };

@@ -3,6 +3,7 @@ import {
   CATALOG_DECKS,
   KEYWORD_PACING_SCENARIOS,
   KEYWORD_TURN_PACING_SCENARIOS,
+  KEYWORD_PROTECTION_PACING_SCENARIOS,
   type KeywordPacingScenario,
 } from "@aegis/shared";
 import { colorKey } from "../design/theme";
@@ -48,6 +49,10 @@ type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
 const keywordScenarios: readonly KeywordPacingScenario[] = KEYWORD_PACING_SCENARIOS;
 
 const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
+  ...KEYWORD_PROTECTION_PACING_SCENARIOS.map(
+    (scenario) =>
+      [scenario.id, `Keyword pacing · ${scenario.keyword} · ${scenario.accept ? "accept" : "decline"}`] as const,
+  ),
   ...KEYWORD_TURN_PACING_SCENARIOS.map(
     (scenario) =>
       [
@@ -82,6 +87,20 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
 ];
 
 const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  ...Object.fromEntries(
+    KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      scenario.flow === "evade"
+        ? {
+            en: `End breeding and attack security with Groundramon. Death Claw targets the active Syakomon. ${scenario.accept ? "Accept Evade to suspend it and prevent deletion" : "Decline Evade to follow its deletion"}.`,
+            ptBR: `Encerre a criação e ataque a segurança com Groundramon. Death Claw mira o Syakomon ativo. ${scenario.accept ? "Aceite Evade para suspendê-lo e evitar a deleção" : "Recuse Evade para acompanhar sua deleção"}.`,
+          }
+        : {
+            en: `End breeding and attack Phoenixmon with Flamedramon. ${scenario.accept ? "Select Flamedramon in Armor Purge and confirm: its armor is trashed and Monodramon remains suspended" : "Pass the Armor Purge choice: both cards leave the field"}. Watch the blow finish before the protection question.`,
+            ptBR: `Encerre a criação e ataque Phoenixmon com Flamedramon. ${scenario.accept ? "Selecione Flamedramon em Armor Purge e confirme: sua armadura vai ao lixo e Monodramon permanece suspenso" : "Passe a escolha de Armor Purge: as duas cartas saem do campo"}. Acompanhe o impacto antes da pergunta de proteção.`,
+          },
+    ]),
+  ),
   ...Object.fromEntries(
     KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => [
       scenario.id,

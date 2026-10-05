@@ -2,6 +2,7 @@ import {
   CATALOG_DECKS,
   KEYWORD_PACING_SCENARIOS,
   KEYWORD_TURN_PACING_SCENARIOS,
+  KEYWORD_PROTECTION_PACING_SCENARIOS,
   CardKind,
   CardInstance,
   Permanent,
@@ -12,6 +13,7 @@ import {
   type KeywordPacingScenario,
   type KeywordPacingScenarioId,
   type KeywordTurnPacingScenario,
+  type KeywordProtectionPacingScenario,
 } from "@aegis/shared";
 import {
   clearZone,
@@ -56,6 +58,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt23-examon-piercing-end-turn",
   ...KEYWORD_PACING_SCENARIOS.map((scenario) => scenario.id),
   ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => scenario.id),
+  ...KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => scenario.id),
   "effects-lab-field-grouping",
   "arena-bt26-monimon-optional-cost",
   "arena-diarbbitmon-dual-option-immunity",
@@ -5913,6 +5916,25 @@ function layKeywordTurnPacingScenario(
   startEffectsLabTurn(state, 3);
 }
 
+function layKeywordProtectionPacingScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  scenario: KeywordProtectionPacingScenario,
+): void {
+  prepareEffectsLabDecks(state, decks);
+  placePermanent(state.players[0]!, establishedDigimon(0, scenario.holderCardIds, "-keyword-protected"));
+  if (scenario.flow === "evade") {
+    // The level-five attacker is ineligible for Death Claw; the active holder is its only target.
+    placePermanent(state.players[0]!, establishedDigimon(0, [scenario.attackerCardId], "-keyword-attacker"));
+    stackEffectsLabSecurity(state, 1, [scenario.securityCardId]);
+  } else {
+    const defender = establishedDigimon(1, [scenario.defenderCardId], "-keyword-defender");
+    defender.isSuspended = true;
+    placePermanent(state.players[1]!, defender);
+  }
+  startEffectsLabTurn(state, 3);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-thetismon-mistymon-deletion": layThetismonJammingScenario,
   "arena-ex12-thetismon-jamming-control": (state, decks) => layThetismonJammingScenario(state, decks, false),
@@ -5931,6 +5953,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     ...KEYWORD_TURN_PACING_SCENARIOS.map((scenario) => [
       scenario.id,
       (state: GameState, decks: readonly [Decklist, Decklist]) => layKeywordTurnPacingScenario(state, decks, scenario),
+    ]),
+    ...KEYWORD_PROTECTION_PACING_SCENARIOS.map((scenario) => [
+      scenario.id,
+      (state: GameState, decks: readonly [Decklist, Decklist]) =>
+        layKeywordProtectionPacingScenario(state, decks, scenario),
     ]),
   ]) as Record<KeywordPacingScenarioId, typeof layBattleScenario>),
   battle: layBattleScenario,

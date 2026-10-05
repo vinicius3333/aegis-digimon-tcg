@@ -1,6 +1,7 @@
 import {
   KEYWORD_PACING_SCENARIOS,
   KEYWORD_TURN_PACING_SCENARIOS,
+  KEYWORD_PROTECTION_PACING_SCENARIOS,
   Phase,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -12,6 +13,85 @@ import { setupEngine, settle } from "./testkit/harness.js";
 import { observe } from "./testkit/observe.js";
 
 describe("real keyword pacing boards", () => {
+  for (const scenario of KEYWORD_PROTECTION_PACING_SCENARIOS) {
+    it(`${scenario.id} protects or deletes printed cards through a public attack`, async () => {
+      const s = setupEngine({ 0: {}, 1: {} });
+      s.engine.stagedDecks[0] = BLUE_DECK;
+      s.engine.stagedDecks[1] = RED_DECK;
+      s.engine.startDevScenario(scenario.id);
+      try {
+        await settle(() => s.state.phase === Phase.Breeding);
+        expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+        await advance(s.engine).waitForMainPhase(0);
+        const holder = s.state.players[0]!.battleArea.find((p) => p.permanentId === "dev-perm-0-keyword-protected")!;
+        const oldTop = holder.topCard;
+        const oldSources = [...holder.stack];
+        expect(observe(s.engine).hasKeyword(holder, scenario.keyword)).toBe(true);
+        expect(holder.currentDP).toBe(scenario.flow === "evade" ? 2000 : 5000);
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: scenario.flow === "evade" ? "dev-perm-0-keyword-attacker" : holder.permanentId,
+            target:
+              scenario.flow === "evade"
+                ? { kind: "player" }
+                : { kind: "permanent", permanentId: "dev-perm-1-keyword-defender" },
+          }),
+        ).toEqual({ ok: true });
+        if (scenario.flow === "evade") {
+          await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+          expect(holder.isSuspended).toBe(false);
+          expect(
+            s.engine.applyIntent(0, { type: "respondEvade", permanentId: holder.permanentId, accept: scenario.accept }),
+          ).toEqual({ ok: true });
+        } else {
+          await settle(() => s.state.pendingDecision?.kind === "selectCards");
+          const decision = s.state.pendingDecision!;
+          expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toEqual([oldTop.instanceId]);
+          expect(s.events.filter((event) => event.kind === "battleCompared")).toHaveLength(1);
+          expect(
+            s.engine.applyIntent(0, {
+              type: "respondDecision",
+              decisionId: decision.decisionId,
+              response: { kind: "selectCards", instanceIds: scenario.accept ? [oldTop.instanceId] : [] },
+            }),
+          ).toEqual({ ok: true });
+        }
+        await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+        expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === holder.permanentId)).toBe(scenario.accept);
+        expect(s.state.players[1]!.security).toHaveLength(scenario.flow === "evade" ? 4 : 5);
+        if (scenario.accept) {
+          expect(holder.isSuspended).toBe(true);
+          if (scenario.flow === "armor-purge") {
+            expect(holder.topCard.instanceId).toBe(oldSources[0]!.instanceId);
+            expect(holder.topCard.cardId).toBe("BT1-009");
+            expect(holder.currentDP).toBe(6000);
+            expect(holder.stack).toHaveLength(0);
+            expect(
+              s.events.filter(
+                (event) => event.kind === "cardsMoved" && event.strippedStackTops?.reason === "armorPurge",
+              ),
+            ).toEqual([
+              expect.objectContaining({
+                kind: "cardsMoved",
+                instanceIds: [oldTop.instanceId],
+                cardIds: ["BT8-012"],
+                seat: 0,
+                from: "battleArea",
+                to: "trash",
+                strippedStackTops: { permanentId: holder.permanentId, reason: "armorPurge" },
+              }),
+            ]);
+          }
+        }
+        const trashed = s.state.players[0]!.trash.map((card) => card.instanceId);
+        expect(trashed.includes(oldTop.instanceId)).toBe(scenario.flow === "armor-purge" || !scenario.accept);
+        for (const source of oldSources) expect(trashed.includes(source.instanceId)).toBe(!scenario.accept);
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+      }
+    });
+  }
   for (const scenario of KEYWORD_TURN_PACING_SCENARIOS) {
     it(`${scenario.id} resolves through public attacks and a turn handoff`, async () => {
       const s = setupEngine({ 0: {}, 1: {} });
