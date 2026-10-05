@@ -12,6 +12,17 @@ below retain their evidence, but those excluded validations are no longer pendin
 acceptance work. See `docs/plans/2026-10-05-visual-reference-closeout.md` for current
 scope, measured limits and focused browser results.
 
+The integrated outcome is recorded in
+`docs/plans/2026-10-05-animation-integration-outcome.md`: ten accepted real-server
+native formats and two retained Fast sampling-quality rejections, with targeted
+causal proof after the DP correction. Phase prerequisites exclude nonvisual audio
+receipts. Paced DP consumes unseen immutable revision snapshots so coalesced gain
+and expiry renders still paint each gated change in order. Raising evolution
+retains its physical revision through the native 1150 ms light; generic field
+light tails remain nonblocking. Central audio uses its painted target and neutral
+source until a physical source is identified; source metadata never comes from
+future stack membership.
+
 Start with `animationCatalog.ts`. It exhaustively assigns every server event to its
 presentation families and to the board snapshot policy. `presentBatch.ts` consumes that
 policy; the effects lab consumes the same catalog, reports observed recipes, and links the

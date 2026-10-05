@@ -9,6 +9,13 @@ new raising interval, prioritized findings and leased desktop/mobile/Fast/reduce
 checks. Earlier cumulative coverage remains 756/40,622; this closeout records its
 31 inspected raising frames separately without claiming a new cumulative count.
 
+The [integrated outcome](plans/2026-10-05-animation-integration-outcome.md)
+records preserved child commits, phase/audio and coalesced-DP corrections, current
+browser/audio controls and the public preview. Twelve existing autonomous-action
+formats were executed: ten fully accepted native captures, two retained Fast
+quality rejections, and targeted causal proof after the DP fix. Native gates were
+not relaxed; accepted pre-fix captures are distinguished from final-fix evidence.
+
 Primary-source research and implementation, 2026-10-03. Inspected the current Aegis checkout, the user-supplied [gameplay reference](https://www.youtube.com/watch?v=kYBHuw7ItSg). The recorded client and our renderer use different layouts. Video observations and source constants are separated below.
 
 The user explicitly requires preserving Aegis's own layout and visual design, including colours, typography, components, slot geometry and resting card sizes. The external reference guides card motion, timing and effects only. Compare travel relative to the actual Aegis source and destination, and check that the card settles into its existing slot at its existing size. Project text and commit messages use neutral descriptions of the reference.
