@@ -1,27 +1,55 @@
-import { appFusionCostFor, getCardDefinition, type Seat } from "@aegis/shared";
+import { appFusionCostFor, getCardDefinition, type Intent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { digivolveDeps } from "../../engine/gameEngine/actionDeps.js";
 import type { Candidate } from "../candidates.js";
 import { bodyValue, scoreCandidate } from "../evaluate.js";
 import { createEvaluationPolicy, type BotPolicy } from "../policy.js";
 import { DEFAULT_BOT_PROFILE } from "../profiles.js";
-import type { BotView } from "../view.js";
-import { specialMainActions } from "./specialActions.js";
+import { isDigimonCard, type BotView } from "../view.js";
+import { mainActions } from "./actions.js";
 
 /** Teach compound declarations without changing the fixed heuristic strength opponent. */
 export function createTrainingTeacher(engine: GameEngine, seat: Seat, seed: number): BotPolicy {
-  return createEvaluationPolicy({
+  const rejectedMaterials = new Set<string>();
+  const teacher = createEvaluationPolicy({
     seed,
-    additionalMainCandidates: (view) => compoundTeacherCandidates(engine, seat, view),
+    additionalMainCandidates: (view) =>
+      compoundTeacherCandidates(engine, seat, view).filter(
+        (candidate) => !rejectedMaterials.has(JSON.stringify(candidate.intent)),
+      ),
   });
+  return {
+    ...teacher,
+    onTurnStart() {
+      rejectedMaterials.clear();
+      teacher.onTurnStart();
+    },
+    noteRejected(intent: Intent) {
+      // The fixed opponent's ordinary-play key cannot identify a material route.
+      // Keep exact rejected declarations here, leaving alternate routes available.
+      if (intent.type === "playCard" && (intent.assembly !== undefined || intent.digiXros !== undefined))
+        rejectedMaterials.add(JSON.stringify(intent));
+      teacher.noteRejected(intent);
+    },
+  };
 }
 
 export function compoundTeacherCandidates(engine: GameEngine, seat: Seat, view: BotView): Candidate[] {
   const candidates: Candidate[] = [];
-  for (const action of specialMainActions(engine, seat)) {
+  for (const action of mainActions(engine, seat)) {
     const intent = action.intent;
     const cost = action.projectedCost ?? 0;
-    if (intent.type === "dnaDigivolve") {
+    if (intent.type === "playCard" && (intent.assembly !== undefined || intent.digiXros !== undefined)) {
+      const definition = view.hand.find((card) => card.instanceId === intent.instanceId)?.definition;
+      if (definition === undefined || !isDigimonCard(definition) || action.projectedCost === undefined) continue;
+      candidates.push({
+        kind: "playDigimon",
+        key: `materialPlay:${JSON.stringify(intent)}`,
+        intent,
+        cost: action.projectedCost,
+        definition,
+      });
+    } else if (intent.type === "dnaDigivolve") {
       const definition = view.hand.find((card) => card.instanceId === intent.instanceId)?.definition;
       const materials = view.board.filter((unit) => intent.materialPermanentIds.includes(unit.permanentId));
       const base = materials.reduce<(typeof materials)[number] | undefined>(
