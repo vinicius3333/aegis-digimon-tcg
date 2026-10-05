@@ -84,6 +84,7 @@ export function OpponentBattleRow({
           "data-drop": "perm-opp",
           "data-id": p.permanentId,
           "data-field-key": fieldKey,
+          "data-field-member-ids": JSON.stringify(members.map((member) => member.permanentId)),
           ...dropIntentAttrs("perm-opp", p.permanentId),
         }}
         candidate={isCandidate(p)}

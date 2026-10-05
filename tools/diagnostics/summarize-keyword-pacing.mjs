@@ -34,7 +34,7 @@ for (const path of positionals) {
     stats: report.stats,
     errorCount: (report.errors ?? []).length,
     pacingCases: specs(report)
-      .filter((spec) => /^real (?:(keyword|group) pacing:|bot phase pacing)/.test(spec.title))
+      .filter((spec) => /^real (?:(keyword|group) pacing:|bot (phase|action) pacing)/.test(spec.title))
       .flatMap((spec) =>
         spec.tests.flatMap((test) =>
           test.results.map((result) => ({
@@ -153,6 +153,9 @@ for (const path of positionals) {
               lastNativeClock: panel.poses.filter((pose) => pose.nativeMs !== undefined).at(-1),
             })),
             hatches: capture.hatches ?? [],
+            raising: capture.raising ?? [],
+            breedingTransfers: capture.breedingTransfers ?? [],
+            groupArtwork: capture.poses.filter((pose) => pose.memberIds?.length > 1 || pose.returning),
             arrowTargetChanges: capture.arrows ?? [],
             visibleBoardChanges: capture.boards ?? [],
             drawnCards: (capture.draws ?? []).map((draw) => ({ ...draw, observedMs: draw.lastAt - draw.firstAt })),
@@ -164,6 +167,7 @@ for (const path of positionals) {
             })),
             securityChecks: capture.securityChecks ?? [],
             sourceFocuses: capture.sourceFocuses ?? [],
+            dpPulses: capture.dpPulses ?? [],
             arrivals: capture.arrivals ?? [],
             notices: capture.notices ?? [],
             stackPeels: (capture.peels ?? []).map((peel) => ({ ...peel, observedMs: peel.lastAt - peel.firstAt })),

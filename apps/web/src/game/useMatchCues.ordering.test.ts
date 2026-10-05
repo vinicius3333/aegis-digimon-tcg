@@ -151,6 +151,54 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+it("keeps a raising evolution's card through its arrival tail before the next live top", async () => {
+  const board = (cardId: string, stateVersion: number) =>
+    ({
+      ...BOARD,
+      stateVersion,
+      players: [
+        BOARD.players[0],
+        {
+          ...BOARD.players[1],
+          breeding: {
+            permanentId: "raising",
+            topCard: { cardId, instanceId: cardId },
+            stack: [],
+            currentDP: 0,
+          },
+        },
+      ],
+    }) as unknown as GameState;
+  const first = board("ST1-03", 1);
+  const next = board("ST1-05", 2);
+  const view = renderOrderingCues(board("ST1-01", 0));
+  view.feedBatch(
+    [{ kind: "digivolved", seat: 1, permanentId: "raising", cardId: "ST1-03", mechanic: "normal", inBreeding: true }],
+    first,
+  );
+  await advance(800);
+  expect(view.result.current.permanentBursts.get("raising")?.variant).toBe("evolve");
+  view.feedBatch(
+    [{ kind: "digivolved", seat: 1, permanentId: "raising", cardId: "ST1-05", mechanic: "normal", inBreeding: true }],
+    next,
+  );
+  await advance(16);
+  const selected = selectPresentedState({
+    live: next,
+    snapshots: recordSnapshot(recordSnapshot([], first), next),
+    presentedStateVersion: view.result.current.presentedStateVersion,
+  });
+  expect(selected!.players[1]!.breeding!.topCard.cardId).toBe("ST1-03");
+  await advance(TIMINGS.cardBurst + 800);
+  expect(
+    selectPresentedState({
+      live: next,
+      snapshots: recordSnapshot(recordSnapshot([], first), next),
+      presentedStateVersion: view.result.current.presentedStateVersion,
+    })!.players[1]!.breeding!.topCard.cardId,
+  ).toBe("ST1-05");
+});
+
 it.each([
   { redacted: false, viewerSeat: 0 as Seat, skip: false, destination: "hand" },
   { redacted: true, viewerSeat: 0 as Seat, skip: false, destination: "hand" },

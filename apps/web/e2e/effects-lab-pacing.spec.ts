@@ -13,6 +13,7 @@ import {
   KEYWORD_DECK_PACING_SCENARIOS,
   KEYWORD_ATTACK_PACING_SCENARIOS,
   KEYWORD_END_ATTACK_PACING_SCENARIOS,
+  PHASE_PACING_SCENARIOS,
   getCardDefinition,
   type KeywordPacingScenario,
 } from "@aegis/shared";
@@ -44,6 +45,7 @@ interface LabState {
   }[];
   events: {
     kind: string;
+    sourcePermanentId?: string;
     phase?: string;
     turnSeat?: number;
     seat?: number;
@@ -54,6 +56,9 @@ interface LabState {
     revealedCardId?: string;
     redirected?: boolean;
     attackerPermanentId?: string;
+    cardId?: string;
+    permanentId?: string;
+    inBreeding?: boolean;
     target?: { kind: string; permanentId?: string };
     batch?: string;
   }[];
@@ -76,6 +81,11 @@ interface LabState {
     visible: {
       turn?: { seat: number; count: number };
       players: {
+        breeding?: null | {
+          permanentId: string;
+          topCard: { cardId: string };
+          stack: { cardId: string }[];
+        };
         securityCount: number;
         handCount: number;
         deckCount: number;
@@ -1338,6 +1348,252 @@ test.describe("effects lab pacing in the browser", () => {
         ).toEqual([]);
       }
     });
+  }
+
+  for (const scenario of PHASE_PACING_SCENARIOS) {
+    for (const format of [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+      { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+    ]) {
+      test(`real bot action pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, format.speed, false);
+        const before = await lab.read();
+        await startPacingCapture(page);
+        await lab.button(/END PHASE/i).click();
+        await expect
+          .poll(
+            async () => {
+              const current = await lab.read();
+              return (
+                current.queueIdle &&
+                !current.decision &&
+                current.board?.visible.turn?.seat === 0 &&
+                current.board.visible.turn.count === before.board!.visible.turn!.count + 2
+              );
+            },
+            { timeout: 65_000, intervals: [50, 100, 200] },
+          )
+          .toBe(true);
+        const capture = await finishPacingCapture(page);
+        const state = await lab.read();
+        await info.attach("real-phase-pacing.json", {
+          body: Buffer.from(JSON.stringify({ scenario, format, before, capture, state }, null, 2)),
+          contentType: "application/json",
+        });
+        expect(errors).toEqual([]);
+        expect(capture.truncated).toBe(false);
+        expect(state.gateExpiries).toEqual([]);
+        expect(state.steps.filter((step) => step.failed)).toEqual([]);
+        expect(state.board!.visible.players[1]!.hand).toEqual([]);
+        expect(state.board!.visible.players[0]!.securityCount).toBe(4 - scenario.securityRemoved);
+        const attacks = state.events.filter((event) => event.kind === "attackDeclared" && event.seat === 1);
+        expect(attacks).toHaveLength(scenario.securityRemoved);
+        const evolved = state.events.filter((event) => event.kind === "digivolved" && event.seat === 1);
+        const played = state.events.filter((event) => event.kind === "cardPlayed" && event.seat === 1);
+        const moved = state.events.filter((event) => event.kind === "movedFromBreeding" && event.seat === 1);
+        expect(evolved.map((event) => event.cardId)).toEqual(
+          scenario.flow === "raising-evolution"
+            ? scenario.handCardIds
+            : scenario.flow === "raising-move"
+              ? ["ST1-08"]
+              : [],
+        );
+        expect(played.map((event) => event.cardId)).toEqual(
+          scenario.flow === "play-grouping" ? scenario.handCardIds : [],
+        );
+        expect(moved).toHaveLength(scenario.flow === "raising-move" ? 1 : 0);
+        if (scenario.flow === "raising-evolution") {
+          const raised = state.board!.visible.players[1]!.breeding!;
+          expect([...raised.stack, raised.topCard].map((card) => card.cardId)).toEqual([
+            "ST1-01",
+            ...scenario.handCardIds,
+          ]);
+          expect(
+            state.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "ST1-08"),
+          ).toEqual([]);
+        }
+        if (scenario.flow === "raising-move") {
+          expect(state.board!.visible.players[1]!.breeding == null).toBe(true);
+          expect(state.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-08")).toBe(
+            true,
+          );
+        }
+        // Reduced motion drains visual cues; its actual effect resolution is checked above.
+        if (scenario.flow === "raising-move" && !format.reduced) {
+          const evolutionIndex = state.events.indexOf(evolved[0]!);
+          const sourceId = evolved[0]!.permanentId;
+          // The opponent's private chooseTargets prompt is not sent to this seat.
+          // Its synchronized DP delta is the public presentation of the chosen copy.
+          const choices = capture.dpPulses.filter(
+            (pulse) => pulse.to - pulse.from === 3000 && pulse.permanentId?.startsWith("dev-perm-1-phase-pacing"),
+          );
+          expect(choices).toHaveLength(1);
+          const choice = choices[0]!;
+          expect(choice.deltaText).toBe("3K");
+          expect(
+            capture.poses.some(
+              (pose) =>
+                pose.memberIds.includes(choice.permanentId!) &&
+                pose.painted &&
+                pose.artLoaded &&
+                pose.at >= choice.firstAt &&
+                pose.at <= choice.lastAt,
+            ),
+            "the real +3000 DP choice painted over its physical target",
+          ).toBe(true);
+          const sourceFocuses = capture.sourceFocuses.filter(
+            (focus) => focus.cardId === "ST1-08" && focus.permanentId === sourceId,
+          );
+          expect(sourceFocuses.length, "Garudamon's actual field source painted").toBeGreaterThan(0);
+          expect(sourceFocuses.every((focus) => focus.removedAt !== undefined)).toBe(true);
+          for (const focus of sourceFocuses) expect(choice.firstAt).toBeGreaterThanOrEqual(focus.removedAt!);
+          const arrival = capture.arrivals.find((entry) => entry.cardId === "ST1-08")!;
+          expect(arrival).toBeDefined();
+          const landing = capture.poses.find(
+            (pose) =>
+              pose.memberIds.includes(sourceId!) && pose.cardName === "Garudamon" && pose.painted && pose.artLoaded,
+          );
+          expect(landing).toBeDefined();
+          expect(arrival.removedAt).toBeDefined();
+          expect(landing!.at + 1).toBeGreaterThanOrEqual(arrival.removedAt!);
+          expect(choice.firstAt).toBeGreaterThanOrEqual(landing!.at);
+          for (const attack of attacks.filter((event) => state.events.indexOf(event) > evolutionIndex)) {
+            const arrow = capture.arrows.find((entry) => entry.source === attack.attackerPermanentId);
+            expect(arrow, `painted post-evolution attack by ${attack.attackerPermanentId}`).toBeDefined();
+            expect(arrow!.at).toBeGreaterThanOrEqual(landing!.at);
+            expect(arrow!.at).toBeGreaterThanOrEqual(choice.lastAt);
+            for (const focus of sourceFocuses) expect(arrow!.at).toBeGreaterThanOrEqual(focus.removedAt!);
+          }
+        }
+        if (scenario.flow === "play-grouping") {
+          const ids = played.map((event) => event.permanentId!);
+          expect(new Set(ids).size).toBe(2);
+          const grouped = capture.poses.filter(
+            (pose) =>
+              !pose.returning && ids.every((id) => pose.memberIds.includes(id)) && pose.painted && pose.artLoaded,
+          );
+          expect(grouped.length, "both physical copies share one actual rendered group").toBeGreaterThan(0);
+          expect(grouped.at(-1)!.memberIds).toHaveLength(2);
+          if (!format.reduced) {
+            for (const id of ids) {
+              expect(
+                capture.poses.some(
+                  (pose) => pose.memberIds.length === 1 && pose.memberIds[0] === id && pose.painted && pose.artLoaded,
+                ),
+                `physical copy ${id} painted before grouping`,
+              ).toBe(true);
+            }
+            const returning = capture.poses.filter(
+              (pose) =>
+                pose.returning && pose.memberIds.some((id) => ids.includes(id)) && pose.painted && pose.artLoaded,
+            );
+            expect(returning.length, "the merging physical copy has a painted artwork flight").toBeGreaterThan(1);
+            const first = returning[0]!;
+            const last = returning.at(-1)!;
+            expect(Math.hypot(last.x - first.x, last.y - first.y)).toBeGreaterThan(1);
+            const destination = grouped.find((pose) => pose.at === last.at && pose.fieldKey === last.fieldKey);
+            expect(destination, "the merge reaches its actual group's artwork").toBeDefined();
+            expect(Math.hypot(last.x - destination!.x, last.y - destination!.y)).toBeLessThan(3);
+          }
+        }
+        expect(capture.motion.captureQuality).toBe("usable");
+        if (format.reduced) return;
+        const phases = capture.phasePanels.filter((panel) => panel.side === "opp");
+        expect(phases.map((panel) => panel.label)).toEqual([
+          "Opponent's turn",
+          "Unsuspend Phase",
+          "Draw Phase",
+          "Breeding Phase",
+          "Main Phase",
+          "End Phase",
+        ]);
+        const main = phases.find((panel) => panel.label === "Main Phase")!;
+        expect(main.removedAt).toBeDefined();
+        for (const panel of phases) {
+          expect(panel.poses.some((pose) => pose.painted)).toBe(true);
+          const clock = panel.poses.filter((pose) => pose.nativeMs !== undefined).at(-1)!;
+          expect(clock.nativeMs).toBeGreaterThanOrEqual(clock.endMs! - 34 * Math.max(1, Math.abs(clock.playbackRate!)));
+        }
+        if (scenario.flow === "raising-evolution") {
+          const raised = capture.raising.filter((entry) => entry.permanentId === "dev-perm-1-phase-pacing-raising");
+          expect(raised.map((entry) => entry.cardId)).toEqual(["ST1-01", ...scenario.handCardIds]);
+          for (const [index, entry] of raised.entries()) {
+            expect(entry.poses.some((pose) => pose.painted && pose.artLoaded)).toBe(true);
+            if (index > 0) {
+              expect(entry.firstAt).toBeGreaterThanOrEqual(main.removedAt!);
+              const native = entry.poses.filter((pose) => pose.nativeMs !== undefined).at(-1)!;
+              expect(native, `native evolution for ${entry.cardId}`).toBeDefined();
+              expect(native.nativeMs).toBeGreaterThanOrEqual(
+                native.endMs! - 34 * Math.max(1, Math.abs(native.playbackRate!)),
+              );
+              expect(raised[index - 1]!.removedAt).toBeLessThanOrEqual(entry.firstAt);
+            }
+          }
+        } else {
+          const expectedIds: readonly string[] = scenario.flow === "play-grouping" ? scenario.handCardIds : ["ST1-08"];
+          const arrivals = capture.arrivals.filter((arrival) => expectedIds.includes(arrival.cardId));
+          expect(arrivals.map((arrival) => arrival.cardId)).toEqual(expectedIds);
+          for (const [index, arrival] of arrivals.entries()) {
+            expect(arrival.firstAt).toBeGreaterThanOrEqual(main.removedAt!);
+            const exit = arrival.poses.filter((pose) => pose.exitMs !== undefined).at(-1)!;
+            expect(exit).toBeDefined();
+            const endpoint = exit.at + Math.max(0, exit.exitEndMs! - exit.exitMs!) / Math.abs(exit.exitRate!);
+            const permanentId =
+              scenario.flow === "play-grouping" ? played[index]!.permanentId : evolved[0]!.permanentId;
+            const name = getCardDefinition(arrival.cardId)!.nameEn;
+            const landing = capture.poses.find(
+              (pose) => pose.permanentId === permanentId && pose.cardName === name && pose.painted && pose.artLoaded,
+            );
+            expect(landing, `painted physical landing for ${permanentId}`).toBeDefined();
+            expect(landing!.at + 1).toBeGreaterThanOrEqual(endpoint);
+          }
+          const relayout = capture.timings.filter(
+            (timing) =>
+              timing.duration === 420 &&
+              (timing.permanentId?.startsWith("dev-perm-1-phase-pacing") ||
+                played.some((event) => event.permanentId === timing.permanentId)) &&
+              timing.properties.some((property) => ["transform", "translate"].includes(property)),
+          );
+          expect(relayout.length).toBeGreaterThan(0);
+          expect(
+            relayout.every(
+              (timing) => (timing.nativeMs ?? 0) >= timing.endMs! - 34 * Math.max(1, Math.abs(timing.playbackRate)),
+            ),
+          ).toBe(true);
+        }
+        if (scenario.flow === "raising-move") {
+          const transfer = capture.breedingTransfers.find((entry) => entry.permanentId === moved[0]!.permanentId)!;
+          expect(transfer).toBeDefined();
+          expect(transfer.poses.some((pose) => pose.painted && pose.artLoaded)).toBe(true);
+          expect(transfer.firstAt).toBeGreaterThanOrEqual(
+            phases.find((panel) => panel.label === "Breeding Phase")!.removedAt!,
+          );
+          expect(transfer.removedAt).toBeLessThanOrEqual(main.firstAt);
+          const last = transfer.poses.at(-1)!;
+          expect(last.nativeMs).toBeGreaterThanOrEqual(last.endMs! - 34 * Math.max(1, Math.abs(last.playbackRate!)));
+          expect(Math.hypot(last.x - last.targetX!, last.y - last.targetY!)).toBeLessThan(3);
+        }
+        const clips = capture.motion.animations.filter(
+          (animation) =>
+            animation.visibleFrames > 0 &&
+            ["battle-banner", "arena-phase-ribbon", "battle-showcase-exit", "battle-particle-clock"].includes(
+              animation.name,
+            ) &&
+            (animation.undersampled || animation.cutShort),
+        );
+        expect(
+          clips.map(({ name, firstAt, undersampled, cutShort }) => ({ name, firstAt, undersampled, cutShort })),
+          "native action clips must finish with usable sampling",
+        ).toEqual([]);
+      });
+    }
   }
 
   for (const scenario of KEYWORD_END_ATTACK_PACING_SCENARIOS) {

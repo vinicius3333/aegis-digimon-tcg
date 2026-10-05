@@ -1214,6 +1214,7 @@ export function useMatchCues({
 
   useDpPulses({
     state,
+    preserveChanges: presentationPacing === "sequential",
     queue: liveStateQueue,
     dpByPermanentRef,
     dpPulseKeyRef,
