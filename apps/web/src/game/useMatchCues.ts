@@ -1215,6 +1215,17 @@ export function useMatchCues({
   useDpPulses({
     state,
     preserveChanges: presentationPacing === "sequential",
+    snapshots,
+    contextOfRevision(stateVersion) {
+      const batch = batches.find((candidate) => candidate.stateVersion === stateVersion);
+      return {
+        gate:
+          stateVersion > effectSequence.observedVersion()
+            ? effectSequence.causeOfLiveChange(stateVersion)
+            : (effectSequence.causeOfObservedChange(stateVersion - 1) ?? causingEffectGateRef.current),
+        ...(batch ? { origin: { batchId: batch.id, stateVersion, phaseOrder: phaseOrderFor(batch.events) } } : {}),
+      };
+    },
     queue: liveStateQueue,
     dpByPermanentRef,
     dpPulseKeyRef,
