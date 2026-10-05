@@ -1,5 +1,7 @@
 # Mobile notice exploration — 2026-10-05
 
+> **Canceled 2026-10-05.** The user canceled the mobile notification redesign. Phones are back to the main-branch folded band and expandable column in `NarrationStack`; `CompactNarration` and the floating row were removed. This document is kept as history.
+
 The rejected 320/390 captures put translucent 64px cards over the opponent utility dock. Three lines of small copy compete with the playmat, and a 24px-wide close target consumes scarce text width. The original Aegis typography, navy panels, cyan/blue borders, playmat, fields, memory gauge, raising area and hand remain the reference.
 
 ## Research

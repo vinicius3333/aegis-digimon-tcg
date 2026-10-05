@@ -1,5 +1,7 @@
 # Mobile notice layout options — 2026-10-05
 
+> **Canceled 2026-10-05.** The user canceled the mobile notification redesign. Phones are back to the main-branch folded band and expandable column in `NarrationStack`; `CompactNarration` and the floating row were removed. This document is kept as history.
+
 ## Implemented: R — floating full-width row
 
 The user chose "one whole line, without taking the height space itself". This is now the mobile component (`CompactNarration`, `compactNarration.css`). The options below stay as the comparison history, including A Large, which the user asked for earlier.

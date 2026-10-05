@@ -1,5 +1,7 @@
 # Compact mobile match notices
 
+> **Canceled 2026-10-05.** The user canceled the mobile notification redesign. Phones are back to the main-branch folded band and expandable column in `NarrationStack`; `CompactNarration` and the floating row were removed. This document is kept as history.
+
 Replace the single folded notification band with the same two semantic columns as the desktop match: accepted clauses on the left and card movements on the right. Keep the existing Aegis board design and resting geometry.
 
 ## Chosen interaction

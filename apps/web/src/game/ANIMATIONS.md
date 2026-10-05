@@ -633,9 +633,9 @@ do not reuse recordings, samples, melodies or authored sound recipes.
 This is queued scope, not completed audio coverage. The current short synthesized
 feedback in `design/sound.ts` remains the starting implementation.
 
-## Compact mobile narration
+## Mobile narration
 
-Phones, portrait tablets and phone landscape use two compact notice columns with at most two toasts each. Each row is 64 px with 24 px artwork and a truncated clause. Tapping an individual toast opens its complete occurrence in a detail dialog; expiry of the live notification does not interrupt reading. The desktop notice layout remains separate. See `docs/plans/2026-10-05-mobile-toasts-design.md` and `tools/diagnostics/probe-mobile-notices.mjs` for the interaction and browser checks.
+Phones that collapse notices (`collapseNotices`) use the folded band from the main branch: one row naming the newest moment and counting the rest, which opens the full column. The compact-toast and floating-row redesigns of 2026-10-05 were canceled and removed; their design records stay in `docs/plans/2026-10-05-mobile-toasts-design.md` and `docs/design/mobile-toast-layout-options/`.
 
 ## Real attack and grouping checkpoint, 2026-10-05
 

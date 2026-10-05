@@ -1,5 +1,7 @@
 # Floating mobile notice row integration outcome — 2026-10-05
 
+> **Canceled 2026-10-05.** The user canceled the mobile notification redesign. Phones are back to the main-branch folded band and expandable column in `NarrationStack`; `CompactNarration` and the floating row were removed. This document is kept as history.
+
 The user's choice, "one whole line without taking the height space itself", is integrated into `feat/effects-lab`. Phone notices now float in one full-width row and the 48px reserved gutter is gone.
 
 ## Heads
