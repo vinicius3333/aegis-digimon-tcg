@@ -1,7 +1,8 @@
 import { resolveCardArt } from "./arts.js";
 import { TOKEN_ID_PREFIX } from "./tokens.js";
 
-const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
+// Pinned to the last upstream commit that still ships card images; upstream main deleted them.
+const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/9f666f16501fb329b4e2fd9851e862afe2d7da05/src/assets/images/cards";
 
 /**
  * Printings the upstream set has no English image for, bundled as official "SAMPLE" scans.
