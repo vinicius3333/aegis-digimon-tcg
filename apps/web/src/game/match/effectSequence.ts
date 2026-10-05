@@ -34,6 +34,7 @@ import type { AnimationQueue, AnimationStep } from "../animationQueue";
 import { activePacing } from "../pacing";
 import { TIMINGS } from "../timings";
 import { CueTrack } from "./enums";
+import { isFieldDelay } from "./present/costClause";
 import { createPresentationGate, waitForGate, type PresentationGate } from "./presentationGate";
 
 export const EFFECT_UNIT_TRACK = "effectUnit";
@@ -289,6 +290,9 @@ function repeats(
     unit !== undefined &&
     unit.closed &&
     !unit.started.open &&
+    // Each field Delay cost needs its own physical focus and shatter before its clause.
+    // A merged clause cannot hand the second Option's focus gate to its deletion.
+    !isFieldDelay(event) &&
     unit.seat === event.seat &&
     unit.sourceCardId === event.sourceCardId &&
     unit.timing === event.timing &&

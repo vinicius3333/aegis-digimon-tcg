@@ -116,15 +116,23 @@ export function trashArrivalField(input: { player: PlayerState; held: readonly H
 export function deletionField(input: { player: PlayerState; held: readonly HeldDeletion[] }): PlayerState {
   const { player, held } = input;
   if (held.length === 0) return player;
-  const battleArea = [...player.battleArea];
+  const departed = new Set(
+    held.filter((deletion) => deletion.departed).map((deletion) => deletion.permanent.permanentId),
+  );
+  const battleArea = player.battleArea.filter((permanent) => !departed.has(permanent.permanentId));
   let restored = false;
   for (const deletion of held) {
-    if (battleArea.some((permanent) => permanent.permanentId === deletion.permanent.permanentId)) continue;
+    if (deletion.departed || battleArea.some((permanent) => permanent.permanentId === deletion.permanent.permanentId))
+      continue;
     battleArea.splice(Math.min(deletion.index, battleArea.length), 0, deletion.permanent);
     restored = true;
   }
-  if (!restored) return player;
-  return { ...player, battleArea, trash: held[0]!.trash } as PlayerState;
+  if (!restored && battleArea.length === player.battleArea.length) return player;
+  return {
+    ...player,
+    battleArea,
+    trash: restored ? held.find((deletion) => !deletion.departed)!.trash : player.trash,
+  } as PlayerState;
 }
 
 /** Restore only the host whose sources the current peel sequence is removing. */

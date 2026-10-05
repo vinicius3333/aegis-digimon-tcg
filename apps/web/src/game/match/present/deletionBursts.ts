@@ -128,6 +128,11 @@ export function enqueueDeletionBursts({
         deletionReadyAtRef,
         setDeleteBursts,
         releaseHeldDeletion: () => releaseHeldDeletion(key),
+        beginHeldDeletion: () =>
+          setHeldDeletions((current) => {
+            const held = current.get(key);
+            return held ? new Map(current).set(key, { ...held, departed: true }) : current;
+          }),
         anchorId,
         delayMs,
         metadataCardId: deleted?.cardId,
@@ -149,12 +154,15 @@ export function enqueueDeletionBursts({
         if (anchorId === costClause?.permanentId) costClause.departing.release();
         continue;
       }
+      if (anchorId === costClause?.permanentId)
+        costClause.deletion = deletionReadyAtRef.current.get(costClause.sourceKey);
       deletionBurstPresentedRef.current.add(anchorId);
       const held = heldDeletionFrom({ snapshots, seat: deleted?.seat, permanentId: anchorId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
       enqueue(step);
       if (removal) void queue.idle().then(() => removal.link.started.release());
       if (anchorId === costClause?.permanentId) costClause.departing.release();
+      // Begun departures stay omitted even if their old paced snapshot outlives the light.
       // A step a later `replace` drops never runs, so the card would stand there for the
       // rest of the match. Registered after the enqueue: on an idle queue the promise
       // settles at once and the hold would be given back before it began.

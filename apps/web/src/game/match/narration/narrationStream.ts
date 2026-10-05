@@ -211,6 +211,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     const costClause =
       body?.variant === "effect" &&
       pendingCostClause?.sourceKey === `${seat}:${body.cardId}` &&
+      (body.sourcePermanentId === undefined || body.sourcePermanentId === pendingCostClause.permanentId) &&
       !pendingCostClause.read.open
         ? pendingCostClause
         : null;
@@ -227,6 +228,9 @@ export function narrationStream(deps: NarrationStreamDeps) {
     // A later answer may replace the unit's announcement gate while this step is
     // still finishing. This clause can release only the gate it was raised for.
     const unitAnnouncement = unit?.announced;
+    // Paying Delay precedes this unit's clause, but still follows the earlier units.
+    // Its own ceiling starts when this unit may focus, not while those units are reading.
+    if (unit && costClause) costClause.focused.after = unit.started;
     const causingEffectGate =
       unit || (itemVersion !== undefined && latestAnnounceVersion !== undefined && latestAnnounceVersion > itemVersion)
         ? null
@@ -410,7 +414,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
             await context.wait(effectSourceHoldMs);
             costClause.focused.release();
             await waitForGate(costClause.departing, context, TIMINGS.costClauseDeparture, "narration/costDeparting");
-            const departure = deletionReadyAtRef.current.get(costClause.sourceKey);
+            const departure = costClause.deletion;
             if (costClause.departing.open && departure)
               await waitForGate(departure.shattered, context, TIMINGS.securityDockMax, "narration/costShattered");
             if (context.cancelled || narrationSkipRef.current) return;

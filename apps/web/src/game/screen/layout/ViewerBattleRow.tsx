@@ -95,6 +95,7 @@ export function ViewerBattleRow({
           chrome.combatImpactIds.has(p.permanentId) ||
           members.some((member) => chrome.heldDeletionIds?.has(member.permanentId))
         }
+        heldDeletion={members.some((member) => chrome.heldDeletionIds?.has(member.permanentId))}
         keywordLabels={chrome.keywordLabels?.[p.permanentId]}
         compact={chrome.compact}
         width={width}

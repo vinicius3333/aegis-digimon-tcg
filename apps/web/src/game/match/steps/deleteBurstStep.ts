@@ -33,6 +33,7 @@ export function deleteBurstStep({
   deletionReadyAtRef,
   setDeleteBursts,
   releaseHeldDeletion,
+  beginHeldDeletion,
   anchorId,
   delayMs = 0,
   metadataCardId,
@@ -55,6 +56,8 @@ export function deleteBurstStep({
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   releaseHeldDeletion: () => void;
+  /** Keep an omitted physical face registered until the paced board catches up. */
+  beginHeldDeletion?: () => void;
   anchorId: string;
   delayMs?: number;
   metadataCardId?: string;
@@ -172,7 +175,7 @@ export function deleteBurstStep({
       const cleanup = () => setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
       try {
         // The shards take over from the card in the same commit, so the slot is never empty.
-        releaseHeldDeletion();
+        (beginHeldDeletion ?? releaseHeldDeletion)();
         setDeleteBursts((bursts) => [...bursts, burst]);
         started.release();
         if (removal) startRemoval(removal);

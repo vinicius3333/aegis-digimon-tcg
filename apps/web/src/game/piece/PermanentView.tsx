@@ -36,6 +36,7 @@ export function PermanentView({
   copies = 1,
   entranceKey,
   quietEntrance = false,
+  heldDeletion = false,
   keywordLabels,
   highlight,
   candidate,
@@ -71,6 +72,8 @@ export function PermanentView({
   entranceKey?: string;
   /** The card was already on the field (it split off a group), so it skips the entrance. */
   quietEntrance?: boolean;
+  /** Preserve a deletion target's printed pose through selection, focus and break. */
+  heldDeletion?: boolean;
   keywordLabels?: Readonly<Record<string, string>>;
   highlight?: boolean;
   candidate?: boolean;
@@ -114,6 +117,8 @@ export function PermanentView({
   /** Secondary action used while the permanent's primary click answers a field selection. */
   onInspect?: () => void;
 }) {
+  const stationaryDeparture =
+    heldDeletion || fate?.fate === "delete" || fate?.fate === "trash" || fate?.fate === "effectTarget";
   const permanentWidth = width ?? (compact ? 76 : 116);
   const isVisuallySuspended = heldSuspended || perm.isSuspended;
   const suspendedInlineMargin = Math.ceil(permanentWidth * 0.2);
@@ -202,7 +207,7 @@ export function PermanentView({
         // The reference client hides the destination until the centre-screen
         // announcement is over, rather than flying the card across the board.
         visibility: pending ? "hidden" : undefined,
-        transform: highlight || effectSource || effectLinked ? "translateY(-6px)" : "none",
+        transform: !stationaryDeparture && (highlight || effectSource || effectLinked) ? "translateY(-6px)" : "none",
         marginInlineStart: perm.stack.length
           ? `max(${isVisuallySuspended ? suspendedInlineMargin : 0}px, calc(4px + ${perm.stack.length - 1} * min(var(--arena-source-step, 4px), ${sourceFanStepLimit(permanentWidth, perm.stack.length)}px)))`
           : isVisuallySuspended

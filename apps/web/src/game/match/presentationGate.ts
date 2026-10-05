@@ -132,6 +132,8 @@ export interface CostClause {
   focused: PresentationGate;
   /** Released once a later batch has queued the Option's break. */
   departing: PresentationGate;
+  /** This physical Option's break, retained before another copy replaces the card-name lookup. */
+  deletion?: DeletionReadyAt;
   /** Released once the clause is on screen; what it played waits for this. */
   read: PresentationGate;
 }
