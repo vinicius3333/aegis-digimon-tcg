@@ -24,14 +24,6 @@ const mayChooseBattleTarget: Action = {
   raw: "you may return all digivolution cards of 1 of their Digimon to the bottom of the deck and have this Digimon battle it",
 };
 
-const compareDigivolutionCards: Action = {
-  kind: "GainKeyword",
-  target: self,
-  keyword: { keyword: "IceClad", raw: "＜Ice Clad＞" },
-  duration: "untilEndOfBattle",
-  raw: "Compare the number of digivolution cards instead of DP in this battle",
-};
-
 const returnAllDigivolutionCards: Action = {
   kind: "ReturnTopDigivolutionCards",
   target: { filter: opponentDigimon, count: 1, fromSelectionRef: "paladinBattleTarget" },
@@ -42,6 +34,7 @@ const returnAllDigivolutionCards: Action = {
 
 const battleBoundTarget: Action = {
   kind: "Battle",
+  comparison: "digivolutionCards",
   attacker: self,
   defender: { filter: opponentDigimon, count: 1, fromSelectionRef: "paladinBattleTarget" },
   raw: "have this Digimon battle it",
@@ -51,13 +44,7 @@ const suspendAndBattleEffect = (trigger: "OnPlay" | "WhenDigivolving" | "WhenAtt
   trigger,
   frequency: "OncePerTurn",
   sharedUseKey: "ir-shared-paladin-suspend-battle",
-  actions: [
-    maySuspendOne,
-    mayChooseBattleTarget,
-    compareDigivolutionCards,
-    returnAllDigivolutionCards,
-    battleBoundTarget,
-  ],
+  actions: [maySuspendOne, mayChooseBattleTarget, returnAllDigivolutionCards, battleBoundTarget],
 });
 
 const battleWonEffect: CardEffect = {

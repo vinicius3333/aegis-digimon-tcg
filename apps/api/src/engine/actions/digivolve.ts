@@ -222,6 +222,7 @@ export interface DigivolveDeps {
    * `effectiveColorsOf(permanent)`.
    */
   derivedBaseColors?(state: GameState, permanent: Permanent): readonly CardColor[];
+  effectiveBaseDefinition?(state: GameState, permanent: Permanent): CardDefinition;
   /** Effective kinds before evolution, including effects that treat a Tamer as a Digimon. */
   effectiveBaseKinds?(state: GameState, permanent: Permanent): readonly CardKind[];
   /**
@@ -531,6 +532,7 @@ export function validateDigivolve(
     | "deferAffordabilityForWouldDigivolve"
     | "colorWaived"
     | "derivedBaseColors"
+    | "effectiveBaseDefinition"
     | "digivolveIntoAllowed"
     | "digivolveBaseRestricted"
     | "digivolveLockedAsDigimon"
@@ -592,7 +594,7 @@ export function validateDigivolve(
   //    AND an alternate requirement on the same base. The intent's `useAlternateCost`
   //    flag picks which path to use when both match; when only one matches it is always
   //    used regardless of the flag.
-  const baseDef = definitionOf(permanent.topCard.cardId);
+  const baseDef = deps.effectiveBaseDefinition?.(state, permanent) ?? definitionOf(permanent.topCard.cardId);
   const appFusionLinkInstanceId = intent.appFusionLinkInstanceId ?? intent.appFusionLinkedInstanceId;
   const appFusionRequested = appFusionLinkInstanceId !== undefined;
   const appFusionLink = appFusionRequested

@@ -64504,21 +64504,20 @@
             "mode": "prevent",
             "leaveCause": "byBattle",
             "sourceFilter": { "isSelfRef": true },
-            "actions": [
-              {
-                "kind": "Delete",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "excludeSelf": true,
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "nameExact" }]
-                  },
-                  "count": 1
+            "optional": true,
+            "cost": {
+              "kind": "deleteOwn",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "excludeSelf": true,
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "nameExact" }]
                 },
-                "optional": true
-              }
-            ]
+                "count": 1
+              },
+              "raw": "by deleting 1 of your other Diaboromon"
+            }
           }
         ]
       }
@@ -110288,7 +110287,7 @@
           },
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "kind": ["Tamer"] }, "count": 1, "upTo": true },
+            "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1, "upTo": true },
             "optional": true,
             "payCost": false,
             "from": ["hand"]
@@ -114493,7 +114492,10 @@
           },
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "colors": ["Purple"], "kind": ["Option"], "playCostLte": 6 }, "count": 1 },
+            "target": {
+              "filter": { "controller": "mine", "colors": ["Purple"], "kind": ["Option"], "playCostLte": 6 },
+              "count": 1
+            },
             "from": ["hand"],
             "payCost": false,
             "optional": true
@@ -117851,14 +117853,16 @@
         ]
       },
       {
-        "trigger": "Main",
+        "trigger": "YourTurn",
+        "condition": { "kind": "phaseIs", "phase": "Main", "raw": "[Main]" },
+        "description": "[Main] When digivolving one of your Digimon into a Digimon card in your hand with [Garurumon], [Omnimon], or [Greymon] in its name (other than [DoruGreymon], [BurningGreymon], or [DexDoruGreymon]), you may suspend this Tamer to reduce the memory cost of the digivolution by 1.",
         "actions": [
           {
-            "kind": "CostModifier",
-            "mode": "reduce",
-            "costType": "digivolve",
+            "kind": "Replacement",
+            "event": "wouldDigivolve",
+            "mode": "reduceCost",
             "amount": 1,
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "battleArea" }, "count": "all" },
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "zone": "battleArea" },
             "into": {
               "zone": "hand",
               "controller": "mine",
@@ -117870,9 +117874,13 @@
                 { "tokens": ["DexDoruGreymon"], "match": "nameExact" }
               ]
             },
-            "restriction": "suspendThisTamer",
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
             "optional": true,
-            "duration": "forTheTurn"
+            "raw": "When one of your Digimon digivolves into a Digimon card with [Garurumon], [Omnimon], or [Greymon] in its name, you may suspend this Tamer to reduce the digivolution cost by 1."
           }
         ]
       },
@@ -168650,7 +168658,11 @@
             "effectTextPart": "Then, you may play 1 [Deva] trait Digimon card without the same name as the cards in your battle area or trash from your hand to an empty space in your breeding area without paying the cost.",
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Deva"], "match": "trait" }] },
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Deva"], "match": "trait" }]
+              },
               "count": 1,
               "upTo": true
             },
@@ -175221,21 +175233,15 @@
             "mode": "prevent",
             "sourceFilter": { "isSelfRef": true },
             "leaveCause": "otherThanBattle",
-            "actions": [
-              {
-                "kind": "Delete",
-                "target": {
-                  "filter": {
-                    "controller": "any",
-                    "kind": ["Digimon"],
-                    "levelComparison": { "op": "lte", "value": 5 }
-                  },
-                  "count": 1
-                },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+            "optional": true,
+            "cost": {
+              "kind": "deleteOwn",
+              "target": {
+                "filter": { "controller": "any", "kind": ["Digimon"], "levelComparison": { "op": "lte", "value": 5 } },
+                "count": 1
+              },
+              "raw": "by deleting 1 level 5 or lower Digimon"
+            }
           }
         ],
         "frequency": "OncePerTurn"
@@ -237194,13 +237200,6 @@
             "raw": "you may return all digivolution cards of 1 of their Digimon to the bottom of the deck and have this Digimon battle it"
           },
           {
-            "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "IceClad", "raw": "＜Ice Clad＞" },
-            "duration": "untilEndOfBattle",
-            "raw": "Compare the number of digivolution cards instead of DP in this battle"
-          },
-          {
             "kind": "ReturnTopDigivolutionCards",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -237213,6 +237212,7 @@
           },
           {
             "kind": "Battle",
+            "comparison": "digivolutionCards",
             "attacker": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "defender": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -237248,13 +237248,6 @@
             "raw": "you may return all digivolution cards of 1 of their Digimon to the bottom of the deck and have this Digimon battle it"
           },
           {
-            "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "IceClad", "raw": "＜Ice Clad＞" },
-            "duration": "untilEndOfBattle",
-            "raw": "Compare the number of digivolution cards instead of DP in this battle"
-          },
-          {
             "kind": "ReturnTopDigivolutionCards",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -237267,6 +237260,7 @@
           },
           {
             "kind": "Battle",
+            "comparison": "digivolutionCards",
             "attacker": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "defender": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -237302,13 +237296,6 @@
             "raw": "you may return all digivolution cards of 1 of their Digimon to the bottom of the deck and have this Digimon battle it"
           },
           {
-            "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "IceClad", "raw": "＜Ice Clad＞" },
-            "duration": "untilEndOfBattle",
-            "raw": "Compare the number of digivolution cards instead of DP in this battle"
-          },
-          {
             "kind": "ReturnTopDigivolutionCards",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -237321,6 +237308,7 @@
           },
           {
             "kind": "Battle",
+            "comparison": "digivolutionCards",
             "attacker": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "defender": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },

@@ -303,3 +303,40 @@ describe("BT2-082 Diaboromon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+it("#4940 mechanism sweep: Diaboromon pays one actual deletion cost to prevent battle deletion", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
+    1: {
+      battleArea: [
+        { card: "BT2-082", as: "defender", suspended: true },
+        { card: "BT2-082", as: "other" },
+      ],
+    },
+  });
+  await s.ready();
+  const defender = s.perm("defender").permanentId;
+  const other = s.perm("other").permanentId;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: defender },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "optional");
+  expect(
+    s.engine.applyIntent(1, {
+      type: "respondDecision",
+      decisionId: s.state.pendingDecision!.decisionId,
+      response: { kind: "optional", accept: true },
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () => s.state.pendingDecision !== undefined || !s.state.players[1]!.battleArea.some((p) => p.permanentId === other),
+  );
+  expect(s.state.pendingDecision).toBeUndefined();
+  await advance(s.engine).finishAttack();
+  expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === defender)).toBe(true);
+  expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === other)).toBe(false);
+});

@@ -5,6 +5,7 @@ import { type IntentRouterDeps } from "../intentRouter.js";
 import { type ActivateEffectDeps } from "../actions/activateEffect.js";
 import { matchingDnaDigivolveCost } from "../effects/primitives.js";
 import { effectiveKinds, effectiveNames } from "../effects/continuous.js";
+import { effectiveDigivolutionBase } from "../effects/continuous/effective.js";
 import { digisorptionAmountFor } from "../cards/digisorptionDigivolve.js";
 import { type ResolutionDeps } from "../effects/index.js";
 import { effectsOf } from "../effects/collect.js";
@@ -354,6 +355,8 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     // EvoCost color test (static-continuous-effects, LOCKED Q4 — KB BT3-040 Q1075). The
     // continuous tier is recomputed before each fired timing, so the store is current.
     derivedBaseColors: (_state, permanent) => effectiveColorsOf(engine, permanent),
+    effectiveBaseDefinition: (_state, permanent) =>
+      effectiveDigivolutionBase(engine.continuous, permanent, definitionOf(permanent.topCard)),
     effectiveBaseKinds: (_state, permanent) =>
       effectiveKinds(engine.continuous, permanent.permanentId, definitionOf(permanent.topCard)?.kinds ?? []),
     // Positive "can only digivolve into [X]" constraint (EX10-035 digivolveExceptInto): consult

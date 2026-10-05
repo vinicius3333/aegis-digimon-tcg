@@ -1230,18 +1230,26 @@ export class CombatController {
    * deletes the loser; an equal-DP tie deletes both. The pure decision lives in
    * resolve.ts; here we apply it to authoritative state and narrate.
    */
-  async resolveBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+  async resolveBattle(
+    attacker: Permanent,
+    defender: Permanent,
+    opts?: { comparison?: "digivolutionCards" },
+  ): Promise<void> {
     // Direct battles never check security here. They can record Piercing for the
     // same attacking Digimon; another Digimon's battle cannot (EX11-074 Q5957-Q5959).
-    await this.resolveDigimonBattle(attacker, defender);
+    await this.resolveDigimonBattle(attacker, defender, opts?.comparison);
   }
 
-  private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+  private async resolveDigimonBattle(
+    attacker: Permanent,
+    defender: Permanent,
+    comparison?: "digivolutionCards",
+  ): Promise<void> {
     const battleScopeId = this.hooks.beginBattleScope?.();
     this.battles.push({ attacker, defender });
     try {
       await this.hooks.recomputeBattleEffects?.();
-      await this.resolveDigimonBattleResult(attacker, defender);
+      await this.resolveDigimonBattleResult(attacker, defender, comparison);
       await this.hooks.sweepEndOfBattle?.(battleScopeId);
     } catch (error) {
       if (battleScopeId !== undefined) this.hooks.endBattleScope?.(battleScopeId);
@@ -1266,14 +1274,18 @@ export class CombatController {
     );
   }
 
-  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
+  private async resolveDigimonBattleResult(
+    attacker: Permanent,
+    defender: Permanent,
+    comparison?: "digivolutionCards",
+  ): Promise<void> {
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
       attackerDP: attacker.currentDP,
       defenderPermanentId: defender.permanentId,
       defenderDP: defender.currentDP,
       // ＜Iceclad＞ (§16-35): compare digivolution-card counts instead of DP.
-      attackerHasIceclad: this.hasKeyword(attacker.permanentId, "IceClad"),
+      attackerHasIceclad: comparison === "digivolutionCards" || this.hasKeyword(attacker.permanentId, "IceClad"),
       defenderHasIceclad: this.hasKeyword(defender.permanentId, "IceClad"),
       attackerDigivolutionCount: attacker.stack.length,
       defenderDigivolutionCount: defender.stack.length,

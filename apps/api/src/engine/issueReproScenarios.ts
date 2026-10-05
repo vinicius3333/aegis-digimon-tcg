@@ -1,10 +1,11 @@
-import { CardInstance, Permanent, Zone, getCardDefinition, type GameState, type Seat } from "@aegis/shared";
+import { CardKind, CardInstance, Permanent, Zone, getCardDefinition, type GameState, type Seat } from "@aegis/shared";
 import { loadDeckInto, setSecurityStack, type Decklist } from "./setup.js";
 import { clearZone, insertCard, placePermanent, setBreeding } from "./state/access.js";
 
 type FieldCard = { card: string; under?: string[]; suspended?: boolean };
 type PlayerLayout = {
   field?: FieldCard[];
+  breeding?: FieldCard;
   hand?: string[];
   trash?: string[];
   security?: string[];
@@ -14,6 +15,142 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-4905-magnamon-merciful-colors": {
+    memory: 6,
+    players: [
+      { hand: ["P-117", "ST17-13"] },
+      {
+        field: [{ card: "EX13-077", under: ["ST20-06", "ST21-08", "ST20-02", "BT21-061", "EX9-019", "AD1-025"] }],
+      },
+    ],
+  },
+  "arena-issue-4914-blanc-dual-option": {
+    players: [
+      { field: [{ card: "EX12-051" }], hand: ["EX12-052", "BT1-082"] },
+      { field: [{ card: "BT6-082" }, { card: "BT1-080" }, { card: "BT5-091" }], hand: ["EX13-065"] },
+    ],
+  },
+  "arena-issue-4948-sukamon-blast-legality": {
+    players: [
+      { field: [{ card: "BT1-009" }], hand: ["EX13-031", "BT3-061"] },
+      {
+        field: [{ card: "BT16-028" }, { card: "BT2-063" }],
+        hand: ["BT17-077", "ST15-12"],
+        security: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+    ],
+  },
+  "arena-issue-4947-physical-training-reaction": {
+    players: [
+      { field: [{ card: "P-105" }, { card: "BT1-051" }], hand: ["BT1-060"] },
+      { field: [{ card: "BT16-028" }, { card: "BT1-085" }], hand: ["BT16-027"] },
+    ],
+  },
+  "arena-issue-4957-gankoomon-dual-sources": {
+    players: [
+      { field: [{ card: "EX13-061", under: ["EX13-065", "EX13-066"] }], trash: ["ST12-12"] },
+      { field: [{ card: "BT1-080", under: ["BT1-013", "BT1-020"] }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
+  "arena-issue-4910-diarbbitmon-dual-option": {
+    players: [
+      { field: [{ card: "EX12-051" }], hand: ["EX12-052", "BT1-082"] },
+      {
+        field: [{ card: "EX13-061", under: ["EX13-065", "EX13-066"] }, { card: "BT6-082" }],
+        trash: ["ST12-12"],
+        hand: ["EX13-065"],
+      },
+    ],
+  },
+  "arena-issue-4939-demon-lord-free-reduction": {
+    players: [
+      {
+        breeding: { card: "EX6-006", under: ["EX6-006", "EX6-059"] },
+        field: [{ card: "EX6-069" }, { card: "EX6-058" }, { card: "BT1-080" }, { card: "BT1-009" }],
+        hand: ["EX6-058", "BT1-087"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-4954-lordknightmon-inspector": { players: [{ field: [{ card: "BT5-042" }], hand: ["AD1-018"] }, {}] },
+  "arena-issue-4958-card-images": {
+    players: [
+      { field: [{ card: "BT1-010" }, { card: "BT5-092" }], hand: ["EX13-065", "BT25-104", "AD1-018"] },
+      { field: [{ card: "BT1-080" }] },
+    ],
+  },
+  "arena-issue-4943-browser-translation": {
+    players: [{ field: [{ card: "BT1-010" }], hand: ["BT1-020", "BT1-013"] }, { field: [{ card: "BT1-080" }] }],
+  },
+  "arena-issue-4964-burst-own-tamer": {
+    players: [
+      { field: [{ card: "BT12-043" }], hand: ["BT25-104", "BT1-085"] },
+      { hand: ["BT1-087"], field: [{ card: "BT1-080" }] },
+    ],
+  },
+  "arena-issue-4962-seiten-ex12-assembly": {
+    players: [{ field: [{ card: "EX12-043" }], hand: ["EX12-048"], trash: ["EX12-015", "EX12-029", "EX12-056"] }, {}],
+  },
+  "arena-issue-4961-takato-raid-attack": {
+    players: [
+      { field: [{ card: "BT19-080" }, { card: "ST7-08" }], hand: ["EX2-011"] },
+      { field: [{ card: "BT1-080" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
+  "arena-issue-4955-minervamon-dedigivolve": {
+    players: [
+      { field: [{ card: "BT26-029" }], hand: ["BT24-041"] },
+      { field: [{ card: "BT1-080", under: ["BT1-013", "BT1-020"] }] },
+    ],
+  },
+  "arena-issue-4953-nokia-warp-reduction": {
+    players: [
+      { field: [{ card: "BT5-092" }, { card: "BT1-010" }, { card: "BT1-029" }], hand: ["BT22-013", "BT22-026"] },
+      {},
+    ],
+  },
+  "arena-issue-4952-kotemon-piercing": {
+    players: [
+      { breeding: { card: "BT26-008", under: ["BT26-001"] }, field: [{ card: "BT26-033" }] },
+      { field: [{ card: "BT1-009", suspended: true }] },
+    ],
+  },
+  "arena-issue-4951-okuwamon-inherited": {
+    players: [
+      { field: [{ card: "BT9-055", under: ["P-075"] }], hand: ["BT1-009"] },
+      { field: [{ card: "BT1-024", suspended: true }] },
+    ],
+  },
+  "arena-issue-4950-davis-ken-dna-sources": {
+    players: [
+      { field: [{ card: "BT16-085" }, { card: "ST9-04" }, { card: "ST9-09" }], hand: ["ST9-05"] },
+      { field: [{ card: "BT1-080", under: ["BT1-020", "BT1-013", "BT1-010"] }] },
+    ],
+  },
+  "arena-issue-4949-paladin-battle-comparison": {
+    players: [
+      { hand: ["EX13-076"], trash: ["EX13-045", "BT23-013", "EX13-061", "BT17-077", "BT22-067", "EX13-036"] },
+      { field: [{ card: "BT26-028", under: ["EX13-055"] }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
+  "arena-issue-4946-slayerdramon-assembly-order": {
+    players: [{ hand: ["EX13-024"], trash: ["EX13-021", "EX13-018", "EX13-008"] }, {}],
+  },
+  "arena-issue-4942-jesmon-double-alliance": {
+    players: [
+      { field: [{ card: "EX13-012" }, { card: "ST12-12" }, { card: "BT6-082" }], hand: ["BT23-013", "BT6-084"] },
+      { security: ["BT1-009", "BT1-010", "BT1-011", "BT1-009", "BT1-010"] },
+    ],
+  },
+  "arena-issue-4941-candlemon-top-inheritance": {
+    players: [
+      { field: [{ card: "BT18-030" }, { card: "BT1-009" }] },
+      { field: [{ card: "BT1-024" }], hand: ["BT6-095"] },
+    ],
+  },
+  "arena-issue-4940-lilithmon-delete-cost": {
+    players: [{ field: [{ card: "BT26-028" }], hand: ["BT26-063"] }, { field: [{ card: "EX6-057" }] }],
+  },
   "arena-issue-4938-ruli-optional-reduction": {
     players: [{ field: [{ card: "RB1-034" }, { card: "RB1-022" }], hand: ["RB1-024"] }, {}],
     memory: 5,
@@ -194,7 +331,7 @@ export function layIssueReproScenario(
       for (const [index, cardId] of spec.security.entries())
         insertCard(player, Zone.Security, card(cardId, seat, "security", index, spec.faceUpSecurity === true));
     }
-    for (const [index, field] of (spec.field ?? []).entries()) {
+    for (const [index, field] of [...(spec.field ?? []), ...(spec.breeding ? [spec.breeding] : [])].entries()) {
       const permanent = new Permanent();
       permanent.permanentId = `${id}-${seat}-field-${index}`;
       permanent.controllerSeat = seat;
@@ -203,9 +340,13 @@ export function layIssueReproScenario(
       permanent.isSuspended = field.suspended === true;
       permanent.baseDP = getCardDefinition(field.card)?.dp ?? 0;
       permanent.currentDP = permanent.baseDP;
+      permanent.placedByEffect = getCardDefinition(field.card)?.kinds.includes(CardKind.Option) === true;
       for (const [sourceIndex, cardId] of (field.under ?? []).entries())
         permanent.stack.push(card(cardId, seat, `source-${index}`, sourceIndex, true));
-      placePermanent(player, permanent);
+      if (field === spec.breeding) {
+        permanent.inBreeding = true;
+        setBreeding(player, permanent);
+      } else placePermanent(player, permanent);
     }
   }
   state.turnSeat = 0;

@@ -12,6 +12,7 @@ import { pushOnStack, setTopCard } from "../../state/access.js";
 import { alternateRequirementAvailable } from "../../actions/digivolve.js";
 import { matchingEvoCostIgnoringLevel, matchingAlternateDigivolutionRequirement } from "../../cards/cardData.js";
 import { effectiveKinds } from "../continuous.js";
+import { effectiveDigivolutionBase } from "../continuous/effective.js";
 import { matchingDigivolveCost } from "../verbs/digivolveCost.js";
 import { looseZoneOfInstance, peekLooseInstance, removeLooseInstance } from "../verbs/looseInstances.js";
 
@@ -136,7 +137,11 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         const printedCosts = definition.evoCosts.map(({ memoryCost }) => memoryCost);
         baseCost = opts.costOverride ?? (printedCosts.length > 0 ? Math.min(...printedCosts) : 0);
       } else if (opts.ignoreLevel) {
-        const baseDef = requireCardDefinition(permanent.topCard.cardId);
+        const baseDef = effectiveDigivolutionBase(
+          continuous,
+          permanent,
+          requireCardDefinition(permanent.topCard.cardId),
+        );
         const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
         const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
           ignoreLevel: true,
@@ -161,7 +166,11 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         // and the digivolve then no-opped silently after the controller had already chosen it.
         // `runDigivolve`'s candidate filter already offers alternate-path bases; this is the
         // authoritative gate it claims to mirror, so the two must agree.
-        const actualBaseDef = requireCardDefinition(permanent.topCard.cardId);
+        const actualBaseDef = effectiveDigivolutionBase(
+          continuous,
+          permanent,
+          requireCardDefinition(permanent.topCard.cardId),
+        );
         const baseDef =
           opts.virtualBase === undefined
             ? actualBaseDef
@@ -218,7 +227,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       // Q1686). Mirrors the interpreter's candidate filter (runDigivolve enforceRequirements):
       // a level-less base (Q4242) that matches no alternate path is not gated here, because
       // callers that digivolve such bases supply their own route.
-      const baseDef = requireCardDefinition(permanent.topCard.cardId);
+      const baseDef = effectiveDigivolutionBase(continuous, permanent, requireCardDefinition(permanent.topCard.cardId));
       const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
       const printed = matchingDigivolveCost(definition, baseDef);
       const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {

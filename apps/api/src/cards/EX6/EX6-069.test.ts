@@ -116,7 +116,8 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
     s.state.turnSeat = 0;
     const ownerTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    await advance(s.engine).verb.deletePermanent([s.perm("lilithmon").permanentId], "byEffect");
+    // Gate already deletes Lilithmon at main entry, triggering the placed Delay.
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX6-057")).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
     s.state.turnSeat = 1;
@@ -128,7 +129,9 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
     await opponentTurn;
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-059")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lilithmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("lilithmon").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("stackLord").instanceId)).toBe(
       false,

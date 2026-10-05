@@ -817,6 +817,56 @@ describe("BT23-013 conditional Huckmon warp", () => {
   });
 });
 
+describe("Burst Digivolve Tamer return cost", () => {
+  const inPlay = (cardId: string) =>
+    Object.assign(new Permanent(), {
+      permanentId: `perm-${cardId}`,
+      topCard: Object.assign(new CardInstance(), { cardId, instanceId: `i-${cardId}` }),
+    });
+
+  it.each([
+    ["BT25-104", "BT12-043", "BT13-095"],
+    ["BT13-020", "BT13-018", "BT13-095"],
+    ["BT13-033", "BT13-031", "BT13-097"],
+    ["BT13-060", "BT13-057", "BT13-100"],
+    ["BT13-092", "BT13-089", "BT13-102"],
+    ["BT26-050", "BT26-049", "BT26-091"],
+  ])("%s only offers cost 0 with its required Tamer in the viewer's battle area", (cardId, baseId, tamerId) => {
+    const base = inPlay(baseId);
+    const viewer = new PlayerState();
+    const opponent = new PlayerState();
+    opponent.battleArea.push(inPlay(tamerId));
+    viewer.hand.push(Object.assign(new CardInstance(), { cardId: tamerId }));
+    viewer.trash.push(Object.assign(new CardInstance(), { cardId: tamerId }));
+    viewer.breeding = inPlay(tamerId);
+    viewer.battleArea.push(base, inPlay("BT1-085"));
+    const withoutTamer = getDigivolveCostOptions(cardId, base, viewer, opponent);
+    expect(withoutTamer.some((option) => option.cost === 0)).toBe(false);
+    expect(withoutTamer.some((option) => option.cost > 0)).toBe(true);
+    expect(getDigivolveCostOptions(cardId, base).some((option) => option.cost === 0)).toBe(false);
+
+    const tamer = inPlay(tamerId);
+    tamer.isSuspended = true;
+    viewer.battleArea.push(tamer);
+    expect(getDigivolveCostOptions(cardId, base, viewer, opponent)).toContainEqual(
+      expect.objectContaining({ type: "alternate", cost: 0 }),
+    );
+    viewer.battleArea.pop();
+    expect(getDigivolveCostOptions(cardId, base, viewer, opponent)).toEqual(withoutTamer);
+  });
+
+  it.each(["BT4-092", "BT12-092", "BT13-095", "BT17-087", "BT21-086"])(
+    "accepts Marcus Damon %s in play for BT25-104",
+    (tamerId) => {
+      const viewer = new PlayerState();
+      viewer.battleArea.push(inPlay(tamerId));
+      expect(getDigivolveCostOptions("BT25-104", inPlay("BT12-043"), viewer)).toContainEqual(
+        expect.objectContaining({ type: "alternate", cost: 0, alternateRequirementIndex: 1 }),
+      );
+    },
+  );
+});
+
 describe("BT10-086 intrinsic digivolution cost reduction", () => {
   it("shows cost 1 for the alternate [Omnimon] path with X Antibody in the base stack", () => {
     const options = getDigivolveCostOptions("BT10-086", permWithStack("AD1-025", ["BT9-109"]));
@@ -1646,4 +1696,17 @@ describe("Discord 1555941341962309693 alternate text mechanism sweep", () => {
       expect.objectContaining({ type: "alternate", cost: 3, alternateRequirementIndex: 0 }),
     );
   });
+});
+
+it("#4948 does not display Imperialdramon's alternate cost after its name is rewritten to Sukamon", () => {
+  const base = new Permanent();
+  base.topCard = Object.assign(new CardInstance(), { cardId: "BT16-028", instanceId: "rewritten-base" });
+  base.originalNameOverride = "Sukamon";
+  base.originalColorsOverride.push("White");
+  expect(getDigivolveCostOptions("BT17-077", base)).toEqual([]);
+  base.originalColorsOverride.clear();
+  base.originalColorsOverride.push("Blue");
+  expect(getDigivolveCostOptions("BT17-077", base).map((option) => ({ type: option.type, cost: option.cost }))).toEqual(
+    [{ type: "normal", cost: 6 }],
+  );
 });

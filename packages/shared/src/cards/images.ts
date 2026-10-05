@@ -66,7 +66,7 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
   const selected = imageCandidates(resolveCardArt(cardId, artId).imageId);
   const base = imageCandidates(resolveCardArt(cardId).imageId);
   const ids = [...new Set([...selected, ...base])];
-  return ids.flatMap((id) => {
+  const mirrored = ids.flatMap((id) => {
     const unpublished = UNPUBLISHED_IMAGE_IDS.has(id) ? `/cards/unpublished/${id}.webp` : undefined;
     return [
       `${CARD_IMAGE_BASE}/${id}.webp`,
@@ -74,4 +74,5 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
       `${CARD_IMAGE_BASE}/${id}-Sample.webp`,
     ];
   });
+  return [...mirrored, `https://world.digimoncard.com/images/cardlist/card/${cardId}.png`];
 }

@@ -29,6 +29,7 @@ describe("alternate art provider fallback", () => {
       "BT1-010_P1-Sample.webp",
       "BT1-010.webp",
       "BT1-010-Sample.webp",
+      "BT1-010.png",
     ]);
   });
   it("does not duplicate the original fallback for default or invalid choices", () => {
@@ -59,6 +60,7 @@ describe("errata printings", () => {
       "BT16-077-Errata-Sample.webp",
       "BT16-077.webp",
       "BT16-077-Sample.webp",
+      "BT16-077.png",
     ]);
   });
 });
@@ -77,4 +79,8 @@ describe("token art", () => {
       expect(cardImageUrls(token.cardId)).toEqual([expect.stringMatching(/^\/cards\/tokens\/TOKEN-[\w-]+\.webp$/)]);
     }
   });
+});
+
+it("#4958/#4928 retains an independent official PNG fallback when the image mirror is unavailable", () => {
+  expect(cardImageUrls("BT1-010").at(-1)).toBe("https://world.digimoncard.com/images/cardlist/card/BT1-010.png");
 });

@@ -342,6 +342,16 @@ function altRequirementMatches(
   }
   if (req.placementCost && viewer && placementCostAvailable(viewer, req.placementCost) < req.placementCost.count)
     return false;
+  // Burst Digivolve pays its additional cost by returning the named Tamer from the
+  // controller's battle area. Match the server's burstDigivolveTamerCandidates gate.
+  if (
+    req.burstDigivolve &&
+    !viewer?.battleArea.some((permanent) => {
+      const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
+      return def !== undefined && req.burstDigivolve!.returnTamerNamesExact.includes(def.nameEn);
+    })
+  )
+    return false;
   if (!stackGatesSatisfied(req, base)) return false;
   return true;
 }
@@ -572,7 +582,8 @@ export function getDigivolveCostOptions(
   projectedRoutes?: readonly ProjectedDigivolveRoute[],
 ): EvoCostOption[] {
   const hand = getCardDefinition(handCardId);
-  const baseDef = base.topCard ? getCardDefinition(base.topCard.cardId) : undefined;
+  const printedBase = base.topCard ? getCardDefinition(base.topCard.cardId) : undefined;
+  const baseDef = printedBase ? { ...printedBase, nameEn: base.originalNameOverride || printedBase.nameEn } : undefined;
   if (!hand || !baseDef) return [];
   if (!hand.kinds.includes(CardKind.Digimon)) return [];
 

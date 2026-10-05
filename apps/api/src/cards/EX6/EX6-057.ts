@@ -21,17 +21,15 @@ export const compiled: CompiledCard = {
           mode: "prevent",
           sourceFilter: { isSelfRef: true },
           leaveCause: "otherThanBattle",
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: { controller: "any", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
-                count: 1,
-              },
-              optional: true,
-              abortOnDecline: true,
+          optional: true,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: { controller: "any", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+              count: 1,
             },
-          ],
+            raw: "by deleting 1 level 5 or lower Digimon",
+          },
         },
       ],
       frequency: "OncePerTurn",

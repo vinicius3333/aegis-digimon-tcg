@@ -48,6 +48,8 @@ export interface AttackAction extends ActionBase {
  */
 export interface BattleAction extends ActionBase {
   kind: "Battle";
+  /** Compare source counts for this battle without granting a keyword. */
+  comparison?: "digivolutionCards";
   attacker: Target;
   /** The defender, as `defender` or the equivalent `target`; exactly one is present. */
   defender?: Target;
