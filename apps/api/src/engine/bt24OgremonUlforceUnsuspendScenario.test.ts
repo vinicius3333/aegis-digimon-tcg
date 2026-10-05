@@ -1,4 +1,4 @@
-import { Phase } from "@aegis/shared";
+import { Phase, getCardDefinition, printedClausesForTrigger } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../cards/index.js";
 import { layDevScenario } from "./devScenario.js";
@@ -38,11 +38,23 @@ describe("BT24 Ogremon / Ulforce unsuspend arena", () => {
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT24-045");
 
+    const beforePlay = s.events.length;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId })).toEqual({ ok: true });
     await settle();
     expect(ulforce.isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(ulforce, "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+    const ulforceNotices = s.events
+      .slice(beforePlay)
+      .flatMap((event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === "BT11-032" ? [event.description] : [],
+      );
+    const clauses = printedClausesForTrigger({
+      definition: getCardDefinition("BT11-032")!,
+      trigger: "YourTurn",
+      inherited: false,
+    });
+    expect(ulforceNotices).toEqual(instanceId === "dev-ogremon-blue-tamer" ? clauses : [clauses[1]]);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });

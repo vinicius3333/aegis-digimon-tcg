@@ -59,14 +59,14 @@ export const CONTINUOUS_TRIGGERS: ReadonlySet<EffectTrigger> = new Set<EffectTri
  */
 const WATCHER_EVENT_PHRASES: Readonly<Partial<Record<SubTriggerEvent, RegExp>>> = {
   whenSuspended: /\b(?:becomes?|is|are|would be) suspended\b/i,
-  whenUnsuspended: /\bunsuspend/i,
+  whenUnsuspended: /\b(?:becomes?|is|are|would be) unsuspended\b/i,
   whenAttacking: /\bwhen\b[^.]*\battacks?\b/i,
   whenOpponentAttacks: /\bwhen\b[^.]*opponent'?s?\b[^.]*\battacks?\b/i,
   whenBlocked: /\bblocked\b/i,
   whenBlockerActivated: /＜Blocker＞/,
   whenDeletesInBattle: /\bdeletes?\b[^.]*\bin battle\b/i,
   onDeletionOf: /\b(?:is|are|would be|becomes?) deleted\b/i,
-  whenPlayed: /\b(?:is|are|would be) played\b/i,
+  whenPlayed: /\b(?:is|are|would be) played\b|\bwhen (?:you|your opponent) (?:would )?plays?\b/i,
   whenHatch: /\bhatch/i,
   whenOneOfYoursDigivolves: /\bdigivolves?\b/i,
   whenAnyDigivolves: /\bdigivolves?\b/i,
