@@ -129,6 +129,11 @@ export function PermanentView({
   const topId = perm.topCard?.cardId;
   const faceRef = useFieldShatterOrigin(perm.permanentId, perm.topCard?.instanceId ?? perm.permanentId, refCb);
   const arrivalKey = `${fieldIdentity}:${entranceBurst.current ?? "first"}:${pending ? "held" : "shown"}`;
+  // A departure hold can release before the presented board removes its face.
+  // Keep that arrival quiet; a genuine later arrival gets its own entrance again.
+  const quietedEntrance = useRef({ key: arrivalKey, quiet: quietEntrance });
+  if (quietedEntrance.current.key !== arrivalKey) quietedEntrance.current = { key: arrivalKey, quiet: quietEntrance };
+  else if (quietEntrance) quietedEntrance.current.quiet = true;
   const landingRef = useCardLanding(arrivalKey);
   if (!topId) return null;
   const def = getCardDefinition(topId);
@@ -224,7 +229,7 @@ export function PermanentView({
       <div
         key={arrivalKey}
         ref={landingRef}
-        className={`game-card-enter${quietEntrance || quietMove || (!landingBurst && entranceBurst.current !== undefined) ? " game-card-enter--quiet" : ""}${landingBurst ? " game-card-landing" : ""}`}
+        className={`game-card-enter${quietedEntrance.current.quiet || quietMove || (!landingBurst && entranceBurst.current !== undefined) ? " game-card-enter--quiet" : ""}${landingBurst ? " game-card-landing" : ""}`}
         data-testid={landingBurst?.variant === "play" ? "confirmed-play-landing" : undefined}
         data-card-id={landingBurst?.variant === "play" ? topId : undefined}
         data-permanent-id={landingBurst?.variant === "play" ? perm.permanentId : undefined}
