@@ -81,6 +81,62 @@ describe("BT25-059 Ceresmon", () => {
     });
   });
 
+  it.each(["native", "succession"] as const)(
+    "Discord bug 1556518401655054436: ignores Homeros suspension without spending the %s once-per-turn trigger",
+    async (mode) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT24-102", as: "homeros" },
+              { card: "BT25-059", as: "ceresmon" },
+              ...(mode === "succession" ? [{ card: "BT26-032", as: "successor", under: ["BT25-059"] }] : []),
+              { card: "BT1-013", as: "attacker" },
+            ],
+            deck: ["BT1-013", "BT1-013", "BT1-013"],
+          },
+          1: {
+            battleArea: [{ card: "BT1-013", as: "target", dp: 30000, suspended: true }],
+            security: ["BT1-013"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 6;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      try {
+        await advance(s.engine).waitForMainPhase(0);
+        expect(s.perm("homeros").isSuspended).toBe(true);
+        expect(s.state.memory).toBe(7);
+        expect(s.state.players[0]!.hand).toHaveLength(1);
+        expect(
+          s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-059"),
+        ).toHaveLength(0);
+        expect(s.perm("target").currentDP).toBe(30000);
+
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: s.perm("attacker").permanentId,
+            target: { kind: "player" },
+          }),
+        ).toEqual({ ok: true });
+        await advance(s.engine).finishAttack();
+        await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+        const triggers = s.events.filter(
+          (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-059",
+        );
+        expect(triggers).toHaveLength(mode === "succession" ? 2 : 1);
+        // Only the attacking Digimon and the opponent's Digimon count; Homeros does not.
+        expect(s.perm("target").currentDP).toBe(mode === "succession" ? 18000 : 24000);
+      } finally {
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await turn;
+      }
+    },
+  );
+
   it("reduces the exact 12-cost play to 7 with two suspended Digimon, but not with one", async () => {
     const reduced = setupEngine(
       {

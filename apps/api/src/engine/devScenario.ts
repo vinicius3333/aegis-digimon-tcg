@@ -184,6 +184,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
   "arena-p224-kotone-own-source",
+  "arena-bt25-ceresmon-homeros-suspend",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
@@ -4520,6 +4521,27 @@ function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Dec
   }
 }
 
+/** Discord 1556518401655054436, match da48b9f0: Homeros suspended at 6 → 7 memory. */
+function layBt25CeresmonHomerosSuspendScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT24-102"], "-ceresmon-homeros"));
+  placePermanent(human, establishedDigimon(0, ["BT25-059"], "-ceresmon-native"));
+  placePermanent(human, establishedDigimon(0, ["BT25-059", "BT26-032"], "-ceresmon-successor"));
+  placePermanent(human, establishedDigimon(0, ["BT1-013"], "-ceresmon-attacker"));
+  const target = establishedDigimon(1, ["EX13-077"], "-ceresmon-target");
+  target.isSuspended = true;
+  placePermanent(opponent, target);
+  // Keep the attack's security check neutral and the two start-of-turn draws unambiguous.
+  clearZone(opponent, Zone.Security);
+  insertCard(opponent, Zone.Security, faceDownCard("dev-ceresmon-security", "BT1-013", 1));
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-ceresmon-draw-${index}`, "BT1-085", 0), "top");
+  }
+}
+
 /** Discord 1556113288599834624, match 9b9ea6cc: X7 needs DigiXros at zero memory. */
 function layP224KotoneOwnSourceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 3);
@@ -5768,6 +5790,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
+  "arena-bt25-ceresmon-homeros-suspend": layBt25CeresmonHomerosSuspendScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,

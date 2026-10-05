@@ -284,6 +284,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Monodramon. O bot faz Blast Digivolve de Zudomon para Vikemon ACE. Gomamon, com 1 fonte, fica impedido de suspender/atacar. Evolua esse Gomamon para Gorillamon: com 2 fontes, ele deve poder atacar a segurança. Jogue o outro Gomamon da mão: ele também recebe a trava, embora tenha entrado depois do efeito. A trava dura até o fim deste turno.",
     en: "End breeding and attack security with Monodramon. The bot Blast Digivolves Zudomon into Vikemon ACE. Gomamon, with 1 source, cannot suspend/attack. Evolve that Gomamon into Gorillamon: with 2 sources, it must be able to attack security. Play the other Gomamon from hand: it also receives the lock despite entering after the effect. The lock expires at the end of this turn.",
   },
+  "arena-bt25-ceresmon-homeros-suspend": {
+    ptBR: "Discord 1556518401655054436. Encerre a criação e resolva Homeros: memória de 6 para 7, ele suspende e compra 1. Nenhuma Ceresmon deve ativar, nem a BT25-059 nem a recebida por Succession da BT26-032; Omnimon continua com 17000 DP. Ataque a segurança com Muchomon BT1-013: agora as duas Ceresmon ativam. Escolha Omnimon para ambas. Há 2 Digimon suspensos (Muchomon e Omnimon), então cada efeito dá -6000 DP e Omnimon fica com 5000 DP. Homeros não conta nem consome o uma vez por turno.",
+    en: "Discord 1556518401655054436. End breeding and resolve Homeros: memory rises from 6 to 7, it suspends and draws 1. Neither BT25-059 Ceresmon nor its effect received through BT26-032 Succession should trigger; Omnimon stays at 17000 DP. Attack security with Muchomon BT1-013: both Ceresmon effects now trigger. Choose Omnimon for both. With 2 suspended Digimon (Muchomon and Omnimon), each effect gives -6000 DP, leaving Omnimon at 5000 DP. Homeros does not count or spend the once-per-turn effects.",
+  },
   "arena-p224-kotone-own-source": {
     ptBR: "Entre na Principal com 3 de memória. Jogue P-224 Kotone Amano da mão e, no [Ao Jogar], coloque AD1-006 Shoutmon X7 sob ela para comprar 1. Com memória 0, ative o [Principal] da Kotone e aceite suspendê-la. X7 deve aparecer para seleção. Escolha X7 e use BT11-015 OmniShoutmon da mão como material de DigiXros. O custo é 10 (13 − 1 da Kotone − 2 do DigiXros), e o turno passa com 10 de memória para o bot. Reprodução do bug 1556113288599834624 e da condição de custo da partida 9b9ea6cc.",
     en: "Enter Main with 3 memory. Play P-224 Kotone Amano from hand and place AD1-006 Shoutmon X7 under her with [On Play] to draw 1. At 0 memory, activate Kotone's [Main] and accept suspending her. X7 must be selectable. Choose X7 and use BT11-015 OmniShoutmon from hand as a DigiXros material. The play costs 10 (13 − 1 from Kotone − 2 from DigiXros), passing the turn with 10 memory for the bot. Reproduces bug 1556113288599834624 and the cost condition in match 9b9ea6cc.",
@@ -857,6 +861,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-moon-pending-source-deleted", "MoonMillenniummon · pending source deleted"],
   ["arena-mirage-hidden-hand", "Mirage BM · concealed hand selection"],
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
+  ["arena-bt25-ceresmon-homeros-suspend", "BT25 Ceresmon · Homeros e Succession / suspension"],
   ["arena-p224-kotone-own-source", "P-224 Kotone · X7 das próprias fontes / own sources"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],

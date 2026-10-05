@@ -106,6 +106,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { controllerDefault: "any", kind: ["Digimon"] },
           actions: [
             {
               kind: "ModifyDP",
