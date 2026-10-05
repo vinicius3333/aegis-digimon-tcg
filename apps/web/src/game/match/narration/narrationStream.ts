@@ -230,8 +230,19 @@ export function narrationStream(deps: NarrationStreamDeps) {
     }
     // A clause is read once the board shows what the clauses before it did. Without this, the
     // next Yoshino's clause lit up while the previous one's draw was still in the air.
+    // Draws from this clause's own batch wait for its announcement gate; waiting on them
+    // here would cycle until the timeout and let the security check overtake the clause.
     const earlierDrawFlights =
-      body?.variant === "effect" ? pendingStepIds(queue, isEffectDrawFlight) : new Set<string>();
+      body?.variant === "effect"
+        ? pendingStepIds(
+            queue,
+            (step) =>
+              isEffectDrawFlight(step) &&
+              step.origin !== undefined &&
+              itemVersion !== undefined &&
+              step.origin.stateVersion < itemVersion,
+          )
+        : new Set<string>();
     queue.enqueue({
       id: `narration-step-${item.id}`,
       origin,
@@ -337,7 +348,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
               ownDeletion?.stateVersion !== undefined &&
               itemVersion !== undefined &&
               ownDeletion.stateVersion > itemVersion;
+            // A failed prevention may lose its source later in this same server batch.
+            // Its announcement must precede that deletion, even at the same state version.
             const shatter =
+              body.beforeRemoval === true ||
               deletedLater ||
               (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? ""))
                 ? undefined
@@ -397,8 +411,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
           reportShown(`narration-step-${item.id}`, context);
           // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
           // single moment, give every clause one readable beat before the next server event
-          // can replace it; a column with room shows a batch together instead.
-          if (shown.notice && narrationLimitRef.current === 1) await context.wait(TIMINGS.effectAnnounce);
+          // can replace it. The phone's folded band also shows only the newest moment,
+          // even though its accordion retains several items for inspection.
+          if (shown.notice && (narrationLimitRef.current === 1 || collapseNarrationRef.current))
+            await context.wait(TIMINGS.effectAnnounce);
         }
       },
     });

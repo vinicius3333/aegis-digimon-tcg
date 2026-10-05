@@ -22,9 +22,9 @@ describe("BT3-057 MegaGargomon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"));
     expect(s.perm("target").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
 
     const unsuspendForActivePhase = (
@@ -34,7 +34,7 @@ describe("BT3-057 MegaGargomon", () => {
     expect(s.perm("target").isSuspended).toBe(true);
     s.state.turnSeat = 1;
     await sweepDurations(s.engine, "ownerActivePhaseEnd");
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
   });
 });
 
@@ -72,8 +72,8 @@ describe("BT3-057 MegaGargomon — KB Q&A rulings", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
-    expect(observe(s.engine).isRestricted(s.perm("untouched"), "unsuspend")).toBe(false);
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase"));
+    expect(observe(s.engine).isRestricted(s.perm("untouched"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);

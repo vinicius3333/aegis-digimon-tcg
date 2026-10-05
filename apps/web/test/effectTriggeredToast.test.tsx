@@ -201,3 +201,45 @@ it("dims breeding only once the viewer can act, never during setup or the oppone
   rerender(element());
   expect(container.querySelector(".game-breeding-mode")).toBeNull();
 });
+
+it("keeps Gallantmon's On Play toast while its distinct All Turns protection asks a question", async () => {
+  const s = setupEngine({ 0: { battleArea: ["EX13-015"], security: 5 }, 1: { security: 5 } });
+  s.state.players[0]!.sessionId = "viewer-session";
+  const host = s.state.players[0]!.battleArea[0]!;
+  await renderThenNarrate(
+    {
+      room: mocked.room,
+      status: "connected",
+      state: s.state,
+      sessionId: "viewer-session",
+      stateVersion: 1,
+      decision: {
+        decisionId: "nested-protection",
+        seat: 0,
+        kind: "optional",
+        sourceCardId: "EX13-015",
+        sourceInstanceId: host.topCard!.instanceId,
+        sourcePermanentId: host.permanentId,
+        promptText: "Prevent leaving the battle area?",
+        options: {
+          timing: "AllTurns",
+          effectText:
+            "When this Digimon would leave the battle area other than by your effects, by deleting 1 of your opponent's 9000 DP or lower Digimon, it doesn't leave",
+        },
+      },
+    },
+    {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "EX13-015",
+      sourceInstanceId: host.topCard!.instanceId,
+      sourcePermanentId: host.permanentId,
+      effectKey: "EX13-015/ir-shared-0",
+      timing: "OnPlay",
+      description:
+        "[On Play] [When Digivolving] [When Attacking] [Counter] [Once Per Turn] Delete 1 of your opponent's 12000 DP or higher Digimon. If this effect didn't delete, trash their top security card.",
+    },
+  );
+  const notice = await screen.findByRole("status");
+  expect(notice.textContent).toContain("12000 DP");
+});

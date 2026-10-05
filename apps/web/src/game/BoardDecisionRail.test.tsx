@@ -446,6 +446,7 @@ describe("Hand in selection mode", () => {
       fingerTap(card);
       fireEvent.click(card, { detail: 1 });
       fingerTap(card);
+      fireEvent.click(card, { detail: 1 });
       expect(onToggle.mock.calls).toEqual([["h1"], ["h1"]]);
     });
 

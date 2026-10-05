@@ -430,6 +430,12 @@ describe("EX10-055 Tactimon", () => {
 
   it("Q5139 publicly prevents two Hades Force deletions with one Tactimon payment", async () => {
     const preferred: string[] = [];
+    const options = {
+      autoAcceptOptional: true,
+      autoSelectCards: false,
+      declinePrompts: ["attack"],
+      preferInstanceIds: preferred,
+    };
     const s = setupEngine(
       {
         0: {
@@ -459,12 +465,7 @@ describe("EX10-055 Tactimon", () => {
           security: ["BT1-009", "BT1-013", "BT1-014"],
         },
       },
-      {
-        autoAcceptOptional: true,
-        autoSelectCards: true,
-        declinePrompts: ["attack"],
-        preferInstanceIds: preferred,
-      },
+      options,
     );
     s.state.turnSeat = 1;
     s.state.memory = 10;
@@ -483,6 +484,25 @@ describe("EX10-055 Tactimon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("hadesForce").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const greymonChoice = s.decisions.at(-1)!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: greymonChoice.req.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("warGreymon").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.options?.maxTotalPlayCost !== undefined));
+    const deletionChoice = s.decisions.find(({ req }) => req.options?.maxTotalPlayCost !== undefined)!;
+    options.autoSelectCards = true;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: deletionChoice.req.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [firstAllyId, secondAllyId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("hadesForce").instanceId) &&

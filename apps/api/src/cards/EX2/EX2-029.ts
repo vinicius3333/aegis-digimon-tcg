@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          restriction: "unsuspend",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
           duration: "untilOpponentNextUnsuspendPhase",
         },
       ],

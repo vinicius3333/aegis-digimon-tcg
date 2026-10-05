@@ -39,7 +39,7 @@ describe("EX2-029 MegaGargomon", () => {
             },
             {
               kind: "Restrict",
-              restriction: "unsuspend",
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
               duration: "untilOpponentNextUnsuspendPhase",
               target: { filter: { boundRef: "suspendedByMegaGargomon" }, count: "all" },
             },
@@ -92,8 +92,8 @@ describe("EX2-029 MegaGargomon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        observe(s.engine).isRestricted(s.perm("one"), "unsuspend") &&
-        observe(s.engine).isRestricted(s.perm("two"), "unsuspend"),
+        observe(s.engine).isRestricted(s.perm("one"), "unsuspendDuringOwnUnsuspendPhase") &&
+        observe(s.engine).isRestricted(s.perm("two"), "unsuspendDuringOwnUnsuspendPhase"),
     );
     expect(s.perm("one").isSuspended).toBe(true);
     expect(s.perm("two").isSuspended).toBe(true);
@@ -102,23 +102,23 @@ describe("EX2-029 MegaGargomon", () => {
     expect(s.perm("base").topCard.cardId).toBe("EX2-029");
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
-    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("three"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("three"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     const turnLoop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("one").isSuspended).toBe(true);
     expect(s.perm("two").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspend")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("one").isSuspended).toBe(true);
     expect(s.perm("two").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspend")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await turnLoop;
   });

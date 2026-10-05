@@ -1,9 +1,12 @@
 /* Ambient page backdrop: circuit traces in the side gutters, data pulses that
-   run along them, and nodes that light up near the pointer. The canvas sits
+   run along them, and nodes that light up near the pointer. The canvases sit
    behind the content and never takes pointer events, so the glow only shows
-   on the background. The traces are drawn once per resize into an offscreen
-   layer; each frame only composites that layer and the moving parts. Reduced
-   motion or the pause toggle leave the static traces and stop the loop. */
+   on the background. The traces are drawn once per resize onto their own
+   canvas; the motion canvas above it only erases and repaints the small areas
+   the pulses and the glow cover. Clearing and re-blitting the whole screen each
+   frame costs a full frame budget where 2D canvas runs on the CPU, as it often
+   does in Firefox. Reduced motion or the pause toggle leave the static traces
+   and stop the loop. */
 
 import { useEffect, useRef, useState } from "react";
 import { Icons } from "./icons";
@@ -22,6 +25,13 @@ interface Trace {
   total: number;
 }
 
+interface Bounds {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 interface Pulse {
   trace: Trace;
   distance: number;
@@ -36,6 +46,9 @@ const MAX_PULSES = 10;
 const PULSE_INTERVAL_MS = 520;
 const POINTER_RADIUS = 120;
 const PAUSED_KEY = "aegis.backdropPaused";
+/* Firefox's CPU canvas pays per frame in proportion to the canvas's pixels, so
+   the soft moving dots render at 1x even on high-density screens. */
+const MOTION_PIXEL_RATIO = 1;
 
 function seededRandom(seed: number) {
   let state = seed >>> 0;
@@ -98,6 +111,17 @@ function buildTraces(width: number, height: number, contentWidth: number): Trace
   return traces;
 }
 
+function sizeCanvas(canvas: HTMLCanvasElement, width: number, height: number, pixelRatio: number): void {
+  canvas.width = Math.round(width * pixelRatio);
+  canvas.height = Math.round(height * pixelRatio);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+}
+
+function padded({ left, top, right, bottom }: Bounds, padding: number): Bounds {
+  return { left: left - padding, top: top - padding, right: right + padding, bottom: bottom + padding };
+}
+
 function readPalette() {
   const style = getComputedStyle(document.documentElement);
   const token = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;
@@ -131,18 +155,17 @@ export function CircuitBackdrop({
   contentWidth?: number;
 }) {
   const { t } = useTranslation();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const traceCanvasRef = useRef<HTMLCanvasElement>(null);
+  const motionCanvasRef = useRef<HTMLCanvasElement>(null);
   const [paused, setPaused] = useState(readPaused);
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-    if (!canvas || !context) return;
-
-    const staticLayer = document.createElement("canvas");
-    const staticContext = staticLayer.getContext("2d");
-    if (!staticContext) return;
+    const traceCanvas = traceCanvasRef.current;
+    const motionCanvas = motionCanvasRef.current;
+    const traceContext = traceCanvas?.getContext("2d");
+    const context = motionCanvas?.getContext("2d");
+    if (!traceCanvas || !motionCanvas || !traceContext || !context) return;
 
     let palette = readPalette();
     let traces: Trace[] = [];
@@ -154,41 +177,56 @@ export function CircuitBackdrop({
     let frame = 0;
     let lastSpawn = 0;
     let lastTime = 0;
+    let painted: Bounds[] = [];
+
+    const paint = (bounds: Bounds) => painted.push(bounds);
+
+    const erasePainted = () => {
+      for (const { left, top, right, bottom } of painted) {
+        context.clearRect(left, top, right - left, bottom - top);
+      }
+      painted = [];
+    };
 
     const drawStatic = () => {
-      staticLayer.width = canvas.width;
-      staticLayer.height = canvas.height;
-      staticContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      staticContext.clearRect(0, 0, width, height);
-      staticContext.lineWidth = 1;
-      staticContext.strokeStyle = palette.trace;
-      staticContext.fillStyle = palette.trace;
-      staticContext.globalAlpha = 0.45;
+      traceContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      traceContext.clearRect(0, 0, width, height);
+      traceContext.lineWidth = 1;
+      traceContext.strokeStyle = palette.trace;
+      traceContext.fillStyle = palette.trace;
+      traceContext.globalAlpha = 0.45;
       for (const trace of traces) {
-        staticContext.beginPath();
+        traceContext.beginPath();
         trace.points.forEach((point, index) =>
-          index === 0 ? staticContext.moveTo(point.x, point.y) : staticContext.lineTo(point.x, point.y),
+          index === 0 ? traceContext.moveTo(point.x, point.y) : traceContext.lineTo(point.x, point.y),
         );
-        staticContext.stroke();
+        traceContext.stroke();
         const end = trace.points[trace.points.length - 1]!;
-        staticContext.beginPath();
-        staticContext.arc(end.x, end.y, 2.5, 0, Math.PI * 2);
-        staticContext.fill();
+        traceContext.beginPath();
+        traceContext.arc(end.x, end.y, 2.5, 0, Math.PI * 2);
+        traceContext.fill();
       }
-      staticContext.globalAlpha = 1;
+      traceContext.globalAlpha = 1;
     };
 
     const drawPulse = (pulse: Pulse) => {
+      const bounds = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
       for (let offset = 0; offset < PULSE_TAIL; offset += 3) {
         const point = pointAt(pulse.trace, pulse.distance - offset);
         context.globalAlpha = (1 - offset / PULSE_TAIL) * 0.85;
         context.beginPath();
         context.arc(point.x, point.y, offset === 0 ? 2.4 : 1.6, 0, Math.PI * 2);
         context.fill();
+        bounds.left = Math.min(bounds.left, point.x);
+        bounds.top = Math.min(bounds.top, point.y);
+        bounds.right = Math.max(bounds.right, point.x);
+        bounds.bottom = Math.max(bounds.bottom, point.y);
       }
+      paint(padded(bounds, 4));
     };
 
     const drawPointerGlow = () => {
+      paint(padded({ left: pointer.x, top: pointer.y, right: pointer.x, bottom: pointer.y }, POINTER_RADIUS + 8));
       context.fillStyle = palette.node;
       for (const trace of traces) {
         for (const point of trace.points) {
@@ -209,8 +247,7 @@ export function CircuitBackdrop({
 
     const render = (elapsed: number) => {
       context.globalAlpha = 1;
-      context.clearRect(0, 0, width, height);
-      context.drawImage(staticLayer, 0, 0, width, height);
+      erasePainted();
       context.fillStyle = palette.pulse;
       for (let index = pulses.length - 1; index >= 0; index -= 1) {
         const pulse = pulses[index]!;
@@ -229,11 +266,10 @@ export function CircuitBackdrop({
       pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
       height = window.innerHeight;
-      canvas.width = Math.round(width * pixelRatio);
-      canvas.height = Math.round(height * pixelRatio);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      sizeCanvas(traceCanvas, width, height, pixelRatio);
+      sizeCanvas(motionCanvas, width, height, MOTION_PIXEL_RATIO);
+      context.setTransform(MOTION_PIXEL_RATIO, 0, 0, MOTION_PIXEL_RATIO, 0, 0);
+      painted = [];
       traces = buildTraces(width, height, contentWidth);
       pulses.length = 0;
       drawStatic();
@@ -288,7 +324,8 @@ export function CircuitBackdrop({
 
   return (
     <>
-      <canvas ref={canvasRef} className="aegis-circuit-backdrop" aria-hidden="true" />
+      <canvas ref={traceCanvasRef} className="aegis-circuit-backdrop" aria-hidden="true" />
+      <canvas ref={motionCanvasRef} className="aegis-circuit-backdrop" aria-hidden="true" />
       {reducedMotion ? null : (
         <button
           type="button"

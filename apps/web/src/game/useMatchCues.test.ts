@@ -4400,7 +4400,11 @@ describe("the narration feed", () => {
       // All three are clauses, so they all read out of the one text column. It holds two, so
       // the oldest falls off; the phone's folded slot queues them instead of dropping any.
       const expected = portrait ? ["BT1-001", "BT1-002", "BT1-009"] : ["BT1-002", "BT1-009"];
-      expect(cards(view.result.current.narration)).toEqual(expected);
+      const firstRead = portrait ? ["BT1-001"] : expected;
+      const secondRead = portrait ? ["BT1-001", "BT1-002"] : expected;
+      expect(cards(view.result.current.narration)).toEqual(firstRead);
+      await advance(TIMINGS.effectAnnounce);
+      expect(cards(view.result.current.narration)).toEqual(secondRead);
       await advance(TIMINGS.effectAnnounce);
       expect(cards(view.result.current.narration)).toEqual(expected);
       expect(view.result.current.narrationLock).toBe(false);
@@ -5372,6 +5376,104 @@ it("presents Imperial's late security consequence before the next turn phases", 
   expect(reports[source]).toMatchObject({ stateVersion: 2 });
 });
 
+it.each(["together", "split"] as const)(
+  "Discord 1556410279602946198: the phone reads field Mistymon before Thetismon's deletion ($0)",
+  async (delivery) => {
+    const board = {
+      players: [
+        {
+          battleArea: [{ permanentId: "thetismon", topCard: { cardId: "EX12-030", instanceId: "attacker" } }],
+          hand: [],
+          trash: [],
+        },
+        {
+          battleArea: [{ permanentId: "mistymon", topCard: { cardId: "EX13-033", instanceId: "field-mistymon" } }],
+          hand: [],
+          trash: [],
+        },
+      ],
+    } as unknown as GameState;
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          collapseNarration: true,
+          batches,
+          state: board,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerBatch[] },
+    );
+    const events: ServerEvent[] = [
+      {
+        kind: "attackDeclared",
+        seat: 0,
+        attackerPermanentId: "thetismon",
+        attackerCardId: "EX12-030",
+        target: { kind: "player" },
+      },
+      {
+        kind: "securityRevealed",
+        seat: 1,
+        revealedCardId: "EX13-033",
+        attackerPermanentId: "thetismon",
+        attackerDP: 7000,
+        securityCardDP: 7000,
+        securityCountBefore: 3,
+        hasSecurityEffect: false,
+        isDigimon: true,
+      },
+      {
+        kind: "effectTriggered",
+        seat: 1,
+        sourceCardId: "EX13-033",
+        sourceInstanceId: "field-mistymon",
+        sourcePermanentId: "mistymon",
+        effectKey: "subtrigger/whenSecurityRemoved",
+        timing: "whenSecurityRemoved",
+        printedTiming: "AllTurns",
+        duringSecurityCheck: true,
+        description:
+          "[All Turns] [Once Per Turn] When security is removed, give -6000 DP, then delete a Digimon with 6000 DP or less.",
+      },
+      {
+        kind: "cardsMoved",
+        instanceIds: ["attacker"],
+        from: "battleArea",
+        to: "trash",
+        deletedPermanents: [{ permanentId: "thetismon", instanceId: "attacker", cardId: "EX12-030", seat: 0 }],
+      },
+      { kind: "securityChecked", seat: 1, revealedCardId: "EX13-033", resolution: "trashed" },
+    ];
+    if (delivery === "together") rerender(feed(events));
+    else for (let index = 0; index < events.length; index++) rerender(feed(events.slice(0, index + 1)));
+    const newest = () => [...result.current.narration.values()].at(-1)?.notice?.body;
+    let sawFieldEffect = false;
+    for (let tick = 0; tick < 200; tick++) {
+      await advance(50);
+      const body = newest();
+      if (body?.variant === "effect" && body.cardId === "EX13-033") {
+        sawFieldEffect = true;
+        break;
+      }
+    }
+    expect(sawFieldEffect).toBe(true);
+    expect(newest()).toMatchObject({
+      variant: "effect",
+      cardId: "EX13-033",
+      sourcePermanentId: "mistymon",
+      timing: "AllTurns",
+    });
+    await advance(TIMINGS.effectAnnounce - 50);
+    expect(newest()).toMatchObject({ variant: "effect", cardId: "EX13-033" });
+    await advance(2000);
+    expect(newest()).toMatchObject({ variant: "deletion", cards: [{ cardId: "EX12-030" }] });
+  },
+);
+
 it("reads a reaction the removal armed once across the deletion it caused and the next check", async () => {
   const board = {
     players: [
@@ -5736,3 +5838,93 @@ it("does not name a ＜Delay＞ Option twice in a trashed-cards panel beside its
   await advance(TIMINGS.cardBurst + TIMINGS.effectSourceHold);
   expect(result.current.sidePanels).toEqual([]);
 });
+
+it.each([false, true])(
+  "Discord 1556321937188196474: Koromon draws before security (coalesced=%s)",
+  async (coalesced) => {
+    const board = document.createElement("div");
+    const deck = document.createElement("div");
+    const hand = document.createElement("div");
+    vi.spyOn(board, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 800, 600));
+    vi.spyOn(deck, "getBoundingClientRect").mockReturnValue(new DOMRect(600, 400, 80, 100));
+    vi.spyOn(hand, "getBoundingClientRect").mockReturnValue(new DOMRect(200, 500, 300, 80));
+    const state = {
+      players: [
+        { battleArea: [], hand: [], trash: [], handCount: 5 },
+        {
+          battleArea: [
+            {
+              permanentId: "perm-3",
+              topCard: { cardId: "BT12-062", instanceId: "greymon" },
+              stack: [{ cardId: "BT5-001", instanceId: "koromon" }],
+            },
+          ],
+          hand: [],
+          trash: [],
+          handCount: 5,
+        },
+      ],
+    } as unknown as GameState;
+    const { result, rerender } = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          batches,
+          state,
+          viewerSeat: 0,
+          mulliganOpen: false,
+          anchors: {
+            ...anchors,
+            board: { current: board },
+            oppDeck: { current: deck },
+            oppHandStrip: { current: hand },
+          },
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerBatch[] },
+    );
+    const batches = [
+      singleServerBatch([{ ...ATTACK, attackerPermanentId: "perm-3", attackerCardId: "BT12-062" }], 68),
+      singleServerBatch(
+        [
+          {
+            kind: "effectTriggered",
+            seat: 1,
+            sourceCardId: "BT5-001",
+            sourcePermanentId: "perm-3",
+            sourceInstanceId: "koromon",
+            effectKey: "BT5-001/ir-12-0",
+            timing: "OnUseAttack",
+            printedTiming: "WhenAttacking",
+            isInherited: true,
+            description: "[When Attacking][Once Per Turn] Draw 1.",
+          },
+          { kind: "cardsMoved", seat: 1, instanceIds: ["drawn"], from: "deck", to: "hand" },
+        ],
+        69,
+      ),
+      singleServerBatch([{ ...REVEAL, attackerPermanentId: "perm-3", revealedCardId: "EX4-017" }], 71),
+      singleServerBatch([{ ...CHECK, revealedCardId: "EX4-017" }], 72),
+    ];
+    if (coalesced) rerender(batches);
+    else
+      for (let index = 0; index < batches.length; index++) {
+        rerender(batches.slice(0, index + 1));
+        await advance(40);
+      }
+    let drawSeen = false;
+    let drawFinished = false;
+    let shieldSeen = false;
+    for (let tick = 0; tick < 500; tick++) {
+      await advance(20);
+      if (result.current.drawFlights.length > 0) drawSeen = true;
+      if (drawSeen && result.current.drawFlights.length === 0) drawFinished = true;
+      if (result.current.securityBreak !== null || result.current.securityClash !== null) {
+        shieldSeen = true;
+        break;
+      }
+    }
+    expect(shieldSeen).toBe(true);
+    expect(drawSeen).toBe(true);
+    expect(drawFinished).toBe(true);
+  },
+);

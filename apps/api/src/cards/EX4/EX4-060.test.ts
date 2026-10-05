@@ -480,8 +480,12 @@ describe("EX4-060 Omnimon Alter-S — KB Q&A rulings", () => {
     await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.deck.length === 1);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.decisions.map(({ seat, req }) => [seat, req.kind])).toEqual([[1, "optional"]]);
-    expect(s.perm("dragonkin").topCard.cardId).toBe("BT10-078");
+    expect(s.decisions.map(({ seat, req }) => [seat, req.kind, req.sourceCardId])).toEqual([
+      [1, "optional", "BT24-018"],
+      [1, "optional", "BT10-078"],
+    ]);
+    // The corrected replacement source seat allows the opposing On Deletion replay.
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT10-078"]);
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === styracomonPermanentId)).toBe(false);
     expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT24-018"]);
   });

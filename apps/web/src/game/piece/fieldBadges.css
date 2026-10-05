@@ -24,6 +24,15 @@
   content: "";
 }
 
+/* On a touch screen the badges cover much of a small card. While the card is the
+   thing to tap (a target, a pick, an attacker), a tap on a badge reaches the card
+   instead of opening the badge's explanation. */
+@media (pointer: coarse) {
+  .game-permanent[data-tap-target] [data-badge-hint] {
+    pointer-events: none;
+  }
+}
+
 /* ---- Digivolution count ---- */
 .game-permanent .game-source-badge {
   position: absolute;

@@ -163,3 +163,11 @@ The incremental review compared every field against `a55a2c6e5`: 29 cards change
 - No changed line mentions App Fusion or Burst. The App Fusion and Burst exclusions keep their reviewed inputs.
 
 The 22 covered route classifications and eight catalog absences are preserved. Only the reviewed catalog fingerprint is updated.
+
+### Catalog review for v1.10.0-BETA (2026-10-04)
+
+The failing route-matrix tooling test reproduced before updating its fingerprint. A field-by-field comparison against `v1.9.1-BETA` found exactly two changed cards, BT10-087 and BT10-088. Their only changed field is `effectText`: “under one of your Tamers” becomes “under your Tamers”, restoring the material-host scope of their existing DigiXros permissions. Every card ID, other field, inherited clause and Security clause is unchanged.
+
+These changes add no play or digivolution recipient zone and no DNA, App Fusion or Burst provider. The 22 covered cells and eight reviewed catalog absences retain their classifications. The reviewed catalog fingerprint moves from `b848b89fe6516605f313ca0fcc696c7ba209decdb1afb62afd0860732d923d62` to `f445cf491742ba36ac351efdd554b279995f85500fba26b9f3195f7b6e398491`; rule fingerprints and scenario proof statuses remain unchanged.
+
+Verification: all 67 tooling tests pass under Node 26.5.0, including the original failing obligation check and catalog/rule drift guards. The obligation inventory check, all 535 pinned conformance citations and the 66-set audit index check pass.

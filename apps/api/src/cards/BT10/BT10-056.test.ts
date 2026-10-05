@@ -18,7 +18,11 @@ describe("BT10-056 Lotosmon", () => {
         actions: [
           expect.objectContaining({ kind: "SelectBind" }),
           expect.objectContaining({ kind: "Suspend" }),
-          expect.objectContaining({ kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" }),
+          expect.objectContaining({
+            kind: "Restrict",
+            restriction: "unsuspendDuringOwnUnsuspendPhase",
+            duration: "untilOpponentNextUnsuspendPhase",
+          }),
         ],
       }),
       expect.objectContaining({
@@ -74,12 +78,12 @@ describe("BT10-056 Lotosmon", () => {
         },
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("chosen"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("chosen"), "unsuspendDuringOwnUnsuspendPhase"));
 
     expect(s.perm("chosen").isSuspended).toBe(true);
     expect(s.perm("other").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("chosen"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("other"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("chosen"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("other"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await firstTurn;

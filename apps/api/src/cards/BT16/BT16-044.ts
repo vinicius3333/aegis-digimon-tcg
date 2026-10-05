@@ -37,8 +37,8 @@ const suspendAndRestrict = (): Action[] => [
       filter: {},
       count: 1,
     },
-    restriction: "unsuspend",
-    duration: "untilOpponentTurnEnd",
+    restriction: "unsuspendDuringOwnUnsuspendPhase",
+    duration: "untilOpponentNextUnsuspendPhase",
     condition: {
       kind: "securityAtLeast",
       value: 3,

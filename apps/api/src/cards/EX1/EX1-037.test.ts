@@ -73,10 +73,10 @@ describe("EX1-037 Kuwagamon", () => {
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetId) &&
-        observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend"),
+        observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspendDuringOwnUnsuspendPhase"),
     );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     expect(s.perm("restrictedTarget").isSuspended).toBe(true);
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -91,7 +91,7 @@ describe("EX1-037 Kuwagamon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(s.perm("restrictedTarget").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
@@ -133,7 +133,7 @@ describe("EX1-037 Kuwagamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetId));
-    expect(observe(s.engine).isRestricted(s.perm("unrelated"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("unrelated"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
@@ -171,7 +171,7 @@ describe("EX1-037 Kuwagamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
-    expect(observe(s.engine).isRestricted(s.perm("unrelated"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("unrelated"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
@@ -226,7 +226,7 @@ describe("EX1-037 Kuwagamon", () => {
     await settle(
       () =>
         legal.state.players[1]!.battleArea.length === 1 &&
-        observe(legal.engine).isRestricted(legal.perm("restrictedTarget"), "unsuspend"),
+        observe(legal.engine).isRestricted(legal.perm("restrictedTarget"), "unsuspendDuringOwnUnsuspendPhase"),
     );
     expect(legal.state.players[0]!.battleArea).toHaveLength(1);
     expect(legal.perm("restrictedTarget").isSuspended).toBe(true);

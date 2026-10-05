@@ -1,4 +1,68 @@
 {
+  "releases.1.10.0-beta.summary": {
+    "en": "This minor release brings together card and rules corrections, clearer counters and effect animations, more reliable phone controls, and performance and server stability improvements.",
+    "pt-BR": "Esta release minor reúne correções de cartas e regras, counters e animações de efeito mais claros, controles mais confiáveis no celular e melhorias de desempenho e estabilidade do servidor."
+  },
+  "releases.1.10.0-beta.fix.blastCounters": {
+    "en": "Blast and Blast DNA counters now offer clear actions when there is only one host. On phones, tapping a hand card no longer accidentally passes Counter, and card badges let target and attack taps reach the card.",
+    "pt-BR": "Os counters de Blast e Blast DNA agora oferecem ações claras quando há apenas um alvo de evolução. No celular, tocar uma carta da mão não passa mais o Counter por acidente, e os indicadores das cartas deixam os toques de seleção e ataque chegar à carta."
+  },
+  "releases.1.10.0-beta.fix.digixros": {
+    "en": "Paid effect plays now consider DigiXros cost reductions. Taiki and Kiriha can use eligible materials under multiple Tamers, Mervamon can use its trash materials, and Tamer effects are offered before material selection.",
+    "pt-BR": "Jogadas por efeito com pagamento agora consideram as reduções de custo de DigiXros. Taiki e Kiriha podem usar materiais válidos sob vários Tamers, Mervamon pode usar seus materiais do lixo, e os efeitos dos Tamers são oferecidos antes da seleção dos materiais."
+  },
+  "releases.1.10.0-beta.fix.selfPlacement": {
+    "en": "Effects that place revealed cards under their own source now use the correct Tamer or Digimon, including BT10-087 Taiki Kudo, BT9-064 Kiyoshiro Higashimitarai, BT13-072 and BT18-061.",
+    "pt-BR": "Efeitos que colocam cartas reveladas sob sua própria origem agora usam o Tamer ou Digimon correto, incluindo Taiki Kudo BT10-087, Kiyoshiro Higashimitarai BT9-064, BT13-072 e BT18-061."
+  },
+  "releases.1.10.0-beta.fix.partitionBarrier": {
+    "en": "Partition now resolves before effect removal to the hand, deck or security, including nested effects. Barrier can protect against repeated battles in the same turn.",
+    "pt-BR": "Partition agora resolve antes da remoção por efeito para a mão, deck ou security, inclusive com efeitos encadeados. Barrier pode proteger contra batalhas repetidas no mesmo turno."
+  },
+  "releases.1.10.0-beta.fix.dnaRequirements": {
+    "en": "Effects that perform DNA digivolution now recognize shared card requirements, including AD1-025 destinations, while still rejecting invalid partners.",
+    "pt-BR": "Efeitos de DNA digivolution agora reconhecem os requisitos compartilhados das cartas, incluindo destinos AD1-025, e continuam rejeitando parceiros inválidos."
+  },
+  "releases.1.10.0-beta.fix.candlemon": {
+    "en": "BT18-030 Candlemon now selects revealed Data and Witchelny cards in the printed order, with clear category prompts and correct handling of cards that match both categories.",
+    "pt-BR": "Candlemon BT18-030 agora seleciona as cartas Data e Witchelny reveladas na ordem impressa, com escolhas claras por categoria e tratamento correto de cartas que pertencem às duas categorias."
+  },
+  "releases.1.10.0-beta.fix.tokenRestrictions": {
+    "en": "Digimon tokens now respect play prohibitions such as Crimson Blaze, and blocked play choices are hidden.",
+    "pt-BR": "Tokens de Digimon agora respeitam proibições de entrada em jogo, como Crimson Blaze, e escolhas de jogada bloqueadas ficam ocultas."
+  },
+  "releases.1.10.0-beta.fix.sourceStripping": {
+    "en": "Source removal now counts colors gained by effects. The board finishes showing source cards leave before their host moves to the hand, deck or trash.",
+    "pt-BR": "A remoção de fontes agora conta as cores ganhas por efeitos. O campo termina de mostrar a saída das fontes antes de mover a carta principal para a mão, deck ou lixo."
+  },
+  "releases.1.10.0-beta.fix.hadesForce": {
+    "en": "BT11-107 Hades Force now lets you select opposing Digimon and Tamers together within its total play-cost budget, with valid targets highlighted as you choose.",
+    "pt-BR": "Hades Force BT11-107 agora permite selecionar Digimon e Tamers do oponente juntos dentro do limite total de custo de jogo, destacando os alvos válidos conforme você escolhe."
+  },
+  "releases.1.10.0-beta.fix.dualTargets": {
+    "en": "DUAL cards are now excluded from effects that compare or total play costs, including Craniamon and Security effects.",
+    "pt-BR": "Cartas DUAL agora ficam fora dos alvos de efeitos que comparam ou somam custos de jogo, incluindo efeitos de Craniamon e de Security."
+  },
+  "releases.1.10.0-beta.fix.gallantmon": {
+    "en": "Nested protection effects now use the correct player for their costs, fixing Gallantmon interactions. Effect notices and target animations appear before the protection choice.",
+    "pt-BR": "Efeitos de proteção encadeados agora usam o jogador correto para seus custos, corrigindo interações com Gallantmon. Os avisos de efeito e as animações de alvo aparecem antes da escolha de proteção."
+  },
+  "releases.1.10.0-beta.fix.unsuspendLocks": {
+    "en": "Locks on the next unsuspend phase now apply only during that phase, allowing earlier unsuspends by effects and correctly locking already suspended targets. Ulforce Your Turn notices distinguish its separate effects.",
+    "pt-BR": "Restrições da próxima fase de unsuspend agora valem apenas durante essa fase, permitindo unsuspend por efeitos antes dela e afetando corretamente alvos já suspensos. Os avisos de Your Turn de Ulforce distinguem seus efeitos separados."
+  },
+  "releases.1.10.0-beta.fix.effectPresentation": {
+    "en": "Koromon draws now appear before security resolution. Mobile effect notices stay readable, and Thetismon security-effect deletion is clearly distinguished from a security battle.",
+    "pt-BR": "As compras de Koromon agora aparecem antes da resolução de security. Os avisos de efeito no celular ficam legíveis, e a deleção pelo efeito de security de Thetismon fica claramente diferenciada de uma batalha de security."
+  },
+  "releases.1.10.0-beta.fix.firefoxPerformance": {
+    "en": "The animated background now redraws only moving areas, reducing rendering work and improving responsiveness in Firefox.",
+    "pt-BR": "O fundo animado agora redesenha apenas as áreas em movimento, reduzindo o trabalho de renderização e melhorando a resposta no Firefox."
+  },
+  "releases.1.10.0-beta.fix.serverMemory": {
+    "en": "Finished matches now release their player state views, fixing server memory growth. Server memory limits and crash diagnostics were also adjusted.",
+    "pt-BR": "Partidas encerradas agora liberam as visualizações de estado dos jogadores, corrigindo o acúmulo de memória no servidor. Os limites de memória e os diagnósticos de falhas do servidor também foram ajustados."
+  },
   "releases.1.9.1-beta.summary": {
     "en": "This update makes the hand and the battle field easier to use on phones.",
     "pt-BR": "Esta atualização deixa a mão e o campo de batalha mais fáceis de usar no celular."

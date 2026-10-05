@@ -6873,8 +6873,8 @@
           {
             "kind": "Restrict",
             "target": { "fromSelectionRef": "suspendedTarget", "filter": {}, "count": 1 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       },
@@ -12063,8 +12063,8 @@
             "kind": "Restrict",
             "effectTextPart": "Then, 1 of your opponent's suspended Digimon can't unsuspend during your opponent's next unsuspend phase.",
             "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       },
@@ -12085,8 +12085,8 @@
             "kind": "Restrict",
             "effectTextPart": "Then, 1 of your opponent's suspended Digimon can't unsuspend during your opponent's next unsuspend phase.",
             "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       },
@@ -14747,8 +14747,8 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "suspended": true }, "count": 1 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       },
@@ -20550,8 +20550,8 @@
           {
             "kind": "Restrict",
             "target": { "count": "all", "filter": { "controller": "opponent" } },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase",
             "whileMatchesTargetFilter": true
           }
         ]
@@ -23700,7 +23700,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -23712,7 +23712,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -28428,8 +28428,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } },
               "count": "all"
             },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase",
             "whileMatchesTargetFilter": true
           }
         ]
@@ -28444,8 +28444,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } },
               "count": "all"
             },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase",
             "whileMatchesTargetFilter": true
           }
         ]
@@ -31642,7 +31642,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": {}, "count": 1, "fromSelectionRef": "suspendedTarget" },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "duration": "untilOpponentNextUnsuspendPhase",
             "condition": { "kind": "digiXrosCount", "minimum": 2, "raw": "if DigiXrosing with 2 cards" }
           }
@@ -39101,8 +39101,8 @@
           {
             "kind": "Restrict",
             "target": { "fromSelectionRef": "suspended", "filter": {}, "count": 1 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase",
             "condition": { "kind": "securityAtLeast", "value": 3 }
           },
           {
@@ -39139,8 +39139,8 @@
           {
             "kind": "Restrict",
             "target": { "fromSelectionRef": "suspended", "filter": {}, "count": 1 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase",
             "condition": { "kind": "securityAtLeast", "value": 3 }
           },
           {
@@ -39280,8 +39280,8 @@
           {
             "kind": "Restrict",
             "target": { "fromSelectionRef": "effectSuspended", "filter": {}, "count": 2 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           },
           {
             "effectTextPart": "Then, delete 1 of their suspended Tamers.",
@@ -39309,8 +39309,8 @@
           {
             "kind": "Restrict",
             "target": { "fromSelectionRef": "effectSuspended", "filter": {}, "count": 2 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           },
           {
             "effectTextPart": "Then, delete 1 of their suspended Tamers.",
@@ -63970,7 +63970,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "duration": "untilOpponentNextUnsuspendPhase",
             "whileMatchesTargetFilter": true,
             "raw": "During your opponent's next unsuspend phase, none of your opponent's Digimon can unsuspend."
@@ -89397,7 +89397,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           },
@@ -89421,7 +89421,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           },
@@ -96814,21 +96814,31 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "ConditionalBranch",
+            "condition": { "kind": "true" },
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "trash",
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
-            "optional": true,
-            "abortOnDecline": true
-          },
-          {
-            "kind": "Restrict",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "ifTrue": [
+              {
+                "kind": "Suspend",
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+              },
+              {
+                "kind": "Restrict",
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"] },
+                  "count": 1,
+                  "sameTarget": true
+                },
+                "restriction": "unsuspendDuringOwnUnsuspendPhase",
+                "duration": "untilOpponentNextUnsuspendPhase"
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn",
@@ -96838,21 +96848,31 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "kind": "ConditionalBranch",
+            "condition": { "kind": "true" },
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "trash",
               "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
               "raw": "By trashing 1 card in your hand"
             },
-            "optional": true,
-            "abortOnDecline": true
-          },
-          {
-            "kind": "Restrict",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "ifTrue": [
+              {
+                "kind": "Suspend",
+                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+              },
+              {
+                "kind": "Restrict",
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"] },
+                  "count": 1,
+                  "sameTarget": true
+                },
+                "restriction": "unsuspendDuringOwnUnsuspendPhase",
+                "duration": "untilOpponentNextUnsuspendPhase"
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn",
@@ -111373,7 +111393,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -113786,8 +113806,8 @@
               "raw": "＜Digi-Burst 2＞"
             },
             "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase",
             "abortOnDecline": true
           }
         ],
@@ -123739,8 +123759,8 @@
               "count": 1,
               "sameTarget": true
             },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       },
@@ -125766,8 +125786,8 @@
               "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
               "count": 1
             },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       },
@@ -131703,8 +131723,8 @@
           {
             "kind": "Restrict",
             "target": { "filter": {}, "count": 1, "fromSelectionRef": "suspendedTarget" },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ],
         "isInherited": true
@@ -135610,8 +135630,8 @@
                   "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] },
                   "count": 1
                 },
-                "restriction": "unsuspend",
-                "duration": "untilOpponentTurnEnd"
+                "restriction": "unsuspendDuringOwnUnsuspendPhase",
+                "duration": "untilOpponentNextUnsuspendPhase"
               }
             ]
           }
@@ -137947,7 +137967,7 @@
                   "count": 1,
                   "fromSelectionRef": "warudamonTarget"
                 },
-                "restriction": "unsuspend",
+                "restriction": "unsuspendDuringOwnUnsuspendPhase",
                 "duration": "untilOpponentNextUnsuspendPhase"
               }
             ]
@@ -156705,7 +156725,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "boundRef": "suspendedByMegaGargomon" }, "count": "all" },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
@@ -168693,7 +168713,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           }
@@ -168730,7 +168750,7 @@
           {
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
-            "restriction": "unsuspend",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
             "whileMatchesTargetFilter": true,
             "duration": "untilOpponentNextUnsuspendPhase"
           }
@@ -221354,8 +221374,8 @@
           {
             "kind": "Restrict",
             "target": { "filter": {}, "count": 1, "fromSelectionRef": "dinobeemonTarget" },
-            "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
+            "restriction": "unsuspendDuringOwnUnsuspendPhase",
+            "duration": "untilOpponentNextUnsuspendPhase",
             "condition": { "kind": "isDnaDigivolving", "raw": "When DNA digivolving" }
           }
         ]

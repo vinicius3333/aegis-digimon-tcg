@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type CompiledCard, type Permanent, type Seat } from "@aegis/shared";
+import {
+  EffectTiming,
+  requireCardDefinition,
+  type CardDefinition,
+  type CompiledCard,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import type { CardSource } from "./effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "./effects/EffectContext.js";
 import { irCardModule } from "./effects/interpreter.js";
@@ -121,6 +128,25 @@ async function resolve(ctx: EffectContext, compiled: CompiledCard): Promise<void
 }
 
 describe("superlative target filter — lowestPlayCost / highestPlayCost", () => {
+  it.each(["lowestPlayCost", "highestPlayCost"] as const)(
+    "%s excludes DUAL use costs, including a board containing only DUAL (Discord 1556424046827282472)",
+    async (superlative) => {
+      const dual = makePermanent("EX12-018");
+      const normal = makePermanent("BT1-009");
+      const resolvedIds: string[] = [];
+      const ctx = makeContext({ opponentBattleArea: [dual, normal], costByCardId: {}, resolvedIds });
+      ctx.game.definitionOf = (card) => requireCardDefinition(card.cardId);
+
+      await resolve(ctx, deleteSuperlativeCompiled(superlative, 2));
+      expect(resolvedIds).toEqual([normal.permanentId]);
+
+      resolvedIds.length = 0;
+      ctx.game.player(1).battleArea.splice(1, 1);
+      await resolve(ctx, deleteSuperlativeCompiled(superlative, 2));
+      expect(resolvedIds).toEqual([]);
+    },
+  );
+
   it("lowestPlayCost resolves ONLY the minimum-cost opponent Digimon (cost-3 over cost-5)", async () => {
     const cost3 = makePermanent("C3");
     const cost5 = makePermanent("C5");

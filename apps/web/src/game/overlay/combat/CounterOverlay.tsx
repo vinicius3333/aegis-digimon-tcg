@@ -57,7 +57,6 @@ export function counterSources({
 export function CounterOverlay({
   eligibleCounters,
   getCardId,
-  getPermanentCardId,
   fieldPermanentOf = () => undefined,
   selectedInstanceId,
   selectedTargetPermanentId,
@@ -68,7 +67,6 @@ export function CounterOverlay({
 }: {
   eligibleCounters: CounterChoice[];
   getCardId: (instanceId: string) => string | undefined;
-  getPermanentCardId: (permanentId: string) => string | undefined;
   fieldPermanentOf?: (instanceId: string) => string | undefined;
   selectedInstanceId?: string;
   selectedTargetPermanentId?: string;
@@ -89,9 +87,28 @@ export function CounterOverlay({
     ? eligibleCounters.filter((choice) => sourceKeyOf(choice.instanceId) === selectedSource)
     : [];
   const selectedBlast = choices.some((choice) => counterTargetIds(choice.effectKey));
+  const blastHostIds = new Set(choices.map((choice) => counterTargetIds(choice.effectKey)?.permanentId));
+  // A lone host gets a rail button: tapping a small card on a phone board is unreliable.
+  // Several hosts stay on the board, where identical names are told apart by position.
+  const blastTargetPermanentId =
+    selectedTargetPermanentId ?? (blastHostIds.size === 1 ? [...blastHostIds][0] : undefined);
   const inlineChoices = selectedBlast
-    ? choices.filter((choice) => counterTargetIds(choice.effectKey)?.permanentId === selectedTargetPermanentId)
+    ? choices.filter((choice) => counterTargetIds(choice.effectKey)?.permanentId === blastTargetPermanentId)
     : choices;
+  // Identical hand partners offer the same action. Keep one server-provided route
+  // per card while preserving distinct hosts, field sources and DNA ingredient order.
+  const uniqueChoices = new Map<string, CounterChoice>();
+  for (const choice of inlineChoices) {
+    const target = counterTargetIds(choice.effectKey);
+    const partnerCardId = target?.handInstanceId ? getCardId(target.handInstanceId) : undefined;
+    const route = partnerCardId
+      ? JSON.parse(choice.effectKey.slice("blast-dna-digivolve:".length)).map((id: unknown, index: number) =>
+          index === 2 ? partnerCardId : id,
+        )
+      : choice.effectKey;
+    const key = JSON.stringify([choice.instanceId, route]);
+    if (!uniqueChoices.has(key)) uniqueChoices.set(key, choice);
+  }
   const blastLabel = choices.some((choice) => choice.effectKey.startsWith("blast-dna-digivolve:"))
     ? "Blast DNA Digivolve"
     : "Blast Digivolve";
@@ -123,14 +140,9 @@ export function CounterOverlay({
             ? t("overlay.counterChooseFieldSource")
             : t("overlay.counterPrompt");
   const choiceLabel = (choice: CounterChoice) => {
-    const target = counterTargetIds(choice.effectKey);
-    const partner = target?.handInstanceId ? getCardId(target.handInstanceId) : undefined;
-    const name = cardDisplayName(
-      (target ? getPermanentCardId(target.permanentId) : getCardId(choice.instanceId)) ?? "",
-      t,
-    );
-    if (partner) return `${name} + ${cardDisplayName(partner, t)} (${partner})`;
-    return target ? name : `${name} · ${choice.description}`;
+    if (choice.effectKey.startsWith("blast-dna-digivolve:")) return "Blast DNA";
+    if (choice.effectKey.startsWith("blast-digivolve:")) return "Blast Digivolve";
+    return `${cardDisplayName(getCardId(choice.instanceId) ?? "", t)} · ${choice.description}`;
   };
   return (
     <BoardPromptRail
@@ -153,7 +165,7 @@ export function CounterOverlay({
           {t("overlay.activateCounter")}
         </Button>
       ) : (
-        inlineChoices.map((choice) => (
+        [...uniqueChoices.values()].map((choice) => (
           <Button
             key={`${choice.instanceId}-${choice.effectKey}`}
             full

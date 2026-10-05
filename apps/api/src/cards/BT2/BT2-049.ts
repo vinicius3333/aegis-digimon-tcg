@@ -25,7 +25,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          restriction: "unsuspend",
+          restriction: "unsuspendDuringOwnUnsuspendPhase",
           duration: "untilOpponentNextUnsuspendPhase",
           whileMatchesTargetFilter: true,
           raw: "During your opponent's next unsuspend phase, none of your opponent's Digimon can unsuspend.",

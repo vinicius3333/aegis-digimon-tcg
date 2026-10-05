@@ -1,5 +1,59 @@
 [
   {
+    "version": "1.10.0-beta",
+    "releasedAt": "2026-10-04",
+    "summaryKey": "releases.1.10.0-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.10.0-beta.fix.blastCounters"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.digixros"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.selfPlacement"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.partitionBarrier"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.dnaRequirements"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.candlemon"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.tokenRestrictions"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.sourceStripping",
+        "issue": 4905
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.hadesForce"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.dualTargets"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.gallantmon"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.unsuspendLocks"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.effectPresentation"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.firefoxPerformance"
+      },
+      {
+        "textKey": "releases.1.10.0-beta.fix.serverMemory"
+      }
+    ]
+  },
+  {
     "version": "1.9.1-beta",
     "releasedAt": "2026-10-04",
     "summaryKey": "releases.1.9.1-beta.summary",

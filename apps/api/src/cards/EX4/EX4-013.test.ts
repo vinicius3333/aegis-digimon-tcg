@@ -130,6 +130,29 @@ describe("EX4-013 MedievalGallantmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("Discord 1556333425395372163 sweep: the fallback lock allows Ulforce's Tamer effect", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX4-013", as: "medieval" }] },
+        1: { battleArea: [{ card: "BT11-032", as: "ulforce" }], hand: [{ card: "BT1-086", as: "tamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("ulforce").isSuspended).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("ulforce").isSuspended).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("Q3451 can choose an already suspended Digimon and prevent its next unsuspension", async () => {
     const s = setupEngine(
       {

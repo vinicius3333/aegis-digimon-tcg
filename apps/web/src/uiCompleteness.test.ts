@@ -84,6 +84,7 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
   dpModifierApplied: "played as the DP pulse; the causing effect carries the log line",
   // Raised as the framed effect notice (notices.ts) the moment the effect starts
   // resolving; the log narrates the same effect once it resolves (effectResolved).
+  effectTargetsSelected: "shown as target cues before the effect actions resolve",
   effectTriggered: "shown as the effect notice; the log line belongs to effectResolved",
   effectOptionChosen: "shown as the effect notice naming the chosen bullet; the log records effectResolved",
   // Opens the centre-stage check: the shield breaks and the card is turned face up. The

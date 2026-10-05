@@ -408,9 +408,12 @@ export function GameScreen({
   ownEffectNoticeRef.current = { dismiss: cues.dismissOwnEffectNotice, release: cues.releaseOwnEffectNotice };
   useEffect(() => {
     if (promptedOwnEffectCardId === undefined) return;
-    ownEffectNoticeRef.current.dismiss(promptedOwnEffectCardId);
+    ownEffectNoticeRef.current.dismiss(promptedOwnEffectCardId, {
+      timing: decision?.options?.timing,
+      sourceInstanceId: decision?.sourceInstanceId,
+    });
     return () => ownEffectNoticeRef.current.release(promptedOwnEffectCardId);
-  }, [promptedOwnEffectCardId]);
+  }, [promptedOwnEffectCardId, decision?.options?.timing, decision?.sourceInstanceId]);
   const {
     attackLunge,
     combatImpactIds,
@@ -449,6 +452,13 @@ export function GameScreen({
     picks,
     viewerSeat,
     fieldClash,
+    effectSelection: effectSources
+      .flatMap((source) =>
+        source.targetPermanentIds && source.site.zone === "field"
+          ? [{ sourcePermanentId: source.site.permanentId, targetPermanentIds: source.targetPermanentIds }]
+          : [],
+      )
+      .at(-1),
     boardRef,
     permRefs,
     permCentersRef,
@@ -478,7 +488,9 @@ export function GameScreen({
      the steady light it holds for as long as its clause is on screen. Overlapping them
      would leave two animations fighting over the same filter. */
   const effectSourcePermanentIds = new Set(
-    announcing.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+    announcing.flatMap((activation) =>
+      activation.site.zone === "field" ? [activation.site.permanentId, ...(activation.targetPermanentIds ?? [])] : [],
+    ),
   );
   const effectLinkedPermanentIds = new Set(
     effectSources.flatMap((activation) =>
@@ -837,6 +849,7 @@ export function GameScreen({
     decisionDifferentColors,
     decisionDistinctCardIds,
     decisionDistinctNames,
+    decisionMaxTotalPlayCost,
     decisionMaxTotalDP,
     decisionCandidateDP,
     decisionMax,
@@ -854,9 +867,15 @@ export function GameScreen({
       decisionVisibleCardIds,
       decisionDistinctCardIds,
       decisionDistinctNames,
+      decisionMaxTotalPlayCost,
       decisionMaxTotalDP,
       decisionCandidateDP,
     });
+
+  const decisionAllowsPermanent = (perm: Permanent) => {
+    const candidateId = decisionCandidateIdFor(perm);
+    return candidateId !== undefined && decisionAllowsPick(candidateId);
+  };
 
   const toggleDecisionPick = (instanceId: string) => {
     if (!decisionAllowsPick(instanceId)) return;
@@ -1152,7 +1171,7 @@ export function GameScreen({
                 : pickingSourceHost
                   ? sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true
                   : fieldDecision
-                    ? decisionCandidateIdFor(perm) !== undefined
+                    ? decisionAllowsPermanent(perm)
                     : (handIsDigi && eligibleBase(perm)) ||
                       dragBasePermanentIds.has(perm.permanentId) ||
                       (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
@@ -1161,7 +1180,7 @@ export function GameScreen({
           combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId) === true ||
           combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) === true ||
           (pickingSourceHost && sourceHostChoice?.cardIdsByHost.has(perm.permanentId) === true) ||
-          (fieldDecision && decisionCandidateIdFor(perm) !== undefined),
+          (fieldDecision && decisionAllowsPermanent(perm)),
       }}
       chrome={{ permanentChrome, unsuspendStagger, dropIntentAttrs, baseDropIntentAttrs, trashEffectSource }}
       handDock={{
@@ -1179,7 +1198,9 @@ export function GameScreen({
             }
           : !fieldDecision && decisionView.answerOnBoard && decisionView.viewerDecision?.kind === "selectCards"
             ? {
-                selectableInstanceIds: decisionView.viewerDecision.options?.candidateInstanceIds ?? [],
+                selectableInstanceIds: (decisionView.viewerDecision.options?.candidateInstanceIds ?? []).filter(
+                  decisionAllowsPick,
+                ),
                 pickedInstanceIds: picks,
                 onToggle: toggleDecisionPick,
                 onInspect: setHandPreview,

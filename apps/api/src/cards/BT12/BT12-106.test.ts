@@ -40,8 +40,8 @@ describe("BT12-106 compiled module", () => {
     expect(restriction).toMatchObject({
       kind: "Restrict",
       target: { count: "all", filter: { controller: "opponent" } },
-      restriction: "unsuspend",
-      duration: "untilOpponentTurnEnd",
+      restriction: "unsuspendDuringOwnUnsuspendPhase",
+      duration: "untilOpponentNextUnsuspendPhase",
       whileMatchesTargetFilter: true,
     });
   });

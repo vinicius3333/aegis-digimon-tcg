@@ -11,8 +11,8 @@ describe("BT7-053 Dinorexmon", () => {
     expect(actions?.[1]).toMatchObject({
       kind: "Restrict",
       target: { sameTarget: true },
-      restriction: "unsuspend",
-      duration: "untilOpponentTurnEnd",
+      restriction: "unsuspendDuringOwnUnsuspendPhase",
+      duration: "untilOpponentNextUnsuspendPhase",
     });
   });
 

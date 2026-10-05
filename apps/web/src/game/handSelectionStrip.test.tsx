@@ -160,6 +160,30 @@ describe("selection inspection gestures", () => {
     expect(onInspect).not.toHaveBeenCalled();
   });
 
+  it("keeps the click trailing a touch pick off the prompt that opens under the finger (Discord 1556418465231806535)", () => {
+    const onToggle = vi.fn<(instanceId: string) => void>();
+    const onPass = vi.fn<() => void>();
+    const { container, getByRole } = render(
+      <I18nProvider>
+        <Hand
+          cards={CARDS}
+          startDrag={() => {}}
+          selection={{ selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle }}
+        />
+        <button type="button" onClick={onPass}>
+          Pass Counter
+        </button>
+      </I18nProvider>,
+    );
+    const card = container.querySelector(".game-hand-card")!;
+    fireEvent.pointerDown(card, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    fireEvent.pointerUp(card, { pointerId: 1, pointerType: "touch", clientX: 50, clientY: 50 });
+    // Android Chrome hit-tests the tap's click after the pick moved the prompt under the finger.
+    fireEvent.click(getByRole("button", { name: "Pass Counter" }), { detail: 1 });
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith("a");
+    expect(onPass).not.toHaveBeenCalled();
+  });
+
   it("drops the hold once the finger starts panning the strip", () => {
     const onToggle = vi.fn<(instanceId: string) => void>();
     const onInspect = vi.fn<(instanceId: string) => void>();

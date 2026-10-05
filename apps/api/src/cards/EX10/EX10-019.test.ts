@@ -64,7 +64,7 @@ describe("EX10-019 Warudamon", () => {
             { kind: "Suspend", target: { fromSelectionRef: "warudamonTarget" } },
             {
               kind: "Restrict",
-              restriction: "unsuspend",
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
               duration: "untilOpponentNextUnsuspendPhase",
               target: { fromSelectionRef: "warudamonTarget" },
             },
@@ -333,9 +333,9 @@ describe("EX10-019 Warudamon", () => {
         targetPermanentId: s.perm("warudamon").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("protectedTarget"), "unsuspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("protectedTarget"), "unsuspendDuringOwnUnsuspendPhase"));
     expect(s.perm("protectedTarget").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("protectedTarget"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("protectedTarget"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     expect(s.state.memory).toBe(5);
     expect(s.state.players[1]!.security).toHaveLength(2);
 
@@ -368,7 +368,7 @@ describe("EX10-019 Warudamon", () => {
     await settle(() => s.perm("warudamon").linked.length === 1);
     await settle(() => false, 40);
     expect(s.perm("laterTarget").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("laterTarget"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("laterTarget"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
@@ -394,7 +394,7 @@ describe("EX10-019 Warudamon", () => {
     await settle(() => s.perm("warudamon").linked.length === 1);
     await settle(() => false, 40);
     expect(s.perm("target").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 
@@ -433,7 +433,7 @@ describe("EX10-019 Warudamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("victimA").isSuspended);
-    expect(observe(s.engine).isRestricted(s.perm("victimA"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("victimA"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     await settle(() => s.state.players[1]!.security.length === 2);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("aTopSecurity").instanceId);
     expect(s.perm("warudamon").linked).toHaveLength(0);
@@ -444,7 +444,7 @@ describe("EX10-019 Warudamon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    expect(observe(s.engine).isRestricted(s.perm("victimA"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("victimA"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
     s.state.memory = 6;
     preferred.length = 0;
     preferred.push(s.perm("victimB").permanentId);
@@ -457,7 +457,7 @@ describe("EX10-019 Warudamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("victimB").isSuspended);
     expect(s.perm("victimB").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("victimB"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("victimB"), "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await settleAcrossTimers(() => s.state.winnerSeat !== undefined);
@@ -720,5 +720,5 @@ it("EX10-019 offers its optional link reaction again after declining", async () 
   }
   expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
   expect(s.perm("target").isSuspended).toBe(false);
-  expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+  expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
 });

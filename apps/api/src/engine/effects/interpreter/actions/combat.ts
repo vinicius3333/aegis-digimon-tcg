@@ -1,6 +1,7 @@
 // Attacking, battling, and redirecting an attack.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { hasPlayCost } from "../../../cards/cardData.js";
 import type { ActionScope } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
@@ -230,7 +231,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
           ctx.selectionFacts.set(name, {
             dp: bound.currentDP,
             level: definition?.level,
-            playCost: definition?.playCost,
+            playCost: definition !== undefined && hasPlayCost(definition) ? definition.playCost : undefined,
             digivolutionCount: bound.stack.length,
           });
         }

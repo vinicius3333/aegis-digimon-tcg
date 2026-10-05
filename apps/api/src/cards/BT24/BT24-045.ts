@@ -9,7 +9,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
-          sourceFilter: { isSelfRef: true },
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "Draw",
@@ -32,14 +34,12 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Suspend",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
+          kind: "ConditionalBranch",
+          condition: {
+            kind: "true",
           },
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "trash",
             target: {
@@ -51,21 +51,31 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
+          ifTrue: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
             },
-            count: 1,
-            sameTarget: true,
-          },
-          restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+            {
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+                sameTarget: true,
+              },
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
+              duration: "untilOpponentNextUnsuspendPhase",
+            },
+          ],
         },
       ],
       frequency: "OncePerTurn",
@@ -75,14 +85,12 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "Suspend",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
+          kind: "ConditionalBranch",
+          condition: {
+            kind: "true",
           },
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "trash",
             target: {
@@ -94,21 +102,31 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
+          ifTrue: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
             },
-            count: 1,
-            sameTarget: true,
-          },
-          restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+            {
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+                sameTarget: true,
+              },
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
+              duration: "untilOpponentNextUnsuspendPhase",
+            },
+          ],
         },
       ],
       frequency: "OncePerTurn",
@@ -120,7 +138,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
-          sourceFilter: { controller: "mine" },
+          sourceFilter: {
+            controller: "mine",
+          },
           actions: [
             {
               kind: "Digivolve",
@@ -141,8 +161,22 @@ export const compiled: CompiledCard = {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
                 or: [
-                  { nameOrTrait: [{ tokens: ["Titamon"], match: "nameExact" }] },
-                  { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] },
+                  {
+                    nameOrTrait: [
+                      {
+                        tokens: ["Titamon"],
+                        match: "nameExact",
+                      },
+                    ],
+                  },
+                  {
+                    nameOrTrait: [
+                      {
+                        tokens: ["Titan"],
+                        match: "trait",
+                      },
+                    ],
+                  },
                 ],
               },
               from: ["trash"],
