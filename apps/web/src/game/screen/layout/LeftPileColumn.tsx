@@ -45,7 +45,7 @@ export function LeftPileColumn({
   /** The break on screen is this seat's, which is what arms and breaks the shield. */
   securityBreakMine: boolean;
   securityHit: boolean;
-  securityLanding: boolean;
+  securityLanding: number | undefined;
   onOpenOpponentTrash: (() => void) | undefined;
   onOpenViewerSecurity: (() => void) | undefined;
 }) {

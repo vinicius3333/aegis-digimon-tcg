@@ -65,7 +65,7 @@ export function Pile({
   /** Accepted occurrence key, or true for a static gallery specimen. */
   riffling?: boolean | number;
   /** A card is flying back onto the stack. */
-  landing?: boolean;
+  landing?: number;
   refEl?: (el: HTMLDivElement | null) => void;
   onClick?: () => void;
   drop?: DropAttrs;

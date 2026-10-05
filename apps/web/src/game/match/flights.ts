@@ -1,6 +1,6 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
-import type { Seat, ServerEvent } from "@aegis/shared";
-import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../animationQueue";
+import type { Seat } from "@aegis/shared";
+import type { AnimationQueue, AnimationStepContext } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
 import { waitForStackStrips } from "./stackStripBarrier";
@@ -16,6 +16,7 @@ import { waitForDeckReturnClock } from "./deckReturnClock";
 import { waitForHandReturnClock } from "./handReturnClock";
 import type { FieldShatterFace } from "../fieldShatter";
 import { HAND_CARD_WIDTH } from "../piece/constants";
+import { waitForPaintedAnimation } from "../paintedAnimationClock";
 
 export interface CueFlightsDeps {
   queue: AnimationQueue;
@@ -28,7 +29,7 @@ export interface CueFlightsDeps {
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   securityGainKeyRef: MutableRefObject<number>;
   drawFlightKeyRef: MutableRefObject<number>;
-  setSecurityFlights: Dispatch<SetStateAction<ReadonlySet<number>>>;
+  setSecurityFlights: Dispatch<SetStateAction<ReadonlyMap<number, number>>>;
   setSecurityDealCounts: Dispatch<SetStateAction<ReadonlyMap<Seat, number>>>;
   setDrawFlights: Dispatch<SetStateAction<readonly DrawFlight[]>>;
   setDrawBursts: Dispatch<SetStateAction<readonly DrawBurst[]>>;
@@ -61,18 +62,23 @@ export function cueFlights(deps: CueFlightsDeps) {
       id: `security-gain-flight-${seat}-${key}`,
       ...(presentationBatchRef?.current ? { origin: { ...presentationBatchRef.current } } : {}),
       track: `securityFlight-${seat}`,
-      replace: true,
       async run(context) {
         if (context.mode !== "live") return;
         await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "securityGainFlight/causingEffect");
-        if (context.cancelled) return;
+        if (context.cancelled || context.skipping || context.mode !== "live") return;
         try {
-          setSecurityFlights((seats) => new Set(seats).add(seat));
+          setSecurityFlights((seats) => new Map(seats).set(seat, key));
           await context.wait(TIMINGS.securityFlight);
+          await waitForPaintedAnimation(
+            () => (seat === viewerSeat ? anchors.yourSecurity.current : anchors.oppSecurity.current),
+            "battle-security-flight",
+            TIMINGS.securityFlight,
+            context,
+          );
         } finally {
           setSecurityFlights((seats) => {
-            if (!seats.has(seat)) return seats;
-            const next = new Set(seats);
+            if (seats.get(seat) !== key) return seats;
+            const next = new Map(seats);
             next.delete(seat);
             return next;
           });

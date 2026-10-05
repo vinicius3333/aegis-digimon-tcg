@@ -60,7 +60,7 @@ export function RightPileColumn({
   /** The break on screen is this seat's, which is what arms and breaks the shield. */
   securityBreakMine: boolean;
   securityHit: boolean;
-  securityLanding: boolean;
+  securityLanding: number | undefined;
   securityDrop: DropAttrs;
   /** An attack on the player is available, which lights the shield and names it. */
   attackable: boolean;

@@ -159,7 +159,6 @@ export function presentServerBatch({
   revealOnStageRef,
   pendingDigivolutionDrawRef,
   eventDrawCountsRef,
-  drawPhaseWaitingRef,
   sidePanelLookupRef,
   sidePanelSequenceRef,
   noticeSequenceRef,
@@ -202,13 +201,11 @@ export function presentServerBatch({
   deletionBurstPresentedRef,
   removalChainRef,
   setPendingPermanentIds,
-  setHeldDrawState,
   setZoneShowcase,
   setRevealShowcase,
   setPermanentBursts,
   setEffectSources,
   setDeckRiffles,
-  setSecurityFlights,
   setHeldMemory,
   setAttackAnnouncement,
   setSecurityBreak,
@@ -279,7 +276,6 @@ export function presentServerBatch({
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
   pendingDigivolutionDrawRef: MutableRefObject<Map<Seat, PresentationGate>>;
   eventDrawCountsRef: MutableRefObject<{ you?: number; opp?: number }>;
-  drawPhaseWaitingRef: MutableRefObject<Seat | null>;
   sidePanelLookupRef: MutableRefObject<SidePanelLookup>;
   sidePanelSequenceRef: MutableRefObject<number>;
   noticeSequenceRef: MutableRefObject<number>;
@@ -330,13 +326,11 @@ export function presentServerBatch({
   /** The latest card an effect took off the field, which the next one follows. */
   removalChainRef: MutableRefObject<RemovalLink | null>;
   setPendingPermanentIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
-  setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
   setZoneShowcase: Dispatch<SetStateAction<ZoneShowcase | null>>;
   setRevealShowcase: Dispatch<SetStateAction<RevealShowcase | null>>;
   setPermanentBursts: Dispatch<SetStateAction<ReadonlyMap<string, PermanentBurst>>>;
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
   setDeckRiffles: Dispatch<SetStateAction<ReadonlyMap<string, number>>>;
-  setSecurityFlights: Dispatch<SetStateAction<ReadonlySet<number>>>;
   setHeldMemory: Dispatch<SetStateAction<MemoryHold | undefined>>;
   setAttackAnnouncement: Dispatch<SetStateAction<AttackAnnouncement | null>>;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
@@ -691,7 +685,6 @@ export function presentServerBatch({
       pendingDigivolutionDrawRef,
       arrivalPresentations,
       eventDrawCountsRef,
-      drawPhaseWaitingRef,
       sidePanelLookupRef,
       sidePanelSequenceRef,
       noticeSequenceRef,
@@ -699,7 +692,6 @@ export function presentServerBatch({
       securityClausesReadRef,
       launchDrawFlight,
       launchDeckToUnderFlight,
-      setHeldDrawState,
     });
     // A trigger that joined an earlier unit shares its "×N" clause. Each accepted physical
     // source still focuses, so the viewer can see which copies paid their activation cost.
@@ -777,9 +769,7 @@ export function presentServerBatch({
       fresh,
       stateVersion,
       securityGrowthClaimedRef,
-      setSecurityFlights,
       launchSecurityGainFlight,
-      enqueue,
     });
     // The turn seat the gauge is currently read from, before this batch passes the turn on:
     // `state.memory` is signed from the turn player's side, and the live seat has already

@@ -1,9 +1,9 @@
-import { useEffect, type MutableRefObject } from "react";
+import { useEffect, useLayoutEffect, type MutableRefObject } from "react";
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
-import { snapshotGameState } from "../../../net/presentedState";
+import { snapshotGameState, type StateSnapshot } from "../../../net/presentedState";
 import type { PhaseBanner } from "../../phaseBanner";
 import { Side } from "../../side";
-import type { DrawFlightCard, DrawHandArrival } from "../types";
+import type { DrawFlightCard, DrawHandArrival, DrawPhaseOwner } from "../types";
 import type { PresentationGate } from "../presentationGate";
 
 /**
@@ -19,6 +19,7 @@ import type { PresentationGate } from "../presentationGate";
  */
 export function useDrawWatcher({
   state,
+  snapshots,
   viewer,
   opponent,
   viewerSeat,
@@ -32,12 +33,13 @@ export function useDrawWatcher({
   launchDrawFlight,
 }: {
   state: GameState | undefined;
+  snapshots?: readonly StateSnapshot[];
   viewer: PlayerState | undefined;
   opponent: PlayerState | undefined;
   viewerSeat: Seat;
   mulliganOpen: boolean;
   phaseBanner: PhaseBanner | null;
-  drawPhaseWaitingRef: MutableRefObject<Seat | null>;
+  drawPhaseWaitingRef: MutableRefObject<DrawPhaseOwner | null>;
   /** Mutated: the board the held seat's hand is still presented at. */
   previousDrawStateRef: MutableRefObject<GameState | undefined>;
   /** Mutated: the hand counts this pass compares against. */
@@ -60,9 +62,9 @@ export function useDrawWatcher({
       previousDrawStateRef.current = state ? snapshotGameState(state) : undefined;
     }
   }, [state, state?.stateVersion, viewer?.handCount, opponent?.handCount, phaseBanner]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (viewer === undefined || opponent === undefined) return;
-    const heldSeat = drawPhaseWaitingRef.current;
+    const heldSeat = drawPhaseWaitingRef.current?.seat ?? null;
     const heldSide: Side | undefined =
       heldSeat === null ? undefined : heldSeat === viewerSeat ? Side.Viewer : Side.Opponent;
     const previous = handCountsRef.current;
@@ -75,28 +77,41 @@ export function useDrawWatcher({
       return;
     }
     const turnStart = turnStartDrawRef.current;
+    // The bot can already be in Main while this Draw ribbon is opening. Hold the
+    // card against the Draw batch's revision, rather than that newer live patch.
+    const drawState =
+      phaseBanner?.phase === "Draw"
+        ? snapshots?.find((snapshot) => snapshot.stateVersion === phaseBanner.stateVersion)?.state
+        : undefined;
+    // An evicted/coalesced revision presents the live board immediately. Do not
+    // invent a turn draw from later effect cards when its own snapshot is missing.
+    const canPresentTurnDraw = phaseBanner?.stateVersion === undefined || snapshots === undefined || !!drawState;
+    const drawnOpponent = turnStart.opp ? (drawState?.players[viewerSeat === 0 ? 1 : 0] ?? opponent) : opponent;
+    const drawnViewer = turnStart.you ? (drawState?.players[viewerSeat] ?? viewer) : viewer;
     turnStartDrawRef.current = {
       you: heldSide === Side.Viewer && turnStart.you,
       opp: heldSide === Side.Opponent && turnStart.opp,
     };
     if (
       heldSide !== Side.Opponent &&
-      opponent.handCount > previous.opp &&
-      eventDrawCountsRef.current.opp !== opponent.handCount
+      (!turnStart.opp || canPresentTurnDraw) &&
+      drawnOpponent.handCount > previous.opp &&
+      ((turnStart.opp && drawState !== undefined) || eventDrawCountsRef.current.opp !== drawnOpponent.handCount)
     )
-      for (let index = previous.opp; index < opponent.handCount; index++)
+      for (let index = previous.opp; index < drawnOpponent.handCount; index++)
         launchDrawFlight(Side.Opponent, turnStart.opp, 0, undefined, undefined, {
-          stateVersion: state?.stateVersion ?? 0,
-          handCountAfter: opponent.handCount,
-          deckCountAfter: opponent.deckCount,
+          stateVersion: (turnStart.opp ? drawState?.stateVersion : undefined) ?? state?.stateVersion ?? 0,
+          handCountAfter: drawnOpponent.handCount,
+          deckCountAfter: drawnOpponent.deckCount,
         });
     if (
       heldSide !== Side.Viewer &&
-      viewer.handCount > previous.you &&
-      eventDrawCountsRef.current.you !== viewer.handCount
+      (!turnStart.you || canPresentTurnDraw) &&
+      drawnViewer.handCount > previous.you &&
+      ((turnStart.you && drawState !== undefined) || eventDrawCountsRef.current.you !== drawnViewer.handCount)
     )
-      for (let index = previous.you; index < viewer.handCount; index++) {
-        const card = viewer.hand[viewer.hand.length - (viewer.handCount - index)];
+      for (let index = previous.you; index < drawnViewer.handCount; index++) {
+        const card = drawnViewer.hand[drawnViewer.hand.length - (drawnViewer.handCount - index)];
         launchDrawFlight(
           Side.Viewer,
           turnStart.you,
@@ -105,9 +120,9 @@ export function useDrawWatcher({
           undefined,
           {
             ...(card ? { instanceId: card.instanceId } : {}),
-            stateVersion: state?.stateVersion ?? 0,
-            handCountAfter: viewer.handCount,
-            deckCountAfter: viewer.deckCount,
+            stateVersion: (turnStart.you ? drawState?.stateVersion : undefined) ?? state?.stateVersion ?? 0,
+            handCountAfter: drawnViewer.handCount,
+            deckCountAfter: drawnViewer.deckCount,
           },
         );
       }

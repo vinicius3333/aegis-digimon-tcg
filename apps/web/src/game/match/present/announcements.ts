@@ -1,4 +1,4 @@
-import type { Dispatch, MutableRefObject, SetStateAction } from "react";
+import type { MutableRefObject } from "react";
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import { Side } from "../../side";
 import {
@@ -62,7 +62,6 @@ export function collectBatchAnnouncements({
   pendingDigivolutionDrawRef,
   arrivalPresentations,
   eventDrawCountsRef,
-  drawPhaseWaitingRef,
   sidePanelLookupRef,
   sidePanelSequenceRef,
   noticeSequenceRef,
@@ -70,7 +69,6 @@ export function collectBatchAnnouncements({
   securityClausesReadRef,
   launchDrawFlight,
   launchDeckToUnderFlight,
-  setHeldDrawState,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
@@ -102,8 +100,6 @@ export function collectBatchAnnouncements({
   arrivalPresentations: ReadonlyMap<ServerEvent, ArrivalPresentation>;
   /** Mutated: the hand count each side had when this batch's draw was announced. */
   eventDrawCountsRef: MutableRefObject<{ you?: number; opp?: number }>;
-  /** Mutated: the seat whose draw-phase hold an effect draw releases. */
-  drawPhaseWaitingRef: MutableRefObject<Seat | null>;
   sidePanelLookupRef: MutableRefObject<SidePanelLookup>;
   /** Mutated: incremented per event so every panel and announcement gets its own id. */
   sidePanelSequenceRef: MutableRefObject<number>;
@@ -126,7 +122,6 @@ export function collectBatchAnnouncements({
     draw?: DrawHandArrival,
   ) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
-  setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
 }): BatchAnnouncements {
   let announcement: AttackAnnouncement | null = null;
   const opened: SidePanel[] = [];
@@ -211,23 +206,6 @@ export function collectBatchAnnouncements({
                 }
               : undefined,
           );
-        }
-        /**
-         * An effect draw by the held seat releases that seat's draw-phase hold.
-         *
-         * The hold freezes the presented hand at the previous revision so the draw the turn
-         * opens with stays hidden until its Draw banner. Only the phase draw needs hiding,
-         * and that one moves through GameEngine.drawCards and emits no event at all:
-         * reaching this line means the cards came from an effect, and belong on screen now.
-         *
-         * The seat matters. A turn that flips in the same patch that carried the PREVIOUS
-         * player's last effect arms the hold for the incoming seat before this batch is
-         * read; releasing it here on the outgoing seat's draw let the incoming seat's
-         * turn-start draw fly ribbons ahead of its own Draw banner.
-         */
-        if (drawPhaseWaitingRef.current === seat) {
-          drawPhaseWaitingRef.current = null;
-          setHeldDrawState(undefined);
         }
         if (event.drawReason === "digivolution") pendingDigivolutionDrawRef.current.delete(seat);
       }

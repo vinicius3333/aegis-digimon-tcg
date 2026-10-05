@@ -141,7 +141,6 @@ function announce(fresh: readonly ServerEvent[]) {
     pendingDigivolutionDrawRef: { current: new Map() },
     arrivalPresentations: new Map(),
     eventDrawCountsRef: { current: {} },
-    drawPhaseWaitingRef: { current: null },
     sidePanelLookupRef: {
       current: { cardId: () => undefined, artId: () => undefined, seat: () => undefined },
     },
@@ -151,7 +150,6 @@ function announce(fresh: readonly ServerEvent[]) {
     securityClausesReadRef: { current: new Set() },
     launchDrawFlight: (side, _burst, _delayMs, card) => flights.push({ side, ...(card ? { card } : {}) }),
     launchDeckToUnderFlight: () => {},
-    setHeldDrawState: () => {},
   });
   return { flights, panels: result.opened };
 }

@@ -361,7 +361,7 @@ export function BoardStage({
               securityBreak={cues.securityBreak}
               securityBreakMine={cues.securityBreak?.seat === viewerSeat}
               securityHit={cues.securityHitSeat === viewerSeat}
-              securityLanding={cues.securityFlights.has(viewerSeat)}
+              securityLanding={cues.securityFlights.get(viewerSeat)}
               onOpenOpponentTrash={shownOpponent.trash.length ? () => overlays.setTrashView(Side.Opponent) : undefined}
               onOpenViewerSecurity={shownViewer.securityCount ? () => overlays.setSecurityView(Side.Viewer) : undefined}
             />
@@ -446,7 +446,7 @@ export function BoardStage({
               securityBreak={cues.securityBreak}
               securityBreakMine={cues.securityBreak?.seat === other}
               securityHit={cues.securityHitSeat === other}
-              securityLanding={cues.securityFlights.has(other)}
+              securityLanding={cues.securityFlights.get(other)}
               securityDrop={{ "data-drop": "opp-security", ...chrome.dropIntentAttrs("opp-security") }}
               attackable={
                 targeting.securityDecision !== undefined ||

@@ -65,6 +65,12 @@ export interface HeldHandArrival extends DrawHandArrival {
   seat: Seat;
 }
 
+/** A pending turn draw belongs to this turn, even while earlier ribbons are still playing. */
+export interface DrawPhaseOwner {
+  seat: Seat;
+  phaseOrder: number;
+}
+
 /** Starburst left where a turn-start draw lands, in board coordinates. */
 export type DrawBurst = { key: number; x: number; y: number };
 
@@ -308,7 +314,7 @@ export interface MatchCues {
   /** The deck piles currently riffling, as `${seat}:${pile}`. */
   deckRiffles: ReadonlyMap<string, number>;
   /** The seats whose security stack a recovered card is currently flying back onto. */
-  securityFlights: ReadonlySet<number>;
+  securityFlights: ReadonlyMap<number, number>;
   /**
    * While the opening five cards are being dealt, how many of them a seat's shield has
    * already been seen to take. The stack is full on the server from the first patch, so

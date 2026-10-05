@@ -112,11 +112,11 @@ const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
         {
           en:
             scenario.sourceSeat === 0
-              ? `End breeding and play ${name}. ${scenario.amount ? `Follow ${scenario.amount} ${scenario.flow === "draw" ? "drawn cards joining your hand" : "cards joining your security"}, one at a time.` : "With four security cards, its Recovery condition is inactive: no card should move."} The established Tamers are controls.`
+              ? `End breeding and play ${name}. ${scenario.amount ? `Follow ${scenario.amount} ${scenario.flow === "draw" ? "drawn cards joining your hand, one at a time" : "cards joining your security with one stack reaction"}.` : "With four security cards, its Recovery condition is inactive: no card should move."} The established Tamers are controls.`
               : `End breeding and your turn. The opponent plays ${name}. Follow its ${scenario.flow === "draw" ? "two hidden draws" : "face-down recovery"} and the displayed counts. The established Tamers are controls.`,
           ptBR:
             scenario.sourceSeat === 0
-              ? `Encerre a criação e jogue ${name}. ${scenario.amount ? `Acompanhe ${scenario.amount} ${scenario.flow === "draw" ? "cartas compradas chegando à mão" : "cartas chegando à segurança"}, uma por vez.` : "Com quatro seguranças, a condição de Recovery não se aplica: nenhuma carta deve se mover."} Os Tamers já no campo são controles.`
+              ? `Encerre a criação e jogue ${name}. ${scenario.amount ? `Acompanhe ${scenario.amount} ${scenario.flow === "draw" ? "cartas compradas chegando à mão, uma por vez" : "cartas chegando à segurança com uma reação da pilha"}.` : "Com quatro seguranças, a condição de Recovery não se aplica: nenhuma carta deve se mover."} Os Tamers já no campo são controles.`
               : `Encerre a criação e seu turno. O oponente joga ${name}. Acompanhe ${scenario.flow === "draw" ? "as duas compras ocultas" : "a recuperação com a carta virada para baixo"} e os contadores. Os Tamers já no campo são controles.`,
         },
       ];

@@ -44,6 +44,7 @@ import type {
   DrawBurst,
   DrawFlight,
   DrawFlightCard,
+  DrawPhaseOwner,
   MatchCueAnchors,
   MatchCues,
   RevealOnStage,
@@ -457,7 +458,7 @@ export function useMatchCues({
   const phaseBaselineRef = useRef(false);
   const lastPhaseEventRef = useRef<Extract<ServerEvent, { kind: "phaseChanged" | "turnEnded" }> | undefined>(undefined);
   /** The seat whose turn-start draw is held back, or null while nothing is held. */
-  const drawPhaseWaitingRef = useRef<Seat | null>(null);
+  const drawPhaseWaitingRef = useRef<DrawPhaseOwner | null>(null);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
@@ -465,7 +466,7 @@ export function useMatchCues({
   const [freezePulses, setFreezePulses] = useState<ReadonlyMap<string, FreezePulse>>(new Map());
   const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
   const [deckRiffles, setDeckRiffles] = useState<ReadonlyMap<string, number>>(new Map());
-  const [securityFlights, setSecurityFlights] = useState<ReadonlySet<number>>(new Set());
+  const [securityFlights, setSecurityFlights] = useState<ReadonlyMap<number, number>>(new Map());
   const [securityDealCounts, setSecurityDealCounts] = useState<ReadonlyMap<Seat, number>>(new Map());
 
   // Cues are observed twice for your own actions (the intent handler fires one
@@ -944,7 +945,6 @@ export function useMatchCues({
       revealOnStageRef,
       pendingDigivolutionDrawRef,
       eventDrawCountsRef,
-      drawPhaseWaitingRef,
       sidePanelLookupRef,
       sidePanelSequenceRef,
       noticeSequenceRef,
@@ -987,13 +987,11 @@ export function useMatchCues({
       deletionBurstPresentedRef,
       removalChainRef,
       setPendingPermanentIds,
-      setHeldDrawState,
       setZoneShowcase,
       setRevealShowcase,
       setPermanentBursts,
       setEffectSources,
       setDeckRiffles,
-      setSecurityFlights,
       setHeldMemory,
       setAttackAnnouncement,
       setSecurityBreak,
@@ -1288,6 +1286,7 @@ export function useMatchCues({
 
   useDrawWatcher({
     state,
+    snapshots,
     viewer: you,
     opponent: opp,
     viewerSeat,

@@ -1785,7 +1785,7 @@ describe("match cues", () => {
     expect(result.current.phaseTransitionPending).toBe(false);
   });
 
-  it("releases the draw hold for an effect draw that flips the turn in the same patch", async () => {
+  it("keeps the incoming draw hold while presenting older same-seat effect draws", async () => {
     const state = {
       players: [0, 1].map(() => ({
         hand: [],
@@ -1833,9 +1833,10 @@ describe("match cues", () => {
     state.players[0]!.deckCount = 38;
     rerender({ phaseEvents: events, batches: [singleServerBatch(events)] });
     await advance(32);
-    // The Active banner armed the hold before the batch was read; the drawn cards belong
-    // to the turn that just ended, so they may not wait behind its ribbons.
-    expect(result.current.heldDrawState).toBeUndefined();
+    // Older effect draws join the held hand without releasing the incoming turn's hold.
+    expect(result.current.heldDrawState?.seat).toBe(0);
+    expect(result.current.heldDrawState?.state.players[0]?.handCount).toBe(7);
+    expect(result.current.heldDrawState?.state.players[0]?.deckCount).toBe(38);
   });
 
   it("does not lock actions or hold a hand when reconnecting to phase history", async () => {
