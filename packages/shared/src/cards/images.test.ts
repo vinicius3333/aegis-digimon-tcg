@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { cardImageUrls } from "./images.js";
 import { tokenDefinitions } from "./tokens.js";
 
-const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/9f666f16501fb329b4e2fd9851e862afe2d7da05/src/assets/images/cards";
+const CARD_IMAGE_BASE = "/assets/card-images";
 
 describe("preview card art", () => {
   it("uses published art for EX13 and the P-245 through P-250 wave", () => {
@@ -11,13 +11,13 @@ describe("preview card art", () => {
       ...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`),
     ];
     for (const id of ids) {
-      expect(cardImageUrls(id)[0]).toBe(`${GITHUB_BASE}/${id}.webp`);
+      expect(cardImageUrls(id)[0]).toBe(`${CARD_IMAGE_BASE}/${id}.webp`);
     }
   });
 
-  it("keeps the external providers for cards outside the staged preview wave", () => {
-    expect(cardImageUrls("EX12-001")[0]).toContain("raw.githubusercontent.com");
-    expect(cardImageUrls("EX13-072")[0]).toContain("raw.githubusercontent.com");
+  it("serves every card image from the mirror", () => {
+    expect(cardImageUrls("EX12-001")[0]).toBe(`${CARD_IMAGE_BASE}/EX12-001.webp`);
+    expect(cardImageUrls("EX13-072")[0]).toBe(`${CARD_IMAGE_BASE}/EX13-072.webp`);
   });
 });
 
@@ -40,9 +40,9 @@ describe("unpublished printings", () => {
   it("falls back to the bundled scan after the upstream image", () => {
     const urls = cardImageUrls("BT22-063", "BT22-063_P2");
     expect(urls.slice(0, 3)).toEqual([
-      `${GITHUB_BASE}/BT22-063_P2.webp`,
+      `${CARD_IMAGE_BASE}/BT22-063_P2.webp`,
       "/cards/unpublished/BT22-063_P2.webp",
-      `${GITHUB_BASE}/BT22-063_P2-Sample.webp`,
+      `${CARD_IMAGE_BASE}/BT22-063_P2-Sample.webp`,
     ]);
   });
 
