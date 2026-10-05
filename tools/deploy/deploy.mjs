@@ -1,9 +1,27 @@
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, renameSync, existsSync, rmSync, cpSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describeSync, syncCardImages } from "./card-images.mjs";
 import { FIXED_SLOTS, isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
+
+const API_MEMORY_MIB = 1500;
+const REDIS_MEMORY_MIB = 384;
+// Reserve the new services' full limits plus headroom for builds and host services.
+const OVERFLOW_REQUIRED_KIB = (3 * API_MEMORY_MIB + REDIS_MEMORY_MIB + 2048) * 1024;
+
+export function assertOverflowCapacity(meminfo) {
+  const available = /^MemAvailable:\s+(\d+)\s+kB\s*$/m.exec(meminfo);
+  if (!available || !Number.isSafeInteger(Number(available[1]))) {
+    throw new Error("Host available memory is unverifiable; refusing an additional generation");
+  }
+  if (Number(available[1]) < OVERFLOW_REQUIRED_KIB) {
+    throw new Error(
+      `An additional generation requires at least ${OVERFLOW_REQUIRED_KIB / 1024} MiB of available host memory; existing rooms retained`,
+    );
+  }
+}
 
 function run(program, args, { capture = false } = {}) {
   return new Promise((resolveResult, reject) => {
@@ -56,7 +74,7 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
         "noeviction",
       ],
       cpus: 0.5,
-      mem_limit: "384m",
+      mem_limit: `${REDIS_MEMORY_MIB}m`,
       volumes: ["redis_data:/data"],
       networks: { default: { aliases: [`aegis-${slot}-redis`] } },
       healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: "5s", timeout: "3s", retries: 10 },
@@ -68,7 +86,7 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
       image: `aegis-api:${revision}`,
       restart: "unless-stopped",
       cpus: 1.25,
-      mem_limit: "1500m",
+      mem_limit: `${API_MEMORY_MIB}m`,
       stop_grace_period: "60s",
       environment: Object.fromEntries(
         Object.entries({
@@ -121,7 +139,7 @@ export function restoreComposeEnvironment(environment) {
   );
 }
 
-export async function controller({ action, source, envFile, state, revision }) {
+export async function controller({ action, source, envFile, state, revision, meminfoPath = "/host/meminfo" }) {
   mkdirSync(state, { recursive: true, mode: 0o755 });
   for (const directory of ["routing", "releases", "assets", "logs"])
     mkdirSync(`${state}/${directory}`, { recursive: true, mode: 0o755 });
@@ -405,7 +423,7 @@ export async function controller({ action, source, envFile, state, revision }) {
     revision ??= await run("git", ["-c", `safe.directory=${source}`, "-C", source, "rev-parse", "HEAD"], {
       capture: true,
     });
-    if (before && FIXED_SLOTS.includes(before.active.slot) && before.active.revision === revision) {
+    if (before && before.active.revision === revision) {
       console.log(`Revision ${revision} already active; no running services recreated`);
       return;
     }
@@ -414,6 +432,14 @@ export async function controller({ action, source, envFile, state, revision }) {
         await cleanupSlot(draining.slot);
       } catch {
         // Busy or unverifiable draining slots stay online and routable.
+      }
+    }
+    // Recover empty partial deployments, including additional generations, before allocating more.
+    for (const orphan of orphanSlots(installedManifest())) {
+      try {
+        await cleanupOrphanSlot(orphan);
+      } catch {
+        // Busy or unverifiable orphan processes are retained as well.
       }
     }
     const current = installedManifest();
@@ -434,9 +460,17 @@ export async function controller({ action, source, envFile, state, revision }) {
       }
     }
     if (!slot) {
-      throw new Error(
-        "No fixed deployment slot is available; run status/cleanup and retry after a retired slot is proven empty",
-      );
+      let meminfo;
+      try {
+        meminfo = readFileSync(meminfoPath, "utf8");
+      } catch {
+        throw new Error("Host available memory is unreadable; refusing an additional generation");
+      }
+      assertOverflowCapacity(meminfo);
+      do {
+        slot = `g-${randomBytes(6).toString("hex")}`;
+      } while (referencedSlots.has(slot) || existsSync(slotDirectory(slot)));
+      console.log(`Fixed slots remain occupied; allocating additional generation ${slot}`);
     }
     validateManifest({
       version: 1,
@@ -463,6 +497,10 @@ export async function controller({ action, source, envFile, state, revision }) {
       source,
     ]);
     await buildWebRelease(config, revision);
+    if (slot.startsWith("g-")) {
+      // Builds can take minutes; confirm capacity again before starting the new services.
+      assertOverflowCapacity(readFileSync(meminfoPath, "utf8"));
+    }
     mkdirSync(`${state}/slots/${slot}`, { recursive: true, mode: 0o700 });
     atomicJson(
       slotPath(slot),
@@ -542,6 +580,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     envFile: resolve(option("env-file", `${source}/.env`)),
     state: resolve(option("state", "/opt/aegis-rollout")),
     revision: option("revision"),
+    meminfoPath: resolve(option("meminfo", "/host/meminfo")),
   }).catch((error) => {
     console.error(`[aegis/deploy] ${error.message}`);
     process.exitCode = 1;
