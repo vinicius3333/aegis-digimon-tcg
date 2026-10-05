@@ -1,17 +1,10 @@
 import { createServer } from "node:http";
 import { matchMaker } from "colyseus";
+import { defineAegisRooms } from "./rooms/defineAegisRooms.js";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import express from "express";
-import {
-  ROOM_TYPE,
-  ROOM_TYPE_BETA,
-  ROOM_TYPE_BETA_BOT,
-  ROOM_TYPE_BOT,
-  ROOM_TYPE_PRIVATE,
-  ROOM_TYPE_RANKED,
-  ROOM_TYPE_TOURNAMENT,
-} from "@aegis/shared";
-import { AegisRoom, roomRegistry } from "./rooms/AegisRoom.js";
+import { ROOM_TYPE, ROOM_TYPE_PRIVATE } from "@aegis/shared";
+import { type AegisRoom, roomRegistry } from "./rooms/AegisRoom.js";
 import "./cards/index.js"; // side-effect: registers every implemented card EffectModule
 import { log, logError, flushLogs } from "./logger.js";
 import { installAccountRoutes } from "./accounts/routes.js";
@@ -195,29 +188,7 @@ const gameServer = new DeploymentServer(deploymentRuntime, {
   // Undefined in single-process mode, where Colyseus keeps its own default.
   ...(cluster.publicAddress === undefined ? {} : { publicAddress: cluster.publicAddress }),
 });
-// Explicit false values are security boundaries: Colyseus merges handler options
-// over client-supplied create options, so clients cannot promote another room type
-// into bot mode by sending `{ botRoom: true }` themselves.
-gameServer.define(ROOM_TYPE, AegisRoom, { botRoom: false, betaBattleRoom: false }).filterBy(["matchTimer"]);
-gameServer.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true, betaBattleRoom: false });
-gameServer.define(ROOM_TYPE_BETA_BOT, AegisRoom, { botRoom: true, betaBattleRoom: true });
-gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { botRoom: false, rankedRoom: true, betaBattleRoom: false });
-gameServer
-  .define(ROOM_TYPE_BETA, AegisRoom, {
-    botRoom: false,
-    rankedRoom: false,
-    tournamentRoom: false,
-    betaBattleRoom: true,
-  })
-  .filterBy(["matchTimer"]);
-// Filtered by BOTH tournament join keys: the legacy flow matches a room per bracket match, the
-// program flow one per Tournament Game, and neither may ever land in the other's room.
-gameServer
-  .define(ROOM_TYPE_TOURNAMENT, AegisRoom, { botRoom: false, tournamentRoom: true, betaBattleRoom: false })
-  .filterBy(["tournamentMatchId", "tournamentGameId"]);
-// Invite-only, so unreleased-product cards are legal here: both seats opted in by sharing
-// the code, and no public queue or statistic depends on the result.
-gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true, betaBattleRoom: true });
+defineAegisRooms(gameServer);
 
 /**
  * The deadline worker runs in production by default and nowhere else by default, because a test or
