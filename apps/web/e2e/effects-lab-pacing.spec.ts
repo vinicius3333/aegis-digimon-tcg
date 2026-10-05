@@ -5,7 +5,7 @@ import { test, expect, type Page, type TestInfo } from "@playwright/test";
 import { GamePage } from "./game-page";
 import { SPOTLIGHT_PADDING_PX, SPOTLIGHT_RADIUS_PX } from "../src/game/spotlight";
 import { DEFAULT_PACING } from "../src/game/pacing";
-import { KEYWORD_PACING_SCENARIOS, type KeywordPacingScenario } from "@aegis/shared";
+import { KEYWORD_PACING_SCENARIOS, KEYWORD_TURN_PACING_SCENARIOS, type KeywordPacingScenario } from "@aegis/shared";
 import { startPacingCapture, finishPacingCapture } from "./pacing-capture";
 
 /* A paced chain must keep moving in a real browser. The jsdom pacing harness replays the
@@ -23,6 +23,7 @@ interface LabState {
   steps: {
     key: string;
     stepId: string;
+    track: string;
     phase: string;
     at: number;
     failed: boolean;
@@ -33,6 +34,8 @@ interface LabState {
   }[];
   events: {
     kind: string;
+    phase?: string;
+    turnSeat?: number;
     seat?: number;
     sourceCardId?: string;
     timing?: string;
@@ -51,6 +54,7 @@ interface LabState {
     };
     displayed: { stateVersion: number };
     visible: {
+      turn?: { seat: number; count: number };
       players: {
         securityCount: number;
         battleArea: { permanentId: string; topCard: { cardId: string }; isSuspended: boolean }[];
@@ -70,6 +74,40 @@ interface ArrivalPaint {
   revealExitAt?: number;
   landingAt?: number;
   landedAt?: { x: number; y: number };
+}
+
+/** A fresh live DP change supersedes the decoration on that same card. */
+function expectOnlyCompletedDpReplacements(steps: LabState["steps"]) {
+  for (const cancelled of steps.filter((step) => step.cancelled)) {
+    expect(cancelled.track).toMatch(/^dpPulse-/);
+    const replacement = steps.find(
+      (step) =>
+        step.key !== cancelled.key &&
+        step.track === cancelled.track &&
+        step.phase === "started" &&
+        Math.abs(step.at - cancelled.at) < 1,
+    );
+    expect(replacement, `replacement for ${cancelled.key}`).toBeDefined();
+    expect(
+      steps.some(
+        (step) => step.key === replacement!.key && step.phase === "finished" && !step.cancelled && !step.failed,
+      ),
+    ).toBe(true);
+  }
+}
+
+/** Native clicks may answer a mounted prompt before its first sampled paint. */
+async function waitForDecisionPaint(page: Page, label: string) {
+  await expect
+    .poll(() =>
+      page.evaluate((name) => {
+        const capture = (
+          window as unknown as { __keywordPacingCapture: { decisions: { label: string | null; closedAt?: number }[] } }
+        )["__keywordPacingCapture"];
+        return capture.decisions.some((decision) => decision.label === name && decision.closedAt === undefined);
+      }, label),
+    )
+    .toBe(true);
 }
 
 class EffectsLabPage {
@@ -432,6 +470,26 @@ test.describe("effects lab pacing in the browser", () => {
       await stopped;
     }
   });
+  test.afterEach(async ({ page }, info) => {
+    if (info.status === info.expectedStatus || page.isClosed()) return;
+    const active = await page.evaluate(() =>
+      Boolean((window as unknown as Record<string, unknown>)["__keywordPacingCapture"]),
+    );
+    if (!active) return;
+    const capture = await finishPacingCapture(page);
+    const state = await new EffectsLabPage(page).read();
+    const layout = await page.locator('[data-drop="battle-you"], [data-field-key]').evaluateAll((elements) =>
+      elements.map((element) => ({
+        className: element.className,
+        dataset: { ...(element as HTMLElement).dataset },
+        rect: element.getBoundingClientRect().toJSON(),
+      })),
+    );
+    await info.attach("pacing-failure-diagnostic.json", {
+      body: Buffer.from(JSON.stringify({ capture, state, layout }, null, 2)),
+      contentType: "application/json",
+    });
+  });
 
   for (const scenario of KEYWORD_PACING_SCENARIOS as readonly KeywordPacingScenario[]) {
     const formats = [
@@ -463,6 +521,7 @@ test.describe("effects lab pacing in the browser", () => {
         if (scenario.decision?.kind === "Alliance") {
           const prompt = page.getByRole("region", { name: "Alliance window", exact: true });
           await expect(prompt).toBeVisible();
+          await waitForDecisionPaint(page, "Alliance window");
           if (scenario.decision.accept) {
             await page.locator('[data-drop="perm-you"][data-id="dev-perm-0-keyword-ally-0"]').click();
             await page.getByRole("button", { name: "Use Alliance", exact: true }).click();
@@ -471,6 +530,7 @@ test.describe("effects lab pacing in the browser", () => {
         if (scenario.decision?.kind === "Barrier") {
           const prompt = page.getByRole("region", { name: "＜Barrier＞", exact: true });
           await expect(prompt).toBeVisible();
+          await waitForDecisionPaint(page, "＜Barrier＞");
           await prompt
             .getByRole("button", {
               name: scenario.decision.accept ? "Yes, trash security" : "No, let it be deleted",
@@ -548,7 +608,184 @@ test.describe("effects lab pacing in the browser", () => {
           ).toHaveLength(1);
         }
         expect(errors).toEqual([]);
-        expect(state.steps.filter((step) => step.cancelled)).toEqual([]);
+        expectOnlyCompletedDpReplacements(state.steps);
+      });
+    }
+  }
+
+  for (const scenario of KEYWORD_TURN_PACING_SCENARIOS) {
+    for (const format of [
+      { name: "desktop", width: 1440, height: 1000, speed: "normal", reduced: false },
+      { name: "desktop", width: 1440, height: 1000, speed: "fast", reduced: false },
+      { name: "phone", width: 320, height: 844, speed: "normal", reduced: false },
+      { name: "reduced motion", width: 1440, height: 1000, speed: "normal", reduced: true },
+    ]) {
+      test(`real keyword pacing: ${scenario.id} (${format.name}, ${format.speed})`, async ({ page }, info) => {
+        await page.setViewportSize({ width: format.width, height: format.height });
+        await page.emulateMedia({ reducedMotion: format.reduced ? "reduce" : "no-preference" });
+        const errors: string[] = [];
+        page.on("pageerror", (error) => errors.push(error.message));
+        const lab = new EffectsLabPage(page);
+        await lab.start(scenario.id, false, format.speed);
+        await expect.poll(async () => (await lab.read()).queueIdle).toBe(true);
+        await startPacingCapture(page);
+        const actions: { label: string; observedAt: number }[] = [];
+        const mark = async (label: string) =>
+          actions.push({ label, observedAt: await page.evaluate(() => performance.now()) });
+        if (scenario.flow === "reboot") {
+          for (let index = 0; index < 3; index++) {
+            await mark(`attack-${index}`);
+            await new GamePage(page).attack(
+              `dev-perm-0-keyword-reboot-${index}`,
+              page.locator(`[data-drop="perm-opp"][data-id="dev-perm-1-keyword-reboot-target-${index}"]`),
+            );
+            await expect
+              .poll(
+                async () => {
+                  const state = await lab.read();
+                  return (
+                    state.events.filter((event) => event.kind === "attackEnded").length === index + 1 && state.queueIdle
+                  );
+                },
+                { timeout: 40_000 },
+              )
+              .toBe(true);
+          }
+          expect((await lab.read()).board!.visible.players[0]!.battleArea.map((card) => card.isSuspended)).toEqual([
+            true,
+            true,
+            true,
+          ]);
+        }
+        await mark("end-turn");
+        await lab.button(/END PHASE/i).click();
+        if (scenario.flow === "block") {
+          const prompt = page.getByRole("region", { name: "Block window", exact: true });
+          await expect(prompt).toBeVisible({ timeout: 40_000 });
+          await waitForDecisionPaint(page, "Block window");
+          await mark(scenario.accept ? "declare-block" : "decline-block");
+          if (scenario.accept)
+            await page.locator('[data-drop="perm-you"][data-id="dev-perm-0-keyword-blocker"]').click();
+          else await prompt.getByRole("button", { name: "Take the attack, no block", exact: true }).click();
+          await expect
+            .poll(
+              async () => {
+                const state = await lab.read();
+                return (
+                  state.events.some((event) => event.kind === "attackEnded") &&
+                  state.queueIdle &&
+                  state.board?.live.stateVersion === state.board?.displayed.stateVersion
+                );
+              },
+              { timeout: 40_000 },
+            )
+            .toBe(true);
+        } else {
+          // Observe the opponent's phase, before a later own turn can untap the control.
+          await expect
+            .poll(
+              async () => {
+                const state = await lab.read();
+                const cards = state.board?.visible.players[0]?.battleArea;
+                return (
+                  state.board?.visible.turn?.seat === 1 &&
+                  cards?.length === 3 &&
+                  cards.every((card, index) => card.isSuspended === (index === 2))
+                );
+              },
+              { timeout: 40_000 },
+            )
+            .toBe(true);
+          const second = page.locator(
+            '[data-drop="perm-you"][data-id="dev-perm-0-keyword-reboot-1"] .game-card-enter > [data-state]',
+          );
+          await expect
+            .poll(() => second.evaluate((element) => Number.parseFloat(getComputedStyle(element).rotate)))
+            .toBe(0);
+        }
+        const capture = await finishPacingCapture(page);
+        const state = await lab.read();
+        await info.attach("real-keyword-pacing.json", {
+          body: Buffer.from(
+            JSON.stringify({ scenario, format, speed: format.speed, actions, capture, state }, null, 2),
+          ),
+          contentType: "application/json",
+        });
+        expect(capture.truncated || state.truncated).toBe(false);
+        expect(capture.motion.captureQuality).toBe("usable");
+        expect(state.gateExpiries).toEqual([]);
+        expect(state.steps.filter((step) => step.failed || step.cancelled)).toEqual([]);
+        expect(errors).toEqual([]);
+        if (scenario.flow === "block") {
+          expect(
+            state.board!.visible.players[0]!.battleArea.some(
+              (card) => card.permanentId === "dev-perm-0-keyword-blocker",
+            ),
+          ).toBe(!scenario.accept);
+          expect(state.board!.visible.players[0]!.securityCount).toBe(scenario.accept ? 5 : 4);
+          expect(state.events.filter((event) => event.kind === "blocked")).toHaveLength(scenario.accept ? 1 : 0);
+          expect(
+            capture.decisions.some((decision) => decision.label === "Block window" && decision.closedAt !== undefined),
+          ).toBe(true);
+          const blows = capture.motion.animations.filter((animation) => animation.name === "battle-claw");
+          expect(blows).toHaveLength(format.reduced ? 0 : 1);
+          expect(blows.every((blow) => !blow.cutShort)).toBe(true);
+          const securityArrow = capture.arrows.find(
+            (arrow) => arrow.source === "dev-perm-1-keyword-attacker" && arrow.target === "security-you",
+          );
+          expect(securityArrow).toBeDefined();
+          const blockerArrow = capture.arrows.find(
+            (arrow) => arrow.source === "dev-perm-1-keyword-attacker" && arrow.target === "dev-perm-0-keyword-blocker",
+          );
+          if (scenario.accept && !format.reduced) {
+            expect(blockerArrow?.key).toBe(securityArrow!.key);
+            expect(blockerArrow!.at).toBeGreaterThan(securityArrow!.at);
+            expect(blockerArrow!.at).toBeLessThanOrEqual(blows[0]!.firstAt);
+          } else if (!scenario.accept) expect(blockerArrow).toBeUndefined();
+        } else {
+          const unsuspended = capture.boards.find(
+            (board) =>
+              board.turnSeat === 1 &&
+              !board.suspendedIds.includes("dev-perm-0-keyword-reboot-0") &&
+              !board.suspendedIds.includes("dev-perm-0-keyword-reboot-1"),
+          );
+          expect(unsuspended?.suspendedIds).toContain("dev-perm-0-keyword-reboot-2");
+          expect(state.events.filter((event) => event.kind === "attackEnded")).toHaveLength(3);
+          expect(
+            state.events.some(
+              (event) => event.kind === "phaseChanged" && event.phase === "Active" && event.turnSeat === 1,
+            ),
+          ).toBe(true);
+          const ribbon = capture.phaseRibbons.find((phase) => /unsuspend/i.test(phase.label));
+          if (!format.reduced) {
+            expect(ribbon).toBeDefined();
+            expect(unsuspended!.at).toBeGreaterThanOrEqual(ribbon!.at);
+            for (let index = 0; index < 2; index++) {
+              const rotation = capture.timings.find(
+                (timing) =>
+                  timing.permanentId === `dev-perm-0-keyword-reboot-${index}` &&
+                  timing.at >= ribbon!.at &&
+                  timing.properties.includes("rotate") &&
+                  timing.duration === 200,
+              );
+              expect(rotation?.delayMs).toBe(index * 60);
+              const poses = capture.poses.filter(
+                (pose) => pose.permanentId === `dev-perm-0-keyword-reboot-${index}` && pose.at >= ribbon!.at,
+              );
+              expect(poses.some((pose) => pose.angle > 1 && pose.angle < 89)).toBe(true);
+              expect(poses.at(-1)?.angle).toBe(0);
+            }
+          } else {
+            expect(
+              capture.timings.filter((timing) => timing.properties.includes("rotate") && timing.duration === 200),
+            ).toEqual([]);
+          }
+          const controlPoses = capture.poses.filter(
+            (pose) => pose.permanentId === "dev-perm-0-keyword-reboot-2" && pose.at >= unsuspended!.at,
+          );
+          expect(controlPoses.length).toBeGreaterThan(0);
+          expect(controlPoses.every((pose) => pose.angle === 90)).toBe(true);
+        }
       });
     }
   }

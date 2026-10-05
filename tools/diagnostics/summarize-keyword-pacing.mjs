@@ -17,6 +17,7 @@ function specs(suite) {
 
 const runs = [];
 const captures = [];
+const sourceReports = [];
 for (const path of positionals) {
   const text = await readFile(resolve(path), "utf8");
   // pnpm can prepend an engine warning and append its failed-command summary.
@@ -24,6 +25,24 @@ for (const path of positionals) {
   const end = text.lastIndexOf("\n}");
   if (start < 0 || end < start) throw new Error(`No Playwright JSON report in ${path}`);
   const report = JSON.parse(text.slice(start, end + 2));
+  sourceReports.push({
+    path: resolve(path),
+    stats: report.stats,
+    errorCount: (report.errors ?? []).length,
+    pacingCases: specs(report)
+      .filter((spec) => /^real (keyword|group) pacing:/.test(spec.title))
+      .flatMap((spec) =>
+        spec.tests.flatMap((test) =>
+          test.results.map((result) => ({
+            name: spec.title,
+            status: result.status,
+            hasCapture: (result.attachments ?? []).some((attachment) =>
+              ["real-keyword-pacing.json", "real-group-pacing.json"].includes(attachment.name),
+            ),
+          })),
+        ),
+      ),
+  });
   for (const spec of specs(report)) {
     for (const test of spec.tests) {
       for (const result of test.results) {
@@ -105,6 +124,48 @@ for (const path of positionals) {
             })),
             queueBeats,
             paintedBeats,
+            actionWindows: (data.actions ?? []).map((action, index, actions) => {
+              const through = actions[index + 1]?.observedAt ?? capture.finishedAt;
+              return {
+                ...action,
+                through,
+                observedMs: through - action.observedAt,
+                queueStepIds: queueBeats
+                  .filter((beat) => beat.startedAt >= action.observedAt && beat.startedAt < through)
+                  .map((beat) => beat.stepId),
+              };
+            }),
+            phaseRibbons: capture.phaseRibbons ?? [],
+            arrowTargetChanges: capture.arrows ?? [],
+            visibleBoardChanges: capture.boards ?? [],
+            cardRotations: capture.timings
+              .filter((timing) => timing.properties.includes("rotate") && timing.duration === 200)
+              .map((timing) => {
+                const delayMs = timing.delayMs ?? 0;
+                const rotationPoses = capture.poses.filter(
+                  (pose) =>
+                    pose.permanentId === timing.permanentId &&
+                    !pose.returning &&
+                    pose.at >= timing.at &&
+                    pose.at <= timing.at + delayMs + 350,
+                );
+                const initial = rotationPoses[0]?.angle;
+                const moving = rotationPoses.find(
+                  (pose) => initial !== undefined && Math.abs(pose.angle - initial) > 0.1,
+                );
+                const settled = rotationPoses.find(
+                  (pose) => moving && pose.at > moving.at && (pose.angle === 0 || pose.angle === 90),
+                );
+                return {
+                  permanentId: timing.permanentId,
+                  observedAt: timing.at,
+                  authoredDurationMs: timing.duration,
+                  authoredDelayMs: delayMs,
+                  firstMovingFrameAt: moving?.at,
+                  firstSettledFrameAt: settled?.at,
+                  sampledMotionMs: moving && settled ? settled.at - moving.at : null,
+                };
+              }),
             finalReturnErrorPx: destination
               ? Math.hypot(lastReturn.x - destination.x, lastReturn.y - destination.y)
               : null,
@@ -131,15 +192,18 @@ const verified = [...new Set(runs.filter((run) => run.status === "passed" && run
 const summary = {
   schema: 1,
   timingOrigin:
-    "Browser performance.now(): gesture observation, closed-batch presentation hook, queue steps and sampled DOM. No server execution/network latency claim.",
+    "Browser performance time origin: actions/hooks/queue use performance.now(); DOM and native animations share the requestAnimationFrame frame timestamp. No server execution/network latency claim.",
   limitations:
     "One run per case is a regression observation, not a statistical benchmark. Queue beat spans include waits/gates; painted beat spans are sampled observations, not isolated authored animation durations. Native clip candidates need review; intentional UI transition interruption can appear here. Canvas motion is outside this probe.",
   keywordCoverage: {
+    definition:
+      "At least one passed captured case per keyword; individual case statuses and uncaptured failures remain in sourceReports.",
     contract: KEYWORDS.length,
     verified,
     pending: KEYWORDS.filter((keyword) => !verified.includes(keyword)),
   },
   runs,
+  sourceReports,
 };
 const out = resolve(values.out);
 await mkdir(out, { recursive: true });
@@ -151,6 +215,11 @@ console.log(
     verifiedKeywords: verified.length,
     keywordContract: KEYWORDS.length,
     runs: runs.length,
-    failedRuns: runs.filter((run) => run.status !== "passed").length,
+    failedResults: sourceReports
+      .flatMap((report) => report.pacingCases)
+      .filter((result) => result.status !== "passed" && result.status !== "skipped").length,
+    capturedFailedRuns: runs.filter((run) => run.status !== "passed").length,
+    missingCaptures: sourceReports.flatMap((report) => report.pacingCases).filter((result) => !result.hasCapture)
+      .length,
   }),
 );

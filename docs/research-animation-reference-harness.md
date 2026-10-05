@@ -1558,3 +1558,98 @@ The existing protocol compile-time sentinel and UI event coverage include the
 new receipt; final outcomes retain their existing narration. Independent review
 found no remaining blocker in this delta. No all-keyword, full-video or complete
 audio-fidelity claim follows from these results.
+
+### Opponent-turn keywords and uninterrupted group returns
+
+Three new real-server layouts add Blocker acceptance/refusal and Reboot. Blocker
+uses printed ST18-07 Kokatorimon against ST1-10 Phoenixmon: acceptance redirects
+the existing attack to Kokatorimon, deletes it and preserves all five security;
+refusal preserves Kokatorimon and removes one security. The browser drives the
+public end-turn/block choices and the server's ordinary opponent turn. Moving
+cases require the same arrow identity to reach the blocker by the claw's first
+observed frame. Reduced motion verifies the blocked result without requiring a
+sub-frame redirect to be painted.
+
+Reboot uses printed BT4-070 Meteormon and BT5-069 BlackWarGreymon plus plain
+BT1-009 Monodramon. Three public attacks suspend all three and remove three
+opposing Agumon; ending the turn starts the opponent's Unsuspend phase. Only the
+two Reboot holders unsuspend at that boundary. The non-holder's observed artwork
+stays at 90 degrees. The existing 200 ms smoothstep turn now receives the phase's
+0/60 ms slot stagger on either board, so Reboot no longer turns both holders in
+the same frame. Fixtures do not override printed DP, add keywords, inject result
+receipts or resolve gameplay with private engine verbs.
+
+The expanded native observer records gesture action marks for the turn fixtures,
+visible board changes, phase ribbons, arrow target changes and individual turn
+delays. DOM observations and native-animation observations now share their
+requestAnimationFrame timestamp. Callback completion time is stored separately:
+mixing it with a frame timestamp falsely reported a 28–36 ms Blocker impact lead.
+The shared-clock control showed redirect and claw in the same sampled frame both
+with and without an experimental arrow wait. That wait was removed; no extra
+production wait was required.
+
+The native 320px grouping case exposed a production cancellation. A merge created
+its returning artwork, then shared field sizing committed again before the first
+paint. The layout effect cancelled every return; its previous-card map already
+contained the merged group, so no subsequent return could be created. A passive
+MutationObserver captured insertion and removal in the same callback, with no
+painted return frames. The real component reproduction changed a peer's shared
+width from 35 to 37 px and cancelled the newly created return at currentTime 0.
+
+Returns now retain their native animation and deadline while geometry changes.
+Updating their keyframes at the current eased progress keeps the painted centre
+continuous and points the endpoint at the current group centre. Changed group
+membership retires the old copy; if its members regain their own physical visual,
+that visual receives the copy's current centre and artwork angle. Reduced motion,
+resize, missing destinations and unmount still clean up. Independent browser
+review reproduced the width update with eight painted frames, and a mid-return
+split handed off within 0.0094 px while preserving a 14.0848 degree artwork angle.
+These interrupted-clock component probes supplement the natural server cases;
+they are not additional keyword gameplay recordings.
+
+The summary retains all source-report case statuses, including failures before a
+canonical capture attachment. A new live DP change may supersede an existing
+pulse on the same card. The harness permits that decoration cancellation only
+when its replacement starts on the same track at cancellation and completes;
+both trace entries remain visible. Attack/impact and other causal tracks keep
+strict cancellation checks. Optional decisions must receive an observed paint
+before automated native clicks answer them, preventing a test from hiding a
+prompt before its first sampled frame.
+
+The final matrix passed **40 cases, zero failed/skipped/flaky**, with forty
+canonical captures, no cancelled presentation steps, expired completion gates or
+truncated observations. It contains the previous 28 cases plus eight Blocker
+accept/decline cases and four Reboot cases at desktop Normal/Fast, 320px phone and
+reduced motion. Five moving group cases finished within **0.017 px** of the target
+centre; reduced motion created no return flight. Desktop and phone final captures
+were inspected against the existing field geometry and compact notice layout.
+
+| Reboot format  | First holder sampled motion | Second holder sampled motion | Observed first-moving-frame separation |
+| -------------- | --------------------------: | ---------------------------: | -------------------------------------: |
+| Desktop Normal |                      200 ms |                       200 ms |                                  50 ms |
+| Desktop Fast   |                      200 ms |                       200 ms |                                  50 ms |
+| Phone Normal   |                    183.3 ms |                     199.9 ms |                                  50 ms |
+
+The authored duration stays 200 ms and the second holder's authored delay is
+60 ms. Those observed spans and separations are frame samples, not replacements
+for the authored settings. Group frame-gap p95 was about 16.8 ms, with individual
+gaps up to 66.7 ms. Each case remains one regression run, not a statistical
+benchmark or evidence of uninterrupted frame delivery. JSON reports and full
+captures live locally under `.local/keyword-pacing/final-40-retarget`; the same
+reproduction command above now selects all forty cases.
+
+Validation passed 18 focused API tests for the new fixtures and existing
+Blocker/Reboot mechanisms, 37 focused field arrangement/layout/motion tests,
+production and E2E TypeScript checks, the production client build, scoped harness
+lint/format checks and `git diff --check`. Independent review found no remaining
+blocker in the field-return or harness deltas. The pre-existing unused
+`supportSlots` declaration remains a production-file lint finding; this change
+does not claim an entirely clean repository lint run.
+
+Native browser coverage is now **7/46 keywords**, with 39 pending. A local
+preparatory engine probe passed Evade acceptance/refusal using printed Groundramon
+BT1-020 attacking Security Death Claw ST6-15, whose deletion targets the still-active
+Syakomon BT14-021. It uses public attack/response intents; Evade is not counted as
+browser coverage until its lab layout and measured presentation are integrated.
+Full reference-frame comparison, canvas families, remaining keyword cases and
+original effect/background audio remain open.

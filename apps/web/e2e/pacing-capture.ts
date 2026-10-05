@@ -19,19 +19,41 @@ interface AnimationTiming {
   returnId?: number;
   properties: string[];
   duration: number | string;
+  delayMs: number;
   easing: string;
 }
 interface Capture {
   startedAt: number;
   frame: number;
+  frames: { at: number; sampledAt: number }[];
   truncated: boolean;
   poses: CardPose[];
   timings: AnimationTiming[];
   decisions: { label: string | null; openedAt: number; closedAt?: number }[];
+  boards: { at: number; turnSeat: number; suspendedIds: string[]; securityCounts: number[]; permanentIds: string[] }[];
+  phaseRibbons: { at: number; label: string; side: string | undefined }[];
+  arrows: {
+    at: number;
+    key: string;
+    source: string | undefined;
+    target: string | undefined;
+    gapPx: number;
+    x: number;
+    y: number;
+  }[];
+  returnLifecycle: {
+    at: number;
+    kind: "inserted" | "removed";
+    returnId?: number;
+    target?: string;
+    connected: boolean;
+    parent?: string;
+  }[];
 }
 interface PacingWindow extends Window {
   __aegisLiveMotion: LiveMotionProbe;
   __keywordPacingCapture: Capture;
+  __keywordPacingObserver?: MutationObserver;
 }
 
 /** The gesture boundary, DOM poses and native animation clocks share performance.now().
@@ -44,16 +66,24 @@ export async function startPacingCapture(page: Page) {
     const capture: Capture = {
       startedAt: performance.now(),
       frame: 0,
+      frames: [],
       truncated: false,
       poses: [],
       timings: [],
       decisions: [],
+      boards: [],
+      phaseRibbons: [],
+      arrows: [],
+      returnLifecycle: [],
     };
     globals["__keywordPacingCapture"] = capture;
     const seen = new WeakSet<Animation>();
     const returnIds = new WeakMap<Element, number>();
     let returnSequence = 0;
     let decision: { element: Element; observation: Capture["decisions"][number] } | undefined;
+    let boardKey = "";
+    let ribbonElement: Element | null = null;
+    let arrowSignature = "";
     const returnId = (element: Element) => {
       if (element.getAttribute("data-testid") !== "field-group-return") return undefined;
       let id = returnIds.get(element);
@@ -63,8 +93,112 @@ export async function startPacingCapture(page: Page) {
       }
       return id;
     };
-    const tick = () => {
-      const at = performance.now();
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const [kind, nodes] of [
+          ["inserted", record.addedNodes],
+          ["removed", record.removedNodes],
+        ] as const) {
+          for (const node of nodes) {
+            if (!(node instanceof HTMLElement)) continue;
+            const copies = [node, ...node.querySelectorAll<HTMLElement>('[data-testid="field-group-return"]')].filter(
+              (element) => element.dataset.testid === "field-group-return",
+            );
+            for (const copy of copies)
+              capture.returnLifecycle.push({
+                at: performance.now(),
+                kind,
+                returnId: returnId(copy),
+                target: copy.dataset.returnTargetFieldKey,
+                connected: copy.isConnected,
+                parent: (record.target as HTMLElement).className,
+              });
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    globals["__keywordPacingObserver"] = observer;
+    const tick = (at: number) => {
+      // Native animation observations use this same rAF timestamp. DOM reads can take
+      // several milliseconds; performance.now() here would misorder events in one frame.
+      capture.frames.push({ at, sampledAt: performance.now() });
+      const lab = (
+        window as unknown as {
+          __aegisEffectsLab?: () => {
+            board?: {
+              visible?: {
+                turn: { seat: number };
+                players: { securityCount: number; battleArea: { permanentId: string; isSuspended: boolean }[] }[];
+              };
+            };
+          };
+        }
+      ).__aegisEffectsLab?.();
+      const visible = lab?.board?.visible;
+      if (visible) {
+        const sample = {
+          turnSeat: visible.turn.seat,
+          suspendedIds: visible.players.flatMap((player) =>
+            player.battleArea.filter((card) => card.isSuspended).map((card) => card.permanentId),
+          ),
+          securityCounts: visible.players.map((player) => player.securityCount),
+          permanentIds: visible.players.flatMap((player) => player.battleArea.map((card) => card.permanentId)),
+        };
+        const key = JSON.stringify(sample);
+        if (key !== boardKey) {
+          capture.boards.push({ at, ...sample });
+          boardKey = key;
+        }
+      }
+      const ribbon = document.querySelector<HTMLElement>(".game-phase-banner");
+      if (ribbon !== ribbonElement) {
+        if (ribbon) capture.phaseRibbons.push({ at, label: ribbon.textContent ?? "", side: ribbon.dataset.side });
+        ribbonElement = ribbon;
+      }
+      const arrows = document.querySelectorAll<SVGSVGElement>(".game-attack-arrow--tracking.game-attack-arrow--attack");
+      const endpoints = [
+        ...document.querySelectorAll<HTMLElement>(
+          '[data-drop="perm-you"], [data-drop="perm-opp"], .game-security-shield',
+        ),
+      ];
+      let nextArrowSignature = "";
+      for (const arrow of arrows) {
+        const head = arrow.querySelector<SVGPathElement>(".game-attack-arrow__head");
+        const matrix = head?.getScreenCTM();
+        if (!matrix) continue;
+        const point = new DOMPoint(0, 0).matrixTransform(matrix);
+        const nearest = endpoints
+          .filter((element) => element.dataset.id !== arrow.dataset.attackSource)
+          .map((element) => {
+            const face = element.querySelector<HTMLElement>(".game-card-enter > [data-state]") ?? element;
+            const rect = face.getBoundingClientRect();
+            return {
+              target:
+                element.dataset.id ??
+                (element.classList.contains("game-security-shield--you") ? "security-you" : "security-opp"),
+              gapPx: Math.hypot(
+                Math.max(rect.left - point.x, 0, point.x - rect.right),
+                Math.max(rect.top - point.y, 0, point.y - rect.bottom),
+              ),
+            };
+          })
+          .sort((a, b) => a.gapPx - b.gapPx)[0];
+        const target = nearest && nearest.gapPx <= 8 ? nearest.target : undefined;
+        const key = arrow.dataset.attackKey ?? "";
+        nextArrowSignature += `${key}:${target};`;
+        if (nextArrowSignature !== arrowSignature)
+          capture.arrows.push({
+            at,
+            key,
+            source: arrow.dataset.attackSource,
+            target,
+            gapPx: nearest?.gapPx ?? Infinity,
+            x: point.x,
+            y: point.y,
+          });
+      }
+      arrowSignature = nextArrowSignature;
       const dialog = document.querySelector('[role="dialog"], [data-testid="board-prompt"]');
       if (decision && decision.element !== dialog) {
         decision.observation.closedAt = at;
@@ -92,6 +226,7 @@ export async function startPacingCapture(page: Page) {
           returnId: returnId(target),
           properties: [...new Set(effect!.getKeyframes().flatMap((frame) => Object.keys(frame)))],
           duration: typeof timing.duration === "number" ? timing.duration : String(timing.duration),
+          delayMs: timing.delay ?? 0,
           easing: timing.easing ?? "linear",
         });
       }
@@ -131,6 +266,7 @@ export async function finishPacingCapture(page: Page) {
     const globals = window as unknown as PacingWindow;
     const capture = globals["__keywordPacingCapture"];
     cancelAnimationFrame(capture.frame);
+    globals["__keywordPacingObserver"]?.disconnect();
     globals["__aegisLiveMotion"].stop();
     return { ...capture, finishedAt: performance.now(), motion: globals["__aegisLiveMotion"].read() };
   });

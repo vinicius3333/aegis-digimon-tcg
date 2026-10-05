@@ -521,25 +521,35 @@ cleanup cadence and the complete primary-video comparison remain open.
 `design/cardMotion.ts` owns the shared 200 ms smoothstep artwork turn. Organized
 lane movement retains its separate 420 ms clock. When physical cards rejoin a
 group, an inert artwork copy returns to the group's actual centre, preserving
-the interrupted translation and artwork angle. Resting board geometry stays
-unchanged; reduced motion removes the flight and turn.
+the interrupted translation and artwork angle. A subsequent shared-width update
+retargets that same copy from its current eased position, preserving its native
+clock and completion deadline. Resting board geometry stays unchanged; reduced
+motion removes the flight and turn.
 
 Effects Lab includes real-server layouts for Piercing, Jamming, Retaliation,
-Alliance/Barrier accept/decline, and `effects-lab-field-grouping`.
-The latter uses two printed Izzy Izumi
+Alliance/Barrier/Blocker accept/decline, Reboot, and `effects-lab-field-grouping`.
+Blocker uses the real opponent turn and direct block decision. Reboot suspends
+two printed holders and a non-holder through three public attacks, then checks
+the opponent's Unsuspend phase: only the holders turn, staggered by 60 ms.
+The grouping layout uses two printed Izzy Izumi
 cards and native activation/selection decisions to split and reunite the group.
 The keyword layouts seed printed cards and resolve through public engine
 intents; they do not grant keywords or fabricate events/results.
 
 Run `pnpm --filter @aegis/web exec playwright test e2e/effects-lab-pacing.spec.ts
 --grep 'real (keyword|group) pacing' --reporter=json` to capture the six
-basic Normal/Fast keyword cases, sixteen keyword-decision cases and six
-responsive/reduced-motion group cases. Pass
+basic Normal/Fast keyword cases, sixteen Alliance/Barrier decision cases,
+eight Blocker decision cases, four Reboot phase cases and six
+responsive/reduced-motion group cases (40 cases total). Pass
 the saved JSON report to `node tools/diagnostics/summarize-keyword-pacing.mjs`.
 The observer records real event batches, decisions, queue steps, native
-animations and sampled DOM poses. Its batch timestamp is a browser presentation
-hook observation, not a server/network timestamp. Coverage remains 5 of 46
-keywords; native clip candidates and remaining scenarios require review.
+animations, arrow target changes, phase ribbons, board changes and sampled DOM
+poses. DOM poses and native animation observations share the requestAnimationFrame
+clock; callback completion time is retained separately. Its batch timestamp is a
+browser presentation hook observation, not a server/network timestamp. Coverage
+is seven of 46 keywords; native clip candidates and remaining scenarios require
+review. Source report statuses retain failed cases even when they have no full
+capture, so keyword coverage alone does not mean the entire matrix passed.
 
 The server's `battleCompared` receipt names attack-battle deletion candidates
 before optional protection. Their claw/settle completes before Barrier's
@@ -547,7 +557,10 @@ question, including when the card survives. Final deletion/combat receipts do
 not repeat that blow. Unconditional immunity still removes the candidate, and
 effect-driven battles cannot consume a declared attack's comparison. The
 summary separates queue waits, sampled painted beats and decision windows;
-none of these spans is presented as a server execution measurement.
+none of these spans is presented as a server execution measurement. A live DP
+change may replace its previous decoration on the same card; the harness requires
+the replacement to start at cancellation and complete, while retaining both trace
+records. Attack, impact and other causal tracks retain strict cancellation checks.
 
 ## Pending original audio pass
 
