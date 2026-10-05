@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile Notice Layouts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Tektur:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Tokens copied from apps/web/src/design/tokens.css (dark) and game/style/battleBoard.css.
+   Nothing here is a new visual identity: surfaces, borders, radius and type are Aegis's. */
+:root {
+  --battle-panel: #101b30;
+  --battle-panel-border: #3b5c9e;
+  --battle-header-grad: linear-gradient(180deg, #2b57a8 0%, #16336e 55%, #102450 100%);
+  --battle-cyan: #27d6e8;
+  --ds-brand-on-ink: #f8fbff;
+  --ds-brand-on-ink-muted: #aebbd0;
+  --ds-brand-accent-soft: #78aaff;
+  --ds-accent: #60a5fa;
+  --ds-focus-color: #60a5fa;
+  --ds-danger: #f87171;
+  --ds-success: #4ade80;
+  --owner-you: #60a5fa;      /* --battle-memory-you in the dark scheme */
+  --owner-opp: #ff9a6e;      /* portrait opponent memory marker, arenaPortraitStrip.css */
+  --ds-space-1: 4px;
+  --ds-space-2: 8px;
+  --ds-space-3: 12px;
+  --ds-font-display: "Tektur", ui-sans-serif, system-ui, sans-serif;
+  --ds-font-body: "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --page: #07152b;
+  --page-ink: #f8fbff;
+  --page-muted: #aebbd0;
+  --page-line: #23345a;
+}
+:root[data-theme="light"] { --page: #eef2f8; --page-ink: #07152b; --page-muted: #4a5870; --page-line: #c9d1dd; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --page: #eef2f8; --page-ink: #07152b; --page-muted: #4a5870; --page-line: #c9d1dd; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--page-ink); font: 14px/1.45 var(--ds-font-body); }
+main { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; padding: 16px; max-width: 1200px; margin: 0 auto; }
+@media (max-width: 820px) { main { grid-template-columns: minmax(0, 1fr); } }
+h1 { font: 700 20px/1.2 var(--ds-font-display); margin: 0 0 4px; }
+.lede { color: var(--page-muted); margin: 0 0 12px; max-width: 70ch; }
+.controls { display: grid; gap: 10px; margin-bottom: 16px; }
+.controls fieldset { border: 1px solid var(--page-line); border-radius: 8px; padding: 6px 10px 10px; margin: 0; }
+.controls legend { font-size: 12px; color: var(--page-muted); padding: 0 4px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { min-height: 36px; padding: 0 12px; border: 1px solid var(--page-line); border-radius: 6px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--battle-panel); color: #fff; border-color: var(--battle-panel-border); }
+.seg button:focus-visible { outline: 2px solid var(--ds-focus-color); outline-offset: 2px; }
+.stage { display: flex; justify-content: center; }
+.phone { position: relative; overflow: hidden; border-radius: 18px; box-shadow: 0 0 0 1px #3b5c9e66, 0 18px 40px #0008; background: #c9d4e4; flex: none; isolation: isolate; }
+.phone img.strip { position: absolute; left: 0; display: block; width: 100%; pointer-events: none; user-select: none; }
+.phone img.scaled { width: auto; left: 50%; transform: translateX(-50%); }
+.phone .slack { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(135deg, #b9c5d980 0 6px, transparent 6px 12px); }
+.phone .slack span { position: absolute; inset: 0; display: grid; place-items: center; font: 600 9px var(--ds-font-body); color: #23324d; }
+.notes h2 { font: 700 16px/1.3 var(--ds-font-display); margin: 18px 0 6px; }
+.notes p, .notes li { max-width: 72ch; }
+.notes table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.notes th, .notes td { border-bottom: 1px solid var(--page-line); padding: 6px 8px; text-align: left; vertical-align: top; }
+.notes th { color: var(--page-muted); font-weight: 600; }
+.tag { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--page-line); color: var(--page-muted); }
+
+/* ---------- Shared notice pieces (existing compact-toast vocabulary) ---------- */
+.panel { position: absolute; border: 1px solid var(--battle-panel-border); border-radius: 0.65rem; background: var(--battle-panel); color: var(--ds-brand-on-ink); overflow: hidden; }
+.hit { all: unset; position: absolute; inset: 0; cursor: pointer; border-radius: inherit; }
+.hit:focus-visible { outline: 2px solid var(--ds-focus-color); outline-offset: -2px; }
+.art { display: inline-block; flex: none; border-radius: 3px; background-size: cover; background-position: center top; box-shadow: 0 0 0 1px #0006; }
+.label { font-size: 9px; color: var(--ds-brand-on-ink-muted); white-space: nowrap; }
+.clause { font-size: 11px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.owner { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.owner[data-side="you"] { background: var(--owner-you); }
+.owner[data-side="opp"] { background: var(--owner-opp); }
+.life { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--battle-panel-border); transform-origin: left; animation: life 14s linear infinite; }
+[data-tone="deletion"] .life, [data-tone="rejection"] .life { background: var(--ds-danger); }
+[data-tone="gain"] .life { background: var(--ds-success); }
+.paused .life { animation-play-state: paused; }
+@keyframes life { to { transform: scaleX(0); } }
+.prompt { box-shadow: inset 0 0 0 2px var(--ds-focus-color); }
+.empty-outline { position: absolute; border: 1px dashed #3b5c9e88; border-radius: 0.65rem; pointer-events: none; }
+.empty-outline span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 9px; color: #23324d; }
+.measure { position: absolute; z-index: 40; font: 600 9px/1 var(--ds-font-body); color: #fff; background: #b91c1ccc; padding: 2px 4px; border-radius: 3px; pointer-events: none; white-space: nowrap; }
+.show-measure-off .measure { display: none; }
+
+/* A: ledger rows */
+.ledger-row { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 4px; padding: 0 6px 0 9px; }
+.ledger-row + .ledger-row { border-top: 1px solid #3b5c9e66; }
+.ledger-cards { flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 2px; height: 100%; padding-left: 5px; border-left: 1px solid #3b5c9e66; font-size: 9px; color: var(--ds-brand-on-ink-muted); }
+.ledger-text { display: flex; align-items: baseline; gap: 4px; min-width: 0; flex: 1; }
+
+/* A2: moment cards */
+.moment-body { position: absolute; inset: 0 0 1px; display: flex; align-items: center; gap: 5px; padding: 3px 6px 3px 9px; }
+.moment-text { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 1px; }
+.moment-text .two { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; font-size: 11px; line-height: 1.15; }
+.moment-owner { color: var(--ds-brand-on-ink); font-weight: 700; }
+.moment-result { flex: none; display: flex; align-items: center; gap: 2px; }
+.tabs button[data-earlier] { border-style: dashed; color: var(--ds-brand-on-ink-muted); }
+
+/* B: spotlight + stubs */
+.stub { position: absolute; top: 0; bottom: 0; width: 44px; display: grid; place-items: center; }
+.stub .art { width: 22px; height: 31px; }
+.spot { position: absolute; top: 0; bottom: 0; display: flex; gap: 5px; align-items: center; padding: 3px 6px 3px 9px; }
+.spot .two { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; font-size: 10.5px; line-height: 1.2; }
+
+/* C: rails */
+.rail-tile { position: absolute; display: grid; justify-items: center; align-content: center; gap: 2px; padding: 3px 2px; text-align: center; }
+.rail-tile .label { white-space: normal; line-height: 1.1; font-size: 8.5px; color: var(--ds-brand-on-ink); font-weight: 600; }
+
+/* Details: bottom sheet reusing the decision-sheet frame */
+.scrim { position: absolute; inset: 0; z-index: 50; background: rgb(4 14 31 / 55%); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 51; max-height: 82%; display: flex; flex-direction: column; border: 1px solid var(--battle-panel-border); border-bottom: 0; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%); color: #eaf1ff; }
+.sheet header { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 0 12px; }
+.sheet h2 { margin: 0; font: 700 16px/1.2 var(--ds-font-body); }
+.icon-btn { display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: inherit; cursor: pointer; border-radius: 6px; }
+.icon-btn:focus-visible, .sheet button:focus-visible { outline: 2px solid var(--ds-focus-color); outline-offset: -2px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.tabs button { flex: 1 1 calc(50% - 6px); min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid var(--battle-panel-border); border-radius: 8px; background: transparent; color: inherit; font: 600 12px var(--ds-font-body); cursor: pointer; text-align: left; }
+.tabs button[aria-selected="true"] { background: #1b2d52; box-shadow: inset 0 -2px 0 var(--ds-focus-color); }
+.tabs span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-body { overflow-y: auto; padding: 0 12px 12px; display: grid; gap: 8px; }
+.source { margin: 0; padding: 8px; border-inline-start: 3px solid var(--battle-panel-border); background: var(--battle-panel); font-size: 14px; }
+.source small { color: var(--ds-brand-on-ink-muted); }
+.notice { display: flex; gap: 10px; padding: 10px; border: 1px solid var(--battle-panel-border); border-radius: 0.45rem; background: linear-gradient(180deg, rgb(20 40 76 / 96%) 0%, rgb(10 20 40 / 96%) 100%); font-size: 13px; line-height: 1.45; }
+.timing { display: inline-block; padding: 0 4px; margin-right: 4px; border-radius: 3px; background: #2b57a8; color: #fff; }
+.side-panel { border: 1px solid var(--battle-panel-border); border-radius: 0.65rem; background: var(--battle-panel); overflow: hidden; }
+.side-panel h3 { margin: 0; padding: 6px; text-align: center; background: var(--battle-header-grad); font: 700 15px var(--ds-font-display); color: #fff; }
+.side-panel .cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 8px; font-size: 12px; text-align: center; }
+.dismiss { min-height: 44px; border: 1px solid var(--battle-panel-border); border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.decision { position: absolute; left: 0; right: 0; bottom: 0; z-index: 30; border: 1px solid var(--battle-panel-border); border-bottom: 0; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%); color: #eaf1ff; padding: 12px; font-size: 13px; }
+.decision h2 { margin: 0 0 8px; font: 700 16px var(--ds-font-body); }
+.decision .row { display: flex; gap: 8px; padding: 8px; border: 1px solid #3b5c9e88; border-radius: 6px; }
+.target-banner { position: absolute; z-index: 30; left: 8px; right: 8px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--battle-panel-border); background: var(--battle-panel); color: #fff; font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <h1>Mobile notice layouts</h1>
+    <p class="lede">Three structural options drawn over strips cropped from the real 2026-10-05 captures. HTML/CSS prototype, not imagegen and not a native capture.</p>
+    <div class="controls">
+      <fieldset><legend>Layout</legend><div class="seg" data-key="option"></div></fieldset>
+      <fieldset><legend>Ledger size (A)</legend><div class="seg" data-key="size"></div></fieldset>
+      <fieldset><legend>Viewport</legend><div class="seg" data-key="viewport"></div></fieldset>
+      <fieldset><legend>Scenario</legend><div class="seg" data-key="scenario"></div></fieldset>
+      <fieldset><legend>Overlay</legend><div class="seg" data-key="measure"></div></fieldset>
+    </div>
+    <div class="stage"><div class="phone" id="phone"></div></div>
+  </div>
+  <div class="notes" id="notes"></div>
+</main>
+<script>
+const CARD = {
+  agumon: "board/card-agumon.webp", plutomon: "board/card-plutomon.webp", asuna: "board/card-asuna.webp",
+  chronomon: "board/card-chronomon.webp", hyokomon: "board/card-hyokomon.webp", shota: "board/card-shota.webp",
+};
+
+/* Each moment is one NarrationItem: buildNarrationItems already merges a clause with the
+   panel it caused. Text is real card text or real i18n strings; the rejection reason is a sample. */
+const MOMENT = {
+  reveal: { id: "reveal", side: "opp", tone: "effect", art: "agumon", label: "On Play", source: "Agumon", code: "BT1-010",
+    clause: "Reveal 5 cards from the top of your deck. Add 1 Tamer card among them to your hand. Place the remaining cards at the bottom of your deck in any order.",
+    panelTitle: "Revealed Cards", cards: ["agumon"] },
+  deleted: { id: "deleted", side: "opp", tone: "deletion", art: "plutomon", label: "Deleted", source: "Plutomon", code: "",
+    clause: null, panelTitle: "Deleted", cards: ["plutomon"] },
+  discarded: { id: "discarded", side: "you", tone: "effect", art: "shota", label: "Discarded cards from hand", source: "", code: "",
+    clause: null, panelTitle: "Discarded cards from hand", cards: ["shota", "asuna"] },
+  recovery: { id: "recovery", side: "you", tone: "gain", art: null, label: "Security", source: "", code: "",
+    clause: "Recovery +1", panelTitle: null, cards: [] },
+  rejection: { id: "rejection", side: "you", tone: "rejection", art: null, label: "Not allowed", source: "", code: "",
+    clause: "Not enough memory (sample reason)", panelTitle: null, cards: [] },
+};
+
+const SCENARIOS = {
+  paired: { name: "Effect + result", moments: ["deleted", "reveal"] },
+  worst: { name: "4 unrelated items", moments: ["recovery", "discarded", "deleted", "reveal"] },
+  rejection: { name: "Rejection", moments: ["reveal", "rejection"] },
+  empty: { name: "Empty", moments: [] },
+  order: { name: "Decision: order sheet", moments: ["deleted", "reveal"], decision: "order" },
+  targets: { name: "Decision: choose target", moments: ["deleted", "reveal"], decision: "targets" },
+};
+
+/* Measured rows come from capture.json (withGutter / withoutGutter). */
+const VIEWPORTS = {
+  "320x568": { w: 320, h: 568, field: 352, dock: 124, rows: { gutter: [174, 296], none: [126, 266] }, rowH: { gutter: 77, none: 96 },
+    art: { gutter: "32×45", none: "44×62" }, header: { region: 234 } },
+  "320x740": { w: 320, h: 740, field: 504, dock: 144, rows: { gutter: [186, 374], none: [150, 362] }, rowH: { gutter: 128, none: 128 },
+    art: { gutter: "65×91", none: "65×91" }, header: { region: 234 } },
+  "390x844": { w: 390, h: 844, field: 592, dock: 160, rows: { gutter: [208, 440], none: [172, 428] }, rowH: { gutter: 129, none: 129 },
+    art: { gutter: "65×91", none: "65×91" }, header: { region: 246 } },
+};
+
+const OPTIONS = {
+  A2: { name: "A2 · Moment cards (recommended)", band: true },
+  current: { name: "Current", band: true },
+  A: { name: "A · Lane ledger", band: true },
+  B: { name: "B · Spotlight", band: false },
+  C: { name: "C · Edge rails", band: false },
+};
+
+const state = { option: "A2", size: "large", viewport: "320x568", scenario: "paired", measure: "on", selected: null, tab: 0 };
+const params = new URLSearchParams(location.search);
+for (const key of Object.keys(state)) if (params.has(key)) state[key] = params.get(key);
+
+const el = (tag, attrs = {}, ...children) => {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value === undefined || value === null || value === false) continue;
+    if (key === "style" && typeof value === "object") Object.assign(node.style, value);
+    else if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+    else node.setAttribute(key, value === true ? "" : value);
+  }
+  for (const child of children.flat()) if (child !== null && child !== undefined) node.append(child);
+  return node;
+};
+const art = (key, w, h) => key ? el("span", { class: "art", style: { width: w + "px", height: h + "px", backgroundImage: `url(${CARD[key]})` } }) : null;
+const measure = (text, style) => el("span", { class: "measure", style }, text);
+const ownerName = (side) => side === "you" ? "Yours" : "Opponent's";
+const actionText = (m) => m.clause ?? (m.cards.length === 1 ? m.source : `${m.cards.length} cards`);
+
+/* The cap: at most two clause entries (left lane) and two card entries (right lane). */
+function lanes(moments) {
+  const items = moments.map((id) => MOMENT[id]);
+  const left = items.filter((m) => m.clause).slice(-2);
+  const right = items.filter((m) => m.cards.length).slice(-2);
+  return { left, right };
+}
+/* Ledger and rails show moments as rows, newest first, bounded by the same two-per-lane cap. */
+function rowsOf(moments) {
+  return moments.map((id) => MOMENT[id]).slice(-2).reverse();
+}
+
+function render() {
+  const vp = VIEWPORTS[state.viewport];
+  const option = OPTIONS[state.option];
+  const scenario = SCENARIOS[state.scenario];
+  const phone = document.getElementById("phone");
+  phone.replaceChildren();
+  phone.className = "phone" + (state.measure === "on" ? "" : " show-measure-off");
+  phone.style.width = vp.w + "px";
+  phone.style.height = vp.h + "px";
+  phone.setAttribute("aria-label", `${option.name} at ${vp.w}×${vp.h}`);
+
+  const v = state.viewport;
+  phone.append(el("img", { class: "strip", src: `board/header-${v}.webp`, alt: "", style: { top: "0px", height: "44px" } }));
+  phone.append(el("img", { class: "strip", src: `board/dock-${v}.webp`, alt: "", style: { top: vp.h - vp.dock + "px", height: vp.dock + "px" } }));
+  let rowTops;
+  const band = bandHeight();
+  if (state.option === "A2" && v === "320x568") {
+    /* Recommended field floor: battle rows keep their measured no-gutter 96px, so art stays
+       44×62; the field scrolls locally instead (≈48px here, an estimate). Scroll it. */
+    const field = el("div", { class: "field-scroll", style: { position: "absolute", left: 0, right: 0, top: "92px", height: vp.field + "px", overflowY: "auto", overscrollBehavior: "contain" } });
+    const parts = [["util-opp", 82, false], ["battle-opp", 96, true], ["memory", 44, false], ["battle-you", 96, true], ["util-you", 82, false]];
+    const inner = el("div", { style: { position: "relative", height: parts.reduce((sum, part) => sum + part[1], 0) + "px", overflow: "hidden" } });
+    let top = 0;
+    rowTops = [];
+    for (const [name, height, scaled] of parts) {
+      if (name.startsWith("battle")) rowTops.push(92 + top);
+      inner.append(el("img", { class: "strip" + (scaled ? " scaled" : ""), src: `board/${name}-320x568.webp`, alt: "", style: { top: top + "px", height: height + "px" } }));
+      top += height;
+    }
+    field.append(inner);
+    phone.append(field);
+  } else if (band === 48) {
+    phone.append(el("img", { class: "strip", src: `board/field-${v}.webp`, alt: "", style: { top: "92px", height: vp.field + "px" } }));
+    rowTops = vp.rows.gutter;
+  } else if (v === "320x568") {
+    /* Rebuilt from row strips. No band: measured 96px battle rows. 64px band: the extra 16px
+       is taken from the two battle rows (77 to 69px each), an estimate. */
+    const battle = band === 64 ? 69 : 96;
+    const parts = [["util-opp", 82, false], ["battle-opp", battle, true], ["memory", 44, false], ["battle-you", battle, true], ["util-you", 82, false]];
+    let top = 44 + band;
+    rowTops = [];
+    for (const [name, height, scaled] of parts) {
+      if (name.startsWith("battle")) rowTops.push(top);
+      phone.append(el("img", { class: "strip" + (scaled ? " scaled" : ""), src: `board/${name}-320x568.webp`, alt: "", style: { top: top + "px", height: height + "px" } }));
+      top += height;
+    }
+  } else if (band === 64) {
+    /* Tall viewports: the extra 16px comes out of field slack (estimate); the strip is cropped, not scaled. */
+    phone.append(el("img", { class: "strip", src: `board/field-${v}.webp`, alt: "", style: { top: "108px", height: vp.field - 16 + "px", objectFit: "cover" } }));
+    rowTops = vp.rows.gutter.map((y) => y + 8);
+  } else {
+    /* Tall viewports already have slack: the 48px returns as space, card art is unchanged (measured). */
+    phone.append(el("div", { class: "slack", style: { top: "44px", height: "24px" } }, el("span", {}, "returned 48px: slack, art unchanged")));
+    phone.append(el("img", { class: "strip", src: `board/field-${v}.webp`, alt: "", style: { top: "68px", height: vp.field + "px" } }));
+    phone.append(el("div", { class: "slack", style: { top: 68 + vp.field + "px", height: "24px" } }));
+    rowTops = vp.rows.gutter.map((y) => y - 92 + 68);
+  }
+
+  const paused = Boolean(scenario.decision);
+  const ctx = { vp, scenario, paused, rowTops, phone };
+  ({ current: renderCurrent, A2: renderMomentCards, A: renderLedgerBand, B: renderSpotlight, C: renderRails })[state.option](ctx);
+
+  if (scenario.decision === "order") {
+    phone.append(el("div", { class: "decision", style: { height: Math.round(vp.h * 0.62) + "px" } },
+      el("h2", {}, "Order pending effects"),
+      el("div", { class: "row" }, art("agumon", 44, 62), el("div", {}, el("strong", {}, "Agumon "), el("small", {}, "BT1-010"), el("div", {}, el("span", { class: "timing" }, "[On Play]"), "Reveal 5 cards from the top of your deck…")))));
+  }
+  if (scenario.decision === "targets") {
+    phone.append(el("div", { class: "target-banner", style: { top: rowTops[1] - 30 + "px" } }, "Choose 1 of your opponent's Digimon"));
+  }
+  if (state.selected) renderSheet(ctx);
+  renderNotes();
+}
+
+function renderCurrent({ scenario, paused, phone, vp }) {
+  const { left, right } = lanes(scenario.moments);
+  const laneW = vp.w / 2 - 12;
+  const toastW = (laneW - 4) / 2;
+  const place = (entries, x0, kind) => entries.forEach((m, index) => {
+    const x = x0 + index * (toastW + 4);
+    const box = el("div", { class: "panel" + (paused ? " paused" : ""), "data-tone": m.tone, style: { left: x + "px", top: "44px", width: toastW + "px", height: "48px" } },
+      el("div", { style: { display: "flex", gap: "4px", padding: "3px 6px", height: "100%" } },
+        el("div", { style: { display: "flex", flexDirection: "column", gap: "1px", minWidth: 0, flex: 1 } },
+          el("div", { style: { display: "flex", gap: "4px", alignItems: "center", minWidth: 0, overflow: "hidden" } }, art(m.art, 16, 22), el("span", { class: "label", style: { overflow: "hidden", textOverflow: "ellipsis" } }, kind === "cards" && m.panelTitle ? m.panelTitle : m.label)),
+          el("span", { class: "clause" }, kind === "cards" ? `${m.cards.length} cards` : actionText(m).replace(/^\[[^\]]+\]\s*/, "")))),
+      el("span", { class: "life" }),
+      el("button", { class: "hit", "aria-label": `Show the full notice: ${m.label}`, onclick: () => open(m.id) }));
+    phone.append(box);
+  });
+  place(left, 8, "text");
+  place(right, vp.w / 2 + 4, "cards");
+  phone.append(measure(`${Math.round(toastW)}×48 each · text ≈${Math.round(toastW - 32)}px`, { left: "8px", top: "94px" }));
+  phone.append(measure(`field art ${vp.art.gutter}`, { left: "8px", top: vp.rows.gutter[0] + 2 + "px" }));
+}
+
+/* Lane ledger. Two columns keep the desktop lanes: clauses left, moved cards right, at most
+   two entries each, so 2 left + 2 right are visible at once. A clause and the cards it moved
+   share a row and render joined; unrelated entries sit in separate cells. Rows are newest first. */
+function ledgerRows(moments) {
+  const { left, right } = lanes(moments);
+  const union = moments.map((id) => MOMENT[id]).filter((m) => left.includes(m) || right.includes(m)).reverse();
+  const rows = [{}, {}];
+  for (const m of union) {
+    const inLeft = left.includes(m), inRight = right.includes(m);
+    const index = rows.findIndex((row) => (!inLeft || !row.left) && (!inRight || !row.right));
+    if (index < 0) continue;
+    if (inLeft) rows[index].left = m;
+    if (inRight) rows[index].right = m;
+  }
+  return rows.filter((row) => row.left || row.right);
+}
+const SIZES = {
+  large: { band: 64, rowH: 30, gap: 4, art: [20, 28], thumb: [18, 25], text: 12, label: 10 },
+  compact: { band: 48, rowH: 22, gap: 4, art: [14, 20], thumb: [13, 18], text: 11, label: 9 },
+};
+const cardsText = (m) => m.cards.length === 1 ? cap(m.cards[0]) : `${m.cards.length} cards`;
+const cap = (key) => key[0].toUpperCase() + key.slice(1);
+
+function ledger({ scenario, paused, phone }, box, size) {
+  const rows = ledgerRows(scenario.moments);
+  const top = parseFloat(box.top), left = parseFloat(box.left), width = parseFloat(box.width);
+  const leftW = Math.round((width - 4) * 0.54), rightW = width - 4 - leftW;
+  const height = size.rowH * 2 + size.gap;
+  if (!rows.length) {
+    phone.append(el("div", { class: "empty-outline", style: { left: left + "px", top: top + "px", width: width + "px", height: height + "px" } }, el("span", {}, "empty: lanes reserved, nothing drawn")));
+    return;
+  }
+  const promptId = scenario.decision === "order" ? "reveal" : null;
+  const cellText = (content) => el("span", { class: "ledger-text" }, ...content);
+  const cell = (m, lane, rowIndex, joinedWith) => {
+    const x = lane === "left" ? left : left + leftW + 4;
+    const w = lane === "left" ? leftW : rightW;
+    const style = { left: x + "px", top: top + rowIndex * (size.rowH + size.gap) + "px", width: w + "px", height: size.rowH + "px", borderRadius: "0.65rem" };
+    if (joinedWith) Object.assign(style, lane === "left" ? { borderTopRightRadius: 0, borderBottomRightRadius: 0, width: w + 4 + "px" } : { borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeftColor: "#3b5c9e66" });
+    const content = lane === "left"
+      ? [el("span", { class: "label", style: { fontSize: size.label + "px" } }, m.label), el("span", { class: "clause", style: { fontSize: size.text + "px" } }, m.clause)]
+      : [el("span", { class: "label", style: { fontSize: size.label + "px" } }, joinedWith ? "→" : m.panelTitle), el("span", { class: "clause", style: { fontSize: size.text + "px" } }, cardsText(m))];
+    return el("div", { class: "panel ledger-cell" + (paused ? " paused" : "") + (m.id === promptId ? " prompt" : ""), "data-tone": m.tone, "data-lane": lane, style },
+      el("div", { class: "ledger-row", style: { top: 0, height: "100%", paddingLeft: lane === "right" && joinedWith ? "6px" : "9px" } },
+        lane === "right" && joinedWith ? null : el("span", { class: "owner", "data-side": m.side }),
+        lane === "left" ? art(m.art, ...size.art) : null,
+        cellText(content),
+        lane === "right" ? el("span", { style: { display: "flex", gap: "2px", flex: "none" } }, ...m.cards.slice(0, 2).map((c) => art(c, ...size.thumb)), m.cards.length > 2 ? el("span", { class: "label" }, `+${m.cards.length - 2}`) : null) : null,
+        el("span", { class: "life" })));
+  };
+  rows.forEach((row, index) => {
+    const joined = row.left && row.right && row.left === row.right;
+    if (row.left) phone.append(cell(row.left, "left", index, joined));
+    if (row.right) phone.append(cell(row.right, "right", index, joined));
+  });
+  /* Rows are under 44px, so each lane column is one target (≥44px tall). The tapped row
+     selects its tab; keyboard users get the newest entry first. */
+  for (const lane of ["left", "right"]) {
+    const entries = rows.map((row) => row[lane]).filter(Boolean);
+    if (!entries.length) continue;
+    const x = lane === "left" ? left : left + leftW + 4;
+    const w = lane === "left" ? leftW : rightW;
+    phone.append(el("button", { class: "hit lane-hit", style: { inset: "auto", left: x + "px", top: top + "px", width: w + "px", height: Math.max(44, height) + "px", zIndex: 5 },
+      "aria-haspopup": "dialog", "aria-label": `${lane === "left" ? "Effects" : "Moved cards"}: ${entries.map((m) => `${ownerName(m.side)} ${m.clause ? m.label : m.panelTitle}`).join("; ")}. Show the full notices`,
+      onclick: (event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const rowIndex = event.clientY ? Math.min(1, Math.floor((event.clientY - rect.top) / (size.rowH + size.gap))) : 0;
+        const picked = rows[rowIndex]?.[lane] ?? entries[0];
+        open(picked.id, entries.map((m) => m.id));
+      } }));
+  }
+  requestAnimationFrame(() => {
+    const clauses = [...phone.querySelectorAll('.ledger-cell[data-lane="left"] .clause')].map((n) => Math.round(n.getBoundingClientRect().width));
+    const cards = [...phone.querySelectorAll('.ledger-cell[data-lane="right"] .clause')].map((n) => Math.round(n.getBoundingClientRect().width));
+    phone.append(measure(`lanes ${leftW}+${rightW}×${Math.max(44, height)} targets · clause text ${clauses.join("/") || "–"}px · card text ${cards.join("/") || "–"}px`, { left: left + "px", top: top + height + 2 + "px" }));
+  });
+}
+
+/* A2: the two newest moments as complete cards. Each card is one event and one 44px+ target.
+   A moment carries at most one clause and one card list, so two cards never exceed two per lane.
+   A card keeps the slot it appeared in; a new moment replaces the oldest. Older moments stay
+   in the queue until their own clocks end and are listed under "Earlier" in the sheet. */
+function renderMomentCards({ vp, scenario, paused, phone }) {
+  const all = scenario.moments.map((id) => MOMENT[id]);
+  const visible = all.slice(-2);
+  const slotW = Math.floor((vp.w - 16 - 4) / 2);
+  if (!visible.length) {
+    phone.append(el("div", { class: "empty-outline", style: { left: "8px", top: "44px", width: vp.w - 16 + "px", height: "48px" } }, el("span", {}, "empty: band reserved, nothing drawn")));
+  }
+  const promptId = scenario.decision === "order" ? "reveal" : null;
+  visible.forEach((m) => {
+    const slot = all.indexOf(m) % 2;
+    const owner = m.side === "you" ? "You" : "Opp";
+    const title = m.clause ? m.label : m.panelTitle;
+    const action = m.clause ?? cardsText(m);
+    const resultCard = m.clause && m.cards.length ? m.cards[0] : null;
+    const leadArt = m.art ?? m.cards[0] ?? null;
+    phone.append(el("div", { class: "panel moment" + (paused ? " paused" : "") + (m.id === promptId ? " prompt" : ""), "data-tone": m.tone,
+        style: { left: 8 + slot * (slotW + 4) + "px", top: "44px", width: slotW + "px", height: "48px" } },
+      el("span", { class: "owner", "data-side": m.side }),
+      el("div", { class: "moment-body" },
+        leadArt ? art(leadArt, 18, 25) : null,
+        el("span", { class: "moment-text" },
+          el("span", { class: "label" }, el("strong", { class: "moment-owner" }, owner), ` · ${title}`),
+          el("span", { class: "clause two" }, action)),
+        resultCard ? el("span", { class: "moment-result" }, el("span", { class: "label" }, "→"), art(resultCard, 16, 22), m.cards.length > 1 ? el("span", { class: "label" }, `×${m.cards.length}`) : null) : null,
+        !m.clause && m.cards.length > 1 ? el("span", { class: "moment-result" }, el("span", { class: "label" }, `×${m.cards.length}`)) : null),
+      el("span", { class: "life" }),
+      el("button", { class: "hit", "aria-haspopup": "dialog",
+        "aria-label": `${ownerName(m.side)} ${title}${m.source ? `, ${m.source}` : ""}: ${action}${resultCard ? `. Result: ${m.panelTitle}, ${cardsText(m)}` : ""}. Show the full notice`,
+        onclick: () => open(m.id, [...visible].reverse().map((v) => v.id).concat(all.slice(0, -2).reverse().map((v) => v.id))) })));
+  });
+  requestAnimationFrame(() => {
+    const widths = [...phone.querySelectorAll(".moment .clause")].map((n) => Math.round(n.getBoundingClientRect().width));
+    phone.append(measure(`${visible.length || 2} targets ${slotW}×48 · action text ${widths.join("/") || "–"}px × 2 lines`, { left: "8px", top: "94px" }));
+  });
+  phone.append(measure(`field art ${state.viewport === "320x568" ? "44×62 floor (field scrolls ≈48px e)" : vp.art.gutter + " m"}`, { left: "8px", top: (state.viewport === "320x568" ? 92 + 82 : vp.rows.gutter[0]) + 2 + "px" }));
+}
+
+function bandHeight() {
+  if (state.option === "current" || state.option === "A2") return 48;
+  if (state.option === "A") return SIZES[state.size].band;
+  return 0;
+}
+function renderLedgerBand(ctx) {
+  const { vp } = ctx;
+  const size = SIZES[state.size];
+  ledger(ctx, { left: "8px", top: "44px", width: vp.w - 16 + "px" }, size);
+  ctx.phone.append(measure(`field art ${fieldArt(vp)}`, { left: "8px", top: ctx.rowTops[0] + 2 + "px" }));
+}
+
+function fieldArt(vp) {
+  const band = bandHeight();
+  if (band === 48) return vp.art.gutter + " m";
+  if (band === 64) return state.viewport === "320x568" ? "≈26×37 e" : vp.art.gutter + " if slack holds e";
+  return vp.art.none;
+}
+
+function renderSpotlight({ vp, scenario, paused, phone }) {
+  const width = vp.header.region;
+  const box = { left: "4px", top: "2px", width: width + "px", height: "40px" };
+  const { left, right } = lanes(scenario.moments);
+  const newest = MOMENT[scenario.moments[scenario.moments.length - 1]];
+  if (!newest) {
+    phone.append(el("div", { class: "empty-outline", style: box }, el("span", {}, "empty: header shows as today")));
+    phone.append(measure(`field art ${vp.art.none}`, { left: "8px", top: (state.viewport === "320x568" ? vp.rows.none[0] : vp.rows.gutter[0] - 24) + 2 + "px" }));
+    return;
+  }
+  const olderText = left.filter((m) => m !== newest).slice(-1)[0];
+  const olderCards = right.filter((m) => m !== newest).slice(-1)[0];
+  const panel = el("div", { class: "panel" + (paused ? " paused" : ""), style: box });
+  const stubW = 44;
+  const spotLeft = stubW + 2, spotRight = stubW + 2;
+  const stub = (m, side) => m
+    ? el("div", { class: "stub", "data-tone": m.tone, style: { [side]: "0px", borderInlineEnd: side === "left" ? "1px solid #3b5c9e66" : null, borderInlineStart: side === "right" ? "1px solid #3b5c9e66" : null } },
+        el("span", { class: "owner", "data-side": m.side }),
+        m.art || m.cards[0] ? art(m.art ?? m.cards[0], 22, 31) : el("span", { class: "label", style: { color: "#fff", fontWeight: 700 } }, m.label.split(" ")[0]),
+        el("span", { class: "life" }),
+        el("button", { class: "hit", "aria-label": `Show the full notice: ${ownerName(m.side)} ${m.label}`, onclick: () => open(m.id) }))
+    : el("div", { class: "stub", style: { [side]: "0px", opacity: 0.25 } });
+  panel.append(stub(olderText, "left"));
+  panel.append(el("div", { class: "spot" + (scenario.decision === "order" && newest.id === "reveal" ? " prompt" : ""), "data-tone": newest.tone, style: { left: spotLeft + "px", right: spotRight + "px" } },
+    el("span", { class: "owner", "data-side": newest.side }),
+    art(newest.art, 22, 31),
+    el("span", { style: { minWidth: 0, flex: 1 } }, el("span", { class: "label" }, newest.clause ? newest.label : newest.panelTitle), el("span", { class: "clause two" }, actionText(newest))),
+    newest.cards.length && newest.clause ? art(newest.cards[0], 18, 25) : null,
+    el("span", { class: "life" }),
+    el("button", { class: "hit", "aria-haspopup": "dialog", "aria-label": `Show the full notice: ${ownerName(newest.side)} ${newest.label}`, onclick: () => open(newest.id) })));
+  panel.append(stub(olderCards, "right"));
+  phone.append(panel);
+  phone.append(measure(`spotlight ${width - 2 * (stubW + 2)}×40 · stubs 44×40 · text ≈${width - 2 * (stubW + 2) - 64}px ×2 lines`, { left: "4px", top: "46px" }));
+  phone.append(measure(`field art ${vp.art.none}`, { left: "8px", top: (state.viewport === "320x568" ? vp.rows.none[0] : vp.rows.gutter[0] - 24) + 2 + "px" }));
+}
+
+function renderRails({ vp, scenario, paused, phone, rowTops }) {
+  const rows = rowsOf(scenario.moments);
+  const rowH = state.viewport === "320x568" ? vp.rowH.none : vp.rowH.gutter;
+  const railW = 40;
+  [["left", 2], ["right", vp.w - railW - 2]].forEach(([rail, x]) => {
+    [0, 1].forEach((slot) => {
+      const m = rows[slot];
+      const box = { left: x + "px", top: rowTops[slot] + 4 + "px", width: railW + "px", height: rowH - 8 + "px" };
+      const show = m && (rail === "left" ? Boolean(m.clause) : m.cards.length > 0);
+      if (!show) { phone.append(el("div", { class: "empty-outline", style: box })); return; }
+      const hidden = scenario.decision === "order" && slot === 1;
+      phone.append(el("div", { class: "panel rail-tile" + (paused ? " paused" : "") + (scenario.decision === "order" && m.id === "reveal" ? " prompt" : ""), "data-tone": m.tone, style: { ...box, opacity: hidden ? 0.3 : 1 } },
+        el("span", { class: "owner", "data-side": m.side }),
+        rail === "left" ? art(m.art, 32, 45) : art(m.cards[0], 32, 45),
+        el("span", { class: "label" }, rail === "left" ? m.label : (m.cards.length > 1 ? `${m.panelTitle.split(" ")[0]} ×${m.cards.length}` : m.panelTitle.split(" ")[0])),
+        el("span", { class: "life" }),
+        el("button", { class: "hit", "aria-label": `Show the full notice: ${ownerName(m.side)} ${m.label}`, onclick: () => open(m.id) })));
+    });
+  });
+  phone.append(measure(`rails 40px · lanes 288→${vp.w - 32 - 60}px`, { left: "46px", top: rowTops[0] + "px" }));
+  phone.append(measure(`field art ${state.viewport === "320x568" ? vp.art.none : vp.art.gutter}`, { left: "46px", top: rowTops[0] + 14 + "px" }));
+}
+
+let openedFrom = null;
+function open(id, group) {
+  openedFrom = document.activeElement;
+  state.selected = id;
+  state.group = group ?? [id];
+  render();
+  document.querySelector(".sheet .icon-btn")?.focus();
+}
+function close(dismissed) {
+  if (dismissed) {
+    const scenario = SCENARIOS[state.scenario];
+    scenario.moments = scenario.moments.filter((m) => m !== state.selected);
+  }
+  state.selected = null;
+  render();
+  (document.querySelector(".phone .hit") ?? document.getElementById("phone")).focus?.();
+}
+
+function renderSheet({ phone }) {
+  const group = state.group.map((id) => MOMENT[id]);
+  const m = MOMENT[state.selected];
+  phone.append(el("div", { class: "scrim", onclick: () => close(false) }));
+  const visibleIds = new Set(state.option === "A2" ? SCENARIOS[state.scenario].moments.slice(-2) : group.map((g) => g.id));
+  const tabs = group.length > 1 ? el("div", { class: "tabs", role: "tablist", "aria-label": "Notices" },
+    ...group.map((g) => el("button", { "data-earlier": visibleIds.has(g.id) ? undefined : "true", role: "tab", "aria-selected": String(g.id === m.id), onclick: () => { state.selected = g.id; render(); document.querySelector(".tabs [aria-selected=true]")?.focus(); } },
+      art(g.art ?? g.cards[0], 16, 22), el("span", {}, `${visibleIds.has(g.id) ? "" : "Earlier · "}${g.side === "you" ? "You" : "Opp"} · ${g.clause ? g.label : g.panelTitle}`)))) : null;
+  const body = el("div", { class: "sheet-body" },
+    m.source ? el("p", { class: "source" }, el("strong", {}, m.source), " ", el("small", {}, m.code), el("br"), el("small", {}, ownerName(m.side))) : el("p", { class: "source" }, el("small", {}, ownerName(m.side))),
+    m.clause ? el("div", { class: "notice" }, el("div", {}, m.tone === "effect" ? el("span", { class: "timing" }, `[${m.label}]`) : el("strong", {}, `${m.label} · `), m.clause), art(m.art, 44, 62)) : null,
+    m.cards.length ? el("div", { class: "side-panel" }, el("h3", {}, m.panelTitle), el("div", { class: "cards" }, ...m.cards.map((c) => el("div", {}, art(c, 72, 101), el("div", {}, c[0].toUpperCase() + c.slice(1)))))) : null,
+    el("button", { class: "dismiss", onclick: () => close(true) }, "Dismiss notice"));
+  const sheet = el("div", { class: "sheet", role: "dialog", "aria-modal": "true", "aria-labelledby": "sheet-title" },
+    el("header", {}, el("h2", { id: "sheet-title" }, "Notice details"),
+      el("button", { class: "icon-btn", "aria-label": "Close", onclick: () => close(false) }, "✕")),
+    tabs, body);
+  sheet.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") { event.preventDefault(); close(false); }
+    if (event.key === "Tab") {
+      const focusable = [...sheet.querySelectorAll("button")];
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
+  phone.append(sheet);
+}
+
+const NOTES = {
+  A2: ["A2 · Moment cards (recommended)", "The existing 48px band holds the two newest moments as complete cards, about 150×48 each at 320: twice the per-event width of today. Each card is one event and one 44px+ target. It shows the owner in words (You / Opp), the label, two lines of action text, and the result card when the clause moved cards. Cause and result stay in one card. The opponent header is untouched. At 320×568 the battle rows keep their 96px floor, so field art stays 44×62 and the field scrolls locally; scroll the field to try it. Older moments stay in the queue and are listed under Earlier in the sheet."],
+  current: ["Current checkpoint (9f366325f)", "Four 72×48 targets in a permanent 48px gutter. One moment that carries a clause and its revealed cards is split into two toasts, so four slots show two moments. Text area is about 40px wide: roughly six characters (\"Reveal 5…\", \"1 cards\"). 16px art is not recognisable. Owner is not shown."],
+  A: ["A · Lane ledger (exploration)", "Two columns keep the lanes: clauses left, moved cards right, at most two entries each, so 2 left + 2 right are visible at once (see '4 unrelated items'). A clause and the cards it moved share a row and render joined; unrelated entries sit in separate cells. Each lane column is one target at least 44px tall; the tapped row selects its tab in the sheet. The opponent header stays untouched. Large (64px band, 30px rows, 12px text, 20×28 art) is the requested bigger size; Compact keeps today's 48px."],
+  B: ["B · Spotlight + stubs in the header", "Newest moment gets a two-line spotlight with art and its result card; the older clause and older card list become 44×40 art stubs at each end. Every item is its own target, but the measured hit areas (43×38 stubs, 38px-tall spotlight) are under 44px. No reserved band. Downside: at 320 the header leaves about 74px of text per line, so the older entries carry no text at all."],
+  C: ["C · Edge rails beside the battle rows", "Desktop places clauses left and moved cards right; the rails mirror that. Two slots per rail, aligned so a clause and its result sit at the same height. Tiles show 32×45 art and a one-word label. Each 40px tile leaves a 38px-wide hit area, under the 44px target width. No gutter, but battle lanes lose 60px of width permanently, the lower slot is covered by bottom-sheet decisions, and action text disappears."],
+};
+function renderNotes() {
+  const [title, body] = NOTES[state.option];
+  const notes = document.getElementById("notes");
+  notes.replaceChildren(
+    el("h2", {}, title), el("p", {}, body),
+    el("h2", {}, "Tradeoffs at 320×568"),
+    table([
+      ["", "Current", "A2", "A Large", "B", "C"],
+      ["Reserved height", "48px", "48px", "64px", "0", "0"],
+      ["Field art", "32×45 m", "44×62 floor", "≈26×37 e", "44×62 m", "44×62 m"],
+      ["Field scroll", "12px m", "≈50px e", "more e", "≈0 e", "≈0 e"],
+      ["Events visible", "2 (as 4 toasts)", "2", "2L+2R", "1 + 2 stubs", "2"],
+      ["Own 44px target per event", "yes", "yes", "no (lane)", "no (43×38 hit)", "no (38px wide hit)"],
+      ["Action text", "≈40px × 1", "≈95px × 2 p", "≈90px × 1 p", "≈78px × 2", "label only"],
+      ["Covers", "nothing", "nothing", "nothing", "opp name + counters", "lane edges"],
+    ]),
+    el("p", {}, el("span", { class: "tag" }, "m"), " measured in capture.json · ", el("span", { class: "tag" }, "e"), " estimated from measured heights; needs the browser probe."),
+  );
+}
+function table(rows) {
+  return el("table", {}, el("thead", {}, el("tr", {}, ...rows[0].map((c) => el("th", {}, c)))),
+    el("tbody", {}, ...rows.slice(1).map((r) => el("tr", {}, ...r.map((c, i) => el(i ? "td" : "th", {}, c))))));
+}
+
+function controls() {
+  const sets = {
+    option: Object.fromEntries(Object.entries(OPTIONS).map(([k, v]) => [k, v.name])),
+    viewport: Object.fromEntries(Object.keys(VIEWPORTS).map((k) => [k, k.replace("x", "×")])),
+    scenario: Object.fromEntries(Object.entries(SCENARIOS).map(([k, v]) => [k, v.name])),
+    measure: { on: "Measurements", off: "Clean" },
+    size: { large: "Large · 64px band", compact: "Compact · 48px band" },
+  };
+  for (const group of document.querySelectorAll(".seg")) {
+    const key = group.dataset.key;
+    group.replaceChildren(...Object.entries(sets[key]).map(([value, name]) =>
+      el("button", { type: "button", "aria-pressed": String(state[key] === value), onclick: () => {
+        state[key] = value; state.selected = null;
+        if (key === "scenario") SCENARIOS[value].moments = { ...ORIGINAL }[value].slice();
+        controls(); render();
+      } }, name)));
+  }
+}
+const ORIGINAL = Object.fromEntries(Object.entries(SCENARIOS).map(([k, v]) => [k, v.moments.slice()]));
+controls();
+render();
+if (params.has("open")) open(params.get("open"), params.get("group")?.split(","));
+</script>
+</body>
+</html>
