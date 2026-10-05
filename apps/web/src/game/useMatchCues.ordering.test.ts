@@ -988,3 +988,102 @@ describe("a ＜Delay＞ Option paying its cost", () => {
     ).toBe(false);
   });
 });
+
+it("presents the resolving clause, its public target, then the opponent's leave protection", async () => {
+  vi.useFakeTimers();
+  const view = renderOrderingCues();
+  view.feedBatch([
+    {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "AD1-002",
+      sourcePermanentId: "perm-3",
+      sourceInstanceId: "s0-27",
+      effectKey: "on-play",
+      timing: "OnPlay",
+      description: "Delete 1 of your opponent's Digimon.",
+    },
+    { kind: "effectTargetsSelected", seat: 0, sourcePermanentId: "perm-3", targetPermanentIds: ["perm-1"] },
+    {
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "BT18-015",
+      sourcePermanentId: "perm-1",
+      sourceInstanceId: "s1-17",
+      effectKey: "protection",
+      timing: "AllTurns",
+      beforeRemoval: true,
+      description: "When this Digimon would leave, it doesn't leave.",
+    },
+  ]);
+  const order = await firstSeenOrder(
+    {
+      onPlay: () =>
+        view.result.current.notices.some(
+          (notice) => notice.body.variant === "effect" && notice.body.timing === "OnPlay",
+        ),
+      target: () => view.result.current.effectSources.some((source) => source.targetPermanentIds?.includes("perm-1")),
+      protection: () =>
+        view.result.current.notices.some(
+          (notice) => notice.body.variant === "effect" && notice.body.timing === "AllTurns",
+        ),
+    },
+    6000,
+  );
+  expect(order).toEqual(["onPlay", "target", "protection"]);
+});
+
+it.each([0, 1] as const)(
+  "does not cycle when interrupted source on seat %s is deleted later in the same batch",
+  async (deletedSeat) => {
+    vi.useFakeTimers();
+    const { observeGateExpiry } = await import("./match/presentationGate");
+    const expiries: string[] = [];
+    const stop = observeGateExpiry(({ label }) => expiries.push(label));
+    onTestFinished(stop);
+    const view = renderOrderingCues();
+    const after = structuredClone(BOARD);
+    after.players[deletedSeat]!.battleArea.splice(0);
+    view.feedBatch(
+      [
+        {
+          kind: "effectTriggered",
+          seat: 0,
+          sourceCardId: "AD1-002",
+          sourcePermanentId: "perm-3",
+          sourceInstanceId: "s0-27",
+          effectKey: "on-play",
+          timing: "OnPlay",
+          description: "Delete 1 of your opponent's Digimon.",
+        },
+        { kind: "effectTargetsSelected", seat: 0, sourcePermanentId: "perm-3", targetPermanentIds: ["perm-1"] },
+        {
+          kind: "effectTriggered",
+          seat: 1,
+          sourceCardId: "BT18-015",
+          sourcePermanentId: "perm-1",
+          sourceInstanceId: "s1-17",
+          effectKey: "protection",
+          timing: "AllTurns",
+          beforeRemoval: true,
+          description: "When this Digimon would leave, by deleting 1 Digimon, it doesn't leave.",
+        },
+        { kind: "effectTargetsSelected", seat: 1, sourcePermanentId: "perm-1", targetPermanentIds: ["perm-3"] },
+        {
+          kind: "cardsMoved",
+          instanceIds: deletedSeat === 1 ? ["s1-51", "s1-17"] : ["s0-27"],
+          from: "battleArea",
+          to: "trash",
+          deletedPermanents: [
+            deletedSeat === 1
+              ? { permanentId: "perm-1", instanceId: "s1-17", cardId: "BT18-015", seat: 1 }
+              : { permanentId: "perm-3", instanceId: "s0-27", cardId: "AD1-002", seat: 0 },
+          ],
+        },
+      ],
+      after,
+    );
+    await advance(12_000);
+    expect(expiries).toEqual([]);
+  },
+);

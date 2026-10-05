@@ -158,6 +158,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-merciful-mode-attack-order",
   "arena-ex13-merciful-repeat-barrier",
   "arena-ad1-gallantmon-deletion-attack-order",
+  "arena-ex13-gallantmon-standoff",
   "arena-bt20-cool-boy-stacked-omekamon",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
@@ -3731,6 +3732,33 @@ function layEx13DeletionTriggerOrderingScenario(state: GameState, decks: readonl
  * DarkTyrannomon and attacks. The inherited ST7-05 memory watcher and the [When Attacking]
  * deletion trigger together, so the player orders them (Q2044).
  */
+/** Discord 1556325649071870043: a leave-prevention cost triggers the other Gallantmon's protection. */
+function layEx13GallantmonStandoffScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-gallantmon-standoff-hand", "EX13-015", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-standoff-lv3", "BT2-009", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-standoff-lv4", "BT2-013", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex13-standoff-lv5", "BT2-017", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["EX13-007", "EX13-010", "EX13-015"], "-ex13-standoff-gallantmon"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-007"], "-ex13-standoff-guilmon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
 function layAd1GallantmonDeletionAttackOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -5391,6 +5419,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
   "arena-ex13-merciful-repeat-barrier": layEx13MercifulRepeatBarrierScenario,
   "arena-ad1-gallantmon-deletion-attack-order": layAd1GallantmonDeletionAttackOrderScenario,
+  "arena-ex13-gallantmon-standoff": layEx13GallantmonStandoffScenario,
   "arena-bt20-cool-boy-stacked-omekamon": layBt20CoolBoyStackedOmekamonScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,

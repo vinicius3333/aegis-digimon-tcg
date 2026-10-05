@@ -26,7 +26,7 @@ export interface DeckPrimitives {
   /** Emits `effectTriggered`; the returned closer emits `effectResolved`. */
   announceEffect?(
     ctx: EffectContext,
-    effect: { effectKey: string; description: string; timing: string; isInherited?: boolean },
+    effect: { effectKey: string; description: string; timing: string; isInherited?: boolean; beforeRemoval?: boolean },
   ): () => void;
   /** Emits `effectOptionChosen` for the printed bullet of the modal option about to resolve. */
   announceEffectOption?(ctx: EffectContext, clause: string): void;

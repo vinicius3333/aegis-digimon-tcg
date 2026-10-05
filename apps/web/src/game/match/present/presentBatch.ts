@@ -71,6 +71,8 @@ import { presentSecurityRevealed } from "./securityReveal";
 import { refreshSecurityAttacker } from "./securityAttackerRefresh";
 import {
   createPresentationGate,
+  waitForGate,
+  CONSEQUENCE_GATE_MAX_MS,
   type DeletionReadyAt,
   type PendingAnnounceGate,
   type CostClause,
@@ -301,13 +303,40 @@ export function presentServerBatch({
   setDeleteBursts: Dispatch<SetStateAction<readonly DeleteBurst[]>>;
   setHeldDeletions: Dispatch<SetStateAction<ReadonlyMap<number, HeldDeletion>>>;
 }) {
+  // Preserve event order before splitting a batch into target-animation segments. A
+  // resolving source can be removed by its nested cost later at the same state version.
+  const deletedLater = new Set<string>();
+  fresh = [...fresh]
+    .reverse()
+    .map((event) => {
+      if (event.kind === "cardsMoved") {
+        for (const deleted of event.deletedPermanents ?? []) deletedLater.add(deleted.instanceId);
+      }
+      if (event.kind === "effectTriggered" && event.sourceInstanceId && deletedLater.has(event.sourceInstanceId)) {
+        return { ...event, beforeRemoval: true };
+      }
+      return event;
+    })
+    .reverse();
   const phaseSegments: ServerEvent[][] = [];
   for (const event of fresh) {
     if (phaseSegments.length === 0 || event.kind === "phaseChanged" || event.kind === "turnEnded")
       phaseSegments.push([]);
     phaseSegments.at(-1)!.push(event);
   }
-  const segments = phaseSegments.flatMap(securityCheckSegments);
+  const segments = phaseSegments.flatMap(securityCheckSegments).flatMap((events) => {
+    const parts: ServerEvent[][] = [];
+    for (const event of events) {
+      if (
+        !parts.length ||
+        event.kind === "effectTargetsSelected" ||
+        parts.at(-1)?.at(-1)?.kind === "effectTargetsSelected"
+      )
+        parts.push([]);
+      parts.at(-1)!.push(event);
+    }
+    return parts;
+  });
   if (segments.length > 1) {
     for (const [index, segment] of segments.entries()) {
       present(batchId, stateVersion, segment, replayingHistory, continuingBatch || index > 0);
@@ -360,6 +389,41 @@ export function presentServerBatch({
       origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
       ...(replayingHistory ? { mode: "replay" as const } : {}),
     });
+  for (const event of fresh) {
+    if (event.kind !== "effectTargetsSelected" || replayingHistory) continue;
+    const preceding = effectAnnounceGateRef.current;
+    const selected = createPresentationGate();
+    effectAnnounceGateRef.current = selected;
+    const key = ++effectSourceKeyRef.current;
+    enqueue({
+      id: `effect-targets-${key}`,
+      track: "effectTargets",
+      async run(context) {
+        try {
+          await waitForGate(preceding, context, CONSEQUENCE_GATE_MAX_MS, "effect-targets-source");
+          if (context.cancelled || context.mode !== "live") return;
+          const cardId =
+            state?.players[event.seat]?.battleArea.find(
+              (permanent) => permanent.permanentId === event.sourcePermanentId,
+            )?.topCard?.cardId ?? "";
+          setEffectSources((sources) => [
+            ...sources,
+            {
+              key,
+              seat: event.seat,
+              cardId,
+              site: { zone: "field", permanentId: event.sourcePermanentId },
+              targetPermanentIds: event.targetPermanentIds,
+            },
+          ]);
+          await context.wait(TIMINGS.effectSourceHold);
+        } finally {
+          setEffectSources((sources) => sources.filter((source) => source.key !== key));
+          selected.release();
+        }
+      },
+    });
+  }
   const optionRoutedUnder = fresh.find(
     (event) => event.kind === "cardsMoved" && event.optionUsed === true && event.placedUnder !== undefined,
   );

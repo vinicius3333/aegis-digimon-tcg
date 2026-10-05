@@ -19,6 +19,7 @@ export function createSessionVerbs(pc: PrimitivesContext) {
       effectKey: effect.effectKey,
       description: effect.description,
       timing: effect.timing,
+      ...(effect.beforeRemoval === true ? { beforeRemoval: true } : {}),
       ...(effect.isInherited === true ? { isInherited: true } : {}),
       ...(engine.inSecurityCheck?.() === true ? { duringSecurityCheck: true } : {}),
     };

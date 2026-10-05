@@ -132,6 +132,16 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // A rule or battle deletion is not attributed to the currently resolving card effect here;
     // CombatController supplies the surviving battle participant on its own final event.
     const deletingPermanentId = cause === "byEffect" ? effectSourcePermanentIdStack.at(-1) : undefined;
+    const selectingSeat = effectSeatStack.at(-1);
+    const selectedIds = permanentIds.filter((id) => access.permanentById(id) !== undefined);
+    if (deletingPermanentId !== undefined && selectingSeat !== undefined && selectedIds.length > 0) {
+      engine.emit({
+        kind: "effectTargetsSelected",
+        seat: selectingSeat,
+        sourcePermanentId: deletingPermanentId,
+        targetPermanentIds: selectedIds,
+      });
+    }
     // "Can't be deleted" (Comprehensive Rules §15-1-3: a prohibiting effect takes precedence).
     // Filtered FIRST: an outright prohibition means the deletion never approaches, so neither
     // the would-be-deleted timing nor the ＜Evade＞/＜Barrier＞ cost prompts should fire for it.
