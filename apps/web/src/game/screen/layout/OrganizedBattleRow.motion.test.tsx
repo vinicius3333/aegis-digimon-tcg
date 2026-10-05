@@ -382,3 +382,103 @@ it("keeps a merging copy on the same clock when another row changes the shared c
     HTMLElement.prototype.animate = originalAnimate;
   }
 });
+
+it.each(["digimon", "split support"])(
+  "holds a %s destruction target at its painted position through a running slide and later reflow",
+  (lane) => {
+    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(245);
+    let progress = 0;
+    const animations = new Map<HTMLElement, { frames: Keyframe[]; animation: Animation }>();
+    const originalAnimate = HTMLElement.prototype.animate;
+    HTMLElement.prototype.animate = function (frames) {
+      const animation = {
+        startTime: null,
+        playState: "running",
+        effect: { getComputedTiming: () => ({ progress }) },
+        cancel(this: Animation) {
+          Object.defineProperty(this, "playState", { value: "idle", configurable: true });
+        },
+      } as Animation;
+      animations.set(this, { frames: frames as Keyframe[], animation });
+      return animation;
+    };
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const index = [...(this.parentElement?.querySelectorAll("[data-field-key]") ?? [])].indexOf(this);
+      const flight = animations.get(this);
+      const from = Number.parseFloat(String(flight?.frames[0]?.translate)) || 0;
+      const to = Number.parseFloat(String(flight?.frames[1]?.translate)) || 0;
+      const offset = flight?.animation.playState === "running" ? from * (1 - progress) + to * progress : 0;
+      const x = Math.max(0, index) * 100 + (Number.parseFloat(this.style.translate) || 0) + offset;
+      return { x, y: 0, left: x, top: 0, right: x + 50, bottom: 70, width: 50, height: 70, toJSON: () => ({}) };
+    });
+    const permanents = ["target", "survivor", "newcomer"].map((id) => {
+      const p = new Permanent();
+      p.permanentId = id;
+      return p;
+    });
+    const [target, survivor, newcomer] = permanents as [Permanent, Permanent, Permanent];
+    const view = (members: Permanent[], held = false, grouped = false) => (
+      <I18nProvider>
+        <OrganizedBattleRow
+          arrangement={
+            lane === "digimon"
+              ? { digimon: members, support: [] }
+              : {
+                  digimon: [],
+                  support: grouped
+                    ? [{ key: "target", members }]
+                    : members.map((p) => ({ key: p.permanentId, members: [p] })),
+                }
+          }
+          layoutWidth={100}
+          supportFirst={false}
+          digimonLabel="Digimon"
+          supportLabel="Support"
+          emptyLabel={null}
+          rowProps={{}}
+          isSuspended={(p) => p.isSuspended}
+          renderCard={(card) => (
+            <div
+              key={card.fieldKey}
+              data-field-key={card.fieldKey}
+              data-permanent-id={card.permanent.permanentId}
+              data-stationary-departure={(card.permanent === target && held) || undefined}
+            />
+          )}
+        />
+      </I18nProvider>
+    );
+    try {
+      const { container, rerender } = render(view([target, survivor], false, true));
+      rerender(view([survivor, target]));
+      progress = 0.5;
+      const face = container.querySelector<HTMLElement>('[data-permanent-id="target"]')!;
+      expect(face.getBoundingClientRect().x).toBe(50);
+      // Marking the same physical face must stop the already-running slide.
+      rerender(view([survivor, target], true));
+      progress = 1;
+      expect(face.getBoundingClientRect().x).toBe(50);
+      // A later layout change must preserve that position, while survivors still slide.
+      progress = 0;
+      rerender(view([target, survivor, newcomer], true));
+      expect(face.getBoundingClientRect().x).toBe(50);
+      progress = 1;
+      expect(face.getBoundingClientRect().x).toBe(50);
+      const other = container.querySelector<HTMLElement>('[data-permanent-id="survivor"]')!;
+      expect(animations.get(other)?.animation.playState).toBe("running");
+      expect(container.querySelector('[data-permanent-id="newcomer"]')).not.toBeNull();
+      // Cancelling the selection resumes ordinary layout movement from the held pose.
+      progress = 0;
+      rerender(view([target, survivor, newcomer]));
+      expect(face.getBoundingClientRect().x).toBe(50);
+      progress = 1;
+      expect(face.getBoundingClientRect().x).toBe(0);
+      rerender(view([survivor, newcomer]));
+      expect(container.querySelector('[data-permanent-id="target"]')).toBeNull();
+      expect(container.querySelector('[data-testid="field-group-return"]')).toBeNull();
+    } finally {
+      HTMLElement.prototype.animate = originalAnimate;
+    }
+  },
+);
