@@ -3,6 +3,7 @@ import { EffectTiming, digivolutionRequirementsFor, type PlayerState } from "@ae
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./BT25-084.js";
+import "../BT26/BT26-059.js";
 
 const TITAMON = "BT25-084";
 
@@ -17,6 +18,66 @@ function alive(p: PlayerState, permanentId: string): boolean {
 }
 
 describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave cost", () => {
+  it("Discord 1556765492197326870: Plutomon's hand trash never offers Titamon's leave protection", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TITAMON, as: "titamon1" },
+            { card: TITAMON, as: "titamon2" },
+            { card: "BT24-015", as: "base" },
+          ],
+          hand: [{ card: "BT26-059", as: "plutomon" }, ...Array(7).fill("BT1-013")],
+          deck: ["BT1-013", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "victim" }],
+          security: ["BT1-013", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("plutomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("base").topCard.cardId).toBe("BT26-059");
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(3);
+    const offeredDescriptions = s.decisions.flatMap(({ req }) => req.options?.triggerDescriptions ?? []);
+    expect(offeredDescriptions.filter((description) => description.includes("would leave the battle area"))).toEqual(
+      [],
+    );
+    expect(offeredDescriptions.some((description) => description.includes("When your hand is trashed from"))).toBe(
+      true,
+    );
+    const firstId = s.perm("titamon1").permanentId;
+    const secondId = s.perm("titamon2").permanentId;
+    const handSize = s.state.players[0]!.hand.length;
+    // Probe the same production removal seam after the public Plutomon intent: the false
+    // display must not have consumed either copy's real once-per-turn prevention budget.
+    await advance(s.engine).verb.deletePermanent([firstId]);
+    await settle();
+    expect(alive(s.state.players[0]!, firstId)).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(handSize - 2);
+    await advance(s.engine).verb.deletePermanent([firstId]);
+    await settle();
+    expect(alive(s.state.players[0]!, firstId)).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(handSize - 2);
+    await advance(s.engine).verb.deletePermanent([secondId]);
+    await settle();
+    expect(alive(s.state.players[0]!, secondId)).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(handSize - 4);
+  });
+
   it("uses the cost-2 exact Titamon path only when the base has fewer than 3 printed colors", async () => {
     expect(digivolutionRequirementsFor(TITAMON)).toEqual([
       { namesExact: ["Titamon"], baseColorCountMax: 2, cost: 2, isAlternate: true },

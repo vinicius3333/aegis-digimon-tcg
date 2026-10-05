@@ -19,6 +19,53 @@ import { choiceLabel } from "./overlay/choice/decisionChoiceLabels";
 
 afterEach(() => cleanup());
 
+it.each([
+  [
+    "legacy watcher",
+    "[All Turns] When your hand is trashed from, delete 1 of your opponent's Digimon with the lowest DP.",
+    false,
+  ],
+  [
+    "printed watcher",
+    "[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon.",
+    false,
+  ],
+  [
+    "repeated occurrence",
+    "[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon.",
+    true,
+  ],
+])(
+  "Discord 1556765492197326870: %s Titamon triggers never display leave protection",
+  (_name, description, sameInstance) => {
+    const keys = [
+      buildTriggerKey("s0-24", `subtrigger/3447/${description}`),
+      buildTriggerKey(
+        sameInstance ? "s0-24" : "s0-25",
+        sameInstance ? `subtrigger/3447/${description}/activation-2` : `subtrigger/3449/${description}`,
+      ),
+    ];
+    const { onRespond } = renderDecision({
+      decisionId: "dec-74",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: {
+        triggerKeys: keys,
+        triggerCardIds: ["BT25-084", "BT25-084"],
+        triggerTimings: ["AllTurns", "AllTurns"],
+        triggerDescriptions: [description, description],
+        triggerIsOptional: [false, false],
+      },
+    });
+    expect(screen.queryByText(/When this Digimon would leave the battle area/)).toBeNull();
+    expect(screen.getAllByText(/When your hand is trashed from/)).toHaveLength(2);
+    fireEvent.click(screen.getAllByRole("button", { name: /Titamon/ })[0]!);
+    fireEvent.click(screen.getByRole("button", { name: /Resolve next effect/i }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys[0]] });
+  },
+);
+
 it("renders each Monarchlizamon trigger's authoritative clause instead of repeating the first timing match", () => {
   renderDecision({
     decisionId: "monarch-two-evolution-effects",
@@ -4004,6 +4051,35 @@ it("shows the revealed cards in Zubamon's top-or-bottom choice so the player doe
 });
 
 describe("printed clause selection for prompts", () => {
+  it.each(["separate copies", "repeated occurrence"])(
+    "does not assign sibling clauses to %s without descriptions",
+    (kind) => {
+      const keys = [
+        buildTriggerKey("first", "EX13-036/ir-7-0"),
+        kind === "separate copies"
+          ? buildTriggerKey("second", "EX13-036/ir-7-0")
+          : buildTriggerKey("first", "EX13-036/ir-7-0/activation-2"),
+      ];
+      renderDecision({
+        decisionId: "kentaurosmon-repeated-effect",
+        seat: 0,
+        kind: "orderTriggers",
+        promptText: "Choose the next pending effect to resolve.",
+        options: {
+          triggerKeys: keys,
+          triggerCardIds: ["EX13-036", "EX13-036"],
+          triggerTimings: ["WhenDigivolving", "WhenDigivolving"],
+        },
+      });
+      const tiles = screen.getAllByRole("button", { name: /Kentaurosmon/ });
+      expect(tiles).toHaveLength(2);
+      for (const tile of tiles) {
+        expect(tile.textContent).toContain("you may activate 1 of this Digimon's");
+        expect(tile.textContent).not.toContain("You may place 1 of each player's Digimon");
+      }
+    },
+  );
+
   it("shows only Richard Sampson's security-trash sentence for its bracketless timing", () => {
     const effectText = getCardDefinition("BT13-098")?.effectText;
     const { container } = renderDecision({

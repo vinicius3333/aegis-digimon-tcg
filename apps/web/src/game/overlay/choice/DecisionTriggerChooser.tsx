@@ -85,6 +85,9 @@ export function DecisionTriggerChooser({
         cardId,
         timing: entryTiming,
         isInherited,
+        sourceInstanceId: parseTriggerKey(key).instanceId,
+        effectIdentity: parseTriggerKey(key).effectKey.replace(/\/activation-\d+$/, ""),
+        hasDescription: Boolean(triggerDescriptions?.[index]?.trim()),
         clause:
           playerFacingEffectClause({
             cardId,
@@ -288,20 +291,31 @@ export function DecisionTriggerChooser({
  * Two effects of one card under one timing (EX13-036 prints [When Digivolving] twice)
  * both resolve to the FIRST printed clause when the engine sends no description for them.
  * Hand the n-th such entry the n-th printed clause instead, so the chooser never shows the
- * same words twice for two different effects. Entries that already differ are untouched.
+ * same words twice for two different effects of that instance. Supplied descriptions and
+ * separate copies must retain their own clause, even when their words are identical.
  */
 function distinctTriggerClauses(
-  entries: readonly { cardId: string; timing: string | undefined; isInherited?: boolean; clause: string | undefined }[],
+  entries: readonly {
+    cardId: string;
+    timing: string | undefined;
+    isInherited?: boolean;
+    clause: string | undefined;
+    sourceInstanceId: string;
+    effectIdentity: string;
+    hasDescription: boolean;
+  }[],
 ): (string | undefined)[] {
   const clauses = entries.map((entry) => entry.clause);
   const seen = new Map<string, number[]>();
   entries.forEach((entry, index) => {
-    if (entry.clause === undefined) return;
-    const key = `${entry.cardId}\u0000${entry.timing ?? ""}\u0000${entry.clause}`;
+    if (entry.clause === undefined || entry.hasDescription || entry.sourceInstanceId === "") return;
+    const key = `${entry.sourceInstanceId}\u0000${entry.cardId}\u0000${entry.timing ?? ""}\u0000${entry.isInherited === true}\u0000${entry.clause}`;
     seen.set(key, [...(seen.get(key) ?? []), index]);
   });
   for (const indexes of seen.values()) {
     if (indexes.length < 2) continue;
+    // Multiple occurrences of one effect still name one clause, even without descriptions.
+    if (new Set(indexes.map((index) => entries[index]!.effectIdentity)).size !== indexes.length) continue;
     const first = entries[indexes[0]!]!;
     const printed = cardEffectClausesForTiming(first.cardId, first.timing, first.isInherited);
     if (printed.length < indexes.length) continue;
