@@ -83,6 +83,7 @@ import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
 import { usePresentationAudio } from "./usePresentationAudio";
+import { audioBoardFromPresentedSeats } from "./match/present/presentationAudio";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useArenaBoardLook } from "./arenaLook";
 import "./game.css";
@@ -443,7 +444,45 @@ export function GameScreen({
     devProbe,
     presentationPacing,
   });
-  usePresentationAudio(cues, state);
+  const you = state?.players[viewerSeat];
+  const opp = state?.players[otherSeat(viewerSeat)];
+  /**
+   * The two boards this screen reads (docs/presentation-queue-plan.md 3.2).
+   *
+   * `state` is the live synchronized state and is the ONLY thing legality is read off:
+   * what may be played, what may be attacked, which decision is open. `shownState` is the
+   * board the presentation has reached — the snapshot at the revision of the batch the
+   * queue is narrating — and drives the field, piles and gauge. Hands follow confirmed
+   * server changes independently of narration, except during the turn-start draw hold.
+   * They are the same object whenever the queue is caught up.
+   */
+  const shownState = selectPresentedState({
+    live: state,
+    snapshots: snapshots ?? [],
+    presentedStateVersion: cues.presentedStateVersion,
+  });
+
+  const seats =
+    shownState && you && opp
+      ? presentedSeats({
+          shownState,
+          viewer: you,
+          opponent: opp,
+          viewerSeat,
+          heldPhaseState: cues.heldPhaseState,
+          heldBlowState: cues.heldBlowState,
+          heldSecurityEffectState: cues.heldSecurityEffectState,
+          heldDrawState: cues.heldDrawState,
+          heldBreedingState: cues.heldBreedingState,
+          heldDeletions: cues.heldDeletions,
+          heldStackStrips: cues.heldStackStrips,
+          heldTrashArrivals: cues.heldTrashArrivals,
+          heldHandArrivals: cues.heldHandArrivals,
+          optimisticPlayedInstanceId,
+          presentationPacing,
+        })
+      : undefined;
+  usePresentationAudio(cues, seats ? audioBoardFromPresentedSeats(seats, viewerSeat) : undefined);
   const devProbeRef = useRef(devProbe);
   devProbeRef.current = devProbe;
   useEffect(() => {
@@ -554,8 +593,6 @@ export function GameScreen({
     ),
   );
 
-  const you = state?.players[viewerSeat];
-  const opp = state?.players[otherSeat(viewerSeat)];
   const arenaLook = useArenaBoardLook({ viewer: you, opponent: opp });
 
   useEffect(() => {
@@ -612,7 +649,17 @@ export function GameScreen({
   });
 
   // ----- pre-match / connection gates -----
-  if (status === "reconnecting" || status === "error" || botError || !state || !you || !opp || !bothSeated(state)) {
+  if (
+    status === "reconnecting" ||
+    status === "error" ||
+    botError ||
+    !state ||
+    !you ||
+    !opp ||
+    !shownState ||
+    !seats ||
+    !bothSeated(state)
+  ) {
     const notice = pendingMatchNotice({ status, botError, error, vsBot, startMode, hostRoomCode, joinOptions, t });
     return (
       <PendingMatchBoard
@@ -627,23 +674,6 @@ export function GameScreen({
     );
   }
 
-  /**
-   * The two boards this screen reads (docs/presentation-queue-plan.md 3.2).
-   *
-   * `state` is the live synchronized state and is the ONLY thing legality is read off:
-   * what may be played, what may be attacked, which decision is open. `shownState` is the
-   * board the presentation has reached — the snapshot at the revision of the batch the
-   * queue is narrating — and drives the field, piles and gauge. Hands follow confirmed
-   * server changes independently of narration, except during the turn-start draw hold.
-   * They are the same object whenever the queue is caught up.
-   */
-  const shownState =
-    selectPresentedState({
-      live: state,
-      snapshots: snapshots ?? [],
-      presentedStateVersion: cues.presentedStateVersion,
-    }) ?? state;
-
   const {
     shownViewer: shownYou,
     shownOpponent: shownOpp,
@@ -653,23 +683,7 @@ export function GameScreen({
     shownHandCount,
     shownOpponentHandCount,
     handHeld,
-  } = presentedSeats({
-    shownState,
-    viewer: you,
-    opponent: opp,
-    viewerSeat,
-    heldPhaseState: cues.heldPhaseState,
-    heldBlowState: cues.heldBlowState,
-    heldSecurityEffectState: cues.heldSecurityEffectState,
-    heldDrawState: cues.heldDrawState,
-    heldBreedingState: cues.heldBreedingState,
-    heldDeletions: cues.heldDeletions,
-    heldStackStrips: cues.heldStackStrips,
-    heldTrashArrivals: cues.heldTrashArrivals,
-    heldHandArrivals: cues.heldHandArrivals,
-    optimisticPlayedInstanceId,
-    presentationPacing,
-  });
+  } = seats;
   // What the ribbons have announced, for the readouts only: the live turn is what every
   // guard below reads, and what `isMyTurn` must keep meaning.
   const displayedTurnSeat = cues.displayedTurn?.seat ?? shownState.turnSeat;

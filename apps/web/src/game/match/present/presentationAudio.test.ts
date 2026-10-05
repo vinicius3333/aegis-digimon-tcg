@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, Phase, type GameState } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import type { MatchCues } from "../types";
-import { soundsForPresentation, takeNewPresentationSounds, securityOutcomeSound } from "./presentationAudio";
+import {
+  soundsForPresentation,
+  takeNewPresentationSounds,
+  securityOutcomeSound,
+  audioBoardFromPresentedSeats,
+  type PresentationAudioBoard,
+} from "./presentationAudio";
 import { SecurityBreakPhase } from "../enums";
 import { Side } from "../../side";
 
@@ -53,7 +59,7 @@ describe("painted presentation audio", () => {
       takeNewPresentationSounds(soundsForPresentation(cues({ zoneShowcase: { ...showcase, key: 43 } })), seen),
     ).toHaveLength(1);
   });
-  it("reads evolution source and target levels from the public physical stack after later updates", () => {
+  it("keeps source metadata neutral instead of reconstructing an earlier card from a future stack", () => {
     const state = {
       players: [
         {
@@ -66,12 +72,124 @@ describe("painted presentation audio", () => {
           ],
         },
       ],
-    } as unknown as GameState;
+    } as unknown as PresentationAudioBoard;
     const result = soundsForPresentation(
       cues({ zoneShowcase: { key: 9, cardId: "BT1-015", seat: 0, mine: true, kind: "digivolve", color: "Red" } }),
       state,
     );
-    expect(result).toMatchObject([{ kind: "digivolve", details: { sourceLevel: 3, targetLevel: 4 } }]);
+    expect(result).toMatchObject([{ kind: "digivolve", details: { sourceLevel: undefined, targetLevel: 4 } }]);
+  });
+  it("uses the physically identified burst host when another stack has the same target card", () => {
+    const state = {
+      players: [
+        {
+          battleArea: [
+            { permanentId: "other", topCard: { cardId: "ST1-08" }, stack: [{ cardId: "ST1-07" }] },
+            { permanentId: "painted", topCard: { cardId: "ST1-08" }, stack: [{ cardId: "ST1-03" }] },
+          ],
+        },
+      ],
+    } as unknown as PresentationAudioBoard;
+    const result = soundsForPresentation(
+      cues({
+        permanentBursts: new Map([
+          [
+            "painted",
+            {
+              key: 70,
+              permanentId: "painted",
+              variant: "evolve",
+              color: "Red",
+              inBreeding: false,
+            },
+          ],
+        ]),
+      }),
+      state,
+    );
+    expect(result).toMatchObject([{ kind: "digivolve", details: { sourceLevel: 3, targetLevel: 5 } }]);
+  });
+  it("uses held painted Agumon in breeding while the live slot has already reached Garudamon", () => {
+    const garudamon = {
+      permanentId: "breeding",
+      topCard: { cardId: "ST1-08", instanceId: "future" },
+      stack: [{ cardId: "ST1-03", instanceId: "agumon" }],
+    };
+    const agumon = {
+      permanentId: "breeding",
+      topCard: { cardId: "ST1-03", instanceId: "agumon" },
+      stack: [{ cardId: "ST1-01", instanceId: "egg" }],
+    };
+    const live = { battleArea: [], breeding: garudamon };
+    const empty = { battleArea: [] };
+    const seats = {
+      shownViewer: live,
+      shownOpponent: empty,
+      breedingViewer: { ...live, breeding: agumon },
+      breedingOpponent: empty,
+    } as unknown as Parameters<typeof audioBoardFromPresentedSeats>[0];
+    const board = audioBoardFromPresentedSeats(seats, 0);
+    const result = soundsForPresentation(
+      cues({
+        permanentBursts: new Map([
+          [
+            "breeding",
+            {
+              key: 71,
+              permanentId: "breeding",
+              variant: "evolve",
+              color: "Red",
+              inBreeding: true,
+            },
+          ],
+        ]),
+      }),
+      board,
+    );
+    expect(result).toMatchObject([{ kind: "digivolve", details: { sourceLevel: 2, targetLevel: 3, cost: 3 } }]);
+  });
+  it("uses a matching physical showcase occurrence and preserves actual seat order when the viewer is seat one", () => {
+    const field = {
+      permanentId: "field",
+      topCard: { cardId: "ST1-08", instanceId: "painted" },
+      stack: [{ cardId: "ST1-03", instanceId: "source" }],
+    };
+    const other = { ...field, permanentId: "other", stack: [{ cardId: "ST1-07", instanceId: "other-source" }] };
+    const seats = {
+      shownViewer: { battleArea: [field] },
+      shownOpponent: { battleArea: [other] },
+      breedingViewer: {},
+      breedingOpponent: {},
+    } as unknown as Parameters<typeof audioBoardFromPresentedSeats>[0];
+    const result = soundsForPresentation(
+      cues({
+        zoneShowcase: { key: 72, cardId: "ST1-08", seat: 1, mine: true, kind: "digivolve", color: "Red" },
+        permanentBursts: new Map([
+          ["field", { key: 72, permanentId: "field", variant: "evolve", color: "Red", inBreeding: false }],
+        ]),
+      }),
+      audioBoardFromPresentedSeats(seats, 1),
+    );
+    expect(takeNewPresentationSounds(result, new Set())).toMatchObject([
+      { details: { sourceLevel: 3, targetLevel: 5 } },
+    ]);
+  });
+  it("does not choose an arbitrary same-seat duplicate for an unidentified showcase", () => {
+    const state = {
+      players: [
+        {
+          battleArea: [
+            { permanentId: "first", topCard: { cardId: "ST1-08" }, stack: [{ cardId: "ST1-07" }] },
+            { permanentId: "second", topCard: { cardId: "ST1-08" }, stack: [{ cardId: "ST1-03" }] },
+          ],
+        },
+      ],
+    } as unknown as PresentationAudioBoard;
+    const result = soundsForPresentation(
+      cues({ zoneShowcase: { key: 73, cardId: "ST1-08", seat: 0, mine: true, kind: "digivolve", color: "Red" } }),
+      state,
+    );
+    expect(result).toMatchObject([{ details: { sourceLevel: undefined, targetLevel: 5 } }]);
   });
   it("separates top stripping, source trash, hand trash and field deletion", () => {
     const result = soundsForPresentation(

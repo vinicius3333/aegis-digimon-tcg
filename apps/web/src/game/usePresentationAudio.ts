@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import type { GameState } from "@aegis/shared";
 import { playSound, startMusic, stopMusic } from "../design/sound";
 import { EFFECT_SPEED_SCALE, getEffectSpeed } from "./pacing";
 import type { MatchCues } from "./match/types";
@@ -7,9 +6,10 @@ import {
   soundsForPresentation,
   takeNewPresentationSounds,
   securityOutcomeSound,
+  type PresentationAudioBoard,
 } from "./match/present/presentationAudio";
 
-export function usePresentationAudio(cues: MatchCues, state?: GameState): void {
+export function usePresentationAudio(cues: MatchCues, board?: PresentationAudioBoard): void {
   const seen = useRef(new Set<string>());
   const outcome = securityOutcomeSound(cues.securityClash);
   const outcomeId = outcome?.id;
@@ -29,9 +29,9 @@ export function usePresentationAudio(cues: MatchCues, state?: GameState): void {
     return stopMusic;
   }, []);
   useEffect(() => {
-    const fresh = takeNewPresentationSounds(soundsForPresentation(cues, state), seen.current);
+    const fresh = takeNewPresentationSounds(soundsForPresentation(cues, board), seen.current);
     if (document.hidden) return;
     // Passive effects run after React commits the presentation, never from early server receipts.
     for (const sound of fresh) playSound(sound.kind, sound.details);
-  }, [cues, state]);
+  }, [cues, board]);
 }
