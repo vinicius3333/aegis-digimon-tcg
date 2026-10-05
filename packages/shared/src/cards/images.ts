@@ -1,11 +1,13 @@
 import { resolveCardArt } from "./arts.js";
 import { TOKEN_ID_PREFIX } from "./tokens.js";
 
-const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
+// The provider removed this directory from main; keep the last revision containing the scans.
+const GITHUB_BASE =
+  "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/9f666f16501fb329b4e2fd9851e862afe2d7da05/src/assets/images/cards";
 
 /**
  * Printings the upstream set has no English image for, bundled as official "SAMPLE" scans.
- * They load after the upstream image, so a published upstream image takes over on its own.
+ * They load after the upstream image, so a published upstream image takes precedence.
  */
 const UNPUBLISHED_IMAGE_IDS = new Set([
   "BT11-023_P1",
@@ -67,10 +69,6 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
   const ids = [...new Set([...selected, ...base])];
   return ids.flatMap((id) => {
     const unpublished = UNPUBLISHED_IMAGE_IDS.has(id) ? `/cards/unpublished/${id}.webp` : undefined;
-    return [
-      `${GITHUB_BASE}/${id}.webp`,
-      ...(unpublished ? [unpublished] : []),
-      `${GITHUB_BASE}/${id}-Sample.webp`,
-    ];
+    return [`${GITHUB_BASE}/${id}.webp`, ...(unpublished ? [unpublished] : []), `${GITHUB_BASE}/${id}-Sample.webp`];
   });
 }

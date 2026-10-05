@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { cardImageUrls } from "./images.js";
 import { tokenDefinitions } from "./tokens.js";
 
-const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
+const GITHUB_BASE =
+  "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/9f666f16501fb329b4e2fd9851e862afe2d7da05/src/assets/images/cards";
 
 describe("preview card art", () => {
   it("uses published art for EX13 and the P-245 through P-250 wave", () => {
