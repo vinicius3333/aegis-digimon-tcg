@@ -26,6 +26,15 @@ const cues: { label: string; kind: sound.SoundKind; details?: sound.SoundDetails
   { label: "Impact", kind: "impact" },
   { label: "Security", kind: "securityHit" },
 ];
+const everydayCues: typeof cues = [
+  { label: "Focus", kind: "effectFocus" },
+  { label: "End turn", kind: "endTurn" },
+  { label: "Discard from hand", kind: "handTrash" },
+  { label: "Trash stacked source", kind: "sourceTrash" },
+  { label: "De-digivolve", kind: "deDigivolve" },
+  { label: "Evolve level 3 → 4", kind: "digivolve", details: { sourceLevel: 3, targetLevel: 4 } },
+  { label: "Evolve level 4 → 6", kind: "digivolve", details: { sourceLevel: 4, targetLevel: 6 } },
+];
 const uninstall = sound.installAudioLifecycle();
 function stopComparisons(except?: HTMLAudioElement): void {
   for (const player of players) if (player !== except) player.pause();
@@ -96,7 +105,7 @@ effectsEnabled.addEventListener("change", () => {
 });
 loop.addEventListener("change", syncControls);
 balanced.addEventListener("change", syncControls);
-for (const cue of cues) {
+for (const cue of [...cues, ...everydayCues]) {
   const button = document.createElement("button");
   button.type = "button";
   button.textContent = cue.label;
