@@ -17,6 +17,7 @@ import type { SecurityBreakCue, SecurityClause } from "../types";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
 import { CONSEQUENCE_GATE_MAX_MS, createPresentationGate, type PresentationGate } from "../presentationGate";
 import { exitSecurityCard } from "./securityCardExit";
+import { waitForPaintedAnimation } from "../../paintedAnimationClock";
 
 /** The revealed card `stageSecurityReveal` currently holds on stage. */
 export interface RevealOnStage {
@@ -222,6 +223,15 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
         try {
           setSecurityClash(scene);
           await context.wait(CLASH_REVEAL_SHOWN_AT_MS);
+          // React may mount the card after the queue clock starts. Keep the shield's
+          // preceding count through the native reveal, including its CSS lead-in.
+          await waitForPaintedAnimation(
+            () =>
+              typeof document === "undefined" ? null : document.querySelector(`.battle-clash[data-scene-key="${key}"]`),
+            "battle-security-reveal",
+            TIMINGS.clashReveal,
+            context,
+          );
           // The card is out of the stack and on the screen, so the shield may drop.
           releaseSecurityCard(scene.key);
           await context.wait((docking ? CLASH_DOCK_AT_MS : CLASH_OUTCOME_AT_MS) - CLASH_REVEAL_SHOWN_AT_MS);

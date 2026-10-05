@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Dispatch, SetStateAction } from "react";
 import type { GameState } from "@aegis/shared";
 import { createAnimationQueue, type AnimationStep } from "../../animationQueue";
@@ -13,7 +13,10 @@ import type { PresentationGate } from "../presentationGate";
    answer comes back. A gate armed there is never released and holds the very prompt the
    check is waiting on (the "Cooties Kick" freeze). */
 
-function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
+function stageFor(
+  overrides: { battlePending: boolean; isDigimon: boolean },
+  deps: Partial<SecurityRevealSceneDeps> = {},
+) {
   const queue = createAnimationQueue();
   const steps: AnimationStep[] = [];
   const securityBlowRef: SecurityRevealSceneDeps["securityBlowRef"] = {
@@ -51,6 +54,7 @@ function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
     releaseSecurityCard: noop,
     releaseSecurityCardWhenIdle: noop,
     securityCountOf: () => 1,
+    ...deps,
   });
   const scene = buildSecurityRevealScene({
     key: 1,
@@ -63,7 +67,40 @@ function stageFor(overrides: { battlePending: boolean; isDigimon: boolean }) {
   return { securityBlowRef, setHeldBlowState, stage, steps };
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
 describe("security check blow arming", () => {
+  it.each([1, 2])("keeps the shield count until a late reveal finishes at %sx playback", async (speed) => {
+    let now = 0;
+    const animation = {
+      animationName: "battle-security-reveal",
+      playState: "running",
+      currentTime: 0,
+      effect: { getTiming: () => ({ delay: 150 }) },
+    };
+    vi.spyOn(performance, "now").mockImplementation(() => now);
+    vi.stubGlobal("document", { querySelector: () => ({ getAnimations: () => [animation] }) });
+    const releasedAt: number[] = [];
+    const { steps } = stageFor(
+      { battlePending: true, isDigimon: true },
+      {
+        releaseSecurityCard: () => releasedAt.push(animation.currentTime),
+      },
+    );
+    await steps[1]!.run({
+      mode: "live",
+      cancelled: false,
+      skipping: false,
+      wait: async (ms) => {
+        now += ms / speed;
+        animation.currentTime = Math.max(0, now - 66);
+      },
+    });
+    expect(releasedAt[0]).toBeGreaterThanOrEqual(383);
+  });
   it("arms the blow for a check that will draw a battle", () => {
     const { securityBlowRef, setHeldBlowState } = stageFor({ battlePending: true, isDigimon: true });
     expect(securityBlowRef.current?.landed).toBe(false);
