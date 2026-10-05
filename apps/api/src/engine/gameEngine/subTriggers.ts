@@ -849,6 +849,17 @@ export function parkArmedForEnclosingWindow(engine: GameEngine, armed: readonly 
   engine.parkedEntrySubTriggers.push(...parked);
 }
 
+/** Attack-declaration effects expire before Counter Timing, even with no legal outcome. */
+export function retirePendingAttackWatchers(engine: GameEngine): void {
+  const isAttackWatcher = (item: ArmedSubTrigger): boolean =>
+    item.sub.event === "whenAttacking" || item.sub.event === "whenOpponentAttacks";
+  for (const item of [...engine.parkedEntrySubTriggers, ...engine.pendingWindowSubTriggers]) {
+    if (isAttackWatcher(item)) engine.consumedSubTriggerKeys.add(subTriggerIdentity(item.sub, item.ctx.trigger));
+  }
+  engine.parkedEntrySubTriggers = engine.parkedEntrySubTriggers.filter((item) => !isAttackWatcher(item));
+  engine.pendingWindowSubTriggers = engine.pendingWindowSubTriggers.filter((item) => !isAttackWatcher(item));
+}
+
 /**
  * Is engine armed watcher still activatable RIGHT NOW? A pending trigger whose condition stops
  * being met before it activates can no longer activate (CR §15-4-4-5): two copies of Hina

@@ -542,3 +542,49 @@ describe("EX12-074 Genshi Continent & Ashino Island — KB Q&A rulings", () => {
     await turn;
   });
 });
+
+describe("Discord October 5 report regressions", () => {
+  it("1556715929973424128: security When Attacking cannot wait until Ciel de-digivolves at block", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-076", as: "susano", under: ["EX12-004", "EX12-031"] }],
+          security: [{ card: "EX12-074", faceUp: true }],
+          hand: ["EX12-047"],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT23-077", as: "ciel", dp: 20000 },
+            { card: "BT1-009", as: "bait" },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["＜Raid＞"],
+      },
+    );
+    preferred.push(s.inst("bait").instanceId);
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.engine.combat.hasOpenCounterWindow || s.engine.combat.hasOpenBlockWindow);
+    if (s.engine.combat.hasOpenCounterWindow) s.engine.applyIntent(1, { type: "respondCounter" });
+    await settle(() => s.engine.combat.hasOpenBlockWindow);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("ciel").permanentId })).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).finishAttack();
+    expect(s.events.some((e) => e.kind === "digivolved" && e.cardId === "EX12-047")).toBe(false);
+    expect(s.state.players[0]!.hand.some((c) => c.cardId === "EX12-047")).toBe(true);
+    s.engine.applyIntent(0, { type: "surrender" });
+    await loop;
+  });
+});
