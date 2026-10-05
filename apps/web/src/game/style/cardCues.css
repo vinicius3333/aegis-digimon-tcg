@@ -853,8 +853,14 @@
 /* --- Summoning sickness ring ---------------------------------------------
    Gold stars orbiting an ellipse over a permanent that entered this turn and cannot
    attack yet. The truth is `Permanent.summoningSick`, projected by the server; the ring
-   only draws it. Each star's resting position along the ellipse is set inline, so with
-   the orbit stopped the ring still reads as a ring. */
+   only draws it. Each star's resting position on the ellipse comes from its index, so
+   with the orbit stopped the ring still reads as a ring.
+
+   The orbit is two sine waves, not `offset-path`: Firefox re-flattens a motion path
+   into Bezier segments for every star on every frame, which cost about 40% of the
+   main thread on a busy board. A cosine on `translate` (x) and the same wave a quarter
+   turn behind on `transform` (y) trace the same ellipse and run on the compositor.
+   The sine ease below is the standard cubic fit of a half cosine. */
 
 .game-summoning-ring {
   position: absolute;
@@ -864,9 +870,13 @@
   z-index: 2;
   height: 34%;
   pointer-events: none;
+  container-type: size;
 }
 
 .game-summoning-ring i {
+  --star-angle: calc(var(--star-index, 0) * 60deg);
+  --star-ease: cubic-bezier(0.37, 0, 0.63, 1);
+  --star-delay: calc(-1 * var(--star-index, 0) * var(--t-summoning-orbit, 4200ms) / 6);
   position: absolute;
   inset: 0;
   width: 9px;
@@ -875,18 +885,31 @@
   background: radial-gradient(circle, #fff5cc 0%, #f4c53a 60%, rgb(244 197 58 / 0%) 78%);
   clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
   filter: drop-shadow(0 0 4px rgb(244 197 58 / 70%));
-  offset-path: ellipse(46% 40% at 50% 50%);
-  offset-rotate: 0deg;
-  animation: battle-summoning-orbit var(--t-summoning-orbit, 4200ms) linear infinite;
-  animation-delay: calc(-1 * var(--star-index, 0) * var(--t-summoning-orbit, 4200ms) / 6);
+  translate: calc(46cqw * cos(var(--star-angle))) 0;
+  transform: translateY(calc(40cqh * sin(var(--star-angle))));
+  animation:
+    battle-summoning-orbit-x var(--t-summoning-orbit, 4200ms) var(--star-ease) infinite,
+    battle-summoning-orbit-y var(--t-summoning-orbit, 4200ms) var(--star-ease) infinite;
+  animation-delay: var(--star-delay), calc(var(--star-delay) - var(--t-summoning-orbit, 4200ms) * 3 / 4);
 }
 
-@keyframes battle-summoning-orbit {
-  from {
-    offset-distance: 0%;
+@keyframes battle-summoning-orbit-x {
+  0%,
+  100% {
+    translate: 46cqw 0;
   }
-  to {
-    offset-distance: 100%;
+  50% {
+    translate: -46cqw 0;
+  }
+}
+
+@keyframes battle-summoning-orbit-y {
+  0%,
+  100% {
+    transform: translateY(40cqh);
+  }
+  50% {
+    transform: translateY(-40cqh);
   }
 }
 

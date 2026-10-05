@@ -404,7 +404,7 @@ describe("summoning sickness ring", () => {
     const stars = container.querySelectorAll(".game-summoning-ring i");
     expect(stars).toHaveLength(6);
     // Each star rests at its own point on the ellipse, so a stopped orbit is still a ring.
-    expect((stars[3] as HTMLElement).style.offsetDistance).toBe("50%");
+    expect((stars[3] as HTMLElement).style.getPropertyValue("--star-index")).toBe("3");
     expect(screen.getByRole("button", { name: /Can't attack yet/i })).toBeTruthy();
   });
 

@@ -12,15 +12,7 @@ export function PermanentSummoningRing() {
   return (
     <span className="game-summoning-ring" aria-hidden="true">
       {SUMMONING_STAR_INDEXES.map((index) => (
-        <i
-          key={index}
-          style={
-            {
-              "--star-index": index,
-              offsetDistance: `${(index * 100) / SUMMONING_STAR_INDEXES.length}%`,
-            } as CSSProperties
-          }
-        />
+        <i key={index} style={{ "--star-index": index } as CSSProperties} />
       ))}
     </span>
   );
