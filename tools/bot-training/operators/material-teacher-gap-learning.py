@@ -130,6 +130,7 @@ def namespace(effect: ModuleType, base: Any, prior: dict[str, Any]) -> dict[str,
     shared_closed = scope["closed_phase"]
     shared_whole = scope["whole"]
     shared_go = scope["go"]
+    shared_predecessors = scope["predecessors"]
 
     def inputs(ctx: dict[str, Any]) -> None:
         effect.pin(Path(__file__), ctx["operatorSha256"])
@@ -223,12 +224,6 @@ def namespace(effect: ModuleType, base: Any, prior: dict[str, Any]) -> dict[str,
     def go(ctx: dict[str, Any], phase: str, approval_sha: str, *, idle: bool) -> dict[str, Any]:
         require(phase in ctx["gapPhases"], "Unknown gap resource phase")
         inputs(ctx)
-        if phase == "contexts-6":
-            # One block at a time: the optional block needs the first gap block fully closed.
-            completion = scope["phase_path"](ctx, "contexts-5") / "completion.json"
-            require(completion.is_file(), "Optional gap block requires closed contexts-5")
-            earlier = scope["read"](completion)
-            closed_phase(ctx, "contexts-5", earlier["identitySha256"])
         result = shared_go(ctx, phase, approval_sha, idle=idle)
         if phase == "imitation":
             require(
@@ -238,7 +233,18 @@ def namespace(effect: ModuleType, base: Any, prior: dict[str, Any]) -> dict[str,
         inputs(ctx)
         return result
 
-    scope.update(context=context, closed_phase=closed_phase, whole=whole, go=go)
+    def predecessors(ctx: dict[str, Any], phase: str, selected: set[str]) -> None:
+        if phase == "contexts-6":
+            require(
+                selected == {"diagnostic", "contexts-5"},
+                "Missing/unknown predecessor closure",
+            )
+        else:
+            shared_predecessors(ctx, phase, selected)
+
+    scope.update(
+        context=context, closed_phase=closed_phase, whole=whole, go=go, predecessors=predecessors
+    )
     return scope
 
 

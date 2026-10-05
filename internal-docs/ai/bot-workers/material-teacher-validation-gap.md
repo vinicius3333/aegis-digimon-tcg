@@ -29,7 +29,7 @@ The adapter never fabricates ownership or rewrites a closed namespace:
 
 Extra guards on top of the original ones:
 
-- contexts-6 Go requires a full closure of contexts-5, via the identity in its completion. Only one block runs at a time, and nothing starts a successor automatically.
+- contexts-6 Go must bind diagnostic and contexts-5 identity/completion hashes in its exact predecessors. The unchanged Go consumer verifies both full closures before idle admission. ROOT review corrected an initial unbound completion lookup; only this new phase changes the original predecessor selector. Only one block runs at a time, and nothing starts a successor automatically.
 - imitation Go must list contexts-5 in its original-prefix predecessors. The corpus can use the closed prefix through contexts-5, or through contexts-6 if that block was declared and closed. The corpus rules stay unchanged: eight families, both seats, both original folds and all 181 identities in training, with no borrowing.
 - Every pre/post check pins the gap adapter, gap request, effect adapter, effect request, original operator/request, entry `180c…682f` and policy `648d…5266`. The adapter rejects `AEGIS_QUALIFIED_ROOT` and symlink ancestors.
 
@@ -51,14 +51,14 @@ The request must have exactly these keys. Unknown keys, booleans and non-integer
 
 ## Bounded validation
 
-`python3.12 -B tools/bot-training/operators/test_material_teacher_gap_learning.py` runs 19 synthetic stdlib tests, and all pass. `uvx ruff check` and `uvx ruff format --check` are clean. The tests cover:
+`python3.12 -B tools/bot-training/operators/test_material_teacher_gap_learning.py` runs 20 synthetic stdlib tests. The tests cover:
 
 - prior-owner routing for all six closures, and fail-closed handling when a prior closure changes
 - only-declared command deltas, fresh bindings, and block and fold periods
 - refusal to launch prior or undeclared phases before any side effect
 - the original closed-whole guard
 - exact Go keys, owner and booleans
-- the contexts-5 closure needed before contexts-6, and the gap prefix needed for imitation
+- the ROOT-bound contexts-5 identity/completion needed before contexts-6, rejection of changed bindings before idle admission, and the gap prefix needed for imitation
 - original corpus strictness
 - hostile request shapes, duplicate keys and NaN, and symlinks
 - module or request changes before and after Go

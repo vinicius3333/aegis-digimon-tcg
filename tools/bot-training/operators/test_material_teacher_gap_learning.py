@@ -291,7 +291,7 @@ class GapAdmissionTests(unittest.TestCase):
             "requestSha256": ctx["requestSha256"],
             "prepareCompletionSha256": "3" * 64,
             "migrationCompletionSha256": "4" * 64,
-            "predecessors": {name: self.prior.get(name, pins(15)) for name in predecessors},
+            "predecessors": {name: self.prior.get(name, pins(7)) for name in predecessors},
         }
         path.write_text(json.dumps(value), encoding="utf-8")
         ctx["runtimeContext"] = {
@@ -338,13 +338,9 @@ class GapAdmissionTests(unittest.TestCase):
     def test_optional_block_requires_full_first_gap_closure(self) -> None:
         ctx = self.context()
         approval_sha = self.approval(ctx, "contexts-6", ["diagnostic"])
-        with self.assertRaisesRegex(ValueError, "requires closed contexts-5"):
+        with self.assertRaisesRegex(ValueError, "Missing/unknown predecessor closure"):
             self.ns["go"](ctx, "contexts-6", approval_sha, idle=True)
-        custody = self.run_path / "contexts-5-custody"
-        custody.mkdir(parents=True)
-        (custody / "completion.json").write_text(
-            json.dumps({"identitySha256": "9" * 64}), encoding="utf-8"
-        )
+        approval_sha = self.approval(ctx, "contexts-6", ["diagnostic", "contexts-5"])
         seen = []
 
         def closed_whole(ctx: dict, phase: str, identity: str, *, closed: bool) -> None:
@@ -354,8 +350,41 @@ class GapAdmissionTests(unittest.TestCase):
         self.ns["whole"] = closed_whole
         with self.assertRaisesRegex(ValueError, "contexts-5 full consumer"):
             self.ns["go"](ctx, "contexts-6", approval_sha, idle=True)
-        self.assertEqual(seen, [("contexts-5", "9" * 64, True)])
+        self.assertEqual(seen, [("contexts-5", pins(7)["identitySha256"], True)])
         self.assertNotIn(("host",), self.calls)
+
+    def test_optional_go_binds_exact_first_gap_identity_and_completion(self) -> None:
+        ctx = self.context()
+        original_closed = self.ns["closed_phase"]
+        bound = {"identitySha256": "a" * 64, "completionSha256": "b" * 64}
+
+        def synthetic_closed(current: dict, phase: str, identity: str) -> dict:
+            if phase != "contexts-5":
+                return original_closed(current, phase, identity)
+            if identity != bound["identitySha256"]:
+                raise ValueError("Synthetic first gap identity changed")
+            return {"completionSha256": bound["completionSha256"]}
+
+        self.ns["closed_phase"] = synthetic_closed
+        path = Path(GAP.bindings("contexts-6")["resourceGo"])
+        for key, reason in (
+            ("identitySha256", "first gap identity changed"),
+            ("completionSha256", "Predecessor changed"),
+        ):
+            with self.subTest(key=key):
+                self.approval(ctx, "contexts-6", ["diagnostic", "contexts-5"])
+                approval = json.loads(path.read_text(encoding="utf-8"))
+                approval["predecessors"]["contexts-5"] = {**bound, key: "c" * 64}
+                path.write_text(json.dumps(approval), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, reason):
+                    self.ns["go"](ctx, "contexts-6", sha(path), idle=True)
+                self.assertNotIn(("host",), self.calls)
+        self.approval(ctx, "contexts-6", ["diagnostic", "contexts-5"])
+        approval = json.loads(path.read_text(encoding="utf-8"))
+        approval["predecessors"]["contexts-5"] = bound
+        path.write_text(json.dumps(approval), encoding="utf-8")
+        self.ns["go"](ctx, "contexts-6", sha(path), idle=True)
+        self.assertEqual(self.calls[-2:], [("host",), ("idle",)])
 
     def test_imitation_must_consume_original_prefix_through_gap(self) -> None:
         ctx = self.context()
