@@ -1,5 +1,5 @@
 {
-  "original": true,
+  "original": false,
   "provider": "Local Stable Audio 3 optimized MLX evaluation",
   "sourceRepository": "https://github.com/Stability-AI/stable-audio-3",
   "weightsRepository": "https://huggingface.co/stabilityai/stable-audio-3-optimized",
@@ -127,8 +127,14 @@
   "priorCueRenderer": {
     "file": "prior-audio-recipes.ts.gz",
     "original": true,
-    "sourceRevision": "b2765d0081b9d3a6a4046e97c75c6424ee6c33b3",
-    "sha256": "f6ff3e61c549620375dab8f1f667f2695f5e5a387be609af862dfcc135757e0c",
-    "purpose": "Prior original authored cue recipes, reproducible same-material comparison only; not a reference asset"
-  }
+    "sourceRevision": "fd80df166bc38a25df184b729a73eeea6113e56b",
+    "sha256": "292e2c79830dbd9206c76b68b74ad7fe23370171412bf763146aa9969ef802ac",
+    "purpose": "Most recently rejected original authored cue recipes for faithful Before comparison"
+  },
+  "recordedFoley": {
+    "provenance": "recorded-provenance.json",
+    "license": "CC0-1.0",
+    "type": "Recorded card/object foley from named external creators; Aegis arrangement and processing"
+  },
+  "scope": "Legacy generated inputs retained only for the rejected Before comparison; current bank uses recordedFoley provenance"
 }
