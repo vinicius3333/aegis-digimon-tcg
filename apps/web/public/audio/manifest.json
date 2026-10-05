@@ -1,0 +1,7287 @@
+{
+  "version": 2,
+  "original": true,
+  "renderer": "apps/web/src/design/audioRecipes.ts",
+  "rendererSha256": "f6ff3e61c549620375dab8f1f667f2695f5e5a387be609af862dfcc135757e0c",
+  "sampleRate": 48000,
+  "channels": 1,
+  "seedMethod": "FNV-1a cue identity followed by xorshift32",
+  "selectedDirection": "warm",
+  "sourceHashes": {
+    "paper-texture.wav": "808fb476477d9427e531afddceef077dbf3b48f007ea7891edfdea4a266d92ed",
+    "impact-body.wav": "e06ad076596298e9f79d6307aef5f028f21937f615b179cec5c9ad061e06e9ca",
+    "crystal-rise.wav": "9ac045b2513f896e2803bc716ff129e0f5e935d32e021a75161ae0b9a2bb5aec"
+  },
+  "sourceProvenance": "sources/provenance.json",
+  "directionReason": "Damped bodies, softer paper bandwidth and longer resonant tails support tactile card actions without piercing transients",
+  "bank": {
+    "file": "aegis-cues-v2.wav",
+    "seconds": 77.344,
+    "peak": 0.2885240614414215,
+    "peakDbFS": -10.796359260875859,
+    "rms": 0.024912685256923355,
+    "dc": -0.0000037111966856535603,
+    "maximumStep": 0.1779022146947682,
+    "boundaryStep": 0,
+    "bytes": 7425068,
+    "sha256": "0e94616b3750f1213d0cf93a0fa61dd7ec7e44b8eb6c16f211fda634390ff0d5"
+  },
+  "music": {
+    "file": "aegis-music-v2.wav",
+    "bpm": 96,
+    "layers": [
+      {
+        "texture": "pad",
+        "at": 0,
+        "duration": 6.25,
+        "gain": 0.017,
+        "hz": 97.99885899543733
+      },
+      {
+        "texture": "pad",
+        "at": 0.06,
+        "duration": 6.25,
+        "gain": 0.013076923076923078,
+        "hz": 146.8323839587038
+      },
+      {
+        "texture": "pad",
+        "at": 0.12,
+        "duration": 6.25,
+        "gain": 0.010625,
+        "hz": 246.94165062806206
+      },
+      {
+        "texture": "pad",
+        "at": 0.18,
+        "duration": 6.25,
+        "gain": 0.008947368421052633,
+        "hz": 369.9944227116344
+      },
+      {
+        "texture": "pad",
+        "at": 5,
+        "duration": 6.25,
+        "gain": 0.017,
+        "hz": 82.4068892282175
+      },
+      {
+        "texture": "pad",
+        "at": 5.06,
+        "duration": 6.25,
+        "gain": 0.013076923076923078,
+        "hz": 123.47082531403103
+      },
+      {
+        "texture": "pad",
+        "at": 5.12,
+        "duration": 6.25,
+        "gain": 0.010625,
+        "hz": 195.99771799087463
+      },
+      {
+        "texture": "pad",
+        "at": 5.18,
+        "duration": 6.25,
+        "gain": 0.008947368421052633,
+        "hz": 293.6647679174076
+      },
+      {
+        "texture": "pad",
+        "at": 10,
+        "duration": 6.25,
+        "gain": 0.017,
+        "hz": 65.40639132514966
+      },
+      {
+        "texture": "pad",
+        "at": 10.06,
+        "duration": 6.25,
+        "gain": 0.013076923076923078,
+        "hz": 97.99885899543733
+      },
+      {
+        "texture": "pad",
+        "at": 10.12,
+        "duration": 6.25,
+        "gain": 0.010625,
+        "hz": 164.81377845643496
+      },
+      {
+        "texture": "pad",
+        "at": 10.18,
+        "duration": 6.25,
+        "gain": 0.008947368421052633,
+        "hz": 246.94165062806206
+      },
+      {
+        "texture": "pad",
+        "at": 15,
+        "duration": 6.25,
+        "gain": 0.017,
+        "hz": 73.41619197935188
+      },
+      {
+        "texture": "pad",
+        "at": 15.06,
+        "duration": 6.25,
+        "gain": 0.013076923076923078,
+        "hz": 110
+      },
+      {
+        "texture": "pad",
+        "at": 15.12,
+        "duration": 6.25,
+        "gain": 0.010625,
+        "hz": 195.99771799087463
+      },
+      {
+        "texture": "pad",
+        "at": 15.18,
+        "duration": 6.25,
+        "gain": 0.008947368421052633,
+        "hz": 329.6275569128699
+      },
+      {
+        "texture": "pluck",
+        "at": 0.15625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 293.6647679174076
+      },
+      {
+        "texture": "pluck",
+        "at": 0.78125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "pluck",
+        "at": 1.40625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 739.9888454232688
+      },
+      {
+        "texture": "pluck",
+        "at": 2.03125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "glass",
+        "at": 2.34375,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 739.9888454232688
+      },
+      {
+        "texture": "pluck",
+        "at": 2.65625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 293.6647679174076
+      },
+      {
+        "texture": "pluck",
+        "at": 3.28125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 739.9888454232688
+      },
+      {
+        "texture": "pluck",
+        "at": 3.90625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "glass",
+        "at": 4.21875,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 739.9888454232688
+      },
+      {
+        "texture": "pluck",
+        "at": 4.53125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 739.9888454232688
+      },
+      {
+        "texture": "pluck",
+        "at": 5.15625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 246.94165062806206
+      },
+      {
+        "texture": "pluck",
+        "at": 5.78125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 391.99543598174927
+      },
+      {
+        "texture": "pluck",
+        "at": 6.40625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 587.3295358348151
+      },
+      {
+        "texture": "pluck",
+        "at": 7.03125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 391.99543598174927
+      },
+      {
+        "texture": "glass",
+        "at": 7.34375,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 587.3295358348151
+      },
+      {
+        "texture": "pluck",
+        "at": 7.65625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 246.94165062806206
+      },
+      {
+        "texture": "pluck",
+        "at": 8.28125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 587.3295358348151
+      },
+      {
+        "texture": "pluck",
+        "at": 8.90625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 391.99543598174927
+      },
+      {
+        "texture": "glass",
+        "at": 9.21875,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 587.3295358348151
+      },
+      {
+        "texture": "pluck",
+        "at": 9.53125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 587.3295358348151
+      },
+      {
+        "texture": "pluck",
+        "at": 10.15625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 195.99771799087463
+      },
+      {
+        "texture": "pluck",
+        "at": 10.78125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 329.6275569128699
+      },
+      {
+        "texture": "pluck",
+        "at": 11.40625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "pluck",
+        "at": 12.03125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 329.6275569128699
+      },
+      {
+        "texture": "glass",
+        "at": 12.34375,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "pluck",
+        "at": 12.65625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 195.99771799087463
+      },
+      {
+        "texture": "pluck",
+        "at": 13.28125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "pluck",
+        "at": 13.90625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 329.6275569128699
+      },
+      {
+        "texture": "glass",
+        "at": 14.21875,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "pluck",
+        "at": 14.53125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 493.8833012561241
+      },
+      {
+        "texture": "pluck",
+        "at": 15.15625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 220
+      },
+      {
+        "texture": "pluck",
+        "at": 15.78125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 391.99543598174927
+      },
+      {
+        "texture": "pluck",
+        "at": 16.40625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 659.2551138257398
+      },
+      {
+        "texture": "pluck",
+        "at": 17.03125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 391.99543598174927
+      },
+      {
+        "texture": "glass",
+        "at": 17.34375,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 587.3295358348151
+      },
+      {
+        "texture": "pluck",
+        "at": 17.65625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 220
+      },
+      {
+        "texture": "pluck",
+        "at": 18.28125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 659.2551138257398
+      },
+      {
+        "texture": "pluck",
+        "at": 18.90625,
+        "duration": 1.65,
+        "gain": 0.04,
+        "hz": 391.99543598174927
+      },
+      {
+        "texture": "glass",
+        "at": 19.21875,
+        "duration": 1.2,
+        "gain": 0.018,
+        "hz": 587.3295358348151
+      },
+      {
+        "texture": "pluck",
+        "at": 19.53125,
+        "duration": 1.65,
+        "gain": 0.024,
+        "hz": 659.2551138257398
+      },
+      {
+        "texture": "body",
+        "at": 0,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 0.625,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 1.25,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 1.875,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 2.5,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 3.125,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 3.75,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 4.375,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 5,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 5.625,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 6.25,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 6.875,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 7.5,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 8.125,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 8.75,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 9.375,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 10,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 10.625,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 11.25,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 11.875,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 12.5,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 13.125,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 13.75,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 14.375,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 15,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 15.625,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 16.25,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 16.875,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 17.5,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 18.125,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 18.75,
+        "duration": 0.28,
+        "gain": 0.045,
+        "hz": 80,
+        "endHz": 50
+      },
+      {
+        "texture": "body",
+        "at": 19.375,
+        "duration": 0.28,
+        "gain": 0.018,
+        "hz": 80,
+        "endHz": 50
+      }
+    ],
+    "composition": "Original 8 bars at steady 96 BPM; Gmaj9 / Em9 / Cmaj9 / Dsus-add9; circular overlapping pads, plucks, warm steady low pulse, no ambient noise wash or shaker/hi-hat",
+    "seconds": 20,
+    "peak": 0.04550116881728172,
+    "peakDbFS": -26.839548944055075,
+    "rms": 0.010716250127765116,
+    "dc": -3.0868994488760425e-8,
+    "maximumStep": 0.005075868641142733,
+    "boundaryStep": 0.00029226837068563327,
+    "bytes": 1920044,
+    "sha256": "0ac715d3d9c4feff2318bf114845790e8d852094aec4269cdc67bc0b7dff3922"
+  },
+  "previews": {
+    "warm": {
+      "seconds": 12,
+      "peak": 0.2885240614414215,
+      "peakDbFS": -10.796359260875859,
+      "rms": 0.013950368933311632,
+      "dc": -0.000004576935710260858,
+      "maximumStep": 0.1779022146947682,
+      "boundaryStep": 0,
+      "bytes": 1152044,
+      "sha256": "33eae37355e0b89dfd129cf0c4fa014078b889fe02d20e4a9c42635a9e7feb1d"
+    },
+    "crisp": {
+      "seconds": 12,
+      "peak": 0.22162273526191711,
+      "peakDbFS": -13.087713787507177,
+      "rms": 0.010653697160875025,
+      "dc": -0.0000035826731913380905,
+      "maximumStep": 0.19046617299318314,
+      "boundaryStep": 0,
+      "bytes": 1152044,
+      "sha256": "5a4aadbc77b9257545af99eb1e99ccfdda6cb713cb7144d21f9257a86ec092fd"
+    }
+  },
+  "clips": [
+    {
+      "key": "select",
+      "kind": "select",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.035,
+          "gain": 0.075,
+          "hz": 1722
+        },
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.075,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        }
+      ],
+      "duration": 0.12,
+      "offset": 0,
+      "metrics": {
+        "seconds": 0.12,
+        "peak": 0.04735611751675606,
+        "peakDbFS": -26.492478207698525,
+        "rms": 0.00659822156348258,
+        "dc": -0.000035329744860972855,
+        "maximumStep": 0.04110539611428976,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "nav",
+      "kind": "nav",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.055,
+          "gain": 0.08,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0,
+          "duration": 0.065,
+          "gain": 0.045,
+          "hz": 270,
+          "endHz": 240
+        }
+      ],
+      "duration": 0.11,
+      "offset": 0.145,
+      "metrics": {
+        "seconds": 0.11,
+        "peak": 0.05115756019949913,
+        "peakDbFS": -25.82180352044353,
+        "rms": 0.0044369763548108565,
+        "dc": -0.00004235041678563253,
+        "maximumStep": 0.03484807629138231,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "confirm",
+      "kind": "confirm",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.07,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.07,
+          "hz": 360.79999999999995
+        }
+      ],
+      "duration": 0.485,
+      "offset": 0.28,
+      "metrics": {
+        "seconds": 0.485,
+        "peak": 0.0664326623082161,
+        "peakDbFS": -23.552366854646646,
+        "rms": 0.01175921931560404,
+        "dc": -0.000014343994935880299,
+        "maximumStep": 0.004265716299414635,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "attack",
+      "kind": "attack",
+      "details": {},
+      "layers": [
+        {
+          "texture": "body",
+          "at": 0,
+          "duration": 0.28,
+          "gain": 0.32,
+          "hz": 155,
+          "endHz": 48
+        },
+        {
+          "texture": "grain",
+          "at": 0.005,
+          "duration": 0.16,
+          "gain": 0.26,
+          "hz": 983.9999999999999
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.357,
+      "offset": 0.79,
+      "metrics": {
+        "seconds": 0.357,
+        "peak": 0.2859886586666107,
+        "peakDbFS": -10.873023783305218,
+        "rms": 0.04079709347771399,
+        "dc": -0.0001333142239888202,
+        "maximumStep": 0.06473307311534882,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "error",
+      "kind": "error",
+      "details": {},
+      "layers": [
+        {
+          "texture": "body",
+          "at": 0,
+          "duration": 0.12,
+          "gain": 0.09,
+          "hz": 180,
+          "endHz": 145
+        },
+        {
+          "texture": "body",
+          "at": 0.1,
+          "duration": 0.12,
+          "gain": 0.07,
+          "hz": 145,
+          "endHz": 120
+        }
+      ],
+      "duration": 0.265,
+      "offset": 1.172,
+      "metrics": {
+        "seconds": 0.265,
+        "peak": 0.04929080978035927,
+        "peakDbFS": -26.14468093848688,
+        "rms": 0.00935583702746447,
+        "dc": -0.00004490685154456251,
+        "maximumStep": 0.0016229499597102404,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "success",
+      "kind": "success",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.075,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pluck",
+          "at": 0.08,
+          "duration": 0.38,
+          "gain": 0.075,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pluck",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.075,
+          "hz": 360.79999999999995
+        }
+      ],
+      "duration": 0.585,
+      "offset": 1.462,
+      "metrics": {
+        "seconds": 0.585,
+        "peak": 0.07076725363731384,
+        "peakDbFS": -23.0033531666863,
+        "rms": 0.014213825432747356,
+        "dc": -0.000012741045124855372,
+        "maximumStep": 0.0052350780460983515,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "attackDeclare",
+      "kind": "attackDeclare",
+      "details": {},
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.32,
+          "gain": 0.21,
+          "hz": 1107
+        },
+        {
+          "texture": "body",
+          "at": 0.08,
+          "duration": 0.21,
+          "gain": 0.12,
+          "hz": 95,
+          "endHz": 180
+        }
+      ],
+      "duration": 0.365,
+      "offset": 2.072,
+      "metrics": {
+        "seconds": 0.365,
+        "peak": 0.16153135895729065,
+        "peakDbFS": -15.834863064173756,
+        "rms": 0.029974465021798978,
+        "dc": 0.000001071961095980459,
+        "maximumStep": 0.07765069417655468,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "securityHit",
+      "kind": "securityHit",
+      "details": {},
+      "layers": [
+        {
+          "texture": "grain",
+          "at": 0,
+          "duration": 0.12,
+          "gain": 0.23,
+          "hz": 2788
+        },
+        {
+          "texture": "glass",
+          "at": 0,
+          "duration": 0.36,
+          "gain": 0.09,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.025,
+          "duration": 0.36,
+          "gain": 0.09,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "glass",
+          "at": 0.05,
+          "duration": 0.36,
+          "gain": 0.09,
+          "hz": 454.57951480207015
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.3,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.455,
+      "offset": 2.462,
+      "metrics": {
+        "seconds": 0.455,
+        "peak": 0.24512487649917603,
+        "peakDbFS": -12.212252242678183,
+        "rms": 0.022731939125620958,
+        "dc": -0.00001607071055234911,
+        "maximumStep": 0.1779022146947682,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "turnChange",
+      "kind": "turnChange",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.11,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 240.8051096922742
+        }
+      ],
+      "duration": 0.645,
+      "offset": 2.942,
+      "metrics": {
+        "seconds": 0.645,
+        "peak": 0.06846446543931961,
+        "peakDbFS": -23.290695568055536,
+        "rms": 0.0158791814494813,
+        "dc": -0.00001780700088044532,
+        "maximumStep": 0.0034397179260849953,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "endTurn",
+      "kind": "endTurn",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pluck",
+          "at": 0.13,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "body",
+          "at": 0.04,
+          "duration": 0.18,
+          "gain": 0.06,
+          "hz": 120,
+          "endHz": 100
+        }
+      ],
+      "duration": 0.555,
+      "offset": 3.612,
+      "metrics": {
+        "seconds": 0.555,
+        "peak": 0.05899668112397194,
+        "peakDbFS": -24.583448380745825,
+        "rms": 0.014046151065337704,
+        "dc": -0.000015486013220110103,
+        "maximumStep": 0.003381583606824279,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "hatch",
+      "kind": "hatch",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.11,
+          "hz": 1722
+        },
+        {
+          "texture": "pluck",
+          "at": 0.04,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.13,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pluck",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.3,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.645,
+      "offset": 4.192,
+      "metrics": {
+        "seconds": 0.645,
+        "peak": 0.0832364484667778,
+        "peakDbFS": -21.593729170886743,
+        "rms": 0.015972092285323026,
+        "dc": -6.48260988499088e-8,
+        "maximumStep": 0.08862482570111752,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "effectFocus",
+      "kind": "effectFocus",
+      "details": {},
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.19,
+          "gain": 0.06,
+          "hz": 1394
+        },
+        {
+          "texture": "glass",
+          "at": 0.035,
+          "duration": 0.28,
+          "gain": 0.07,
+          "hz": 240.8051096922742
+        }
+      ],
+      "duration": 0.36,
+      "offset": 4.862,
+      "metrics": {
+        "seconds": 0.36,
+        "peak": 0.05694067105650902,
+        "peakDbFS": -24.89154837833639,
+        "rms": 0.010771506218315654,
+        "dc": -3.757317258665891e-8,
+        "maximumStep": 0.02911023050546646,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "effectActivate",
+      "kind": "effectActivate",
+      "details": {},
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.22,
+          "gain": 0.085,
+          "hz": 1886
+        },
+        {
+          "texture": "glass",
+          "at": 0.02,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "glass",
+          "at": 0.085,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 481.6102193845484
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.3,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.51,
+      "offset": 5.247,
+      "metrics": {
+        "seconds": 0.51,
+        "peak": 0.1485290676355362,
+        "peakDbFS": -16.563770902913333,
+        "rms": 0.01766130831771833,
+        "dc": -1.30671795062188e-7,
+        "maximumStep": 0.1000119298696518,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "handTrash",
+      "kind": "handTrash",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.24,
+          "gain": 0.18,
+          "hz": 1722
+        },
+        {
+          "texture": "grain",
+          "at": 0.12,
+          "duration": 0.2,
+          "gain": 0.09,
+          "hz": 820
+        }
+      ],
+      "duration": 0.365,
+      "offset": 5.782,
+      "metrics": {
+        "seconds": 0.365,
+        "peak": 0.07823047041893005,
+        "peakDbFS": -22.132481164546142,
+        "rms": 0.007348175423148767,
+        "dc": -8.915815617622148e-7,
+        "maximumStep": 0.03169098403304815,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "sourceTrash",
+      "kind": "sourceTrash",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.095,
+          "gain": 0.11,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.055,
+          "duration": 0.095,
+          "gain": 0.11,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.115,
+          "duration": 0.095,
+          "gain": 0.11,
+          "hz": 1722
+        }
+      ],
+      "duration": 0.255,
+      "offset": 6.172,
+      "metrics": {
+        "seconds": 0.255,
+        "peak": 0.04921600595116615,
+        "peakDbFS": -26.15787267400167,
+        "rms": 0.004799217314349879,
+        "dc": 4.4128152991900325e-7,
+        "maximumStep": 0.04452033340930939,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "deDigivolve",
+      "kind": "deDigivolve",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "pluck",
+          "at": 0.075,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pluck",
+          "at": 0.15,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.22499999999999998,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "grain",
+          "at": 0.12,
+          "duration": 0.35,
+          "gain": 0.11,
+          "hz": 1066
+        }
+      ],
+      "duration": 0.65,
+      "offset": 6.452,
+      "metrics": {
+        "seconds": 0.65,
+        "peak": 0.09719832986593246,
+        "peakDbFS": -20.246823947614658,
+        "rms": 0.019492987049091404,
+        "dc": -0.000006978285388448718,
+        "maximumStep": 0.034384656231850386,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "delete",
+      "kind": "delete",
+      "details": {},
+      "layers": [
+        {
+          "texture": "body",
+          "at": 0,
+          "duration": 0.34,
+          "gain": 0.19,
+          "hz": 140,
+          "endHz": 38
+        },
+        {
+          "texture": "grain",
+          "at": 0.07,
+          "duration": 0.52,
+          "gain": 0.13,
+          "hz": 656
+        },
+        {
+          "texture": "air",
+          "at": 0.12,
+          "duration": 0.48,
+          "gain": 0.06,
+          "hz": 1476
+        }
+      ],
+      "duration": 0.645,
+      "offset": 7.127,
+      "metrics": {
+        "seconds": 0.645,
+        "peak": 0.12652605772018433,
+        "peakDbFS": -17.956400468627812,
+        "rms": 0.021384009539028824,
+        "dc": -0.00004072175302658524,
+        "maximumStep": 0.03183179348707199,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "move",
+      "kind": "move",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.23,
+          "gain": 0.13,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.16,
+          "duration": 0.1,
+          "gain": 0.07,
+          "hz": 210,
+          "endHz": 160
+        }
+      ],
+      "duration": 0.305,
+      "offset": 7.797,
+      "metrics": {
+        "seconds": 0.305,
+        "peak": 0.05617889016866684,
+        "peakDbFS": -25.008536893427433,
+        "rms": 0.006803409290883112,
+        "dc": -2.597440067736901e-7,
+        "maximumStep": 0.022645666263997555,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "draw",
+      "kind": "draw",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.16,
+          "gain": 0.18,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.055,
+          "duration": 0.065,
+          "gain": 0.08,
+          "hz": 1722
+        }
+      ],
+      "duration": 0.205,
+      "offset": 8.127,
+      "metrics": {
+        "seconds": 0.205,
+        "peak": 0.08241026103496552,
+        "peakDbFS": -21.68037420454764,
+        "rms": 0.006873831693082127,
+        "dc": -4.923859212792975e-7,
+        "maximumStep": 0.04654608806595206,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "shuffle",
+      "kind": "shuffle",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.095,
+          "gain": 0.13,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.07,
+          "duration": 0.095,
+          "gain": 0.12100000000000001,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.14,
+          "duration": 0.095,
+          "gain": 0.112,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.23,
+          "duration": 0.095,
+          "gain": 0.10300000000000001,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.31,
+          "duration": 0.095,
+          "gain": 0.094,
+          "hz": 1722
+        }
+      ],
+      "duration": 0.45,
+      "offset": 8.357,
+      "metrics": {
+        "seconds": 0.45,
+        "peak": 0.05894196033477783,
+        "peakDbFS": -24.591508483254646,
+        "rms": 0.004766305740208793,
+        "dc": -2.9662810422912446e-7,
+        "maximumStep": 0.05067756865173578,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "reveal",
+      "kind": "reveal",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.14,
+          "gain": 0.11,
+          "hz": 1722
+        },
+        {
+          "texture": "glass",
+          "at": 0.07,
+          "duration": 0.34,
+          "gain": 0.075,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.3,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.455,
+      "offset": 8.832,
+      "metrics": {
+        "seconds": 0.455,
+        "peak": 0.08457836508750916,
+        "peakDbFS": -21.454814281709925,
+        "rms": 0.01056699700482127,
+        "dc": 1.9118651292417396e-7,
+        "maximumStep": 0.09015730768442154,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "impact",
+      "kind": "impact",
+      "details": {},
+      "layers": [
+        {
+          "texture": "body",
+          "at": 0,
+          "duration": 0.28,
+          "gain": 0.32,
+          "hz": 155,
+          "endHz": 48
+        },
+        {
+          "texture": "grain",
+          "at": 0.005,
+          "duration": 0.16,
+          "gain": 0.26,
+          "hz": 983.9999999999999
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.357,
+      "offset": 9.312,
+      "metrics": {
+        "seconds": 0.357,
+        "peak": 0.2885240614414215,
+        "peakDbFS": -10.796359260875859,
+        "rms": 0.040367438527864084,
+        "dc": -0.0001278191129388005,
+        "maximumStep": 0.06515894830226898,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "buff",
+      "kind": "buff",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.08,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pluck",
+          "at": 0.07,
+          "duration": 0.38,
+          "gain": 0.08,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pluck",
+          "at": 0.14,
+          "duration": 0.38,
+          "gain": 0.08,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "air",
+          "at": 0.04,
+          "duration": 0.25,
+          "gain": 0.05,
+          "hz": 1230
+        }
+      ],
+      "duration": 0.565,
+      "offset": 9.694,
+      "metrics": {
+        "seconds": 0.565,
+        "peak": 0.08350072056055069,
+        "peakDbFS": -21.566195536047523,
+        "rms": 0.015832183357175785,
+        "dc": -0.000015155352972648065,
+        "maximumStep": 0.022753491066396236,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "debuff",
+      "kind": "debuff",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pluck",
+          "at": 0.075,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pluck",
+          "at": 0.15,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 143.1835748875316
+        }
+      ],
+      "duration": 0.575,
+      "offset": 10.284,
+      "metrics": {
+        "seconds": 0.575,
+        "peak": 0.059666652232408524,
+        "peakDbFS": -24.485366576042118,
+        "rms": 0.015699773175002804,
+        "dc": -0.000014689135012197502,
+        "maximumStep": 0.003381583606824279,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "freeze",
+      "kind": "freeze",
+      "details": {},
+      "layers": [
+        {
+          "texture": "grain",
+          "at": 0,
+          "duration": 0.19,
+          "gain": 0.085,
+          "hz": 2132
+        },
+        {
+          "texture": "glass",
+          "at": 0.03,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "glass",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 303.3954266235402
+        }
+      ],
+      "duration": 0.485,
+      "offset": 10.884,
+      "metrics": {
+        "seconds": 0.485,
+        "peak": 0.07475733757019043,
+        "peakDbFS": -22.52692348218421,
+        "rms": 0.011363457113669121,
+        "dc": 3.1159176879023527e-7,
+        "maximumStep": 0.04908164218068123,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "recover",
+      "kind": "recover",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.07,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.08,
+          "duration": 0.38,
+          "gain": 0.07,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pluck",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.07,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pluck",
+          "at": 0.24,
+          "duration": 0.38,
+          "gain": 0.07,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "pad",
+          "at": 0.16,
+          "duration": 0.42,
+          "gain": 0.045,
+          "hz": 160.7181287525172
+        }
+      ],
+      "duration": 0.665,
+      "offset": 11.394,
+      "metrics": {
+        "seconds": 0.665,
+        "peak": 0.062359124422073364,
+        "peakDbFS": -24.10199982647328,
+        "rms": 0.015368249457906017,
+        "dc": -0.000012807269054146773,
+        "maximumStep": 0.003700061817653477,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "group",
+      "kind": "group",
+      "details": {},
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.12,
+          "gain": 0.12,
+          "hz": 1722
+        },
+        {
+          "texture": "paper",
+          "at": 0.085,
+          "duration": 0.12,
+          "gain": 0.12,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.18,
+          "duration": 0.16,
+          "gain": 0.1,
+          "hz": 170,
+          "endHz": 130
+        }
+      ],
+      "duration": 0.385,
+      "offset": 12.084,
+      "metrics": {
+        "seconds": 0.385,
+        "peak": 0.059773899614810944,
+        "peakDbFS": -24.469768202399948,
+        "rms": 0.009086527942032975,
+        "dc": -3.777669703102362e-7,
+        "maximumStep": 0.04300237260758877,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "win",
+      "kind": "win",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.12,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pluck",
+          "at": 0.24,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "pluck",
+          "at": 0.36,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "pluck",
+          "at": 0.48,
+          "duration": 0.38,
+          "gain": 0.09,
+          "hz": 481.6102193845484
+        },
+        {
+          "texture": "pad",
+          "at": 0.25,
+          "duration": 0.9,
+          "gain": 0.07,
+          "hz": 160.7181287525172
+        }
+      ],
+      "duration": 1.195,
+      "offset": 12.494,
+      "metrics": {
+        "seconds": 1.195,
+        "peak": 0.07553796470165253,
+        "peakDbFS": -22.436694420021453,
+        "rms": 0.023168778501884753,
+        "dc": -0.00001013750727134202,
+        "maximumStep": 0.0076951864175498486,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "lose",
+      "kind": "lose",
+      "details": {},
+      "layers": [
+        {
+          "texture": "pluck",
+          "at": 0,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.17,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.34,
+          "duration": 0.38,
+          "gain": 0.085,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pad",
+          "at": 0.12,
+          "duration": 0.7,
+          "gain": 0.05,
+          "hz": 60.20127742306854
+        }
+      ],
+      "duration": 0.865,
+      "offset": 13.714,
+      "metrics": {
+        "seconds": 0.865,
+        "peak": 0.06188583001494408,
+        "peakDbFS": -24.168175598207835,
+        "rms": 0.017414727530365992,
+        "dc": -0.00001129820642044013,
+        "maximumStep": 0.00246435368899256,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-0-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 0,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.22,
+          "gain": 0.16,
+          "hz": 190,
+          "endHz": 65
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.13,
+          "gain": 0.13,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.357,
+      "offset": 14.604,
+      "metrics": {
+        "seconds": 0.357,
+        "peak": 0.14908622205257416,
+        "peakDbFS": -16.53124980874354,
+        "rms": 0.019836486753506966,
+        "dc": 5.00410411414491e-8,
+        "maximumStep": 0.06507628597319126,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-0-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 0,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.22,
+          "gain": 0.16,
+          "hz": 190,
+          "endHz": 65
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.13,
+          "gain": 0.13,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 14.986,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.14702683687210083,
+        "peakDbFS": -16.652067721132468,
+        "rms": 0.018144723420936284,
+        "dc": 2.472871984202637e-7,
+        "maximumStep": 0.057549784891307354,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-1-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 1,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.23466666666666666,
+          "gain": 0.16866666666666666,
+          "hz": 184.33333333333334,
+          "endHz": 63.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.138,
+          "gain": 0.13466666666666668,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.357,
+      "offset": 15.716,
+      "metrics": {
+        "seconds": 0.357,
+        "peak": 0.15201722085475922,
+        "peakDbFS": -16.362144228135474,
+        "rms": 0.02086351669890169,
+        "dc": 0.000001488468196858296,
+        "maximumStep": 0.06328825652599335,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-1-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 1,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.23466666666666666,
+          "gain": 0.16866666666666666,
+          "hz": 184.33333333333334,
+          "endHz": 63.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.138,
+          "gain": 0.13466666666666668,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 16.098,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.15742050111293793,
+        "peakDbFS": -16.05877418916588,
+        "rms": 0.018893160892916535,
+        "dc": 4.326124925268725e-7,
+        "maximumStep": 0.05904826149344444,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-2-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 2,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.24933333333333332,
+          "gain": 0.17733333333333334,
+          "hz": 178.66666666666666,
+          "endHz": 62.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.14600000000000002,
+          "gain": 0.13933333333333334,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.357,
+      "offset": 16.828,
+      "metrics": {
+        "seconds": 0.357,
+        "peak": 0.1393616497516632,
+        "peakDbFS": -17.117134423277747,
+        "rms": 0.022947445139696553,
+        "dc": 0.000002189309097085501,
+        "maximumStep": 0.06326235365122557,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-2-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 2,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.24933333333333332,
+          "gain": 0.17733333333333334,
+          "hz": 178.66666666666666,
+          "endHz": 62.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.14600000000000002,
+          "gain": 0.13933333333333334,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 17.21,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.14254890382289886,
+        "peakDbFS": -16.920722359864417,
+        "rms": 0.019810661149503216,
+        "dc": 6.228478063115942e-7,
+        "maximumStep": 0.058379875496029854,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-3-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 3,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.264,
+          "gain": 0.186,
+          "hz": 173,
+          "endHz": 61
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.154,
+          "gain": 0.14400000000000002,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.357,
+      "offset": 17.94,
+      "metrics": {
+        "seconds": 0.357,
+        "peak": 0.15189515054225922,
+        "peakDbFS": -16.36912182707036,
+        "rms": 0.024903661015118424,
+        "dc": 1.1713948487565934e-7,
+        "maximumStep": 0.06651338562369347,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-3-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 3,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.264,
+          "gain": 0.186,
+          "hz": 173,
+          "endHz": 61
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.154,
+          "gain": 0.14400000000000002,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 18.322,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.1700926572084427,
+        "peakDbFS": -15.38628868397275,
+        "rms": 0.02127352697522211,
+        "dc": -3.550013972024757e-7,
+        "maximumStep": 0.06068183481693268,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-4-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 4,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.2786666666666667,
+          "gain": 0.19466666666666665,
+          "hz": 167.33333333333334,
+          "endHz": 59.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.162,
+          "gain": 0.14866666666666667,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.3586666666666667,
+      "offset": 19.052,
+      "metrics": {
+        "seconds": 0.3586666666666667,
+        "peak": 0.19113290309906006,
+        "peakDbFS": -14.373290873831765,
+        "rms": 0.026387186019957244,
+        "dc": -0.0000023691869994581017,
+        "maximumStep": 0.059969592839479446,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-4-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 4,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.2786666666666667,
+          "gain": 0.19466666666666665,
+          "hz": 167.33333333333334,
+          "endHz": 59.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.162,
+          "gain": 0.14866666666666667,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 19.435666666666666,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.16701805591583252,
+        "peakDbFS": -15.544731515883164,
+        "rms": 0.021692141395814366,
+        "dc": 1.1157097511423682e-7,
+        "maximumStep": 0.06616632826626301,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-5-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 5,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.29333333333333333,
+          "gain": 0.20333333333333334,
+          "hz": 161.66666666666666,
+          "endHz": 58.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.16999999999999998,
+          "gain": 0.15333333333333335,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.37333333333333335,
+      "offset": 20.165666666666667,
+      "metrics": {
+        "seconds": 0.37333333333333335,
+        "peak": 0.21228598058223724,
+        "peakDbFS": -13.461573716003086,
+        "rms": 0.026970103695631263,
+        "dc": -0.0000032113774600640482,
+        "maximumStep": 0.06328669562935829,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-5-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 5,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.29333333333333333,
+          "gain": 0.20333333333333334,
+          "hz": 161.66666666666666,
+          "endHz": 58.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.16999999999999998,
+          "gain": 0.15333333333333335,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 20.564,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.17511388659477234,
+        "peakDbFS": -15.133588256817589,
+        "rms": 0.023013066559957197,
+        "dc": -0.0000017651664102133714,
+        "maximumStep": 0.05762922950088978,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-6-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 6,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.308,
+          "gain": 0.21200000000000002,
+          "hz": 156,
+          "endHz": 57
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.178,
+          "gain": 0.158,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.388,
+      "offset": 21.294,
+      "metrics": {
+        "seconds": 0.388,
+        "peak": 0.1858939677476883,
+        "peakDbFS": -14.61469405678341,
+        "rms": 0.02745774522231491,
+        "dc": -0.0000025498770535984864,
+        "maximumStep": 0.0642407163977623,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-6-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 6,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.308,
+          "gain": 0.21200000000000002,
+          "hz": 156,
+          "endHz": 57
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.178,
+          "gain": 0.158,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 21.707,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.17141878604888916,
+        "peakDbFS": -15.31883169606365,
+        "rms": 0.023563414893251453,
+        "dc": -9.474744377298622e-7,
+        "maximumStep": 0.064647501334548,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-7-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 7,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.32266666666666666,
+          "gain": 0.22066666666666668,
+          "hz": 150.33333333333334,
+          "endHz": 55.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.186,
+          "gain": 0.16266666666666668,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.4026666666666667,
+      "offset": 22.437,
+      "metrics": {
+        "seconds": 0.4026666666666667,
+        "peak": 0.20754627883434296,
+        "peakDbFS": -13.657700976492048,
+        "rms": 0.02807188396958936,
+        "dc": -4.319300471428817e-7,
+        "maximumStep": 0.057796177454292774,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-7-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 7,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.32266666666666666,
+          "gain": 0.22066666666666668,
+          "hz": 150.33333333333334,
+          "endHz": 55.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.186,
+          "gain": 0.16266666666666668,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 22.86466666666667,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.19423645734786987,
+        "peakDbFS": -14.233385031402953,
+        "rms": 0.024953520326316873,
+        "dc": -8.934032769048609e-7,
+        "maximumStep": 0.06806090660393238,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-8-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 8,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.3373333333333333,
+          "gain": 0.22933333333333333,
+          "hz": 144.66666666666666,
+          "endHz": 54.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.194,
+          "gain": 0.16733333333333333,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.41733333333333333,
+      "offset": 23.594666666666665,
+      "metrics": {
+        "seconds": 0.41733333333333333,
+        "peak": 0.20786795020103455,
+        "peakDbFS": -13.644249330621731,
+        "rms": 0.02986054133655359,
+        "dc": 7.051457342312933e-7,
+        "maximumStep": 0.06397033669054508,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-8-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 8,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.3373333333333333,
+          "gain": 0.22933333333333333,
+          "hz": 144.66666666666666,
+          "endHz": 54.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.194,
+          "gain": 0.16733333333333333,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 24.037,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.21649980545043945,
+        "peakDbFS": -13.29084979146299,
+        "rms": 0.02594510348207473,
+        "dc": 4.9550556659066876e-8,
+        "maximumStep": 0.0613052099943161,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-9-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 9,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.352,
+          "gain": 0.238,
+          "hz": 139,
+          "endHz": 53
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.202,
+          "gain": 0.17200000000000001,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.432,
+      "offset": 24.767,
+      "metrics": {
+        "seconds": 0.432,
+        "peak": 0.20175102353096008,
+        "peakDbFS": -13.903685066420643,
+        "rms": 0.031583538835442286,
+        "dc": 0.0000014323564608606916,
+        "maximumStep": 0.06543875858187675,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-9-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 9,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.352,
+          "gain": 0.238,
+          "hz": 139,
+          "endHz": 53
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.202,
+          "gain": 0.17200000000000001,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 25.224,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.20518045127391815,
+        "peakDbFS": -13.757280386632672,
+        "rms": 0.027250618839292345,
+        "dc": 3.381473408353698e-7,
+        "maximumStep": 0.06122715212404728,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-10-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 10,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.3666666666666667,
+          "gain": 0.24666666666666667,
+          "hz": 133.33333333333334,
+          "endHz": 51.66666666666667
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.21,
+          "gain": 0.17666666666666667,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.44666666666666666,
+      "offset": 25.954,
+      "metrics": {
+        "seconds": 0.44666666666666666,
+        "peak": 0.21473872661590576,
+        "peakDbFS": -13.36179253103027,
+        "rms": 0.03178477694179122,
+        "dc": 5.373832278108987e-7,
+        "maximumStep": 0.0665867030620575,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-10-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 10,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.3666666666666667,
+          "gain": 0.24666666666666667,
+          "hz": 133.33333333333334,
+          "endHz": 51.66666666666667
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.21,
+          "gain": 0.17666666666666667,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 26.425666666666668,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.21768561005592346,
+        "peakDbFS": -13.243405574424889,
+        "rms": 0.02733908699424509,
+        "dc": 0.0000019924733750160264,
+        "maximumStep": 0.06341028772294521,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-11-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 11,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.3813333333333333,
+          "gain": 0.2553333333333333,
+          "hz": 127.66666666666667,
+          "endHz": 50.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.218,
+          "gain": 0.18133333333333335,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.4613333333333333,
+      "offset": 27.155666666666665,
+      "metrics": {
+        "seconds": 0.4613333333333333,
+        "peak": 0.23757679760456085,
+        "peakDbFS": -12.483919519974098,
+        "rms": 0.03356685492933065,
+        "dc": 0.0000013054564777410249,
+        "maximumStep": 0.06051374785602093,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-11-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 11,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.3813333333333333,
+          "gain": 0.2553333333333333,
+          "hz": 127.66666666666667,
+          "endHz": 50.333333333333336
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.218,
+          "gain": 0.18133333333333335,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 27.642,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.2205384522676468,
+        "peakDbFS": -13.130313552337348,
+        "rms": 0.028688666992604875,
+        "dc": 8.47156203718947e-7,
+        "maximumStep": 0.06429854314774275,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-12-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 12,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.396,
+          "gain": 0.264,
+          "hz": 122,
+          "endHz": 49
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.226,
+          "gain": 0.186,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.476,
+      "offset": 28.372,
+      "metrics": {
+        "seconds": 0.476,
+        "peak": 0.24265463650226593,
+        "peakDbFS": -12.30022812051095,
+        "rms": 0.036343862430497954,
+        "dc": -0.0000015788752261781852,
+        "maximumStep": 0.0680171474814415,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-12-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 12,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.396,
+          "gain": 0.264,
+          "hz": 122,
+          "endHz": 49
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.226,
+          "gain": 0.186,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 28.873,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.24097438156604767,
+        "peakDbFS": -12.36058251247686,
+        "rms": 0.03200436394618476,
+        "dc": -4.957474207319701e-7,
+        "maximumStep": 0.06135112792253494,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-13-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 13,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.4106666666666667,
+          "gain": 0.27266666666666667,
+          "hz": 116.33333333333333,
+          "endHz": 47.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.23399999999999999,
+          "gain": 0.19066666666666668,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.49066666666666664,
+      "offset": 29.603,
+      "metrics": {
+        "seconds": 0.49066666666666664,
+        "peak": 0.281589537858963,
+        "peakDbFS": -11.00766969901664,
+        "rms": 0.03775839128709091,
+        "dc": -0.000011154650527736504,
+        "maximumStep": 0.06345124170184135,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-13-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 13,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.4106666666666667,
+          "gain": 0.27266666666666667,
+          "hz": 116.33333333333333,
+          "endHz": 47.666666666666664
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.23399999999999999,
+          "gain": 0.19066666666666668,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 30.118666666666666,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.26755890250205994,
+        "peakDbFS": -11.451611882903322,
+        "rms": 0.03338968107737026,
+        "dc": -0.000004478643692472581,
+        "maximumStep": 0.06458019837737083,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-14-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 14,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.42533333333333334,
+          "gain": 0.2813333333333333,
+          "hz": 110.66666666666667,
+          "endHz": 46.33333333333333
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.242,
+          "gain": 0.19533333333333336,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.5053333333333333,
+      "offset": 30.848666666666666,
+      "metrics": {
+        "seconds": 0.5053333333333333,
+        "peak": 0.279671311378479,
+        "peakDbFS": -11.067041623519385,
+        "rms": 0.039450744498481065,
+        "dc": -0.000007707282397686655,
+        "maximumStep": 0.06471904367208481,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-14-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 14,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.42533333333333334,
+          "gain": 0.2813333333333333,
+          "hz": 110.66666666666667,
+          "endHz": 46.33333333333333
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.242,
+          "gain": 0.19533333333333336,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 31.379,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.263878732919693,
+        "peakDbFS": -11.57191219922192,
+        "rms": 0.03545599254925635,
+        "dc": -0.000007363405983483931,
+        "maximumStep": 0.05943024158477783,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-15-plain",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 15,
+        "assembly": false
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.44,
+          "gain": 0.29000000000000004,
+          "hz": 105,
+          "endHz": 45
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.25,
+          "gain": 0.2,
+          "hz": 779
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.52,
+      "offset": 32.109,
+      "metrics": {
+        "seconds": 0.52,
+        "peak": 0.25562864542007446,
+        "peakDbFS": -11.84780962601546,
+        "rms": 0.040279628698587346,
+        "dc": -0.00000812063844271798,
+        "maximumStep": 0.05716396332718432,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "cardPlay-15-assembly",
+      "kind": "cardPlay",
+      "details": {
+        "cost": 15,
+        "assembly": true
+      },
+      "layers": [
+        {
+          "texture": "paper",
+          "at": 0,
+          "duration": 0.1,
+          "gain": 0.17,
+          "hz": 1722
+        },
+        {
+          "texture": "body",
+          "at": 0.035,
+          "duration": 0.44,
+          "gain": 0.29000000000000004,
+          "hz": 105,
+          "endHz": 45
+        },
+        {
+          "texture": "grain",
+          "at": 0.04,
+          "duration": 0.25,
+          "gain": 0.2,
+          "hz": 779
+        },
+        {
+          "texture": "body",
+          "at": 0.12,
+          "duration": 0.12,
+          "gain": 0.08,
+          "hz": 310,
+          "endHz": 210
+        },
+        {
+          "texture": "glass",
+          "at": 0.16,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.22,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "glass",
+          "at": 0.28,
+          "duration": 0.38,
+          "gain": 0.065,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "impact",
+          "at": 0.012,
+          "duration": 0.3,
+          "gain": 0.28,
+          "hz": 1
+        }
+      ],
+      "duration": 0.705,
+      "offset": 32.654,
+      "metrics": {
+        "seconds": 0.705,
+        "peak": 0.26956528425216675,
+        "peakDbFS": -11.386720776006456,
+        "rms": 0.03706046566484293,
+        "dc": -0.000007414889266180039,
+        "maximumStep": 0.05634693056344986,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 71.5917874437658
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.6000000000000001,
+          "gain": 0.075,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 227.28975740103508
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.93,
+      "offset": 33.384,
+      "metrics": {
+        "seconds": 0.93,
+        "peak": 0.15918101370334625,
+        "peakDbFS": -15.962174678650168,
+        "rms": 0.026073745592597217,
+        "dc": -2.7524065106898115e-7,
+        "maximumStep": 0.09429162368178368,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.37,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 75.84885665588504
+        },
+        {
+          "texture": "pluck",
+          "at": 0.164,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.268,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.37200000000000005,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pad",
+          "at": 0.32,
+          "duration": 0.625,
+          "gain": 0.075,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "glass",
+          "at": 0.39,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 255.12412665210636
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.99,
+      "offset": 34.339,
+      "metrics": {
+        "seconds": 0.99,
+        "peak": 0.12920862436294556,
+        "peakDbFS": -17.774169945358565,
+        "rms": 0.025908873215676642,
+        "dc": -2.6710380018669143e-7,
+        "maximumStep": 0.0872810143046081,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.395,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 80.3590643762586
+        },
+        {
+          "texture": "pluck",
+          "at": 0.176,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.29200000000000004,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.40800000000000003,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pad",
+          "at": 0.355,
+          "duration": 0.65,
+          "gain": 0.075,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "glass",
+          "at": 0.42500000000000004,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.05,
+      "offset": 35.354,
+      "metrics": {
+        "seconds": 1.05,
+        "peak": 0.14059104025363922,
+        "peakDbFS": -17.040847112979872,
+        "rms": 0.02591759608625552,
+        "dc": -3.067759783173855e-7,
+        "maximumStep": 0.09280646964907646,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.42000000000000004,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 85.13746300388874
+        },
+        {
+          "texture": "pluck",
+          "at": 0.188,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 135.14729833427666
+        },
+        {
+          "texture": "pluck",
+          "at": 0.316,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.444,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pad",
+          "at": 0.39,
+          "duration": 0.675,
+          "gain": 0.075,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.46,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.11,
+      "offset": 36.429,
+      "metrics": {
+        "seconds": 1.11,
+        "peak": 0.1482926309108734,
+        "peakDbFS": -16.577608595650897,
+        "rms": 0.02540027074903216,
+        "dc": -4.952935285406745e-7,
+        "maximumStep": 0.0780849913135171,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.445,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 90.19999999999999
+        },
+        {
+          "texture": "pluck",
+          "at": 0.2,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 151.6977133117701
+        },
+        {
+          "texture": "pluck",
+          "at": 0.34,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.48000000000000004,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pad",
+          "at": 0.42500000000000004,
+          "duration": 0.7000000000000001,
+          "gain": 0.075,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "glass",
+          "at": 0.495,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.17,
+      "offset": 37.564,
+      "metrics": {
+        "seconds": 1.17,
+        "peak": 0.1519518941640854,
+        "peakDbFS": -16.365877636605695,
+        "rms": 0.025231794130659006,
+        "dc": -0.000001188884241552068,
+        "maximumStep": 0.07306765019893646,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-1-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 1,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.47000000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.21200000000000002,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pluck",
+          "at": 0.36400000000000005,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "pluck",
+          "at": 0.516,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pad",
+          "at": 0.46,
+          "duration": 0.7250000000000001,
+          "gain": 0.075,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.53,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.23,
+      "offset": 38.759,
+      "metrics": {
+        "seconds": 1.23,
+        "peak": 0.14385879039764404,
+        "peakDbFS": -16.841271913630692,
+        "rms": 0.024710036688212346,
+        "dc": -7.93507282764656e-7,
+        "maximumStep": 0.0737049113959074,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 71.5917874437658
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.6000000000000001,
+          "gain": 0.075,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 227.28975740103508
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.93,
+      "offset": 40.014,
+      "metrics": {
+        "seconds": 0.93,
+        "peak": 0.14295893907546997,
+        "peakDbFS": -16.895773669390547,
+        "rms": 0.025866121961893133,
+        "dc": -2.1036038747365446e-7,
+        "maximumStep": 0.09207917493768036,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 80.3590643762586
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.625,
+          "gain": 0.075,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 255.12412665210636
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.955,
+      "offset": 40.969,
+      "metrics": {
+        "seconds": 0.955,
+        "peak": 0.14628823101520538,
+        "peakDbFS": -16.695812234943997,
+        "rms": 0.02624026098473364,
+        "dc": -3.654812712902489e-7,
+        "maximumStep": 0.09077554196119308,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.37,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 85.13746300388874
+        },
+        {
+          "texture": "pluck",
+          "at": 0.164,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.268,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.37200000000000005,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pad",
+          "at": 0.32,
+          "duration": 0.65,
+          "gain": 0.075,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "glass",
+          "at": 0.39,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.015,
+      "offset": 41.949,
+      "metrics": {
+        "seconds": 1.015,
+        "peak": 0.1589304804801941,
+        "peakDbFS": -15.975856072857368,
+        "rms": 0.025834874644320962,
+        "dc": -7.991116892516349e-7,
+        "maximumStep": 0.08488105610013008,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.395,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 90.19999999999999
+        },
+        {
+          "texture": "pluck",
+          "at": 0.176,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 135.14729833427666
+        },
+        {
+          "texture": "pluck",
+          "at": 0.29200000000000004,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.40800000000000003,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pad",
+          "at": 0.355,
+          "duration": 0.675,
+          "gain": 0.075,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.42500000000000004,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.075,
+      "offset": 42.989,
+      "metrics": {
+        "seconds": 1.075,
+        "peak": 0.15928113460540771,
+        "peakDbFS": -15.956713187298435,
+        "rms": 0.025481903761731515,
+        "dc": -8.488044655644769e-8,
+        "maximumStep": 0.08797647058963776,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.42000000000000004,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.188,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 151.6977133117701
+        },
+        {
+          "texture": "pluck",
+          "at": 0.316,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.444,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pad",
+          "at": 0.39,
+          "duration": 0.7000000000000001,
+          "gain": 0.075,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "glass",
+          "at": 0.46,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.135,
+      "offset": 44.089,
+      "metrics": {
+        "seconds": 1.135,
+        "peak": 0.15362462401390076,
+        "peakDbFS": -16.270783340223765,
+        "rms": 0.025626936340101204,
+        "dc": -8.324414114500716e-7,
+        "maximumStep": 0.08818602189421654,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-2-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 2,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.445,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 101.24607675750543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.2,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pluck",
+          "at": 0.34,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "pluck",
+          "at": 0.48000000000000004,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pad",
+          "at": 0.42500000000000004,
+          "duration": 0.7250000000000001,
+          "gain": 0.075,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.495,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.195,
+      "offset": 45.249,
+      "metrics": {
+        "seconds": 1.195,
+        "peak": 0.14297929406166077,
+        "peakDbFS": -16.894537030540285,
+        "rms": 0.02522256461022691,
+        "dc": -8.182593632000021e-7,
+        "maximumStep": 0.07162240333855152,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 71.5917874437658
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.6000000000000001,
+          "gain": 0.075,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 227.28975740103508
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.93,
+      "offset": 46.469,
+      "metrics": {
+        "seconds": 0.93,
+        "peak": 0.13386377692222595,
+        "peakDbFS": -17.466738513687442,
+        "rms": 0.025859994849034063,
+        "dc": -5.297663166271061e-7,
+        "maximumStep": 0.1033402755856514,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 80.3590643762586
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.625,
+          "gain": 0.075,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 255.12412665210636
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.955,
+      "offset": 47.424,
+      "metrics": {
+        "seconds": 0.955,
+        "peak": 0.1707375943660736,
+        "peakDbFS": -15.353416838619555,
+        "rms": 0.026053561424311488,
+        "dc": -1.2901939705639557e-7,
+        "maximumStep": 0.09085481986403465,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 90.19999999999999
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.65,
+          "gain": 0.075,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.98,
+      "offset": 48.404,
+      "metrics": {
+        "seconds": 0.98,
+        "peak": 0.15300357341766357,
+        "peakDbFS": -16.305968521236245,
+        "rms": 0.026510540159464913,
+        "dc": -4.6518503968568233e-7,
+        "maximumStep": 0.08296451531350613,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.37,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.164,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 135.14729833427666
+        },
+        {
+          "texture": "pluck",
+          "at": 0.268,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.37200000000000005,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pad",
+          "at": 0.32,
+          "duration": 0.675,
+          "gain": 0.075,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.39,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.04,
+      "offset": 49.409,
+      "metrics": {
+        "seconds": 1.04,
+        "peak": 0.1537187099456787,
+        "peakDbFS": -16.26546537848425,
+        "rms": 0.02548198871271274,
+        "dc": -2.9654025608403785e-7,
+        "maximumStep": 0.08547491393983364,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.395,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 101.24607675750543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.176,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 151.6977133117701
+        },
+        {
+          "texture": "pluck",
+          "at": 0.29200000000000004,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.40800000000000003,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pad",
+          "at": 0.355,
+          "duration": 0.7000000000000001,
+          "gain": 0.075,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "glass",
+          "at": 0.42500000000000004,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.1,
+      "offset": 50.474,
+      "metrics": {
+        "seconds": 1.1,
+        "peak": 0.15591907501220703,
+        "peakDbFS": -16.142015006578056,
+        "rms": 0.0256016809873996,
+        "dc": -9.64095968777064e-7,
+        "maximumStep": 0.07645635306835175,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-3-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 3,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.42000000000000004,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.188,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pluck",
+          "at": 0.316,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "pluck",
+          "at": 0.444,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pad",
+          "at": 0.39,
+          "duration": 0.7250000000000001,
+          "gain": 0.075,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.46,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.16,
+      "offset": 51.599,
+      "metrics": {
+        "seconds": 1.16,
+        "peak": 0.14168448746204376,
+        "peakDbFS": -16.973553930608595,
+        "rms": 0.025206901448592185,
+        "dc": -0.0000010159238245149233,
+        "maximumStep": 0.08198617398738861,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 71.5917874437658
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.6000000000000001,
+          "gain": 0.075,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 227.28975740103508
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.93,
+      "offset": 52.784,
+      "metrics": {
+        "seconds": 0.93,
+        "peak": 0.15151624381542206,
+        "peakDbFS": -16.390816092905716,
+        "rms": 0.02610258025423471,
+        "dc": -4.067014244412745e-7,
+        "maximumStep": 0.08813787903636694,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 80.3590643762586
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.625,
+          "gain": 0.075,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 255.12412665210636
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.955,
+      "offset": 53.739,
+      "metrics": {
+        "seconds": 0.955,
+        "peak": 0.1412348598241806,
+        "peakDbFS": -17.001161935265266,
+        "rms": 0.02586978683523707,
+        "dc": -2.674921270674386e-7,
+        "maximumStep": 0.0873133447021246,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 90.19999999999999
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.65,
+          "gain": 0.075,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.98,
+      "offset": 54.719,
+      "metrics": {
+        "seconds": 0.98,
+        "peak": 0.15239094197750092,
+        "peakDbFS": -16.340816928445264,
+        "rms": 0.026405668050478785,
+        "dc": -7.122905691107596e-7,
+        "maximumStep": 0.09871843829751015,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 101.24607675750543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 135.14729833427666
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.675,
+          "gain": 0.075,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.005,
+      "offset": 55.724,
+      "metrics": {
+        "seconds": 1.005,
+        "peak": 0.1820569634437561,
+        "peakDbFS": -14.79585410418471,
+        "rms": 0.025904952029579507,
+        "dc": -3.0221729951529785e-7,
+        "maximumStep": 0.08222454320639372,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.37,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.164,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 151.6977133117701
+        },
+        {
+          "texture": "pluck",
+          "at": 0.268,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.37200000000000005,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pad",
+          "at": 0.32,
+          "duration": 0.7000000000000001,
+          "gain": 0.075,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "glass",
+          "at": 0.39,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.065,
+      "offset": 56.754,
+      "metrics": {
+        "seconds": 1.065,
+        "peak": 0.1597622036933899,
+        "peakDbFS": -15.930519152371712,
+        "rms": 0.02567951824773473,
+        "dc": -8.992323452526866e-7,
+        "maximumStep": 0.08061811700463295,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-4-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 4,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.395,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.176,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pluck",
+          "at": 0.29200000000000004,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "pluck",
+          "at": 0.40800000000000003,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pad",
+          "at": 0.355,
+          "duration": 0.7250000000000001,
+          "gain": 0.075,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.42500000000000004,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.125,
+      "offset": 57.844,
+      "metrics": {
+        "seconds": 1.125,
+        "peak": 0.1443091183900833,
+        "peakDbFS": -16.814124529705584,
+        "rms": 0.025405165247989643,
+        "dc": -8.186940163352877e-7,
+        "maximumStep": 0.07857411541044712,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 71.5917874437658
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.6000000000000001,
+          "gain": 0.075,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 227.28975740103508
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.93,
+      "offset": 58.994,
+      "metrics": {
+        "seconds": 0.93,
+        "peak": 0.1623273342847824,
+        "peakDbFS": -15.792166864165134,
+        "rms": 0.026029977933657095,
+        "dc": -5.39378138061082e-7,
+        "maximumStep": 0.08915012702345848,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 80.3590643762586
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.625,
+          "gain": 0.075,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 255.12412665210636
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.955,
+      "offset": 59.949,
+      "metrics": {
+        "seconds": 0.955,
+        "peak": 0.14526334404945374,
+        "peakDbFS": -16.75687924679298,
+        "rms": 0.02610240030190065,
+        "dc": -4.529319112261274e-7,
+        "maximumStep": 0.09703495749272406,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 90.19999999999999
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.65,
+          "gain": 0.075,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.98,
+      "offset": 60.929,
+      "metrics": {
+        "seconds": 0.98,
+        "peak": 0.15622800588607788,
+        "peakDbFS": -16.124822211792846,
+        "rms": 0.0263153263401065,
+        "dc": -7.876778704289724e-7,
+        "maximumStep": 0.08480187237728387,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 101.24607675750543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 135.14729833427666
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.675,
+          "gain": 0.075,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.005,
+      "offset": 61.934,
+      "metrics": {
+        "seconds": 1.005,
+        "peak": 0.16284142434597015,
+        "peakDbFS": -15.764702151535664,
+        "rms": 0.025925907135608665,
+        "dc": -6.263669779118301e-7,
+        "maximumStep": 0.09559492208063602,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 151.6977133117701
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.7000000000000001,
+          "gain": 0.075,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.03,
+      "offset": 62.964,
+      "metrics": {
+        "seconds": 1.03,
+        "peak": 0.15556329488754272,
+        "peakDbFS": -16.161857338220518,
+        "rms": 0.026244150738464027,
+        "dc": -6.52415679909664e-7,
+        "maximumStep": 0.08234086632728577,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-5-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 5,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.37,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.164,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pluck",
+          "at": 0.268,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "pluck",
+          "at": 0.37200000000000005,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pad",
+          "at": 0.32,
+          "duration": 0.7250000000000001,
+          "gain": 0.075,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.39,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.09,
+      "offset": 64.019,
+      "metrics": {
+        "seconds": 1.09,
+        "peak": 0.13498283922672272,
+        "peakDbFS": -17.39442882311761,
+        "rms": 0.02545788590845436,
+        "dc": -0.000001052229779814762,
+        "maximumStep": 0.085972610861063,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 71.5917874437658
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.6000000000000001,
+          "gain": 0.075,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 227.28975740103508
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.93,
+      "offset": 65.134,
+      "metrics": {
+        "seconds": 0.93,
+        "peak": 0.14325083792209625,
+        "peakDbFS": -16.878056580387245,
+        "rms": 0.025798870848235456,
+        "dc": -5.925019643480977e-7,
+        "maximumStep": 0.09114321321249008,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 80.3590643762586
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.625,
+          "gain": 0.075,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 255.12412665210636
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.955,
+      "offset": 66.089,
+      "metrics": {
+        "seconds": 0.955,
+        "peak": 0.16099637746810913,
+        "peakDbFS": -15.86367791579905,
+        "rms": 0.026250145048862642,
+        "dc": -4.786695801519998e-7,
+        "maximumStep": 0.09761769883334637,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 90.19999999999999
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.65,
+          "gain": 0.075,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.98,
+      "offset": 67.069,
+      "metrics": {
+        "seconds": 0.98,
+        "peak": 0.16456378996372223,
+        "peakDbFS": -15.673314384776917,
+        "rms": 0.02646894746343075,
+        "dc": -4.035949443073861e-7,
+        "maximumStep": 0.08104740083217621,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 101.24607675750543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 135.14729833427666
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.675,
+          "gain": 0.075,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.005,
+      "offset": 68.074,
+      "metrics": {
+        "seconds": 1.005,
+        "peak": 0.14311566948890686,
+        "peakDbFS": -16.886256269596988,
+        "rms": 0.02602247205019649,
+        "dc": -5.813773714483861e-7,
+        "maximumStep": 0.09006509557366371,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 151.6977133117701
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.7000000000000001,
+          "gain": 0.075,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.03,
+      "offset": 69.104,
+      "metrics": {
+        "seconds": 1.03,
+        "peak": 0.14989349246025085,
+        "peakDbFS": -16.484344427751104,
+        "rms": 0.02621474991634747,
+        "dc": -6.810524794815765e-7,
+        "maximumStep": 0.08915785513818264,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-6-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 6,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.7250000000000001,
+          "gain": 0.075,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.055,
+      "offset": 70.159,
+      "metrics": {
+        "seconds": 1.055,
+        "peak": 0.15534460544586182,
+        "peakDbFS": -16.17407647235432,
+        "rms": 0.025799766337757973,
+        "dc": -2.666202057029266e-7,
+        "maximumStep": 0.09177454747259617,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-2",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 2
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 71.5917874437658
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 95.56357111120843
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.6000000000000001,
+          "gain": 0.075,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 227.28975740103508
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.93,
+      "offset": 71.239,
+      "metrics": {
+        "seconds": 0.93,
+        "peak": 0.15163926780223846,
+        "peakDbFS": -16.383766425061786,
+        "rms": 0.02572098427081971,
+        "dc": -4.1317515803980616e-7,
+        "maximumStep": 0.08858568593859673,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-3",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 3
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 80.3590643762586
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 107.26648177324543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 191.12714222241686
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.625,
+          "gain": 0.075,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 255.12412665210636
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.955,
+      "offset": 72.194,
+      "metrics": {
+        "seconds": 0.955,
+        "peak": 0.16327497363090515,
+        "peakDbFS": -15.741607554125103,
+        "rms": 0.026155284591854868,
+        "dc": -4.3639435819785243e-7,
+        "maximumStep": 0.08812937512993813,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-4",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 4
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 90.19999999999999
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 120.4025548461371
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 214.53296354649086
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.65,
+          "gain": 0.075,
+          "hz": 143.1835748875316
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 286.3671497750632
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 0.98,
+      "offset": 73.174,
+      "metrics": {
+        "seconds": 0.98,
+        "peak": 0.16484828293323517,
+        "peakDbFS": -15.658311442543308,
+        "rms": 0.02647428620852647,
+        "dc": -3.349517449683324e-7,
+        "maximumStep": 0.08396428311243653,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-5",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 5
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 101.24607675750543
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 135.14729833427666
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 240.8051096922742
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.675,
+          "gain": 0.075,
+          "hz": 160.7181287525172
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 321.4362575050344
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.005,
+      "offset": 74.179,
+      "metrics": {
+        "seconds": 1.005,
+        "peak": 0.17683318257331848,
+        "peakDbFS": -15.048724734841588,
+        "rms": 0.025983965374510875,
+        "dc": -3.707149738341901e-7,
+        "maximumStep": 0.09373251907527447,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-6",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 6
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 113.64487870051754
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 151.6977133117701
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 270.2945966685533
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.7000000000000001,
+          "gain": 0.075,
+          "hz": 180.39999999999998
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 360.79999999999995
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.03,
+      "offset": 75.209,
+      "metrics": {
+        "seconds": 1.03,
+        "peak": 0.1341927945613861,
+        "peakDbFS": -17.445416056848895,
+        "rms": 0.025804660306097692,
+        "dc": -0.0000010955343725178134,
+        "maximumStep": 0.10793909430503845,
+        "boundaryStep": 0
+      }
+    },
+    {
+      "key": "digivolve-7-7",
+      "kind": "digivolve",
+      "details": {
+        "sourceLevel": 7,
+        "targetLevel": 7
+      },
+      "layers": [
+        {
+          "texture": "air",
+          "at": 0,
+          "duration": 0.34500000000000003,
+          "gain": 0.13,
+          "hz": 1394
+        },
+        {
+          "texture": "pluck",
+          "at": 0.06,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 127.56206332605318
+        },
+        {
+          "texture": "pluck",
+          "at": 0.152,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 170.27492600777748
+        },
+        {
+          "texture": "pluck",
+          "at": 0.244,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "pluck",
+          "at": 0.336,
+          "duration": 0.38,
+          "gain": 0.095,
+          "hz": 303.3954266235402
+        },
+        {
+          "texture": "pad",
+          "at": 0.28500000000000003,
+          "duration": 0.7250000000000001,
+          "gain": 0.075,
+          "hz": 202.49215351501087
+        },
+        {
+          "texture": "glass",
+          "at": 0.355,
+          "duration": 0.45,
+          "gain": 0.055,
+          "hz": 404.98430703002174
+        },
+        {
+          "texture": "recording",
+          "source": "crystal",
+          "at": 0.025,
+          "duration": 0.55,
+          "gain": 0.32,
+          "hz": 1
+        }
+      ],
+      "duration": 1.055,
+      "offset": 76.264,
+      "metrics": {
+        "seconds": 1.055,
+        "peak": 0.15288430452346802,
+        "peakDbFS": -16.312741960652733,
+        "rms": 0.02606060597850776,
+        "dc": -8.948609228180183e-7,
+        "maximumStep": 0.08120051771402359,
+        "boundaryStep": 0
+      }
+    }
+  ]
+}
