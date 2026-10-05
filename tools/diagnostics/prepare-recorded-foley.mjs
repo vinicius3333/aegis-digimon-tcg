@@ -136,7 +136,8 @@ const manifest = {
 };
 await writeFile(
   output instanceof URL ? new URL("recorded-provenance.json", output) : path.join(output, "recorded-provenance.json"),
-  JSON.stringify(manifest, null, 2) + "\n",
+  JSON.stringify(manifest, null, 2).replace(/"cropFrames": \[\n\s*(\d+),\n\s*(\d+)\n\s*\]/g, '"cropFrames": [$1, $2]') +
+    "\n",
 );
 console.log(
   JSON.stringify(
