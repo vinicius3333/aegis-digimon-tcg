@@ -120,6 +120,46 @@ describe("room clock enforcement", () => {
     expect(game.state.timerRemaining0).toBe(50);
   });
 
+  it("publishes the 60s/30s turn bonuses once while retaining each player's reserve", () => {
+    const now = vi.spyOn(performance, "now").mockReturnValue(0);
+    const game = room({ private: true, matchTimer: true, timerStartSeconds: 300, timerRefillSeconds: 0 });
+    begin(game, 0);
+    sync(game);
+    now.mockReturnValue(100_000);
+    sync(game);
+    expect(game.state.timerRemaining0).toBe(200);
+    const decision = new PendingDecision();
+    decision.seat = 1;
+    game.state.pendingDecision = decision;
+    sync(game);
+    now.mockReturnValue(150_000);
+    sync(game);
+    expect(game.state.timerRemaining1).toBe(250);
+
+    game.state.turnCount = 2;
+    game.state.turnSeat = 1;
+    sync(game);
+    expect(game.state.timerRemaining1).toBe(300);
+    expect(game.state.timerRemaining0).toBe(230);
+    now.mockReturnValue(170_000);
+    sync(game);
+    expect(game.state.timerRemaining1).toBe(280);
+
+    game.state.pendingDecision = undefined;
+    sync(game);
+    now.mockReturnValue(220_000);
+    sync(game);
+    expect(game.state.timerRemaining0).toBe(180);
+    game.state.turnCount = 3;
+    game.state.turnSeat = 0;
+    sync(game);
+    expect(game.state.timerRemaining0).toBe(240);
+    expect(game.state.timerRemaining1).toBe(300);
+    now.mockReturnValue(230_000);
+    sync(game);
+    expect(game.state.timerRemaining0).toBe(230);
+  });
+
   it("never runs before both seats are ready", () => {
     const now = vi.spyOn(performance, "now").mockReturnValue(0);
     const game = room();
@@ -130,11 +170,11 @@ describe("room clock enforcement", () => {
     expect(game.state.gameOver).toBe(false);
   });
 
-  it("enables the named development bot scenario with a bounded test bank", () => {
+  it("enables the named development bot scenario with the standard timer policy", () => {
     const game = room({ botRoom: true, devScenario: "arena-match-timer" });
     expect(game.state.matchTimer).toBe(true);
-    expect(game.state.timerStartSeconds).toBe(60);
-    expect(game.state.timerRefillSeconds).toBe(15);
+    expect(game.state.timerStartSeconds).toBe(300);
+    expect(game.state.timerRefillSeconds).toBe(60);
     expect(room({ botRoom: true, devScenario: "arena", matchTimer: true }).state.matchTimer).toBe(false);
   });
 
@@ -144,10 +184,10 @@ describe("room clock enforcement", () => {
     }
   });
 
-  it("ignores non-host overrides and supports a host's zero-refill setting", () => {
+  it("ignores non-host overrides and legacy refill settings", () => {
     const game = room();
     expect(game.state.timerStartSeconds).toBe(60);
-    expect(game.state.timerRefillSeconds).toBe(0);
+    expect(game.state.timerRefillSeconds).toBe(60);
     expect(room({ matchTimer: true, timerStartSeconds: 60, timerRefillSeconds: 0 }).state.timerStartSeconds).toBe(300);
   });
 });

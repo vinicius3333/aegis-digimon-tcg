@@ -31,15 +31,26 @@ before launch.
 Casual (`aegis` and `aegis_beta`) join options include `matchTimer: boolean`.
 Both queues filter on this option, so timed and untimed players cannot meet.
 Omitting the option leaves the timer off. Public clocks start with 300 seconds
-per player and restore 30 seconds at the start of that player's subsequent turns,
-capped at the starting reserve; the opening turn does not receive a refill.
+per player. Subsequent turn starts grant 60 seconds to the turn owner and
+30 seconds to the opponent, with both reserves capped at 300 seconds.
+The opening turn uses the initial reserve without a bonus. Time already spent
+answering the mulligan is retained.
 
-Private-room creators may also choose `timerStartSeconds` (60, 180, 300, 600)
-and `timerRefillSeconds` (0, 15, 30, 60). Invalid values use the defaults.
+Private-room creators may also choose `timerStartSeconds` (60, 180, 300, 600).
+Invalid values use the defaults; private reserves are capped at their chosen starting time.
+`timerRefillSeconds` remains in the wire contract for compatibility, but join payloads
+cannot override the fixed 60-second owner bonus; the opponent bonus is always 30 seconds.
+The synchronized `timerRefillSeconds` field reports 60, and the settings do not offer a refill control.
+The lobby uses a labelled on/off switch and a compact strip showing the starting
+reserve and the 60/30-second turn bonuses. Private hosts can change the starting
+reserve; its displayed value and cap update together.
+The on/off preference is saved under `aegis:match-timer` in browser localStorage
+and restored on reload for guests and signed-in users. It is local to that browser;
+joining a private room or entering a mode without timers does not overwrite it.
 The creator's settings apply to both seats; guest join payloads cannot change them.
 Ranked, tournament and ordinary bot rooms ignore clock opt-in. Outside production,
-`/dev/arena?scenario=arena-match-timer` enables a live bot test with 60-second banks
-and a 15-second refill, capped at 60 seconds. Both clocks remain visible next to their player identities, including during pauses.
+`/dev/arena?scenario=arena-match-timer` enables a live bot test with the same
+300-second reserves and 60/30-second turn bonuses. Both clocks remain visible next to their player identities, including during pauses.
 The required responder is highlighted; the compact readout shows remaining seconds without status text.
 
 The server owns elapsed time. `timerRemaining0` and `timerRemaining1` are rounded-up
@@ -47,6 +58,9 @@ seconds; `timerActiveSeat` is 0 or 1 while that player must act, and -1 while pa
 Decisions and combat responses charge their owner even during the opponent's turn.
 Automatic engine resolution pauses both banks. Visible game-event batches receive
 a fixed two-second presentation grace; client animation reports cannot extend it.
+In timed matches, an incoming decision or combat response takes priority over
+presentation: the client shows the live board and fast-forwards queued animations
+so a low reserve cannot expire behind a hidden response dialog.
 A disconnect or reconnect never resets either reserve, and an absent player's
 required response continues to consume time. Waiting rooms do not consume time.
 Expiry is checked before accepting an intent and ends the match through the ordinary

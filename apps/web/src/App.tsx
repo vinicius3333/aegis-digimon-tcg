@@ -15,6 +15,7 @@ import {
 } from "./game/decks";
 import type { AegisJoinOptions } from "./net/types";
 import type { PrivateRoom, StartMode } from "./screens/Lobby";
+import { loadMatchTimerPreference } from "./screens/matchTimerPreference";
 import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
 import { accentForAvatar } from "./guest";
@@ -271,11 +272,11 @@ export function AegisClient({
       hasReconnectSession: loadReconnectSession() !== undefined,
     });
   });
-  const [timerOptions, setTimerOptions] = useState({
-    matchTimer: false,
+  const [timerOptions, setTimerOptions] = useState(() => ({
+    matchTimer: loadMatchTimerPreference(),
     timerStartSeconds: 300,
-    timerRefillSeconds: 30,
-  });
+    timerRefillSeconds: 60,
+  }));
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
   const [roomCode, setRoomCode] = useState<string>();

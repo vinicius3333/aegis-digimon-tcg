@@ -1,4 +1,10 @@
-import { type GameState, type Seat, matchTimerSettings, type MatchTimerOptions } from "@aegis/shared";
+import {
+  type GameState,
+  type Seat,
+  matchTimerSettings,
+  type MatchTimerOptions,
+  MATCH_TIMER_OPPONENT_REFILL_SECONDS,
+} from "@aegis/shared";
 
 /** Server monotonic-time accounting. Client animation reports cannot extend a pause. */
 export class MatchClock {
@@ -37,7 +43,7 @@ export class MatchClock {
       this.remaining[chargedSeat] = Math.max(0, this.remaining[chargedSeat] - elapsed);
     }
     this.lastTime = now;
-    // Expiry wins over a turn refill or an answer arriving at the deadline.
+    // Expiry wins over a turn bonus or an answer arriving at the deadline.
     if (chargedSeat !== undefined && this.remaining[chargedSeat] === 0) {
       this.runningSeat = undefined;
       this.publish();
@@ -45,13 +51,13 @@ export class MatchClock {
       return chargedSeat;
     }
     if (this.state.turnCount > this.lastTurn) {
-      // The opening turn starts with the full bank. Subsequent turns refill their owner.
+      // The opening turn uses the initial reserve; later turns grant both seats their bonuses.
       if (this.lastTurn > 0) {
-        const seat = this.state.turnSeat;
-        this.remaining[seat] = Math.min(
-          this.state.timerStartSeconds * 1000,
-          this.remaining[seat] + this.state.timerRefillSeconds * 1000,
-        );
+        const owner = this.state.turnSeat;
+        const opponent = (1 - owner) as Seat;
+        const cap = this.state.timerStartSeconds * 1000;
+        this.remaining[owner] = Math.min(cap, this.remaining[owner] + this.state.timerRefillSeconds * 1000);
+        this.remaining[opponent] = Math.min(cap, this.remaining[opponent] + MATCH_TIMER_OPPONENT_REFILL_SECONDS * 1000);
       }
       this.lastTurn = this.state.turnCount;
     }

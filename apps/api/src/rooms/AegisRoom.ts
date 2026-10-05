@@ -529,7 +529,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
           !this.isTournamentRoom &&
           !this.isRankedRoom &&
           (devTimer || (!this.isBotRoom && options.matchTimer === true)),
-        ...(devTimer ? { timerStartSeconds: 60, timerRefillSeconds: 15 } : {}),
+        ...(devTimer ? { timerStartSeconds: 300 } : {}),
       },
       this.isPrivate || devTimer,
       performance.now(),

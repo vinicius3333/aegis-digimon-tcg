@@ -27,10 +27,12 @@
   flex: none;
 }
 .match-timer__time {
-  font-family: var(--ds-font-mono);
-  font-size: 1.25rem;
-  line-height: 1;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-text-xl);
+  line-height: 1.2;
   font-weight: 700;
+  font-synthesis: none;
+  letter-spacing: normal;
 }
 .aegis-arena .game-board .game-opponent-bar > .game-player-line[data-timed],
 .aegis-arena .game-board .game-player-dock > .game-player-line[data-timed] {
@@ -71,7 +73,7 @@
     padding: 2px 4px;
   }
   .match-timer__time {
-    font-size: 1.125rem;
+    font-size: var(--ds-text-lg);
   }
   .match-timer__icon {
     width: 14px;

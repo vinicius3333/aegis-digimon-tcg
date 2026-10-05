@@ -85,7 +85,7 @@ export class GameState extends Schema {
   /** Public, server-owned clock snapshots; -1 means both clocks are paused. */
   @type("boolean") matchTimer = false;
   @type("uint16") timerStartSeconds = 300;
-  @type("uint16") timerRefillSeconds = 30;
+  @type("uint16") timerRefillSeconds = 60;
   @type("uint16") timerRemaining0 = 300;
   @type("uint16") timerRemaining1 = 300;
   @type("int8") timerActiveSeat = -1;

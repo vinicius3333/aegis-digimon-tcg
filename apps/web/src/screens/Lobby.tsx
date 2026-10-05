@@ -4,9 +4,10 @@
    chosen deck and the button that starts the chosen mode in reach while the
    player scrolls the deck picker. */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   allCards,
+  MATCH_TIMER_REFILL_SECONDS,
   type MatchTimerOptions,
   bannedPairViolations,
   effectiveCopyLimit as banlistLimit,
@@ -35,6 +36,7 @@ import { deckLegality } from "./DeckListCard";
 import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import { MatchTimerSettings } from "./MatchTimerSettings";
+import { loadMatchTimerPreference, saveMatchTimerPreference } from "./matchTimerPreference";
 import "./lobby.css";
 
 /** The private room a finished match returns to. Its host reopens it under the same code. */
@@ -173,11 +175,14 @@ export function Lobby({
 }) {
   const { t } = useTranslation();
   const MODES = modesFor(t);
-  const [timer, setTimer] = useState<Required<MatchTimerOptions>>({
-    matchTimer: timerOptions?.matchTimer ?? false,
+  const [timer, setTimer] = useState<Required<MatchTimerOptions>>(() => ({
+    matchTimer: timerOptions?.matchTimer ?? loadMatchTimerPreference(),
     timerStartSeconds: timerOptions?.timerStartSeconds ?? 300,
-    timerRefillSeconds: timerOptions?.timerRefillSeconds ?? 30,
-  });
+    timerRefillSeconds: MATCH_TIMER_REFILL_SECONDS,
+  }));
+  useEffect(() => {
+    saveMatchTimerPreference(timer.matchTimer);
+  }, [timer.matchTimer]);
   function changeTimer(options: Required<MatchTimerOptions>) {
     setTimer(options);
     onTimerOptionsChange?.(options);
@@ -533,7 +538,6 @@ export function Lobby({
         <section className="lobby-setup" aria-labelledby="lobby-setup-title">
           <h2 id="lobby-setup-title" className="lobby-setup__title">
             {t("redesign.play.setupTitle")}
-            <span className="lobby-setup__mode">{modeTitle}</span>
           </h2>
           <div className="lobby-setup__body">
             <div className="lobby-setup__column">

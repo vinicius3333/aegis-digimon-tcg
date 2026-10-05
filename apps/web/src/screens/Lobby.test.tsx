@@ -15,6 +15,7 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   localStorage.removeItem("aegis:locale");
+  localStorage.removeItem("aegis:match-timer");
 });
 
 const BEFORE_EX13_RELEASE = new Date("2026-10-01T12:00:00.000Z");
@@ -562,25 +563,42 @@ describe("optional match timer configuration", () => {
         />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "With timer" }));
+    const timerSwitch = screen.getByRole("switch", { name: "Match timer" });
+    expect(timerSwitch.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(timerSwitch);
+    expect(timerSwitch.getAttribute("aria-checked")).toBe("true");
     expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
       matchTimer: true,
       timerStartSeconds: 300,
-      timerRefillSeconds: 30,
+      timerRefillSeconds: 60,
     });
-    expect(screen.getByText("5 min + 30 sec / turn")).toBeTruthy();
+    expect(screen.getByText("300s")).toBeTruthy();
+    expect(screen.getByText("+60s")).toBeTruthy();
+    expect(screen.getByText("+30s")).toBeTruthy();
+    expect(screen.getByText("Maximum 300s · Counts while you decide")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Private Match/ }));
     fireEvent.change(screen.getByRole("combobox", { name: "Starting time" }), { target: { value: "60" } });
-    fireEvent.change(screen.getByRole("combobox", { name: "Per-turn refill" }), { target: { value: "0" } });
+    expect(screen.queryByRole("combobox", { name: "Per-turn refill" })).toBeNull();
     expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
       matchTimer: true,
       timerStartSeconds: 60,
-      timerRefillSeconds: 0,
+      timerRefillSeconds: 60,
     });
+    expect(screen.getByText("60s")).toBeTruthy();
+    expect(screen.getByText("Maximum 60s · Counts while you decide")).toBeTruthy();
+    fireEvent.click(screen.getByRole("switch", { name: "Match timer" }));
+    expect(onTimerOptionsChange).toHaveBeenLastCalledWith({
+      matchTimer: false,
+      timerStartSeconds: 60,
+      timerRefillSeconds: 60,
+    });
+    expect(screen.queryByRole("combobox", { name: "Starting time" })).toBeNull();
+    fireEvent.click(screen.getByRole("switch", { name: "Match timer" }));
+    expect(screen.getByText("Maximum 60s · Counts while you decide")).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Join" }));
-    expect(screen.queryByRole("button", { name: "With timer" })).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Match timer" })).toBeNull();
     expect(screen.getByText("The host sets the timer for both players.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Practice vs AI/ }));
-    expect(screen.queryByRole("button", { name: "With timer" })).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Match timer" })).toBeNull();
   });
 });

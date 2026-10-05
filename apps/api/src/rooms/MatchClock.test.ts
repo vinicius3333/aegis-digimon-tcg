@@ -49,26 +49,49 @@ describe("optional match clock", () => {
     expect(state.timerActiveSeat).toBe(0);
   });
 
-  it("refills only the new turn owner once, caps the bank, and skips the opening refill", () => {
+  it.each([0, 15, 30, 60])(
+    "adds 60s to the owner and 30s to the opponent once, ignoring legacy refill %i",
+    (refill) => {
+      const { state, timer } = clock({ matchTimer: true, timerStartSeconds: 300, timerRefillSeconds: refill });
+      state.turnCount = 1;
+      timer.update(0, 0);
+      timer.update(100_000, 1);
+      timer.update(150_000, 1);
+      expect(state.timerRemaining0).toBe(200);
+      expect(state.timerRemaining1).toBe(250);
+      state.turnCount = 2;
+      state.turnSeat = 1;
+      timer.update(150_000, 1);
+      expect(state.timerRemaining0).toBe(230);
+      expect(state.timerRemaining1).toBe(300);
+      timer.update(170_000, 0);
+      expect(state.timerRemaining1).toBe(280);
+      timer.update(220_000, 0);
+      expect(state.timerRemaining0).toBe(180);
+      state.turnCount = 3;
+      state.turnSeat = 0;
+      timer.update(220_000, 0);
+      expect(state.timerRemaining0).toBe(240);
+      expect(state.timerRemaining1).toBe(300);
+      timer.update(220_000, 0);
+      expect(state.timerRemaining0).toBe(240);
+      timer.update(230_000, 0);
+      expect(state.timerRemaining0).toBe(230);
+    },
+  );
+
+  it("preserves the opening reserve without granting a bonus after mulligan", () => {
     const { state, timer } = clock();
-    state.turnCount = 1;
     timer.update(0, 0);
-    timer.update(20_000, 1);
-    state.turnCount = 2;
-    state.turnSeat = 1;
-    timer.update(25_000, 1);
-    expect(state.timerRemaining1).toBe(60);
-    timer.update(30_000, 1);
-    expect(state.timerRemaining1).toBe(55);
-    state.turnCount = 3;
+    timer.update(10_000, undefined);
+    expect(state.timerRemaining0).toBe(50);
+    state.turnCount = 1;
     state.turnSeat = 0;
-    timer.update(30_000, 0);
-    expect(state.timerRemaining0).toBe(55);
-    timer.update(30_000, 0);
-    expect(state.timerRemaining0).toBe(55);
+    timer.update(10_000, 0);
+    expect(state.timerRemaining0).toBe(50);
   });
 
-  it("expires before an answer or refill arriving at the deadline", () => {
+  it("expires before an answer or turn bonus arriving at the deadline", () => {
     const { state, timer } = clock();
     state.turnCount = 1;
     timer.update(0, 0);
@@ -92,10 +115,10 @@ describe("optional match clock", () => {
     expect(matchTimerSettings({ matchTimer: true, timerStartSeconds: 60, timerRefillSeconds: 0 })).toEqual({
       enabled: true,
       startSeconds: 300,
-      refillSeconds: 30,
+      refillSeconds: 60,
     });
     expect(matchTimerSettings({ matchTimer: true, timerStartSeconds: -1, timerRefillSeconds: Infinity }, true)).toEqual(
-      { enabled: true, startSeconds: 300, refillSeconds: 30 },
+      { enabled: true, startSeconds: 300, refillSeconds: 60 },
     );
     expect(matchTimerSettings({ matchTimer: "true" } as never, true).enabled).toBe(false);
   });
