@@ -12,6 +12,7 @@ import {
   renderCue,
   renderMusic,
   decodeSourceWav,
+  type FoleyKind,
 } from "./audioRecipes";
 
 const sourceRoot = new URL("../../public/audio/sources/", import.meta.url);
@@ -21,6 +22,18 @@ const sources = {
   impact: decodeSourceWav(readFileSync(new URL("impact-body.wav", sourceRoot))).samples,
   crystal: decodeSourceWav(readFileSync(new URL("crystal-rise.wav", sourceRoot))).samples,
 };
+const recordedProvenance = JSON.parse(readFileSync(new URL("recorded-provenance.json", sourceRoot), "utf8"));
+Object.assign(sources, {
+  recordings: Object.fromEntries(
+    recordedProvenance.assets.map((asset: { id: FoleyKind; preparedFile: string; sampleRate: number }) => [
+      asset.id,
+      {
+        samples: decodeSourceWav(readFileSync(new URL(asset.preparedFile, sourceRoot))).samples,
+        sampleRate: asset.sampleRate,
+      },
+    ]),
+  ),
+});
 function measures(data: Float32Array) {
   let peak = 0,
     sum = 0,
@@ -47,15 +60,11 @@ describe("authored original bank", () => {
       expect(data.at(-1)).toBeCloseTo(0, 7);
       expect(AUDIO_CUES[recipe.key]!.duration).toBe(data.length / 48000);
     }
-    expect(audioRecipe("draw").layers.filter((l) => l.texture === "paper")).toHaveLength(2);
     expect(audioRecipe("draw").duration).toBeLessThan(0.2);
-    expect(renderCue("draw", {}, "warm", 48000, sources)).not.toEqual(renderCue("draw"));
-    expect(audioRecipe("attackDeclare").layers.map((l) => l.texture)).toContain("air");
-    expect(audioRecipe("impact").layers.map((l) => l.texture)).toEqual(["body", "grain", "recording"]);
-    expect(audioRecipe("securityHit").layers.map((l) => l.texture)).toContain("glass");
-    expect(audioRecipe("delete").duration).toBeGreaterThan(audioRecipe("impact").duration);
+    expect(() => renderCue("draw")).toThrow(/Recorded foley source required/);
+    for (const recipe of recipes) expect(recipe.layers.every((layer) => layer.texture === "recording")).toBe(true);
   });
-  it("compares identical original materials and exact runtime slices without raising peak or energy", () => {
+  it("compares the rejected cue version and exact natural recorded runtime slices", () => {
     const root = new URL("../../public/audio/", import.meta.url);
     const comparison = JSON.parse(readFileSync(new URL("previews/cue-comparison.json", root), "utf8"));
     expect(comparison.examples).toHaveLength(13);
@@ -83,28 +92,63 @@ describe("authored original bank", () => {
       expect(single.subarray(44)).toEqual(priorWav.subarray(start, end));
       expect(example.current.offset).toBe(AUDIO_CUES[example.key]!.offset);
       expect(example.current.duration).toBe(AUDIO_CUES[example.key]!.duration);
-      expect(example.current.duration).toBeLessThan(example.previous.duration);
-      expect(example.current.metrics.peak).toBeLessThanOrEqual(example.previous.metrics.peak);
-      const energy = (entry: { duration: number; metrics: { rms: number } }) => entry.metrics.rms ** 2 * entry.duration;
-      expect(energy(example.current)).toBeLessThan(energy(example.previous));
+      expect(example.current.metrics.peak).toBeLessThan(0.3);
     }
   });
+  it("uses audited CC0 originals and preserves a recorded slide waveform at natural speed", () => {
+    for (const asset of recordedProvenance.assets) {
+      expect(asset.license).toBe("CC0-1.0");
+      const original = readFileSync(new URL(asset.sourceFile, sourceRoot));
+      const prepared = readFileSync(new URL(asset.preparedFile, sourceRoot));
+      expect(createHash("sha256").update(original).digest("hex")).toBe(asset.sourceSha256);
+      expect(createHash("sha256").update(prepared).digest("hex")).toBe(asset.sha256);
+    }
+    const recording = decodeSourceWav(readFileSync(new URL("recorded-slide.wav", sourceRoot))).samples;
+    const drawn = renderCue("draw", {}, "warm", 48000, sources);
+    let dot = 0,
+      originalEnergy = 0,
+      renderedEnergy = 0;
+    for (let i = 96; i < recording.length - 384; i++) {
+      dot += recording[i]! * drawn[i]!;
+      originalEnergy += recording[i]! ** 2;
+      renderedEnergy += drawn[i]! ** 2;
+    }
+    expect(dot / Math.sqrt(originalEnergy * renderedEnergy)).toBeGreaterThan(0.98);
+    const silentSources = {
+      ...sources,
+      recordings: Object.fromEntries(
+        recordedProvenance.assets.map((asset: { id: string }) => [
+          asset.id,
+          { samples: new Float32Array(1), sampleRate: 48000 },
+        ]),
+      ),
+    };
+    expect(measures(renderCue("draw", {}, "warm", 48000, silentSources)).energy).toBe(0);
+  });
   it("weights actual printed cost and retains Assembly and physical level jump recipes", () => {
-    const light = audioRecipe("cardPlay", { cost: 2 }).layers.find((l) => l.texture === "body")!;
-    const heavy = audioRecipe("cardPlay", { cost: 14 }).layers.find((l) => l.texture === "body")!;
-    expect(heavy.hz).toBeLessThan(light.hz);
-    expect(heavy.gain).toBeGreaterThan(light.gain);
-    expect(heavy.duration).toBeGreaterThan(light.duration);
-    expect(audioRecipe("cardPlay", { assembly: true }).layers.some((l) => l.texture === "glass")).toBe(true);
-    expect(renderCue("digivolve", { sourceLevel: 3, targetLevel: 6 })).not.toEqual(
-      renderCue("digivolve", { sourceLevel: 5, targetLevel: 6 }),
+    const light = renderCue("cardPlay", { cost: 2 }, "warm", 48000, sources);
+    const heavy = renderCue("cardPlay", { cost: 14 }, "warm", 48000, sources);
+    expect(measures(heavy).energy).toBeGreaterThan(measures(light).energy);
+    expect(heavy.length).toBeGreaterThan(light.length);
+    expect(renderCue("cardPlay", { cost: 2, assembly: true }, "warm", 48000, sources)).not.toEqual(light);
+    expect(renderCue("digivolve", { sourceLevel: 3, targetLevel: 6 }, "warm", 48000, sources)).not.toEqual(
+      renderCue("digivolve", { sourceLevel: 5, targetLevel: 6 }, "warm", 48000, sources),
     );
+    expect(renderCue("handTrash", {}, "warm", 48000, sources)).not.toEqual(
+      renderCue("sourceTrash", {}, "warm", 48000, sources),
+    );
+    expect(renderCue("endTurn", {}, "warm", 48000, sources)).not.toEqual(
+      renderCue("turnChange", {}, "warm", 48000, sources),
+    );
+
     expect(cueKey("digivolve", { sourceLevel: NaN, targetLevel: Infinity })).toBe("digivolve-3-4");
     expect(cueKey("cardPlay", { cost: Infinity })).toBe("cardPlay-5-plain");
-    expect(audioRecipe("effectActivate", {}, "crisp").duration).toBeLessThan(audioRecipe("effectActivate").duration);
+    expect(measures(renderCue("effectActivate", {}, "crisp", 48000, sources)).energy).toBeLessThan(
+      measures(renderCue("effectActivate", {}, "warm", 48000, sources)).energy,
+    );
   });
   it("reproduces seeded output at 44.1 and 48 kHz and proves shipped WAVs use this exact renderer", () => {
-    expect(renderCue("draw", {}, "warm", 44100)).toEqual(renderCue("draw", {}, "warm", 44100));
+    expect(renderCue("draw", {}, "warm", 44100, sources)).toEqual(renderCue("draw", {}, "warm", 44100, sources));
     const root = new URL("../../public/audio/", import.meta.url);
     const manifest = JSON.parse(readFileSync(new URL("manifest.json", root), "utf8"));
     const source = readFileSync(new URL("audioRecipes.ts", import.meta.url));

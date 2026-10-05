@@ -1,4 +1,4 @@
-/** Original seeded synthesis. This is the authoritative game AND offline-preview renderer. */
+/** Aegis cue arrangements of licensed CC0 recorded foley; offline authoring and preview share finished PCM. */
 export const SOUND_KINDS = [
   "select",
   "nav",
@@ -41,11 +41,36 @@ export interface SoundDetails {
 }
 export type AudioDirection = "warm" | "crisp";
 type Texture = "paper" | "air" | "grain" | "body" | "pluck" | "glass" | "pad" | "recording";
+export const FOLEY_SECONDS = {
+  touch: 0.08127083333333333,
+  contact: 0.270875,
+  cut: 0.13629166666666667,
+  shuffle: 0.551375,
+  bridge: 1.7311458333333334,
+  placeLight: 0.17166666666666666,
+  placeFirm: 0.21627083333333333,
+  placeHeavy: 0.236625,
+  placeStack: 0.5069583333333333,
+  slide: 0.121375,
+  slideAway: 0.5039583333333333,
+  slideBack: 0.5802708333333333,
+  flick: 0.2011875,
+  shove: 0.7642916666666667,
+  shoveFirm: 0.7556458333333333,
+  fan: 0.7208333333333333,
+  riffle: 2.9185,
+  tap: 0.07502083333333333,
+  stack: 0.07533333333333334,
+  clack: 0.07527083333333333,
+  pack: 0.7764166666666666,
+} as const;
+export type FoleyKind = keyof typeof FOLEY_SECONDS;
 export interface AudioSources {
   sampleRate: number;
   paper: Float32Array;
   impact: Float32Array;
   crystal: Float32Array;
+  recordings?: Partial<Record<FoleyKind, { samples: Float32Array; sampleRate: number }>>;
 }
 export interface AudioLayer {
   texture: Texture;
@@ -54,7 +79,7 @@ export interface AudioLayer {
   gain: number;
   hz: number;
   endHz?: number;
-  source?: "impact" | "crystal";
+  source?: "impact" | "crystal" | FoleyKind;
 }
 export interface AudioRecipe {
   key: string;
@@ -79,55 +104,55 @@ export function audioRecipe(
   direction: AudioDirection = "warm",
 ): AudioRecipe {
   const layers: AudioLayer[] = [];
-  const brightness = direction === "warm" ? 0.82 : 1.12;
-  const add = (texture: Texture, at: number, duration: number, gain: number, hz: number, endHz?: number) =>
+  const play = (source: FoleyKind, at = 0, gain = 0.4, length = FOLEY_SECONDS[source]) =>
     layers.push({
-      texture,
+      texture: "recording",
+      source,
       at,
-      duration: duration * (direction === "crisp" && texture !== "pad" ? 0.8 : 1),
-      gain: gain * (direction === "crisp" ? 0.82 : 1),
-      hz: texture === "body" ? hz : hz * brightness,
-      endHz,
+      duration: length,
+      gain: gain * (direction === "crisp" ? 0.88 : 1),
+      hz: 1,
     });
-  const paper = (at = 0, length = 0.16, gain = 0.18) => add("paper", at, length, gain, 2100);
-  const notes = (values: number[], gap = 0.095, gain = 0.11, at = 0, texture: Texture = "pluck") =>
-    values.forEach((note, index) => add(texture, at + index * gap, 0.38, gain, midi(note)));
   switch (kind) {
+    case "select":
+      play("touch", 0, 0.22);
+      break;
+    case "nav":
+      play("cut", 0, 0.2);
+      break;
+    case "effectFocus":
+      play("touch", 0, 0.25);
+      play("slide", 0.024, 0.1);
+      break;
     case "draw":
-      paper(0, 0.115, 0.16);
-      paper(0.048, 0.045, 0.065);
-      add("body", 0.012, 0.055, 0.035, 330, 260);
+      play("slide", 0, 0.38);
       break;
     case "move":
-      paper(0, 0.23, 0.13);
-      add("body", 0.16, 0.1, 0.07, 210, 160);
+      play("slideBack", 0, 0.32);
       break;
     case "handTrash":
-      paper(0, 0.17, 0.15);
-      add("grain", 0.075, 0.085, 0.045, 700);
-      add("pluck", 0.06, 0.15, 0.035, midi(57), midi(50));
+      play("slideAway", 0, 0.34);
       break;
     case "sourceTrash":
-      [0, 0.042, 0.087].forEach((at) => paper(at, 0.07, 0.1));
-      add("body", 0.11, 0.065, 0.04, 230, 180);
+      play("cut", 0, 0.32);
+      play("contact", 0.055, 0.25);
       break;
     case "shuffle":
-      [0, 0.07, 0.14, 0.23, 0.31].forEach((at, i) => paper(at, 0.095, 0.13 - i * 0.009));
+      play("shuffle", 0, 0.36);
       break;
     case "group":
-      paper(0, 0.12, 0.12);
-      paper(0.085, 0.12, 0.12);
-      add("body", 0.18, 0.16, 0.1, 170, 130);
+      play("cut", 0, 0.32);
+      play("placeStack", 0.08, 0.29);
       break;
     case "cardPlay": {
-      const weight = finite(details.cost, 5, 0, 15) / 15;
-      paper(0, 0.1, 0.17);
-      add("body", 0.035, 0.18 + weight * 0.18, 0.15 + weight * 0.12, 190 - weight * 85, 65 - weight * 20);
-      add("grain", 0.025, 0.075 + weight * 0.065, 0.09 + weight * 0.05, 950);
-      add("pluck", 0.025, 0.14, 0.028, midi(55));
+      const cost = finite(details.cost, 5, 0, 15),
+        weight = cost / 15;
+      const placement: FoleyKind =
+        cost <= 3 ? "placeLight" : cost <= 8 ? "placeFirm" : cost <= 12 ? "placeHeavy" : "placeStack";
+      play(placement, 0, 0.36 + weight * 0.16);
       if (details.assembly) {
-        add("body", 0.12, 0.12, 0.08, 310, 210);
-        notes([55, 62, 67], 0.06, 0.065, 0.16, "glass");
+        play("cut", 0.045, 0.18);
+        play("stack", 0.145, 0.14);
       }
       break;
     }
@@ -135,129 +160,100 @@ export function audioRecipe(
       const source = finite(details.sourceLevel, 3, 1, 7),
         target = finite(details.targetLevel, 4, 2, 7);
       const jump = Math.max(1, target - source),
-        root = 45 + target * 2;
-      paper(0, 0.09, 0.085);
-      add("air", 0, 0.24 + jump * 0.018, 0.075, 1700);
-      notes([root - 7 - jump, root - 3, root, root + 7], 0.065 + jump * 0.01, 0.085, 0.06);
-      add("pad", 0.25 + jump * 0.035, 0.38 + target * 0.02, 0.06, midi(root));
-      add("glass", 0.32 + jump * 0.035, 0.32, 0.045, midi(root + 12));
+        stages = Math.min(4, jump + 1),
+        gap = 0.062 + source * 0.006;
+      const gestures: FoleyKind[] = ["slide", "cut", "flick", "placeFirm"];
+      for (let i = 0; i < stages; i++) play(gestures[i]!, i * gap, 0.22 + i * 0.04);
+      play(target >= 6 ? "placeStack" : target >= 4 ? "placeHeavy" : "placeLight", stages * gap, 0.3 + target * 0.018);
+      play("stack", stages * gap + 0.035, 0.1 + target * 0.008);
       break;
     }
+    case "deDigivolve":
+      play("cut", 0, 0.33);
+      play("flick", 0.065, 0.28);
+      play("slideAway", 0.125, 0.24);
+      break;
     case "attackDeclare":
-      add("air", 0, 0.32, 0.21, 1350);
-      add("body", 0.08, 0.21, 0.12, 95, 180);
+      play("shove", 0, 0.36);
       break;
     case "attack":
     case "impact":
-      add("body", 0, 0.28, 0.32, 155, 48);
-      add("grain", 0.005, 0.16, 0.26, 1200);
+      play("placeHeavy", 0, 0.52);
+      play("clack", 0.006, 0.12);
       break;
     case "securityHit":
-      add("grain", 0, 0.12, 0.23, 3400);
-      [59, 66, 73].forEach((n, i) => add("glass", i * 0.025, 0.36, 0.09, midi(n)));
+      play("flick", 0, 0.46);
+      play("contact", 0.035, 0.28);
       break;
     case "delete":
-      add("body", 0, 0.34, 0.19, 140, 38);
-      add("grain", 0.07, 0.52, 0.13, 800);
-      add("air", 0.12, 0.48, 0.06, 1800);
-      break;
-    case "deDigivolve":
-      [69, 64, 57, 50].forEach((note, i) => add("pluck", i * 0.06, 0.22, 0.075, midi(note)));
-      [0, 0.055].forEach((at) => paper(at, 0.08, 0.1));
-      add("body", 0.15, 0.08, 0.045, 180, 120);
+      play("shoveFirm", 0, 0.38);
+      play("contact", 0.08, 0.22);
       break;
     case "effectActivate":
-      paper(0, 0.055, 0.06);
-      add("air", 0, 0.12, 0.045, 2300);
-      [67, 74].forEach((note, i) => add("glass", 0.012 + i * 0.065, 0.25, 0.075, midi(note)));
-      break;
-    case "effectFocus":
-      paper(0, 0.045, 0.045);
-      add("pluck", 0.006, 0.16, 0.045, midi(62));
-      add("glass", 0.035, 0.2, 0.055, midi(62));
+      play("flick", 0, 0.36);
+      play("tap", 0.07, 0.16);
       break;
     case "hatch":
-      paper(0, 0.1, 0.11);
-      notes([55, 62, 67], 0.09, 0.085, 0.04);
+      play("cut", 0, 0.3);
+      play("placeLight", 0.085, 0.34);
       break;
     case "reveal":
-      paper(0, 0.14, 0.11);
-      add("glass", 0.07, 0.34, 0.075, midi(69));
+      play("flick", 0, 0.36);
       break;
     case "endTurn":
-      paper(0, 0.055, 0.055);
-      [62, 57].forEach((note, i) => add("pluck", i * 0.11, 0.27, 0.075, midi(note)));
-      add("body", 0.025, 0.11, 0.05, 120, 100);
+      play("cut", 0, 0.28);
+      play("placeFirm", 0.11, 0.28);
       break;
     case "turnChange":
-      notes([50, 57, 62], 0.11, 0.09);
+      play("placeLight", 0, 0.3);
+      play("cut", 0.105, 0.28);
+      play("tap", 0.2, 0.14);
       break;
     case "buff":
-      notes([60, 64, 67], 0.07, 0.08);
-      add("air", 0.04, 0.25, 0.05, 1500);
+      play("slide", 0, 0.3);
+      play("stack", 0.065, 0.16);
       break;
     case "debuff":
-      notes([62, 58, 53], 0.075, 0.085);
+      play("slideAway", 0, 0.28);
+      play("touch", 0.09, 0.18);
       break;
     case "freeze":
-      add("grain", 0, 0.19, 0.085, 2600);
-      notes([65, 66], 0.03, 0.065, 0.03, "glass");
+      play("contact", 0, 0.32);
+      play("touch", 0.075, 0.21);
       break;
     case "recover":
-      notes([55, 62, 64, 67], 0.08, 0.07);
-      add("pad", 0.16, 0.42, 0.045, midi(55));
+      play("slideBack", 0, 0.28);
+      play("placeLight", 0.09, 0.3);
       break;
     case "win":
-      notes([55, 62, 67, 71, 74], 0.12, 0.09);
-      add("pad", 0.25, 0.9, 0.07, midi(55));
+      play("cut", 0, 0.3);
+      play("placeLight", 0.1, 0.3);
+      play("stack", 0.22, 0.26);
+      play("tap", 0.33, 0.2);
       break;
     case "lose":
-      notes([57, 53, 50], 0.17, 0.085);
-      add("pad", 0.12, 0.7, 0.05, midi(38));
-      break;
-    case "select":
-      paper(0, 0.035, 0.075);
-      add("pluck", 0, 0.075, 0.065, midi(67));
-      break;
-    case "nav":
-      paper(0, 0.055, 0.08);
-      add("body", 0, 0.065, 0.045, 270, 240);
+      play("contact", 0, 0.32);
+      play("placeStack", 0.16, 0.26);
       break;
     case "confirm":
-      notes([62, 69], 0.06, 0.07);
+      play("cut", 0, 0.27);
+      play("tap", 0.075, 0.13);
       break;
     case "error":
-      add("body", 0, 0.12, 0.09, 180, 145);
-      add("body", 0.1, 0.12, 0.07, 145, 120);
+      play("touch", 0, 0.24);
+      play("touch", 0.105, 0.2);
       break;
     case "success":
-      notes([62, 66, 69], 0.08, 0.075);
+      play("placeLight", 0, 0.3);
+      play("stack", 0.085, 0.16);
       break;
   }
-  if (["attack", "impact", "cardPlay"].includes(kind))
-    layers.push({
-      texture: "recording",
-      source: "impact",
-      at: 0.012,
-      duration: kind === "cardPlay" ? 0.2 : direction === "warm" ? 0.3 : 0.23,
-      gain: kind === "cardPlay" ? 0.22 : 0.28,
-      hz: 1,
-    });
-  if (["effectActivate", "digivolve", "hatch", "securityHit", "reveal"].includes(kind))
-    layers.push({
-      texture: "recording",
-      source: "crystal",
-      at: 0.025,
-      duration: kind === "digivolve" ? 0.4 : kind === "effectActivate" ? 0.22 : 0.3,
-      gain: ["digivolve", "effectActivate"].includes(kind) ? 0.26 : direction === "warm" ? 0.32 : 0.25,
-      hz: 1,
-    });
   return {
     key: cueKey(kind, details),
     kind,
     details,
     layers,
-    duration: Math.max(...layers.map((l) => l.at + l.duration)) + 0.045,
+    duration: Math.max(...layers.map((layer) => layer.at + layer.duration)) + 0.018,
   };
 }
 function seedFrom(text: string): number {
@@ -296,7 +292,7 @@ function renderLayers(
       const fade = Math.min(1, t / attack, (layer.duration - t) / 0.018);
       let value: number, envelope: number;
       if (layer.texture === "recording") {
-        const source = layer.source && sources?.[layer.source];
+        const source = (layer.source === "impact" || layer.source === "crystal") && sources?.[layer.source];
         if (!source) continue;
         const position = progress * (source.length - 1),
           left = Math.floor(position),
@@ -375,14 +371,32 @@ export function renderCue(
   sources?: AudioSources,
 ): Float32Array {
   const recipe = audioRecipe(kind, details, direction);
-  return renderLayers(
-    recipe.layers,
-    recipe.duration,
-    sampleRate,
-    seedFrom(`${recipe.key}-${direction}`),
-    false,
-    sources,
-  );
+  const output = new Float32Array(Math.round(recipe.duration * sampleRate));
+  for (const layer of recipe.layers) {
+    const recording = sources?.recordings?.[layer.source as FoleyKind];
+    if (!recording) throw new Error(`Recorded foley source required: ${layer.source}`);
+    const start = Math.round(layer.at * sampleRate),
+      frames = Math.round(layer.duration * sampleRate);
+    for (let i = 0; i < frames; i++) {
+      const position = (i * recording.sampleRate) / sampleRate,
+        left = Math.floor(position),
+        fraction = position - left;
+      const value = (recording.samples[left] ?? 0) * (1 - fraction) + (recording.samples[left + 1] ?? 0) * fraction;
+      output[start + i]! += value * layer.gain;
+    }
+  }
+  // Linear relative mix, natural playback rate, no noise/oscillator/pitch substitution or per-cue normalization.
+  let previous = 0,
+    filtered = 0;
+  const coefficient = Math.exp((-2 * Math.PI * 12) / sampleRate);
+  for (let i = 0; i < output.length; i++) {
+    const input = output[i]!;
+    filtered = coefficient * (filtered + input - previous);
+    previous = input;
+    output[i] =
+      filtered * Math.max(0, Math.min(1, i / (sampleRate * 0.002), (output.length - 1 - i) / (sampleRate * 0.008)));
+  }
+  return output;
 }
 export const MUSIC_BPM = 96;
 export const MUSIC_SECONDS = (32 * 60) / MUSIC_BPM;

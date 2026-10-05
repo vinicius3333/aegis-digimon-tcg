@@ -83,6 +83,15 @@ for (const [key, file] of Object.entries(sourceFiles)) {
   sources[key] = decodeSourceWav(bytes).samples;
   sourceHashes[file] = createHash("sha256").update(bytes).digest("hex");
 }
+const recordedProvenance = JSON.parse(await readFile(new URL("recorded-provenance.json", sourcesDirectory), "utf8"));
+sources.recordings = {};
+for (const asset of recordedProvenance.assets) {
+  const bytes = await readFile(new URL(asset.preparedFile, sourcesDirectory));
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
+  if (sha256 !== asset.sha256) throw new Error(`Recorded source identity changed: ${asset.id}`);
+  sources.recordings[asset.id] = { samples: decodeSourceWav(bytes).samples, sampleRate: asset.sampleRate };
+  sourceHashes[asset.preparedFile] = sha256;
+}
 const recipes = bankRecipes();
 const clips = recipes.map((r) => renderCue(r.kind, r.details, "warm", sampleRate, sources));
 const gap = Math.round(sampleRate * 0.025);
@@ -159,6 +168,8 @@ await writeFile(
       version: 1,
       sampleRate,
       channels: 1,
+      priorFullBankSha256: "5700989d78a56b4500e5741d3ca06b85fab6e0bcb267c4c341b154b9f3faf420",
+      priorRevision: "fd80df166bc38a25df184b729a73eeea6113e56b",
       priorRendererSha256: createHash("sha256").update(priorSource).digest("hex"),
       previous: { url: `/audio/previews/prior-cues.wav?v=${priorMetrics.sha256.slice(0, 12)}`, ...priorMetrics },
       current: { url: `/audio/aegis-cues-v2.wav?v=${bankMetrics.sha256.slice(0, 12)}`, ...bankMetrics },
@@ -282,7 +293,9 @@ for (const direction of ["warm", "crisp"]) {
 }
 const manifest = {
   version: 2,
-  original: true,
+  original: false,
+  arrangement: "Aegis arrangements of licensed CC0 recorded card/object foley",
+  recordedSourceProvenance: "sources/recorded-provenance.json",
   renderer: "apps/web/src/design/audioRecipes.ts",
   rendererSha256: createHash("sha256").update(source).digest("hex"),
   sampleRate,
@@ -292,7 +305,7 @@ const manifest = {
   sourceHashes,
   sourceProvenance: "sources/provenance.json",
   directionReason:
-    "Damped bodies, softer paper bandwidth and longer resonant tails support tactile card actions without piercing transients",
+    "Natural-rate recorded card flicks, slides, cuts and placements; restrained acoustic object punctuation; no synthesized everyday cue layers",
   bank: { file: "aegis-cues-v2.wav", ...bankMetrics },
   music: {
     file: selectedMusic.file,
