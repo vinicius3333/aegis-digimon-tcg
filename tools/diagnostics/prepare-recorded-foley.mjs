@@ -122,6 +122,13 @@ const manifest = {
   type: "licensed-recorded-foley",
   license: "CC0-1.0",
   ffmpegVersion: "8.1.2",
+  licenseEvidence: {
+    archive: "recorded-originals/kenney-casino.zip",
+    entry: "License.txt",
+    readableCopy: "recorded-originals/Kenney-License.txt",
+    readableCopyProcessing:
+      "LF newlines and trailing whitespace removal only; original wording unchanged; archive remains authoritative",
+  },
   archiveSha256: createHash("sha256").update(archive).digest("hex"),
   selection:
     "Real card contact, cut, shuffle, slide, shove and placement; short chip taps for restrained acoustic punctuation",

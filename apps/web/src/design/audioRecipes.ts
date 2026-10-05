@@ -256,11 +256,6 @@ export function audioRecipe(
     duration: Math.max(...layers.map((layer) => layer.at + layer.duration)) + 0.018,
   };
 }
-function seedFrom(text: string): number {
-  let seed = 2166136261;
-  for (const char of text) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619);
-  return seed >>> 0;
-}
 /** Sum authored modal instruments and band-limited seeded foley; original generated material sources are optional inputs, never copied recordings. */
 function renderLayers(
   layers: AudioLayer[],

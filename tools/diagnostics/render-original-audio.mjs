@@ -27,6 +27,7 @@ const {
   masterOriginalMusic,
   encodeMusicWav,
   musicMetrics: measureMusic,
+  addRecordedMusicPulse,
 } = await import(`data:text/javascript;base64,${Buffer.from(masterCompiled).toString("base64")}`);
 const musicInputsRoot = new URL("../../apps/web/public/audio/music-candidates/", import.meta.url);
 const musicProvenance = JSON.parse(await readFile(new URL("provenance.json", musicInputsRoot), "utf8"));
@@ -72,7 +73,11 @@ async function wav(name, samples) {
   data.writeUInt32LE(samples.length * 2, 40);
   for (let i = 0; i < samples.length; i++) data.writeInt16LE(Math.round(samples[i] * 32767), 44 + i * 2);
   await writeFile(path.join(directory, name), data);
-  return { ...metrics(samples), bytes: data.length, sha256: createHash("sha256").update(data).digest("hex") };
+  return {
+    ...metrics(decodeSourceWav(data).samples),
+    bytes: data.length,
+    sha256: createHash("sha256").update(data).digest("hex"),
+  };
 }
 const sourcesDirectory = new URL("../../apps/web/public/audio/sources/", import.meta.url);
 const sourceFiles = { paper: "paper-texture.wav", impact: "impact-body.wav", crystal: "crystal-rise.wav" };
@@ -225,12 +230,12 @@ for (const candidate of musicProvenance.candidates) {
   }
   const encoded = encodeMusicWav(mastered),
     sha256 = createHash("sha256").update(encoded).digest("hex");
-  const file = selected ? "aegis-music-v3.wav" : `music-candidates/${candidate.id}.wav`;
+  const file = selected ? "music-candidates/warm-drive-dry-112.wav" : `music-candidates/${candidate.id}.wav`;
   await writeFile(path.join(directory, file), encoded);
   const row = {
     id: candidate.id,
     label: selected ? "Warm drive · steady 112 BPM" : candidate.label,
-    role: selected ? "selected" : "alternative",
+    role: "alternative",
     file,
     url: `/audio/${file}?v=${sha256.slice(0, 12)}`,
     sha256,
@@ -254,7 +259,48 @@ for (const candidate of musicProvenance.candidates) {
     ...(selected && musicProvenance.selectedTempo ? { tempoAdjustment: musicProvenance.selectedTempo } : {}),
   };
   candidateRows.push(row);
-  if (selected) selectedMusic = row;
+  if (selected) {
+    if (sha256 !== musicProvenance.selectedTempo.finishedAnalysis.sha256)
+      throw new Error("Liked dry 112 BPM score identity changed");
+    const pulsed = addRecordedMusicPulse(
+      decodeMusicWav(encoded),
+      sources.recordings.placeHeavy,
+      sources.recordings.tap,
+    );
+    const finished = encodeMusicWav(pulsed.pcm);
+    const pulseHash = createHash("sha256").update(finished).digest("hex");
+    const pulseFile = "aegis-music-v3.wav";
+    await writeFile(path.join(directory, pulseFile), finished);
+    selectedMusic = {
+      ...row,
+      id: "warm-drive-pulse-112",
+      label: "Warm drive · subtle recorded pulse · 112 BPM",
+      role: "selected",
+      file: pulseFile,
+      url: `/audio/${pulseFile}?v=${pulseHash.slice(0, 12)}`,
+      sha256: pulseHash,
+      metrics: { ...measureMusic(decodeMusicWav(finished)), bytes: finished.length },
+      sourceIdentity: { ...row.sourceIdentity, type: "original-score-with-licensed-recorded-rhythm" },
+      dryAnalysis: row.finishedAnalysis,
+      finishedAnalysis: {
+        sha256: pulseHash,
+        gridBpm: 112,
+        measuredTempo: musicProvenance.rhythmRecipe.finishedTempo,
+        analysisScope: "Current finished mix; pulse fitted to the unchanged dry score beat grid",
+        ...pulsed.analysis,
+      },
+      rhythm: {
+        source: "CC0 recorded card-body and chip-tap",
+        bodyId: "placeHeavy",
+        tapId: "tap",
+        bodyPeak: 0.006,
+        tapPeak: 0.0025,
+        events: pulsed.events,
+        drySha256: sha256,
+      },
+    };
+    candidateRows.push(selectedMusic);
+  }
 }
 if (!selectedMusic) throw new Error("No original selected score");
 const musicMetrics = { ...selectedMusic.metrics, sha256: selectedMusic.sha256 };
@@ -310,7 +356,9 @@ const manifest = {
   music: {
     file: selectedMusic.file,
     bpm: selectedMusic.bpm,
-    original: true,
+    original: false,
+    originalScore: true,
+    recordedRhythmLicense: "CC0-1.0",
     selectedId: selectedMusic.id,
     sourceProvenance: "music-candidates/provenance.json",
     masteringRenderer: "apps/web/src/design/musicMaster.ts",
@@ -319,7 +367,7 @@ const manifest = {
       .update(await readFile(new URL("tempo-original-music.mjs", import.meta.url)))
       .digest("hex"),
     composition:
-      "Original text-generated melodic guitar/keys/bass score; steady112 BPM, offline pitch-preserving tempo adjustment from the original 104 master, no reference audio conditioning",
+      "Liked original 112 BPM melodic score, unchanged progression and duration, with sparse beat-phase-aligned CC0 recorded card-body and acoustic chip-tap accents",
     ...musicMetrics,
   },
   previews: previewMetrics,
