@@ -1,59 +1,99 @@
 {
-  "releases.1.10.3-beta.summary": {
-    "en": "This patch fixes card effects, evolution choices, Assembly ordering, images and browser translation.",
-    "pt-BR": "Este patch corrige efeitos de cartas, opções de evolução, a ordem do Assembly, imagens e a tradução do navegador."
+  "releases.1.11.0-beta.summary": {
+    "en": "This minor release adds optional match timers, a resizable deck builder grid that follows your account, and a backup provider for sign-in emails. It also fixes card effects, prompts, images and reconnection.",
+    "pt-BR": "Esta versão minor traz timer opcional nas partidas, uma grade redimensionável no construtor de decks que acompanha sua conta e um provedor reserva para os e-mails de login. Também corrige efeitos de cartas, pedidos de escolha, imagens e reconexão."
   },
-  "releases.1.10.3-beta.fix.burstOwnership": {
+  "releases.1.11.0-beta.fix.burstOwnership": {
     "en": "ShineGreymon: Burst Mode only offers Tamers from your own hand when its Option effect plays a Tamer.",
     "pt-BR": "ShineGreymon: Burst Mode oferece apenas Tamers da sua própria mão quando seu efeito de Opção joga um Tamer."
   },
-  "releases.1.10.3-beta.fix.burstPrompts": {
+  "releases.1.11.0-beta.fix.burstPrompts": {
     "en": "Burst Mode's selections show the activated Option Main text, and Burst Digivolve is offered only when its required Tamer is in your battle area.",
     "pt-BR": "As seleções de Burst Mode mostram o texto Main da Opção ativada, e Burst Digivolve só é oferecido quando o Tamer exigido está no seu campo."
   },
-  "releases.1.10.3-beta.fix.nokiaWarp": {
+  "releases.1.11.0-beta.fix.nokiaWarp": {
     "en": "Nokia Shiramine can suspend to reduce qualifying WarGreymon and MetalGarurumon warp digivolution costs.",
     "pt-BR": "Nokia Shiramine pode suspender para reduzir o custo das evoluções warp válidas de WarGreymon e MetalGarurumon."
   },
-  "releases.1.10.3-beta.fix.paladinComparison": {
+  "releases.1.11.0-beta.fix.paladinComparison": {
     "en": "Imperialdramon: Paladin Mode compares digivolution-card counts in its effect battle without gaining Ice Clad.",
     "pt-BR": "Imperialdramon: Paladin Mode compara a quantidade de fontes na batalha por seu efeito sem ganhar Ice Clad."
   },
-  "releases.1.10.3-beta.fix.rewrittenEvolution": {
+  "releases.1.11.0-beta.fix.rewrittenEvolution": {
     "en": "Digivolution and Blast Digivolution respect names and colors rewritten by KingSukamon, including their displayed cost choices.",
     "pt-BR": "Evolução e Blast Digivolve respeitam nomes e cores alterados por KingSukamon, incluindo as opções de custo exibidas."
   },
-  "releases.1.10.3-beta.fix.assemblyOrder": {
+  "releases.1.11.0-beta.fix.assemblyOrder": {
     "en": "Assembly places its materials in the printed order, including when you select them in reverse or play through an effect.",
     "pt-BR": "Assembly coloca os materiais na ordem impressa, inclusive quando você os seleciona ao contrário ou joga por efeito."
   },
-  "releases.1.10.3-beta.fix.lilithCost": {
+  "releases.1.11.0-beta.fix.lilithCost": {
     "en": "Lilithmon prevents deletion only after its deletion cost succeeds; saving the payment Digimon with Detach does not pay that cost.",
     "pt-BR": "Lilithmon só impede a deleção após pagar seu custo de deleção; salvar o Digimon usado como pagamento com Detach não paga esse custo."
   },
-  "releases.1.10.3-beta.fix.diaboromonCost": {
+  "releases.1.11.0-beta.fix.diaboromonCost": {
     "en": "Diaboromon's deletion protection also requires a successful deletion cost.",
     "pt-BR": "A proteção contra deleção de Diaboromon também exige que o custo de deleção seja pago com sucesso."
   },
-  "releases.1.10.3-beta.fix.ownHandTargets": {
+  "releases.1.11.0-beta.fix.ownHandTargets": {
     "en": "Plutomon and Kumbhiramon offer only your own hand cards for their free-play effects.",
     "pt-BR": "Plutomon e Kumbhiramon oferecem apenas cartas da sua mão para seus efeitos de jogo gratuito."
   },
-  "releases.1.10.3-beta.fix.cardImages": {
+  "releases.1.11.0-beta.fix.cardImages": {
     "en": "Card art can load from an independent official image source when the normal image mirror is unavailable.",
     "pt-BR": "As imagens das cartas podem carregar de uma fonte oficial independente quando o espelho de imagens habitual está indisponível."
   },
-  "releases.1.10.3-beta.fix.browserTranslation": {
+  "releases.1.11.0-beta.fix.browserTranslation": {
     "en": "The game continues updating when browser translation replaces text on the page, preventing the reported blank-screen crash.",
     "pt-BR": "O jogo continua atualizando quando a tradução do navegador substitui textos da página, evitando a falha de tela branca relatada."
   },
-  "releases.1.10.3-beta.fix.faceUpSecurity": {
+  "releases.1.11.0-beta.fix.faceUpSecurity": {
     "en": "Security counters include face-up cards and remain visible on short landscape screens.",
     "pt-BR": "Os contadores de segurança incluem cartas viradas para cima e continuam visíveis em telas horizontais baixas."
   },
-  "releases.1.10.3-beta.feature.arenaScenarios": {
+  "releases.1.11.0-beta.feature.arenaScenarios": {
     "en": "Development arena scenarios now cover all 33 verified reports, including 22 reports whose behavior already works correctly.",
     "pt-BR": "Os cenários da arena de desenvolvimento agora cobrem os 33 relatos verificados, incluindo 22 cujo comportamento já funciona corretamente."
+  },
+  "releases.1.11.0-beta.feature.matchTimers": {
+    "en": "Matches can use a timer. Each player starts with a time bank and gains 60 seconds on their own turn and 30 seconds on the opponent's turn. The lobby pairs players who chose the same timer setting, and private room hosts choose it for both players.",
+    "pt-BR": "As partidas podem usar timer. Cada jogador começa com um banco de tempo e ganha 60 segundos no próprio turno e 30 segundos no turno do oponente. O lobby junta jogadores que escolheram a mesma configuração, e o anfitrião de sala privada escolhe para os dois."
+  },
+  "releases.1.11.0-beta.feature.deckGrid": {
+    "en": "The deck builder shows your deck as a card grid. Drag the divider or use the Pool, Split and Deck presets to resize it against the card pool. A compact list view and the level curve sit above the deck.",
+    "pt-BR": "O construtor de decks mostra o deck como uma grade de cartas. Arraste o divisor ou use os atalhos Cartas, Dividir e Deck para redimensionar em relação às cartas disponíveis. A visão em lista compacta e a curva de níveis ficam acima do deck."
+  },
+  "releases.1.11.0-beta.feature.deckLayoutSync": {
+    "en": "Signed-in players keep their deck builder layout, view and sort on every device.",
+    "pt-BR": "Jogadores conectados mantêm o layout, a visão e a ordenação do construtor de decks em todos os dispositivos."
+  },
+  "releases.1.11.0-beta.fix.signInEmailLimit": {
+    "en": "Email sign-in switches to a second email provider when the first reaches its daily limit. When both are used up, the sign-in panel says so and suggests Discord.",
+    "pt-BR": "O login por e-mail passa para um segundo provedor quando o primeiro atinge o limite diário. Quando os dois acabam, o painel de login avisa e sugere o Discord."
+  },
+  "releases.1.11.0-beta.fix.timedDecisions": {
+    "en": "Timed decisions appear on the board right away instead of waiting for queued animations, and their targets stay visible.",
+    "pt-BR": "Decisões com tempo aparecem no tabuleiro na hora, sem esperar animações na fila, e os alvos continuam visíveis."
+  },
+  "releases.1.11.0-beta.fix.reconnectPrompts": {
+    "en": "After you reconnect, the game shows any choice that was still waiting for your answer.",
+    "pt-BR": "Depois de reconectar, o jogo mostra a escolha que ainda esperava sua resposta."
+  },
+  "releases.1.11.0-beta.fix.engagePrompts": {
+    "en": "Engage activation prompts show the Engage rules text.",
+    "pt-BR": "Os pedidos de ativação de Engage mostram o texto da regra de Engage."
+  },
+  "releases.1.11.0-beta.fix.titamonTriggers": {
+    "en": "Titamon's trigger chooser keeps each hand-trash clause and its protection limit.",
+    "pt-BR": "A escolha de gatilhos de Titamon mantém cada cláusula de descarte da mão e seu limite de proteção."
+  },
+  "releases.1.11.0-beta.fix.octoberReports": {
+    "en": "Effect timing, DP immunity, security movement, Burst routes, Fragment on locked stacks and Execute granted across evolution now follow the rules, as reported in the Discord bug channel.",
+    "pt-BR": "Tempo de efeitos, imunidade de DP, movimento de segurança, rotas de Burst, Fragment em pilhas travadas e Execute concedido ao evoluir agora seguem as regras, conforme relatos no canal de bugs do Discord."
+  },
+  "releases.1.11.0-beta.fix.artworkPicker": {
+    "en": "A card artwork you choose is saved to the copy you opened.",
+    "pt-BR": "A arte escolhida para uma carta é salva na cópia que você abriu."
   },
   "releases.1.10.2-beta.summary": {
     "en": "This patch corrects card costs, protection scopes, battle priority and development scenario links.",

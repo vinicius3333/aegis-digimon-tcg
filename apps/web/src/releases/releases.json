@@ -1,57 +1,87 @@
 [
   {
-    "version": "1.10.3-beta",
+    "version": "1.11.0-beta",
     "releasedAt": "2026-10-05",
-    "summaryKey": "releases.1.10.3-beta.summary",
+    "summaryKey": "releases.1.11.0-beta.summary",
     "features": [
       {
-        "textKey": "releases.1.10.3-beta.feature.arenaScenarios"
+        "textKey": "releases.1.11.0-beta.feature.matchTimers"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.feature.deckGrid"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.feature.deckLayoutSync"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.feature.arenaScenarios"
       }
     ],
     "fixes": [
       {
-        "textKey": "releases.1.10.3-beta.fix.burstOwnership",
+        "textKey": "releases.1.11.0-beta.fix.signInEmailLimit"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.fix.timedDecisions"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.fix.reconnectPrompts"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.fix.engagePrompts"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.fix.titamonTriggers"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.fix.octoberReports"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.fix.artworkPicker"
+      },
+      {
+        "textKey": "releases.1.11.0-beta.fix.burstOwnership",
         "issue": 4964
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.burstPrompts"
+        "textKey": "releases.1.11.0-beta.fix.burstPrompts"
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.nokiaWarp",
+        "textKey": "releases.1.11.0-beta.fix.nokiaWarp",
         "issue": 4953
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.paladinComparison",
+        "textKey": "releases.1.11.0-beta.fix.paladinComparison",
         "issue": 4949
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.rewrittenEvolution",
+        "textKey": "releases.1.11.0-beta.fix.rewrittenEvolution",
         "issue": 4948
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.assemblyOrder",
+        "textKey": "releases.1.11.0-beta.fix.assemblyOrder",
         "issue": 4946
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.lilithCost",
+        "textKey": "releases.1.11.0-beta.fix.lilithCost",
         "issue": 4940
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.diaboromonCost"
+        "textKey": "releases.1.11.0-beta.fix.diaboromonCost"
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.ownHandTargets"
+        "textKey": "releases.1.11.0-beta.fix.ownHandTargets"
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.cardImages",
+        "textKey": "releases.1.11.0-beta.fix.cardImages",
         "issue": 4958
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.browserTranslation",
+        "textKey": "releases.1.11.0-beta.fix.browserTranslation",
         "issue": 4943
       },
       {
-        "textKey": "releases.1.10.3-beta.fix.faceUpSecurity"
+        "textKey": "releases.1.11.0-beta.fix.faceUpSecurity"
       }
     ]
   },
