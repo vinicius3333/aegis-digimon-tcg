@@ -150134,6 +150134,7 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Engage", "raw": "＜Engage＞" }] },
       {
         "trigger": "EndOfYourTurn",
+        "description": "＜Engage＞: at the end of this turn, this Digimon may attack.",
         "actions": [
           {
             "kind": "Attack",
@@ -153972,6 +153973,7 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Engage", "raw": "＜Engage＞" }] },
       {
         "trigger": "EndOfYourTurn",
+        "description": "＜Engage＞: at the end of this turn, this Digimon may attack.",
         "actions": [
           {
             "kind": "Attack",
@@ -232066,6 +232068,7 @@
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Engage", "raw": "＜Engage＞" }] },
       {
         "trigger": "EndOfYourTurn",
+        "description": "＜Engage＞: at the end of this turn, this Digimon may attack.",
         "actions": [
           {
             "kind": "Attack",
