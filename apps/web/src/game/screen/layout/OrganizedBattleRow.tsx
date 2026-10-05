@@ -873,7 +873,6 @@ export function OrganizedBattleRow({
     return Math.max(drawn.length === 0 ? 1 : 0, count);
   }
   const digimonSlots = emptySlots(digimonCards, lanes.digimon, DIGIMON_GAP_SHARE);
-  const supportSlots = emptySlots(supportCards, lanes.support, SUPPORT_GAP_SHARE);
   useFieldMotion(ref, previous, cards, isSuspended, size);
   useLayoutEffect(() => {
     splitKeys.current = new Set(cards.filter((drawn) => drawn.splitOff).map((drawn) => drawn.fieldKey));

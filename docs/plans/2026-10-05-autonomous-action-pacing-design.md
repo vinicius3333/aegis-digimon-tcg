@@ -81,11 +81,10 @@ Validation: 282 focused web tests across seven files, three conserved real-bot
 engine fixture tests, web and e2e TypeScript checks, shared build and API runtime
 compile passed. The web production build passed before the production corrections;
 the corrected production files passed the focused tests and web TypeScript check.
-Scoped lint passed for the changed files except OrganizedBattleRow's existing
-unused `supportSlots` declaration (also present at base commit 9bfc91eb1);
-the lane adds membership observation there and leaves that unrelated layout
-declaration unchanged. Existing harness lint warnings remain. `git diff --check`
-passed.
+All changed files passed scoped lint with the existing harness warnings. Final
+review removed OrganizedBattleRow's unused pure `supportSlots` calculation without
+changing layout. `git diff --check` passed, and the initial push hook additionally
+passed the full shared/API/web TypeScript check.
 
 Per coordinator closeout, this lane verifies desktop Normal only. The integration
 worker owns the single combined twelve-case matrix covering Normal/Fast, 320px and
