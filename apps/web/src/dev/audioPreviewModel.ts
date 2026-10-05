@@ -1,3 +1,5 @@
+import { cueKey, SOUND_KINDS, type SoundDetails, type SoundKind } from "../design/audioRecipes";
+
 export interface AudioTrack {
   id: string;
   label: string;
@@ -10,6 +12,58 @@ export interface AudioTrack {
 const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 const number = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : undefined);
+const audioPath = (value: unknown): value is string =>
+  typeof value === "string" && /^\/audio\/[\w./-]+(?:\?v=[\w-]+)?$/.test(value) && !value.includes("..");
+
+export interface CueComparison {
+  key: string;
+  label: string;
+  kind: SoundKind;
+  details: SoundDetails;
+  previousUrl: string;
+}
+
+/** A comparison can claim current gameplay identity only when its bank and segment match. */
+export function cueComparisons(
+  manifest: unknown,
+  runtimeUrl: string,
+  runtimeCues: Record<string, { offset: number; duration: number }>,
+): CueComparison[] {
+  const root = record(manifest);
+  if (record(root.current).url !== runtimeUrl || !Array.isArray(root.examples)) return [];
+  return root.examples.flatMap((value) => {
+    const row = record(value);
+    const current = record(row.current);
+    const previous = record(row.previous);
+    const key = typeof row.key === "string" ? row.key : "";
+    const cue = runtimeCues[key];
+    if (
+      !cue ||
+      current.offset !== cue.offset ||
+      current.duration !== cue.duration ||
+      !audioPath(previous.url) ||
+      !SOUND_KINDS.includes(row.kind as SoundKind)
+    )
+      return [];
+    const details = record(row.details);
+    const soundDetails: SoundDetails = {
+      cost: number(details.cost),
+      sourceLevel: number(details.sourceLevel),
+      targetLevel: number(details.targetLevel),
+      assembly: details.assembly === true,
+    };
+    if (cueKey(row.kind as SoundKind, soundDetails) !== key) return [];
+    return [
+      {
+        key,
+        label: typeof row.label === "string" ? row.label : key,
+        kind: row.kind as SoundKind,
+        details: soundDetails,
+        previousUrl: previous.url,
+      },
+    ];
+  });
+}
 
 /** Attenuate louder comparisons without changing the game's buses or boosting quiet sources. */
 export function comparisonVolume(volume: number, metrics: AudioTrack["metrics"], balanced: boolean): number {

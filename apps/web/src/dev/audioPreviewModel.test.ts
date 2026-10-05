@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { candidateTracks, comparisonVolume } from "./audioPreviewModel";
+import { candidateTracks, comparisonVolume, cueComparisons } from "./audioPreviewModel";
 
 it("balances measured comparisons through attenuation without boosting quiet or unmeasured sources", () => {
   expect(comparisonVolume(0.25, { rms: 0.254, peak: 1 }, true)).toBeCloseTo((0.25 * 0.015) / 0.254);
@@ -37,4 +37,28 @@ it("supports generated relative files without inventing missing or invalid measu
   expect(tracks[1]).toMatchObject({ url: "/audio/music-candidates/fresh.wav", seconds: 30, applied: false });
   expect(tracks[1]!.metrics.rms).toBeUndefined();
   expect(candidateTracks(null, "/audio/applied.wav")).toHaveLength(1);
+});
+
+it("only offers cue comparisons whose current bank, physical metadata and segment match gameplay", () => {
+  const url = "/audio/current.wav?v=bank";
+  const cues = { "digivolve-3-6": { offset: 2, duration: 0.9 } };
+  const example = {
+    key: "digivolve-3-6",
+    label: "Evolution",
+    kind: "digivolve",
+    details: { sourceLevel: 3, targetLevel: 6 },
+    previous: { url: "/audio/previews/previous.wav?v=old" },
+    current: cues["digivolve-3-6"],
+  };
+  const manifest = { current: { url }, examples: [example] };
+  expect(cueComparisons(manifest, url, cues)).toMatchObject([{ key: example.key, details: example.details }]);
+  expect(cueComparisons(manifest, "/audio/current.wav?v=new", cues)).toEqual([]);
+  for (const changed of [
+    { ...example, current: { offset: 2.1, duration: 0.9 } },
+    { ...example, details: { sourceLevel: 4, targetLevel: 6 } },
+    { ...example, kind: "draw" },
+    { ...example, previous: { url: "https://example.com/sample.wav" } },
+    { ...example, previous: { url: "/audio/../private.wav" } },
+  ])
+    expect(cueComparisons({ ...manifest, examples: [changed] }, url, cues)).toEqual([]);
 });

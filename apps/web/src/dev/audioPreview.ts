@@ -1,7 +1,7 @@
 import "./audioPreview.css";
 import * as sound from "../design/sound";
-import { MUSIC_URL } from "../design/audioBank";
-import { candidateTracks, comparisonVolume, type AudioTrack } from "./audioPreviewModel";
+import { AUDIO_BANK_URL, AUDIO_CUES, MUSIC_URL } from "../design/audioBank";
+import { candidateTracks, comparisonVolume, cueComparisons, type AudioTrack } from "./audioPreviewModel";
 
 const element = <T extends HTMLElement>(id: string) => {
   const node = document.getElementById(id);
@@ -10,6 +10,8 @@ const element = <T extends HTMLElement>(id: string) => {
 };
 const status = element("mix-status");
 const players: HTMLAudioElement[] = [];
+const previousCue = new Audio();
+previousCue.preload = "none";
 const trackMetrics = new WeakMap<HTMLAudioElement, AudioTrack["metrics"]>();
 const musicVolume = element<HTMLInputElement>("music-volume");
 const effectsVolume = element<HTMLInputElement>("effects-volume");
@@ -40,6 +42,7 @@ function stopComparisons(except?: HTMLAudioElement): void {
   for (const player of players) if (player !== except) player.pause();
   const alternative = element<HTMLAudioElement>("crisp-cues");
   if (alternative !== except) alternative.pause();
+  previousCue.pause();
 }
 function syncControls(): void {
   musicVolume.value = String(Math.round(sound.getMusicVolume() * 100));
@@ -53,6 +56,8 @@ function syncControls(): void {
   const alternative = element<HTMLAudioElement>("crisp-cues");
   alternative.volume = sound.getSoundVolume() * sound.SFX_MIX_GAIN;
   alternative.muted = !sound.isSoundEnabled();
+  previousCue.volume = alternative.volume;
+  previousCue.muted = alternative.muted;
   for (const player of players) {
     player.volume = comparisonVolume(sound.getMusicVolume(), trackMetrics.get(player) ?? {}, balanced.checked);
     player.muted = !sound.isMusicEnabled();
@@ -188,8 +193,52 @@ async function loadTracks(): Promise<void> {
   }
   syncControls();
 }
+async function loadCueComparisons(): Promise<void> {
+  const response = await fetch("/audio/previews/cue-comparison.json", { cache: "no-store" });
+  if (!response.ok) return;
+  const comparisons = cueComparisons(await response.json(), AUDIO_BANK_URL, AUDIO_CUES);
+  for (const cue of comparisons) {
+    const row = document.createElement("div");
+    row.className = "audio-preview__options";
+    const label = document.createElement("span");
+    label.textContent = cue.label;
+    const before = document.createElement("button");
+    before.type = "button";
+    before.textContent = "Before";
+    before.setAttribute("aria-label", `Before ${cue.label}`);
+    before.addEventListener("click", () => {
+      stopComparisons();
+      previousCue.src = cue.previousUrl;
+      syncControls();
+      void previousCue.play().catch(() => {
+        status.textContent = "The previous cue could not play. The applied cue remains available.";
+      });
+    });
+    const after = document.createElement("button");
+    after.type = "button";
+    after.textContent = "After";
+    after.setAttribute("aria-label", `After ${cue.label}`);
+    after.addEventListener("click", () => {
+      stopComparisons();
+      void ready().then(() => sound.playSound(cue.kind, cue.details));
+    });
+    row.append(label, before, after);
+    element("cue-comparison-rows").append(row);
+  }
+  element("cue-comparison").hidden = comparisons.length === 0;
+}
 syncControls();
 void loadTracks().catch(() => {
   element("candidate-status").textContent = "Some comparison tracks could not load. The applied game mix is available.";
 });
-if (import.meta.hot) import.meta.hot.dispose(uninstall);
+void loadCueComparisons().catch(() => {
+  /* Keep individual gameplay controls available if prior comparison assets are missing. */
+});
+const onPageHide = () => stopComparisons();
+window.addEventListener("pagehide", onPageHide);
+if (import.meta.hot)
+  import.meta.hot.dispose(() => {
+    window.removeEventListener("pagehide", onPageHide);
+    stopComparisons();
+    uninstall();
+  });
