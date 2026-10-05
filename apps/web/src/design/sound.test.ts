@@ -1,19 +1,20 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as sound from "./sound";
+import { AUDIO_CUES } from "./audioBank";
 
 function param() {
   return {
     value: 0,
     setValueAtTime: vi.fn<(...args: unknown[]) => void>(),
-    exponentialRampToValueAtTime: vi.fn<(...args: unknown[]) => void>(),
+    linearRampToValueAtTime: vi.fn<(...args: unknown[]) => void>(),
     cancelScheduledValues: vi.fn<(...args: unknown[]) => void>(),
     setTargetAtTime: vi.fn<(...args: unknown[]) => void>(),
   };
 }
 class Node {
-  type = "sine";
-  frequency = param();
+  buffer: unknown = null;
+  loop = false;
   gain = param();
   onended: (() => void) | null = null;
   connect = vi.fn<() => Node>(() => this);
@@ -26,7 +27,7 @@ class Context {
   state = "suspended";
   currentTime = 1;
   destination = new Node();
-  oscillators: Node[] = [];
+  sources: Node[] = [];
   gains: Node[] = [];
   constructor() {
     Context.instances.push(this);
@@ -40,6 +41,9 @@ class Context {
   close = vi.fn<() => Promise<void>>(async () => {
     this.state = "closed";
   });
+  decodeAudioData = vi.fn<(bytes: ArrayBuffer) => Promise<{ duration: number }>>(async (_bytes: ArrayBuffer) => ({
+    duration: 24,
+  }));
   createDynamicsCompressor() {
     return {
       threshold: param(),
@@ -50,9 +54,9 @@ class Context {
       connect: vi.fn<(...args: unknown[]) => void>(),
     };
   }
-  createOscillator() {
+  createBufferSource() {
     const node = new Node();
-    this.oscillators.push(node);
+    this.sources.push(node);
     return node;
   }
   createGain() {
@@ -61,42 +65,36 @@ class Context {
     return node;
   }
 }
-beforeEach(() => {
+beforeEach(async () => {
   sound.disposeAudio();
   Context.instances = [];
   vi.stubGlobal("AudioContext", Context);
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<() => Promise<{ ok: boolean; arrayBuffer: () => Promise<ArrayBuffer> }>>(async () => ({
+      ok: true,
+      arrayBuffer: async () => new ArrayBuffer(8),
+    })),
+  );
   sound.setSoundEnabled(true);
   sound.setSoundVolume(0.7);
   sound.setMusicEnabled(true);
   sound.setMusicVolume(0.25);
+  await sound.prepareAudio();
 });
 afterEach(() => {
   sound.disposeAudio();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
+async function ready() {
+  sound.unlockAudio();
+  await sound.prepareAudio();
+  return Context.instances.at(-1)!;
+}
 
-describe("original recipes", () => {
-  it("scales play weight by cost and adds a distinct Assembly accent", () => {
-    const light = sound.soundTones("cardPlay", { cost: 2 });
-    const heavy = sound.soundTones("cardPlay", { cost: 14 });
-    expect(heavy[0]!.from).toBeLessThan(light[0]!.from);
-    expect(heavy[0]!.gain).toBeGreaterThan(light[0]!.gain);
-    expect(heavy[0]!.duration).toBeGreaterThan(light[0]!.duration);
-    expect(sound.soundTones("cardPlay", { cost: 14, assembly: true })).toHaveLength(3);
-  });
-  it("distinguishes source-level jumps and target level", () => {
-    expect(sound.soundTones("digivolve", { sourceLevel: 3, targetLevel: 6 })).not.toEqual(
-      sound.soundTones("digivolve", { sourceLevel: 5, targetLevel: 6 }),
-    );
-    expect(sound.soundTones("digivolve", { sourceLevel: 3, targetLevel: 4 })).not.toEqual(
-      sound.soundTones("digivolve", { sourceLevel: 3, targetLevel: 6 }),
-    );
-    expect(sound.soundTones("sourceTrash")).not.toEqual(sound.soundTones("deDigivolve"));
-  });
-});
-
-describe("WebAudio lifecycle", () => {
-  it("does not allocate a context for autoplay, music start or synthetic input", () => {
+describe("prepared original AudioBuffer mixer", () => {
+  it("does not allocate a context for preload, autoplay, music start or synthetic input", () => {
     const cleanup = sound.installAudioLifecycle();
     sound.startMusic();
     sound.playSound("cardPlay");
@@ -104,79 +102,172 @@ describe("WebAudio lifecycle", () => {
     expect(Context.instances).toHaveLength(0);
     cleanup();
   });
-  it("warms and resumes once, then bounds voices and coalesces grouped occurrences", () => {
-    sound.unlockAudio();
+  it("never fetches/decodes/renders in a presentation cue, bounds eight sources and coalesces occurrences", async () => {
+    const ctx = await ready();
     sound.unlockAudio();
     expect(Context.instances).toHaveLength(1);
-    const ctx = Context.instances[0]!;
+    expect(ctx.decodeAudioData).toHaveBeenCalledTimes(2);
+    const calls = vi.mocked(fetch).mock.calls.length;
     sound.playSound("draw");
     sound.playSound("draw");
-    expect(ctx.oscillators).toHaveLength(1);
-    for (let index = 0; index < 20; index++) {
+    expect(ctx.sources).toHaveLength(1);
+    const cue = AUDIO_CUES.draw!;
+    expect(ctx.sources[0]!.start).toHaveBeenCalledWith(1, cue.offset, cue.duration);
+    for (let i = 0; i < 20; i++) {
       ctx.currentTime += 0.1;
-      sound.playSound("cardPlay");
+      sound.playSound("cardPlay", { cost: 14 });
     }
-    expect(ctx.oscillators).toHaveLength(sound.MAX_SOUND_VOICES);
-    ctx.oscillators[0]!.onended?.();
+    expect(ctx.sources).toHaveLength(sound.MAX_SOUND_VOICES);
+    expect(ctx.decodeAudioData).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(fetch).mock.calls.length).toBe(calls);
+    ctx.sources[0]!.onended?.();
     ctx.currentTime += 0.1;
     sound.playSound("draw");
-    expect(ctx.oscillators).toHaveLength(sound.MAX_SOUND_VOICES + 1);
-    expect(ctx.oscillators[0]!.disconnect).toHaveBeenCalled();
+    expect(ctx.sources).toHaveLength(sound.MAX_SOUND_VOICES + 1);
+    expect(ctx.sources[0]!.disconnect).toHaveBeenCalled();
+    expect(sound.MAX_SOUND_VOICES * 0.3 * sound.SFX_MIX_GAIN + 0.08).toBeLessThan(1);
   });
-  it("mutes running effects independently from music and persists finite volumes", () => {
+  it("selects different bank occurrences for cost, Assembly and physical level recipes", async () => {
+    const ctx = await ready();
+    for (const details of [{ cost: 2 }, { cost: 14 }, { cost: 14, assembly: true }]) {
+      ctx.currentTime += 0.1;
+      sound.playSound("cardPlay", details);
+    }
+    for (const sourceLevel of [3, 5]) {
+      ctx.currentTime += 0.1;
+      sound.playSound("digivolve", { sourceLevel, targetLevel: 6 });
+    }
+    expect(new Set(ctx.sources.map((n) => n.start.mock.calls[0]![1])).size).toBe(5);
+    expect(ctx.sources.every((n) => n.buffer === ctx.sources[0]!.buffer)).toBe(true);
+  });
+  it("mutes SFX independently, loops one music buffer and fades stopped music without reviving it", async () => {
     sound.startMusic();
-    sound.unlockAudio();
-    const ctx = Context.instances[0]!;
-    expect(ctx.oscillators).toHaveLength(6);
+    const ctx = await ready();
+    expect(ctx.sources).toHaveLength(1);
+    expect(ctx.sources.every((n) => n.loop)).toBe(true);
     sound.setSoundEnabled(false);
-    expect(ctx.gains[0]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0, ctx.currentTime, 0.025);
+    expect(ctx.gains[0]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0, 1, 0.025);
     sound.playSound("cardPlay");
-    expect(ctx.oscillators).toHaveLength(6);
+    expect(ctx.sources).toHaveLength(1);
     expect(sound.isMusicEnabled()).toBe(true);
     sound.setMusicVolume(0.45);
-    expect(ctx.gains[1]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0.45, ctx.currentTime, 0.025);
+    expect(ctx.gains[1]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0.45, 1, 0.025);
     sound.setMusicEnabled(false);
-    expect(ctx.gains[1]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0, ctx.currentTime, 0.025);
+    expect(ctx.sources[0]!.stop).toHaveBeenCalledWith(1.12);
+    expect(ctx.gains[2]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0, 1, 0.02);
+    sound.setMusicEnabled(true);
+    expect(ctx.sources).toHaveLength(2);
+    sound.setMusicEnabled(false);
+    expect(ctx.sources[0]!.stop).toHaveBeenLastCalledWith();
     expect(localStorage.getItem("aegis.music.enabled")).toBe("false");
     sound.setSoundVolume(NaN);
     sound.setMusicVolume(Infinity);
     expect(sound.getSoundVolume()).toBe(0);
     expect(sound.getMusicVolume()).toBe(0);
   });
-  it("suspends when hidden and tears down every voice/context/listener", () => {
+  it("keeps one steady score at the persisted volume and resumes phase using actual decoded duration", async () => {
+    sound.startMusic();
+    const ctx = await ready();
+    expect(ctx.sources[0]!.start).toHaveBeenCalledWith(1.02, 0);
+    expect(ctx.gains[1]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0.25, 1, 0.025);
+    sound.setMusicEnabled(false);
+    ctx.currentTime = 35;
+    sound.setMusicEnabled(true);
+    expect(ctx.sources.at(-1)!.start).toHaveBeenCalledWith(35.02, 10);
+    expect(ctx.sources.at(-1)!.loop).toBe(true);
+    expect(ctx.gains[1]!.gain.setTargetAtTime).toHaveBeenLastCalledWith(0.25, 35, 0.025);
+  });
+  it("suspends when hidden, stops effect tails and tears down every context/listener", async () => {
     const cleanup = sound.installAudioLifecycle();
     sound.startMusic();
-    sound.unlockAudio();
+    const ctx = await ready();
     sound.playSound("effectFocus");
-    const ctx = Context.instances[0]!;
     vi.spyOn(document, "hidden", "get").mockReturnValue(true);
     document.dispatchEvent(new Event("visibilitychange"));
     expect(ctx.suspend).toHaveBeenCalledOnce();
     cleanup();
     expect(ctx.close).toHaveBeenCalledOnce();
-    for (const node of ctx.oscillators) expect(node.stop).toHaveBeenCalled();
+    for (const node of ctx.sources) expect(node.stop).toHaveBeenCalled();
     document.dispatchEvent(new Event("visibilitychange"));
     expect(ctx.suspend).toHaveBeenCalledOnce();
-    vi.restoreAllMocks();
   });
-  it("restores match ambience after bfcache only on a fresh trusted gesture", () => {
+  it("restores match music after bfcache only on a fresh gesture and rejects stale decode completion", async () => {
     const cleanup = sound.installAudioLifecycle();
     sound.startMusic();
-    sound.unlockAudio();
+    const old = await ready();
     window.dispatchEvent(new Event("pagehide"));
-    expect(Context.instances[0]!.state).toBe("closed");
+    expect(old.state).toBe("closed");
     window.dispatchEvent(new Event("pageshow"));
     expect(Context.instances).toHaveLength(1);
-    sound.unlockAudio();
-    expect(Context.instances).toHaveLength(2);
-    expect(Context.instances[1]!.oscillators).toHaveLength(6);
+    const ctx = await ready();
+    expect(ctx.sources).toHaveLength(1);
+    expect(ctx.sources.every((n) => n.loop)).toBe(true);
     cleanup();
+    sound.startMusic();
+    sound.unlockAudio();
+    const pending = Context.instances.at(-1)!;
+    const releases: Array<(value: { duration: number }) => void> = [];
+    pending.decodeAudioData.mockImplementation(
+      () =>
+        new Promise((done) => {
+          releases.push(done);
+        }),
+    );
+    const preparation = sound.prepareAudio();
+    await vi.waitFor(() => expect(pending.decodeAudioData).toHaveBeenCalledTimes(2));
+    sound.disposeAudio();
+    sound.startMusic();
+    const fresh = await ready();
+    releases.forEach((release) => release({ duration: 24 }));
+    await preparation;
+    // A disposed generation must not start music or resurrect effects in its context.
+    expect(pending.sources).toHaveLength(0);
+    expect(fresh.sources).toHaveLength(1);
   });
-  it("tolerates unsupported audio and denied resume", () => {
+  it("keeps prepared effects available when music download fails and retries only unavailable assets", async () => {
+    vi.resetModules();
+    const isolated = await import("./sound");
+    const loader = vi.fn<(url: string) => Promise<{ ok: boolean; arrayBuffer: () => Promise<ArrayBuffer> }>>(
+      async (url: string) => {
+        if (url.includes("music")) throw new Error("offline music");
+        return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
+      },
+    );
+    vi.stubGlobal("fetch", loader);
+    try {
+      await isolated.prepareAudio();
+      isolated.startMusic();
+      isolated.unlockAudio();
+      await isolated.prepareAudio();
+      const ctx = Context.instances.at(-1)!;
+      isolated.playSound("draw");
+      expect(ctx.sources).toHaveLength(1);
+      expect(ctx.sources[0]!.loop).toBe(false);
+      loader.mockImplementation(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }));
+      await isolated.prepareAudio();
+      expect(ctx.sources).toHaveLength(2);
+      expect(ctx.sources[1]!.loop).toBe(true);
+      expect(loader.mock.calls.filter(([url]) => url.includes("cues"))).toHaveLength(1);
+    } finally {
+      isolated.disposeAudio();
+    }
+  });
+  it("silently skips unready cues, retries failed decode and tolerates denied or unsupported audio", async () => {
+    sound.unlockAudio();
+    const ctx = Context.instances[0]!;
+    ctx.decodeAudioData.mockRejectedValue(new Error("unsupported format"));
+    sound.playSound("draw");
+    await sound.prepareAudio();
+    expect(ctx.sources).toHaveLength(0);
+    ctx.decodeAudioData.mockResolvedValue({ duration: 24 });
+    await sound.prepareAudio();
+    sound.playSound("draw");
+    expect(ctx.sources).toHaveLength(1);
+    sound.disposeAudio();
     vi.stubGlobal("AudioContext", undefined);
     sound.unlockAudio();
     sound.playSound("cardPlay");
-    expect(Context.instances).toHaveLength(0);
+    expect(Context.instances).toHaveLength(1);
     vi.stubGlobal(
       "AudioContext",
       class {
