@@ -74,6 +74,10 @@ describe("authored original bank", () => {
     const manifest = JSON.parse(readFileSync(new URL("manifest.json", root), "utf8"));
     const source = readFileSync(new URL("audioRecipes.ts", import.meta.url));
     expect(manifest.rendererSha256).toBe(createHash("sha256").update(source).digest("hex"));
+    const score = renderMusic();
+    const scoreWav = readFileSync(new URL("aegis-music-v2.wav", root));
+    for (let i = 0; i < score.length; i += 313)
+      expect(scoreWav.readInt16LE(44 + i * 2)).toBe(Math.round(score[i]! * 32767) || 0);
     const wav = readFileSync(new URL("aegis-cues-v2.wav", root));
     for (const [kind, details] of [
       ["draw", {}],
@@ -89,7 +93,9 @@ describe("authored original bank", () => {
   it("keeps an 96 BPM pulse and progressing melody present from the beginning with a quiet circular seam", () => {
     expect(MUSIC_BPM).toBe(96);
     const layers = musicRecipe();
-    expect(layers.some((layer) => layer.texture === "paper" || layer.texture === "grain")).toBe(false);
+    expect(
+      layers.some((layer) => layer.texture === "paper" || layer.texture === "grain" || layer.texture === "air"),
+    ).toBe(false);
     expect(layers.filter((layer) => layer.texture === "body").map((layer) => layer.at)).toEqual(
       Array.from({ length: 32 }, (_, i) => i * 0.625),
     );

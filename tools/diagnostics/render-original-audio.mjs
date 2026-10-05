@@ -115,7 +115,7 @@ const manifest = {
     bpm: MUSIC_BPM,
     layers: musicRecipe(),
     composition:
-      "Original 8 bars at steady 96 BPM; Gmaj9 / Em9 / Cmaj9 / Dsus-add9; circular overlapping pads, plucks, warm steady low pulse and filtered air, no shaker/hi-hat",
+      "Original 8 bars at steady 96 BPM; Gmaj9 / Em9 / Cmaj9 / Dsus-add9; circular overlapping pads, plucks, warm steady low pulse, no ambient noise wash or shaker/hi-hat",
     ...musicMetrics,
   },
   previews: previewMetrics,

@@ -398,7 +398,6 @@ function musicStemLayers(stem: "bed" | "detail" | "pulse"): AudioLayer[] {
           hz: midi(note),
         }),
       );
-      layers.push({ texture: "air", at: (bar * 8 + 3) * beatSeconds, duration: 6 * beatSeconds, gain: 0.012, hz: 650 });
     }
     for (let beat = 0; beat < 8; beat++) {
       if (stem === "detail") {

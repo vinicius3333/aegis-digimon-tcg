@@ -2,7 +2,7 @@
   "version": 2,
   "original": true,
   "renderer": "apps/web/src/design/audioRecipes.ts",
-  "rendererSha256": "a55d132e0527826bbba3e3cb40709d396fb05bfa214ecf56a850c19f5e59c3b1",
+  "rendererSha256": "f6ff3e61c549620375dab8f1f667f2695f5e5a387be609af862dfcc135757e0c",
   "sampleRate": 48000,
   "channels": 1,
   "seedMethod": "FNV-1a cue identity followed by xorshift32",
@@ -59,13 +59,6 @@
         "hz": 369.9944227116344
       },
       {
-        "texture": "air",
-        "at": 1.875,
-        "duration": 3.75,
-        "gain": 0.012,
-        "hz": 650
-      },
-      {
         "texture": "pad",
         "at": 5,
         "duration": 6.25,
@@ -92,13 +85,6 @@
         "duration": 6.25,
         "gain": 0.008947368421052633,
         "hz": 293.6647679174076
-      },
-      {
-        "texture": "air",
-        "at": 6.875,
-        "duration": 3.75,
-        "gain": 0.012,
-        "hz": 650
       },
       {
         "texture": "pad",
@@ -129,13 +115,6 @@
         "hz": 246.94165062806206
       },
       {
-        "texture": "air",
-        "at": 11.875,
-        "duration": 3.75,
-        "gain": 0.012,
-        "hz": 650
-      },
-      {
         "texture": "pad",
         "at": 15,
         "duration": 6.25,
@@ -162,13 +141,6 @@
         "duration": 6.25,
         "gain": 0.008947368421052633,
         "hz": 329.6275569128699
-      },
-      {
-        "texture": "air",
-        "at": 16.875,
-        "duration": 3.75,
-        "gain": 0.012,
-        "hz": 650
       },
       {
         "texture": "pluck",
@@ -707,16 +679,16 @@
         "endHz": 50
       }
     ],
-    "composition": "Original 8 bars at steady 96 BPM; Gmaj9 / Em9 / Cmaj9 / Dsus-add9; circular overlapping pads, plucks, warm steady low pulse and filtered air, no shaker/hi-hat",
+    "composition": "Original 8 bars at steady 96 BPM; Gmaj9 / Em9 / Cmaj9 / Dsus-add9; circular overlapping pads, plucks, warm steady low pulse, no ambient noise wash or shaker/hi-hat",
     "seconds": 20,
-    "peak": 0.04942673444747925,
-    "peakDbFS": -26.12076163593465,
-    "rms": 0.010772642352007622,
-    "dc": -3.081749416560623e-8,
-    "maximumStep": 0.0051547568291425705,
-    "boundaryStep": 0.000553036923520267,
+    "peak": 0.04550116881728172,
+    "peakDbFS": -26.839548944055075,
+    "rms": 0.010716250127765116,
+    "dc": -3.0868994488760425e-8,
+    "maximumStep": 0.005075868641142733,
+    "boundaryStep": 0.00029226837068563327,
     "bytes": 1920044,
-    "sha256": "1ae7f30bd8bec8caac40b188af49fc06857b1893e51aa9672e38da5e02fc5240"
+    "sha256": "0ac715d3d9c4feff2318bf114845790e8d852094aec4269cdc67bc0b7dff3922"
   },
   "previews": {
     "warm": {
