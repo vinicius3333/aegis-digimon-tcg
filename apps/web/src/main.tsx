@@ -7,6 +7,7 @@ import { loadLocale } from "./i18n/locales";
 import { AegisEmblem } from "./design/AegisLogo";
 import { Button } from "./design/primitives";
 import { Panel } from "./design/surfaces";
+import { installTranslationCompatibility } from "./translationCompatibility";
 import "./design/tokens.css";
 import "./design/base.css";
 import "./design/layout.css";
@@ -72,4 +73,5 @@ export function Startup() {
 
 const container = document.getElementById("root");
 if (!container) throw new Error("#root not found");
+installTranslationCompatibility(container);
 createRoot(container).render(<Startup />);

@@ -1,4 +1,11 @@
-import { CardKind, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
+import {
+  CardKind,
+  type CardColor,
+  type CardDefinition,
+  type GameState,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import { findPermanentInState } from "../../state/access.js";
 import type { ContinuousEffectLedger } from "../continuous.js";
 import type { PlayMatch } from "./policies.js";
@@ -36,6 +43,20 @@ export function ownerSeatOfPermanent(state: GameState, permanentId: string): Sea
 export function effectiveNames(ledger: ContinuousEffectLedger, permanent: Permanent, printedName: string): string[] {
   const original = ledger.originalCardInfoOverride(permanent.permanentId)?.name ?? printedName;
   return [original.toLowerCase(), ...ledger.grantedExactNames(permanent.permanentId)];
+}
+
+/** Live base information used by printed and alternate digivolution requirements. */
+export function effectiveDigivolutionBase(
+  ledger: ContinuousEffectLedger,
+  permanent: Permanent,
+  printed: CardDefinition,
+): CardDefinition {
+  return {
+    ...printed,
+    nameEn: ledger.originalCardInfoOverride(permanent.permanentId)?.name ?? printed.nameEn,
+    colors: effectiveColors(ledger, permanent.permanentId, printed.colors) as CardColor[],
+    kinds: effectiveKinds(ledger, permanent.permanentId, printed.kinds),
+  };
 }
 
 /**

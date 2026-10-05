@@ -154,6 +154,63 @@ afterAll(() => {
 });
 
 describe("effect-played Assembly", () => {
+  it("#4946 puts effect-played Assembly sources in printed order after reverse selection", async () => {
+    registerIrCard(SOURCE, {
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "PlayFromZone",
+              from: ["trash"],
+              payCost: false,
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Slayerdramon"], match: "nameExact" }],
+                },
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+    try {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: SOURCE, as: "source" }],
+            trash: [
+              { card: "EX13-024", as: "slayer" },
+              { card: "EX13-008", as: "draco" },
+              { card: "EX13-018", as: "core" },
+              { card: "EX13-021", as: "wing" },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: false, autoDeclineOptional: true },
+      );
+      await s.ready();
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX13-024") &&
+          s.state.pendingDecision === undefined,
+      );
+      const slayer = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX13-024")!;
+      expect(slayer.stack.map((c) => c.cardId)).toEqual(["EX13-008", "EX13-018", "EX13-021"]);
+    } finally {
+      registerIrCard(SOURCE, playFromZoneSource);
+    }
+  });
+
   it("offers Assembly when PlayFromZone plays a Digimon from trash", async () => {
     const s = setupEngine({
       0: {

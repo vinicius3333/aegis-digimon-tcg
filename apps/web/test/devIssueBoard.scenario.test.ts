@@ -24,7 +24,15 @@ it.each(ISSUE_REPRO_SCENARIO_IDS)("sends the complete %s board on its first conn
   try {
     const host = roomRegistry.get(room.roomId)!;
     expect(host.addBot()).toBe(true);
-    await vi.waitFor(() => expect(room.state.phase).toBe(Phase.Breeding));
+    await vi.waitFor(() =>
+      expect(room.state.phase).toBe(
+        ["arena-issue-4939-demon-lord-free-reduction", "arena-discord-1556732255148179569-drasil-turn"].includes(
+          devScenario,
+        )
+          ? Phase.Main
+          : Phase.Breeding,
+      ),
+    );
     await vi.waitFor(() => {
       for (const seat of [0, 1] as const) {
         const actual = room.state.players[seat]!;
@@ -39,6 +47,10 @@ it.each(ISSUE_REPRO_SCENARIO_IDS)("sends the complete %s board on its first conn
             card: permanent.topCard.cardId,
             sources: permanent.stack.map((card) => card.cardId),
           })),
+        );
+        expect(actual.breeding?.topCard?.cardId).toBe(expected.breeding?.topCard?.cardId);
+        expect(actual.breeding?.stack.map((card) => card.cardId)).toEqual(
+          expected.breeding?.stack.map((card) => card.cardId),
         );
         expect(actual.trash.map((card) => card.cardId)).toEqual(expected.trash.map((card) => card.cardId));
       }

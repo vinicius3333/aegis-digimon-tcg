@@ -63,7 +63,11 @@ export interface DelayedPrimitives {
    * forceAttack. Per KB the battle is a rule, so it does not check effect-immunity. Optional
    * on the port so faked primitives in tests need no change.
    */
-  forceBattle?(attackerPermanentId: string, defenderPermanentId: string): Promise<void>;
+  forceBattle?(
+    attackerPermanentId: string,
+    defenderPermanentId: string,
+    opts?: { comparison?: "digivolutionCards" },
+  ): Promise<void>;
   /**
    * Record a continuous DP-based-deletion maximum bonus (the producer side of the
    * DP-deletion-maximum subsystem). Owner-wide when given a seat, source-scoped when given a

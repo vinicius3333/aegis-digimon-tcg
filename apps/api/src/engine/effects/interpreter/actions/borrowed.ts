@@ -650,7 +650,9 @@ export async function runUseOptionWithoutCost(
  */
 export async function runActivateMain(ctx: EffectContext): Promise<void> {
   const compiled = runtimeCompiledCard(ctx.source.cardId);
-  const mains = (compiled?.effects ?? []).filter((e) => e.trigger === "Main" && !e.isSecurity);
+  const mains = (compiled === undefined ? [] : withPrintedClauses(ctx.source.cardId, compiled).effects).filter(
+    (e) => e.trigger === "Main" && !e.isSecurity,
+  );
   if (mains.length === 0) {
     unsupported(ctx, { kind: "ActivateMain" }, `ActivateMain found no [Main] effect on ${ctx.source.cardId}`);
     return;
@@ -661,6 +663,13 @@ export async function runActivateMain(ctx: EffectContext): Promise<void> {
   const sourceKinds = ctx.source.definition.kinds;
   const activatesDualOptionFace = sourceKinds.includes(CardKind.Digimon) && sourceKinds.includes(CardKind.Option);
   const mainCtx = activatesDualOptionFace ? { ...ctx, effectSourceKinds: [CardKind.Option] } : ctx;
+  const outerTiming = mainCtx.activeTiming;
+  const outerText = mainCtx.activeEffectText;
+  const outerTextPart = mainCtx.activeEffectTextPart;
+  const outerInherited = mainCtx.activeEffectIsInherited;
+  // Decisions belong to the activated Main body, rather than the clause that invoked it.
+  mainCtx.activeTiming = "Main";
+  mainCtx.activeEffectTextPart = undefined;
   if (activatesDualOptionFace) {
     ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, [CardKind.Option], ctx.source.permanent()?.permanentId);
   }
@@ -679,6 +688,10 @@ export async function runActivateMain(ctx: EffectContext): Promise<void> {
       }
     }
   } finally {
+    mainCtx.activeTiming = outerTiming;
+    mainCtx.activeEffectText = outerText;
+    mainCtx.activeEffectTextPart = outerTextPart;
+    mainCtx.activeEffectIsInherited = outerInherited;
     if (activatesDualOptionFace) ctx.fx.leaveEffectResolution?.();
   }
 }

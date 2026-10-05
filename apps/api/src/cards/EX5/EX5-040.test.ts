@@ -39,7 +39,11 @@ describe("EX5-040 Kumbhiramon", () => {
       {
         kind: "PlayWithoutCost",
         target: {
-          filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Deva"], match: "trait" }] },
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Deva"], match: "trait" }],
+          },
           count: 1,
           upTo: true,
         },
@@ -322,4 +326,29 @@ describe("EX5-040 Kumbhiramon", () => {
 
     expect(s.state.pendingDecision).toBeUndefined();
   });
+});
+
+it("#4964 mechanism sweep: Kumbhiramon's breeding play uses only its owner's hand", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        hand: [
+          { card: "EX5-040", as: "kumbhi" },
+          { card: "BT10-079", as: "own" },
+        ],
+        deck: ["BT1-009"],
+      },
+      1: { hand: [{ card: "BT10-079", as: "opponent" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.breeding !== undefined && s.state.pendingDecision === undefined);
+  const offered = s.decisions
+    .filter((d) => d.req.sourceCardId === "EX5-040" && d.req.kind === "selectCards")
+    .flatMap((d) => d.req.options?.candidateInstanceIds ?? []);
+  expect(offered).not.toContain(s.inst("opponent").instanceId);
+  expect(s.state.players[1]!.hand.some((c) => c.instanceId === s.inst("opponent").instanceId)).toBe(true);
 });

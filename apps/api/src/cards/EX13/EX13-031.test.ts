@@ -28,7 +28,6 @@ const OPPONENT_BODY = "ST15-11";
 const MACHINEDRAMON = "EX1-073";
 const GEREMON = "BT15-035";
 const TYRANNOMON = "EX1-005";
-const RED_LV5 = "AD1-002";
 const TAI_KAMIYA = "BT1-085";
 const DE_DIGIVOLVER = "AD1-009";
 
@@ -356,7 +355,7 @@ describe("EX13-031 KingSukamon", () => {
         },
         1: {
           battleArea: [{ card: TYRANNOMON, as: "victim" }],
-          hand: [{ card: RED_LV5, as: "evolver" }],
+          hand: [{ card: "BT6-085", as: "evolver" }],
           deck: [SENTINEL, SENTINEL],
           security: [SENTINEL],
         },
@@ -373,7 +372,7 @@ describe("EX13-031 KingSukamon", () => {
       payCost: false,
     });
 
-    expect(victim.topCard.cardId).toBe(RED_LV5);
+    expect(victim.topCard.cardId).toBe("BT6-085");
     expect(observe(s.engine).effectiveNames(victim)).toEqual(["sukamon"]);
     expect(observe(s.engine).effectiveColors(victim)).toEqual(["White"]);
     expect(victim.currentDP).toBe(3000);

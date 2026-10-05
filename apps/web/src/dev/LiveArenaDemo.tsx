@@ -64,6 +64,99 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Relato 1556677140253249656: sua segurança começa como na partida c77fc6f3 de 05/10/2026 às 14:35 UTC: Jesmon BT20-017 para cima e 3 cartas para baixo. O contador deve mostrar 4, inclusive em telas horizontais baixas. Abra a segurança para conferir 1 carta para cima de 4. Encerre a criação e evolua MetalGreymon em Invisimon BT20-055 por 3 e escolha “2 cartas”: a primeira segurança adversária vira para cima, mas ambos os contadores continuam em 4. Confira também a inspeção adversária.",
     en: "Report 1556677140253249656: your security starts as in match c77fc6f3 on 2026-10-05 at 14:35 UTC: face-up BT20-017 Jesmon and 3 face-down cards. The count must read 4, including short landscape screens. Open security to confirm 1 face-up card out of 4. End breeding and digivolve MetalGreymon into BT20-055 Invisimon for 3 and choose “2 cards”: the opponent's first security turns face up while both counts stay at 4. Check the opponent's inspection too.",
   },
+  "arena-issue-4964-burst-own-tamer": {
+    ptBR: "Encerre a criação e evolua ShineGreymon em Burst Mode por 5. Sem Marcus no campo, a UI não deve oferecer Burst Digivolve por 0. Aceite ativar o efeito: a seleção deve mostrar o [Main] da Opção, com -15000 DP e jogo gratuito de um Tamer da sua mão. A mão adversária não deve aparecer.",
+    en: "End breeding and evolve ShineGreymon into Burst Mode for 5. Without Marcus in play, the UI must not offer Burst Digivolve for 0. Activate the effect: selection must show the Option [Main], with -15000 DP and free play of a Tamer from your hand. The opponent's hand must not appear.",
+  },
+  "arena-issue-4962-seiten-ex12-assembly": {
+    ptBR: "Encerre a criação e jogue SeitenGokuumon com Assembly usando EX12-015, EX12-029 e EX12-056 da lixeira. Pague 7 e confira as três fontes. Alternativamente, ative Hakubamon para jogar com Assembly por 5.",
+    en: "End breeding and play SeitenGokuumon with Assembly using EX12-015, EX12-029 and EX12-056 from trash. Pay 7 and keep all three sources. Alternatively, activate Hakubamon to play with Assembly for 5.",
+  },
+  "arena-issue-4961-takato-raid-attack": {
+    ptBR: "Encerre a criação e evolua WarGrowlmon em Gallantmon. Aceite suspender Takato e depois atacar: Gallantmon ganha Raid e declara o ataque. O Digimon já estava em campo no turno anterior.",
+    en: "End breeding and evolve WarGrowlmon into Gallantmon. Accept suspending Takato, then accept the attack. Gallantmon gains Raid and attacks; this host was already on the field last turn.",
+  },
+  "arena-issue-4955-minervamon-dedigivolve": {
+    ptBR: "Encerre a criação e evolua Minervamon BT24-041. Recuse o jogo opcional: De-Digivolve ainda remove a carta do topo adversário, revelando Greymon.",
+    en: "End breeding and evolve into BT24-041 Minervamon. Decline the optional play: De-Digivolve still removes the opponent's top card, revealing Greymon.",
+  },
+  "arena-issue-4953-nokia-warp-reduction": {
+    ptBR: "Encerre a criação e ative o efeito da mão de BT22-013 ou BT22-026 sobre Agumon ou Gabumon. Aceite suspender Nokia: pague 5 em vez de 6. Recuse a evolução adicional para conferir a memória.",
+    en: "End breeding and activate BT22-013 or BT22-026 from hand over Agumon or Gabumon. Suspend Nokia: pay 5 instead of 6. Decline further evolution to inspect memory.",
+  },
+  "arena-issue-4952-kotemon-piercing": {
+    ptBR: "Mova Kotemon da criação e escolha Jupitermon para receber Piercing e +3000 DP. Ataque o Digimon adversário suspenso: após vencer a batalha, Piercing permite checar segurança.",
+    en: "Move Kotemon from breeding and select Jupitermon for Piercing and +3000 DP. Attack the suspended opposing Digimon: winning the battle allows a security check via Piercing.",
+  },
+  "arena-issue-4951-okuwamon-inherited": {
+    ptBR: "Encerre a criação. Grandiskuwagamon deve ter Piercing por Okuwamon P-075. Jogue Monodramon, depois ataque MetalTyrannomon suspenso: vença a batalha e faça uma checagem de segurança por Piercing. Encerre o turno: as ações concluem sem repetir efeitos de Okuwamon ou travar a partida.",
+    en: "End breeding. Grandiskuwagamon has Piercing from P-075 Okuwamon. Play Monodramon, then attack suspended MetalTyrannomon: win the battle and perform one security check through Piercing. End the turn: actions complete without repeated Okuwamon effects or a freeze.",
+  },
+  "arena-issue-4950-davis-ken-dna-sources": {
+    ptBR: "Encerre a criação e faça DNA de ExVeemon e Stingmon em Paildramon. Aceite suspender Davis & Ken para remover as três fontes adversárias.",
+    en: "End breeding and DNA digivolve ExVeemon and Stingmon into Paildramon. Suspend Davis & Ken to trash the opposing Digimon's three sources.",
+  },
+  "arena-issue-4949-paladin-battle-comparison": {
+    ptBR: "Encerre a criação e jogue Paladin Mode usando os seis materiais da lixeira. Recuse devolver fontes e escolha Medicmon para a batalha. O vencedor usa a quantidade de fontes; Paladin não ganha Ice Clad. Medicmon ainda pode usar Barrier.",
+    en: "End breeding and play Paladin Mode with the six trash materials. Decline returning sources and choose Medicmon for the battle. Sources decide the winner; Paladin gains no Ice Clad. Medicmon can still use Barrier.",
+  },
+  "arena-issue-4946-slayerdramon-assembly-order": {
+    ptBR: "Encerre a criação e jogue Slayerdramon com Assembly. Selecione os materiais em ordem inversa: Dracomon, Coredramon, Wingdramon. A pilha deve ficar Dracomon na base, Coredramon no meio e Wingdramon logo abaixo de Slayerdramon.",
+    en: "End breeding and play Slayerdramon with Assembly. Select in reverse order: Dracomon, Coredramon, Wingdramon. Dracomon is bottommost, Coredramon above it, Wingdramon directly below Slayerdramon.",
+  },
+  "arena-issue-4942-jesmon-double-alliance": {
+    ptBR: "Encerre a criação e evolua SaviorHuckmon em Jesmon. Resolva o jogo da evolução e ataque. Ative as duas instâncias de Alliance, suspendendo uma Sistermon em cada uma. O efeito When Attacking também pode jogar Sistermon Ciel da mão.",
+    en: "End breeding and evolve SaviorHuckmon into Jesmon. Resolve the evolution play and attack. Use each Alliance instance with a different Sistermon. When Attacking can also play Sistermon Ciel from hand.",
+  },
+  "arena-issue-4941-candlemon-top-inheritance": {
+    ptBR: "Encerre a criação e passe o turno. Candlemon está no topo: ao ser removido por efeito adversário, não pode ativar seu efeito herdado nem gastar segurança.",
+    en: "End breeding and pass the turn. Candlemon is the top card: removal by an opposing effect must not activate its inherited prevention or spend security.",
+  },
+  "arena-issue-4940-lilithmon-delete-cost": {
+    ptBR: "Encerre a criação e faça Link de Tellermon em Medicmon. Use a deleção de Tellermon em Lilithmon; na prevenção dela, escolha Medicmon e aceite Detach. Medicmon sobrevive, o custo de Lilithmon falha e Lilithmon é deletada.",
+    en: "End breeding and link Tellermon to Medicmon. Use Tellermon to delete Lilithmon; for her prevention choose Medicmon and accept Detach. Medicmon survives, so Lilithmon's deletion cost fails and Lilithmon is deleted.",
+  },
+  "arena-issue-4948-sukamon-blast-legality": {
+    ptBR: "Encerre a criação e jogue KingSukamon. Descarte Chuumon e transforme Dragon Mode em Sukamon. Ataque com Monodramon: Paladin Mode não pode fazer Blast Digivolve no Sukamon branco; a outra rota ACE continua disponível.",
+    en: "End breeding and play KingSukamon. Trash Chuumon and turn Dragon Mode into Sukamon. Attack with Monodramon: Paladin Mode cannot Blast Digivolve onto white Sukamon; the other legal ACE route remains available.",
+  },
+  "arena-issue-4947-physical-training-reaction": {
+    ptBR: "Encerre a criação e ative Delay do Physical Training para evoluir Reppamon em MagnaAngemon. O Dragon Mode adversário com Tamer pode reagir e evoluir gratuitamente em Fighter Mode.",
+    en: "End breeding and use Physical Training's Delay to evolve Reppamon into MagnaAngemon. Opposing Dragon Mode with a Tamer may react and evolve into Fighter Mode for free.",
+  },
+  "arena-issue-4957-gankoomon-dual-sources": {
+    ptBR: "Encerre a criação e ataque com Gankoomon. Ao suspender, escolha Blanc ou Noir das fontes para usar como Opção. Recuse Arts Digivolve: Blanc reduz DP; Noir remove cartas do topo adversário. Reinicie para testar a outra carta.",
+    en: "End breeding and attack with Gankoomon. When it suspends, choose Blanc or Noir from its sources to use as an Option. Decline Arts Digivolve: Blanc reduces DP; Noir removes opposing top cards. Reset to test the other card.",
+  },
+  "arena-issue-4910-diarbbitmon-dual-option": {
+    ptBR: "Encerre a criação e evolua em Diarbbitmon, aplicando a imunidade nele. Jogue Rosemon para passar o turno. A Opção Blanc adversária ainda reduz seu DP: imunidade a efeitos de Digimon não impede Opções DUAL.",
+    en: "End breeding and evolve into Diarbbitmon, granting its immunity to itself. Play Rosemon to pass the turn. Opposing Blanc used as an Option still reduces its DP; immunity to Digimon effects does not prevent DUAL Options.",
+  },
+  "arena-issue-4914-blanc-dual-option": {
+    ptBR: "#4914: Encerre a criação, evolua em Diarbbitmon e escolha ele para receber imunidade a efeitos de Digimon. Aceite +3000 DP e a batalha contra Sistermon Blanc BT6-082: delete ela, deixando exatamente um Digimon adversário e Takumi como fonte de cor branca. Jogue Rosemon para passar o turno. No turno adversário, use Blanc EX13-065 como Opção, escolha Diarbbitmon como alvo e recuse Arts Digivolve. Ele perde 3000 DP apesar da imunidade a Digimon, pois o efeito é de Opção. A redução é de 3000 por Digimon do controlador de Blanc. Reinicie para testar que Blanc não pode ser jogada como Digimon.",
+    en: "#4914: End breeding, evolve into Diarbbitmon and grant it immunity to Digimon effects. Accept +3000 DP and the battle against BT6-082 Sistermon Blanc: delete it, leaving exactly one opposing Digimon and Takumi as a white color source. Play Rosemon to pass the turn. On the opposing turn, use EX13-065 Blanc as an Option, target Diarbbitmon and decline Arts Digivolve. It loses 3000 DP despite Digimon immunity because this is an Option effect. The reduction is 3000 per Digimon controlled by Blanc's user. Reset to check that Blanc cannot be played as a Digimon.",
+  },
+  "arena-issue-4905-magnamon-merciful-colors": {
+    ptBR: "#4905: Encerre a criação e jogue Veemon P-117. Evolua nele Magnamon ST17-13 pela condição alternativa de Veemon e escolha Merciful Mode. As fontes concedem seis cores distintas: remova as seis fontes de uma vez e devolva Merciful sem fontes à mão.",
+    en: "#4905: End breeding and play P-117 Veemon. Evolve ST17-13 Magnamon over it using the alternate Veemon requirement and choose Merciful Mode. Its sources grant six distinct colors: trash all six sources together and return the source-free Merciful to hand.",
+  },
+  "arena-issue-4939-demon-lord-free-reduction": {
+    ptBR: "A fase principal começa automaticamente: Gate deleta seus Digimon. Aceite Delay para jogar Barbamon das fontes. A carta sob Gate é jogada sem custo de memória. Recuse qualquer custo opcional de redução para preservar recursos. As regras permitem ativar efeitos de custo mesmo num jogo gratuito (Q4784).",
+    en: "Main begins automatically: Gate deletes your Digimon. Accept Delay to play Barbamon from its sources. Play the card under Gate without memory cost. Decline optional reducer costs to preserve resources. Rules allow would-be-played effects even for a free play (Q4784).",
+  },
+  "arena-issue-4954-lordknightmon-inspector": {
+    ptBR: "Abra LordKnightmon AD1-018 da mão e confira a descrição com a imagem: redução de 5 com Knightmon/Lucemon no nome; a reação All Turns usa Knightmon/Lucemon no texto. O cenário também permite jogar por 6.",
+    en: "Inspect AD1-018 LordKnightmon in hand against its image: reduce by 5 with Knightmon/Lucemon in a Digimon's name; All Turns checks Knightmon/Lucemon in text. The board also permits playing it for 6.",
+  },
+  "arena-issue-4958-card-images": {
+    ptBR: "Confira as imagens do campo e da mão. Para simular a falha, bloqueie /assets/card-images/* no navegador e recarregue. As cartas usam a imagem oficial alternativa; a identidade oculta da mão adversária continua oculta.",
+    en: "Inspect field and hand images. To reproduce the outage, block /assets/card-images/* in the browser and reload. Cards load from the independent official image fallback; hidden opponent hand identities remain hidden.",
+  },
+  "arena-issue-4943-browser-translation": {
+    ptBR: "Ative a tradução automática do navegador para espanhol. Encerre a criação, evolua Agumon em Greymon e reinicie o combate. Textos e controles devem continuar atualizando, sem tela branca.",
+    en: "Enable browser automatic Spanish translation. End breeding, evolve Agumon into Greymon and reset combat. Text and controls continue updating without a blank page.",
+  },
+
   "arena-ex12-thetismon-mistymon-deletion": {
     ptBR: "Encerre a criação e ataque a segurança com Thetismon EX12-030. Resolva a compra de Jellymon LM-002, depois TeslaJellymon EX12-027 (compre e descarte 1 carta); recuse o custo de Puyoyomon RB1-002, se oferecido. Ao revelar Mistymon, o efeito da Mistymon em campo dá -6000 DP à Thetismon (7000 → 1000) e a deleta, pois restam 2 seguranças. Isso ocorre antes da batalha: Jamming protege contra batalha de segurança, não contra deleção por efeito. Reprodução da partida bf500886, 04/10/2026 às 17:08 UTC, relato 1556410279602946198.",
     en: "End breeding and attack security with EX12-030 Thetismon. Resolve LM-002 Jellymon's draw, then EX12-027 TeslaJellymon (draw and trash 1 card); decline RB1-002 Puyoyomon's cost if offered. When Mistymon is revealed, the field Mistymon's effect gives Thetismon -6000 DP (7000 → 1000) and deletes it because 2 security cards remain. This happens before battle: Jamming protects against security battle deletion, not effect deletion. Reproduces match bf500886 on 2026-10-04 at 17:08 UTC, report 1556410279602946198.",
@@ -875,6 +968,30 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-discord-1556732255148179569-drasil-turn", "King Drasil · opponent turn"],
   ["arena-discord-1556745762682183811-giant-slayer-execute", "Giant Slayer · Execute replacement"],
   ["arena-discord-1556745762682183811-holy-succession", "Giant Slayer · Holy Mode Succession"],
+  ["arena-issue-4964-burst-own-tamer", "#4964 · Burst Mode · own hand Tamer"],
+  ["arena-issue-4962-seiten-ex12-assembly", "#4962 · SeitenGokuumon · EX12 Assembly"],
+  ["arena-issue-4961-takato-raid-attack", "#4961 · Takato · Gallantmon attack"],
+  ["arena-issue-4955-minervamon-dedigivolve", "#4955 · Minervamon · De-Digivolve"],
+  ["arena-issue-4953-nokia-warp-reduction", "#4953 · Nokia · hand warp reduction"],
+  ["arena-issue-4952-kotemon-piercing", "#4952 · Kotemon · breeding Piercing"],
+  ["arena-issue-4951-okuwamon-inherited", "#4951 · Okuwamon · inherited Piercing"],
+  ["arena-issue-4950-davis-ken-dna-sources", "#4950 · Davis & Ken · DNA sources"],
+  ["arena-issue-4949-paladin-battle-comparison", "#4949 · Paladin Mode · source battle"],
+  ["arena-issue-4946-slayerdramon-assembly-order", "#4946 · Slayerdramon · Assembly order"],
+  ["arena-issue-4942-jesmon-double-alliance", "#4942 · Jesmon · two Alliance instances"],
+  ["arena-issue-4941-candlemon-top-inheritance", "#4941 · Candlemon · inactive inherited effect"],
+  ["arena-issue-4940-lilithmon-delete-cost", "#4940 · Lilithmon · Detach deletion cost"],
+  ["arena-issue-4948-sukamon-blast-legality", "#4948 · KingSukamon · Blast legality"],
+  ["arena-issue-4947-physical-training-reaction", "#4947 · Physical Training · Dragon Mode reaction"],
+  ["arena-issue-4957-gankoomon-dual-sources", "#4957 · Gankoomon · DUAL from sources"],
+  ["arena-issue-4910-diarbbitmon-dual-option", "#4910 · Diarbbitmon · Option immunity"],
+  ["arena-issue-4914-blanc-dual-option", "#4914 · Blanc · DUAL Option DP reduction"],
+  ["arena-issue-4905-magnamon-merciful-colors", "#4905 · Magnamon · Merciful's six granted colors"],
+  ["arena-issue-4939-demon-lord-free-reduction", "#4939 · Demon Lords · free-play optional costs"],
+  ["arena-issue-4954-lordknightmon-inspector", "#4954 · LordKnightmon · printed inspector"],
+  ["arena-issue-4958-card-images", "#4958 · Images · mirror fallback (#4928)"],
+  ["arena-issue-4943-browser-translation", "#4943 · Browser translation · live match"],
+
   ["arena-issue-4938-ruli-optional-reduction", "#4938 · Ruli · optional reduction"],
   ["arena-issue-4937-grademon-dual-immunity", "#4937 · EX13 Grademon · DUAL Options"],
   ["arena-issue-4937-bt20-grademon-dual-immunity", "#4937 · BT20 Grademon · DUAL Options"],

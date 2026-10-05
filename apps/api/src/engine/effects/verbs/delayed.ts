@@ -114,7 +114,11 @@ export function createDelayedVerbs(pc: PrimitivesContext) {
     });
   };
 
-  const forceBattle = async (attackerPermanentId: string, defenderPermanentId: string): Promise<void> => {
+  const forceBattle: Primitives["forceBattle"] = async (
+    attackerPermanentId,
+    defenderPermanentId,
+    opts,
+  ): Promise<void> => {
     // Direct §14 battle: compare DP via the shared resolver and delete the loser(s) through
     // the deletion primitive (so On Deletion / WhenPermanentWouldBeDeleted fire). No attack
     // declaration / block / security — and no effect-immunity check (a battle is a rule).
@@ -126,12 +130,15 @@ export function createDelayedVerbs(pc: PrimitivesContext) {
     // as an attack's battle step. Crucially, the deletion cause remains battle/rules even
     // though an effect created the battle (BT26-047 Q7040-Q7041).
     if (engine.combat?.resolveBattle !== undefined) {
-      await engine.combat.resolveBattle(attacker, defender);
+      await engine.combat.resolveBattle(attacker, defender, opts);
       return;
     }
     const outcome = resolvePermanentBattle({
       attackerPermanentId,
       attackerDP: attacker.currentDP,
+      attackerHasIceclad: opts?.comparison === "digivolutionCards",
+      attackerDigivolutionCount: attacker.stack.length,
+      defenderDigivolutionCount: defender.stack.length,
       defenderPermanentId,
       defenderDP: defender.currentDP,
     });

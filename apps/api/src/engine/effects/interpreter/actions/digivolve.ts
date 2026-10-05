@@ -23,6 +23,16 @@ import type { Action, CardColor, CardDefinition, Filter, Permanent, Target, Zone
 
 type ProjectedBase = { permanent: Permanent; definition: CardDefinition };
 
+function liveBaseDefinition(ctx: EffectContext, base: Permanent): CardDefinition | undefined {
+  if (!base.topCard) return undefined;
+  const printed = ctx.game.definitionOf(base.topCard);
+  return {
+    ...printed,
+    nameEn: base.originalNameOverride || printed.nameEn,
+    colors: ctx.game.effectiveColors?.(base) ?? printed.colors,
+  };
+}
+
 function projectedRotationBase(
   ctx: EffectContext,
   action: Extract<Action, { kind: "Digivolve" }>,
@@ -86,7 +96,7 @@ function legalIntoCandidates(
   projectedBase?: ProjectedBase,
 ): LooseCandidate[] {
   const base = projectedBase?.permanent ?? ctx.game.permanentById(basePermanentId);
-  const actualBaseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
+  const actualBaseDef = base ? liveBaseDefinition(ctx, base) : undefined;
   const baseDef =
     projectedBase !== undefined
       ? projectedBase.definition
@@ -540,7 +550,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       const base = ctx.game.permanentById(pid);
       const chosenCandidate = candidates.find((candidate) => candidate.instanceId === chosen[0]);
       const intoDef = chosenCandidate ? ctx.game.definitionOf({ cardId: chosenCandidate.cardId } as never) : undefined;
-      const actualBaseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
+      const actualBaseDef = base ? liveBaseDefinition(ctx, base) : undefined;
       if (chosenCandidate !== undefined && intoDef !== undefined && actualBaseDef !== undefined) {
         const baseDef =
           action.virtualBase === undefined
