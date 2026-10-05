@@ -1,4 +1,24 @@
 {
+  "releases.1.10.1-beta.summary": {
+    "en": "This patch corrects face-down source effects, trash visibility, Cerberusmon's optional cost, and Ceresmon and Shoto suspension triggers.",
+    "pt-BR": "Este patch corrige efeitos de fontes viradas para baixo, a visibilidade do lixo, o custo opcional de Cerberusmon e os gatilhos de suspensão de Ceresmon e Shoto."
+  },
+  "releases.1.10.1-beta.fix.faceDownDeletion": {
+    "en": "Face-down digivolution and Link cards no longer activate inherited deletion effects when their host is deleted, even though entering the trash reveals those cards.",
+    "pt-BR": "Cartas de evolução e Link viradas para baixo não ativam mais efeitos herdados de deleção quando a carta principal é deletada, mesmo que sejam reveladas ao entrar no lixo."
+  },
+  "releases.1.10.1-beta.fix.trashVisibility": {
+    "en": "Cards entering the trash are now revealed before either player's view updates, so both players can see cards that were previously face down.",
+    "pt-BR": "Cartas que entram no lixo agora são reveladas antes da atualização da visualização dos jogadores, permitindo que ambos vejam cartas que antes estavam viradas para baixo."
+  },
+  "releases.1.10.1-beta.fix.cerberusmonOptionalCost": {
+    "en": "BT26-074 Cerberusmon now lets you decline its hand-trash cost on play, when digivolving and when attacking. Declining preserves the card and the shared once-per-turn use; paying the cost spends that use even if you then decline to use the Option.",
+    "pt-BR": "Cerberusmon BT26-074 agora permite recusar o custo de descarte da mão ao jogar, evoluir e atacar. Recusar preserva a carta e o uso compartilhado de uma vez por turno; pagar consome esse uso mesmo se você depois recusar usar a Opção."
+  },
+  "releases.1.10.1-beta.fix.digimonSuspensionTriggers": {
+    "en": "BT25-059 Ceresmon and EX11-062 Shoto Kazama now react only when Digimon suspend. Suspending a Tamer such as Homeros no longer triggers either effect or spends Ceresmon's once-per-turn use. Ceresmon effects gained through Succession follow the same rule.",
+    "pt-BR": "Ceresmon BT25-059 e Shoto Kazama EX11-062 agora reagem apenas à suspensão de Digimon. Suspender um Tamer como Homeros não ativa mais esses efeitos nem consome o uso de uma vez por turno de Ceresmon. Efeitos de Ceresmon recebidos por Succession seguem a mesma regra."
+  },
   "releases.1.10.0-beta.summary": {
     "en": "This minor release brings together card and rules corrections, clearer counters and effect animations, more reliable phone controls, and performance and server stability improvements.",
     "pt-BR": "Esta release minor reúne correções de cartas e regras, counters e animações de efeito mais claros, controles mais confiáveis no celular e melhorias de desempenho e estabilidade do servidor."
