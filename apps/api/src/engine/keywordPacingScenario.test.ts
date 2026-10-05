@@ -51,6 +51,8 @@ describe("real keyword pacing boards", () => {
         expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
         await advance(s.engine).waitForMainPhase(0);
         const security = [...s.state.players[1]!.security];
+        const turn = s.state.turnCount;
+        expect(s.state.players[0]!.hand.some((card) => card.instanceId === "dev-keyword-attack-reserve")).toBe(true);
         const controls = s.state.players.map((p) => p.battleArea[0]!.topCard.instanceId);
         if (scenario.flow === "rush") {
           for (const slot of ["source", "control"]) {
@@ -116,6 +118,8 @@ describe("real keyword pacing boards", () => {
             !observe(s.engine).isAttacking(),
         );
         const attackEvents = s.events.slice(firstEvent);
+        expect(s.state.phase).toBe(Phase.Main);
+        expect(s.state.turnCount).toBe(turn);
         expect(
           attackEvents.filter((event) => event.kind === "securityChecked").map((event) => event.revealedCardId),
         ).toEqual(security.slice(0, scenario.securityRemoved).map((card) => card.cardId));

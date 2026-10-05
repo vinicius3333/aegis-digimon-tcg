@@ -6150,6 +6150,10 @@ function layKeywordAttackPacingScenario(
           insertCard(player, Zone.Hand, card);
         }
       } else place(scenario.attackerCardIds, "attacker");
+      // A playable reserve prevents the real loop from auto-passing an exhausted Main.
+      const reserve = take("BT1-009");
+      reserve.instanceId = "dev-keyword-attack-reserve";
+      insertCard(player, Zone.Hand, reserve);
     } else if (scenario.flow === "raid") {
       scenario.defenderCardIds.forEach((id, index) => place([id], `defender-${index}`));
     }
