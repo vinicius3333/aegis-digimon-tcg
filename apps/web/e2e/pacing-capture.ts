@@ -7,8 +7,11 @@ interface CardPose {
   permanentId: string | undefined;
   returning: boolean;
   cardName?: string;
+  memberIds: string[];
   /** The number printed by TokenInfo's DP chip in this sampled DOM pose. */
   currentDP?: number;
+  painted: boolean;
+  artLoaded: boolean;
   returnId?: number;
   x: number;
   y: number;
@@ -48,7 +51,15 @@ interface Capture {
     permanents: { permanentId: string; cardId: string; stackCount: number; currentDP: number }[];
   }[];
   peels: { key: string; permanentId?: string; cardId?: string; firstAt: number; lastAt: number; frames: number }[];
-  dpPulses: { permanentId?: string; firstAt: number; lastAt: number; frames: number }[];
+  dpPulses: {
+    permanentId?: string;
+    from: number;
+    to: number;
+    deltaText: string;
+    firstAt: number;
+    lastAt: number;
+    frames: number;
+  }[];
   draws: {
     key: string;
     side?: string;
@@ -88,7 +99,7 @@ interface Capture {
       securityCount: number;
     }[];
   }[];
-  sourceFocuses: { cardId: string; firstAt: number }[];
+  sourceFocuses: { cardId: string; permanentId?: string; firstAt: number; lastAt: number; removedAt?: number }[];
   arrivals: {
     cardId: string;
     firstAt: number;
@@ -106,6 +117,40 @@ interface Capture {
   notices: { id: string; firstAt: number }[];
   phaseRibbons: { at: number; label: string; side: string | undefined }[];
   hatches: { at: number; cardId: string; permanentId: string }[];
+  raising: {
+    permanentId: string;
+    cardId: string;
+    firstAt: number;
+    lastAt: number;
+    removedAt?: number;
+    poses: {
+      at: number;
+      painted: boolean;
+      artLoaded: boolean;
+      nativeMs?: number;
+      endMs?: number;
+      playbackRate?: number;
+    }[];
+  }[];
+  breedingTransfers: {
+    permanentId: string;
+    cardName: string;
+    firstAt: number;
+    lastAt: number;
+    removedAt?: number;
+    poses: {
+      at: number;
+      x: number;
+      y: number;
+      painted: boolean;
+      artLoaded: boolean;
+      targetX?: number;
+      targetY?: number;
+      nativeMs?: number;
+      endMs?: number;
+      playbackRate?: number;
+    }[];
+  }[];
   phasePanels: {
     kind: "phase" | "turn";
     label: string;
@@ -168,6 +213,8 @@ export async function startPacingCapture(page: Page) {
       notices: [],
       phaseRibbons: [],
       hatches: [],
+      raising: [],
+      breedingTransfers: [],
       phasePanels: [],
       arrows: [],
       returnLifecycle: [],
@@ -186,10 +233,12 @@ export async function startPacingCapture(page: Page) {
     const landingObservations = new Map<string, Capture["securityLandings"][number]>();
     let securityKey = "";
     const checkObservations = new Map<string, Capture["securityChecks"][number]>();
-    const focusElements = new WeakSet<Element>();
+    const focusObservations = new Map<Element, Capture["sourceFocuses"][number]>();
     const arrivalObservations = new Map<Element, Capture["arrivals"][number]>();
     const phaseObservations = new Map<Element, Capture["phasePanels"][number]>();
     const hatched = new Set<string>();
+    const raisingObservations = new Map<string, Capture["raising"][number]>();
+    const transferObservations = new Map<Element, Capture["breedingTransfers"][number]>();
     const noticeIds = new Set<string>();
     let ribbonElement: Element | null = null;
     let arrowSignature = "";
@@ -393,10 +442,29 @@ export async function startPacingCapture(page: Page) {
         });
       }
       for (const focus of document.querySelectorAll<SVGElement>('[data-testid="effect-focus"]')) {
-        if (focusElements.has(focus) || !isPainted(focus)) continue;
-        focusElements.add(focus);
-        capture.sourceFocuses.push({ cardId: focus.dataset.sourceCardId!, firstAt: at });
+        if (!isPainted(focus)) continue;
+        let observation = focusObservations.get(focus);
+        if (
+          !observation ||
+          observation.cardId !== focus.dataset.sourceCardId ||
+          observation.permanentId !== focus.dataset.sourcePermanentId ||
+          observation.removedAt !== undefined
+        ) {
+          if (observation) observation.removedAt ??= at;
+          observation = {
+            cardId: focus.dataset.sourceCardId!,
+            permanentId: focus.dataset.sourcePermanentId,
+            firstAt: at,
+            lastAt: at,
+          };
+          focusObservations.set(focus, observation);
+          capture.sourceFocuses.push(observation);
+        }
+        observation.lastAt = at;
       }
+      for (const [element, observation] of focusObservations)
+        if ((!element.isConnected || !isPainted(element)) && observation.removedAt === undefined)
+          observation.removedAt = at;
       for (const notice of document.querySelectorAll<HTMLElement>("[data-narration-id]")) {
         const id = notice.dataset.narrationId!;
         if (noticeIds.has(id) || !isPainted(notice)) continue;
@@ -519,6 +587,9 @@ export async function startPacingCapture(page: Page) {
         if (!observation) {
           observation = {
             permanentId: pulse.closest<HTMLElement>("[data-drop][data-id]")?.dataset.id,
+            from: Number(pulse.dataset.dpFrom),
+            to: Number(pulse.dataset.dpTo),
+            deltaText: pulse.querySelector("em")?.textContent ?? "",
             firstAt: at,
             lastAt: at,
             frames: 0,
@@ -530,6 +601,71 @@ export async function startPacingCapture(page: Page) {
         observation.frames++;
       }
       const ribbon = document.querySelector<HTMLElement>(".game-phase-banner");
+      const activeRaising = new Set<string>();
+      for (const slot of document.querySelectorAll<HTMLElement>(
+        ".game-breeding-slot[data-permanent-id][data-card-id]",
+      )) {
+        const permanentId = slot.dataset.permanentId!;
+        const cardId = slot.dataset.cardId!;
+        const key = `${permanentId}:${cardId}`;
+        activeRaising.add(key);
+        let observation = raisingObservations.get(key);
+        if (!observation) {
+          observation = { permanentId, cardId, firstAt: at, lastAt: at, poses: [] };
+          raisingObservations.set(key, observation);
+          capture.raising.push(observation);
+        }
+        const art = slot.querySelector<HTMLImageElement>("img[alt]");
+        const clock = slot
+          .querySelector(".battle-burst__clock")
+          ?.getAnimations()
+          .find((animation) => "animationName" in animation && animation.animationName === "battle-particle-clock");
+        observation.lastAt = at;
+        observation.poses.push({
+          at,
+          painted: Boolean(art && isPainted(art)),
+          artLoaded: Boolean(art?.complete && art.naturalWidth > 0),
+          nativeMs: typeof clock?.currentTime === "number" ? clock.currentTime : undefined,
+          endMs: clock ? Number(clock.effect?.getComputedTiming().endTime) : undefined,
+          playbackRate: clock?.playbackRate,
+        });
+      }
+      for (const [key, observation] of raisingObservations)
+        if (!activeRaising.has(key) && observation.removedAt === undefined) observation.removedAt = at;
+      for (const element of document.querySelectorAll<HTMLElement>("[data-breeding-transfer]")) {
+        const permanentId = element.dataset.breedingTransfer!;
+        const face = element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
+        if (!face) continue;
+        let observation = transferObservations.get(element);
+        if (!observation) {
+          observation = { permanentId, cardName: face.getAttribute("title") ?? "", firstAt: at, lastAt: at, poses: [] };
+          transferObservations.set(element, observation);
+          capture.breedingTransfers.push(observation);
+        }
+        const image = face.querySelector<HTMLImageElement>("img[alt]");
+        const clock = element.getAnimations()[0];
+        const rect = face.getBoundingClientRect();
+        const target = document
+          .querySelector<HTMLElement>(
+            `.game-battle-row .game-permanent[data-permanent-id="${permanentId}"] .game-card-enter > [data-state]`,
+          )
+          ?.getBoundingClientRect();
+        observation.lastAt = at;
+        observation.poses.push({
+          at,
+          x: rect.x + rect.width / 2,
+          y: rect.y + rect.height / 2,
+          painted: isPainted(face),
+          artLoaded: Boolean(image?.complete && image.naturalWidth > 0),
+          targetX: target && target.x + target.width / 2,
+          targetY: target && target.y + target.height / 2,
+          nativeMs: typeof clock?.currentTime === "number" ? clock.currentTime : undefined,
+          endMs: clock ? Number(clock.effect?.getComputedTiming().endTime) : undefined,
+          playbackRate: clock?.playbackRate,
+        });
+      }
+      for (const [element, observation] of transferObservations)
+        if (!element.isConnected && observation.removedAt === undefined) observation.removedAt = at;
       for (const slot of document.querySelectorAll<HTMLElement>('.game-breeding-slot[data-burst="hatch"]')) {
         const permanentId = slot.dataset.permanentId;
         const cardId = slot.dataset.cardId;
@@ -710,7 +846,14 @@ export async function startPacingCapture(page: Page) {
           returning: element.dataset.testid === "field-group-return",
           returnId: returnId(element),
           cardName,
+          memberIds: JSON.parse(element.dataset.fieldMemberIds ?? "[]") as string[],
           currentDP,
+          painted: isPainted(art),
+          artLoaded: Boolean(
+            [...art.querySelectorAll<HTMLImageElement>("img[alt]")].some(
+              (image) => image.complete && image.naturalWidth > 0,
+            ),
+          ),
           x: rect.x + rect.width / 2,
           y: rect.y + rect.height / 2,
           angle: Number.parseFloat(getComputedStyle(art).rotate) || 0,

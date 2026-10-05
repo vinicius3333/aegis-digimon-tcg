@@ -359,6 +359,9 @@ function useFieldMotion(
         copy.inert = true;
         copy.dataset.testid = "field-group-return";
         copy.dataset.returnTargetFieldKey = target!.fieldKey;
+        copy.dataset.fieldMemberIds = JSON.stringify(
+          [...previous.current].filter(([, placement]) => placement.key === oldKey).map(([id]) => id),
+        );
         const scroll = now.element.closest(".game-battle-lane")?.scrollLeft ?? 0;
         const offset = offsets.get(before.element) ?? flightOffset(before.element);
         flights.get(before.element)?.animation.cancel();

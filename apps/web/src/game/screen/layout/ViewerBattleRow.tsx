@@ -115,6 +115,7 @@ export function ViewerBattleRow({
           "data-drop": "perm-you",
           "data-id": p.permanentId,
           "data-field-key": fieldKey,
+          "data-field-member-ids": JSON.stringify(members.map((member) => member.permanentId)),
           ...baseDropIntentAttrs(p.permanentId),
         }}
         onClick={canDrag ? undefined : onPermanentClick(p)}
