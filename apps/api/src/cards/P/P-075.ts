@@ -7,12 +7,14 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenOneOfYoursDigivolves",
-          once: true,
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "instead",
           sourceFilter: {
             isSelfRef: true,
             kind: ["Digimon"],
+          },
+          into: {
             nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }],
           },
           actions: [
@@ -25,6 +27,7 @@ const compiled: CompiledCard = {
               gainedTrigger: "whenSuspended",
               gainedActions: [{ kind: "GainMemory", amount: -1 }],
               duration: "untilOpponentTurnEnd",
+              raw: "[All Turns] When this Digimon becomes suspended, lose 1 memory.",
             },
           ],
         },

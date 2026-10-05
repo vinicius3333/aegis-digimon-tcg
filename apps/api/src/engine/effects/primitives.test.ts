@@ -75,6 +75,8 @@ function harness(opts?: {
   combat?: CombatPort;
   rngForSeat?: PrimitivesEngine["rngForSeat"];
   onConsultLeave?: () => void;
+  fireWouldDigivolve?: PrimitivesEngine["fireWouldDigivolve"];
+  finalizeEffectDigivolveCost?: PrimitivesEngine["finalizeEffectDigivolveCost"];
 }): Harness {
   const s = setupEngine(opts?.board);
   const state = s.state;
@@ -113,6 +115,8 @@ function harness(opts?: {
     modifiers: ledger,
     continuous,
     subTriggers,
+    fireWouldDigivolve: opts?.fireWouldDigivolve,
+    finalizeEffectDigivolveCost: opts?.finalizeEffectDigivolveCost,
     combat: opts?.combat,
     ask,
     controllerSeat: () => state.turnSeat,
@@ -1362,6 +1366,119 @@ describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
         }),
       },
     ]);
+  });
+});
+
+describe("effect-digivolution before-payment reactions", () => {
+  it.each([true, false])("runs one reaction before movement and payment (payCost=%s)", async (payCost) => {
+    let reactions = 0;
+    const h = harness({
+      memory: 5,
+      board: {
+        0: {
+          battleArea: [{ card: "P-075", as: "base" }],
+          hand: [{ card: "BT1-083", as: "result" }],
+          deck: [DIGIMON],
+        },
+      },
+      fireWouldDigivolve: async (seat, target, into) => {
+        reactions += 1;
+        expect(seat).toBe(0);
+        expect(target.topCard.cardId).toBe("P-075");
+        expect(into.cardId).toBe("BT1-083");
+        expect(h.state.players[0]!.hand).toContain(h.s.inst("result"));
+        expect(h.state.memory).toBe(5);
+      },
+    });
+    const result = await h.fx.digivolveFromInstance(h.s.perm("base").permanentId, h.s.inst("result").instanceId, {
+      payCost,
+    });
+    expect(result?.topCard.cardId).toBe("BT1-083");
+    expect(h.state.memory).toBe(payCost ? 1 : 5);
+    expect(reactions).toBe(1);
+  });
+
+  it.each(["base leaves", "base changes top", "result changes area", "result changes source host"])(
+    "does not complete a declaration whose reaction makes its physical identity stale: %s",
+    async (change) => {
+      const h = harness({
+        memory: 5,
+        board: {
+          0: {
+            battleArea: [
+              { card: "P-075", as: "base", under: [{ card: "BT1-083", as: "result" }] },
+              { card: "BT1-010", as: "other" },
+            ],
+            deck: [DIGIMON],
+          },
+        },
+        fireWouldDigivolve: async () => {
+          if (change === "base leaves") await h.fx.deletePermanent([h.s.perm("base").permanentId]);
+          else if (change === "base changes top") h.s.perm("base").topCard = makeInstance("BT1-080", 0, true);
+          else {
+            const moving = h.s.perm("base").stack.pop()!;
+            if (change === "result changes area") h.state.players[0]!.hand.push(moving);
+            else h.s.perm("other").stack.push(moving);
+          }
+        },
+      });
+      const result = await h.fx.digivolveFromInstance(h.s.perm("base").permanentId, h.s.inst("result").instanceId, {
+        payCost: true,
+      });
+      expect(result).toBeUndefined();
+      expect(h.state.memory).toBe(5);
+      expect(h.state.players[0]!.deck).toHaveLength(1);
+      expect(h.events.some((event) => event.kind === "digivolved")).toBe(false);
+    },
+  );
+
+  it("does not announce a stale reaction after a cost decision removes the declared base", async () => {
+    let reactions = 0;
+    let costDecisions = 0;
+    const h = harness({
+      memory: 5,
+      board: {
+        0: { battleArea: [{ card: "P-075", as: "base" }], hand: [{ card: "BT1-083", as: "result" }] },
+      },
+      finalizeEffectDigivolveCost: async () => {
+        costDecisions += 1;
+        await h.fx.deletePermanent([h.s.perm("base").permanentId]);
+        return 4;
+      },
+      fireWouldDigivolve: async () => {
+        reactions += 1;
+      },
+    });
+    const result = await h.fx.digivolveFromInstance(h.s.perm("base").permanentId, h.s.inst("result").instanceId, {
+      payCost: true,
+    });
+    expect(result).toBeUndefined();
+    expect(costDecisions).toBe(1);
+    expect(reactions).toBe(0);
+    expect(h.state.memory).toBe(5);
+  });
+
+  it("uses memory gained by the pre-payment reaction without repeating cost decisions", async () => {
+    let costDecisions = 0;
+    const h = harness({
+      memory: -7,
+      board: {
+        0: { battleArea: [{ card: "P-075", as: "base" }], hand: [{ card: "BT1-083", as: "result" }] },
+      },
+      finalizeEffectDigivolveCost: async () => {
+        costDecisions += 1;
+        return 4;
+      },
+      fireWouldDigivolve: async () => {
+        h.state.memory += 2;
+      },
+    });
+    const result = await h.fx.digivolveFromInstance(h.s.perm("base").permanentId, h.s.inst("result").instanceId, {
+      payCost: true,
+    });
+    expect(result?.topCard.cardId).toBe("BT1-083");
+    expect(costDecisions).toBe(1);
+    expect(h.state.memory).toBe(-9);
   });
 });
 

@@ -13,7 +13,12 @@ import { alternateRequirementAvailable } from "../../actions/digivolve.js";
 import { matchingEvoCostIgnoringLevel, matchingAlternateDigivolutionRequirement } from "../../cards/cardData.js";
 import { effectiveKinds } from "../continuous.js";
 import { matchingDigivolveCost } from "../verbs/digivolveCost.js";
-import { looseZoneOfInstance, peekLooseInstance, removeLooseInstance } from "../verbs/looseInstances.js";
+import {
+  locateLooseInstance,
+  looseZoneOfInstance,
+  peekLooseInstance,
+  removeLooseInstance,
+} from "../verbs/looseInstances.js";
 
 import type { InternalVerbs, PrimitivesContext } from "./context.js";
 
@@ -102,11 +107,45 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
   ): Promise<Permanent | undefined> => {
     const permanent = access.permanentById(targetPermanentId);
     if (permanent === undefined || permanent.topCard === undefined) return undefined;
-    const sourceDef = peekLooseInstance(state, sourceInstanceId);
-    if (sourceDef === undefined) return undefined;
+    const declaredLocation = locateLooseInstance(state, sourceInstanceId);
+    if (declaredLocation === undefined) return undefined;
+    const sourceDef = declaredLocation.card;
     const sourceZone = looseZoneOfInstance(state, sourceInstanceId);
     const definition = requireCardDefinition(sourceDef.cardId);
     const seat = permanent.controllerSeat;
+    const declaredTop = permanent.topCard;
+    const declaredTopCardId = declaredTop.cardId;
+    const declaredBreeding = permanent.inBreeding;
+    const declaredOwner = sourceDef.ownerSeat;
+    const sourceHost = (location: NonNullable<ReturnType<typeof locateLooseInstance>>): Permanent | undefined => {
+      if (location.zone !== "stack" && location.zone !== "linked") return undefined;
+      const owner = state.players[location.ownerSeat]!;
+      return [...owner.battleArea, ...(owner.breeding === undefined ? [] : [owner.breeding])].find((host) =>
+        (location.zone === "stack" ? host.stack : host.linked).includes(location.card),
+      );
+    };
+    const declaredSourceHost = sourceHost(declaredLocation);
+    const declarationStillResident = (): boolean => {
+      const currentLocation = locateLooseInstance(state, sourceInstanceId);
+      return (
+        access.permanentById(targetPermanentId) === permanent &&
+        permanent.topCard === declaredTop &&
+        declaredTop.cardId === declaredTopCardId &&
+        permanent.controllerSeat === seat &&
+        permanent.inBreeding === declaredBreeding &&
+        currentLocation?.card === sourceDef &&
+        currentLocation.card.cardId === definition.cardId &&
+        currentLocation.card.ownerSeat === declaredOwner &&
+        currentLocation.ownerSeat === declaredLocation.ownerSeat &&
+        currentLocation.zone === declaredLocation.zone &&
+        sourceHost(currentLocation) === declaredSourceHost
+      );
+    };
+    const beforePayment = async (): Promise<boolean> => {
+      if (!declarationStillResident()) return false;
+      await engine.fireWouldDigivolve?.(seat, permanent, definition);
+      return declarationStillResident();
+    };
     // BT8-059 / KB Q1741-Q1742: a live "players can't ignore digivolution
     // requirements" rule suppresses every effect-driven ignore path, including
     // Critical Arm's same-level Arm swap. Keep this authoritative check here as
@@ -206,8 +245,10 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
           : adjustedEvoCost(seat, permanent, declaredCost, definition);
       const deferredReduction = reductionBlocked ? 0 : (opts.deferredCostReduction?.() ?? 0);
       const cost = Math.max(0, finalizedCost - deferredReduction);
+      if (!(await beforePayment())) return undefined;
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
       if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
+      if (!declarationStillResident()) return undefined;
       if (cost > 0) engine.memory.pay(seat, cost, "digivolve");
     } else if (!opts?.ignoreRequirements) {
       // Cost-free effect-digivolve ("digivolve into X without paying the cost"): the memory cost is
@@ -238,7 +279,11 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       if (alternate !== undefined && (opts?.useAlternateCost === true || !otherRoute)) {
         placementRequirement = alternate;
       }
+      if (!(await beforePayment())) return undefined;
       if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
+      if (!declarationStillResident()) return undefined;
+    } else if (!(await beforePayment())) {
+      return undefined;
     }
     // ＜Arts Digivolve＞ (CR §4-19): the source may be the DUAL card still resolving as an
     // Option, which this digivolution routes instead of the trash step. Same marker the

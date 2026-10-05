@@ -666,12 +666,18 @@ describe("EX11-074 Vortexdramon", () => {
     await settle(
       () =>
         s.perm("okuwamon").topCard.cardId === "BT1-083" &&
-        s.events.some((event) => event.kind === "effectTriggered" && event.timing === "whenOneOfYoursDigivolves"),
+        advance(s.engine).ledgers.subTriggers.subscriptionsFor(
+          "whenSuspended",
+          s.perm("unprotectedControl").permanentId,
+        ).length === 1,
     );
-    const grantEffectResolutions = s.events.filter(
-      (event) => event.kind === "effectResolved" && event.sourceCardId === "P-075",
+    const protectedGrantedTriggers = s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.timing === "whenSuspended" &&
+        event.sourceCardId === "EX11-074" &&
+        event.description?.includes("lose 1 memory"),
     ).length;
-    expect(grantEffectResolutions).toBeGreaterThan(0);
     preferred.length = 0;
     preferred.push(s.perm("base").permanentId);
     const memoryBeforeOption = s.state.memory;
@@ -685,9 +691,15 @@ describe("EX11-074 Vortexdramon", () => {
     expect(s.perm("base").isSuspended).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("base"), "beAffected", "Digimon")).toBe(true);
     expect(s.state.memory).toBe(memoryBeforeOption - 2);
-    expect(s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "P-075")).toHaveLength(
-      grantEffectResolutions,
-    );
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" &&
+          event.timing === "whenSuspended" &&
+          event.sourceCardId === "EX11-074" &&
+          event.description?.includes("lose 1 memory"),
+      ),
+    ).toHaveLength(protectedGrantedTriggers);
 
     preferred.length = 0;
     preferred.push(s.perm("unprotectedControl").permanentId);

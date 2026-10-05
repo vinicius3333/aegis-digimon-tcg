@@ -196461,21 +196461,19 @@
         "trigger": "YourTurn",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenOneOfYoursDigivolves",
-            "once": true,
-            "sourceFilter": {
-              "isSelfRef": true,
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Insectoid"], "match": "trait" }]
-            },
+            "kind": "Replacement",
+            "event": "wouldDigivolve",
+            "mode": "instead",
+            "sourceFilter": { "isSelfRef": true, "kind": ["Digimon"] },
+            "into": { "nameOrTrait": [{ "tokens": ["Insectoid"], "match": "trait" }] },
             "actions": [
               {
                 "kind": "GainTriggeredEffect",
                 "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
                 "gainedTrigger": "whenSuspended",
                 "gainedActions": [{ "kind": "GainMemory", "amount": -1 }],
-                "duration": "untilOpponentTurnEnd"
+                "duration": "untilOpponentTurnEnd",
+                "raw": "[All Turns] When this Digimon becomes suspended, lose 1 memory."
               }
             ]
           }

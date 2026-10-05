@@ -754,6 +754,18 @@ Baseline order test correction (2026-09-27): the stack also contains BT9-109 X A
 
 - Reaudit fixture repair accepted (2026-09-12): normal deck and Security Digi-Egg fixtures replaced with catalog-legal regular cards, preserving existing assertions. Coordinator independently passed the second fixture batch together with P-004/P-133/P-134: 18 files, 58 tests. Other delivery holds, where listed, remain pending.
 
+#### October 5 before-digivolution timing correction
+
+This follow-up supersedes the earlier P-075 timing evidence. The [official English promo catalog](https://en.digimoncard.com/cardlist/index.php?category=508901&search=true) specifies **would digivolve**, before the source becomes an inherited card. The committed catalog omitted `would`; that word is restored. The old post-evolution subscription lost its live top-card source and could not grant the effect. The compiled module and shared IR mirror now use `Replacement` / `wouldDigivolve`, with a self Digimon source filter and a separate Insectoid destination filter. Registration remains exclusively `registerIrCard`, with full coverage and no residual clause. The source-residency guard is retained.
+
+The granted `GainTriggeredEffect` targets every current opposing Digimon. Each recipient loses its own controller's memory when suspended; later entrants receive no retrospective grant. The grant lasts through the opponent's turn and expires at that turn's end. Two separate qualifying evolution declarations each grant an independent copy; the printed clause has no once-per-turn limit. The inherited Your Turn Insectoid-only Piercing aura is unchanged. Local KB lookup on 2026-10-05 again finds no P-075 Q&A, errata or restriction entry.
+
+All **16** focused tests pass on supported Node **26.10.0**. Public intents prove ordinary P-075 → BT1-083 evolution, self/result filters, two distinct declarations, and the printed BT9-109 X Antibody attack effect evolving P-075 into BT9-052: the grant is already active when the result's own suspension resolves. The failed-payment witness publicly declares printed cost 4 with two inherited EX3 cost increases; final cost 6 exceeds the available 4 at memory -6. The grant resolves before refusal, while the old top, hand, deck, stack and memory remain unchanged by the failed evolution. Suspending that recipient then changes memory to -5.
+
+Supplemental production-primitive cases separately cover paid/free effect routes, opponent-turn denial, a later entrant, and real turn-boundary expiry. The opponent-turn destination is BT9-052, which has no printed Piercing; BT1-083's own printed Piercing cannot serve as a negative inherited-aura witness. These supplemental cases do not claim an independently printed Counter producer. The [shared effect-digivolution audit](engine/before-effect-digivolution.md) records the reusable pre-payment hook and physical-identity checks. The EX11-074 immunity interaction retains its protected/control/expiry assertions.
+
+Supported-runtime affected regression passes **13,779 tests in 818 files**, covering bot, engine, BT26, EX13 and the related card suites. Full workspace typecheck, scoped lint and formatting pass. This is card/engine correctness evidence; it does not establish learned-policy strength, desktop qualification of this source, or a new completion claim for the whole P collection.
+
 ### P-076 — Deltamon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
