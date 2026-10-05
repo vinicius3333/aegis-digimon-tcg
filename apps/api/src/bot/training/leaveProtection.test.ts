@@ -24,7 +24,10 @@ describe("Habakirimon leave-field protection through the asynchronous policy", (
           { card: "BT26-025", as: "security-2" },
         ],
       },
-      [opponent]: { hand: [{ card: "BT25-076", as: "ghoulmon" }] },
+      [opponent]: {
+        hand: [{ card: "ST1-16", as: "gaia" }],
+        battleArea: [{ card: "BT1-009", as: "red-source" }],
+      },
     });
     setup.state.turnSeat = opponent;
     setup.state.memory = 10;
@@ -43,7 +46,7 @@ describe("Habakirimon leave-field protection through the asynchronous policy", (
       await Promise.resolve();
       if (window.kind === "main")
         return window.actions.findIndex(
-          ({ intent }) => intent.type === "playCard" && intent.instanceId === setup.inst("ghoulmon").instanceId,
+          ({ intent }) => intent.type === "playCard" && intent.instanceId === setup.inst("gaia").instanceId,
         );
       if (window.selected.length) return window.actions.findIndex((action) => action.label === "Finish selection");
       return window.actions.findIndex((action) => action.sourceId === target.permanentId);
@@ -93,18 +96,20 @@ describe("Habakirimon leave-field protection through the asynchronous policy", (
     ]);
     expect(setup.state.players[seat]!.hand).toHaveLength(0);
     const security = [0, 1, 2].map((index) => setup.inst(`security-${index}`).instanceId);
-    // Preventing Ghoulmon's deletion also triggers its "didn't delete" security trash.
+    // The prevention pays one security card; Gaia Force has no follow-up action.
     expect(setup.state.players[seat]!.security.map((card) => card.instanceId)).toEqual(
-      accept ? security.slice(2) : security,
+      accept ? security.slice(1) : security,
     );
     expect(setup.state.players[seat]!.trash.map((card) => card.instanceId).sort()).toEqual(
-      (accept ? security.slice(0, 2) : [targetSource, targetTop]).sort(),
+      (accept ? security.slice(0, 1) : [targetSource, targetTop]).sort(),
     );
     expect(setup.state.players[opponent]!.battleArea.map((unit) => unit.topCard.instanceId)).toEqual([
-      setup.inst("ghoulmon").instanceId,
+      setup.inst("red-source").instanceId,
     ]);
     expect(setup.state.players[opponent]!.hand).toHaveLength(0);
-    expect(setup.state.players[opponent]!.trash).toHaveLength(0);
-    expect(setup.state.memory).toBe(-2);
+    expect(setup.state.players[opponent]!.trash.map((card) => card.instanceId)).toEqual([
+      setup.inst("gaia").instanceId,
+    ]);
+    expect(setup.state.memory).toBe(2);
   });
 });

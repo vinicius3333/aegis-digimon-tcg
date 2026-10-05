@@ -511,10 +511,10 @@ describe("A3 core verbs — Delete / ModifyDP / Suspend / Return through the rea
     });
     // The OnPlay Suspend picks the first opponent candidate (low); the Restrict arms both
     // <=5000 opponent Digimon. Settle on the restriction landing on `low`.
-    await settle(() => ledger(s).hasRestriction(low.permanentId, "unsuspend"));
+    await settle(() => ledger(s).hasRestriction(low.permanentId, "unsuspendDuringOwnUnsuspendPhase"));
 
-    expect(ledger(s).hasRestriction(low.permanentId, "unsuspend")).toBe(true);
-    expect(ledger(s).hasRestriction(high.permanentId, "unsuspend")).toBe(false);
+    expect(ledger(s).hasRestriction(low.permanentId, "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
+    expect(ledger(s).hasRestriction(high.permanentId, "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
 
     // Drive the opponent's Active-phase unsuspend seam: both opponent Digimon are suspended.
     low.isSuspended = true;
@@ -3001,7 +3001,7 @@ describe("A3 Digi-Burst BT4-054 — Restrict-head <Digi-Burst 2> is paid, not fr
         effectKey: entry!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => ledger(s).hasRestriction(target.permanentId, "unsuspend"));
+    await settle(() => ledger(s).hasRestriction(target.permanentId, "unsuspendDuringOwnUnsuspendPhase"));
 
     // Cost paid from the SOURCE stack: both burst cards are gone and now in my trash. Before
     // the fix the IR carried no cost, so the stack would still hold 2 here (free activation).
@@ -3010,7 +3010,7 @@ describe("A3 Digi-Burst BT4-054 — Restrict-head <Digi-Burst 2> is paid, not fr
     expect(p0.trash.some((c) => c.instanceId === burst2.instanceId)).toBe(true);
 
     // The downstream unsuspend restriction applied to the chosen opponent Digimon.
-    expect(ledger(s).hasRestriction(target.permanentId, "unsuspend")).toBe(true);
+    expect(ledger(s).hasRestriction(target.permanentId, "unsuspendDuringOwnUnsuspendPhase")).toBe(true);
     assertNoLoudGap(s);
   });
 

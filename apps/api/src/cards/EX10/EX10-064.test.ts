@@ -599,6 +599,15 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    // Monimon's printed "you may" source-trash cost must be accepted first.
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
@@ -835,6 +844,15 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    // Monimon's printed "you may" source-trash cost must be accepted first.
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
     await settle(

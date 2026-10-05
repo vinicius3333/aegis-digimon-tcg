@@ -262,7 +262,7 @@ describe("EX5-058 Octomon", () => {
     expect(control.state.memory).toBe(3);
   });
 
-  it("plays the token through an opponent-play restriction, as required by Crimson Blaze rulings", async () => {
+  it("cannot play its token when the player resolving Octomon is prohibited from effect plays", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "redSource" }], hand: [{ card: "BT8-097", as: "blaze" }] },
       1: { hand: [{ card: "EX5-058", as: "source" }] },
@@ -276,9 +276,10 @@ describe("EX5-058 Octomon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Fujitsumon-Token"));
-    const token = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "TOKEN-Fujitsumon-Token");
-    expect(token?.isSuspended).toBe(true);
+    await settle();
+    for (const player of s.state.players) {
+      expect(player.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Fujitsumon-Token")).toBe(false);
+    }
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

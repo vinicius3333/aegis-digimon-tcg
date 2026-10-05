@@ -147,20 +147,20 @@ describe("self-scoped battle deletion watchers", () => {
       attackerPermanentId: s.perm("otherWinner").permanentId,
     });
     expect(s.perm("targetToSuspend").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("targetToRestrict"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("targetToRestrict"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
 
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
       attackerPermanentId: s.perm("rustTyrannomon").permanentId,
     });
     expect(s.perm("targetToSuspend").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("targetToRestrict"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("targetToRestrict"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
 
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
       attackerPermanentId: s.perm("kuwagamonHost").permanentId,
     });
     expect(
       [s.perm("targetToSuspend"), s.perm("targetToRestrict")].some((permanent) =>
-        observe(s.engine).isRestricted(permanent, "unsuspend"),
+        observe(s.engine).isRestricted(permanent, "unsuspendDuringOwnUnsuspendPhase"),
       ),
     ).toBe(true);
   });

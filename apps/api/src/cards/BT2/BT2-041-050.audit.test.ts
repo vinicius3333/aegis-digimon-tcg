@@ -108,7 +108,7 @@ describe("BT2-041 through BT2-050 IR coverage", () => {
             expect.objectContaining({ kind: "Suspend" }),
             expect.objectContaining({
               kind: "Restrict",
-              restriction: "unsuspend",
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
               duration: "untilOpponentNextUnsuspendPhase",
             }),
           ]),

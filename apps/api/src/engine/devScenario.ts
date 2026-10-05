@@ -9,6 +9,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import {
+  clearZone,
   extractCardAt,
   fillZone,
   insertCard,
@@ -5313,7 +5314,7 @@ function layEx13MercifulRepeatBarrierScenario(state: GameState, decks: readonly 
   const defender = establishedDigimon(1, ["EX13-030", "BT1-057", "BT1-062"], "-merciful-barrier-defender");
   defender.isSuspended = true;
   placePermanent(bot, defender);
-  bot.security.clear();
+  clearZone(bot, Zone.Security);
   for (let index = 0; index < 5; index++) {
     insertCard(bot, Zone.Security, faceDownCard(`dev-merciful-barrier-security-${index}`, "BT1-009", 1));
   }
