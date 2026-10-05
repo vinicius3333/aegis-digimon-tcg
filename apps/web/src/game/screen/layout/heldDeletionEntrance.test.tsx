@@ -49,10 +49,15 @@ it.each(["viewer", "opponent"] as const)(
     const second = permanent("second", "BT24-098");
     const newcomer = permanent("newcomer", "BT26-059");
     const established = [target, first, second];
-    const view = (permanents: Permanent[], held: ReadonlySet<string> = new Set()) => {
+    const view = (permanents: Permanent[], held: ReadonlySet<string> = new Set(), newArrival = false) => {
+      const cues = chrome(held);
+      if (newArrival)
+        cues.permanentBursts = new Map([
+          ["target", { permanentId: "target", key: 1, variant: "evolve", color: "Purple", inBreeding: false }],
+        ]);
       const common = {
         permanents,
-        chrome: chrome(held),
+        chrome: cues,
         dropIntentAttrs: () => ({}),
         isDecisionCandidate: () => false,
         onPermanentClick: () => undefined,
@@ -91,5 +96,17 @@ it.each(["viewer", "opponent"] as const)(
     expect(container.querySelector('[data-id="first"]')?.getAttribute("data-field-member-ids")).toBe(
       '["first","second"]',
     );
+    // The queue releases holds before the presented board necessarily advances.
+    // Removing quiet must not restart CSS entrance on those same physical faces.
+    rerender(view([...established, newcomer]));
+    expect(entrance("target").classList.contains("game-card-enter--quiet")).toBe(true);
+    expect(entrance("first").classList.contains("game-card-enter--quiet")).toBe(true);
+    rerender(view([target, second, newcomer]));
+    expect(entrance("second").classList.contains("game-card-enter--quiet")).toBe(true);
+    // A genuine later arrival has its own entrance key and still animates.
+    rerender(view([target, second, newcomer], new Set(), true));
+    expect(entrance("target").classList.contains("game-card-enter--quiet")).toBe(false);
+    expect(entrance("target").classList.contains("game-card-landing")).toBe(true);
+    expect(entrance("newcomer").classList.contains("game-card-enter--quiet")).toBe(false);
   },
 );
