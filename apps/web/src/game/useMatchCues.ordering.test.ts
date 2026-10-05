@@ -143,9 +143,14 @@ async function advance(ms: number) {
   });
 }
 
-async function firstSeenOrder(probes: Record<string, () => boolean>, totalMs: number): Promise<readonly string[]> {
+async function firstSeenOrder(
+  probes: Record<string, () => boolean>,
+  totalMs: number,
+  observeFrame?: () => void,
+): Promise<readonly string[]> {
   const seen: string[] = [];
   for (let elapsed = 0; elapsed <= totalMs; elapsed += 16) {
+    observeFrame?.();
     for (const [name, probe] of Object.entries(probes)) if (!seen.includes(name) && probe()) seen.push(name);
     await advance(16);
   }
@@ -1479,30 +1484,31 @@ it.each([
     }
     const visibleBrokenCopies: string[] = [];
     let breakFrames = 0;
+    let tailFrames = 0;
+    const brokenAt = new Map<string, number>();
+    const missingWaitingCopies: string[] = [];
+    const observeDepartureFrame = () => {
+      const held = [...view.result.current.heldDeletions.values()];
+      const departed = held.filter((hold) => hold.departed).map((hold) => hold.permanent.permanentId);
+      if (!departed.length) return;
+      breakFrames++;
+      const shown = deletionField({ player: before.players[0]!, held });
+      const visibleIds = shown.battleArea.map((permanent) => permanent.permanentId);
+      for (const id of departed) {
+        if (!brokenAt.has(id)) brokenAt.set(id, Date.now());
+        if (Date.now() - brokenAt.get(id)! > TIMINGS.deletionBurst) tailFrames++;
+      }
+      visibleBrokenCopies.push(...visibleIds.filter((id) => departed.includes(id)));
+      if (!departed.includes("delay-second") && !visibleIds.includes("delay-second"))
+        missingWaitingCopies.push("delay-second");
+    };
     const moments = await firstSeenOrder(
       {
         firstFocus: () =>
           view.result.current.effectSources.some(
             (source) => source.site.zone === "field" && source.site.permanentId === "delay-first",
           ),
-        firstBreak: () => {
-          const breaking = view.result.current.deleteBursts.some((burst) => burst.face?.x === 200);
-          if (breaking) {
-            breakFrames++;
-            // An old paced snapshot must not repaint any already shattered copy.
-            const shown = deletionField({
-              player: before.players[0]!,
-              held: [...view.result.current.heldDeletions.values()],
-            });
-            const brokenIds: string[] = view.result.current.deleteBursts.map((burst) =>
-              burst.face?.x === 200 ? "delay-first" : "delay-second",
-            );
-            visibleBrokenCopies.push(
-              ...shown.battleArea.map((permanent) => permanent.permanentId).filter((id) => brokenIds.includes(id)),
-            );
-          }
-          return breaking;
-        },
+        firstBreak: () => view.result.current.deleteBursts.some((burst) => burst.face?.x === 200),
         firstClause: () =>
           view.result.current.notices.some(
             (notice) => notice.body.variant === "effect" && notice.body.sourceInstanceId === "option-first",
@@ -1520,6 +1526,7 @@ it.each([
           ),
       },
       12000,
+      observeDepartureFrame,
     );
     expect(moments).toEqual([
       "firstFocus",
@@ -1527,7 +1534,10 @@ it.each([
       "firstClause",
       ...(copies === 2 ? ["secondFocus", "secondBreak", "secondClause"] : []),
     ]);
-    expect(breakFrames).toBeGreaterThan(0);
+    expect(breakFrames).toBeGreaterThan(1);
+    expect(tailFrames).toBeGreaterThan(0);
+    expect([...brokenAt.keys()]).toEqual(["delay-first", ...(copies === 2 ? ["delay-second"] : [])]);
+    expect(missingWaitingCopies).toEqual([]);
     expect(visibleBrokenCopies).toEqual([]);
     assertDecorationClean();
     assertSettled();
