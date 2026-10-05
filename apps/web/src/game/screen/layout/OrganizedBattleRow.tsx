@@ -92,6 +92,15 @@ interface FlightOffset {
   angle: number;
 }
 
+interface GroupReturn {
+  animation: Animation;
+  memberIds: string[];
+  targetMemberIds: string[];
+  origin: { x: number; y: number };
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+}
+
 const STILL: FlightOffset = { x: 0, y: 0, angle: 0 };
 const flights = new WeakMap<Element, { animation: Animation; from: FlightOffset }>();
 const artFlights = new WeakMap<HTMLElement, { animation: Animation; suspended: boolean; from: number }>();
@@ -173,12 +182,14 @@ function useFieldMotion(
 ) {
   const drawnBefore = useRef(new Map<string, DrawnCard>());
   const sizeBefore = useRef({ width: 0, height: 0 });
-  const returns = useRef(new Map<HTMLElement, Animation>());
+  const returns = useRef(new Map<HTMLElement, GroupReturn>());
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     const stop = () => {
-      for (const [copy, animation] of returns.current) {
+      for (const [copy, { animation }] of returns.current) {
         animation.cancel();
+        artFlights.get(copy)?.animation.cancel();
+        artFlights.delete(copy);
         copy.remove();
       }
       returns.current.clear();
@@ -219,11 +230,6 @@ function useFieldMotion(
     const size = { width: row.clientWidth, height: row.clientHeight };
     const resized = size.width !== sizeBefore.current.width || size.height !== sizeBefore.current.height;
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    for (const [copy, animation] of returns.current) {
-      animation.cancel();
-      copy.remove();
-    }
-    returns.current.clear();
     const offsets = new Map<Element, FlightOffset>();
     for (const element of row.querySelectorAll<HTMLElement>("[data-field-key]")) {
       const art = element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
@@ -239,6 +245,60 @@ function useFieldMotion(
       flights.get(element)?.animation.cancel();
     }
     const drawn = measureCards(row);
+    const returningPositions = new Map<string, { x: number; y: number; angle: number }>();
+    // Shared card sizing can commit again before the first paint of a merge.
+    // Keep the same return and its clock, updating its destination from its
+    // current eased position instead of deleting it on every layout change.
+    for (const [copy, flight] of returns.current) {
+      const targets = cards.filter((card) =>
+        card.members.some((member) => flight.memberIds.includes(member.permanentId)),
+      );
+      const target = targets.length === 1 ? targets[0] : undefined;
+      const now = target ? drawn.get(target.fieldKey) : undefined;
+      const sameGroup =
+        target &&
+        target.fieldKey === copy.dataset.returnTargetFieldKey &&
+        target.members.length === flight.targetMemberIds.length &&
+        target.members.every((member) => flight.targetMemberIds.includes(member.permanentId));
+      const progress = flight.animation.effect?.getComputedTiming().progress ?? 0;
+      if (resized || reduceMotion || !now?.art || !sameGroup) {
+        // A member split back out during its return. Hand its painted position
+        // to the actual card's FLIP instead of drawing both card and copy.
+        if (
+          !resized &&
+          !reduceMotion &&
+          now?.art &&
+          target &&
+          target.members.every((member) => flight.memberIds.includes(member.permanentId))
+        ) {
+          returningPositions.set(target.fieldKey, {
+            x: flight.origin.x + flight.from.x * (1 - progress) + flight.to.x * progress,
+            y: flight.origin.y + flight.from.y * (1 - progress) + flight.to.y * progress,
+            angle: Number.parseFloat(getComputedStyle(copy).rotate) || 0,
+          });
+        }
+        flight.animation.cancel();
+        copy.remove();
+        returns.current.delete(copy);
+        artFlights.get(copy)?.animation.cancel();
+        artFlights.delete(copy);
+        continue;
+      }
+      copy.dataset.returnTargetFieldKey = target!.fieldKey;
+      const to = { x: now.art.x - flight.origin.x, y: now.art.y - flight.origin.y };
+      if (progress < 1 && (to.x !== flight.to.x || to.y !== flight.to.y)) {
+        const from = {
+          x: (flight.from.x * (1 - progress) + flight.to.x * progress - to.x * progress) / (1 - progress),
+          y: (flight.from.y * (1 - progress) + flight.to.y * progress - to.y * progress) / (1 - progress),
+        };
+        (flight.animation.effect as KeyframeEffect).setKeyframes([
+          { translate: `${from.x}px ${from.y}px`, opacity: 1 },
+          { translate: `${to.x}px ${to.y}px`, opacity: 1 },
+        ]);
+        flight.from = from;
+        flight.to = to;
+      }
+    }
     if (!resized && !reduceMotion) {
       for (const card of cards) {
         const now = drawn.get(card.fieldKey);
@@ -247,17 +307,21 @@ function useFieldMotion(
           ? card.fieldKey
           : card.members.map((member) => previous.current.get(member.permanentId)?.key).find(Boolean);
         const before = earlierKey ? drawnBefore.current.get(earlierKey) : undefined;
-        if (!before) continue;
-        const offset = offsets.get(before.element) ?? STILL;
-        const dx = before.x + offset.x - now.x;
-        const dy = before.y + offset.y - now.y;
+        const returning = returningPositions.get(card.fieldKey);
+        if (!before && !returning) continue;
+        const offset = before ? (offsets.get(before.element) ?? STILL) : STILL;
+        const dx = returning && now.art ? returning.x - now.art.x : before!.x + offset.x - now.x;
+        const dy = returning && now.art ? returning.y - now.art.y : before!.y + offset.y - now.y;
         // Turn only the art. Rotating the whole touch frame would sweep badges
         // and its empty corners outside the lane when a copy splits off.
-        if (before.element !== now.element && before.suspended !== now.suspended) {
+        if (returning) {
+          if (now.art && Math.abs(returning.angle - (now.suspended ? 90 : 0)) > 0.01)
+            turnArtwork(now.art.element, returning.angle, now.suspended);
+        } else if (before!.element !== now.element && before!.suspended !== now.suspended) {
           const art = now.element.querySelector<HTMLElement>(".game-card-enter > [data-state]");
-          if (art) turnArtwork(art, before.suspended ? 90 : 0, now.suspended);
+          if (art) turnArtwork(art, before!.suspended ? 90 : 0, now.suspended);
         }
-        const angle = before.element === now.element ? offset.angle : 0;
+        const angle = !returning && before!.element === now.element ? offset.angle : 0;
         if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(angle) < 1) continue;
         const flight = now.element.animate(
           [
@@ -332,7 +396,14 @@ function useFieldMotion(
           ],
           { duration: MOTION_MS, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "both" },
         );
-        returns.current.set(copy, animation);
+        returns.current.set(copy, {
+          animation,
+          memberIds: [...previous.current].filter(([, placement]) => placement.key === oldKey).map(([id]) => id),
+          targetMemberIds: target!.members.map((member) => member.permanentId),
+          origin: { x: before.art.x + offset.x, y: before.art.y + offset.y },
+          from: { x: 0, y: 0 },
+          to: { x: now.art.x - before.art.x - offset.x, y: now.art.y - before.art.y - offset.y },
+        });
         const remove = () => {
           copy.remove();
           returns.current.delete(copy);
