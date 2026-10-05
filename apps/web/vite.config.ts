@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    motionReferenceAssets(fileURLToPath(new URL("./.motion-reference", import.meta.url))),
+    motionReferenceAssets(fileURLToPath(new URL("./.motion-reference", import.meta.url)), ["MuhkUzGAeHA"]),
   ],
   resolve: {
     alias: {

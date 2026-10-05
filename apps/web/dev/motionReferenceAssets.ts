@@ -4,16 +4,21 @@ import path from "node:path";
 import type { Plugin } from "vite";
 
 /** Local-only reference assets stay outside public/, so builds cannot ship the footage. */
-export function motionReferenceAssets(directory: string): Plugin {
+export function motionReferenceAssets(directory: string, audioReferenceIds: readonly string[] = []): Plugin {
   return {
     name: "local-motion-reference",
     apply: "serve",
     configureServer(server) {
       server.middlewares.use("/motion-reference", async (request, response, next) => {
-        const match = /^\/([\w-]+)\/(manifest\.json|reference\.(?:mp4|webm)|frame-\d{6,}\.jpg)$/.exec(
+        const match = /^\/([\w-]+)\/(manifest\.json|reference\.(?:mp4|webm|wav|mp3)|frame-\d{6,}\.jpg)$/.exec(
           (request.url ?? "").split("?")[0]!,
         );
         if (!match || !["GET", "HEAD"].includes(request.method ?? "")) {
+          response.statusCode = 404;
+          response.end();
+          return;
+        }
+        if (/\.(wav|mp3)$/.test(match[2]!) && !audioReferenceIds.includes(match[1]!)) {
           response.statusCode = 404;
           response.end();
           return;
@@ -45,7 +50,11 @@ export function motionReferenceAssets(directory: string): Plugin {
                 ? "image/jpeg"
                 : file.endsWith(".webm")
                   ? "video/webm"
-                  : "video/mp4",
+                  : file.endsWith(".wav")
+                    ? "audio/wav"
+                    : file.endsWith(".mp3")
+                      ? "audio/mpeg"
+                      : "video/mp4",
           );
           response.setHeader("Accept-Ranges", "bytes");
           response.setHeader("Cache-Control", "no-cache");

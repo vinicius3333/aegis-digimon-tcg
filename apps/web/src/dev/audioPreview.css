@@ -1,0 +1,104 @@
+@import "../design/tokens.css";
+@import "../design/base.css";
+
+.audio-preview {
+  width: min(100%, 60rem);
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.audio-preview header,
+.audio-preview section,
+.audio-preview details {
+  margin-bottom: 1.5rem;
+}
+.audio-preview section,
+.audio-preview details {
+  padding: 1.25rem;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+.audio-preview h1 {
+  font-family: var(--ds-font-display);
+  font-size: 1.75rem;
+  margin: 0.75rem 0;
+}
+.audio-preview h2 {
+  font-size: 1.125rem;
+  margin: 0 0 0.75rem;
+}
+.audio-preview p {
+  color: var(--ds-fg-secondary);
+}
+.audio-preview a {
+  color: var(--ds-accent);
+}
+.audio-preview__options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.audio-preview button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ds-surface-muted);
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  cursor: pointer;
+}
+.audio-preview button:hover {
+  border-color: var(--ds-accent);
+}
+.audio-preview__tracks article {
+  margin: 1rem 0;
+}
+.audio-preview__tracks h3 {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+.audio-preview audio {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+.audio-preview__controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.audio-preview input[type="range"] {
+  width: 100%;
+  max-width: 30rem;
+}
+.audio-preview label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.audio-preview__table-wrap {
+  overflow: auto;
+}
+.audio-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+}
+.audio-preview th,
+.audio-preview td {
+  padding: 0.75rem 0.5rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--ds-border-soft);
+}
+@media (max-width: 375px) {
+  .audio-preview {
+    padding: 0.75rem;
+  }
+  .audio-preview section,
+  .audio-preview details {
+    padding: 0.75rem;
+  }
+}

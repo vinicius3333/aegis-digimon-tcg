@@ -12,12 +12,14 @@ it("serves only reference assets and honors seek ranges and HEAD without exposin
     root: directory,
     publicDir: false,
     appType: "custom",
-    plugins: [motionReferenceAssets(directory)],
+    plugins: [motionReferenceAssets(directory, ["fixture"])],
     server: { host: "127.0.0.1", port: 0, strictPort: true },
   });
   try {
     await mkdir(path.join(directory, "fixture"));
     await writeFile(path.join(directory, "fixture/reference.mp4"), "0123456789");
+    await writeFile(path.join(directory, "fixture/reference.wav"), "audio-wave");
+    await writeFile(path.join(directory, "fixture/reference.mp3"), "audio-mpeg");
     await writeFile(path.join(directory, "fixture/private.txt"), "not a reference");
     await server.listen();
     const address = server.httpServer!.address();
@@ -30,6 +32,17 @@ it("serves only reference assets and honors seek ranges and HEAD without exposin
     const head = await fetch(`${base}reference.mp4`, { method: "HEAD" });
     expect(head.headers.get("Content-Length")).toBe("10");
     expect(await head.text()).toBe("");
+    const audio = await fetch(`${base}reference.wav`, { headers: { Range: "bytes=0-4" } });
+    expect(audio.status).toBe(206);
+    expect(audio.headers.get("Content-Type")).toBe("audio/wav");
+    expect(await audio.text()).toBe("audio");
+    const audioHead = await fetch(`${base}reference.mp3`, { method: "HEAD" });
+    expect(audioHead.headers.get("Content-Type")).toBe("audio/mpeg");
+    expect(audioHead.headers.get("Content-Length")).toBe("10");
+    expect(await audioHead.text()).toBe("");
+    await mkdir(path.join(directory, "unapproved"));
+    await writeFile(path.join(directory, "unapproved/reference.wav"), "private-audio");
+    expect((await fetch(base.replace("fixture/", "unapproved/") + "reference.wav")).status).toBe(404);
     const invalid = await fetch(`${base}reference.mp4`, { headers: { Range: "bytes=20-" } });
     expect(invalid.status).toBe(416);
     expect(invalid.headers.get("Content-Range")).toBe("bytes */10");
