@@ -421,6 +421,65 @@ source rebuild or metadata-copy generation. No corrective training was launched
 by this inspection; its exact parameters, fresh seed inventory, request and
 separate ROOT source/resource agreement remain to be sealed and verified.
 
+## Actual current-source corrective PPO continuation
+
+The qualified source and engine stay `aa2e56463176046ea5a01419d271a53a164efbae`
+and `4536a92429c1b62041212e983b63f46206dd4f2eefe959d42b3cc1a7f13c6a2c`.
+No source rebuild, source archive or metadata-copy checkpoint generation was
+introduced. The existing actual trained candidate is continued with its real
+model and Adam state into a fresh output namespace.
+
+The external operator is
+`/home/vinicius/aegis-bot-lab/transfers/rule-link-current-corrective-ppo.py`,
+SHA-256 `0ea7565cbe7ee7514780033d3a5f2b470957f37a3602126f61e94f23c301b39c`.
+Its exact request SHA-256 is
+`1b974dc6e7f87ad47f3f251875109d21e87c3fa21309b49aba7960c9f191a2db`,
+wrapper SHA-256
+`7cf434bf1a60b2da94cebf39f77806b543b6656ecebef2bc691d73e048ba6b8e`,
+and actual original complete seed inventory SHA-256
+`0e619d6f0d472154932590610f4e3d6d7bf3971788ca7bc8132daaa6fcc59148`.
+The full unchanged comparison consumer and actual read-only inspection both
+passed before resource admission, without importing primary models or starting
+training in that inspection. Fifteen bounded synthetic guards cover complete
+all44 diagnosis, the exact filtered both-seat schedule, unsafe/duplicate inputs,
+negative payment refusal, complete raw records, finite model/Adam state,
+positive unchanged-origin optimizer continuation and rejection of copied weights.
+Synthetic fixtures are not actual model, learning or game evidence. The ROOT
+source review SHA-256 is
+`33764313e0a33ba26359755c79889b7b7d9e83784ba663331bb7bc946ae8fc92`.
+
+The distinct actual ROOT learning resource agreement SHA-256 is
+`79cfaa21e968a45dbf08e6b28a3e0e94d3b77f2a751d7202320c86052004d2c2`.
+The original foreground session is **10576**, and must remain attached.
+The actual whole is PID **696**, start ticks **14967**, identity SHA-256
+`20a296a83bbbe00789911641f987d36be99abd594a8857db67fb929ebdf3879a`.
+The verified parent chain is whole 696 → operator 715 → actual CUDA learner
+778, learner start ticks **21144**. Fresh actual GPU inventory binds the active
+compute process to learner 778. Its recorded configuration is training, rather
+than evaluation, with current feature V7 and preserved source checkpoint
+`8490902dc7b6fa67c96ed141407e5684380e8ac761ff6b5191d13d77ce14bb34`.
+
+This run uses 2,112 new development seeds **6141352..6143463**, the 24 actual
+non-improving learner recipes, every one of the 44 opponent recipes and both
+learner seats. Each 48-game batch covers all selected learner recipes at both
+seats; the full filtered pass covers every opponent exactly once per seat and
+selected learner. Four workers, zero tolerated failed episodes, no snapshots,
+unchanged 4,000-decision cap and explicit `3e-5` learning rate are admitted.
+The recorded restored optimizer rate is also `3e-5`: it is retained, not reduced
+from this checkpoint. This remains an experimental corrective learning pass;
+improvement must be measured, not presumed.
+
+Its output is
+`/home/vinicius/aegis-bot-lab/runs/rule-link-current-aa2e56463-corrective-ppo-r1`.
+All originals and previous failures remain immutable. Actual whole zero,
+complete raw trajectory checks, all12 finite changed weights, actual positive
+Adam deltas, exact reload and fresh new checkpoint hash are still pending.
+Only those actual closure proofs can admit the next frozen **full all44**
+comparison against each of the same four references. A training pass, its
+aggregate reward, targeted schedule, penalties or changed weights cannot
+accept strength, payment mastery, physical mechanisms, rooms, serving or blind
+qualification. Reserved final seeds remain untouched.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
