@@ -9,11 +9,9 @@ The 2026-10-05 closeout uses representative evolution/play/raising/attack/choice
 and simultaneous-effect comparisons. The user excluded the remaining 28 keyword
 validations and exhaustive reference-frame review. Historical keyword checkpoints
 below retain their evidence, but those excluded validations are no longer pending
-acceptance work. See `docs/plans/2026-10-05-visual-reference-closeout.md` for current
-scope, measured limits and focused browser results.
+acceptance work.
 
-The integrated outcome is recorded in
-`docs/plans/2026-10-05-animation-integration-outcome.md`: ten accepted real-server
+The integrated outcome has ten accepted real-server
 native formats and two retained Fast sampling-quality rejections, with targeted
 causal proof after the DP correction. Phase prerequisites exclude nonvisual audio
 receipts. Paced DP consumes unseen immutable revision snapshots so coalesced gain
@@ -262,8 +260,7 @@ Opening deal/phase banners, memory/DP/restriction feedback, field returns/deleti
 source/link movements and decision transitions still need a complete comparison of
 their existing recipes with the corresponding authored routes and video intervals.
 An implemented keyword replay proves its rendering path, not every visual branch
-that keyword can trigger. The evidence and unresolved scope live in
-`docs/research-animation-reference-harness.md`.
+that keyword can trigger.
 
 Field deletions and central card destruction now share the 41 irregular front polygons
 extracted from the authored fracture mesh. Every piece
@@ -659,7 +656,7 @@ feedback in `design/sound.ts` remains the starting implementation.
 
 ## Mobile narration
 
-Phones that collapse notices (`collapseNotices`) use the folded band from the main branch: one row naming the newest moment and counting the rest, which opens the full column. The compact-toast and floating-row redesigns of 2026-10-05 were canceled and removed; their design records stay in `docs/plans/2026-10-05-mobile-toasts-design.md` and `docs/design/mobile-toast-layout-options/`.
+Phones that collapse notices (`collapseNotices`) use the folded band from the main branch: one row naming the newest moment and counting the rest, which opens the full column. The compact-toast and floating-row redesigns of 2026-10-05 were canceled and removed.
 
 ## Real attack and grouping checkpoint, 2026-10-05
 
@@ -680,8 +677,7 @@ passing calibrated follow-ups. This is not a single green full-matrix claim.
 
 Latest native keyword coverage is **16/46**, including the earlier completed
 stack and deck passes. Thirty keywords, complete reference-frame review and
-the original audio pass above remain pending. Evidence and limitations are
-recorded in `docs/research-animation-reference-harness.md`.
+the original audio pass above remain pending.
 
 ## Evolution and end-turn attack checkpoint, 2026-10-05
 
