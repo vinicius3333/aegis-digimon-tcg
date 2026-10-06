@@ -176,7 +176,8 @@ describe("BT1-002 Bebydomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-016"));
     const evolvedCarrier = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT1-016")!;
-    expect(s.state.memory).toBe(2);
+    // Tyrannomon costs 2 to digivolve from a red level 3.
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("battleDrawn").instanceId);
     expect(evolvedCarrier.stack.map(({ cardId }) => cardId)).toEqual(["BT1-002", "BT6-010"]);
     expect(evolvedCarrier.topCard?.cardId).toBe("BT1-016");

@@ -2589,21 +2589,8 @@ describe("A3 ModifySecurityDP — security-Digimon battle DP modifier (IR-01)", 
 });
 
 describe("A3 Search — search deck, pick matching card, add to hand", () => {
-  // CONVERTED-TO-FINDING (07-03): the it.todo premise was FALSE. BT15-092 — the only card whose
-  // RAW IR parse contains a Search action — is already FAITHFUL as a security-PLAY, not a
-  // Lv.<=4 Digimon FROM THE SECURITY STACK without cost ("Search your security stack" = DCG
-  // terminology for LOOKING THROUGH security, NOT a deck-search-to-hand). Re-registering BT15-092
-  // against its raw Search IR would be UNFAITHFUL. A bounded catalog/effects.json hunt (07-03)
-  // confirmed BT15-092 is the SOLE Search-bearing raw-parse entry — no faithful in-catalog Search
-  // vehicle exists. Resolution (a contract-valid documented faithful fix, ENG-01): a recorded
-  // per-card documented behavior-diff finding (cs documented behavior verdict faithful), and the Search IR kind kept dispatched by
-  // ./searchKindDispatch.test.ts (documented no-vehicle). This finding asserts BT15-092 is
-  // compiled as the faithful security-play (PlayWithoutCost from:[security]), NOT a Search.
-  it("BT15-092 is registered as a faithful security-PLAY (PlayWithoutCost from security), not a deck-Search", async () => {
-    // The RUNTIME registration is what the engine actually runs (the per-card .ts override via
-    // registerIrCard), as distinct from the RAW runtime record parse in effects.json (which still
-    // carries the Search action — the it.todo's true premise). Read the registered [Main] module
-    // and assert its compiled effect is the faithful play-from-security, NOT a Search.
+  // Searching security is distinct from revealing cards from the deck.
+  it("BT15-092 searches security and optionally plays a yellow level-4-or-lower Digimon", async () => {
     const module = getEffectModule("BT15-092");
     expect(module, "BT15-092 must be registered as an engine module").toBeDefined();
     const source = {
@@ -2619,20 +2606,27 @@ describe("A3 Search — search deck, pick matching card, add to hand", () => {
     // [Main] routes to OnUseOption (timingsForTrigger: a non-security Main -> OnUseOption).
     const mains = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     expect(mains.length, "BT15-092 has a registered [Main] effect").toBeGreaterThan(0);
-    // The registered IR is the faithful security-play — never a deck search.
     const mainActions = (registeredCompiledCards.get("BT15-092")?.effects ?? [])
       .filter((effect) => effect.trigger === "Main")
       .flatMap((effect) => effect.actions ?? []);
-    expect(
-      mainActions.map((action) => action.kind),
-      "BT15-092 [Main] is a PlayWithoutCost, not a Search",
-    ).toContain("PlayWithoutCost");
+    expect(mainActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "SearchSecurity",
+          target: expect.objectContaining({
+            count: 1,
+            filter: expect.objectContaining({
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow"],
+              levelComparison: { op: "lte", value: 4 },
+            }),
+          }),
+          then: { kind: "PlayWithoutCost", source: "security", payCost: false, optional: true },
+        }),
+      ]),
+    );
     expect(mainActions.map((action) => action.kind)).not.toContain("Search");
-
-    // documented behavior finding: BT15-092 (cs documented behavior verdict faithful). See
-    // ./searchKindDispatch.test.ts for the Search-kind dispatch guard.
-    // effects.json Main carries PlayWithoutCost (updated to match the hand-authored IR module);
-    // no Search override is needed.
   });
 });
 

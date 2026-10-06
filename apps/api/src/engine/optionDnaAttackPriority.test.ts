@@ -22,9 +22,16 @@ it("resolves Option DNA entry before the defender's attack watcher and prevents 
   ).toEqual({ ok: true });
   await settle();
   const effects = s.events.filter((e) => e.kind === "effectTriggered");
+  // The declined Raid still announces its activation between entry and the defender's reaction.
   expect(
-    effects.filter((e) => e.sourceCardId === "BT16-077" || e.sourceCardId === "BT11-092").map((e) => e.sourceCardId),
-  ).toEqual(["BT16-077", "BT11-092"]);
+    effects
+      .filter((e) => e.sourceCardId === "BT16-077" || e.sourceCardId === "BT11-092")
+      .map((e) => ({ source: e.sourceCardId, timing: e.timing })),
+  ).toEqual([
+    { source: "BT16-077", timing: "WhenDigivolving" },
+    { source: "BT16-077", timing: "OnUseAttack" },
+    { source: "BT11-092", timing: "whenOpponentAttacks" },
+  ]);
   expect(s.events.filter((e) => e.kind === "attackDeclared" && e.redirected !== true)).toHaveLength(1);
   expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT8-010")).toBe(true);
 });

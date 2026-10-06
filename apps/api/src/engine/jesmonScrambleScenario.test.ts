@@ -7,7 +7,7 @@ import { setupEngine, settle } from "./testkit/harness.js";
 describe("Jesmon Red Scramble arena scenarios", () => {
   it.each([
     { scenario: "arena-jesmon-scramble-dp-blocked", allowed: false, memory: 3 },
-    { scenario: "arena-jesmon-scramble-dp-allowed", allowed: true, memory: 1 },
+    { scenario: "arena-jesmon-scramble-dp-allowed", allowed: true, memory: 2 },
   ] as const)("plays Red Scramble through the live turn loop: $scenario", async ({ scenario, allowed, memory }) => {
     const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 2 });
     s.engine.stagedDecks[0] = BLUE_DECK;
@@ -34,6 +34,13 @@ describe("Jesmon Red Scramble arena scenarios", () => {
 
       expect(huckmon.topCard.cardId).toBe(allowed ? "BT23-013" : "EX13-009");
       expect(human.hand.some(({ instanceId }) => instanceId === jesmon.instanceId)).toBe(!allowed);
+      // Jesmon plays a white token, activating Huckmon's inherited memory gain.
+      expect(human.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token")).toBe(allowed);
+      expect(
+        s.events.filter(
+          (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX13-009" && event.isInherited,
+        ),
+      ).toHaveLength(allowed ? 1 : 0);
       expect(s.state.memory).toBe(memory);
     } finally {
       s.engine.applyIntent(0, { type: "surrender" });
