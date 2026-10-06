@@ -343,6 +343,10 @@ export function MatchOverlays({
       <PlayChoicePrompts
         dualPlay={overlays.dualPlay}
         actionConfirm={overlays.actionConfirm}
+        dnaRoutes={
+          handEntries.find((entry) => entry.instanceId === overlays.actionConfirm?.instanceId)?.dnaDigivolveRoutes ?? []
+        }
+        dnaPermanents={viewer.battleArea}
         appFusion={
           overlays.appFusionChoice && appFusion
             ? {

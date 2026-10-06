@@ -116,6 +116,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e jogue Leopardmon sem Assembly. Selecione Alphamon diretamente na mesa e confirme para suspendê-lo; nenhuma confirmação separada de ativação deve aparecer. Na escolha seguinte, selecione um Dorumon na mesa; nenhuma galeria de alvos deve abrir. Se desejar, use Visualizar mesa para recolher os controles. Segure Alphamon ou toque na lupa para ler a carta e seus herdados; toque na arte para ampliar. Feche e retorne à decisão: o Dorumon selecionado deve continuar marcado. Só Confirmar alvos envia a escolha; o herdado de Grademon pode então proteger Dorumon.",
     en: "End breeding and play Leopardmon without Assembly. Select Alphamon directly on the board and confirm to suspend it; no separate activation confirmation should appear. In the next choice, select a Dorumon on the board; no target gallery should open. Optionally use View board to hide the controls. Hold Alphamon or tap its magnifier to read the card and its inherited effects; tap the art to zoom. Close and return to the decision: the selected Dorumon must remain picked. Only Confirm targets sends the choice; Grademon's inherited effect can then protect Dorumon.",
   },
+  "arena-issue-5166-dna-material-pairs": {
+    en: "Select Mastemon and a DNA material. Choose Pair 2 (LadyDevimon with one digivolution card) and confirm. The other LadyDevimon must remain on the field. Also try with action confirmations disabled.",
+    ptBR: "Selecione Mastemon e um material de DNA. Escolha o Par 2 (LadyDevimon com uma carta de digievolução) e confirme. A outra LadyDevimon deve ficar em campo. Teste também com as confirmações de ação desativadas.",
+  },
   "arena-issue-5127-opponent-suspend-cost": {
     ptBR: "Use a metade Option de Zephagamon. Para reduzir o custo, suspenda os dois Digimon adversários. O custo deve cair de 6 para 4; depois trave o Tamer e devolva um dos Digimon ao fundo do deck.",
     en: "Use Zephagamon's Option side. Suspend both opposing Digimon for the reduction. The cost falls from 6 to 4; then lock the Tamer and bottom-deck one Digimon.",
@@ -1644,6 +1648,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-oct06-inherited-battle", "06/10 · Groundramon · herdado após De-Digivolve"],
   ["arena-oct06-active-overflow", "06/10 · Overflow · início do turno"],
   ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
+  ["arena-issue-5166-dna-material-pairs", "#5166 · DNA material pair choice"],
   ["arena-issue-5127-opponent-suspend-cost", "GitHub #5127 · Opposing suspend cost"],
   ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
   ["arena-issue-5159-kudamon-moving", "GitHub #5159 · Kudamon moving reveal"],
