@@ -986,6 +986,16 @@ export function GameScreen({
     decisionMax,
   } = decisionView;
 
+  // Keep the asking card lit after its notice closes, until the decision is answered.
+  // A finite activation flash takes precedence over the steady source halo.
+  if (
+    decisionHighlightPermanentId &&
+    viewerDecision?.options?.selectionContext !== "attackTarget" &&
+    !effectSourcePermanentIds.has(decisionHighlightPermanentId)
+  ) {
+    effectLinkedPermanentIds.add(decisionHighlightPermanentId);
+  }
+
   // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
   // picks stay legal as long as a distinct color can still be assigned to each.
   const decisionAllowsPick = (instanceId: string) =>

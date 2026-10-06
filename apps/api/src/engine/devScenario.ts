@@ -57,6 +57,22 @@ import {
  * a developer lands mid-match instead of playing the opening turns every time.
  */
 export const DEV_SCENARIO_IDS = [
+  "arena-oct06-sukamon-bt11-deletion-search",
+  "arena-oct06-sukamon-bt3-deletion-search",
+  "arena-oct06-sukamon-ex13-deletion-search",
+  "arena-oct06-king-sukamon-assembly",
+  "arena-oct06-chuumon-trash-revival",
+  "arena-oct06-dorbickmon-digixros",
+  "arena-oct06-snow-goblimon-reveal",
+  "arena-oct06-trash-recovery",
+  "arena-oct06-revealed-search",
+  "arena-oct06-mastemon-owner-security",
+  "arena-oct06-kyo-barrier",
+  "arena-oct06-millennium-deck-order",
+  "arena-oct06-kazemon-blast",
+  "arena-oct06-asuna-jupiter",
+  "arena-oct06-giromon-assembly",
+
   "arena-oct06-blue-scramble-decline",
   "arena-oct06-rina-decline",
   "arena-oct06-vortex-opt-decline",
@@ -6735,7 +6751,129 @@ function layPhasePacingScenario(
   startEffectsLabTurn(state, 5);
 }
 
+/** Latest open Discord reports, using fixed public match procedures. */
+function layOct06LatestScenario(state: GameState, decks: readonly [Decklist, Decklist], finding: string): void {
+  prepareIssueScenario(state, decks, finding === "millennium-deck-order" ? 3 : 10);
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  for (const player of [human, opponent]) {
+    for (const zone of [Zone.Hand, Zone.Deck, Zone.Trash, Zone.Security, Zone.EggDeck] as const)
+      clearZone(player, zone);
+    for (let index = 0; index < 20; index++)
+      insertCard(player, Zone.Deck, faceDownCard(`oct06-latest-deck-${player.seat}-${index}`, "BT1-085", player.seat));
+    for (let index = 0; index < 3; index++)
+      insertCard(
+        player,
+        Zone.Security,
+        faceDownCard(`oct06-latest-security-${player.seat}-${index}`, "BT1-009", player.seat),
+      );
+  }
+  insertCard(human, Zone.EggDeck, faceDownCard("oct06-latest-egg", "EX13-002", 0));
+  const add = (seat: Seat, cards: string[], slot: string) => {
+    const permanent = establishedDigimon(seat, cards, `-oct06-latest-${slot}`);
+    permanent.permanentId = `oct06-latest-${slot}`;
+    placePermanent(state.players[seat]!, permanent);
+    return permanent;
+  };
+  const loose = (seat: Seat, zone: Zone.Hand | Zone.Trash | Zone.Security, card: string, slot: string) =>
+    insertCard(state.players[seat]!, zone, faceDownCard(`oct06-latest-${slot}`, card, seat));
+  if (finding === "mastemon-owner-security") {
+    add(0, ["BT23-102"], "mastemon");
+    add(0, ["BT1-085"], "own-tamer");
+    add(1, ["BT1-030"], "target");
+    add(1, ["BT1-085"], "opponent-tamer");
+  } else if (finding === "kyo-barrier") {
+    add(0, ["BT26-089"], "kyo");
+    add(0, ["P-194"], "aegiomon");
+    add(1, ["BT1-030"], "target");
+    clearZone(opponent, Zone.Security);
+    loose(1, Zone.Security, "BT1-082", "high-security");
+  } else if (finding === "millennium-deck-order") {
+    add(0, ["BT18-015"], "kimera");
+    add(0, ["BT11-072"], "machine");
+    loose(0, Zone.Hand, "BT18-019", "millennium");
+    for (const [card, slot] of [
+      ["BT1-030", "three"],
+      ["BT1-032", "four"],
+      ["BT1-021", "five"],
+    ])
+      loose(1, Zone.Trash, card!, slot!);
+  } else if (finding === "kazemon-blast") {
+    add(0, ["BT12-088", "BT18-048", "AD1-002"], "aldamon");
+    add(1, ["ST18-11"], "blast-base");
+    loose(1, Zone.Hand, "BT20-101", "zephagamon");
+  } else if (finding === "asuna-jupiter") {
+    add(0, ["BT25-092"], "asuna");
+    add(0, ["BT24-014"], "aegiochus");
+    loose(0, Zone.Hand, "BT25-100", "option");
+    loose(0, Zone.Trash, "BT24-101", "jupiter");
+    clearZone(human, Zone.Security);
+    loose(0, Zone.Security, "BT1-009", "single-security");
+  } else if (finding === "giromon-assembly") {
+    loose(0, Zone.Hand, "P-220", "millennium");
+    for (const [card, slot] of [
+      ["EX9-023", "three"],
+      ["BT18-013", "four"],
+      ["BT26-055", "five"],
+    ])
+      loose(0, Zone.Trash, card!, slot!);
+  } else if (finding === "king-sukamon-assembly") {
+    loose(0, Zone.Hand, "EX13-031", "king-sukamon");
+    for (const [index, card] of ["BT14-034", "BT13-065", "BT11-040"].entries())
+      loose(0, Zone.Trash, card, `king-material-${index}`);
+  } else if (finding === "chuumon-trash-revival") {
+    add(0, ["EX5-045", "EX1-052"], "revival-host");
+    add(1, ["ST15-11"], "revival-enemy").isSuspended = true;
+    loose(0, Zone.Trash, "BT3-061", "revival-target");
+  } else if (finding === "dorbickmon-digixros") {
+    loose(0, Zone.Hand, "EX3-014", "dorbickmon");
+    for (const [index, card] of ["EX3-005", "EX3-006", "EX3-007", "EX3-008", "EX3-009"].entries())
+      loose(0, Zone.Hand, card, `dorbickmon-material-${index}`);
+  } else if (finding === "snow-goblimon-reveal") {
+    loose(0, Zone.Hand, "BT24-021", "snow-goblimon");
+    loose(0, Zone.Hand, "BT1-010", "snow-discard");
+    clearZone(human, Zone.Deck);
+    for (const [index, card] of ["BT1-085", "BT24-014", "BT24-015", "BT1-009", ...Array(16).fill("BT1-085")].entries())
+      insertCard(human, Zone.Deck, faceDownCard(`oct06-latest-snow-reveal-${index}`, card, 0));
+  } else if (finding === "trash-recovery") {
+    loose(0, Zone.Hand, "BT2-090", "matt");
+    loose(0, Zone.Trash, "BT2-069", "purple-digimon");
+    loose(0, Zone.Trash, "BT2-108", "purple-option");
+    loose(0, Zone.Trash, "BT1-010", "illegal-red");
+  } else if (finding.startsWith("sukamon-")) {
+    const source = finding === "sukamon-bt11" ? "BT11-040" : finding === "sukamon-bt3" ? "BT3-063" : "EX13-028";
+    add(0, [source], "sukamon");
+    add(1, ["BT1-010"], "target").isSuspended = true;
+    clearZone(human, Zone.Deck);
+    const second = finding === "sukamon-bt3" ? "BT3-061" : "BT14-034";
+    for (const [index, card] of ["BT1-085", "BT3-061", second, "BT1-010", ...Array(16).fill("BT1-085")].entries())
+      insertCard(human, Zone.Deck, faceDownCard(`oct06-latest-sukamon-reveal-${index}`, card, 0));
+  } else if (finding === "revealed-search") {
+    loose(0, Zone.Hand, "BT3-093", "davis");
+    clearZone(human, Zone.Deck);
+    for (const [index, card] of ["BT1-085", "BT1-027", "BT1-064", "BT1-010", ...Array(16).fill("BT1-085")].entries())
+      insertCard(human, Zone.Deck, faceDownCard(`oct06-latest-reveal-${index}`, card, 0));
+  }
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
+  "arena-oct06-king-sukamon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "king-sukamon-assembly"),
+  "arena-oct06-chuumon-trash-revival": (state, decks) => layOct06LatestScenario(state, decks, "chuumon-trash-revival"),
+  "arena-oct06-dorbickmon-digixros": (state, decks) => layOct06LatestScenario(state, decks, "dorbickmon-digixros"),
+  "arena-oct06-snow-goblimon-reveal": (state, decks) => layOct06LatestScenario(state, decks, "snow-goblimon-reveal"),
+  "arena-oct06-sukamon-bt11-deletion-search": (state, decks) => layOct06LatestScenario(state, decks, "sukamon-bt11"),
+  "arena-oct06-sukamon-bt3-deletion-search": (state, decks) => layOct06LatestScenario(state, decks, "sukamon-bt3"),
+  "arena-oct06-sukamon-ex13-deletion-search": (state, decks) => layOct06LatestScenario(state, decks, "sukamon-ex13"),
+  "arena-oct06-trash-recovery": (state, decks) => layOct06LatestScenario(state, decks, "trash-recovery"),
+  "arena-oct06-revealed-search": (state, decks) => layOct06LatestScenario(state, decks, "revealed-search"),
+  "arena-oct06-mastemon-owner-security": (state, decks) =>
+    layOct06LatestScenario(state, decks, "mastemon-owner-security"),
+  "arena-oct06-kyo-barrier": (state, decks) => layOct06LatestScenario(state, decks, "kyo-barrier"),
+  "arena-oct06-millennium-deck-order": (state, decks) => layOct06LatestScenario(state, decks, "millennium-deck-order"),
+  "arena-oct06-kazemon-blast": (state, decks) => layOct06LatestScenario(state, decks, "kazemon-blast"),
+  "arena-oct06-asuna-jupiter": (state, decks) => layOct06LatestScenario(state, decks, "asuna-jupiter"),
+  "arena-oct06-giromon-assembly": (state, decks) => layOct06LatestScenario(state, decks, "giromon-assembly"),
+
   "arena-oct06-blue-scramble-decline": (state, decks) => layOct06Scenario(state, decks, "blue-scramble-decline"),
   "arena-oct06-rina-decline": (state, decks) => layOct06Scenario(state, decks, "rina-decline"),
   "arena-oct06-vortex-opt-decline": (state, decks) => layOct06Scenario(state, decks, "vortex-opt-decline"),

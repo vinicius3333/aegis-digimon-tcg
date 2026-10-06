@@ -23,6 +23,7 @@ import { trapDialogFocus } from "./decisionFocusTrap";
 import { DecisionOptionalFooter } from "./DecisionOptionalFooter";
 import { DecisionOrderCardsFooter } from "./DecisionOrderCardsFooter";
 import { DecisionOrderCardsPanel } from "./DecisionOrderCardsPanel";
+import { reorderDecisionItems } from "./useDecisionReorder";
 import { totalPlayCost } from "./decisionPlayCost";
 import { totalDP } from "./decisionDpBudget";
 import { DecisionSelectFooter } from "./DecisionSelectFooter";
@@ -120,7 +121,7 @@ export function DecisionOverlay({
   const isOrderTriggers = request.kind === "orderTriggers";
   const isResolutionPlan = isOrderTriggers && request.options?.acceptsResolutionPlan === true;
   const isOrdering = isOrderCards || isOrderTriggers;
-  const surface = isCardChoice || isOrdering ? "center" : effectDecisionSurface(request);
+  const surface = isSecurityChoice ? "left" : isCardChoice || isOrdering ? "center" : effectDecisionSurface(request);
   const docksOnRail = surface === "left";
   const triggerKeys = request.options?.triggerKeys ?? [];
   const triggerCardIds = request.options?.triggerCardIds ?? [];
@@ -340,6 +341,7 @@ export function DecisionOverlay({
               wideDialog={wideDialog}
               orderDestination={request.options?.orderDestination}
               onMove={moveOrderedCard}
+              onReorder={(from, to) => setCardOrder((current) => reorderDecisionItems(current, from, to))}
             />
           ) : null}
 

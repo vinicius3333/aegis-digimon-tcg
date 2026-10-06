@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const output = resolve(root, "apps/web/public/dev/modal-review");
+const baseUrl = process.env.AEGIS_MODAL_REVIEW_URL ?? "http://localhost:5184";
 mkdirSync(output, { recursive: true });
 const scope = [
   "--worktree",
@@ -27,7 +28,7 @@ const source = readFileSync(resolve(root, "apps/web/src/dev/EffectPromptGallery.
 const cases = [
   ...source
     .slice(source.indexOf("export const EFFECT_PROMPT_CASES"), source.indexOf("] as const;"))
-    .matchAll(/\["([^"]+)", "([^"]+)", "([^"]+)"\]/g),
+    .matchAll(/\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,?\s*\]/g),
 ].map(([, id, title]) => ({ id, title, url: `/dev/effect-prompts?case=${id}&controls=0` }));
 cases.push(
   {
@@ -74,7 +75,7 @@ for (const item of cases.filter((candidateCase) => !requested.length || requeste
     const file = resolve(output, `${item.id}-${format}.png`);
     if (!requested.length && existsSync(file)) continue;
     try {
-      orca("goto", "--url", `http://localhost:5184${item.url}`);
+      orca("goto", "--url", `${baseUrl}${item.url}`);
       orca("exec", "--command", `set viewport ${width} ${height}`);
       orca("wait", "--selector", item.url.startsWith("/dev/mobile") ? ".mobile-lab-frame" : ".effect-prompt-gallery");
       orca("wait", "--load", "networkidle");

@@ -140,7 +140,7 @@ export function DigiXrosMaterialOverlay({
       <div
         {...focusProps}
         className="game-modal__panel effect-prompt-family material-prompt"
-        data-prompt-surface="left"
+        data-prompt-surface="center"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

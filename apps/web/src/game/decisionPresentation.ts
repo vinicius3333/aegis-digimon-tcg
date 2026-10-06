@@ -79,13 +79,16 @@ export function decisionPresentation({
   return decision.kind === "optional" && sourcePermanentId !== undefined ? "board" : "dialog";
 }
 
-/** Every effect decision shares the lower-left dock. */
-export function effectDecisionSurface(_decision: DecisionRequest): "left" {
-  return "left";
+/** Card galleries need the central dialog; compact activation choices keep the board rail. */
+export function effectDecisionSurface(decision: DecisionRequest): "left" | "center" {
+  if (decision.options?.selectionContext === "partitionActivation") return "left";
+  return ["chooseTargets", "selectCards", "orderCards", "orderTriggers", "mulligan"].includes(decision.kind)
+    ? "center"
+    : "left";
 }
 
 /**
- * The permanent an `optional` decision's source card is sitting on, so the board
+ * The permanent a pending decision's source card is sitting on, so the board
  * prompt can highlight it. Physical source identity also locates effects buried
  * in a digivolution stack; older requests fall back to the face-up card code.
  */

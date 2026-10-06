@@ -489,11 +489,11 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
 @media (width < 600px) {
   .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__order-row {
     display: grid !important;
-    grid-template-columns: 48px minmax(0, 1fr) 44px;
+    grid-template-columns: 32px 48px minmax(0, 1fr) 44px;
     gap: var(--ds-space-2) !important;
   }
   .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__order-card {
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 1 / 3;
   }
   .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__order-card > div {
@@ -502,14 +502,14 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
     aspect-ratio: 5 / 7;
   }
   .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__order-row > span {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1 / 3;
     min-width: 0;
     overflow-wrap: anywhere;
     font-size: var(--ds-text-sm);
   }
   .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__order-row > button {
-    grid-column: 3;
+    grid-column: 4;
     min-width: 44px;
     min-height: 44px;
     padding: 0;
@@ -686,16 +686,15 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   }
 }
 
-/* Every selection shares the corner, width and height limit. Galleries use the
-   full frame; board rails fit their contents without a blank spacer. */
+/* Compact action rails share the corner. Card galleries keep their central frame. */
 :root {
   --effect-prompt-height: min(24rem, calc(45dvh - var(--ds-space-4)));
 }
-.game-modal__panel.effect-prompt-family[data-prompt-surface],
-.game-modal__panel.effect-prompt-family.decision-overlay--wide[data-prompt-surface],
-.game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface],
-.board-prompt[data-prompt-surface][data-variant],
-.board-prompt.combat-prompt[data-prompt-surface][data-variant] {
+.game-modal__panel.effect-prompt-family[data-prompt-surface="left"],
+.game-modal__panel.effect-prompt-family.decision-overlay--wide[data-prompt-surface="left"],
+.game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface="left"],
+.board-prompt[data-prompt-surface="left"][data-variant],
+.board-prompt.combat-prompt[data-prompt-surface="left"][data-variant] {
   top: auto !important;
   bottom: max(var(--ds-space-2), env(safe-area-inset-bottom, 0px)) !important;
   left: max(var(--ds-space-2), env(safe-area-inset-left, 0px)) !important;
@@ -708,6 +707,20 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   padding: var(--ds-space-4) !important;
   translate: none !important;
   transform: none !important;
+}
+
+.game-modal__panel.decision-overlay.effect-prompt-family[data-prompt-surface="left"] {
+  height: auto !important;
+}
+.game-modal__panel.decision-overlay.effect-prompt-family[data-prompt-surface="left"] .decision-overlay__footer {
+  bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+@media (width >= 768px) and (height >= 520px) {
+  .game-modal__panel.decision-overlay.effect-prompt-family[data-prompt-surface="left"] {
+    max-height: calc(100dvh - var(--ds-space-4)) !important;
+  }
 }
 
 .game-modal__panel.action-confirmation.effect-prompt-family[data-prompt-surface] {
@@ -916,7 +929,7 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
     .decision-overlay__order-list
     > div:last-child {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--ds-space-3) !important;
   }
   .game-modal__panel.effect-prompt-family.decision-overlay--ordering[data-prompt-surface]
@@ -932,5 +945,136 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   .game-modal__panel.effect-prompt-family.decision-overlay--ordering[data-prompt-surface] .trigger-chooser__status {
     grid-column: 1 / -1;
     grid-row: 2;
+  }
+}
+
+/* Discord 1557059213266522233: desktop card galleries must fit cards above their actions. */
+@media (width >= 768px) and (height >= 520px) {
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface="center"] {
+    height: auto !important;
+    max-height: min(84dvh, calc(100dvh - var(--ds-space-8))) !important;
+    overflow: hidden !important;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface="center"] .material-prompt__body {
+    flex: 1 1 auto;
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--selection[data-prompt-surface="center"] {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+    max-height: min(84dvh, calc(100dvh - var(--ds-space-8))) !important;
+    width: min(64rem, calc(100vw - var(--ds-space-8))) !important;
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--selection[data-prompt-surface="center"]
+    .decision-overlay__selection {
+    min-height: 0;
+    overflow: hidden auto;
+  }
+  .game-modal__panel.effect-prompt-family.decision-overlay--selection[data-prompt-surface="center"]
+    .decision-overlay__footer {
+    position: static;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+/* Every decision header uses the compact illustration crop, on desktop and mobile.
+   Selectable cards retain their complete artwork. */
+.effect-prompt-family .mobile-prompt-art {
+  display: block;
+  flex: none;
+  width: 4rem;
+  height: 3rem;
+  overflow: hidden;
+  border-radius: var(--ds-radius-md);
+}
+.effect-prompt-family .mobile-prompt-art > :is(div, img) {
+  width: 4rem !important;
+  height: auto !important;
+  aspect-ratio: 5 / 7;
+  transform: translateY(calc(-1 * var(--ds-space-2)));
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.game-modal__panel.effect-prompt-family[data-prompt-surface]
+  .decision-overlay__header:has(.decision-overlay__effect-text),
+.game-modal__panel.effect-prompt-family[data-prompt-surface] .action-confirmation__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4rem;
+  grid-template-areas: "heading heading" "clause art";
+}
+.game-modal__panel.effect-prompt-family[data-prompt-surface]
+  .decision-overlay__header:has(.decision-overlay__effect-text)
+  .decision-overlay__question,
+.game-modal__panel.effect-prompt-family[data-prompt-surface] .action-confirmation__copy {
+  display: contents;
+}
+.game-modal__panel.effect-prompt-family[data-prompt-surface]
+  .decision-overlay__header:has(.decision-overlay__effect-text)
+  .decision-overlay__heading,
+.game-modal__panel.effect-prompt-family[data-prompt-surface] .action-confirmation__title {
+  grid-area: heading;
+  margin: 0;
+}
+.game-modal__panel.effect-prompt-family[data-prompt-surface]
+  .decision-overlay__header:has(.decision-overlay__effect-text)
+  .decision-overlay__effect-text,
+.game-modal__panel.effect-prompt-family[data-prompt-surface] .action-confirmation__detail {
+  grid-area: clause;
+}
+.game-modal__panel.effect-prompt-family[data-prompt-surface]
+  .decision-overlay__header:has(.decision-overlay__effect-text)
+  .decision-overlay__source-art,
+.game-modal__panel.effect-prompt-family[data-prompt-surface] .action-confirmation__header .mobile-prompt-art {
+  grid-area: art;
+}
+
+/* Shared mouse, touch and keyboard handle for ordered cards and resolution plans. */
+.decision-reorder-handle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  min-height: 44px;
+  padding: 0;
+  color: var(--ds-fg-secondary);
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.decision-reorder-handle:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+[data-reorder-id][data-dragging] {
+  opacity: 0.3;
+  outline: 2px dashed var(--ds-accent);
+  outline-offset: -2px;
+}
+[data-reorder-id][data-dragging] .decision-reorder-handle {
+  cursor: grabbing;
+}
+[data-reorder-id][data-drop-target] {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: -2px;
+}
+.trigger-chooser--plan .trigger-chooser__entry[data-reorder-id] {
+  position: relative;
+  padding-left: 40px;
+}
+.trigger-chooser--plan .decision-reorder-handle {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  translate: 0 -50%;
+}
+@media (width < 600px) {
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__order-row > .decision-reorder-handle {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    min-width: 32px;
   }
 }

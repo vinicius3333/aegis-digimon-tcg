@@ -7,6 +7,7 @@ const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const require = createRequire(resolve(root, "apps/web/package.json"));
 const { chromium } = require("@playwright/test");
 const output = resolve(root, "apps/web/public/dev/modal-review");
+const baseUrl = process.env.AEGIS_MODAL_REVIEW_URL ?? "http://localhost:5184";
 const cases = JSON.parse(readFileSync(resolve(output, "manifest.json"), "utf8"));
 const browser = await chromium.launch();
 const context = await browser.newContext({ locale: "pt-BR", reducedMotion: "reduce" });
@@ -22,7 +23,7 @@ try {
       const path = resolve(output, `${item.id}-${format}.png`);
       if (!process.argv.includes("--refresh") && existsSync(path)) continue;
       await page.setViewportSize({ width, height });
-      await page.goto(`http://localhost:5184${item.url}`);
+      await page.goto(`${baseUrl}${item.url}`);
       await page.locator(item.url.startsWith("/dev/mobile") ? ".mobile-lab-frame" : ".effect-prompt-gallery").waitFor();
       if (item.answer !== undefined) {
         await page

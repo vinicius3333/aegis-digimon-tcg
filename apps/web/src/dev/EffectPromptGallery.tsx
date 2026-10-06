@@ -49,6 +49,13 @@ import "./effectPromptGallery.css";
 export const EFFECT_PROMPT_CASES = [
   ["optional-field", "Optional effect · field", "left"],
   ["optional-hidden", "Optional effect · hidden/revealed", "left"],
+  ["millennium-depth", "Millenniummon · De-Digivolve depth", "left"],
+  ["millennium-delete", "Millenniummon · optional deletion / field highlight", "left"],
+  ["trash-recovery", "Matt Ishida · select from trash", "center"],
+  ["revealed-search", "Davis Motomiya · select revealed cards", "center"],
+  ["sukamon-bt11", "Sukamon BT11 · deletion / reveal to hand", "center"],
+  ["sukamon-bt3", "Sukamon BT3 · deletion / reveal to field", "center"],
+  ["sukamon-ex13", "Sukamon EX13 · deletion / reveal to field", "center"],
   ["choose-yes-no", "Choose option · use / decline", "left"],
   ["choose-clauses", "Choose option · printed clauses", "left"],
   ["choose-effects", "Choose option · borrowed effects", "center"],
@@ -113,6 +120,17 @@ export function EffectPromptGallery() {
   useEffect(applyDarkMode, []);
   const state = useMemo(() => {
     const preview = createArenaDemoState();
+    if (caseId.startsWith("millennium-")) {
+      preview.players[0]!.battleArea.clear();
+      preview.players[0]!.battleArea.push(
+        permanent({
+          permanentId: "gallery-millennium",
+          cardId: "P-220",
+          baseDP: 14000,
+          stackCardIds: ["BT18-015", "BT18-007", "BT18-002"],
+        }),
+      );
+    }
     if (caseId === "source-host") {
       preview.players[0]!.battleArea.clear();
       preview.players[0]!.battleArea.push(
@@ -152,7 +170,30 @@ export function EffectPromptGallery() {
     return preview;
   }, [caseId, active]);
   const combatPreview = ["alliance", "alliance-empty", "block", "collision", "collision-empty"].includes(caseId);
-  const handDecision = useMemo(() => {
+  const boardDecision = useMemo(() => {
+    if (caseId.startsWith("millennium-")) {
+      const source = state.players[0]!.battleArea[0]!;
+      const deletion = caseId === "millennium-delete";
+      return {
+        decisionId: `gallery-${caseId}-${revision}`,
+        seat: 0,
+        kind: deletion ? "optional" : "chooseOption",
+        sourceCardId: source.topCard.cardId,
+        sourceInstanceId: source.topCard.instanceId,
+        sourcePermanentId: source.permanentId,
+        promptText: "",
+        options: {
+          timing: "OnPlay",
+          effectText: deletion
+            ? "Then, you may delete 1 Digimon."
+            : "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
+          effectTextPart: deletion
+            ? "Then, you may delete 1 Digimon."
+            : "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
+          ...(deletion ? {} : { choices: ["2 cards", "1 card"] }),
+        },
+      } satisfies DecisionRequest;
+    }
     if (caseId === "source-host") {
       const sourceCardId = "EX12-077";
       return {
@@ -276,7 +317,7 @@ export function EffectPromptGallery() {
             state,
             events: [],
             batches: [],
-            decision: active ? handDecision : undefined,
+            decision: active ? boardDecision : undefined,
             respondDecision: respond,
             acknowledgeDecision: () => {},
             error: undefined,
@@ -285,7 +326,7 @@ export function EffectPromptGallery() {
           }}
         />
         {active ? (
-          handDecision || combatPreview ? null : (
+          boardDecision || combatPreview ? null : (
             <GalleryPrompt key={`${caseId}-${revision}`} caseId={caseId} board={boardRef.current} onRespond={respond} />
           )
         ) : (
@@ -542,6 +583,41 @@ function GalleryPrompt({
     options: { timing: "OnUseAttack", effectText: getCardDefinition(CARDS.champion)?.effectText, min: 0, max: 2 },
   };
   if (caseId.startsWith("optional-")) candidates = [];
+  if (["trash-recovery", "revealed-search"].includes(caseId) || caseId.startsWith("sukamon-")) {
+    const trash = caseId === "trash-recovery";
+    const sukamon = caseId.startsWith("sukamon-");
+    const sourceCardId = trash
+      ? "BT2-090"
+      : !sukamon
+        ? "BT3-093"
+        : caseId === "sukamon-bt11"
+          ? "BT11-040"
+          : caseId === "sukamon-bt3"
+            ? "BT3-063"
+            : "EX13-028";
+    const cardIds = trash
+      ? ["BT2-069", "BT2-108", "BT1-010"]
+      : sukamon
+        ? ["BT3-061", caseId === "sukamon-bt3" ? "BT3-061" : "BT14-034", "BT1-010"]
+        : ["BT1-027", "BT1-064", "BT1-010"];
+    candidates = cardIds.map((cardId, index) => ({
+      instanceId: `gallery-search-${index}`,
+      cardId,
+      ...(trash ? { zone: "trash" as const } : {}),
+    }));
+    request.kind = "selectCards";
+    request.sourceCardId = sourceCardId;
+    request.options = {
+      min: 0,
+      max: 1,
+      timing: trash || !sukamon ? "OnPlay" : "OnDeletion",
+      effectText: getCardDefinition(sourceCardId)?.effectText,
+      candidateInstanceIds: (caseId === "revealed-search" ? candidates.slice(0, 1) : candidates.slice(0, 2)).map(
+        (card) => card.instanceId,
+      ),
+    };
+  }
+
   if (caseId === "choose-yes-no") {
     request.kind = "chooseOption";
     request.options = { choices: [t("overlay.use"), t("overlay.notUse")], declineIndex: 1 };
@@ -650,7 +726,10 @@ function GalleryPrompt({
       permanents={permanents}
       sourceCardId={request.sourceCardId}
       candidates={candidates}
-      allowsPick={(id) => picks.includes(id) || picks.length < (request.options?.max ?? 1)}
+      allowsPick={(id) =>
+        picks.includes(id) ||
+        ((request.options?.candidateInstanceIds?.includes(id) ?? true) && picks.length < (request.options?.max ?? 1))
+      }
       picks={picks}
       min={request.options?.min ?? 1}
       max={request.options?.max ?? 1}

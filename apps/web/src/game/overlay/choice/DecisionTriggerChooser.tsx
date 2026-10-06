@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { DecisionReorderHandle } from "./DecisionReorderHandle";
+import { reorderDecisionItems, useDecisionReorder } from "./useDecisionReorder";
 import { getCardDefinition, parseTriggerKey, type DecisionResponse } from "@aegis/shared";
 import { EffectText } from "../../EffectText";
 import { CardFull } from "../../../design/cards";
@@ -102,6 +104,13 @@ export function DecisionTriggerChooser({
   const visibleIndexes = onceActivatableIndexes(triggerKeys, entryClauses);
   const optionCount = visibleIndexes.length;
   const visibleKeys = visibleIndexes.map((index) => triggerKeys[index]!);
+  const displayedKeys = acceptsResolutionPlan
+    ? [...order, ...visibleKeys.filter((key) => !order.includes(key))]
+    : visibleKeys;
+  const reorder = (from: string, to: string) => {
+    if (acceptsResolutionPlan) setOrder(reorderDecisionItems(displayedKeys, from, to));
+  };
+  const drag = useDecisionReorder(reorder);
   const optionalKeys = acceptsResolutionPlan
     ? visibleIndexes.filter((index) => triggerIsOptional?.[index] === true).map((index) => triggerKeys[index]!)
     : [];
@@ -185,9 +194,14 @@ export function DecisionTriggerChooser({
           ) : null}
         </div>
       ) : null}
-      <div className={`trigger-chooser${acceptsResolutionPlan ? " trigger-chooser--plan" : ""}`}>
-        {visibleIndexes.map((i) => {
-          const key = triggerKeys[i]!;
+      <div
+        ref={drag.listRef}
+        role={acceptsResolutionPlan ? "list" : undefined}
+        aria-label={acceptsResolutionPlan ? t("overlay.orderPendingEffects") : undefined}
+        className={`trigger-chooser${acceptsResolutionPlan ? " trigger-chooser--plan" : ""}`}
+      >
+        {displayedKeys.map((key, displayIndex) => {
+          const i = triggerKeys.indexOf(key);
           const position = order.indexOf(key);
           const chosen = position >= 0;
           const isOptional = optionalKeys.includes(key);
@@ -196,7 +210,25 @@ export function DecisionTriggerChooser({
           const timingLabel = triggerTimingLabels[i];
           const activeClause = entryClauses[i];
           return (
-            <div key={key} className={`trigger-chooser__entry${chosen ? " trigger-chooser__entry--chosen" : ""}`}>
+            <div
+              key={key}
+              role={acceptsResolutionPlan ? "listitem" : undefined}
+              data-reorder-id={acceptsResolutionPlan ? key : undefined}
+              data-dragging={drag.dragging === key || undefined}
+              data-drop-target={(drag.dropTarget === key && drag.dragging !== key) || undefined}
+              className={`trigger-chooser__entry${chosen ? " trigger-chooser__entry--chosen" : ""}`}
+            >
+              {acceptsResolutionPlan && optionCount > 1 ? (
+                <DecisionReorderHandle
+                  position={displayIndex + 1}
+                  onCancel={drag.cancel}
+                  {...drag.handleProps(key)}
+                  onMove={(delta) => {
+                    const target = displayedKeys[displayIndex + delta];
+                    if (target) reorder(key, target);
+                  }}
+                />
+              ) : null}
               <button
                 type="button"
                 className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}

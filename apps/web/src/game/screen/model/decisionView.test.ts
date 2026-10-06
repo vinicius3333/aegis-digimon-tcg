@@ -36,3 +36,41 @@ it("keeps field-card choices on the board even when a preceding prompt requested
     }).answerOnBoard,
   ).toBe(false);
 });
+
+it.each(["optional", "chooseOption", "selectCards"] as const)(
+  "keeps the precise field source highlighted while a %s dialog is open",
+  (kind) => {
+    const state = createArenaDemoState();
+    const permanents = [...state.players].flatMap((player) => [...player.battleArea]);
+    const source = permanents[0]!;
+    const inputs = {
+      decision: {
+        decisionId: "field-source-dialog",
+        seat: 0 as const,
+        kind,
+        sourceCardId: source.topCard.cardId,
+        sourceInstanceId: source.topCard.instanceId,
+        promptText: "Resolve this effect?",
+        options: { choices: ["2 cards", "1 card"], candidateInstanceIds: [state.players[0]!.hand[0]!.instanceId] },
+      },
+      decisionAnimationsPending: false,
+      decisionAsDialog: true,
+      viewerSeat: 0 as const,
+      events: [],
+      state,
+      instanceIndex: new Map<string, string>(),
+      permanents,
+      breedingPermanents: [],
+      handInstanceIds: [...state.players[0]!.hand].map((card) => card.instanceId),
+    };
+    expect(decisionViewFor(inputs).answerOnBoard).toBe(false);
+    expect(decisionViewFor(inputs).decisionHighlightPermanentId).toBe(source.permanentId);
+    expect(
+      decisionViewFor({ ...inputs, decisionAnimationsPending: true }).decisionHighlightPermanentId,
+    ).toBeUndefined();
+    expect(decisionViewFor({ ...inputs, decision: undefined }).decisionHighlightPermanentId).toBeUndefined();
+    expect(
+      decisionViewFor({ ...inputs, permanents: permanents.slice(1) }).decisionHighlightPermanentId,
+    ).toBeUndefined();
+  },
+);

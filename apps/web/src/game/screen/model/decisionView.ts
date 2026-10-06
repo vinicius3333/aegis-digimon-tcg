@@ -16,8 +16,8 @@ export type DecisionView = {
   /** True when the answer is given by tapping the board rather than in a dialog. */
   answerOnBoard: boolean;
   /**
-   * The permanent the prompt came from, or the attacker for an attack target, highlighted only
-   * while it is answered on the board.
+   * The permanent the prompt came from, or the attacker for an attack target, highlighted
+   * for the whole decision, including dialogs.
    */
   decisionHighlightPermanentId: string | undefined;
   /**
@@ -78,10 +78,9 @@ export function decisionViewFor({
 }): DecisionView {
   const viewerDecision = decision && decision.seat === viewerSeat && !decisionAnimationsPending ? decision : undefined;
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
-  const decisionSourcePermanentId =
-    viewerDecision?.kind === "optional"
-      ? sourcePermanentIdOf(decisionSourceCardId, permanents, viewerDecision)
-      : undefined;
+  const decisionSourcePermanentId = viewerDecision
+    ? sourcePermanentIdOf(decisionSourceCardId, permanents, viewerDecision)
+    : undefined;
   const fieldInstanceIds = permanents.flatMap((permanent) => [permanent.permanentId, permanent.topCard.instanceId]);
   const boardPresentation = viewerDecision
     ? decisionPresentation({
@@ -105,9 +104,8 @@ export function decisionViewFor({
     viewerDecision,
     answerOnBoard,
     decisionSourceCardId,
-    decisionHighlightPermanentId: !answerOnBoard
-      ? undefined
-      : viewerDecision?.options?.selectionContext === "attackTarget"
+    decisionHighlightPermanentId:
+      viewerDecision?.options?.selectionContext === "attackTarget"
         ? viewerDecision.sourcePermanentId
         : decisionSourcePermanentId,
     decisionBreedingSourcePermanentId:
