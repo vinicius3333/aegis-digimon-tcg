@@ -218,10 +218,31 @@ zero maximum parameter change and the exact original qualified checkpoint
 Streaming evaluation does not save/reload a new checkpoint; its
 `checkpointReloadExact: false` is retained as reported.
 
-The next actual PPO candidate process is PID 28640/start ticks 282585. Its
-exact argv and identity were checked live. The whole six-policy comparison
-remains incomplete, so this single evaluation establishes neither strict
-per-recipe gains nor acceptance.
+The next actual PPO candidate process was PID 28640/start ticks 282585. It
+has now also completed all 3,872 games with actual child exit zero, 2,408 wins,
+1,464 losses, zero failed/unusable/payment-forfeit games and five recovered
+deferred plays. The unchanged full record guard passes, and streaming
+verification records zero parameter change with checkpoint
+`8490902dc7b6fa67c96ed141407e5684380e8ac761ff6b5191d13d77ce14bb34`
+preserved. The actual receipt/result/verification SHA-256 values are
+`03a6f9af885a378e186cc8d64dbcd40c872b8dd2814a61eacaa8e97632b15238`,
+`1cbfa643732d87a9d28d793221ae56f8ccfc4d3d2e1c230c53ee8b5899a084a9`
+and `8b8bdffbffab2c4d159f4c6c9edc4458cd1efa4e31e16a05792b725bdd54e4b7`.
+The local full single-policy observation SHA-256 is
+`dfac9d6f615ec021d6d93cc5087c3093b41074bec1f92c944d62afa7c120c4a9`.
+
+The first actual reference, primary-before, is now live at PID 56750/start
+ticks 563048, with exact argv verified. The whole six-policy comparison remains
+incomplete. A readonly comparison of the two completed candidate reports
+finds PPO gains over imitation in 40 recipes, regressions in three and a tie
+in one. The regressions are CS HiAndromon (48 versus 51 wins), the DGO Chronomon
+recipe (70 versus 72) and Dynasmon (67 versus 69); Rosemon ties at 31 wins.
+This is a candidate-to-candidate description, not the pending four-reference
+strength gate. Its report SHA-256 is
+`776f9648001c7e699c1ca0961b0c9e8aff898cd71e82bd49d9d48eb1d98595ec`.
+Proposal counts do not establish reconstructed physical mechanics or mastery,
+and neither completed evaluation or their aggregate totals establishes final
+acceptance.
 
 ## Current physical-capture preparation
 
