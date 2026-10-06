@@ -205,6 +205,51 @@ checkpoint/source/runtime pins are guarded before/after each policy. The
 reserved final seed block remains unused. Full original failed comparisons and
 diagnostics remain immutable; current results use fresh output directories.
 
+## First actual completed current evaluation
+
+The imitation-candidate evaluation has now completed all 3,872 development
+games with 2,025 wins, 1,847 losses, zero failed/unusable/payment-forfeit games
+and six recovered deferred plays. Its actual child exit is zero, with receipt
+SHA-256 `27c0a7c75e0b7cc115ce8c4e94475198d6243f6b8b89242b0921a3053a2a5917`.
+The unchanged full record guard verifies all 44 recipes, the complete original
+paired schedule and every natural terminal. Streaming verification records
+zero maximum parameter change and the exact original qualified checkpoint
+`0e3cab723e6899b347d8615347dd79b6300f196dfd1c152eb00d67d8355c7d73`.
+Streaming evaluation does not save/reload a new checkpoint; its
+`checkpointReloadExact: false` is retained as reported.
+
+The next actual PPO candidate process is PID 28640/start ticks 282585. Its
+exact argv and identity were checked live. The whole six-policy comparison
+remains incomplete, so this single evaluation establishes neither strict
+per-recipe gains nor acceptance.
+
+## Current physical-capture preparation
+
+External draft `/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-physical.py`
+has SHA-256 `f96632d405d5bd1be1c07c7eab4f4a9efb62a2a7174b422740e064006db75645`.
+It consumes the unchanged current full comparison reader, requires an actual
+whole-zero completion pin and strict gains in every recipe against every
+reference, binds the selected current checkpoint directly, and reuses the
+original schedule/capture/raw reconstruction/full-Fusion/material-custody
+validators. It requires a distinct sealed ROOT source/resource agreement,
+idle compute, fresh seed inventories and an attached actual whole before
+model imports. Pre/post guards preserve source, compiled runtime, checkpoint
+and proof bytes; the producer freezes and checks all twelve finite tensors.
+
+Eleven explicitly synthetic admission/whole/parent/pristine-row guards pass.
+An actual readonly desktop inspection confirms all original helper pins,
+imports their static consumers without Torch, and constructs the unchanged
+440-cell schedule with all 44 recipes and 220 cells per seat. This is source
+preparation: the new operator has not been uploaded, fully admitted on the
+desktop or executed, and no physical matches or primary models were started.
+The source-review report SHA-256 is
+`ee8dba2aaeb2b59bc432f3587a8fe3b531c3c9d8dab79537e410cefcff5de798`.
+The actual selected checkpoint, comparison completion, fresh request/inventory
+and separate ROOT resource agreement remain pending. The draft explicitly
+preserves missing witnesses and the distinction between card visibility,
+selected-material custody and independent printed-recipe/payment mastery.
+It changes neither the qualified source archive nor any checkpoint metadata.
+
 ## Remaining work
 
 Close the current six-policy comparison, diagnose imitation/PPO per-deck
