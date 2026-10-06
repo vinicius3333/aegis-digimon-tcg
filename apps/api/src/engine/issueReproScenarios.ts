@@ -25,6 +25,13 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5176-king-drasil-ace": {
+    memory: 5,
+    players: [
+      { breeding: { card: "BT13-007" }, field: [{ card: "BT20-060", under: ["BT13-111"] }], hand: ["BT1-085"] },
+      {},
+    ],
+  },
   "arena-issue-5166-dna-material-pairs": {
     memory: 8,
     players: [

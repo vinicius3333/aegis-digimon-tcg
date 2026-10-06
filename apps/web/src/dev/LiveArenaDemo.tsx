@@ -116,6 +116,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e jogue Leopardmon sem Assembly. Selecione Alphamon diretamente na mesa e confirme para suspendê-lo; nenhuma confirmação separada de ativação deve aparecer. Na escolha seguinte, selecione um Dorumon na mesa; nenhuma galeria de alvos deve abrir. Se desejar, use Visualizar mesa para recolher os controles. Segure Alphamon ou toque na lupa para ler a carta e seus herdados; toque na arte para ampliar. Feche e retorne à decisão: o Dorumon selecionado deve continuar marcado. Só Confirmar alvos envia a escolha; o herdado de Grademon pode então proteger Dorumon.",
     en: "End breeding and play Leopardmon without Assembly. Select Alphamon directly on the board and confirm to suspend it; no separate activation confirmation should appear. In the next choice, select a Dorumon on the board; no target gallery should open. Optionally use View board to hide the controls. Hold Alphamon or tap its magnifier to read the card and its inherited effects; tap the art to zoom. Close and return to the decision: the selected Dorumon must remain picked. Only Confirm targets sends the choice; Grademon's inherited effect can then protect Dorumon.",
   },
+  "arena-issue-5176-king-drasil-ace": {
+    en: "Skip breeding. King Drasil places Alphamon: Ouryuken ACE and the revealed egg under itself at the start of Main. Order those cards; the ACE's previous source goes to trash. Overflow must not charge memory. A Royal Knight played during Main stays on the field until your next Main.",
+    ptBR: "Pule a criação. King Drasil coloca Alphamon: Ouryuken ACE e o ovo revelado sob si no início da Principal. Ordene essas cartas; a fonte anterior do ACE vai para o lixo. Overflow não deve cobrar memória. Um Royal Knight jogado durante a Principal fica em campo até sua próxima Principal.",
+  },
   "arena-issue-5166-dna-material-pairs": {
     en: "Select Mastemon and a DNA material. Choose Pair 2 (LadyDevimon with one digivolution card) and confirm. The other LadyDevimon must remain on the field. Also try with action confirmations disabled.",
     ptBR: "Selecione Mastemon e um material de DNA. Escolha o Par 2 (LadyDevimon com uma carta de digievolução) e confirme. A outra LadyDevimon deve ficar em campo. Teste também com as confirmações de ação desativadas.",
@@ -1656,6 +1660,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-oct06-inherited-battle", "06/10 · Groundramon · herdado após De-Digivolve"],
   ["arena-oct06-active-overflow", "06/10 · Overflow · início do turno"],
   ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
+  ["arena-issue-5176-king-drasil-ace", "#5176 · King Drasil absorbs Royal Knight ACE"],
   ["arena-issue-5166-dna-material-pairs", "#5166 · DNA material pair choice"],
   ["arena-issue-5173-cyber-engage", "#5173 · Cyber Engage reduced cost"],
   ["arena-issue-5173-cyber-engage-psychemon", "#5173 · Cyber Engage vs Psychemon"],
