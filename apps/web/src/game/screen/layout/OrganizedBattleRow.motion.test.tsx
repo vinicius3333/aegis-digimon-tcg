@@ -346,7 +346,7 @@ it("keeps a merging copy on the same clock when another row changes the shared c
       />
     </I18nProvider>
   );
-  reportFieldCardWidth("motion-test-peer", { heightFitted: 100, drawn: 35 });
+  reportFieldCardWidth("motion-test-peer", { heightFitted: 100, drawn: 35, beside: 35 });
   try {
     const { container, rerender, unmount } = render(view(false));
     rerender(view(true));
@@ -354,7 +354,7 @@ it("keeps a merging copy on the same clock when another row changes the shared c
     expect(copy).not.toBeNull();
     const flight = calls.find((call) => call.element === copy)!;
     const sourceCentre = Number.parseFloat(copy!.style.left) + copy!.parentElement!.getBoundingClientRect().left;
-    act(() => reportFieldCardWidth("motion-test-peer", { heightFitted: 100, drawn: 37 }));
+    act(() => reportFieldCardWidth("motion-test-peer", { heightFitted: 100, drawn: 37, beside: 37 }));
     expect(container.querySelector('[data-testid="field-group-return"]')).toBe(copy);
     expect(flight.animation.cancel).not.toHaveBeenCalled();
     expect(flight.animation.currentTime).toBe(105);

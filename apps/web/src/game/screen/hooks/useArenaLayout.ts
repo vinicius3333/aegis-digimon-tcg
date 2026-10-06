@@ -114,7 +114,7 @@ export function useArenaLayout(): ArenaLayout {
   const fieldWidthCeiling =
     organized && !sidelineArena && !portraitArena ? Math.min(arenaPermanentWidth, arenaPileWidth) : arenaPermanentWidth;
   const fieldCardWidth = useFieldCardWidth();
-  const sharedRaisingWidth = fieldCardWidth?.drawn ?? fieldWidthCeiling;
+  const sharedRaisingWidth = fieldCardWidth?.beside ?? fieldWidthCeiling;
   const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const collapseNotices = narrowGameLayout && !landscapePhone;
   return {
