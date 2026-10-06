@@ -32,6 +32,7 @@ import { isBlitzGrant } from "./actions/combat.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { borrowedProcessingCost } from "./borrowedProcessingCost.js";
 import { canAttemptDigivolveBeforeCost } from "./actions/digivolve.js";
+import { isSecuritySearchDigivolvePair, runSecuritySearchDigivolve } from "./actions/securitySearchDigivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { mayDeclareAttack } from "./actions/meta.js";
@@ -825,7 +826,17 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           // would let callers observe an action that has not started yet.
           if (actionIndex > 0 && isPredecidableProcessingCost(resolvingAction))
             await decideProcessingConditionAtClause(ctxWithSelections, resolvingAction, actionIndex);
-          abort = await runAction(ctxWithSelections, resolvingAction);
+          const nextAction = actions[actionIndex + 1];
+          if (isSecuritySearchDigivolvePair(resolvingAction, nextAction)) {
+            abort = await runSecuritySearchDigivolve(
+              ctxWithSelections,
+              resolvingAction as Extract<Action, { kind: "Search" }>,
+              nextAction as Extract<Action, { kind: "Digivolve" }>,
+            );
+            actionIndex += 1;
+          } else {
+            abort = await runAction(ctxWithSelections, resolvingAction);
+          }
         } finally {
           ctxWithSelections.activeActionPath = outerActionPath;
           ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;

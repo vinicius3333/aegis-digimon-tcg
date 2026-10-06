@@ -37979,6 +37979,7 @@
             "reduceCost": 2,
             "optional": true,
             "from": ["security"],
+            "faceDownSecurityOk": true,
             "amongPreviousSearch": true,
             "bindResultAs": "digivolvedByThisEffect"
           },
@@ -38033,6 +38034,7 @@
             "reduceCost": 2,
             "optional": true,
             "from": ["security"],
+            "faceDownSecurityOk": true,
             "amongPreviousSearch": true,
             "bindResultAs": "digivolvedByThisEffect"
           },

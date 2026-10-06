@@ -1002,7 +1002,30 @@ export async function runRevealChooseDeleteBudget(
   }
 }
 
-export async function runRevealAction(ctx: EffectContext, action: Action): Promise<boolean> {
+export async function inspectOwnSecurity(ctx: EffectContext): Promise<void> {
+  const security = ctx.game.player(ctx.source.ownerSeat).security;
+  if (security.length === 0) return;
+  await ctx.ask.selectCards(
+    { ...ctx, presetOptionalAnswer: undefined, pickingAcceptedOptional: false },
+    {
+      candidates: [],
+      min: 0,
+      max: 0,
+      visible: security.map((card) => card.instanceId),
+      visibleCards: security.map((card) => ({
+        instanceId: card.instanceId,
+        cardId: card.cardId,
+        ...(card.artId ? { artId: card.artId } : {}),
+      })),
+    },
+  );
+}
+
+export async function runRevealAction(
+  ctx: EffectContext,
+  action: Action,
+  options: { deferSecurityInspection?: boolean } = {},
+): Promise<boolean> {
   switch (action.kind) {
     case "Search": {
       const seat = ctx.source.ownerSeat;
@@ -1043,6 +1066,11 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
         const candidates = security.filter((card) =>
           definitionMatches(definitionFilter, revealedDefinition(ctx, card)),
         );
+        if (action.to === "revealed" && !options.deferSecurityInspection) {
+          // Searching is a private inspection, even when the following optional
+          // action has no legal target or was declined in the resolution plan.
+          await inspectOwnSecurity(ctx);
+        }
         const selectedIds =
           action.to === "revealed"
             ? candidates.map((card) => card.instanceId)
@@ -1058,7 +1086,9 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
                 })),
               });
         const selected = candidates.filter((card) => selectedIds.includes(card.instanceId));
-        for (const card of selected) card.faceUp = true;
+        if (action.to !== "revealed") {
+          for (const card of selected) card.faceUp = true;
+        }
         ctx.lastRevealedCards = selected.map((card) => ({
           instanceId: card.instanceId,
           cardId: card.cardId,
