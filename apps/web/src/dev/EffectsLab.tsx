@@ -111,6 +111,7 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
   ["effects-lab-prod-attack-stack", "Effects lab · production attack, 4 When Attacking"],
   ["effects-lab-prod-security-removed", "Effects lab · production security removed, 3 watchers"],
   ["effects-lab-prod-titan-cascade", "Effects lab · production Titan hand-trash cascade"],
+  ["arena-bt24-asuna-return-play", "BT24 Asuna · return to deck, then play from trash"],
   ["arena-ex13-deletion-trigger-ordering", "EX13 Kings · deletion trigger ordering"],
   ["arena-gate-deadly-sins-effect-order", "EX6 Gate of Deadly Sins · effect resolution plan"],
   ["arena-security-effect-pacing", "Security effects · pacing"],
