@@ -12,7 +12,8 @@
    would otherwise close over the first render's value. */
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { CardKind, getCardDefinition, type Permanent } from "@aegis/shared";
+import type { Permanent } from "@aegis/shared";
+import { canAttackWith } from "../../boardModel";
 import { pressGesture, swallowNextClick } from "../../pressGesture";
 import { dropZoneAt } from "../dropZones";
 import { DragKind } from "../enums";
@@ -132,9 +133,7 @@ export function useDragPlumbing() {
   }
 
   function startPermDrag(perm: Permanent, e: ReactPointerEvent) {
-    if (perm.isSuspended) return;
-    const def = perm.topCard ? getCardDefinition(perm.topCard.cardId) : undefined;
-    if (!def?.kinds.includes(CardKind.Digimon)) return;
+    if (!canAttackWith(perm)) return;
     const deferred = e.pointerType !== "mouse";
     if (!deferred) {
       e.preventDefault();
