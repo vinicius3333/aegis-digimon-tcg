@@ -312,6 +312,7 @@ describe("EX3-053 Metallicdramon", () => {
 
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 1;
+    s.state.turnCount += 1; // The next Main must not reuse the turn that just ended.
     s.state.phase = Phase.Main;
     s.state.memory = 3;
     expect(

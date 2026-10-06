@@ -558,6 +558,8 @@ describe("§16-19 <Armor Purge> — trash this Digimon's own top card to prevent
         seat: 0,
         permanentId: holder.permanentId,
         cardId: "BT8-012",
+        paidPermanentId: holder.permanentId,
+        paidCardId: "BT8-012",
       },
     ]);
   });

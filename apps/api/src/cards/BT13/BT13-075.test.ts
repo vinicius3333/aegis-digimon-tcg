@@ -450,9 +450,9 @@ describe("Discord October 5 report regressions", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alpha").instanceId })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 0;

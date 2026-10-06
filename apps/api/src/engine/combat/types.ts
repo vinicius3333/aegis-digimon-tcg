@@ -200,6 +200,7 @@ export interface CombatHooks {
    * effect-path primitive already uses the same shared consult; combat otherwise deletes by
    * raw state access and would pay a prevention cost without actually saving the Digimon.
    */
+  armorPurgeInLeavePrevention?: boolean;
   consultLeavePrevention?: (permanentIds: string[], opts?: { insteadOnly?: boolean }) => Promise<Set<string>>;
   /**
    * Drop a battle-deleted permanent's modifier / continuous / SubTrigger ledgers as it

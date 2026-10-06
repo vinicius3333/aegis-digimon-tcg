@@ -420,12 +420,12 @@ export class DigivolveSupport {
       // §4-21-2 and Memory Boost Q4149/Q4151/Q4153/Q4155/Q4157/Q4159:
       // only a Digimon or Tamer can satisfy an Option's color requirement. A hatched
       // Digi-Egg is treated as a Digimon while it is on the field (Q2684), so its color
-      // counts from the breeding slot even though its printed CardKind remains DigiEgg.
+      // counts in either field area even though its printed CardKind remains DigiEgg.
       // An Option placed in the battle area for ＜Delay＞ keeps its color but is not a
       // color source.
       const sourceDefinition = definitionOf(perm.topCard);
-      const isHatchedDigiEgg = perm.inBreeding === true && sourceDefinition.kinds.includes(CardKind.DigiEgg);
-      if (!isDigimon(sourceDefinition) && !isTamer(sourceDefinition) && !isHatchedDigiEgg) {
+      const isFieldDigiEgg = perm.topCard.faceUp !== false && sourceDefinition.kinds.includes(CardKind.DigiEgg);
+      if (!isDigimon(sourceDefinition) && !isTamer(sourceDefinition) && !isFieldDigiEgg) {
         continue;
       }
       // The available-color set is the EFFECTIVE color of each board permanent — its printed

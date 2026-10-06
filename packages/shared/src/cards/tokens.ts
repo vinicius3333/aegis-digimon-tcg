@@ -94,10 +94,10 @@ export const tokenDefinitions: readonly CardDefinition[] = [
     attributes: ["Virus"],
     types: ["Dark Animal"],
   }),
+  // The printed token has DP and color, but no level or play cost.
   tok("Pipe Fox", {
-    level: 4,
     dp: 6000,
-    playCost: 4,
+    playCost: -1,
     colors: [CardColor.Yellow],
     effectText: "＜Blocker＞",
   }),

@@ -388,6 +388,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   // Same-destination categories may assign their shared card to either slot (Q1050/Q1985).
   // Reuse ordinary selectCards decisions: skipping a sole overlap reserves it for slot two.
   const canDeferToSecond =
+    action.sequentialSelections !== true &&
     slotPlans.length === 2 &&
     slotPlans.every(
       (plan) =>
@@ -411,7 +412,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // later mandatory action short, such as adding [Kiriha Aonuma] to hand when it must be
     // played (Q2032, Q2033). Slots sharing a destination are one action whose categories the
     // player assigns freely, even when that adds fewer cards (Q1050, Q1985).
-    if (allocation !== undefined) {
+    if (allocation !== undefined && action.sequentialSelections !== true) {
       const destination = spec.to ?? "hand";
       const laterMandatory = slotPlans
         .slice(slotIndex + 1)

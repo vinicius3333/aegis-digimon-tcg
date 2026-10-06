@@ -1459,7 +1459,7 @@ describe("§16-19 <Armor Purge> (comprehensive-0237)", () => {
     });
     await settle(() => false, 5000);
 
-    const prompt = s.decisions.find(({ req }) => req.promptText?.includes("Armor Purge"));
+    const prompt = s.decisions.find(({ req }) => req.options?.effectText?.includes("Armor Purge"));
     expect(prompt?.req).toMatchObject({
       sourceCardId: "BT10-012",
       sourceInstanceId: armoredTop.instanceId,

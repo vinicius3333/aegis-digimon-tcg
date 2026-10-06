@@ -817,7 +817,7 @@ describe("EX10-021 Belphemon: Sleep Mode — KB Q&A rulings", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: CARD_ID, as: "sleep" }],
+          hand: [{ card: CARD_ID, as: "sleep" }, "BT1-009"],
           trash: [{ card: "EX10-022", as: "rage" }],
           deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-012"],
           security: ["BT1-009", "BT1-012"],

@@ -77952,6 +77952,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "text" }]
               },
               "raw": "you have a Digimon or Tamer with [Gammamon] in its text on the field"
@@ -142482,6 +142483,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon"],
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["Lucemon"], "match": "name" }]
               },
               "raw": "you have a Digimon with [Lucemon] in its name in its name on the field"
@@ -181203,11 +181205,13 @@
             "revealCount": 3,
             "add": [
               {
+                "effectTextPart": "Add 1 card with the [DS] trait",
                 "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DS"], "match": "trait" }] },
                 "count": 1,
                 "to": "hand"
               },
               {
+                "effectTextPart": "1 card with the [Sea Beast]/[Plesiosaur] trait among them to the hand.",
                 "filter": {
                   "controllerDefault": "mine",
                   "nameOrTrait": [{ "tokens": ["Sea Beast", "Plesiosaur"], "match": "trait" }]
@@ -185038,6 +185042,7 @@
           {
             "kind": "RevealAdd",
             "revealCount": 3,
+            "sequentialSelections": true,
             "add": [
               {
                 "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }] },
@@ -185498,6 +185503,7 @@
           {
             "kind": "RevealAdd",
             "revealCount": 3,
+            "sequentialSelections": true,
             "add": [
               {
                 "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }] },
@@ -186086,6 +186092,7 @@
           {
             "kind": "RevealAdd",
             "revealCount": 3,
+            "sequentialSelections": true,
             "add": [
               {
                 "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }] },
@@ -186941,6 +186948,7 @@
           {
             "kind": "RevealAdd",
             "revealCount": 3,
+            "sequentialSelections": true,
             "add": [
               {
                 "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }] },
@@ -188681,6 +188689,7 @@
           {
             "kind": "RevealAdd",
             "revealCount": 3,
+            "sequentialSelections": true,
             "add": [
               {
                 "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }] },
@@ -239804,20 +239813,51 @@
         },
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "zone": "trash",
-                "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "from": ["trash"],
-            "payCost": false,
-            "optional": true
+            "kind": "Modal",
+            "choose": 1,
+            "optional": true,
+            "labels": ["Battle area", "Breeding area"],
+            "optionConditions": [
+              null,
+              { "kind": "youHaveNone", "filter": { "controller": "mine", "zone": "breeding" } }
+            ],
+            "options": [
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "zone": "trash",
+                      "levelComparison": { "op": "lte", "value": 4 },
+                      "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
+                    },
+                    "count": 1
+                  },
+                  "from": ["trash"],
+                  "payCost": false
+                }
+              ],
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "zone": "trash",
+                      "levelComparison": { "op": "lte", "value": 4 },
+                      "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
+                    },
+                    "count": 1
+                  },
+                  "from": ["trash"],
+                  "payCost": false,
+                  "breeding": true
+                }
+              ]
+            ]
           }
         ],
         "description": "[When Digivolving] [End of Attack] If your hand has 4 or fewer cards, you may play 1 level 4 or lower Digimon card with the [Evil], [Dark Dragon] or [Evil Dragon] trait from your trash to the field without paying the cost."
@@ -239834,20 +239874,51 @@
         },
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "zone": "trash",
-                "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "from": ["trash"],
-            "payCost": false,
-            "optional": true
+            "kind": "Modal",
+            "choose": 1,
+            "optional": true,
+            "labels": ["Battle area", "Breeding area"],
+            "optionConditions": [
+              null,
+              { "kind": "youHaveNone", "filter": { "controller": "mine", "zone": "breeding" } }
+            ],
+            "options": [
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "zone": "trash",
+                      "levelComparison": { "op": "lte", "value": 4 },
+                      "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
+                    },
+                    "count": 1
+                  },
+                  "from": ["trash"],
+                  "payCost": false
+                }
+              ],
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "zone": "trash",
+                      "levelComparison": { "op": "lte", "value": 4 },
+                      "nameOrTrait": [{ "tokens": ["Evil", "Dark Dragon", "Evil Dragon"], "match": "trait" }]
+                    },
+                    "count": 1
+                  },
+                  "from": ["trash"],
+                  "payCost": false,
+                  "breeding": true
+                }
+              ]
+            ]
           }
         ],
         "description": "[When Digivolving] [End of Attack] If your hand has 4 or fewer cards, you may play 1 level 4 or lower Digimon card with the [Evil], [Dark Dragon] or [Evil Dragon] trait from your trash to the field without paying the cost."

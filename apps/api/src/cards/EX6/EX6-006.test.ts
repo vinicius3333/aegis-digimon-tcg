@@ -364,6 +364,7 @@ describe("EX6-006 Gate of Deadly Sins", () => {
     await opponentTurn;
     s.state.turnSeat = 0;
     s.state.memory = -s.state.memory;
+    s.state.memory = 10; // The start-of-main deletions pay two ACE Overflow costs.
     const nextOwnerTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;

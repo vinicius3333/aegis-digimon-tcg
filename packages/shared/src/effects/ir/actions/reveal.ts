@@ -17,6 +17,8 @@ export interface RevealAddAction extends ActionBase {
   /** Whose deck is revealed; omitted means the source owner's deck. */
   controller?: Controller;
   revealCount: number;
+  /** Select each category from the remaining cards in printed order (EX9 DM rookies, Q4750). */
+  sequentialSelections?: boolean;
   /** Multiply the base reveal count by a live board-derived scale factor. */
   revealScaling?: Scaling;
   /**

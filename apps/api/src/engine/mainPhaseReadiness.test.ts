@@ -5,26 +5,24 @@ import { beginResolvingWindow, endResolvingWindow } from "./gameEngine/windows.j
 import { advance } from "./testkit/advance.js";
 
 describe("Main action readiness boundary", () => {
-  // Once the turn is genuinely the player's, an open timing window does NOT refuse a main
-  // verb: the engine serializes verbs on its own main-verb chain, so the play is accepted and
-  // completes. Only the start-of-main readiness window (below) refuses outright.
-  it("accepts a public play while a timing window is active and completes it", async () => {
+  it("#5003 rejects a public play until its current timing window finishes", async () => {
     const s = setupEngine({
-      0: { deck: ["BT1-009"], hand: [{ card: "BT1-009", as: "option" }] },
+      0: { deck: ["BT1-009"], hand: [{ card: "BT1-009", as: "play" }] },
       1: { deck: ["BT1-009"], security: 3 },
     });
     await s.ready();
+    const memory = s.state.memory;
     const outermost = beginResolvingWindow(s.engine);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: true,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("play").instanceId })).toEqual({
+      ok: false,
+      reason: "wrong-phase",
     });
+    expect(s.state.memory).toBe(memory);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
     endResolvingWindow(s.engine, outermost);
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("option").instanceId),
-    );
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("option").instanceId)).toBe(
-      true,
-    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("play").instanceId })).toEqual({ ok: true });
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0 && !s.state.pendingDecision);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("play").instanceId)).toBe(true);
   });
 
   it("rejects play and endPhase during the real held start-main window", async () => {
@@ -126,4 +124,22 @@ describe("Main action readiness boundary", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+});
+
+it("#5003 rejects another Main action immediately after passing the turn", async () => {
+  const s = setupEngine({
+    0: { hand: [{ card: "BT1-009", as: "play" }], deck: ["BT1-009", "BT1-010"] },
+    1: { hand: ["BT1-009"], deck: ["BT1-009", "BT1-010"] },
+  });
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  const before = s.state.memory;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("play").instanceId })).toEqual({
+    ok: false,
+    reason: "wrong-phase",
+  });
+  expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("play").instanceId)).toBe(true);
+  expect(s.state.memory).toBe(before);
+  await turn;
 });

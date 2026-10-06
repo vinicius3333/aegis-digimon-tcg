@@ -127,6 +127,7 @@ describe("EX3-047 Jazamon", () => {
     await advance(s.engine).runTurn(0);
     expect(s.state.turnCount).toBeGreaterThan(firstTurnCount);
     expect(s.state.turnSeat).toBe(0);
+    s.state.turnCount += 1; // The next Main must not reuse the turn that just ended.
     s.state.phase = Phase.Main;
     s.state.memory = 10;
 

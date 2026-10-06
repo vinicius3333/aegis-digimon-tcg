@@ -103,6 +103,8 @@ export function subTriggerDescriptionFor(sub: SubTriggerSubscription, ctx: Effec
 
 /** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
 export interface ArmedSubTrigger {
+  /** One pending activation, shared by every resolver that can see this occurrence. */
+  activationStarted?: boolean;
   sub: SubTriggerSubscription;
   /** Context as of the event — what the ordering prompt is built from (controller, card). */
   ctx: EffectContext;

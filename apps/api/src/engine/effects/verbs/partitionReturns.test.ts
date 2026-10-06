@@ -48,14 +48,14 @@ describe("Partition on non-deletion removal (Discord 1556039867106983976)", () =
       const holderId = s.perm("examon").topCard.instanceId;
       const sourceIds = s.perm("examon").stack.map(({ instanceId }) => instanceId);
       const beforeMemory = s.state.memory;
-      advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+      if (destination !== "security") advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
       try {
         if (destination === "hand") await advance(s.engine).verb.returnToHand([holderId]);
         else if (destination === "security") {
           await placeHolderInSecurity(s, holderId);
         } else await advance(s.engine).verb.returnToDeck([holderId], { toTop: destination === "deckTop" });
       } finally {
-        advance(s.engine).verb.leaveEffectResolution();
+        if (destination !== "security") advance(s.engine).verb.leaveEffectResolution();
       }
       expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId).sort()).toEqual(sourceIds.sort());
       const zone = destination === "hand" ? "hand" : destination === "security" ? "security" : "deck";

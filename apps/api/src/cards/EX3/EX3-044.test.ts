@@ -474,6 +474,7 @@ describe("EX3-044 Breakdramon", () => {
     await advance(s.engine).runTurn(0);
     await settle(() => s.state.turnCount > firstTurn && s.state.pendingDecision === undefined);
     s.state.turnSeat = 0;
+    s.state.turnCount += 1; // The next Main must not reuse the turn that just ended.
     s.state.phase = Phase.Main;
     s.state.memory = 10;
     s.perm("nextTurnDramon").isSuspended = false;

@@ -468,7 +468,11 @@ describe("BT24-018 Styracomon — KB Q&A rulings", () => {
     await s.ready();
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("styracomon").permanentId], "byEffect")).toBe(0);
-    expect(s.decisions[0]).toMatchObject({ seat: 0, req: { kind: "optional", options: { timing: "AllTurns" } } });
+    expect(s.decisions[0]).toMatchObject({
+      seat: 0,
+      req: { kind: "orderTriggers", options: { triggerCardIds: ["BT24-018", "BT24-018"] } },
+    });
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.options?.timing === "AllTurns")).toBe(true);
     expect(
       s.events.flatMap((event) => (event.kind === "deletionPrevented" ? [[event.cardId, event.keyword]] : [])),
     ).toEqual([

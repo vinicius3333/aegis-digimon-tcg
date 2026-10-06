@@ -174,6 +174,12 @@ export function createSecurityStackVerbs(pc: PrimitivesContext) {
           from: Zone.Security,
           to: Zone.Security,
         });
+        // Flipping in place increases face-up security just as adding a face-up card
+        // does. The trigger bus parks this reaction until the enclosing effect ends.
+        void engine.fireSubTrigger?.("whenFaceUpCardsAddedToOpponentSecurity", {
+          addedToSecuritySeat: seat,
+          addedToSecurityInstanceIds: [card.instanceId],
+        });
         return true;
       }
     }
