@@ -103,6 +103,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4978-rosemon-tamer-reaction"
     | "arena-issue-4979-weather-detach"
     | "arena-issue-4981-dantemon-seven-code"
+    | "arena-issue-5015-dantemon-attack-links"
     | "arena-issue-4983-feedback-form"
     | "arena-issue-4984-super-hacking-security"
     | "arena-issue-4985-double-alliance"

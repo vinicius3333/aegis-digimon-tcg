@@ -261,6 +261,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Passe o turno. Pelo adversário, jogue MetalMamemon e pague o custo com Agumon da lixeira. Escolha Weatherdramon para retornar ao fundo. Pelo seu lado, aceite Detach e descarte Tellermon: Weatherdramon permanece.",
     en: "Pass the turn. On the opposing side, play MetalMamemon and pay its cost with Agumon from trash. Target Weatherdramon for bottom-deck return. Accept Detach and trash Tellermon on your side: Weatherdramon remains.",
   },
+  "arena-issue-5015-dantemon-attack-links": {
+    ptBR: "Use Seven Code PAD sobre Tellermon com as seis cartas da lixeira e evolua em Dantemon. Linke as sete cartas e aceite o ataque ao jogador. Resolva Dantemon primeiro: delete Leviamon e retorne BT21-072 do topo da segurança ao fundo do deck. Resolva os demais efeitos e a checagem de BT1-090. Os sete links devem permanecer após o ataque e a passagem de turno, sem pedido para descartar seis links.",
+    en: "Use Seven Code PAD on Tellermon with the six trash cards and evolve into Dantemon. Link all seven cards and accept the attack on the player. Resolve Dantemon first: delete Leviamon and return top security BT21-072 to the deck bottom. Resolve the remaining effects and the BT1-090 security check. All seven links must remain after the attack and turn change, without a prompt to trash six links.",
+  },
   "arena-issue-4981-dantemon-seven-code": {
     ptBR: "Use Seven Code PAD sobre Weathermon, pagando com seis cartas da lixeira, e evolua em Dantemon. Linke seis cartas; resolva Copipemon primeiro para linkar Tellermon como sétima. A nova reação de Dantemon participa da janela derivada; recusar a deleção não cancela o retorno de segurança com sete links. Recuse o ataque e a batalha opcional para conferir que os sete links permanecem no turno adversário.",
     en: "Use Seven Code PAD on Weathermon with six trash cards, then evolve into Dantemon. Link six cards and resolve Copipemon first to link Tellermon seventh. Dantemon’s new reaction joins the derived window; declining deletion does not cancel the security return with seven links. Decline attacking and the optional battle to verify seven links remain on the opposing turn.",
@@ -1250,6 +1254,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4977-kingetemon-continuous", "#4977 · KingEtemon · travamento de DP"],
   ["arena-issue-4978-rosemon-tamer-reaction", "#4978 · Rosemon · reação do Tamer"],
   ["arena-issue-4979-weather-detach", "#4979 · Weatherdramon · Detach"],
+  ["arena-issue-5015-dantemon-attack-links", "#5015 · Dantemon · links after forced attack"],
   ["arena-issue-4981-dantemon-seven-code", "#4981 · Dantemon · #4981 / #4986 / #4987"],
   ["arena-issue-4983-feedback-form", "#4983 · Feedback · formulário"],
   ["arena-issue-4984-super-hacking-security", "#4984 · Super Hacking · segurança na lixeira"],

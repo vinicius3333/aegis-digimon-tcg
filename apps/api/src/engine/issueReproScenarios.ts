@@ -33,6 +33,22 @@ const ISSUE_LAYOUTS = {
     players: [{ hand: ["EX9-014"], deck: ["BT1-009", "EX9-007", "EX9-014", "BT1-009", "BT1-009", "BT1-009"] }, {}],
     memory: 8,
   },
+  "arena-issue-5015-dantemon-attack-links": {
+    memory: 3,
+    players: [
+      {
+        field: [{ card: "BT26-063" }],
+        hand: ["BT26-102", "BT26-086"],
+        trash: ["BT26-010", "BT26-084", "BT26-037", "BT26-019", "BT26-051", "BT26-028"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {
+        field: [{ card: "EX5-063", under: ["BT16-075"], suspended: true }],
+        security: ["BT21-072", "BT1-090", "P-108", "BT7-107"],
+        deck: ["BT1-009", "BT1-009"],
+      },
+    ],
+  },
   "arena-issue-5014-digital-gate-cool-boy": {
     players: [{ field: [{ card: "P-206" }, { card: "EX2-007" }], hand: ["BT20-091"] }, {}],
     memory: 8,

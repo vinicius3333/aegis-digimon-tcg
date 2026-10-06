@@ -784,7 +784,7 @@ export class CombatController {
         await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
       });
     } finally {
-      this.cleanup();
+      await this.cleanup();
       const completedCombat = this.takeCompletedCombat();
       if (completedCombat !== undefined && !this.access.game.gameOver)
         this.hooks.emit({ kind: "combatResolved", ...completedCombat });
@@ -1871,7 +1871,7 @@ export class CombatController {
    * "until end of attack" are expired by the effect-duration subsystem; this only
    * tears down the controller's own combat state.
    */
-  private cleanup(): void {
+  private async cleanup(): Promise<void> {
     this.openWindow = undefined;
     this.allianceDecision = undefined;
     this.evadeDecision = undefined;
@@ -1888,6 +1888,8 @@ export class CombatController {
     this.withdrawDeferredEndOfAttack = undefined;
     this.pendingEndOfAttackTrigger = undefined;
     // Expire UntilEndAttack/UntilEndBattle modifiers and refresh the continuous tier.
-    if (!this.access.game.gameOver) this.hooks.sweepEndOfAttack?.();
+    // An ordering effect resumes after resolveAttack returns. Keep its rule checks
+    // behind the rebuild so they never read a partially cleared continuous ledger.
+    if (!this.access.game.gameOver) await this.hooks.sweepEndOfAttack?.();
   }
 }

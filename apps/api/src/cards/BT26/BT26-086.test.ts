@@ -30,6 +30,58 @@ describe("BT26-086 compiled behavior", () => {
     await loop;
   });
 
+  it("#5015 keeps Link +6 installed when PAD's forced attack returns to effect resolution", async () => {
+    const snapshots: { boundary: string; linkMaxDelta: number }[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-063", as: "host" }],
+          hand: [{ card: "BT26-102", as: "pad" }, "BT26-086"],
+          trash: ["BT26-010", "BT26-084", "BT26-037", "BT26-019", "BT26-051", "BT26-028"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "EX5-063", as: "leviamon", suspended: true, under: ["BT16-075"] }],
+          security: [{ card: "BT21-072", as: "topSecurity" }, "BT1-090", "P-108", "BT7-107"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferTriggerKeys: ["BT26-086"],
+        onEvent: (event) => {
+          if (
+            event.kind === "attackEnded" ||
+            (event.kind === "effectResolved" && event.sourceCardId === "BT26-086" && event.timing === "WhenDigivolving")
+          ) {
+            snapshots.push({ boundary: event.kind, linkMaxDelta: observe(s.engine).linkMaxDelta(s.perm("host")) });
+          }
+        },
+      },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pad").instanceId })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(snapshots).toEqual([
+      { boundary: "attackEnded", linkMaxDelta: 6 },
+      { boundary: "effectResolved", linkMaxDelta: 6 },
+    ]);
+    expect(s.perm("host").topCard.cardId).toBe("BT26-086");
+    expect(s.perm("host").linked).toHaveLength(7);
+    expect(observe(s.engine).linkMaxDelta(s.perm("host"))).toBe(6);
+    expect(s.decisions.some(({ req }) => req.promptText.includes("link cards to trash"))).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("topSecurity").instanceId);
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["P-108", "BT7-107"]);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("rejects the VPS duplicate-name link response without consuming the decision", async () => {
     const s = setupEngine(
       {
