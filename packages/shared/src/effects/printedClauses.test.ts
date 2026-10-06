@@ -31,6 +31,23 @@ describe("splitPrintedClauses", () => {
     }
   });
 
+  it("keeps Homeros's two referenced timings inside its end-of-turn clause", () => {
+    const definition = definitionOf("BT24-102");
+    const clause = definition.effectText!.split("\n").find((line) => line.startsWith("[End of Your Turn]"))!;
+    expect(printedClauseForEffect({ definition, effect: { trigger: "EndOfYourTurn", actions: [] } })).toBe(clause);
+    expect(splitPrintedClauses(definition.effectText).map((entry) => [...entry.labels])).toEqual([
+      ["Start of Your Main Phase"],
+      ["All Turns"],
+      ["End of Your Turn"],
+    ]);
+  });
+
+  it.each(["or", "and", ",", "/"])("keeps a %s-linked timing reference before the next genuine clause", (connector) => {
+    const clause = `[End of Your Turn] Activate 1 [On Play] ${connector} [When Digivolving] effect.`;
+    const next = "[On Deletion] Draw 1.";
+    expect(splitPrintedClauses(`${clause} ${next}`).map((entry) => entry.text)).toEqual([clause, next]);
+  });
+
   it("groups adjacent timing brackets into one clause and skips the preamble", () => {
     const clauses = splitPrintedClauses(definitionOf("EX13-023").effectText);
     expect(clauses.map((clause) => [...clause.labels])).toEqual([

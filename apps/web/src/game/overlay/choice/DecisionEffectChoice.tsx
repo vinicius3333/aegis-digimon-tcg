@@ -66,6 +66,7 @@ export function DecisionEffectChoice({
                   <span className="effect-choice__title">
                     <span className="effect-choice__name">{name}</span>
                     <span className="effect-choice__id">{effect.cardId}</span>
+                    {timingLabel && <span className="effect-choice__timing">{timingLabel}</span>}
                   </span>
                   <span className="effect-choice__clause">
                     <EffectText text={clause} />

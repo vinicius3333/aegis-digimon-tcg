@@ -291,6 +291,7 @@ export interface AegisJoinOptions {
     | "arena-mirage-hidden-hand"
     | "arena-p224-kotone-own-source"
     | "arena-bt25-ceresmon-homeros-suspend"
+    | "arena-bt24-homeros-neptunemon-timing-choice"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
     | "arena-bt20-saviorhuckmon-end-turn-sistermon"

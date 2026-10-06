@@ -221,6 +221,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-mirage-hidden-hand",
   "arena-p224-kotone-own-source",
   "arena-bt25-ceresmon-homeros-suspend",
+  "arena-bt24-homeros-neptunemon-timing-choice",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt20-saviorhuckmon-end-turn-sistermon",
@@ -4744,6 +4745,22 @@ function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Dec
   }
 }
 
+/** MiMiMi's Homeros report: one shared clause can be activated at either printed timing. */
+function layBt24HomerosNeptunemonTimingChoiceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT24-102"], "-timing-homeros"));
+  placePermanent(human, establishedDigimon(0, ["BT24-030"], "-timing-neptunemon"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-timing-fewest-a"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-010"], "-timing-fewest-b"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-001", "BT1-011"], "-timing-more-sources"));
+  // Keep Main open and Homeros unsuspended after its start-of-main memory gain.
+  insertCard(human, Zone.Hand, faceDownCard("dev-homeros-timing-playable", "BT1-009", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-homeros-timing-draw", "BT1-085", 0), "top");
+}
+
 /** Discord 1556518401655054436, match da48b9f0: Homeros suspended at 6 → 7 memory. */
 function layBt25CeresmonHomerosSuspendScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 6);
@@ -6726,6 +6743,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-p224-kotone-own-source": layP224KotoneOwnSourceScenario,
   "arena-bt25-ceresmon-homeros-suspend": layBt25CeresmonHomerosSuspendScenario,
+  "arena-bt24-homeros-neptunemon-timing-choice": layBt24HomerosNeptunemonTimingChoiceScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt20-saviorhuckmon-end-turn-sistermon": layBt20SaviorHuckmonEndTurnSistermonScenario,
