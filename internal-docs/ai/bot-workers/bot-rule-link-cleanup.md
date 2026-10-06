@@ -158,10 +158,57 @@ passed nine synthetic guards, including a full fake-model worker using the
 actual source's `Transition` field contract; that test also reproduced the
 original checker failure. No engine archive or checkpoint changed for this fix.
 
+## Existing CPU/CUDA captured-query agreement
+
+A read-only comparison of the actual closed checkpoint-binding report and the
+actual closed CUDA-parity report found identical choices for all 28 original
+captured windows on each of the six policies: 168 matching choices, no differences.
+Both reports bind the same checkpoint paths/hashes and the qualified current
+runtime. Their SHA-256 pins are respectively
+`d12917bfc30235bbfc82104a2f51e375689576fe6a8e0a6efd79162749751dd9` and
+`6ba18c7ceac429f7ce4413689d01d01363ccc3431a84ce018debd178b7d928e8`.
+This assessment reuses completed actual evidence without loading models,
+starting jobs, or generating checkpoints. It does not replace the selected
+candidate's package/transport, actual seat-0 room, or full serving gates.
+
+## Current-source six-policy development comparison
+
+The reviewed external operator
+`/home/vinicius/aegis-bot-lab/transfers/rule-link-current-strength.py` runs the
+imitation candidate, PPO candidate, and four preserved references sequentially.
+Each receives the same 3,872-game development schedule over all 44 recipes,
+44 opponents and both seats, with four workers, evaluation-only mode, and the
+actually qualified streaming greedy routine. The original full record checker
+uses the established all-44 substitutions; every game must additionally have
+an actual natural winner. Per-recipe ties and losses against any reference do
+not count as strict gains. Five synthetic admission/matrix fixtures passed;
+readonly actual desktop inspection validated the commands and supported helper
+seam before separate ROOT resource approval and execution.
+
+The actual launch is
+`/home/vinicius/aegis-bot-lab/runs/rule-link-current-aa2e56463-strength`, whole
+PID 686/start ticks 4143. The first actual model process is the imitation
+candidate, PID 714/start ticks 6606. Both exact processes were observed live;
+the first completed batch contained 88 natural games with 45 wins, 43 losses,
+and zero failed/unusable/payment-forfeit/recovered-play records. This is partial
+live evidence. No complete comparison, current-primary improvement, mechanism
+mastery, or final acceptance is claimed from this launch or partial batch.
+
+- Operator SHA-256: `ff271f73dc75e4625af0e53843f75e7b094516db3a7841e70b89542b165bff2a`.
+- Request SHA-256: `3d92c247ce1a02b219cb968232ccff3ca99469963572fb61fde94a233ed89d4f`.
+- Wrapper SHA-256: `b6309dcaf71956daf9d359922abde3a814e961d68737aa6308b48fd1ceb9db9b`.
+- Whole identity SHA-256: `291424ee6f415f88e9e16e9468460728183d2146480a0d8fe3677fb153f865db`.
+- ROOT resource Go SHA-256: `85b50e4b12a3078ef8be0dea5e6b0b1ffae6b55ae57990c9da38e80fb778d9ea`.
+
+The model tensors and optimizer are frozen during this comparison. All six
+checkpoint/source/runtime pins are guarded before/after each policy. The
+reserved final seed block remains unused. Full original failed comparisons and
+diagnostics remain immutable; current results use fresh output directories.
+
 ## Remaining work
 
-Diagnose imitation/PPO per-deck performance and produce an accepted candidate.
-Obtain strict gains for all 44 recipes against all four references, and complete
-both-seat mechanisms, physical custody, 26 managed rooms, current-serving
-compatibility, and the reserved final blind evaluation. Final seeds
-`6210000..6213871` remain untouched.
+Close the current six-policy comparison, diagnose imitation/PPO per-deck
+performance and produce an accepted candidate. Obtain strict gains for all 44
+recipes against all four references, and complete both-seat mechanisms,
+physical custody, 26 managed rooms, current-serving compatibility, and the
+reserved final blind evaluation. Final seeds `6210000..6213871` remain untouched.
