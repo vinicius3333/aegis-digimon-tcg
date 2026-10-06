@@ -6,7 +6,7 @@ import { CARD_BURST_PEAK_MS, SHOWCASE_TOTAL_MS, TIMINGS } from "../../timings";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
 import { runCardReveal, type ArrivalPresentation } from "../cardReveal";
-import { waitForFieldReturnLanding, type RemovalLink } from "../removalChain";
+import { waitForDeckReturnLanding, type RemovalLink } from "../removalChain";
 import { runBreedingTransfer } from "../../breedingTransfer";
 import { waitForPaintedAnimation } from "../../paintedAnimationClock";
 
@@ -24,7 +24,7 @@ export function zoneChangeStep({
   leadInMs = 0,
   track = CueTrack.CenterStage,
   waitFor,
-  fieldReturn,
+  deckReturn,
   combatCompletionGate,
   presentation,
 }: {
@@ -41,8 +41,8 @@ export function zoneChangeStep({
   /** Consequences wait on independent tracks so they cannot hold their own clause behind them. */
   track?: string;
   waitFor?: PresentationGate;
-  /** A field return still leaving when this arrival was caused, which it enters after. */
-  fieldReturn?: RemovalLink;
+  /** A deck return still leaving when this arrival was caused, which it enters after. */
+  deckReturn?: RemovalLink;
   combatCompletionGate?: PresentationGate;
   presentation?: ArrivalPresentation;
 }): AnimationStep {
@@ -65,7 +65,7 @@ export function zoneChangeStep({
       try {
         if (context.mode !== "live") return;
         await waitForGate(waitFor, context, CONSEQUENCE_GATE_MAX_MS, "zoneChange/costClause");
-        await waitForFieldReturnLanding(fieldReturn, context);
+        await waitForDeckReturnLanding(deckReturn, context);
         if (leadInMs > 0) await context.wait(leadInMs);
         await waitForGate(combatCompletionGate, context, CONSEQUENCE_GATE_MAX_MS, "zoneChange/paintedImpact");
         if (context.cancelled) return;

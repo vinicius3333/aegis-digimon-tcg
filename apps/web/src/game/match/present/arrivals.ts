@@ -69,7 +69,7 @@ export function enqueueArrivals({
   costClause,
   arrivalPresentations,
   causingEffectGate,
-  fieldReturn,
+  deckReturn,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
@@ -103,8 +103,8 @@ export function enqueueArrivals({
   costClause?: CostClause;
   arrivalPresentations: ReadonlyMap<ServerEvent, ArrivalPresentation>;
   causingEffectGate?: PresentationGate | null;
-  /** A paid field return from an earlier batch that is still flying to its pile. */
-  fieldReturn?: RemovalLink | undefined;
+  /** A paid deck return from an earlier batch that is still flying to its pile. */
+  deckReturn?: RemovalLink | undefined;
 }): BatchArrivals {
   let arriving = false;
   let showcased = false;
@@ -190,7 +190,7 @@ export function enqueueArrivals({
       burst,
       presentation: arrivalPresentations.get(event),
       ...(causingEffectGate ? { waitFor: causingEffectGate } : {}),
-      ...(fieldReturn && !securityReveal && (causingEffectGate || effectResult) ? { fieldReturn } : {}),
+      ...(deckReturn && !securityReveal && (causingEffectGate || effectResult) ? { deckReturn } : {}),
       combatCompletionGate,
       leadInMs: isTokenArrival || awaitsCostClause ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
       ...(isTokenArrival

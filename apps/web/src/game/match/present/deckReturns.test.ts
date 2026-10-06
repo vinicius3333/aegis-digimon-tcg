@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
 import { createAnimationQueue } from "../../animationQueue";
 import { createPresentationGate } from "../presentationGate";
-import { landingFieldReturn, waitForFieldReturnLanding, type RemovalLink } from "../removalChain";
+import { landingDeckReturn, waitForDeckReturnLanding, type RemovalLink } from "../removalChain";
 import { TIMINGS } from "../../timings";
 import type { HeldDeletion, MatchCueAnchors } from "../types";
 import { enqueueDeckReturns, type FlyCardToDeck } from "./deckReturns";
@@ -120,13 +120,13 @@ it("an effect arrival waits for the landed stack, then the landing beat", async 
     await context.wait(TIMINGS.deckReturn);
     return true;
   });
-  const link = landingFieldReturn(run.chain)!;
+  const link = landingDeckReturn(run.chain)!;
   let enteredAt: number | undefined;
   run.queue.enqueue({
     id: "arrival",
     track: "arrival",
     async run(context) {
-      await waitForFieldReturnLanding(link, context);
+      await waitForDeckReturnLanding(link, context);
       enteredAt = Date.now();
     },
   });
@@ -137,7 +137,7 @@ it("an effect arrival waits for the landed stack, then the landing beat", async 
   expect(link.landedAt).toBeDefined();
   expect(enteredAt! - link.landedAt!).toBeGreaterThanOrEqual(TIMINGS.deckReturnLanding);
   expect(enteredAt! - start).toBeGreaterThanOrEqual(2 * TIMINGS.deckReturn);
-  expect(landingFieldReturn(run.chain)).toBeUndefined();
+  expect(landingDeckReturn(run.chain)).toBeUndefined();
 });
 
 it("a return without geometry or a skipped return lets the arrival enter without a landing beat", async () => {
@@ -150,7 +150,7 @@ it("a return without geometry or a skipped return lets the arrival enter without
       id: "arrival",
       track: "arrival",
       async run(context) {
-        await waitForFieldReturnLanding(link, context);
+        await waitForDeckReturnLanding(link, context);
         entered = true;
       },
     });

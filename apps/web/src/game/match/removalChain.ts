@@ -18,6 +18,8 @@ export interface RemovalLink {
   startedAt?: number;
   /** A physical return holds the following removal until its face has faded. */
   finished?: PresentationGate;
+  /** Set by a return to a deck, the only removal an effect's next play waits for. */
+  deckReturn?: true;
   /** When a deck return's face finished fading in its pile. */
   landedAt?: number;
 }
@@ -55,24 +57,24 @@ export async function waitForRemovalTurn(turn: RemovalTurn, context: AnimationSt
   await context.wait(Math.max(0, (previous.startedAt ?? Date.now()) + TIMINGS.removalStagger - Date.now()));
 }
 
-/** The latest field return, while it is still flying or within its landing beat. */
-export function landingFieldReturn(chainRef: MutableRefObject<RemovalLink | null>): RemovalLink | undefined {
+/** The latest deck return, while it is still flying or within its landing beat. */
+export function landingDeckReturn(chainRef: MutableRefObject<RemovalLink | null>): RemovalLink | undefined {
   const latest = chainRef.current;
-  if (!latest?.finished) return undefined;
+  if (!latest?.deckReturn || !latest.finished) return undefined;
   if (!latest.finished.open) return latest;
   return latest.landedAt !== undefined && Date.now() - latest.landedAt < TIMINGS.deckReturnLanding ? latest : undefined;
 }
 
 /**
- * What an effect plays after paying with a field return enters once that stack has landed,
+ * What an effect plays after paying with a deck return enters once that stack has landed,
  * then after a short beat, so the cost and its result read as two moves.
  */
-export async function waitForFieldReturnLanding(
+export async function waitForDeckReturnLanding(
   link: RemovalLink | undefined,
   context: AnimationStepContext,
 ): Promise<void> {
   if (!link?.finished) return;
-  await waitForGate(link.finished, context, CONSEQUENCE_GATE_MAX_MS, "arrival/fieldReturn");
+  await waitForGate(link.finished, context, CONSEQUENCE_GATE_MAX_MS, "arrival/deckReturn");
   if (context.cancelled || context.skipping || link.landedAt === undefined) return;
   await context.wait(Math.max(0, link.landedAt + TIMINGS.deckReturnLanding - Date.now()));
 }

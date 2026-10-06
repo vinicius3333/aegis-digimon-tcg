@@ -60,6 +60,7 @@ export function enqueueDeckReturns({
       const held = heldDeletionFrom({ snapshots, seat, permanentId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
       const removal = joinRemovalChain(removalChainRef, true);
+      removal.link.deckReturn = true;
       const card: DrawFlightCard = { cardId: returned.cardId, ...(returned.artId ? { artId: returned.artId } : {}) };
       enqueue({
         id: `deck-return-${key}`,
