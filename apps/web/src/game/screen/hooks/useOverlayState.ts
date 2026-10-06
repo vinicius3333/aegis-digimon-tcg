@@ -9,6 +9,7 @@
 import { useEffect, useState } from "react";
 import type { DecisionRequest, GameState } from "@aegis/shared";
 import type { Side } from "../../side";
+import type { RevealedZoneView } from "../model/gameOutcome";
 import type {
   AppFusionChoice,
   AssemblyPick,
@@ -36,6 +37,8 @@ export function useOverlayState({
   const [trashView, setTrashView] = useState<Side | null>(null);
   /** Which player's security stack is open. */
   const [securityView, setSecurityView] = useState<Side | null>(null);
+  /** Which face-down pile is open, once the match is over and the server revealed it. */
+  const [revealedZoneView, setRevealedZoneView] = useState<RevealedZoneView | null>(null);
   const [picks, setPicks] = useState<string[]>([]);
   useEffect(() => {
     setPicks([]);
@@ -88,6 +91,8 @@ export function useOverlayState({
     setTrashView,
     securityView,
     setSecurityView,
+    revealedZoneView,
+    setRevealedZoneView,
     picks,
     setPicks,
     decisionAsDialog,

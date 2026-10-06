@@ -9,6 +9,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, RefOb
 import type { ArenaBoardLook } from "../../arenaLook";
 import { createPortal } from "react-dom";
 import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
+import type { RevealedZones } from "../model/gameOutcome";
 import { canAttackPlayerWith, canAttackWith, otherSeat } from "../../boardModel";
 import { type LogLine } from "../../matchLog";
 import { intents } from "../../../net/intents";
@@ -78,6 +79,8 @@ export interface BoardSeats {
   shownHandEntries: HandEntry[];
   shownHandCount: number;
   shownOpponentHandCount: number;
+  /** Both players' hidden zones, once the server reveals them after the match. */
+  revealed?: RevealedZones;
 }
 
 /** What the board prints rather than acts on: the turn, the memory and the log. */
@@ -233,6 +236,9 @@ export function BoardStage({
       viewerTrashClassName={chrome.trashEffectSource(viewerSeat) ?? ""}
       viewerTrashEffectCard={trashEffectCardFromSources(cues.effectSources, viewerSeat, shownViewer.trash)}
       onOpenViewerTrash={shownViewer.trash.length ? () => overlays.setTrashView(Side.Viewer) : undefined}
+      onOpenViewerDeck={
+        seats.revealed ? () => overlays.setRevealedZoneView({ side: Side.Viewer, zone: "deck" }) : undefined
+      }
     />
   );
 
@@ -284,6 +290,7 @@ export function BoardStage({
             memory={readouts.memory}
             eggDeckCount={breedingOpponent.eggDeckCount}
             handCount={seats.shownOpponentHandCount}
+            revealedHand={seats.revealed?.opponent.hand}
             deckCount={shownOpponent.deckCount}
             trashCount={shownOpponent.trash.length}
             portraitArena={layout.portraitArena}
@@ -374,6 +381,9 @@ export function BoardStage({
               securityHit={cues.securityHitSeat === viewerSeat}
               securityLanding={cues.securityFlights.get(viewerSeat)}
               onOpenOpponentTrash={shownOpponent.trash.length ? () => overlays.setTrashView(Side.Opponent) : undefined}
+              onOpenOpponentDeck={
+                seats.revealed ? () => overlays.setRevealedZoneView({ side: Side.Opponent, zone: "deck" }) : undefined
+              }
               onOpenViewerSecurity={shownViewer.securityCount ? () => overlays.setSecurityView(Side.Viewer) : undefined}
             />
 
@@ -479,6 +489,11 @@ export function BoardStage({
               }
               onOpenOpponentSecurity={
                 shownOpponent.securityCount ? () => overlays.setSecurityView(Side.Opponent) : undefined
+              }
+              onOpenOpponentEggDeck={
+                seats.revealed
+                  ? () => overlays.setRevealedZoneView({ side: Side.Opponent, zone: "eggDeck" })
+                  : undefined
               }
             />
           </div>

@@ -47,6 +47,7 @@ import { preselectedAttackTargets } from "./screen/model/attackTargetPrompt";
 import {
   gameOverReason as modelGameOverReason,
   gameOverResult as modelGameOverResult,
+  revealedZones as modelRevealedZones,
   viewerTurnOrder as modelViewerTurnOrder,
 } from "./screen/model/gameOutcome";
 import { actionGuards } from "./screen/model/actionGuards";
@@ -944,6 +945,8 @@ export function GameScreen({
 
   const viewerTurnOrder = modelViewerTurnOrder({ events, viewerSeat });
 
+  const revealed = state.gameOver ? modelRevealedZones({ events, viewerSeat }) : undefined;
+
   const attackerPerm = selPerm ? you.battleArea.find((p) => p.permanentId === selPerm) : undefined;
   const draggedAttackerPerm =
     drag?.kind === DragKind.Attack ? you.battleArea.find((p) => p.permanentId === drag.permanentId) : undefined;
@@ -1150,6 +1153,9 @@ export function GameScreen({
       }
       slotDrop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
       onHatch={onBreeding}
+      onOpenEggDeck={
+        revealed ? () => overlayState.setRevealedZoneView({ side: Side.Viewer, zone: "eggDeck" }) : undefined
+      }
       // In the breeding step an occupied slot answers with the move itself;
       // otherwise it reads like any other own card and opens the detail menu.
       // An empty slot only answers the breeding step, once its actions open.
@@ -1223,6 +1229,7 @@ export function GameScreen({
           ? {
               result: gameOverResult,
               reason: gameOverReason,
+              revealed,
               spectatorResult: spectating
                 ? state.winnerSeat < 0
                   ? t("spectator.draw")
@@ -1316,6 +1323,7 @@ export function GameScreen({
         shownHandEntries,
         shownHandCount,
         shownOpponentHandCount,
+        revealed,
       }}
       guards={guards}
       readouts={{ memory, memoryPrediction, displayedTurnSeat, displayedTurnCount, log }}
