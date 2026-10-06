@@ -17,14 +17,14 @@
 
 .spectator-invite__status {
   margin: 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-danger);
 }
 
 .spectator-invite__actions {
   display: flex;
   justify-content: flex-end;
   padding-top: var(--ds-space-4);
-  border-top: 1px solid var(--ds-border);
+  border-top: 1px solid var(--ds-line);
 }
 
 @media (width < 600px) {
