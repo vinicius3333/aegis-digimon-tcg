@@ -116,6 +116,16 @@ export function isInsidePrintedQuote(text: string, index: number): boolean {
   return false;
 }
 
+const timingReferenceTail = new RegExp(
+  `^\\s*(?:(?:or|and|,|/)\\s*\\[(?:${Object.values(PRINTED_TIMING_LABELS).map(escapeRegExp).join("|")})\\]\\s*)*effects?\\b`,
+  "i",
+);
+
+/** A timing followed by "effect(s)", including "[On Play] or [When Digivolving] effect", is a reference. */
+export function isPrintedTimingReference(text: string, bracketEnd: number): boolean {
+  return timingReferenceTail.test(text.slice(bracketEnd));
+}
+
 /**
  * Split a printed text box into its clauses: each starts at a run of timing brackets
  * separated only by whitespace ("[On Play] [When Digivolving] ...") and runs to the next
@@ -128,7 +138,7 @@ export function splitPrintedClauses(text: string | undefined): PrintedClause[] {
   for (let match = boundary.exec(text); match !== null; match = boundary.exec(text)) {
     if (isInsidePrintedQuote(text, match.index)) continue;
     // "activate 1 of that Digimon's [When Digivolving] effects" mentions a timing mid-sentence.
-    if (/^\s*effects?\b/i.test(text.slice(match.index + match[0].length))) continue;
+    if (isPrintedTimingReference(text, match.index + match[0].length)) continue;
     marks.push({ label: match[1] ?? "", index: match.index, end: match.index + match[0].length });
   }
   const groups: { labels: Set<string>; start: number }[] = [];

@@ -754,6 +754,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com Monodramon. O bot faz Blast Digivolve de Zudomon para Vikemon ACE. Gomamon, com 1 fonte, fica impedido de suspender/atacar. Evolua esse Gomamon para Gorillamon: com 2 fontes, ele deve poder atacar a segurança. Jogue o outro Gomamon da mão: ele também recebe a trava, embora tenha entrado depois do efeito. A trava dura até o fim deste turno.",
     en: "End breeding and attack security with Monodramon. The bot Blast Digivolves Zudomon into Vikemon ACE. Gomamon, with 1 source, cannot suspend/attack. Evolve that Gomamon into Gorillamon: with 2 sources, it must be able to attack security. Play the other Gomamon from hand: it also receives the lock despite entering after the effect. The lock expires at the end of this turn.",
   },
+  "arena-bt24-homeros-neptunemon-timing-choice": {
+    ptBR: "Relato de MiMiMi. Encerre a criação e depois a fase Principal sem jogar cartas. Aceite suspender Homeros. Neptunemon oferece a mesma cláusula com dois timings: cada opção deve mostrar seu badge [On Play] ou [When Digivolving]. Escolha qualquer uma: os dois Digimon sem fontes do bot voltam ao fundo do deck, e o Digimon com uma fonte permanece. Homeros fica suspenso e o turno passa normalmente.",
+    en: "MiMiMi report. End breeding, then end Main without playing cards. Accept suspending Homeros. Neptunemon offers the same clause at two timings: each option must show its [On Play] or [When Digivolving] badge. Choose either: both opposing Digimon with no sources return to the deck bottom, while the Digimon with one source stays. Homeros remains suspended and the turn passes normally.",
+  },
   "arena-bt25-ceresmon-homeros-suspend": {
     ptBR: "Discord 1556518401655054436. Encerre a criação e resolva Homeros: memória de 6 para 7, ele suspende e compra 1. Nenhuma Ceresmon deve ativar, nem a BT25-059 nem a recebida por Succession da BT26-032; Omnimon continua com 17000 DP. Ataque a segurança com Muchomon BT1-013: agora as duas Ceresmon ativam. Escolha Omnimon para ambas. Há 2 Digimon suspensos (Muchomon e Omnimon), então cada efeito dá -6000 DP e Omnimon fica com 5000 DP. Homeros não conta nem consome o uma vez por turno.",
     en: "Discord 1556518401655054436. End breeding and resolve Homeros: memory rises from 6 to 7, it suspends and draws 1. Neither BT25-059 Ceresmon nor its effect received through BT26-032 Succession should trigger; Omnimon stays at 17000 DP. Attack security with Muchomon BT1-013: both Ceresmon effects now trigger. Choose Omnimon for both. With 2 suspended Digimon (Muchomon and Omnimon), each effect gives -6000 DP, leaving Omnimon at 5000 DP. Homeros does not count or spend the once-per-turn effects.",
@@ -1475,6 +1479,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mirage-hidden-hand", "Mirage BM · concealed hand selection"],
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
   ["arena-bt25-ceresmon-homeros-suspend", "BT25 Ceresmon · Homeros e Succession / suspension"],
+  ["arena-bt24-homeros-neptunemon-timing-choice", "BT24 Homeros · Neptunemon timing choice"],
   ["arena-p224-kotone-own-source", "P-224 Kotone · X7 das próprias fontes / own sources"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],

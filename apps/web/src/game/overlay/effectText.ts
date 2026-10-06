@@ -1,6 +1,7 @@
 import {
   getCardDefinition,
   isInsidePrintedQuote,
+  isPrintedTimingReference,
   printedModalBullets,
   printedModalPreamble,
   type DecisionKind,
@@ -169,7 +170,7 @@ function printedClauseGroups(effectText: string): {
     // A timing label can be mentioned inside a sentence rather than opening a new clause
     // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
     // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.
-    if (/^\s+effects?\b/i.test(effectText.slice(m.index + m[0].length))) continue;
+    if (isPrintedTimingReference(effectText, m.index + m[0].length)) continue;
     marks.push({ label: m[1] ?? "", index: m.index, end: m.index + m[0].length });
   }
   const groups: { labels: Set<string>; start: number }[] = [];
