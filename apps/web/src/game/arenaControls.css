@@ -56,7 +56,7 @@
   color: #edfaff;
   background: #102630;
   box-shadow: 0 4px 14px rgb(0 0 0 / 40%);
-  font: 500 0.8125rem/1.4 var(--ds-font-sans, sans-serif);
+  font: 500 0.8125rem/1.4 var(--ds-font-body, sans-serif);
   overflow-wrap: anywhere;
 }
 

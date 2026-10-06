@@ -146,7 +146,7 @@
       max(var(--ds-space-4), env(safe-area-inset-left, 0px));
     overflow-y: auto;
     border-width: 1px 0 0;
-    border-color: var(--ds-border-strong);
+    border-color: var(--ds-line-strong);
     border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
     box-shadow: 0 -12px 40px rgb(4 14 31 / 45%);
     translate: none;
@@ -190,7 +190,7 @@
     height: 4px;
     margin: 0 auto var(--ds-space-2);
     border-radius: 999px;
-    background: var(--ds-border-strong);
+    background: var(--ds-line-strong);
   }
   .board-prompt__back {
     display: none;

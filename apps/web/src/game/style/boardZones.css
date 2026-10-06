@@ -47,7 +47,7 @@
   margin: 0;
   font-size: 0.62rem;
   line-height: 1.35;
-  color: var(--ds-foreground-muted);
+  color: var(--ds-text-3);
   pointer-events: none;
 }
 
@@ -64,9 +64,9 @@
   left: 12px;
   right: 12px;
   padding: 8px 12px;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: 8px;
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
 }
 
 .game-breeding-slot--focus .game-breeding-slot__box {
@@ -95,7 +95,7 @@
   position: fixed;
   z-index: 10000;
   padding: 0.26rem 0.9rem;
-  font-family: var(--ds-font-sans);
+  font-family: var(--ds-font-body);
   font-size: 0.84rem;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -194,7 +194,7 @@
 }
 
 .game-security-shield--selected {
-  filter: drop-shadow(0 0 4px var(--ds-background)) drop-shadow(0 0 12px var(--ds-accent));
+  filter: drop-shadow(0 0 4px var(--ds-paper)) drop-shadow(0 0 12px var(--ds-accent));
   animation: none;
 }
 
@@ -264,8 +264,8 @@
 
 .game-hand-card--playable {
   box-shadow:
-    0 0 0 1.5px var(--ds-card-rim-ready),
-    0 0 14px var(--ds-card-glow-ready);
+    0 0 0 1.5px var(--ds-rim-ready),
+    0 0 14px color-mix(in srgb, var(--ds-rim-ready) 45%, transparent);
 }
 
 /* --- Board-mode hand selection -------------------------------------------- */
@@ -288,8 +288,8 @@
 .game-hand-card--pickable {
   top: -4px;
   box-shadow:
-    0 0 0 2px var(--ds-card-rim-ready),
-    0 0 16px var(--ds-card-glow-ready);
+    0 0 0 2px var(--ds-rim-ready),
+    0 0 16px color-mix(in srgb, var(--ds-rim-ready) 45%, transparent);
 }
 
 /* The breathing rides a pseudo-element: `--drawn` already owns the card's own
@@ -301,7 +301,7 @@
   inset: -2px;
   pointer-events: none;
   border-radius: calc(0.7rem + 2px);
-  box-shadow: 0 0 18px 3px var(--ds-card-glow-ready);
+  box-shadow: 0 0 18px 3px color-mix(in srgb, var(--ds-rim-ready) 45%, transparent);
   animation: battle-card-breathe var(--t-card-breathe, 2600ms) ease-in-out infinite;
 }
 
@@ -326,8 +326,8 @@
   top: -8px;
   scale: 1.035;
   box-shadow:
-    0 0 0 2px var(--ds-card-rim-attention),
-    0 0 26px 4px var(--ds-card-glow-attention);
+    0 0 0 2px var(--ds-rim-attention),
+    0 0 26px 4px color-mix(in srgb, var(--ds-rim-attention) 40%, transparent);
 }
 .game-hand-card__pick-badge {
   position: absolute;
@@ -340,14 +340,14 @@
   height: 1.5rem;
   padding: 0 0.35rem;
   /* The badge belongs to the pick, so it wears the pick's own colour. */
-  color: var(--ds-brand-ink);
-  border: 2px solid var(--ds-surface);
+  color: var(--ds-ink);
+  border: 2px solid var(--ds-sheet);
   border-radius: 999px;
-  background: var(--ds-card-rim-attention);
+  background: var(--ds-rim-attention);
   font-family: var(--ds-font-mono);
   font-size: var(--ds-text-xs);
   font-weight: 800;
-  box-shadow: var(--ds-shadow-sm);
+  box-shadow: var(--ds-shadow-raise);
 }
 
 /* The magnifier sits opposite the pick badge, so both read at once on a picked card. */
@@ -363,10 +363,10 @@
   height: 1.5rem;
   padding: 0;
   color: var(--ds-ink);
-  border: 2px solid var(--ds-surface);
+  border: 2px solid var(--ds-sheet);
   border-radius: 999px;
-  background: var(--ds-surface-raised);
-  box-shadow: var(--ds-shadow-sm);
+  background: var(--ds-sheet);
+  box-shadow: var(--ds-shadow-raise);
   cursor: zoom-in;
 }
 

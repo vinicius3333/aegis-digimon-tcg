@@ -81,7 +81,7 @@
     height: clamp(6.5rem, 16dvh, 9.5rem);
     max-height: none;
     flex-direction: row !important;
-    border-top: 1px solid var(--ds-border);
+    border-top: 1px solid var(--ds-line);
     border-left: 0 !important;
   }
   /* The row is the only place the log and the actions live at this size, so it
@@ -94,7 +94,7 @@
     min-width: 170px;
     padding: var(--ds-space-2) var(--ds-space-3) !important;
     overflow: hidden auto;
-    border-right: 1px solid var(--ds-border);
+    border-right: 1px solid var(--ds-line);
     border-bottom: 0 !important;
   }
   /* The turn panel has to fit the strip whole: it is the one panel whose content
@@ -154,7 +154,7 @@
      wider than the board, and a translucent scrim left the opening hand reading
      as part of the board behind it. */
   .mulligan-scrim {
-    background: var(--ds-brand-ink) !important;
+    background: var(--ds-ink) !important;
   }
   .mulligan-sheet {
     display: grid;

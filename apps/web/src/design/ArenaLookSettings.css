@@ -76,7 +76,7 @@
 
 .aegis-arena-look__note {
   margin: 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
   line-height: var(--ds-leading-body);
 }
@@ -93,7 +93,7 @@
 .aegis-arena-look__legend {
   margin-bottom: var(--ds-space-2);
   padding: 0;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font-size: var(--ds-text-sm);
   font-weight: 600;
 }
@@ -113,11 +113,11 @@
    placed relative to a distant ancestor, and focusing it scrolls the arena stage. */
 .aegis-arena-look__option {
   position: relative;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   text-align: left;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: var(--ds-radius-lg);
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
   cursor: pointer;
   transition:
     border-color var(--ds-motion-fast),
@@ -125,7 +125,7 @@
 }
 
 .aegis-arena-look__option:hover {
-  border-color: color-mix(in srgb, var(--ds-accent) 50%, var(--ds-border));
+  border-color: color-mix(in srgb, var(--ds-accent) 50%, var(--ds-line));
 }
 
 .aegis-arena-look__option:has(:checked) {
@@ -225,8 +225,8 @@
 .aegis-arena-look__upload {
   display: grid;
   place-items: center;
-  color: var(--ds-fg-muted);
-  background: var(--ds-surface-muted);
+  color: var(--ds-text-3);
+  background: var(--ds-fill);
 }
 
 .aegis-arena-look__remove {
@@ -236,7 +236,7 @@
   align-items: center;
   gap: var(--ds-space-2);
   padding: 0;
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
   font: 600 var(--ds-text-sm) / 1 var(--ds-font-body);
   border: 0;
   background: none;

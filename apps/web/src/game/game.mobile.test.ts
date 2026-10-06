@@ -878,10 +878,10 @@ describe("the phone hand strip during a board-mode selection", () => {
     // the chosen card turns gold, and the extra weight goes into lift and glow
     // spread rather than into a thicker ring that would collide in the strip.
     expect(portraitRules).toMatch(
-      /\.game-hand-card--pickable \{[^}]*var\(--ds-card-rim-ready\)[^}]*var\(--ds-card-glow-ready\)/,
+      /\.game-hand-card--pickable \{[^}]*var\(--ds-rim-ready\)[^}]*color-mix\(in srgb, var\(--ds-rim-ready\) 45%/,
     );
     expect(portraitRules).toMatch(
-      /\.game-hand-card--picked \{[^}]*var\(--ds-card-rim-attention\)[^}]*var\(--ds-card-glow-attention\)/,
+      /\.game-hand-card--picked \{[^}]*var\(--ds-rim-attention\)[^}]*color-mix\(in srgb, var\(--ds-rim-attention\) 40%/,
     );
     expect(portraitRules).toMatch(/\.game-hand-card--picked \{[^}]*scale:\s*1\.03/);
     // The strip clips its own overflow, so the row reserves the room the lift, the
@@ -894,7 +894,7 @@ describe("the phone hand strip during a board-mode selection", () => {
     expect(gameCss).toMatch(/\.game-hand-card--unpickable > \* \{\s*filter:\s*brightness\(0\.55\)/);
     // The same three states exist outside the phone block, so the pointer layout
     // reads the selection the same way.
-    expect(gameCss).toMatch(/\.game-hand-card--pickable \{[^}]*var\(--ds-card-rim-ready\)/);
+    expect(gameCss).toMatch(/\.game-hand-card--pickable \{[^}]*var\(--ds-rim-ready\)/);
   });
 
   it("keeps the pick-order badge inside the card the strip clips", () => {

@@ -8,13 +8,13 @@
 .digivolve-cost-choice__title {
   margin: 0;
   padding-bottom: var(--ds-space-3);
-  border-bottom: 1px solid var(--ds-border);
+  border-bottom: 1px solid var(--ds-line);
   font-family: var(--ds-font-display);
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ds-fg);
+  color: var(--ds-text);
 }
 
 .digivolve-cost-choice__cards {
@@ -50,12 +50,12 @@
   text-align: left;
   text-transform: uppercase;
   color: var(--ds-accent);
-  background: var(--ds-surface-raised);
+  background: var(--ds-sheet);
   cursor: pointer;
 }
 
 .digivolve-cost-choice__option:hover {
-  border-color: var(--ds-accent-hover);
+  border-color: var(--ds-accent-strong);
 }
 
 .digivolve-cost-choice__option[data-recommended] {
@@ -64,7 +64,7 @@
 }
 
 .digivolve-cost-choice__option:focus-visible {
-  outline: 3px solid var(--ds-focus-color);
+  outline: 3px solid var(--ds-focus);
   outline-offset: 3px;
 }
 
@@ -76,8 +76,8 @@
   font-variant-numeric: tabular-nums;
   text-align: center;
   white-space: nowrap;
-  color: var(--ds-fg);
-  background: var(--ds-surface);
+  color: var(--ds-text);
+  background: var(--ds-sheet);
 }
 
 .digivolve-cost-choice__view-board {
@@ -94,6 +94,6 @@
 }
 
 .digivolve-cost-choice__view-board:focus-visible {
-  outline: 3px solid var(--ds-focus-color);
+  outline: 3px solid var(--ds-focus);
   outline-offset: 2px;
 }

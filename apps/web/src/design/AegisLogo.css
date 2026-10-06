@@ -16,18 +16,18 @@
 
 .aegis-brand-logo__wordmark {
   color: transparent;
-  font: 800 calc(var(--aegis-logo-size) * 0.75) / 1 var(--ds-font-brand);
+  font: 800 calc(var(--aegis-logo-size) * 0.75) / 1 var(--ds-font-display);
   letter-spacing: 0.08em;
   background: linear-gradient(
     to bottom,
-    var(--ds-brand-on-ink),
-    color-mix(in srgb, var(--ds-brand-accent-soft) 70%, white)
+    var(--ds-on-ink),
+    color-mix(in srgb, var(--ds-ink-accent) 70%, white)
   );
   background-clip: text;
 }
 
 .aegis-brand-logo[data-tone="on-surface"] .aegis-brand-logo__wordmark {
-  background-image: linear-gradient(to bottom, var(--ds-brand-wordmark-top), var(--ds-brand-wordmark-bottom));
+  background-image: linear-gradient(to bottom, var(--ds-accent), var(--ds-ink-accent));
 }
 
 @media (width < 960px) {

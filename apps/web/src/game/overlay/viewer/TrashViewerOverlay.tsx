@@ -217,10 +217,10 @@ export function TrashViewerOverlay({
             maxWidth: "92%",
             maxHeight: "86%",
             padding: 24,
-            background: "var(--ds-surface)",
+            background: "var(--ds-sheet)",
             borderRadius: 20,
-            border: "1px solid var(--ds-border)",
-            boxShadow: "var(--ds-shadow-summary)",
+            border: "1px solid var(--ds-line)",
+            boxShadow: "var(--ds-shadow-raise)",
           }}
         >
           {/* left: header + wrapped thumbnail grid */}
@@ -244,7 +244,7 @@ export function TrashViewerOverlay({
                 style={{
                   fontSize: 14,
                   fontWeight: 800,
-                  color: "var(--ds-fg)",
+                  color: "var(--ds-text)",
                   fontFamily: "var(--ds-font-display)",
                 }}
               >
@@ -254,7 +254,7 @@ export function TrashViewerOverlay({
                 style={{
                   fontFamily: "var(--ds-font-mono)",
                   fontSize: 11,
-                  color: "var(--ds-fg-muted)",
+                  color: "var(--ds-text-3)",
                 }}
               >
                 {countText}
@@ -266,7 +266,7 @@ export function TrashViewerOverlay({
                   flex: 1,
                   display: "grid",
                   placeItems: "center",
-                  color: "var(--ds-fg-disabled)",
+                  color: "var(--ds-text-off)",
                   fontFamily: "var(--ds-font-mono)",
                   fontSize: 12,
                 }}

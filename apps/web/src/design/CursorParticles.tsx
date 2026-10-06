@@ -30,7 +30,7 @@ const DRAG = 0.96;
 
 type Rgb = [number, number, number];
 
-const FALLBACK_ACCENT: Rgb = [59, 130, 246];
+const FALLBACK_ACCENT: Rgb = [192, 38, 122];
 const FALLBACK_GLOW: Rgb = [129, 89, 201];
 
 function parseColor(raw: string, fallback: Rgb): Rgb {
@@ -86,8 +86,8 @@ export function CursorParticles() {
 
     const readPalette = () => {
       const style = getComputedStyle(document.documentElement);
-      accent = parseColor(style.getPropertyValue("--ds-primary"), FALLBACK_ACCENT);
-      glow = parseColor(style.getPropertyValue("--ds-particle-glow"), FALLBACK_GLOW);
+      accent = parseColor(style.getPropertyValue("--ds-accent"), FALLBACK_ACCENT);
+      glow = parseColor(style.getPropertyValue("--ds-ink-accent"), FALLBACK_GLOW);
     };
 
     const resize = () => {

@@ -5,7 +5,7 @@
 /* Every navy surface in the match carries the same ink. These panels are navy
    whichever theme the app is in, so the tokens their contents read cannot follow
    the theme — light-theme surfaces inside them would be white cards on navy, and
-   the light theme's accent (#075ff7, tuned for white) reads 3.0:1 against this
+   the light theme's accent (tuned for white) reads poorly against this
    panel, which is where the outlined secondary buttons, the primary badges and
    the play-log card links were failing. The dark theme's values are the ones
    that belong here, so the whole ramp comes from there. */
@@ -16,53 +16,37 @@
 .stack-sheet .card-action-sheet__panel,
 .combat-prompt,
 .evo-cost-prompt {
-  --ds-fg: #eaf1ff;
-  --ds-fg-secondary: #c6d4ef;
-  --ds-fg-muted: #9fb0d0;
-  --ds-fg-disabled: #5c6f92;
-  --ds-surface: #16233c;
-  --ds-surface-raised: #1b2a47;
-  --ds-surface-muted: #1e2d4a;
-  --ds-border: #334770;
-  --ds-border-strong: #46608f;
-  --ds-accent: #60a5fa;
-  --ds-accent-hover: #93c5fd;
-  --ds-accent-active: #bfdbfe;
-  --ds-accent-surface: rgb(59 130 246 / 15%);
-  --ds-on-accent: #07101f;
-  --ds-focus-color: #60a5fa;
+  --ds-text: #eaf1ff;
+  --ds-text-2: #c6d4ef;
+  --ds-text-3: #9fb0d0;
+  --ds-text-off: #5c6f92;
+  --ds-sheet: #16233c;
+  --ds-fill: #1e2d4a;
+  --ds-line: #334770;
+  --ds-line-strong: #46608f;
+  --ds-accent: #f472b6;
+  --ds-accent-strong: #f9a8d4;
+  --ds-accent-soft: rgb(244 114 182 / 15%);
+  --ds-on-accent: #0a0c12;
+  --ds-focus: #f472b6;
   /* The semantic ramp for the same reason: the light theme's success, warning and
      danger are near-black inks meant for white cards (2.4–2.6:1 here), and their
      surfaces are pale chips that would punch holes in the panel. */
   --ds-success: #4ade80;
-  --ds-success-hover: #86efac;
-  --ds-success-active: #bbf7d0;
-  --ds-success-surface: rgb(34 197 94 / 15%);
-  --ds-success-border: rgb(74 222 128 / 52%);
-  --ds-on-success: #04160a;
+  --ds-success-soft: rgb(34 197 94 / 15%);
   --ds-warning: #fbbf24;
-  --ds-warning-hover: #fcd34d;
-  --ds-warning-active: #fde68a;
-  --ds-warning-surface: rgb(245 158 11 / 15%);
-  --ds-warning-border: rgb(251 191 36 / 52%);
-  --ds-on-warning: #211502;
+  --ds-warning-soft: rgb(245 158 11 / 15%);
   --ds-danger: #f87171;
-  --ds-danger-hover: #fca5a5;
-  --ds-danger-active: #fecaca;
-  --ds-danger-surface: rgb(239 68 68 / 15%);
-  --ds-danger-border: rgb(248 113 113 / 52%);
-  --ds-on-danger: #190707;
-  --ds-info: #60a5fa;
-  --ds-info-surface: rgb(59 130 246 / 15%);
-  --ds-info-border: rgb(96 165 250 / 52%);
+  --ds-danger-soft: rgb(239 68 68 / 15%);
+  --ds-on-status: #0a0c12;
 }
 
 .game-modal__panel {
   /* Above every board fixture (memory band, orb, log ticker, flights): the
      panels portal into #aegis-stage and carry only a small inline z-index.
-     (--ds-z-modal does not exist in tokens.css — the dialog tier is the one.) */
+     The dialog tier is the one to use. */
   z-index: var(--ds-z-dialog) !important;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   border: 1px solid var(--battle-panel-border) !important;
   border-radius: 0.6rem;
   background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
@@ -78,12 +62,12 @@
 
    The mulligan sheet also needed the panel itself: only its title carried a dark
    bar, so the badge, the turn-order line and the detail paragraph sat on nothing
-   but the scrim, and over a light --ds-bg that scrim resolves to mid grey and the
+   but the scrim, and over a light --ds-paper that scrim resolves to mid grey and the
    text fell under 4.5:1. */
 .mulligan-sheet {
   position: relative;
   z-index: 90;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   border: 1px solid var(--battle-panel-border);
   border-radius: 0.6rem;
   background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%);
@@ -94,7 +78,7 @@
 
 .combat-prompt {
   z-index: 90 !important;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 60%),
@@ -665,13 +649,13 @@ button.side-panel__name:focus-visible {
   color: #fff;
   text-transform: uppercase;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--ds-brand-accent-soft) 0%, var(--ds-accent) 100%);
+  background: linear-gradient(180deg, var(--ds-ink-accent) 0%, var(--ds-accent) 100%);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--ds-accent) 45%, transparent);
 }
 
 .match-notice[data-variant="keyword"] .match-notice__label,
 .match-notice[data-variant="stackStrip"] .match-notice__label {
-  color: var(--ds-brand-accent-soft);
+  color: var(--ds-ink-accent);
 }
 
 .match-notice[data-keyword="guard"] .match-notice__keyword {

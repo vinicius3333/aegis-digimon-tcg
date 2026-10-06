@@ -15,7 +15,7 @@ export function PermanentDpDeltaBadge({ delta }: { delta: number }) {
         padding: "2px 5px",
         borderRadius: 6,
         background: delta < 0 ? "var(--ds-danger)" : "var(--ds-success)",
-        color: delta < 0 ? "var(--ds-on-danger)" : "var(--ds-on-success)",
+        color: delta < 0 ? "var(--ds-on-status)" : "var(--ds-on-status)",
         fontFamily: "var(--ds-font-mono)",
         fontSize: 9.5,
         fontWeight: 700,

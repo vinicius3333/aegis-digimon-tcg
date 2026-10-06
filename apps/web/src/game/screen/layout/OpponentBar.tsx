@@ -81,8 +81,8 @@ export function OpponentBar({
         alignItems: "center",
         justifyContent: "space-between",
         padding: "12px 26px",
-        borderBottom: "1px solid var(--ds-border)",
-        background: "var(--ds-surface)",
+        borderBottom: "1px solid var(--ds-line)",
+        background: "var(--ds-sheet)",
       }}
     >
       <ArenaCounters side={Side.Opponent} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
@@ -130,7 +130,7 @@ export function OpponentBar({
           style={{
             fontFamily: "var(--ds-font-mono)",
             fontSize: 12,
-            color: "var(--ds-foreground-muted)",
+            color: "var(--ds-text-3)",
             marginLeft: 8,
           }}
         >

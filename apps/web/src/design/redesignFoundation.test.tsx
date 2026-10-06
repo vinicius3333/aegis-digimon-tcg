@@ -31,7 +31,7 @@ describe("arena palette store", () => {
   it("returns the four side hues as custom properties", () => {
     const style = arenaPaletteStyle(arenaPaletteById("green-purple")) as Record<string, string>;
     expect(style["--arena-player"]).toBe(COLORS.Green.base);
-    expect(style["--arena-player-2"]).toBe("var(--ds-card-rim-ready)");
+    expect(style["--arena-player-2"]).toBe("var(--ds-rim-ready)");
     expect(style["--arena-opponent"]).toBe(COLORS.Purple.base);
     expect(style["--arena-opponent-2"]).toBe(COLORS.Purple.edge);
   });

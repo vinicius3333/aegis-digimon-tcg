@@ -40,7 +40,7 @@ export function DigiXrosLockedZone({
             fontWeight: 700,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: max > 0 ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+            color: max > 0 ? "var(--ds-accent)" : "var(--ds-text-3)",
           }}
         >
           {label}
@@ -49,7 +49,7 @@ export function DigiXrosLockedZone({
           style={{
             fontFamily: "var(--ds-font-mono)",
             fontSize: 11,
-            color: max > 0 ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+            color: max > 0 ? "var(--ds-accent)" : "var(--ds-text-3)",
           }}
         >
           {max > 0 ? t("overlay.xrosZoneMax", { count: max }) : t("overlay.xrosZoneLocked")}
@@ -73,8 +73,8 @@ export function DigiXrosLockedZone({
           style={{
             padding: "10px 12px",
             borderRadius: 10,
-            background: "var(--ds-surface-muted)",
-            color: "var(--ds-fg-muted)",
+            background: "var(--ds-fill)",
+            color: "var(--ds-text-3)",
             fontSize: 12.5,
           }}
         >

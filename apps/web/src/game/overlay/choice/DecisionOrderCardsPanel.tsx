@@ -29,7 +29,7 @@ export function DecisionOrderCardsPanel({
   const drag = useDecisionReorder(onReorder);
   return (
     <div ref={drag.listRef} className="decision-overlay__order-list" style={{ marginBottom: 18 }}>
-      <div style={{ fontSize: 12, color: "var(--ds-fg-secondary)", marginBottom: 10 }}>
+      <div style={{ fontSize: 12, color: "var(--ds-text-2)", marginBottom: 10 }}>
         {t(orderHintKey(orderDestination))}
       </div>
       <div
@@ -53,7 +53,7 @@ export function DecisionOrderCardsPanel({
                 gap: 10,
                 padding: 8,
                 borderRadius: 12,
-                background: "var(--ds-surface-muted)",
+                background: "var(--ds-fill)",
                 animation: "aegis-rise 160ms ease-out",
               }}
             >

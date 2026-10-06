@@ -65,7 +65,7 @@ function SelectedDeckBar({ deck, onPlay }: { deck: DeckListing; onPlay: () => vo
           <span className="font-mono tabular-nums">
             {deck.mainDeck.length} main · {deck.eggDeck.length} egg
           </span>
-          <span className="inline-flex items-center gap-1 text-[var(--ds-card-rim-ready)]">
+          <span className="inline-flex items-center gap-1 text-[var(--ds-rim-ready)]">
             <Check className="size-3.5" /> Legal
           </span>
         </p>

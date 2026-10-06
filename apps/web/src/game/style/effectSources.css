@@ -463,7 +463,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   bottom: -0.9rem;
   left: 50%;
   padding: 1px 7px;
-  color: var(--ds-brand-on-ink, #fff);
+  color: var(--ds-on-ink, #fff);
   font: 800 9px/1.5 var(--ds-font-mono);
   letter-spacing: 0.08em;
   white-space: nowrap;
@@ -715,7 +715,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
 }
 .opponent-permanent-inspector__base {
   margin: 0.15rem 0 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-family: var(--ds-font-mono);
   font-size: 10.5px;
 }
@@ -723,7 +723,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
   margin-top: 0.5rem;
 }
 .opponent-permanent-inspector__keywords > span {
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -741,12 +741,12 @@ body:has([aria-modal="true"]) .game-hand-hover {
 .opponent-permanent-inspector__keywords li,
 .stack-viewer-state__keywords li {
   padding: 1px 7px;
-  color: var(--ds-fg-secondary);
+  color: var(--ds-text-2);
   font-size: 10.5px;
   font-weight: 700;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-line);
   border-radius: 999px;
-  background: var(--ds-surface-muted);
+  background: var(--ds-fill);
 }
 /* A keyword an effect granted is marked apart from one printed on the card. */
 .opponent-permanent-inspector__keywords li[data-granted],
@@ -756,7 +756,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
 }
 .opponent-permanent-inspector__keywords li[data-empty],
 .stack-viewer-state__keywords li[data-empty] {
-  color: var(--ds-fg-disabled);
+  color: var(--ds-text-off);
   border-style: dashed;
 }
 /* The imposed "can't ..." locks, kept visibly apart from the keyword pills above:
@@ -773,7 +773,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
 .opponent-permanent-inspector__restrictions li,
 .stack-viewer-state__restrictions li {
   padding: 1px 7px;
-  color: var(--ds-on-danger);
+  color: var(--ds-on-status);
   font-size: 10.5px;
   font-weight: 700;
   border-radius: 999px;
@@ -803,17 +803,17 @@ body:has([aria-modal="true"]) .game-hand-hover {
 }
 .opponent-permanent-inspector__fate[data-tone="good"],
 .stack-viewer-state__fate[data-tone="good"] {
-  color: var(--ds-fg);
+  color: var(--ds-text);
   background: var(--battle-memory-zero);
 }
 
 .stack-viewer-state {
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--ds-border);
+  border-bottom: 1px solid var(--ds-line);
 }
 .stack-viewer-state__dp {
   margin: 0;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font-family: var(--ds-font-mono);
   font-size: 11px;
 }
@@ -833,7 +833,7 @@ body:has([aria-modal="true"]) .game-hand-hover {
 }
 .stack-viewer-state__base {
   margin: 0.1rem 0 0;
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-family: var(--ds-font-mono);
   font-size: 10px;
 }

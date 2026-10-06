@@ -1,7 +1,7 @@
 .badge-lab {
   min-height: 100vh;
   padding: 2rem;
-  color: var(--ds-fg);
+  color: var(--ds-text);
   background: #b66f52;
 }
 
@@ -17,19 +17,19 @@
 }
 
 .badge-lab__header p {
-  font: 800 0.7rem/1 var(--ds-font-sans);
+  font: 800 0.7rem/1 var(--ds-font-body);
   letter-spacing: 0.16em;
 }
 
 .badge-lab__header h1 {
   margin-top: 0.35rem;
-  font: 900 2rem/1 var(--ds-font-sans);
+  font: 900 2rem/1 var(--ds-font-body);
 }
 
 .badge-lab__header span {
   display: block;
   margin-top: 0.6rem;
-  font: 600 0.85rem/1.4 var(--ds-font-sans);
+  font: 600 0.85rem/1.4 var(--ds-font-body);
 }
 
 .badge-lab__grid {
@@ -51,7 +51,7 @@
 .badge-lab__case h2 {
   min-height: 2rem;
   margin: 0;
-  font: 800 0.72rem/1.2 var(--ds-font-sans);
+  font: 800 0.72rem/1.2 var(--ds-font-body);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -99,7 +99,7 @@
   width: 2.25rem;
   height: 2.25rem;
   place-items: center;
-  font: 900 1rem/1 var(--ds-font-sans);
+  font: 900 1rem/1 var(--ds-font-body);
   color: white;
   background: #4d5662;
   border: 2px solid rgb(255 255 255 / 65%);

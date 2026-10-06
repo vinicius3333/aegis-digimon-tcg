@@ -57,7 +57,7 @@ export function BreedingDock({
       style={{
         width: 228,
         flexShrink: 0,
-        borderRight: "1px solid var(--ds-border)",
+        borderRight: "1px solid var(--ds-line)",
         padding: "8px 12px",
         display: "flex",
         flexDirection: "column",
@@ -70,7 +70,7 @@ export function BreedingDock({
           fontWeight: 700,
           textTransform: "uppercase",
           letterSpacing: "0.1em",
-          color: "var(--ds-foreground-muted)",
+          color: "var(--ds-text-3)",
         }}
       >
         {t("game.breedingArea")}

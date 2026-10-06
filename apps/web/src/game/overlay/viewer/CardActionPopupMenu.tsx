@@ -11,7 +11,7 @@ const item: CSSProperties = {
   padding: "8px 14px",
   border: "none",
   background: "transparent",
-  color: "var(--ds-fg)",
+  color: "var(--ds-text)",
   fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",
@@ -60,8 +60,8 @@ export function CardActionPopupMenu({
           transform: "translate(-50%, calc(-100% - 10px))",
           zIndex: 9001,
           minWidth: 150,
-          background: "var(--ds-surface)",
-          border: "1px solid var(--ds-border-strong)",
+          background: "var(--ds-sheet)",
+          border: "1px solid var(--ds-line-strong)",
           borderRadius: 12,
           boxShadow: "0 16px 40px rgba(15,23,42,0.4)",
           padding: 5,
@@ -74,7 +74,7 @@ export function CardActionPopupMenu({
           autoFocus
           style={item}
           onClick={onViewStack}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-surface-muted)")}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-fill)")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
           <Icons.Search size={15} /> {t("overlay.viewStack")}
@@ -83,7 +83,7 @@ export function CardActionPopupMenu({
           <button
             style={{ ...item, color: "var(--ds-danger)" }}
             onClick={onAttack}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-danger-surface)")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-danger-soft)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <Icons.Swords size={15} /> {t("overlay.attack")}
@@ -93,7 +93,7 @@ export function CardActionPopupMenu({
           <button
             style={{ ...item, color: "var(--ds-danger)" }}
             onClick={onVortex}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-danger-surface)")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-danger-soft)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <Icons.Swords size={15} /> {t("overlay.vortexAttack")}
@@ -103,7 +103,7 @@ export function CardActionPopupMenu({
           <button
             style={item}
             onClick={link.onLink}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-surface-muted)")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-fill)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <Icons.Link2 size={15} /> {t("overlay.link")}
@@ -116,7 +116,7 @@ export function CardActionPopupMenu({
             onClick={effect.onActivate}
             title={effect.label}
             aria-label={`${t("game.activateEffect")}: ${effect.label}`}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-surface-muted)")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-fill)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <span aria-hidden="true">⚡</span> {t("game.activateMainEffect")}

@@ -21,7 +21,7 @@
   /* Memory chips follow the design system: the viewer's half carries the
      accent, the opponent's half a quiet slate; both sit on the fixed dark
      band, so the values only need contrast against it and white digits. */
-  --battle-memory-you: var(--ds-accent, #075ff7);
+  --battle-memory-you: var(--ds-accent);
   --battle-memory-opp: #47536b;
   --battle-memory-zero: #f4f6fa;
   --battle-memory-zero-ink: #23324d;
@@ -63,11 +63,11 @@
   width: 2.4rem;
   height: 2.4rem;
   place-items: center;
-  color: var(--ds-foreground-muted);
+  color: var(--ds-text-3);
   cursor: pointer;
-  border: 1.5px solid var(--ds-border-strong);
+  border: 1.5px solid var(--ds-line-strong);
   border-radius: 50%;
-  background: var(--ds-surface);
+  background: var(--ds-sheet);
   transition:
     color 150ms,
     border-color 150ms,
@@ -75,22 +75,22 @@
 }
 
 .game-topbar-button:hover {
-  color: var(--ds-primary);
-  border-color: var(--ds-primary);
-  box-shadow: 0 0 10px var(--ds-primary-light);
+  color: var(--ds-accent);
+  border-color: var(--ds-accent);
+  box-shadow: 0 0 10px var(--ds-accent-soft);
 }
 
 /* The skip button is only in the header while the queue has something to skip, so it
    is tinted: a control that comes and goes has to be recognisable at a glance. */
 .game-topbar-button--skip {
-  color: var(--ds-primary);
-  border-color: var(--ds-primary);
+  color: var(--ds-accent);
+  border-color: var(--ds-accent);
 }
 
 .game-topbar-button--danger:hover {
   color: var(--ds-danger);
   border-color: var(--ds-danger);
-  box-shadow: 0 0 10px var(--ds-danger-light);
+  box-shadow: 0 0 10px var(--ds-danger-soft);
 }
 
 /* --- Match log ticker (desktop's slim replacement for the sidebar log) ---- */
@@ -379,7 +379,7 @@
      both edges (the reference client's orb rides the divider the same way). */
   margin: -0.9rem 0.9rem;
   padding: 0.4rem;
-  font-family: var(--ds-font-sans);
+  font-family: var(--ds-font-body);
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1.15;

@@ -31,7 +31,7 @@ export function DecisionChoiceCards({
           fontWeight: 700,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "var(--ds-fg-muted)",
+          color: "var(--ds-text-3)",
           marginBottom: 10,
         }}
       >

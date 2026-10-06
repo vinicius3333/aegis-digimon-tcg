@@ -9,11 +9,11 @@ body,
   min-width: 320px;
   min-height: 100%;
   height: 100%;
-  background: var(--ds-bg);
+  background: var(--ds-paper);
 }
 
 body {
-  color: var(--ds-fg);
+  color: var(--ds-text);
   font-family: var(--ds-font-body);
   font-size: var(--ds-text-base);
   line-height: var(--ds-leading-body);
@@ -39,14 +39,14 @@ textarea:disabled {
 
 :focus-visible {
   border-radius: var(--ds-radius-sm);
-  outline: 2px solid var(--ds-focus-color);
+  outline: 2px solid var(--ds-focus);
   outline-offset: 2px;
   box-shadow: var(--ds-focus-ring);
 }
 
 ::selection {
   color: var(--ds-accent);
-  background: var(--ds-accent-surface);
+  background: var(--ds-accent-soft);
 }
 
 ::-webkit-scrollbar {
@@ -55,13 +55,13 @@ textarea:disabled {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ds-border-strong);
+  background: var(--ds-line-strong);
   border-radius: var(--ds-radius-pill);
   transition: background var(--ds-motion-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ds-fg-muted);
+  background: var(--ds-text-3);
 }
 
 ::-webkit-scrollbar-track {

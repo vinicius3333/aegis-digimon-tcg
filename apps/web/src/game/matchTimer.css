@@ -10,7 +10,7 @@
   padding: 0.25rem 0.375rem;
   border: 1px solid rgb(185 198 215 / 25%);
   border-radius: 4px;
-  background: var(--ds-brand-ink);
+  background: var(--ds-ink);
   color: var(--clock-color);
   pointer-events: none;
   font-variant-numeric: tabular-nums;

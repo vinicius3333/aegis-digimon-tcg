@@ -3,7 +3,7 @@
   padding: clamp(16px, 3vw, 36px);
   background: #0d131e;
   color: #e5edf5;
-  font: 14px/1.5 var(--ds-font-ui, system-ui);
+  font: 14px/1.5 var(--ds-font-body, system-ui);
   color-scheme: dark;
 }
 .motion-reference * {

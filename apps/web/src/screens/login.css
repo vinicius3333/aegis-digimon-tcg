@@ -3,8 +3,8 @@
   height: 100%;
   flex-direction: column;
   overflow-y: auto;
-  color: var(--ds-fg);
-  background: var(--ds-bg);
+  color: var(--ds-text);
+  background: var(--ds-paper);
 }
 
 .login-page__bar {
@@ -13,8 +13,8 @@
   justify-content: space-between;
   gap: var(--ds-space-4);
   padding: var(--ds-space-3) var(--ds-gutter-desktop);
-  color: var(--ds-brand-on-ink);
-  background: var(--ds-brand-ink);
+  color: var(--ds-on-ink);
+  background: var(--ds-ink);
 }
 
 .login-page__brand {
@@ -33,11 +33,11 @@
   align-items: center;
   gap: var(--ds-space-2);
   padding: 0 var(--ds-space-4);
-  color: var(--ds-brand-nav);
+  color: var(--ds-on-ink-2);
   font-family: var(--ds-font-body);
   font-size: var(--ds-text-sm);
   font-weight: 600;
-  border: 1px solid var(--ds-brand-interactive-strong);
+  border: 1px solid color-mix(in srgb, var(--ds-on-ink) 18%, transparent);
   border-radius: var(--ds-radius-md);
   background: transparent;
   cursor: pointer;
@@ -47,8 +47,8 @@
 }
 
 .login-page__back:hover {
-  color: var(--ds-brand-on-ink);
-  background: var(--ds-brand-interactive);
+  color: var(--ds-on-ink);
+  background: color-mix(in srgb, var(--ds-on-ink) 8%, transparent);
 }
 
 .login-page__body {
@@ -86,7 +86,7 @@
   margin-bottom: var(--ds-space-2);
   place-items: center;
   border-radius: var(--ds-radius-lg);
-  background: var(--ds-brand-ink);
+  background: var(--ds-ink);
 }
 
 .login-card__head h1 {
@@ -232,7 +232,7 @@
   display: flex;
   align-items: center;
   gap: var(--ds-space-2);
-  color: var(--ds-fg-muted);
+  color: var(--ds-text-3);
   font-size: var(--ds-text-xs);
 }
 
@@ -249,7 +249,7 @@
 .login-page__legal p {
   max-width: 72ch;
   margin: 0 auto;
-  color: var(--ds-fg-disabled);
+  color: var(--ds-text-off);
   font-size: var(--ds-text-xs);
   line-height: var(--ds-leading-body);
 }

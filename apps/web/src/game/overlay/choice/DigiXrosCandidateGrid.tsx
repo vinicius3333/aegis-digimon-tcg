@@ -29,7 +29,7 @@ export function DigiXrosCandidateGrid({
 }) {
   const zoneLabel = (zone: DigiXrosCandidate["zone"]): string => t(`overlay.zone.${zone}` as const);
   return items.length === 0 ? (
-    <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-fg-disabled)" }}>
+    <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-text-off)" }}>
       {emptyText}
     </div>
   ) : (
@@ -58,7 +58,7 @@ export function DigiXrosCandidateGrid({
               cursor: disabled ? "not-allowed" : "pointer",
               opacity: disabled ? 0.45 : 1,
               filter: disabled ? "grayscale(0.6)" : "none",
-              background: selected ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+              background: selected ? "var(--ds-accent-soft)" : "var(--ds-fill)",
               border: `2px solid ${selected ? "var(--ds-accent)" : "transparent"}`,
               transition: "background 100ms, border-color 100ms",
               display: "flex",
@@ -72,7 +72,7 @@ export function DigiXrosCandidateGrid({
               style={{
                 fontSize: 9.5,
                 fontWeight: 600,
-                color: selected ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+                color: selected ? "var(--ds-accent)" : "var(--ds-text-3)",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}

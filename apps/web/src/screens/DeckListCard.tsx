@@ -72,7 +72,7 @@ export function DeckListCard({
       ) : null}
       <div
         className="deck-list-card__cover"
-        style={{ background: `linear-gradient(160deg, ${color.soft}, var(--ds-surface-muted))` }}
+        style={{ background: `linear-gradient(160deg, ${color.soft}, var(--ds-fill))` }}
       >
         <CoverThumb
           key={displayCoverCard(deck)}

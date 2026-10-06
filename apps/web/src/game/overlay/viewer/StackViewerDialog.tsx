@@ -56,10 +56,10 @@ export function StackViewerDialog({
           maxWidth: 820,
           maxHeight: "86%",
           padding: 24,
-          background: "var(--ds-surface)",
+          background: "var(--ds-sheet)",
           borderRadius: 20,
-          border: "1px solid var(--ds-border)",
-          boxShadow: "var(--ds-shadow-summary)",
+          border: "1px solid var(--ds-line)",
+          boxShadow: "var(--ds-shadow-raise)",
         }}
       >
         {/* left: thumbnails grouped by role */}
@@ -73,7 +73,7 @@ export function StackViewerDialog({
             minWidth: 200,
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ds-fg)", fontFamily: "var(--ds-font-display)" }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ds-text)", fontFamily: "var(--ds-font-display)" }}>
             {title}
           </div>
           {detail ? <StackViewerState detail={detail} fate={fate} /> : null}
@@ -88,7 +88,7 @@ export function StackViewerDialog({
                     fontWeight: 700,
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
-                    color: "var(--ds-fg-muted)",
+                    color: "var(--ds-text-3)",
                   }}
                 >
                   {t(ROLE_LABEL_KEYS[role])}
@@ -109,7 +109,7 @@ export function StackViewerDialog({
                         borderRadius: 10,
                         cursor: "pointer",
                         textAlign: "left",
-                        background: sel ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+                        background: sel ? "var(--ds-accent-soft)" : "var(--ds-fill)",
                         border: `1.5px solid ${sel ? "var(--ds-accent)" : "transparent"}`,
                         transition: "background 120ms, border-color 120ms",
                       }}
@@ -120,7 +120,7 @@ export function StackViewerDialog({
                           style={{
                             fontSize: 12.5,
                             fontWeight: 600,
-                            color: "var(--ds-fg)",
+                            color: "var(--ds-text)",
                             whiteSpace: "nowrap",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -128,7 +128,7 @@ export function StackViewerDialog({
                         >
                           {stackCardCaption(c, t)}
                         </div>
-                        <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10.5, color: "var(--ds-fg-muted)" }}>
+                        <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10.5, color: "var(--ds-text-3)" }}>
                           {def?.dp ? `${def.dp.toLocaleString()} DP` : c.cardId}
                         </div>
                       </div>

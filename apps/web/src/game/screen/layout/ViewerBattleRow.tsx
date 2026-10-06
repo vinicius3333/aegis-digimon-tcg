@@ -67,14 +67,14 @@ export function ViewerBattleRow({
     padding: "12px 18px 26px",
     borderRadius: 14,
     transition: "background 150ms, box-shadow 150ms",
-    background: dragIsPlay ? "var(--ds-primary-light)" : "transparent",
-    boxShadow: dragIsPlay ? "inset 0 0 0 2px var(--ds-primary)" : "none",
+    background: dragIsPlay ? "var(--ds-accent-soft)" : "transparent",
+    boxShadow: dragIsPlay ? "inset 0 0 0 2px var(--ds-accent)" : "none",
   };
   const emptyLabel = (
     <span
       style={{
         fontSize: 12,
-        color: dragIsPlay ? "var(--ds-primary)" : "var(--ds-foreground-disabled)",
+        color: dragIsPlay ? "var(--ds-accent)" : "var(--ds-text-off)",
         fontFamily: "var(--ds-font-mono)",
       }}
     >

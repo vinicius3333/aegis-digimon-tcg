@@ -148,10 +148,10 @@ export function DigiXrosMaterialOverlay({
         style={{
           maxWidth: 640,
           width: "100%",
-          background: "var(--ds-surface)",
+          background: "var(--ds-sheet)",
           borderRadius: 18,
-          border: "1px solid var(--ds-border)",
-          boxShadow: "var(--ds-shadow-summary)",
+          border: "1px solid var(--ds-line)",
+          boxShadow: "var(--ds-shadow-raise)",
           padding: 24,
           display: "flex",
           flexDirection: "column",
@@ -165,11 +165,11 @@ export function DigiXrosMaterialOverlay({
           <div>
             <div
               id={titleId}
-              style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 18, color: "var(--ds-fg)" }}
+              style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 18, color: "var(--ds-text)" }}
             >
               {t("overlay.xrosTitle", { name: printedCardName(playingCardId) })}
             </div>
-            <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 2 }}>
+            <div style={{ fontSize: 12.5, color: "var(--ds-text-3)", marginTop: 2 }}>
               {t("overlay.xrosDetail", { reduction: reductionLabel })}
               {slotLabels.length > 0 ? t("overlay.xrosAccepted", { slots: slotLabels.join(" × ") }) : null}
             </div>
@@ -204,7 +204,7 @@ export function DigiXrosMaterialOverlay({
             {...gridProps}
           />
 
-          <div style={{ fontSize: 12, color: "var(--ds-fg-muted)" }}>
+          <div style={{ fontSize: 12, color: "var(--ds-text-3)" }}>
             {picks.length === 0 ? t("overlay.xrosNoneSelected") : t("overlay.xrosSelected", { count: picks.length })}
           </div>
         </div>

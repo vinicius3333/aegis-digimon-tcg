@@ -250,10 +250,10 @@
   gap: var(--ds-space-3);
   width: 100%;
   padding: var(--ds-space-2);
-  border: 2px solid var(--ds-border);
+  border: 2px solid var(--ds-line);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-surface-muted);
-  color: var(--ds-fg-secondary);
+  background: var(--ds-fill);
+  color: var(--ds-text-2);
   text-align: left;
   font-size: var(--ds-text-sm);
   font-weight: 700;

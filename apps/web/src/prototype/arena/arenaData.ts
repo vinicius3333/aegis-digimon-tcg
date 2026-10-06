@@ -25,25 +25,25 @@ export const PALETTES = [
   {
     id: "aegis",
     label: "Aegis: blue vs violet",
-    player: ["var(--ds-accent)", "var(--ds-brand-wordmark-bottom)"],
-    opponent: ["var(--ds-particle-glow)", COLORS.Purple.edge],
+    player: ["var(--ds-accent)", "var(--ds-ink-accent)"],
+    opponent: ["var(--ds-ink-accent)", COLORS.Purple.edge],
   },
   {
     id: "red-blue",
     label: "Blue vs red",
-    player: [COLORS.Blue.base, "var(--ds-brand-wordmark-bottom)"],
-    opponent: [COLORS.Red.base, "var(--ds-card-rim-threat)"],
+    player: [COLORS.Blue.base, "var(--ds-ink-accent)"],
+    opponent: [COLORS.Red.base, "var(--ds-rim-threat)"],
   },
   {
     id: "green-purple",
     label: "Green vs purple",
-    player: [COLORS.Green.base, "var(--ds-card-rim-ready)"],
+    player: [COLORS.Green.base, "var(--ds-rim-ready)"],
     opponent: [COLORS.Purple.base, COLORS.Purple.edge],
   },
   {
     id: "gold-black",
     label: "Gold vs black",
-    player: [COLORS.Yellow.base, "var(--ds-card-rim-attention)"],
+    player: [COLORS.Yellow.base, "var(--ds-rim-attention)"],
     opponent: [COLORS.Black.base, COLORS.Black.edge],
   },
   {
