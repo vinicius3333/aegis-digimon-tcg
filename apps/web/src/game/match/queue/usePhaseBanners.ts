@@ -330,7 +330,7 @@ export function usePhaseBanners({
                 seat: openedPhase.nextSeat,
                 count: current?.count ?? openedPhase.turnCount,
               }));
-              playCue("turnChange");
+              playCue(openedPhase.endingSeat === viewerSeat ? "endTurn" : "turnChange");
               setTurnTransition(transition);
               await context.wait(TIMINGS.turnBanner);
               await waitForPaintedAnimation(

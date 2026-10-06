@@ -28,8 +28,9 @@ export function soundForEvent(event: ServerEvent, viewerSeat: Seat): SoundKind |
     // The shield breaking, which is the reveal — not the outcome the check settles on later.
     case "securityRevealed":
       return "securityHit";
+    // Passing your own turn closes it; the opponent passing hands the turn to you.
     case "turnEnded":
-      return "turnChange";
+      return event.endingSeat === viewerSeat ? "endTurn" : "turnChange";
     case "movedFromBreeding":
       return "move";
     case "effectTriggered":
