@@ -587,8 +587,13 @@ if(args.includes('exec')){const script=args[args.indexOf('-e')+1]||'';if(script.
       .some((args) => args.includes("up")),
     false,
   );
-  const result = invoke();
+  const result = invoke([
+    { ...HEALTHY_CAPACITY, cpuUsage: 0.95, load5: 13.95 },
+    { ...HEALTHY_CAPACITY, cpuUsage: 0.65, load5: 13.95 },
+    HEALTHY_CAPACITY,
+  ]);
   assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /resampling \(1\/6\)/);
   const after = JSON.parse(readFileSync(`${root}/state/routing/manifest.json`, "utf8"));
   assert.match(after.active.slot, /^g-[a-f0-9]{12}$/);
   assert.equal(after.active.revision, "new-revision");

@@ -22,6 +22,16 @@ A slot in active or draining cannot be reused. A leftover unreferenced slot is r
 
 Before allocating an additional generation, deploy requires at least **6932 MiB of host MemAvailable**: the three API limits (1500 MiB each), Redis (384 MiB), and 2048 MiB of build/host headroom. The deployer mounts `/proc/meminfo` read-only at `/host/meminfo`. Missing, malformed, or insufficient capacity stops the deployment while existing services remain online. Generation growth is limited by available host memory rather than a fixed slot count. Empty generations are reclaimed automatically on subsequent deploys; `cleanup` can also be run separately.
 
+Before building and again before starting services, the controller measures host
+CPU usage from `/proc/stat` counter deltas over a five-second window. It admits
+at most 80% busy CPU, including hypervisor steal time, and resamples up to six
+windows when busy (about 30 seconds). The five-minute load average remains in
+diagnostics but does not veto available CPU: it describes a historical queue,
+not current utilization. See the [Linux `/proc` documentation](https://docs.kernel.org/filesystems/proc.html).
+Malformed measurements or insufficient disk fail immediately. Memory is checked
+again after the CPU wait; existing services and room ownership remain intact
+when admission fails.
+
 Dokploy's custom command starts at compose because Dokploy prefixes docker:
 
 ```sh
