@@ -2,7 +2,9 @@
    (data/kb/rules/glossary.md), for the field badges and the card details. A keyword
    the glossary does not cover points at the card's own effect text instead. */
 
-import type { Translate, TranslationKey } from "../i18n";
+import { translator, type Translate, type TranslationKey } from "../i18n";
+
+const english = translator("en");
 
 const REMINDER_KEYS: Readonly<Record<string, TranslationKey>> = {
   Blocker: "redesign.arena.keyword.Blocker",
@@ -50,10 +52,13 @@ export function keywordReminder(keyword: string, t: Translate, securityAttackMod
   const name = keywordBaseName(keyword);
   const modifier = securityAttackModifier || Number(/[+-]\d+/.exec(keyword)?.[0] ?? 0);
   if (name === "SecurityAttack" && modifier) {
-    return t(modifier > 0 ? "redesign.arena.keyword.SecurityAttackUp" : "redesign.arena.keyword.SecurityAttackDown", {
-      count: Math.abs(modifier),
-    });
+    return english(
+      modifier > 0 ? "redesign.arena.keyword.SecurityAttackUp" : "redesign.arena.keyword.SecurityAttackDown",
+      {
+        count: Math.abs(modifier),
+      },
+    );
   }
   const key = REMINDER_KEYS[name];
-  return key ? t(key) : t("redesign.arena.keyword.unlisted");
+  return key ? english(key) : t("redesign.arena.keyword.unlisted");
 }
