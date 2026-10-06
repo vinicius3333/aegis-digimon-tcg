@@ -2,7 +2,12 @@ import type { DecisionRequest, GameState, Permanent, Seat, SequencedServerEvent 
 import { buildInstanceArtIndex } from "../../sidePanels";
 import { buildInstanceZoneIndex, decisionCardColors, decisionVisibleCards } from "../../decisionModel";
 import { decisionEffectSource } from "../../matchLog";
-import { decisionPresentation, decisionSelectionMin, sourcePermanentIdOf } from "../../decisionPresentation";
+import {
+  decisionPresentation,
+  decisionSelectionMin,
+  isFieldCardSelection,
+  sourcePermanentIdOf,
+} from "../../decisionPresentation";
 
 /** The open decision as the board shows it, and where the viewer answers it. */
 export type DecisionView = {
@@ -77,15 +82,17 @@ export function decisionViewFor({
     viewerDecision?.kind === "optional"
       ? sourcePermanentIdOf(decisionSourceCardId, permanents, viewerDecision)
       : undefined;
+  const fieldInstanceIds = permanents.flatMap((permanent) => [permanent.permanentId, permanent.topCard.instanceId]);
   const boardPresentation = viewerDecision
     ? decisionPresentation({
         decision: viewerDecision,
         handInstanceIds,
         sourcePermanentId: decisionSourcePermanentId,
-        fieldInstanceIds: permanents.flatMap((permanent) => [permanent.permanentId, permanent.topCard.instanceId]),
+        fieldInstanceIds,
       })
     : "dialog";
-  const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
+  const answerOnBoard =
+    boardPresentation === "board" && (isFieldCardSelection(viewerDecision, fieldInstanceIds) || !decisionAsDialog);
   const decisionVisible = viewerDecision
     ? decisionVisibleCards(
         viewerDecision.options,

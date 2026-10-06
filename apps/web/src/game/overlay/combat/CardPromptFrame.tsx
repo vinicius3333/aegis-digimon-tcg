@@ -18,7 +18,7 @@ export function CardPromptFrame({
   description,
   className = "",
   label,
-  surface = "center",
+  surface = "left",
   onBack,
   children,
 }: {

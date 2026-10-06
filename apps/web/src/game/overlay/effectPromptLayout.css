@@ -8,6 +8,9 @@
 body:has([data-prompt-surface]) :is(.narration-slot, .opponent-action-feed) {
   z-index: calc(var(--ds-z-dialog) - 1);
 }
+body:has([data-prompt-surface]) .narration-slot[data-slot="narration-text"] {
+  z-index: calc(var(--ds-z-dialog) + 1);
+}
 body:has([data-prompt-surface], .mulligan-sheet) .game-battle-scroll-arrow {
   visibility: hidden;
   pointer-events: none;
@@ -34,14 +37,14 @@ body:has([data-prompt-surface], .mulligan-sheet) .game-battle-scroll-arrow {
 
 .game-modal__panel.effect-prompt-family[data-prompt-surface="left"],
 .board-prompt[data-prompt-surface="left"] {
-  top: 50% !important;
-  bottom: auto !important;
+  top: auto !important;
+  bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px)) !important;
   left: var(--ds-space-4) !important;
   right: auto !important;
   width: min(24rem, calc(100vw - var(--ds-space-8))) !important;
   max-width: calc(100vw - var(--ds-space-8)) !important;
   max-height: calc(100dvh - var(--ds-space-8)) !important;
-  translate: 0 -50% !important;
+  translate: none !important;
   transform: none !important;
 }
 
@@ -541,7 +544,8 @@ body:has([data-prompt-surface], .mulligan-sheet) .game-battle-scroll-arrow {
 /* Hand-only effects keep the physical cards as their choices. Reserve the hand
    dock measured by the rail, including its lift and scroll controls. */
 .board-prompt[data-prompt-surface="left"][data-variant="selection"] {
-  top: calc((100dvh - var(--decision-hand-clearance, 0px)) / 2) !important;
+  top: auto !important;
+  bottom: calc(var(--decision-hand-clearance, 0px) + var(--ds-space-4)) !important;
   width: min(21rem, calc(100vw - var(--ds-space-8))) !important;
   max-height: calc(100dvh - var(--decision-hand-clearance, 0px) - var(--ds-space-8)) !important;
   padding: var(--ds-space-4) !important;
@@ -661,5 +665,134 @@ body:has([data-prompt-surface], .mulligan-sheet) .game-battle-scroll-arrow {
   .board-prompt[data-prompt-surface="left"][data-variant="selection"]
     .board-prompt__actions:has(> button:last-child:nth-child(2)) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Every selection shares the corner, width and height limit. Galleries use the
+   full frame; board rails fit their contents without a blank spacer. */
+:root {
+  --effect-prompt-height: min(24rem, calc(45dvh - var(--ds-space-4)));
+}
+.game-modal__panel.effect-prompt-family[data-prompt-surface],
+.game-modal__panel.effect-prompt-family.decision-overlay--wide[data-prompt-surface],
+.game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface],
+.board-prompt[data-prompt-surface][data-variant],
+.board-prompt.combat-prompt[data-prompt-surface][data-variant] {
+  top: auto !important;
+  bottom: max(var(--ds-space-2), env(safe-area-inset-bottom, 0px)) !important;
+  left: max(var(--ds-space-2), env(safe-area-inset-left, 0px)) !important;
+  right: auto !important;
+  width: min(24rem, calc(100vw - var(--ds-space-4))) !important;
+  max-width: calc(100vw - var(--ds-space-4)) !important;
+  height: var(--effect-prompt-height) !important;
+  min-height: 0 !important;
+  max-height: var(--effect-prompt-height) !important;
+  padding: var(--ds-space-4) !important;
+  translate: none !important;
+  transform: none !important;
+}
+
+.game-modal__panel.action-confirmation.effect-prompt-family[data-prompt-surface] {
+  justify-content: space-between;
+}
+.game-modal__panel.action-confirmation.effect-prompt-family[data-prompt-surface] > * {
+  flex-shrink: 0;
+}
+.game-modal__panel.action-confirmation.effect-prompt-family[data-prompt-surface] .action-confirmation__header > div {
+  min-width: 0;
+}
+
+/* Recognition art is a crop of the illustration, leaving room for the clause and
+   all decision actions within the shared corner frame. */
+.board-prompt[data-prompt-surface][data-variant],
+.board-prompt.combat-prompt[data-prompt-surface][data-variant] {
+  height: auto !important;
+  gap: var(--ds-space-2);
+}
+.board-prompt[data-prompt-surface][data-variant]
+  :is(.board-prompt__heading, .board-prompt__body, .board-prompt__detail) {
+  flex-shrink: 0;
+}
+.board-prompt[data-prompt-surface][data-variant] .board-prompt__body {
+  gap: var(--ds-space-2);
+}
+.board-prompt[data-prompt-surface][data-variant] .board-prompt__art {
+  flex: none;
+}
+.board-prompt__art-crop {
+  display: block;
+  position: relative;
+  width: 4rem;
+  height: 3rem;
+  overflow: hidden;
+  border-radius: var(--ds-radius-md);
+}
+.board-prompt__art-crop > div {
+  position: relative !important;
+  left: 50%;
+  transform: translate(-50%, calc(-1 * var(--ds-space-2)));
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.board-prompt[data-prompt-surface][data-variant] .board-prompt__actions {
+  gap: var(--ds-space-2);
+  margin-top: 0;
+}
+.board-prompt[data-prompt-surface][data-variant] .board-prompt__actions > button {
+  padding-block: var(--ds-space-2);
+}
+@media (width < 768px) {
+  .board-prompt[data-prompt-surface][data-variant="field-selection"] .board-prompt__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"] {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "art heading"
+      "art detail"
+      "clause clause"
+      "actions actions";
+    align-items: start;
+    text-align: left;
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]:has(
+      .board-prompt__budget
+    ) {
+    grid-template-areas:
+      "art heading"
+      "art detail"
+      "clause clause"
+      "budget budget"
+      "actions actions";
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
+    .board-prompt__heading {
+    grid-area: heading;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ds-space-1);
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
+    .board-prompt__body {
+    display: contents;
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"] .board-prompt__art {
+    grid-area: art;
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
+    .board-prompt__clause {
+    grid-area: clause;
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
+    .board-prompt__detail {
+    grid-area: detail;
+    align-self: start;
+    white-space: normal;
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
+    .board-prompt__budget {
+    grid-area: budget;
   }
 }

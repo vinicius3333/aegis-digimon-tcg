@@ -376,7 +376,8 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
             ((req.kind === "selectCards" || req.kind === "chooseTargets") &&
               (req.options?.min ?? 0) === 0 &&
               req.options?.purpose !== "acceptedOptional"))) ||
-        (opts?.autoDeclineOptional === true && declineIndex !== undefined);
+        (opts?.autoDeclineOptional === true &&
+          (declineIndex !== undefined || req.options?.purpose === "optionalTarget"));
       if (declined) {
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {

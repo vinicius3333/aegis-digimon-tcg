@@ -104,7 +104,8 @@ export function OpponentBattleRow({
         heldSuspended={chrome.heldSuspendedIds.has(p.permanentId)}
         suspendDelayMs={chrome.suspendDelayMs(playOrder.get(p.permanentId) ?? 0)}
         onClick={onPermanentClick(p)}
-        onInspect={isDecisionCandidate(p) ? () => onPermanentInspect(p) : undefined}
+        onInspect={() => onPermanentInspect(p)}
+        showInspect={chrome.showInspectionControls}
       />
     );
   }

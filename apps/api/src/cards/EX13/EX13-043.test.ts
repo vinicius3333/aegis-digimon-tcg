@@ -217,7 +217,7 @@ describe("EX13-043 Leopardmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(
       s.decisions
-        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === cardId)
+        .filter(({ req }) => req.options?.purpose === "optionalTarget" && req.sourceCardId === cardId)
         .map(({ req }) => req.options?.effectTextPart),
     ).toEqual([
       "[On Play] [When Digivolving] You may suspend 1 Digimon.",

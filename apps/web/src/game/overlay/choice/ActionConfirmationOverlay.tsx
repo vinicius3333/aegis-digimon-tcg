@@ -45,7 +45,7 @@ export function ActionConfirmationOverlay({
       >
         {showSummary ? (
           <div className="action-confirmation__header">
-            <CardFull cardId={cardId} width={92} />
+            <CardFull cardId={cardId} width={72} zoomOnHover={false} />
             <div className="action-confirmation__copy">
               <h2 className="action-confirmation__title">{title}</h2>
               <p className="action-confirmation__detail">{detail}</p>

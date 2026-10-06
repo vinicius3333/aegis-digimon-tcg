@@ -65,6 +65,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-open-bugs-marcus-attack",
   "arena-open-bugs-larva-immunity",
   "arena-ex2-takato-blitz-order",
+  "arena-discord-1556882561995644928-mobile-inspection",
   "arena-ex12-thetismon-mistymon-deletion",
   "arena-ex12-thetismon-jamming-control",
   ...ISSUE_REPRO_SCENARIO_IDS,
@@ -4624,6 +4625,22 @@ function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Deckl
   state.memory = memory;
 }
 
+/** Discord 1556882561995644928: read a noncandidate Alphamon while Leopardmon asks for a target. */
+function layMobileCardInspectionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0]!;
+  const opponent = state.players[1]!;
+  insertCard(human, Zone.Hand, faceDownCard("dev-inspection-leopardmon", "EX13-043", 0));
+  placePermanent(human, establishedDigimon(0, ["EX13-039"], "-inspection-own"));
+  placePermanent(
+    opponent,
+    establishedDigimon(1, ["EX13-005", "EX13-049", "EX13-055", "EX13-057", "EX13-060"], "-inspection-alphamon"),
+  );
+  // A second copy of the lowest-DP target prevents automatic selection.
+  placePermanent(opponent, establishedDigimon(1, ["EX13-049"], "-inspection-dorumon-first"));
+  placePermanent(opponent, establishedDigimon(1, ["EX13-049"], "-inspection-dorumon-second"));
+}
+
 function layIssue4888AppFusionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 0);
   const human = state.players[0];
@@ -6630,6 +6647,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-open-bugs-marcus-attack": (state, decks) => layOpenBugScenario(state, decks, "marcus-attack"),
   "arena-open-bugs-larva-immunity": (state, decks) => layOpenBugScenario(state, decks, "larva-immunity"),
   "arena-ex2-takato-blitz-order": layEx2TakatoBlitzOrderScenario,
+  "arena-discord-1556882561995644928-mobile-inspection": layMobileCardInspectionScenario,
   ...(Object.fromEntries(
     PHASE_PACING_SCENARIOS.map((scenario) => [
       scenario.id,

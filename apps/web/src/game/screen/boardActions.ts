@@ -141,7 +141,7 @@ export function boardActions({
   };
 
   /** Open the action menu anchored above a field card. */
-  const showCardMenu = (permanentId: string, side: Side) => {
+  const showCardMenu = (permanentId: string, side: Side, { preserveSelection = false } = {}) => {
     // Breeding-area permanents register no `permanentRefs` entry, so there is no anchor
     // rect for them. The bottom sheet ignores the anchor, so fall back to the
     // viewport centre rather than dropping the tap.
@@ -153,7 +153,7 @@ export function boardActions({
       x: rect ? rect.left + rect.width / 2 : window.innerWidth / 2,
       y: rect ? rect.top : window.innerHeight / 2,
     });
-    setHandSel(null);
+    if (!preserveSelection) setHandSel(null);
   };
 
   /** Begin attack-target selection with `permanentId` as the attacker; `vortex` declares a ＜Vortex＞ attack. */

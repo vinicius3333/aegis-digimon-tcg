@@ -1,11 +1,112 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, type Target } from "@aegis/shared";
+import { EffectDuration, type Action, type Target } from "@aegis/shared";
 import { setupEngine } from "../../../testkit/harness.js";
 import { internalsOf } from "../../../testkit/internals.js";
 import { runAction } from "./runAction.js";
 import "../../../../cards/index.js";
 
 describe("optional target preflight", () => {
+  it("declines an optional field target through zero picks without changing the board", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "ST1-03", as: "source" }] }, 1: { battleArea: [{ card: "ST1-03", as: "target" }] } },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const engine = internalsOf(s.engine);
+    const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+    await runAction(ctx, {
+      kind: "Suspend",
+      optional: true,
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+    });
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["chooseTargets"]);
+    expect(ctx.oncePerTurnActivationDeclined).toBe(true);
+    expect(ctx.oncePerTurnActivationChosen).not.toBe(true);
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(ctx.selectingOptionalTarget).toBeUndefined();
+  });
+
+  it.each(["Suspend", "Unsuspend", "Return"] as const)(
+    "preserves the optional %s use when no target is available",
+    async (kind) => {
+      const s = setupEngine({ 0: { battleArea: [{ card: "ST1-03", as: "source" }] } });
+      await s.ready();
+      const engine = internalsOf(s.engine);
+      const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+      const target: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+      const action: Action =
+        kind === "Return" ? { kind, optional: true, target, to: "hand" } : { kind, optional: true, target };
+      await runAction(ctx, action);
+      expect(s.decisions).toHaveLength(0);
+      expect(ctx.oncePerTurnActivationDeclined).toBe(true);
+      expect(ctx.oncePerTurnActivationChosen).not.toBe(true);
+      expect(ctx.selectingOptionalTarget).toBeUndefined();
+    },
+  );
+
+  it("clears an unanswered Unsuspend receipt without undoing an earlier chosen activation", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST1-03", as: "source" }] } });
+    await s.ready();
+    const engine = internalsOf(s.engine);
+    const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+    ctx.lastEffectActed = true;
+    ctx.oncePerTurnActivationChosen = true;
+    await runAction(ctx, {
+      kind: "Unsuspend",
+      optional: true,
+      target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+    });
+    expect(s.decisions).toHaveLength(0);
+    expect(ctx.lastEffectActed).toBe(false);
+    expect(ctx.oncePerTurnActivationChosen).toBe(true);
+    expect(ctx.oncePerTurnActivationDeclined).not.toBe(true);
+  });
+
+  it.each(["alternative cost", "previous target", "bound target", "loose return"] as const)(
+    "keeps separate optional consent for a %s",
+    async (shape) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "ST1-03", as: "source" }], trash: [{ card: "ST1-07", as: "loose" }] },
+          1: { battleArea: [{ card: "ST1-03", as: "target" }] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const engine = internalsOf(s.engine);
+      const ctx = engine.buildEffectContext(engine.cardSourceOf(s.perm("source").topCard), {});
+      ctx.lastResolvedPermanentIds = [s.perm("target").permanentId];
+      ctx.selections = new Map([["victim", s.perm("target").permanentId]]);
+      const target: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+      const action: Action =
+        shape === "loose return"
+          ? {
+              kind: "Return",
+              optional: true,
+              from: ["trash"],
+              to: "hand",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            }
+          : {
+              kind: "Suspend",
+              optional: true,
+              target:
+                shape === "previous target"
+                  ? { ...target, sameTarget: true }
+                  : shape === "bound target"
+                    ? { ...target, filter: { ...target.filter, boundRef: "victim" } }
+                    : target,
+              ...(shape === "alternative cost" ? { costOptions: [{ kind: "payMemory", memory: 1 }] } : {}),
+            };
+      await runAction(ctx, action);
+      expect(s.decisions.map(({ req }) => req.kind)).toEqual(["optional"]);
+      expect(s.state.memory).toBe(5);
+      expect(s.perm("target").isSuspended).toBe(false);
+      expect(s.state.players[0]!.trash).toHaveLength(1);
+      expect(ctx.oncePerTurnActivationDeclined).toBe(true);
+    },
+  );
   it("preserves an optional play activation when no loose card is legal", async () => {
     const s = setupEngine({
       0: {
@@ -59,7 +160,7 @@ describe("optional target preflight", () => {
     expect(ctx).toMatchObject({ lastEffectActed: false, oncePerTurnActivationDeclined: true });
   });
 
-  it("confirms Unsuspend before selecting once from multiple suspended candidates", async () => {
+  it("asks optional Unsuspend through one declinable target selection", async () => {
     const s = setupEngine(
       {
         0: {
@@ -80,7 +181,8 @@ describe("optional target preflight", () => {
       optional: true,
       target: { filter: { controller: "mine", kind: ["Digimon"], suspended: true }, count: 1 },
     });
-    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["optional", "chooseTargets"]);
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["chooseTargets"]);
+    expect(s.decisions[0]?.req.options).toMatchObject({ min: 0, purpose: "optionalTarget" });
     expect([s.perm("first"), s.perm("second")].filter((p) => !p.isSuspended)).toHaveLength(1);
   });
 
@@ -152,7 +254,8 @@ describe("optional target preflight", () => {
       optional: true,
       target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 },
     });
-    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["optional"]);
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["chooseTargets"]);
+    expect(ctx.oncePerTurnActivationChosen).toBe(true);
     expect(immune.isSuspended).toBe(true);
   });
 });
