@@ -377,3 +377,21 @@
     transition-duration: 1ms;
   }
 }
+
+.settings-sleeve-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.settings-sleeve-actions .settings-sleeve-option {
+  display: flex;
+  align-items: center;
+  padding: var(--ds-space-2) var(--ds-space-3);
+}
+
+.settings-sleeve-hint {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  margin-block: var(--ds-space-2) var(--ds-space-3);
+}

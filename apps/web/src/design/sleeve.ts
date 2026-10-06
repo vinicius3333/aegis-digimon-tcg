@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "aegis.sleeve";
+const CUSTOM_IMAGE_KEY = "aegis.sleeve.custom";
+export const CUSTOM_CARD_SLEEVE_ID = "custom";
 
 export interface CardSleeve {
   id: string;
@@ -375,7 +377,22 @@ export const DEFAULT_CARD_SLEEVE = CARD_SLEEVES[0]!;
 
 const listeners = new Set<() => void>();
 
+function readCustomSrc(): string | undefined {
+  try {
+    return localStorage.getItem(CUSTOM_IMAGE_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+let customSrc = readCustomSrc();
+
+export function getCustomCardSleeveSrc(): string | undefined {
+  return customSrc;
+}
+
 function isCardSleeveId(id: string | null): id is string {
+  if (id === CUSTOM_CARD_SLEEVE_ID) return Boolean(customSrc);
   return CARD_SLEEVES.some((sleeve) => sleeve.id === id);
 }
 
@@ -405,16 +422,39 @@ export function setCardSleeveId(id: string): void {
   for (const listener of listeners) listener();
 }
 
+/** Saves the image on this device and selects it. Storage failures leave the previous sleeve intact. */
+export function setCustomCardSleeve(dataUrl: string): void {
+  localStorage.setItem(CUSTOM_IMAGE_KEY, dataUrl);
+  customSrc = dataUrl;
+  setCardSleeveId(CUSTOM_CARD_SLEEVE_ID);
+}
+
+export function clearCustomCardSleeve(): void {
+  try {
+    localStorage.removeItem(CUSTOM_IMAGE_KEY);
+  } catch {
+    // Nothing to clean up when storage is blocked.
+  }
+  customSrc = undefined;
+  if (currentId === CUSTOM_CARD_SLEEVE_ID) setCardSleeveId(DEFAULT_CARD_SLEEVE.id);
+  else for (const listener of listeners) listener();
+}
+
 export function subscribeCardSleeve(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
 export function cardSleeveById(id: string): CardSleeve {
+  if (id === CUSTOM_CARD_SLEEVE_ID && customSrc) {
+    return { id, label: "Custom", collection: "This device", src: customSrc };
+  }
   return CARD_SLEEVES.find((sleeve) => sleeve.id === id) ?? DEFAULT_CARD_SLEEVE;
 }
 
 export function useCardSleeve(): CardSleeve {
   const id = useSyncExternalStore(subscribeCardSleeve, getCardSleeveId, () => DEFAULT_CARD_SLEEVE.id);
+  // Replacements keep the same id, so subscribe to the image as well.
+  useSyncExternalStore(subscribeCardSleeve, getCustomCardSleeveSrc, () => undefined);
   return cardSleeveById(id);
 }
