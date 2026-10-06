@@ -3,6 +3,7 @@ import { Button, Dialog, Field } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { spectatorInviteUrl } from "../../../roomInvite";
+import "./SpectatorInvite.css";
 
 export function SpectatorInvite({
   code,
@@ -42,12 +43,32 @@ export function SpectatorInvite({
         {variant === "menu" ? t("spectator.share") : null}
       </button>
       {open ? (
-        <Dialog labelledBy="spectator-invite-title" onClose={() => setOpen(false)}>
-          <h2 id="spectator-invite-title">{t("spectator.share")}</h2>
-          <Field label={t("spectator.code")} value={code} readOnly />
-          <Field label={t("spectator.link")} value={url} readOnly onFocus={(event) => event.target.select()} />
-          <Button onClick={() => void copy()}>{t(copied ? "spectator.copied" : "spectator.copy")}</Button>
-          {copyError ? <p role="status">{t("spectator.copyError")}</p> : null}
+        <Dialog className="spectator-invite" labelledBy="spectator-invite-title" onClose={() => setOpen(false)}>
+          <header className="aegis-dialog__header spectator-invite__header">
+            <h2 id="spectator-invite-title">{t("spectator.share")}</h2>
+            <button
+              type="button"
+              className="aegis-dialog__close"
+              aria-label={t("common.close")}
+              onClick={() => setOpen(false)}
+            >
+              <Icons.X size={18} />
+            </button>
+          </header>
+          <div className="spectator-invite__body">
+            <Field label={t("spectator.code")} value={code} readOnly onFocus={(event) => event.target.select()} />
+            <Field label={t("spectator.link")} value={url} readOnly onFocus={(event) => event.target.select()} />
+            {copyError ? (
+              <p className="spectator-invite__status" role="status">
+                {t("spectator.copyError")}
+              </p>
+            ) : null}
+          </div>
+          <footer className="spectator-invite__actions">
+            <Button icon={copied ? Icons.Check : Icons.Copy} onClick={() => void copy()}>
+              {t(copied ? "spectator.copied" : "spectator.copy")}
+            </Button>
+          </footer>
         </Dialog>
       ) : null}
     </>

@@ -1,0 +1,34 @@
+.spectator-invite {
+  width: min(100%, 32rem);
+}
+
+.spectator-invite__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+}
+
+.spectator-invite__body {
+  display: grid;
+  gap: var(--ds-space-5);
+  padding-block: var(--ds-space-5);
+}
+
+.spectator-invite__status {
+  margin: 0;
+  color: var(--ds-fg-muted);
+}
+
+.spectator-invite__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--ds-space-4);
+  border-top: 1px solid var(--ds-border);
+}
+
+@media (width < 600px) {
+  .spectator-invite__actions > button {
+    width: 100%;
+  }
+}
