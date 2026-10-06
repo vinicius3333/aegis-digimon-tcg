@@ -70,6 +70,41 @@ test("fixed deployment slots rotate after the active slot and accept transitiona
   );
 });
 
+test("bot-enabled slots pin one existing checkpoint read-only in every API", () => {
+  const input = {
+    slot: "blue",
+    revision: "bot-build",
+    network: "aegis_default",
+    state: "/opt/aegis-rollout",
+    apiEnvironment: {
+      AEGIS_BOT_CHECKPOINT_HOST_PATH: "/opt/aegis-rollout/models/pinned$checkpoint.pt",
+      AEGIS_BOT_CHECKPOINT_SHA256: "a".repeat(64),
+    },
+  };
+  const compose = buildSlotCompose(input);
+  for (const index of [1, 2, 3]) {
+    const api = compose.services[`api${index}`];
+    assert.equal(api.environment.AEGIS_BOT_CHECKPOINT, "/models/checkpoint.pt");
+    assert.equal(api.environment.AEGIS_BOT_CHECKPOINT_SHA256, "a".repeat(64));
+    assert.match(api.environment.NODE_OPTIONS, /--max-old-space-size=850/);
+    assert.equal(api.environment.AEGIS_BOT_CHECKPOINT_HOST_PATH, undefined);
+    assert.deepEqual(api.volumes[2], {
+      type: "bind",
+      source: "/opt/aegis-rollout/models/pinned$$checkpoint.pt",
+      target: "/models/checkpoint.pt",
+      read_only: true,
+      bind: { create_host_path: false },
+    });
+  }
+  for (const apiEnvironment of [
+    { AEGIS_BOT_CHECKPOINT_HOST_PATH: "relative.pt", AEGIS_BOT_CHECKPOINT_SHA256: "a".repeat(64) },
+    { AEGIS_BOT_CHECKPOINT_HOST_PATH: "/missing-hash.pt" },
+    { AEGIS_BOT_CHECKPOINT_SHA256: "a".repeat(64) },
+    { AEGIS_BOT_CHECKPOINT: "/unmounted.pt" },
+  ])
+    assert.throws(() => buildSlotCompose({ ...input, apiEnvironment }), /Bot deployment/);
+});
+
 test("one empty process or unverifiable count cannot authorize stopping a slot", () => {
   const empty = { slot: "blue", acceptingNewRooms: false, activeRooms: 0, connectedClients: 0 };
   assert.throws(() => assertEmptySlot([empty], "blue"));

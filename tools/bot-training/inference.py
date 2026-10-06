@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, BinaryIO, TextIO
 
 import click
+import numpy as np
 import torch
 
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
@@ -49,7 +50,9 @@ class CheckpointScorer:
             )
             if not torch.isfinite(logits).all().item():
                 raise ValueError("Model produced nonfinite candidate scores")
-            return int(logits.argmax(dim=-1).item())
+            selected = int(logits.argmax(dim=-1).item())
+            # Identical features can get slightly different batched scores across CPU backends.
+            return int(np.flatnonzero(np.all(actions == actions[selected], axis=1))[0])
 
 
 def serve(scorer: CheckpointScorer, source: BinaryIO, destination: TextIO) -> None:

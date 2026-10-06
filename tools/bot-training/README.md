@@ -149,7 +149,30 @@ In Aegis, select pinned BT26 or EX13 catalog lists for yourself and the bot oppo
 
 The API loads one CPU scorer before listening and closes it on shutdown. A configured incompatible checkpoint fails startup explicitly. Rooms share its bounded request queue; disposing one room cancels its requests without closing the scorer used by others. The driver retains normal presentation pacing, its one-second answer deadline, and its existing 40-action Main-phase safety limit. Timeout/worker errors use the existing fallback. A rejected model action disables neural choices for the remainder of that match. Because asynchronous engine rejection events currently lack a responsible seat, any such event conservatively disables the room's trained policy. These fallbacks protect a playable match; they do not count as learned action coverage.
 
-This is opt-in server support. No production environment or deployment is changed by this branch.
+The production API image includes Python 3.12 and CPU-only PyTorch. To enable it through
+`tools/deploy/deploy.mjs`, set `AEGIS_BOT_CHECKPOINT_HOST_PATH` to an existing absolute host
+file and `AEGIS_BOT_CHECKPOINT_SHA256` to that file's SHA256 in the deployment environment.
+Each API mounts the file read-only at `/models/checkpoint.pt`; missing files, incorrect hashes
+and incompatible metadata fail startup before the slot is promoted. Keep each checkpoint at
+an immutable versioned path so retiring slots retain their own model. Leave both variables
+empty to deploy without neural inference.
+Bot-enabled slots reserve memory for Python by reducing Node's old-space limit from
+1100 MiB to 850 MiB within the existing 1500 MiB container limit.
+
+When rebinding the last checkpoint to a rebuilt runtime, verify the engine changes and run
+integration checks against that exact image. The following explicit operation preserves all
+weights and optimizer state, rejects changes to vocabulary, deck recipes and observation
+schema, and writes a separate checkpoint plus a receipt. It does not qualify the model by itself:
+
+```sh
+python3 tools/bot-training/migrate.py \
+  --checkpoint /models/source.pt --worker apps/api/dist/bot/training/cli.js \
+  --engine-only-from SOURCE_ENGINE_SHA256 --output /models/verified-build
+```
+
+The CPU scorer consistently selects the first candidate among actions with identical numeric
+features. This avoids backend-dependent choices from roundoff; it does not teach the model
+to distinguish those actions. Improving that distinction requires new encoder features and training.
 
 Verify all pinned bot recipes through the matching built room runtime:
 

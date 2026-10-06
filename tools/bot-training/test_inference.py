@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import torch
 
@@ -77,6 +78,26 @@ class InferenceTests(unittest.TestCase):
         self.assertEqual([message["requestId"] for message in messages[1:]], [1, 2])
         expected = infer(self.model, self.encoder, window(), torch.device("cpu"), True).selected
         self.assertEqual([message["action"] for message in messages[1:]], [expected, expected])
+
+    def test_identical_features_select_first_candidate_despite_backend_roundoff(self) -> None:
+        scorer = CheckpointScorer(self.checkpoint, "cpu")
+        message = window()
+        message["actions"] = [copy.deepcopy(message["actions"][0]) for _ in range(3)]
+        for index, action in enumerate(message["actions"]):
+            action["intent"]["instanceId"] = f"opaque-{index}"
+        with patch.object(
+            scorer.model, "forward",
+            return_value=(torch.tensor([[1.0, 1.0000001, 1.0]]), torch.zeros(1)),
+        ):
+            self.assertEqual(scorer.choose(message), 0)
+
+    def test_distinct_features_keep_the_actual_highest_score(self) -> None:
+        scorer = CheckpointScorer(self.checkpoint, "cpu")
+        with patch.object(
+            scorer.model, "forward",
+            return_value=(torch.tensor([[1.0, 1.0000001]]), torch.zeros(1)),
+        ):
+            self.assertEqual(scorer.choose(window()), 1)
 
     def test_rejects_incompatible_or_nonfinite_checkpoints(self) -> None:
         self.saved["featureVersion"] = -1

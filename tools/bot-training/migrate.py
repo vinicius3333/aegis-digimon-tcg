@@ -147,6 +147,41 @@ def digest(path: Path) -> str:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def bind_runtime(
+    saved: dict[str, Any], metadata: dict[str, Any], source_engine: str
+) -> dict[str, Any]:
+    """Explicitly bind unchanged weights to a separately verified executable build."""
+    original = saved["metadata"]
+    if original["engineSha256"] != source_engine:
+        raise ValueError("Source engine fingerprint differs from the declared binding")
+    if saved.get("featureVersion") != FEATURE_VERSION:
+        raise ValueError("Checkpoint feature version differs from this encoder")
+    if {**original, "engineSha256": metadata["engineSha256"]} != metadata:
+        raise ValueError(
+            "Runtime binding cannot change vocabulary, recipes or observation metadata"
+        )
+    if metadata.get("schemaVersion") != 4 or metadata.get("statusFields") != list(STATUS_FIELDS):
+        raise ValueError("Checkpoint observation schema differs from this encoder")
+    encoder = FeatureEncoder(metadata["cardIds"], metadata["keywords"])
+    model = CandidatePolicy(
+        encoder.state_dim, encoder.action_dim, width=saved["model"]["state.0.weight"].shape[0]
+    )
+    model.load_state_dict(saved["model"])
+    if any(not torch.isfinite(value).all() for value in saved["model"].values()):
+        raise ValueError("Checkpoint contains nonfinite model weights")
+    result = copy.deepcopy(saved)
+    result["metadata"] = copy.deepcopy(metadata)
+    result["runtimeBinding"] = {
+        "schemaVersion": 1,
+        "sourceEngineSha256": source_engine,
+        "targetEngineSha256": metadata["engineSha256"],
+        "learningUpdates": 0,
+        "modelWeights": "unchanged",
+        "qualification": "requires integration verification against the target build",
+    }
+    return result
+
+
 @click.command()
 @click.option(
     "--checkpoint", type=click.Path(path_type=Path, exists=True, dir_okay=False), required=True
@@ -156,7 +191,13 @@ def digest(path: Path) -> str:
 )
 @click.option("--output", type=click.Path(path_type=Path), required=True)
 @click.option("--node", default="node")
-def main(checkpoint: Path, worker: Path, output: Path, node: str) -> None:
+@click.option(
+    "--engine-only-from",
+    help="Bind unchanged weights after verifying this source engine fingerprint.",
+)
+def main(
+    checkpoint: Path, worker: Path, output: Path, node: str, engine_only_from: str | None
+) -> None:
     """Write a distinct checkpoint and receipt; leave the original checkpoint untouched."""
     if output.exists():
         raise click.ClickException("Use a new output directory")
@@ -164,18 +205,24 @@ def main(checkpoint: Path, worker: Path, output: Path, node: str) -> None:
     source_hash = digest(checkpoint)
     saved = torch.load(checkpoint, map_location="cpu", weights_only=True)
     try:
-        result = migrate_checkpoint(saved, describe(node, worker))
+        metadata = describe(node, worker)
+        result = (
+            bind_runtime(saved, metadata, engine_only_from)
+            if engine_only_from is not None
+            else migrate_checkpoint(saved, metadata)
+        )
     except (ValueError, RuntimeError) as error:
         raise click.ClickException(str(error)) from error
     if digest(checkpoint) != source_hash:
         raise click.ClickException("Source checkpoint changed during migration")
-    result["vocabularyMigration"]["sourceCheckpointSha256"] = source_hash
+    migration = result["runtimeBinding" if engine_only_from is not None else "vocabularyMigration"]
+    migration["sourceCheckpointSha256"] = source_hash
     output.mkdir(parents=True)
     temporary = output / "checkpoint.tmp"
     torch.save(result, temporary)
     temporary.replace(output / "checkpoint.pt")
     receipt = {
-        **result["vocabularyMigration"],
+        **migration,
         "checkpointSha256": digest(output / "checkpoint.pt"),
     }
     (output / "receipt.json").write_text(json.dumps(receipt, indent=2), encoding="utf-8")
