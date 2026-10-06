@@ -20,8 +20,7 @@ import {
 } from "../../BoardDecisionRail";
 import { cardDisplayName } from "../../cardLinks";
 import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
-import { securityAttackLabelKey } from "../../securityChrome";
-import { attackTargetPrompt, isPlayerAttackTarget } from "../model/attackTargetPrompt";
+import { attackTargetPrompt } from "../model/attackTargetPrompt";
 import {
   AssemblyMaterialOverlay,
   DecisionOverlay,
@@ -113,12 +112,7 @@ export function DecisionPrompts({
       ? t("overlay.attackChooseTarget", { card })
       : t("overlay.attackOnlyTarget", { card, target });
   })();
-  const attackConfirmLabel =
-    attack === undefined
-      ? undefined
-      : picks.some(isPlayerAttackTarget)
-        ? t(securityAttackLabelKey(opponentSecurityCount))
-        : t("overlay.declareAttack");
+  const attackConfirmLabel = attack === undefined ? undefined : t("overlay.declareAttack");
   const boardSelectionKind =
     decision?.kind === "selectCards" || decision?.kind === "chooseTargets" ? decision.kind : undefined;
   const assemblyCardId = decision?.kind === "selectCards" ? decision.options?.assemblyCardId : undefined;
@@ -290,6 +284,7 @@ export function DecisionPrompts({
           key={decision.decisionId}
           sourceCardId={sourceCardId}
           prompt={playerFacingPromptText(decision.promptText, decision.kind)}
+          sourcePermanentId={decision.sourcePermanentId}
           clause={clause}
           onUse={() => onRespond({ kind: "optional", accept: true })}
           onDecline={() => onRespond({ kind: "optional", accept: false })}

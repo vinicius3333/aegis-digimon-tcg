@@ -58,7 +58,11 @@ export type CandidateZone =
   | "delay";
 
 /** Map every visible card instance to the zone it sits in, so a prompt can group its candidates. */
-export function buildInstanceZoneIndex(state: GameState, viewerSeat: Seat): Map<string, CandidateZone> {
+export function buildInstanceZoneIndex(
+  state: GameState,
+  viewerSeat: Seat,
+  { permanentTargets = false }: { permanentTargets?: boolean } = {},
+): Map<string, CandidateZone> {
   const zones = new Map<string, CandidateZone>();
   const add = (ci: CardInstance | undefined, zone: CandidateZone) => {
     if (ci?.instanceId) zones.set(ci.instanceId, zone);
@@ -67,10 +71,13 @@ export function buildInstanceZoneIndex(state: GameState, viewerSeat: Seat): Map<
   // the battle area, so the cards beneath a top card get their own zone.
   const addPermanent = (perm: Permanent | undefined, zone: CandidateZone, stackZone: CandidateZone) => {
     if (!perm) return;
+    // The original top card can share the host ID and later sit in its stack.
+    // Loose-card choices follow physical zones; permanent targets follow the host.
+    if (perm.permanentId) zones.set(perm.permanentId, zone);
     add(perm.topCard, zone);
     perm.stack?.forEach((ci) => add(ci, stackZone));
     perm.linked?.forEach((ci) => add(ci, zone === "opponentBattle" ? "opponentLinkedCards" : "linkedCards"));
-    if (perm.permanentId) zones.set(perm.permanentId, zone);
+    if (permanentTargets && perm.permanentId) zones.set(perm.permanentId, zone);
   };
   state.players.forEach((player, seat) => {
     const mine = seat === viewerSeat;

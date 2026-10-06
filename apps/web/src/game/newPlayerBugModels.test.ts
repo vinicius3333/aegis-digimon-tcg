@@ -24,6 +24,26 @@ it("#4989 groups both players' link cards separately from battle-area cards and 
   expect(zones.get("link0")).toBe("linkedCards");
   expect(zones.get("link1")).toBe("opponentLinkedCards");
 });
+it.each([0, 1] as const)("keeps the original top card in digivolution cards after evolving seat %s", (ownerSeat) => {
+  const state = new GameState();
+  for (const seat of [0, 1] as const) {
+    const player = new PlayerState();
+    player.seat = seat;
+    state.players.push(player);
+  }
+  const permanent = new Permanent();
+  permanent.permanentId = "original-roleplaymon";
+  permanent.topCard = Object.assign(new CardInstance(), { instanceId: "dantemon", cardId: "BT26-086" });
+  permanent.stack.push(Object.assign(new CardInstance(), { instanceId: "original-roleplaymon", cardId: "BT26-010" }));
+  state.players[ownerSeat]!.battleArea.push(permanent);
+  expect(buildInstanceZoneIndex(state, 0).get("original-roleplaymon")).toBe(
+    ownerSeat === 0 ? "digivolutionCards" : "opponentDigivolutionCards",
+  );
+  expect(buildInstanceZoneIndex(state, 0, { permanentTargets: true }).get("original-roleplaymon")).toBe(
+    ownerSeat === 0 ? "battle" : "opponentBattle",
+  );
+});
+
 it("#4967 playing Omnimon offers Assembly even when a DNA route is also available", () => {
   const viewer = new PlayerState();
   for (const [i, id] of ["ST20-11", "ST21-11", "ST20-10", "ST21-10"].entries())

@@ -534,6 +534,17 @@
   background: var(--ds-scrim);
   animation: game-modal-scrim-in var(--t-dialog-in, 180ms) ease-out both;
 }
+.decision-overlay-backdrop[data-source-permanent-id] {
+  background: transparent;
+}
+.decision-overlay-backdrop[data-source-permanent-id]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ds-scrim);
+  clip-path: var(--decision-source-mask);
+  pointer-events: none;
+}
 @media (width < 600px) {
   .decision-overlay-backdrop {
     z-index: calc(var(--ds-z-dialog) - 1);

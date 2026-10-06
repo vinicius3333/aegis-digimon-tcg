@@ -8,10 +8,14 @@ import { BotPlayer } from "../../api/dist/bot/BotPlayer.js";
 import type { DecisionRequest } from "@aegis/shared";
 import { Edge } from "./edge";
 
-const EDGE_PORT = 2569;
-const SERVER_PORT = 2570;
+const EDGE_PORT = Number(process.env.AEGIS_E2E_EDGE_PORT ?? 2569);
+const SERVER_PORT = Number(process.env.AEGIS_E2E_SERVER_PORT ?? 2570);
 
-export async function startBrowserServer({ holdBotAllTurns = true } = {}) {
+export async function startBrowserServer({
+  holdBotAllTurns = true,
+  edgePort = EDGE_PORT,
+  serverPort = SERVER_PORT,
+} = {}) {
   const queued: { bot: BotPlayer; request: DecisionRequest }[] = [];
   const originalDecision = BotPlayer.prototype.onDecisionRequested;
   const http = createServer();
@@ -25,8 +29,8 @@ export async function startBrowserServer({ holdBotAllTurns = true } = {}) {
   });
   server.define(ROOM_TYPE, AegisRoom, { botRoom: false });
   server.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true });
-  await server.listen(SERVER_PORT, "127.0.0.1");
-  const edge = new Edge(EDGE_PORT, SERVER_PORT);
+  await server.listen(serverPort, "127.0.0.1");
+  const edge = new Edge(edgePort, serverPort);
   await edge.start();
   // Test pacing only: hold each reactive answer until the browser has inspected the scene.
   BotPlayer.prototype.onDecisionRequested = function (request) {
@@ -37,7 +41,7 @@ export async function startBrowserServer({ holdBotAllTurns = true } = {}) {
   return {
     edge,
     /** Bypasses the edge, so it survives `edge.stop()`. */
-    directEndpoint: `ws://127.0.0.1:${SERVER_PORT}`,
+    directEndpoint: `ws://127.0.0.1:${serverPort}`,
     pendingBotDecision: () => queued[0]?.request,
     releaseBotDecision: () => {
       const next = queued.shift();

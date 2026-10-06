@@ -76,7 +76,6 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue P-220 por Assembly usando os três Digimon do lixo. Aceite a deleção de Millenniummon nele mesmo. O herdado de Giromon deve descartar a segurança superior do oponente antes da deleção. Bug 1557032910413107332.",
     en: "Play P-220 by Assembly using the three Digimon from trash. Accept Millenniummon's deletion targeting itself. Giromon's inherited effect must trash the opponent's top security before the deletion. Bug 1557032910413107332.",
   },
-
   "arena-oct06-blue-scramble-decline": {
     ptBR: "No início do turno, ative um Blue Scramble e recuse o outro na ordenação. Devolva Armadillomon BT1-027 ao topo. Na seleção de Monmon BT1-031, escolha Nenhuma seleção: ele deve continuar no lixo mesmo sendo a única opção. Bug 1556998094070095964.",
     en: "At turn start, activate one Blue Scramble and decline the other in the ordering plan. Return BT1-027 Armadillomon to the top. Choose no card in the BT1-031 Monmon selection: it must remain in trash even as the sole candidate. Bug 1556998094070095964.",
@@ -113,10 +112,69 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue Agumon BT1-010 por 3 a partir de 2 de memória. No início do turno adversário, aceite deletar Shoutmon. Overflow do ACE sob ele encerra o turno ainda em Active, sem compra ou criação. Este cenário exercita a mesma fronteira do relato de imunidade.",
     en: "Play BT1-010 Agumon for 3 from 2 memory. At the opponent’s turn start, accept Shoutmon’s self-deletion. The ACE underneath causes Overflow and ends that turn in Active, before drawing or breeding. This exercises the same boundary as the immunity report.",
   },
-
   "arena-discord-1556882561995644928-mobile-inspection": {
     ptBR: "Encerre a criação e jogue Leopardmon sem Assembly. Selecione Alphamon diretamente na mesa e confirme para suspendê-lo; nenhuma confirmação separada de ativação deve aparecer. Na escolha seguinte, selecione um Dorumon na mesa; nenhuma galeria de alvos deve abrir. Se desejar, use Visualizar mesa para recolher os controles. Segure Alphamon ou toque na lupa para ler a carta e seus herdados; toque na arte para ampliar. Feche e retorne à decisão: o Dorumon selecionado deve continuar marcado. Só Confirmar alvos envia a escolha; o herdado de Grademon pode então proteger Dorumon.",
     en: "End breeding and play Leopardmon without Assembly. Select Alphamon directly on the board and confirm to suspend it; no separate activation confirmation should appear. In the next choice, select a Dorumon on the board; no target gallery should open. Optionally use View board to hide the controls. Hold Alphamon or tap its magnifier to read the card and its inherited effects; tap the art to zoom. Close and return to the decision: the selected Dorumon must remain picked. Only Confirm targets sends the choice; Grademon's inherited effect can then protect Dorumon.",
+  },
+  "arena-issue-5127-opponent-suspend-cost": {
+    ptBR: "Use a metade Option de Zephagamon. Para reduzir o custo, suspenda os dois Digimon adversários. O custo deve cair de 6 para 4; depois trave o Tamer e devolva um dos Digimon ao fundo do deck.",
+    en: "Use Zephagamon's Option side. Suspend both opposing Digimon for the reduction. The cost falls from 6 to 4; then lock the Tamer and bottom-deck one Digimon.",
+  },
+  "arena-issue-5127-opponent-survival": {
+    ptBR: "Use Gaia Force em Zephagamon. O jogador adversário pode aceitar sua proteção e suspender seu Agumon para impedir a deleção.",
+    en: "Use Gaia Force on Zephagamon. Its controller may accept protection and suspend your Agumon to prevent deletion.",
+  },
+  "arena-issue-5159-kudamon-moving": {
+    ptBR: "Mova Kudamon da criação. Mesmo sem Tamer em campo, selecione uma carta revelada para a mão e confirme a ordem das restantes no fundo do deck. A movimentação encerra a criação automaticamente; a fase Principal deve continuar normalmente.",
+    en: "Move Kudamon out of breeding. With no Tamer on the field, select a revealed card for the hand and confirm the order of the remaining cards at the bottom of the deck. Moving ends breeding automatically; Main must then continue normally.",
+  },
+  "arena-issue-5158-guilmon-x-reveal": {
+    ptBR: "Jogue Guilmon X e selecione Growlmon e X Antibody entre as cartas reveladas. As duas escolhas devem ser visíveis e a resolução deve encerrar.",
+    en: "Play Guilmon X and select Growlmon and X Antibody from the reveals. Both choices must be visible and resolution must finish.",
+  },
+  "arena-issue-5050-counter-immunity": {
+    ptBR: "Ataque com Vortexdramon e suspenda seu Agumon para obter imunidade. Recuse a batalha extra. O Counter de Gallantmon deve preservar Vortexdramon e descartar segurança do jogador de Vortexdramon.",
+    en: "Attack with Vortexdramon and suspend your Agumon to gain immunity. Decline the extra battle. Gallantmon's Counter must preserve Vortexdramon and trash its controller's security.",
+  },
+  "arena-issue-5059-angewomon-warp": {
+    ptBR: "Jogue Angewomon e escolha Agumon ou Gabumon. Evolua para WarGreymon ou MetalGarurumon sem custo; o oponente tem 10000 DP ou mais.",
+    en: "Play Angewomon and choose Agumon or Gabumon. Evolve into WarGreymon or MetalGarurumon for free; the opponent has at least 10000 DP.",
+  },
+  "arena-issue-5058-davis-large-hand": {
+    ptBR: "No início da fase principal, use Davis e Ken. Role a mão grande para selecionar Veemon e jogá-lo de graça.",
+    en: "At start of Main, use Davis and Ken. Scroll the large hand to select Veemon and play it for free.",
+  },
+  "arena-issue-5070-lunamon-breeding": {
+    ptBR: "Evolua o ovo para Lunamon e depois Lekismon na criação. Encerre criação, jogue a outra Lunamon e selecione as cartas reveladas.",
+    en: "Evolve the egg into Lunamon then Lekismon in breeding. End breeding, play the other Lunamon and select the revealed cards.",
+  },
+  "arena-issue-5067-treadmill-reveal": {
+    ptBR: "Evolua na criação e use Treadmill Training na Principal. Escolha uma carta revelada e confirme.",
+    en: "Evolve in breeding and use Treadmill Training in Main. Choose a revealed card and confirm.",
+  },
+  "arena-issue-5066-shadow-reveal": {
+    ptBR: "Use Shadow Training e escolha uma das duas cartas reveladas.",
+    en: "Use Shadow Training and choose one of the two revealed cards.",
+  },
+  "arena-issue-5063-bokomon-base": {
+    ptBR: "Evolua BurningGreymon para Aldamon. Bokomon não deve ganhar memória por um Tamer enterrado na pilha.",
+    en: "Evolve BurningGreymon into Aldamon. Bokomon must not gain memory for a buried Tamer.",
+  },
+  "arena-issue-5064-hybrid-protection": {
+    ptBR: "Jogue Gaia Force e escolha o Hybrid adversário sem J.P., Koji e Koichi nas fontes. Ele deve ser deletado sem consumir segurança; apenas o outro Hybrid tem proteção.",
+    en: "Play Gaia Force and select the opposing Hybrid without J.P., Koji and Koichi in its sources. It must be deleted without consuming security; only the other Hybrid is protected.",
+  },
+  "arena-issue-5060-exact-lucemon": {
+    ptBR: "Ataque a segurança. Paradise Lost pode jogar Lucemon, mas não Chaos Mode.",
+    en: "Attack security. Paradise Lost may play Lucemon, but not Chaos Mode.",
+  },
+  "arena-issue-5047-richard-self": {
+    ptBR: "Recuse o efeito no início da Principal. Jogue o segundo Richard e recuse a colocação: nenhum Tamer recebe cartas.",
+    en: "Decline the start of Main effect. Play the second Richard and decline placement: neither Tamer receives cards.",
+  },
+  "arena-issue-5049-decline-dna": {
+    ptBR: "Encerre o turno, recuse DNA e aceite atacar com BlitzGreymon.",
+    en: "End the turn, decline DNA and accept attacking with BlitzGreymon.",
   },
   "arena-issue-5011-agumon-search": {
     ptBR: "Encerre a criação e jogue Agumon EX9. Na seleção para a mão, escolha a cópia revelada de Agumon, a única Ver.1, mesmo com Gabumon também disponível. Ela deve ir para a mão, sem colocação sob o Digimon; ordene as duas cartas restantes no fundo do deck.",
@@ -170,7 +228,6 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Promova Espimon EX11-037 da criação. Seu efeito deve virar a security do oponente para cima e o herdado de Kapurimon deve comprar uma carta: virar uma carta também aumenta a quantidade de security revelada.",
     en: "Move EX11-037 Espimon out of breeding. Its effect flips opposing security face up and Kapurimon’s inherited effect must draw one card: flipping also increases the number of face-up security cards.",
   },
-
   "arena-issue-4998-gammamon-breeding": {
     ptBR: "Encerre a criação sem promover Gammamon LM-016. Use The Strongest of Brothers por 3: deve ser permitido mesmo sem cartas vermelhas, pois Gammamon na criação tem Gammamon em seu texto. Resolva a busca e coloque a Option na batalha; a memória fica em 5.",
     en: "End breeding without promoting LM-016 Gammamon. Use The Strongest of Brothers for 3: it is legal without red cards because Gammamon in breeding mentions Gammamon in its text. Resolve the search and place the Option in battle; memory ends at 5.",
@@ -539,6 +596,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "#4926: Attack the suspended Knightmon with Examon. Groundramon trashes security; Examon deletes suspended Rie before she can activate her deletion watcher.",
     ptBR: "#4926: Ataque Knightmon suspenso com Examon. Groundramon descarta segurança; Examon deleta Rie suspensa antes que ela ative seu efeito de deleção.",
   },
+  "arena-bt15-092-kari-security": {
+    en: "Use Revelation of Light (BT15-092) with Kari Kamiya BT15-084 and BT8-090 in play. Select Gatomon from security or select no cards. After either choice, Revelation of Light must become your top security card, never go to trash. Reset to test the other choice.",
+    ptBR: "Use Revelation of Light (BT15-092) com Kari Kamiya BT15-084 e BT8-090 em campo. Escolha Gatomon na segurança ou não selecione nenhuma carta. Nos dois casos, Revelation of Light deve virar a carta do topo da sua segurança, sem ir para o trash. Reinicie para testar a outra escolha.",
+  },
   "arena-issue-4924-revelation-security-faces": {
     en: "#4924: Use Revelation of Light. You see the fronts of all three security cards privately; only the two yellow Digimon are selectable.",
     ptBR: "#4924: Use Revelation of Light. Você vê as frentes das três seguranças de forma privada; apenas os dois Digimon amarelos podem ser escolhidos.",
@@ -587,7 +648,6 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "#4907: End your turn and resolve Kurata deleting Gallantmon. Decode can play Guilmon; decline Guilmon's hand-discard effect. Takato may decline the whole placement cost; if paid, the warp itself remains optional.",
     ptBR: "#4907: Encerre o turno e resolva Kurata deletando Gallantmon. Decode pode jogar Guilmon; recuse o descarte de mão do Guilmon. Takato pode recusar todo o custo de colocação; se pago, a evolução continua opcional.",
   },
-
   "arena-bt11-hades-force-target-selection": {
     ptBR: "Entre na Principal e use Hades Force (custo 5 com X Antibody nas fontes). WarGreymon tem custo 12. A seleção deve oferecer Thomas (3), Gaomon (3) e Hexeblaumon (12) juntos. Escolha apenas Hexeblaumon e confirme: os dois alvos baratos permanecem. Também é possível escolher os dois baratos ou nenhuma carta. Depois, recuse o ataque opcional para inspecionar o resultado. Baseado na partida c8383f3a, 15:02 UTC, bug 1556322403456520223.",
     en: "Enter Main and use Hades Force (cost 5 with X Antibody in the sources). WarGreymon's play cost is 12. The target selection must offer Thomas (3), Gaomon (3), and Hexeblaumon (12) together. Select only Hexeblaumon and confirm: both cheap targets remain. You can also select both cheap targets or no cards. Then decline the optional attack to inspect the result. Based on match c8383f3a at 15:02 UTC, bug 1556322403456520223.",
@@ -1340,6 +1400,222 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado.",
     en: "Your Blocker starts unable to suspend. It must not be able to block the bot's attack.",
   },
+  "arena-issue-5161-larva-breeding": {
+    en: "Move Lucemon: Larva from breeding. Printed 0 DP permits the move; Chaos Mode keeps Larva from deletion. The Main phase opens.",
+    ptBR: "Mova Lucemon: Larva da criação. DP impresso 0 permite mover; Chaos Mode impede sua deleção. A fase principal começa.",
+  },
+  "arena-issue-5104-alter-s-sources": {
+    en: "End breeding, attack security with Omnimon Alter-S, accept End of Attack, then select Greymon and Garurumon from its sources. Both are played and Alter-S becomes top security.",
+    ptBR: "Encerre a criação, ataque a segurança com Omnimon Alter-S, aceite Fim do Ataque e selecione Greymon e Garurumon das fontes. Ambos são jogados; Alter-S vira a segurança do topo.",
+  },
+  "arena-issue-5115-melting-trash": {
+    en: "End breeding, play Yuuki, accept the established Melting Recital Delay and its evolution effect, then select QueenBeemon from trash. The sole legal base is chosen automatically. The emblem is trashed and the base becomes BT19-053 for cost reduced by 3.",
+    ptBR: "Encerre a criação, jogue Yuuki, aceite Delay de Melting Recital e seu efeito de evolução; selecione QueenBeemon do lixo. A única base válida é escolhida automaticamente. A opção vai ao lixo e a base vira BT19-053 com custo reduzido em 3.",
+  },
+  "arena-issue-5129-hyogamon-trash": {
+    en: "End breeding, play Ogremon, trash Monodramon, then accept the inherited Hyogamon evolution. Select the Titamon route from trash. Only its own host evolves, with cost reduced by 1.",
+    ptBR: "Encerre a criação, jogue Ogremon, descarte Monodramon e aceite a evolução herdada de Hyogamon. Escolha Titamon do lixo. Só a própria base evolui, com custo reduzido em 1.",
+  },
+  "arena-issue-5129-goblimon-trash": {
+    en: "End breeding, play Ogremon, trash Monodramon, then accept the inherited Goblimon evolution. Select the Titamon route from trash. Goblimon must be a source under the Demon/Titan host.",
+    ptBR: "Encerre a criação, jogue Ogremon, descarte Monodramon e aceite a evolução herdada de Goblimon. Escolha Titamon do lixo. Goblimon precisa ser fonte sob uma base Demon/Titan.",
+  },
+  "arena-issue-5125-ulforce-gold": {
+    en: "End breeding, play EX13 UlforceVeedramon and select AeroVeedramon, GoldVeedramon and Veemon from trash for Assembly. GoldVeedramon is legal. Cost is 7; decline optional orientation.",
+    ptBR: "Encerre a criação, jogue UlforceVeedramon EX13 e selecione AeroVeedramon, GoldVeedramon e Veemon do lixo para Assembly. GoldVeedramon é válido. Custo 7; recuse mudar orientação.",
+  },
+  "arena-issue-5122-ulforce-bt13": {
+    en: "End breeding and inspect BT13 UlforceVeedramon. It has no printed Assembly, so ordinary play costs 11 and the three trash cards remain there. EX13 Ulforce has a separate positive scenario.",
+    ptBR: "Encerre a criação e inspecione UlforceVeedramon BT13. Não tem Assembly impresso: jogar custa 11 e as três cartas ficam no lixo. Ulforce EX13 tem cenário positivo separado.",
+  },
+  "arena-issue-5125-ulforce-bt11": {
+    en: "End breeding and inspect BT11 UlforceVeedramon. It has no printed Assembly; ordinary play costs 12. Use the EX13 scenario to verify GoldVeedramon eligibility.",
+    ptBR: "Encerre a criação e inspecione UlforceVeedramon BT11. Não tem Assembly impresso: jogar custa 12. Use o cenário EX13 para testar GoldVeedramon.",
+  },
+  "arena-issue-5128-craniamon": {
+    en: "End breeding, play EX13-062, select all 3 trash materials in the Assembly dialog and confirm. Decline optional effects to finish. Each material has printed Blocker at levels 5, 4 and 3.",
+    ptBR: "Encerre a criação, jogue EX13-062, selecione os 3 materiais do lixo na janela Assembly e confirme. Recuse efeitos opcionais para concluir. Cada material tem Blocker impresso nos níveis 5, 4 e 3.",
+  },
+  "arena-issue-5145-slayerdramon": {
+    en: "End breeding, play EX13-024, select all 3 trash materials in the Assembly dialog and confirm. Decline optional effects to finish. Materials match Dracomon/Examon text, including an Examon-only level 5.",
+    ptBR: "Encerre a criação, jogue EX13-024, selecione os 3 materiais do lixo na janela Assembly e confirme. Recuse efeitos opcionais para concluir. Materiais têm Dracomon/Examon no texto, incluindo nível 5 só com Examon.",
+  },
+  "arena-issue-5146-breakdramon": {
+    en: "End breeding, play EX13-044, select all 3 trash materials in the Assembly dialog and confirm. Decline optional effects to finish. Materials match Dracomon/Examon text at levels 5, 4 and 3.",
+    ptBR: "Encerre a criação, jogue EX13-044, selecione os 3 materiais do lixo na janela Assembly e confirme. Recuse efeitos opcionais para concluir. Materiais têm Dracomon/Examon no texto nos níveis 5, 4 e 3.",
+  },
+  "arena-issue-5140-merciful": {
+    en: "End breeding, play EX13-077, select all 6 trash materials in the Assembly dialog and confirm. Decline optional effects to finish. All six are ADVENTURE Digimon and can be assigned distinct Red, Blue, White, Purple, Yellow and Green colors.",
+    ptBR: "Encerre a criação, jogue EX13-077, selecione os 6 materiais do lixo na janela Assembly e confirme. Recuse efeitos opcionais para concluir. Os seis são Digimon ADVENTURE e permitem atribuir cores distintas: vermelho, azul, branco, roxo, amarelo e verde.",
+  },
+  "arena-issue-5154-dantemon": {
+    en: "End breeding, play BT26-086, select all 7 trash materials in the Assembly dialog and confirm. Decline optional effects to finish. Seven Digimon must have the Seven Code trait and different names.",
+    ptBR: "Encerre a criação, jogue BT26-086, selecione os 7 materiais do lixo na janela Assembly e confirme. Recuse efeitos opcionais para concluir. Sete Digimon precisam ter Seven Code e nomes diferentes.",
+  },
+  "arena-issue-5156-giant-slayer": {
+    en: "End breeding, play BT26-085, select all 5 trash materials in the Assembly dialog and confirm. Decline optional effects to finish. Five different levels with Chronomon text/Shaman trait, including the level 2 Digi-Egg. Seven Code alone is insufficient.",
+    ptBR: "Encerre a criação, jogue BT26-085, selecione os 5 materiais do lixo na janela Assembly e confirme. Recuse efeitos opcionais para concluir. Cinco níveis diferentes com Chronomon no texto/Shaman, incluindo Digi-Egg nível 2. Só Seven Code não basta.",
+  },
+  "arena-github-5160-super-hacking": {
+    en: "Use Happy Bullet Showering to delete the opposing Agumon. Accept Super Hacking and link the trash Appmon to Gatchmon.",
+    ptBR: "Use Happy Bullet Showering para deletar Agumon. Aceite Super Hacking e vincule o Appmon do lixo ao Gatchmon.",
+  },
+  "arena-github-5162-gym-security": {
+    en: "Attack security. The Gym must enter the opponent battle area whether the optional Sistermon play is accepted or declined.",
+    ptBR: "Ataque a seguran\u00e7a. O Gym deve entrar no campo advers\u00e1rio, aceitando ou recusando jogar Sistermon.",
+  },
+  "arena-github-5162-gym-empty": {
+    en: "Attack security. With no Sistermon available, the Gym still enters the opponent battle area.",
+    ptBR: "Ataque a seguran\u00e7a. Sem Sistermon dispon\u00edvel, o Gym ainda entra no campo advers\u00e1rio.",
+  },
+  "arena-github-5162-gym-suppressed": {
+    en: "Attack security with Alphamon. Hisyaryumon’s inherited effect prevents Option Security effects, so Gym goes to trash. This matches the production report.",
+    ptBR: "Ataque a segurança com Alphamon. A herança de Hisyaryumon impede efeitos de Segurança de Opções, então Gym vai ao lixo, como na partida reportada.",
+  },
+  "arena-github-5111-jesmon": {
+    en: "Evolve SaviorHuckmon into Jesmon. Select the Sistermon branch, play Sistermon Blanc from trash and decline the extra attack.",
+    ptBR: "Evolua SaviorHuckmon para Jesmon. Escolha Sistermon, jogue Blanc do lixo e recuse o ataque extra.",
+  },
+  "arena-github-5112-plutomon": {
+    en: "Attack Agumon. Pay the hand trash cost and play the Titan from trash with cost reduced by 7.",
+    ptBR: "Ataque Agumon. Pague o descarte da m\u00e3o e jogue o Titan do lixo com custo reduzido em 7.",
+  },
+  "arena-github-5116-rizegreymon": {
+    en: "Play RizeGreymon. Trash the two face-down Tamer sources and use ST24-07 as an Option.",
+    ptBR: "Jogue RizeGreymon. Descarte as duas fontes viradas do Tamer e use ST24-07 como Op\u00e7\u00e3o.",
+  },
+  "arena-github-5119-cerberusmon": {
+    en: "Attack Agumon. Trash the hand card, use Dark Field from trash for 1 memory, then play Goblimon.",
+    ptBR: "Ataque Agumon. Descarte a carta da m\u00e3o, use Dark Field do lixo por 1 mem\u00f3ria e jogue Goblimon.",
+  },
+  "arena-github-5127-zephagamon-option": {
+    en: "Use LM-066 as an Option. Suspend the two opposing Digimon to reduce its cost to 4, then choose the lock and bottom-deck target.",
+    ptBR: "Use LM-066 como Op\u00e7\u00e3o. Suspenda os dois Digimon advers\u00e1rios para reduzir o custo para 4 e escolha os alvos.",
+  },
+  "arena-github-5127-zephagamon-protection": {
+    en: "Use Happy Bullet Showering on Zephagamon. Its protection can suspend your Agumon as the cost and prevent deletion.",
+    ptBR: "Use Happy Bullet Showering em Zephagamon. A prote\u00e7\u00e3o pode suspender seu Agumon como custo e impedir a dele\u00e7\u00e3o.",
+  },
+  "arena-github-5124-princemamemon": {
+    en: "Evolve BigMamemon into PrinceMamemon and choose BigMamemon from the three revealed cards; the other two go to trash.",
+    ptBR: "Evolua BigMamemon para PrinceMamemon e escolha BigMamemon entre as tr\u00eas reveladas; as outras v\u00e3o para o lixo.",
+  },
+  "arena-github-5124-bigmamemon": {
+    en: "Evolve the black level 4 into BigMamemon and play the revealed Bokomon.",
+    ptBR: "Evolua o n\u00edvel 4 preto para BigMamemon e jogue Bokomon revelado.",
+  },
+  "arena-github-5136-greymon-recovery": {
+    en: "Play Greymon. Select Omnimon Alter-S from trash; Agumon is not eligible.",
+    ptBR: "Jogue Greymon. Escolha Omnimon Alter-S no lixo; Agumon n\u00e3o \u00e9 eleg\u00edvel.",
+  },
+  "arena-github-5144-mastemon-infermon": {
+    en: "End your turn and let the bot play Infermon with Arata in play. On your next turn, attack security with Titamon. Mastemon may place Infermon as bottom security; Infermon return/DP protection does not prevent this zone movement.",
+    ptBR: "Encerre seu turno e espere o bot jogar Infermon com Arata em campo. No próximo turno, ataque a segurança com Titamon. Mastemon pode colocar Infermon no fundo da seguran\u00e7a; prote\u00e7\u00e3o contra retorno/DP n\u00e3o impede esse movimento.",
+  },
+  "arena-github-5149-proto-form": {
+    en: "End your turn. The bot uses Happy Bullet Showering on your Agumon. Choose Monodramon from its sources to return, then place Proto Form on security.",
+    ptBR: "Encerre seu turno. O bot usa Happy Bullet Showering em seu Agumon. Escolha Monodramon das fontes para devolver e coloque Proto Form na segurança.",
+  },
+  "arena-github-5151-examon-sources": {
+    en: "Attack the suspended Muchomon. After winning, play Coredramon from Examon sources and finish the Piercing checks.",
+    ptBR: "Ataque Muchomon suspenso. Ap\u00f3s vencer, jogue Coredramon das fontes de Examon e resolva Perfurar.",
+  },
+  "arena-issue-5106-chuumon-inherited": {
+    en: "Attack Omnimon with Etemon. Accept the inherited effect, select Chuumon from trash, and confirm. It enters suspended; the newly deleted inherited Chuumon is also a legal choice.",
+    ptBR: "Ataque Omnimon com Etemon. Aceite o efeito herdado, escolha Chuumon do trash e confirme. Ele entra suspenso; o Chuumon recém-deletado da pilha também é válido.",
+  },
+  "arena-issue-5139-tsunomon-inherited": {
+    en: "Attack Kokatorimon with Gomamon. Accept Tsunomon’s inherited effect and return Greymon from trash. Monodramon lacks ADVENTURE and must be excluded.",
+    ptBR: "Ataque Kokatorimon com Gomamon. Aceite o herdado de Tsunomon e devolva Greymon do trash. Monodramon não tem ADVENTURE e deve ser excluído.",
+  },
+  "arena-issue-5141-ukkomon-moving": {
+    en: "Move Ukkomon from breeding, add a revealed Digimon, and order the rest. Decline the optional hatch; Main opens automatically.",
+    ptBR: "Mova Ukkomon da criação, adicione um Digimon revelado e ordene o restante. Recuse a eclosão opcional; a fase Principal começa automaticamente.",
+  },
+  "arena-issue-5126-yuuki-end-turn": {
+    en: "End breeding and decline Yuuki’s Start of Main discard with No Selection, then end your turn. Accept suspending Yuuki and choose either Loudmon from trash. Monodramon is ineligible.",
+    ptBR: "Encerre a criação e recuse o descarte de Yuuki no início da Principal com Nenhuma seleção. Encerre o turno, aceite suspender Yuuki e escolha um dos Loudmon do trash. Monodramon não é válido.",
+  },
+  "arena-issue-5123-ryugumon-watcher": {
+    en: "Play Agumon and resolve Ryugumon first in the effect-order dialog. Its All Turns watcher offers an opposing Digimon: confirm Kokatorimon. It cannot suspend or activate When Digivolving effects until its turn ends. Then confirm Agumon’s remaining deck order.",
+    ptBR: "Jogue Agumon. O observador All Turns de Ryugumon oferece um Digimon adversário: confirme Kokatorimon. Ele não pode suspender nem ativar efeitos When Digivolving até o fim do turno dele.",
+  },
+  "arena-issue-5113-weregarurumon-target": {
+    en: "Play WereGarurumon and select the opposing Digimon or Tamer directly on the board. Confirm the target; it cannot suspend until its turn ends.",
+    ptBR: "Jogue WereGarurumon e selecione diretamente na mesa o Digimon ou Tamer adversário. Confirme o alvo; ele não pode suspender até o fim do turno dele.",
+  },
+  "arena-issue-5118-candlemon-main": {
+    en: "At Start of Main choose top or bottom security to trash, then draw and gain 1 memory. With two security left, you may put the Witchelny-text Candlemon from hand under security. Playing Candlemon has no printed On Play search.",
+    ptBR: "No início da Principal escolha o topo ou fundo da segurança para descartar; compre e ganhe 1 memória. Com duas seguranças, pode colocar Candlemon da mão no fundo da segurança por ter Witchelny no texto. Jogar Candlemon não tem busca On Play.",
+  },
+  "arena-issue-5142-bt10-087-search": {
+    en: "End breeding and play Taiki Kudo. Add Shoutmon X7 to the hand. Choose ZeigGreymon for placement under Taiki. Confirm the remainder’s deck order. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Taiki Kudo. Adicione Shoutmon X7 à mão. Escolha ZeigGreymon para colocar sob Taiki. Confirme a ordem das restantes no deck. A fase Principal deve continuar.",
+  },
+  "arena-issue-5155-bt12-021-search": {
+    en: "End breeding and play Veemon. Add Paildramon and Davis Motomiya to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Veemon. Adicione Paildramon e Davis Motomiya à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5117-bt13-048-search": {
+    en: "End breeding and play Salamon. Add Garurumon and Gallantmon to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Salamon. Adicione Garurumon e Gallantmon à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5148-bt24-043-search": {
+    en: "End breeding and play Tapirmon. Add Garurumon and Shamanmon to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Tapirmon. Adicione Garurumon e Shamanmon à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5132-bt24-044-search": {
+    en: "End breeding and play Muchomon. Add Shoto Kazama and Biyomon to the hand. First select Muchomon on the board and confirm its suspension. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Muchomon. Adicione Shoto Kazama e Biyomon à mão. Primeiro selecione Muchomon na mesa e confirme sua suspensão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5121-bt24-058-search": {
+    en: "End breeding and play Blimpmon. Add WarGrowlmon to the hand. Choose Add to the hand, then Bottom of deck. Confirm the remainder’s deck order. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Blimpmon. Adicione WarGrowlmon à mão. Escolha Adicionar à mão, depois Fundo do deck. Confirme a ordem das restantes no deck. A fase Principal deve continuar.",
+  },
+  "arena-issue-5138-bt25-022-search": {
+    en: "End breeding and play Lunamon. Add Cyclonemon and Shamanmon to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Lunamon. Adicione Cyclonemon e Shamanmon à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5131-bt3-093-search": {
+    en: "End breeding and play Davis Motomiya. Add Shoutmon X7 and Paildramon to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Davis Motomiya. Adicione Shoutmon X7 e Paildramon à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5108-ex12-073-search": {
+    en: "End breeding and play Giant Meat. Add MetalEtemon to the hand. Confirm the remainder’s deck order. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Giant Meat. Adicione MetalEtemon à mão. Confirme a ordem das restantes no deck. A fase Principal deve continuar.",
+  },
+  "arena-issue-5137-ex13-027-search": {
+    en: "End breeding and play Chuumon. Add Sukamon to the hand. Choose Etemon as the second selection to trash. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Chuumon. Adicione Sukamon à mão. Escolha Etemon na segunda seleção para descartar. A fase Principal deve continuar.",
+  },
+  "arena-issue-5107-ex2-008-search": {
+    en: "End breeding and play Guilmon. Add WarGrowlmon and Takato Matsuki to the hand. Confirm the remainder’s deck order. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Guilmon. Adicione WarGrowlmon e Takato Matsuki à mão. Confirme a ordem das restantes no deck. A fase Principal deve continuar.",
+  },
+  "arena-issue-5109-ex4-038-search": {
+    en: "End breeding and play Agumon. Add Greymon and Garurumon to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Agumon. Adicione Greymon e Garurumon à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5135-st14-11-search": {
+    en: "End breeding and play Ai & Mako. Add Aldamon to the hand. Confirm the remainder’s deck order. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Ai & Mako. Adicione Aldamon à mão. Confirme a ordem das restantes no deck. A fase Principal deve continuar.",
+  },
+  "arena-issue-5132-st18-04-search": {
+    en: "End breeding and play Pteromon. Add Biyomon and Vemmon to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Pteromon. Adicione Biyomon e Vemmon à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5114-st20-02-search": {
+    en: "End breeding and play Biyomon. Add Greymon and Matt Ishida & T.K. Takaishi to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Biyomon. Adicione Greymon e Matt Ishida & T.K. Takaishi à mão. A fase Principal deve continuar.",
+  },
+  "arena-issue-5152-lm-051-search": {
+    en: "End breeding and play Alexandrite Memory Boost!. Add Greymon to the hand. Confirm the remainder’s deck order. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Alexandrite Memory Boost!. Adicione Greymon à mão. Confirme a ordem das restantes no deck. A fase Principal deve continuar.",
+  },
+  "arena-issue-5132-lm-055-search": {
+    en: "End breeding and play Sprint Dash Training. Add Greymon to the hand. Main must remain playable.",
+    ptBR: "Encerre a criação e jogue Sprint Dash Training. Adicione Greymon à mão. A fase Principal deve continuar.",
+  },
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
@@ -1368,6 +1644,21 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-oct06-inherited-battle", "06/10 · Groundramon · herdado após De-Digivolve"],
   ["arena-oct06-active-overflow", "06/10 · Overflow · início do turno"],
   ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
+  ["arena-issue-5127-opponent-suspend-cost", "GitHub #5127 · Opposing suspend cost"],
+  ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
+  ["arena-issue-5159-kudamon-moving", "GitHub #5159 · Kudamon moving reveal"],
+  ["arena-issue-5158-guilmon-x-reveal", "GitHub #5158 · Guilmon X reveal"],
+  ["arena-issue-5050-counter-immunity", "GitHub #5050 · Counter immunity"],
+  ["arena-issue-5059-angewomon-warp", "GitHub #5059 · Angewomon warp"],
+  ["arena-issue-5058-davis-large-hand", "GitHub #5058 · Davis large hand"],
+  ["arena-issue-5070-lunamon-breeding", "GitHub #5070 · lunamon-breeding"],
+  ["arena-issue-5067-treadmill-reveal", "GitHub #5067 · treadmill-reveal"],
+  ["arena-issue-5066-shadow-reveal", "GitHub #5066 · shadow-reveal"],
+  ["arena-issue-5063-bokomon-base", "GitHub #5063 · bokomon-base"],
+  ["arena-issue-5064-hybrid-protection", "GitHub #5064 · hybrid-protection"],
+  ["arena-issue-5060-exact-lucemon", "GitHub #5060 · exact-lucemon"],
+  ["arena-issue-5047-richard-self", "GitHub #5047 · richard-self"],
+  ["arena-issue-5049-decline-dna", "GitHub #5049 · decline-dna"],
   ["arena-issue-5011-agumon-search", "#5011 · Agumon · busca DM/Ver.1"],
   ["arena-issue-5011-gabumon-search", "#5011 · Gabumon · busca DM/Ver.2"],
   ["arena-issue-5014-digital-gate-cool-boy", "#5014 · Digital Gate Open · Cool Boy sem custo"],
@@ -1459,7 +1750,6 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4954-lordknightmon-inspector", "#4954 · LordKnightmon · printed inspector"],
   ["arena-issue-4958-card-images", "#4958 · Images · mirror fallback (#4928)"],
   ["arena-issue-4943-browser-translation", "#4943 · Browser translation · live match"],
-
   ["arena-issue-4938-ruli-optional-reduction", "#4938 · Ruli · optional reduction"],
   ["arena-issue-4937-grademon-dual-immunity", "#4937 · EX13 Grademon · DUAL Options"],
   ["arena-issue-4937-bt20-grademon-dual-immunity", "#4937 · BT20 Grademon · DUAL Options"],
@@ -1471,6 +1761,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4930-venusmon-opponent-cost", "#4930 · Venusmon · opponent protection cost"],
   ["arena-issue-4929-noir-single-target", "#4929 · Noir · one De-Digivolve target"],
   ["arena-issue-4926-battle-priority", "#4926 · Examon / Rie · battle priority"],
+  ["arena-bt15-092-kari-security", "BT15-092 · Kari · placement in security"],
   ["arena-issue-4924-revelation-security-faces", "#4924 · Revelation · security card faces"],
   ["arena-issue-4923-seiten-assembly", "#4923 · SeitenGokuumon · Sagomon Assembly"],
   ["arena-issue-4921-homeros-late-arrival", "#4921 · Homeros · end-turn arrival"],
@@ -1483,7 +1774,6 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4912-deep-savers-battle", "#4912 · Deep Savers · memory protection"],
   ["arena-issue-4911-mervamon-multiple-checks", "#4911 · Mervamon · consecutive large attacks"],
   ["arena-issue-4907-takato-end-turn", "#4907 · Takato · end-turn cost choice"],
-
   ["arena-bt20-ouryuken-blast-dna-counter", "BT20 Ouryuken ACE · Blast DNA Counter with duplicate hand cards"],
   ["arena-bt11-hades-force-target-selection", "BT11 Hades Force · escolha dos alvos"],
   ["arena-bt23-examon-partition-return", "BT23 Examon · Partition on deck return"],
@@ -1689,6 +1979,60 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-vortexdramon", "Vortexdramon · optional OPT"],
   ["counter-blast-dna", "Counter · Blast DNA on a full board"],
   ["arena-mobile-blast-counter-tap", "Mobile · Blast Counter tap through badges"],
+  ["arena-issue-5161-larva-breeding", "#5161 \u00b7 larva-breeding"],
+  ["arena-issue-5104-alter-s-sources", "#5104 \u00b7 alter-s-sources"],
+  ["arena-issue-5115-melting-trash", "#5115 \u00b7 melting-trash"],
+  ["arena-issue-5129-hyogamon-trash", "#5129 \u00b7 hyogamon-trash"],
+  ["arena-issue-5129-goblimon-trash", "#5129 \u00b7 goblimon-trash"],
+  ["arena-issue-5125-ulforce-gold", "#5125 \u00b7 ulforce-gold"],
+  ["arena-issue-5122-ulforce-bt13", "#5122 \u00b7 ulforce-bt13"],
+  ["arena-issue-5125-ulforce-bt11", "#5125 \u00b7 ulforce-bt11"],
+  ["arena-issue-5128-craniamon", "#5128 \u00b7 craniamon"],
+  ["arena-issue-5145-slayerdramon", "#5145 \u00b7 slayerdramon"],
+  ["arena-issue-5146-breakdramon", "#5146 \u00b7 breakdramon"],
+  ["arena-issue-5140-merciful", "#5140 \u00b7 merciful"],
+  ["arena-issue-5154-dantemon", "#5154 \u00b7 dantemon"],
+  ["arena-issue-5156-giant-slayer", "#5156 \u00b7 giant-slayer"],
+  ["arena-github-5160-super-hacking", "GitHub #5160 \u00b7 super-hacking"],
+  ["arena-github-5162-gym-security", "GitHub #5162 \u00b7 gym-security"],
+  ["arena-github-5162-gym-empty", "GitHub #5162 \u00b7 gym-empty"],
+  ["arena-github-5162-gym-suppressed", "GitHub #5162 · inherited security suppression"],
+  ["arena-github-5111-jesmon", "GitHub #5111 \u00b7 jesmon"],
+  ["arena-github-5112-plutomon", "GitHub #5112 \u00b7 plutomon"],
+  ["arena-github-5116-rizegreymon", "GitHub #5116 \u00b7 rizegreymon"],
+  ["arena-github-5119-cerberusmon", "GitHub #5119 \u00b7 cerberusmon"],
+  ["arena-github-5127-zephagamon-option", "GitHub #5127 \u00b7 zephagamon-option"],
+  ["arena-github-5127-zephagamon-protection", "GitHub #5127 \u00b7 zephagamon-protection"],
+  ["arena-github-5124-princemamemon", "GitHub #5124 \u00b7 princemamemon"],
+  ["arena-github-5124-bigmamemon", "GitHub #5124 \u00b7 bigmamemon"],
+  ["arena-github-5136-greymon-recovery", "GitHub #5136 \u00b7 greymon-recovery"],
+  ["arena-github-5144-mastemon-infermon", "GitHub #5144 \u00b7 mastemon-infermon"],
+  ["arena-github-5149-proto-form", "GitHub #5149 \u00b7 proto-form"],
+  ["arena-github-5151-examon-sources", "GitHub #5151 \u00b7 examon-sources"],
+  ["arena-issue-5106-chuumon-inherited", "GitHub #5106 · chuumon"],
+  ["arena-issue-5139-tsunomon-inherited", "GitHub #5139 · tsunomon"],
+  ["arena-issue-5141-ukkomon-moving", "GitHub #5141 · ukkomon"],
+  ["arena-issue-5126-yuuki-end-turn", "GitHub #5126 · yuuki"],
+  ["arena-issue-5123-ryugumon-watcher", "GitHub #5123 · ryugumon"],
+  ["arena-issue-5113-weregarurumon-target", "GitHub #5113 · weregarurumon"],
+  ["arena-issue-5118-candlemon-main", "GitHub #5118 · candlemon"],
+  ["arena-issue-5142-bt10-087-search", "GitHub #5142 · Taiki Kudo search"],
+  ["arena-issue-5155-bt12-021-search", "GitHub #5155 · Veemon search"],
+  ["arena-issue-5117-bt13-048-search", "GitHub #5117 · Salamon search"],
+  ["arena-issue-5148-bt24-043-search", "GitHub #5148 · Tapirmon search"],
+  ["arena-issue-5132-bt24-044-search", "GitHub #5132 · Muchomon search"],
+  ["arena-issue-5121-bt24-058-search", "GitHub #5121 · Blimpmon search"],
+  ["arena-issue-5138-bt25-022-search", "GitHub #5138 · Lunamon search"],
+  ["arena-issue-5131-bt3-093-search", "GitHub #5131 · Davis Motomiya search"],
+  ["arena-issue-5108-ex12-073-search", "GitHub #5108 · Giant Meat search"],
+  ["arena-issue-5137-ex13-027-search", "GitHub #5137 · Chuumon search"],
+  ["arena-issue-5107-ex2-008-search", "GitHub #5107 · Guilmon search"],
+  ["arena-issue-5109-ex4-038-search", "GitHub #5109 · Agumon search"],
+  ["arena-issue-5135-st14-11-search", "GitHub #5135 · Ai & Mako search"],
+  ["arena-issue-5132-st18-04-search", "GitHub #5132 · Pteromon search"],
+  ["arena-issue-5114-st20-02-search", "GitHub #5114 · Biyomon search"],
+  ["arena-issue-5152-lm-051-search", "GitHub #5152 · Alexandrite Memory Boost! search"],
+  ["arena-issue-5132-lm-055-search", "GitHub #5132 · Sprint Dash Training search"],
 ];
 
 /** Uses the normal room, bot and intent pipeline; all results come from the engine. */

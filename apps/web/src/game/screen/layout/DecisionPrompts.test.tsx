@@ -133,7 +133,7 @@ it("labels a player-only attack target as an attack target instead of a hand sel
   expect(screen.queryByRole("region", { name: "Hand selection" })).toBeNull();
 });
 
-it("Discord 1555307552223264829: names the attacker and its only target, and confirms as a Security Attack", () => {
+it("Discord 1555307552223264829: names the attacker and its only target, and confirms with Attack", () => {
   const grademon = new Permanent();
   grademon.permanentId = "perm-16";
   const top = new CardInstance();
@@ -171,7 +171,7 @@ it("Discord 1555307552223264829: names the attacker and its only target, and con
   );
 
   expect(screen.getByText("Grademon attacks. The only target is your opponent's security.")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Security Attack" }));
+  fireEvent.click(screen.getByRole("button", { name: "Attack" }));
   expect(onRespond).toHaveBeenCalledWith({ kind: "selectCards", instanceIds: ["player"] });
 });
 

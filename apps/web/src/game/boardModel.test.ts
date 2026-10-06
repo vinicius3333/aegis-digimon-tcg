@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CardKind, CombatWindow, GameState, Phase, PlayerState, Permanent, CardInstance } from "@aegis/shared";
-import { effectiveExactNames, effectiveStaticNames, getCardDefinition } from "@aegis/shared";
+import { effectiveExactNames, effectiveStaticNames, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { buildTriggerKey } from "@aegis/shared";
 import type { ServerEvent } from "@aegis/shared";
 import { translator } from "../i18n";
@@ -1343,6 +1343,10 @@ describe("canMoveFromBreeding", () => {
     expect(canMoveFromBreeding(breedingWith("BT1-001"))).toBe(false);
   });
 
+  it("#5161 offers movement for Lucemon: Larva with printed 0 DP", () => {
+    expect(canMoveFromBreeding(breedingWith("BT18-086"))).toBe(true);
+  });
+
   it("lets a Digimon with DP move out", () => {
     expect(canMoveFromBreeding(breedingWith("BT1-009"))).toBe(true);
   });
@@ -1635,6 +1639,25 @@ describe("hand-resident SET digivolution cost", () => {
   it("keeps the printed figures onto a base the SET static does not gate in", () => {
     const options = getDigivolveCostOptions("BT24-101", permOf("BT24-039"), viewerWithSecurity(0));
     expect(options.map((option) => option.cost)).toEqual([5]);
+  });
+
+  it.each([undefined, true])("does not apply a trash-only SET to a hand card (legacy flag: %s)", (handResident) => {
+    const modifier = getCompiledCard("BT24-101")!
+      .effects.flatMap((effect) => effect.actions ?? [])
+      .find((action) => action.kind === "CostModifier");
+    expect(modifier?.kind).toBe("CostModifier");
+    if (modifier?.kind !== "CostModifier") return;
+    const originalZones = modifier.residentZones;
+    const originalLegacy = modifier.handResident;
+    try {
+      modifier.residentZones = ["trash"];
+      modifier.handResident = handResident;
+      const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"), viewerWithSecurity(0));
+      expect(options.map((option) => option.cost)).toEqual([5, 1]);
+    } finally {
+      modifier.residentZones = originalZones;
+      modifier.handResident = originalLegacy;
+    }
   });
 
   it("honors the floor that keeps BT7-040 at 1 on an empty security stack", () => {

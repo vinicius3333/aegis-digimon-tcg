@@ -350,6 +350,8 @@ export function playerFacingPromptText(promptText: string | undefined, kind: Dec
   if (/^(?:choose targets?|select cards?|choose one effect to activate|choose the card order)$/i.test(trimmed))
     return undefined;
   if (kind !== "optional") return trimmed;
+  // Printed optional clauses belong in the body, below the short activation question.
+  if (/^you may\b/i.test(trimmed)) return undefined;
   // A reducer or keyword effect asks with the engine's own summary of what it does
   // ("Draw 2", "Gain 2 memory"), which the printed clause under the prompt already says.
   return INTERNAL_IDENTIFIER_PROMPT.test(trimmed) ||

@@ -1080,3 +1080,19 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
     min-width: 32px;
   }
 }
+
+/* Large selection dialogs follow their DOM order: secondary exits, then confirmation. */
+@media (width >= 768px) {
+  .board-prompt.board-prompt--target-selection[data-prompt-surface="left"][data-variant="field-selection"] {
+    height: auto !important;
+    max-height: calc(
+      100dvh - var(--ds-space-4) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    ) !important;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__footer.game-actions-row,
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface]
+    .material-prompt__footer
+    .game-actions-row {
+    flex-direction: row;
+  }
+}

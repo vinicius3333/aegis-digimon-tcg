@@ -97,7 +97,7 @@ export function decisionViewFor({
         viewerDecision.options,
         instanceIndex,
         buildInstanceArtIndex(state),
-        buildInstanceZoneIndex(state, viewerSeat),
+        buildInstanceZoneIndex(state, viewerSeat, { permanentTargets: viewerDecision.kind === "chooseTargets" }),
       )
     : [];
   return {

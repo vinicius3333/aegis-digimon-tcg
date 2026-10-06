@@ -13,10 +13,10 @@ export function DecisionOrderCardsFooter({
   const { t } = useTranslation();
   return (
     <div className="game-actions-row decision-overlay__footer">
+      <DecisionViewBoardButton onOpenBoard={onOpenBoard} />
       <Button full size="lg" icon={Icons.Check} onClick={onConfirm}>
         {t("overlay.confirmOrder")}
       </Button>
-      <DecisionViewBoardButton onOpenBoard={onOpenBoard} />
     </div>
   );
 }

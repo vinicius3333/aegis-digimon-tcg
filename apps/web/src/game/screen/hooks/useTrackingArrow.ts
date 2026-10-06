@@ -103,6 +103,7 @@ export function useTrackingArrow({
   arrowClockRef.current = fieldClash?.arrowClock;
   const paintedArrowRef = useRef<{ key: string; permanentId: string } | null>(null);
   const retainedClockRef = useRef<AttackArrowClock | undefined>(undefined);
+  const lastPermanentBoxesRef = useRef(new Map<string, ArrowBox>());
   const trackingArrowActive = trackingArrowRequest !== null;
   useEffect(() => {
     if (!trackingArrowActive) {
@@ -121,16 +122,21 @@ export function useTrackingArrow({
       // A permanent deleted by the battle has left the board, but the arrow must still reach
       // where it stood, so its last measurement stands in.
       if (!element?.isConnected) {
-        return end.kind === "permanent" ? permCentersRef.current[end.permanentId] : undefined;
+        return end.kind === "permanent"
+          ? (lastPermanentBoxesRef.current.get(end.permanentId) ?? permCentersRef.current[end.permanentId])
+          : undefined;
       }
       const rect = (end.kind === "permanent" ? permanentVisualElement(element) : element).getBoundingClientRect();
       if (!rect.width) return undefined;
-      return {
+      const box: ArrowBox = {
         x: rect.left + rect.width / 2 - board.left,
         y: rect.top + rect.height / 2 - board.top,
         halfWidth: rect.width / 2,
         halfHeight: rect.height / 2,
       };
+      // Keep the same live bounds after removal, including the edge the beam stops at.
+      if (end.kind === "permanent") lastPermanentBoxesRef.current.set(end.permanentId, box);
+      return box;
     };
     const solve = () => {
       frame = window.requestAnimationFrame(solve);
