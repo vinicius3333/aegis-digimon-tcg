@@ -38,6 +38,109 @@ describe("EX12-002 Mococomon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-045")).toBe(false);
   });
 
+  it("Discord 1556798361435373630: keeps its once-per-turn budget after public plays and host digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "host", under: ["EX12-002"] }],
+          hand: [
+            { card: "EX12-006", as: "play1" },
+            { card: "EX12-006", as: "play2" },
+            { card: "EX12-012", as: "first" },
+            { card: "EX12-045", as: "second" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, declinePrompts: ["Apemon"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("play1").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX12-012" && s.state.pendingDecision === undefined);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("play2").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX12-012");
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("second").instanceId);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Discord 1556798361435373630: resolves the pending inherited effect only once across Cho-Hakkaimon's attack", async () => {
+    const preferred: string[] = [];
+    const options = {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoChooseOption: true,
+      autoOrderTriggers: false,
+      declineDigiXros: true,
+      preferTriggerKeys: ["EX12-056"],
+      preferInstanceIds: preferred,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-043", as: "host", under: ["EX12-002"] }],
+          hand: [
+            { card: "EX12-045", as: "played" },
+            { card: "EX12-056", as: "cho" },
+            { card: "EX12-034", as: "first" },
+            { card: "EX12-034", as: "second" },
+          ],
+          deck: Array(12).fill("BT1-009"),
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-101", as: "jupiter" },
+            { card: "BT24-101", as: "holyHost", under: ["BT26-029"] },
+          ],
+          security: Array(5).fill("BT1-009"),
+        },
+      },
+      options,
+    );
+    preferred.push(s.inst("host").instanceId, s.inst("jupiter").instanceId, s.inst("cho").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("played").instanceId,
+        permanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const req = s.decisions.at(-1)!.req;
+    expect(req.options?.triggerCardIds).toEqual(["EX12-056", "EX12-002"]);
+    const order = req.options!.triggerKeys!;
+    preferred.unshift(s.inst("first").instanceId);
+    options.autoOrderTriggers = true;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: {
+          kind: "orderTriggers",
+          order,
+          optionalAnswers: Object.fromEntries(order.map((key) => [key, true])),
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "attackDeclared"));
+    await advance(s.engine).finishAttack();
+    await settle(
+      () =>
+        s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "EX12-056") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("host").topCard.cardId).toBe("EX12-045");
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("second").instanceId);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("first").instanceId);
+    expect(s.events.filter((e) => e.kind === "effectResolved" && e.sourceCardId === "EX12-002")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("does not react to a non-SW Digimon or an opponent's SW Digimon", async () => {
     const s = setupEngine(
       {
