@@ -72,10 +72,12 @@ describe("BT23-102 Mastemon", () => {
     expect((trigger.actions[0] as { event: string }).event).toBe("whenSecurityRemoved");
     expect((trigger.actions[0] as { actions: unknown[] }).actions[0]).toMatchObject({
       kind: "SecurityManipulation",
-      op: "addBottom",
+      op: "placeAsSecurity",
       controller: "any",
+      ownerSecurity: true,
+      toTop: false,
       optional: true,
-      source: { filter: { isDigimon: true, controller: "any" } },
+      source: { filter: { kind: ["Digimon"], controller: "any" } },
     });
   });
 
@@ -474,9 +476,9 @@ describe("BT23-102 Mastemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === attackerAId));
+    await settle(() => s.state.players[1]!.security.some(({ instanceId }) => instanceId === attackerAId));
     await settle(() => s.state.pendingDecision === undefined);
-    expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(attackerAId);
+    expect(s.state.players[1]!.security.at(-1)!.instanceId).toBe(attackerAId);
 
     preferredIds.length = 0;
     preferredIds.push(s.perm("attackerB").permanentId, s.perm("attackerB").topCard.instanceId);
@@ -507,8 +509,8 @@ describe("BT23-102 Mastemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === attackerBId));
-    expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(attackerBId);
+    await settle(() => s.state.players[1]!.security.some(({ instanceId }) => instanceId === attackerBId));
+    expect(s.state.players[1]!.security.at(-1)!.instanceId).toBe(attackerBId);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -560,7 +562,7 @@ describe("BT23-102 Mastemon", () => {
     expect(watcherIndex).toBeGreaterThan(securityPlayIndex);
   });
 
-  it("places the opponent's Digimon into the chosen security stack, moving the physical card out of the battle area (Q5391)", async () => {
+  it("places the opponent's Digimon into its owner's security stack, moving the physical card out of the battle area (Q5391)", async () => {
     const preferredIds: string[] = [];
     const s = setupEngine(
       {
@@ -600,10 +602,10 @@ describe("BT23-102 Mastemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === opponentId));
+    await settle(() => s.state.players[1]!.security.some(({ instanceId }) => instanceId === opponentId));
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(opponentId);
+    expect(s.state.players[1]!.security.at(-1)!.instanceId).toBe(opponentId);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.instanceId)).not.toContain(opponentId);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(opponentId);
 
@@ -797,5 +799,51 @@ describe("BT23-102 Mastemon", () => {
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("Discord 1557044001453113455: Mastemon security placement", () => {
+  it.each([0, 1] as const)("places a seat %s Digimon only in its owner's security, excluding Tamers", async (owner) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-102", as: "mastemon" },
+            { card: "BT1-010", as: "ownDigimon" },
+            { card: "BT1-085", as: "ownTamer" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-030", as: "enemyDigimon" },
+            { card: "BT1-086", as: "enemyTamer" },
+          ],
+          security: ["BT1-009", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const target = s.inst(owner === 0 ? "ownDigimon" : "enemyDigimon");
+    preferred.push(target.instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mastemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    const choices = s.decisions.filter(({ req }) => req.sourceCardId === "BT23-102" && req.kind === "chooseTargets");
+    expect(choices).toHaveLength(1);
+    expect(choices[0]!.req.options?.candidateInstanceIds).not.toEqual(
+      expect.arrayContaining([s.perm("ownTamer").permanentId]),
+    );
+    expect(choices[0]!.req.options?.candidateInstanceIds).not.toEqual(
+      expect.arrayContaining([s.perm("enemyTamer").permanentId]),
+    );
+    expect(s.state.players[owner]!.security.at(-1)?.instanceId).toBe(target.instanceId);
+    expect(s.state.players[owner === 0 ? 1 : 0]!.security.some((c) => c.instanceId === target.instanceId)).toBe(false);
   });
 });

@@ -364,6 +364,22 @@ export const SPECIMENS: readonly Specimen[] = [
   decision("decision-choose-short", "Choose option, short labels", () => (
     <DecisionSpecimen request={chooseShortDecision()} />
   )),
+  decision("decision-millennium-depth", "Millenniummon De-Digivolve depth", () => (
+    <DecisionSpecimen
+      request={{
+        decisionId: "lab-millennium-depth",
+        seat: 0,
+        kind: "chooseOption",
+        sourceCardId: "P-220",
+        promptText: "Choose De-Digivolve depth.",
+        options: {
+          timing: "OnPlay",
+          choices: ["2 cards", "1 card"],
+          effectText: "[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
+        },
+      }}
+    />
+  )),
   decision(
     "decision-choose-long",
     "Choose option, long effect sentences",
@@ -390,6 +406,16 @@ export const SPECIMENS: readonly Specimen[] = [
   }),
   decision("decision-targets", "Choose targets (candidate grid)", (locale) => (
     <DecisionSpecimen request={targetDecision(locale)} candidates={TARGET_CANDIDATES} initialPicks={["opp-1"]} />
+  )),
+  decision("decision-trash-cards", "Discord 1557059213266522233 · select from trash", (locale) => (
+    <DecisionSpecimen
+      request={{
+        ...selectDecision(locale),
+        promptText: locale === "en" ? "Select up to 2 cards from your trash." : "Selecione até 2 cartas do lixo.",
+      }}
+      candidates={SELECT_CANDIDATES.map((candidate) => ({ ...candidate, zone: "trash" }))}
+      initialPicks={["hand-1"]}
+    />
   )),
   decision("decision-select-cards", "Select cards (8 candidates)", (locale) => (
     <DecisionSpecimen request={selectDecision(locale)} candidates={SELECT_CANDIDATES} initialPicks={["hand-1"]} />

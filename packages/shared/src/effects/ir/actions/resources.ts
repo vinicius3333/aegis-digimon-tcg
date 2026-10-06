@@ -105,6 +105,8 @@ interface NumericCostModifierAction extends ActionBase {
    */
   scaled?: boolean;
   handResident?: boolean;
+  /** Loose source zones for intrinsic costs whose text also permits evolution from trash. */
+  residentZones?: ("hand" | "trash")[];
   /** For cost modifiers that gate by restriction. */
   restriction?: string;
   /** Consumed by the next successful matching cost payment. */
@@ -144,6 +146,7 @@ interface DeletedDigimonPlayCostModifierAction extends ActionBase {
   sourceFilter?: never;
   scaled?: never;
   handResident?: never;
+  residentZones?: never;
   restriction?: never;
   once?: never;
   onConsume?: never;

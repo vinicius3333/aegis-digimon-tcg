@@ -168,7 +168,10 @@ describe("engine to UI decision contract", () => {
         />
       </I18nProvider>,
     );
-    expect(screen.getByRole("dialog").getAttribute("data-prompt-surface")).toBe("left");
+    const surface = ["chooseTargets", "selectCards", "orderCards", "orderTriggers"].includes(request.kind)
+      ? "center"
+      : "left";
+    expect(screen.getByRole("dialog").getAttribute("data-prompt-surface")).toBe(surface);
     const enabled = screen.getAllByRole("button").filter((button) => !(button as HTMLButtonElement).disabled);
     expect(enabled.length).toBeGreaterThan(0);
   });
@@ -293,7 +296,7 @@ it("keeps the Hades Force budget visible and lets a central pick be deselected",
       />
     </I18nProvider>,
   );
-  expect(screen.getByRole("dialog").getAttribute("data-prompt-surface")).toBe("left");
+  expect(screen.getByRole("dialog").getAttribute("data-prompt-surface")).toBe("center");
   expect(screen.getByText("Play cost: 12 / 12")).toBeTruthy();
   const blocked = screen.getByRole("button", { name: /Thomas H/ }) as HTMLButtonElement;
   expect(blocked.disabled).toBe(true);

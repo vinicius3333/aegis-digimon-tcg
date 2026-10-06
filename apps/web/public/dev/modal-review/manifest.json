@@ -10,6 +10,41 @@
     "url": "/dev/effect-prompts?case=optional-hidden&controls=0"
   },
   {
+    "id": "millennium-depth",
+    "title": "Millenniummon · De-Digivolve depth",
+    "url": "/dev/effect-prompts?case=millennium-depth&controls=0"
+  },
+  {
+    "id": "millennium-delete",
+    "title": "Millenniummon · optional deletion / field highlight",
+    "url": "/dev/effect-prompts?case=millennium-delete&controls=0"
+  },
+  {
+    "id": "trash-recovery",
+    "title": "Matt Ishida · select from trash",
+    "url": "/dev/effect-prompts?case=trash-recovery&controls=0"
+  },
+  {
+    "id": "revealed-search",
+    "title": "Davis Motomiya · select revealed cards",
+    "url": "/dev/effect-prompts?case=revealed-search&controls=0"
+  },
+  {
+    "id": "sukamon-bt11",
+    "title": "Sukamon BT11 · deletion / reveal to hand",
+    "url": "/dev/effect-prompts?case=sukamon-bt11&controls=0"
+  },
+  {
+    "id": "sukamon-bt3",
+    "title": "Sukamon BT3 · deletion / reveal to field",
+    "url": "/dev/effect-prompts?case=sukamon-bt3&controls=0"
+  },
+  {
+    "id": "sukamon-ex13",
+    "title": "Sukamon EX13 · deletion / reveal to field",
+    "url": "/dev/effect-prompts?case=sukamon-ex13&controls=0"
+  },
+  {
     "id": "choose-yes-no",
     "title": "Choose option · use / decline",
     "url": "/dev/effect-prompts?case=choose-yes-no&controls=0"

@@ -78,12 +78,14 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "SecurityManipulation",
-              op: "addBottom",
+              op: "placeAsSecurity",
               controller: "any",
+              ownerSecurity: true,
+              toTop: false,
               amount: 1,
               source: {
                 filter: {
-                  isDigimon: true,
+                  kind: ["Digimon"],
                   controller: "any",
                 },
                 count: 1,

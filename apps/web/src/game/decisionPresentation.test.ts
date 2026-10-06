@@ -276,8 +276,8 @@ it("uses the optional decision's physical source for duplicate field cards", () 
 
 describe("effect decision surface", () => {
   it.each(["chooseTargets", "selectCards", "orderCards", "orderTriggers", "mulligan"] as const)(
-    "docks %s card choices on the left regardless of source zone",
-    (kind) => expect(effectDecisionSurface(decision({ kind }))).toBe("left"),
+    "Discord 1557059213266522233: centers %s card choices regardless of source zone",
+    (kind) => expect(effectDecisionSurface(decision({ kind }))).toBe("center"),
   );
 
   it("keeps optional activation and simple choices on the left", () => {

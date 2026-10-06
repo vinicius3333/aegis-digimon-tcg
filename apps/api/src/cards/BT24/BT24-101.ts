@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
           },
           duration: "permanent",
           scaling: { per: 1, filter: { controller: "mine" }, unit: "security" },
-          handResident: true,
+          residentZones: ["hand", "trash"],
         },
       ],
     },

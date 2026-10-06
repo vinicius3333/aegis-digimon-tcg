@@ -16,6 +16,67 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-oct06-king-sukamon-assembly": {
+    ptBR: "Encerre a criação e jogue KingSukamon EX13-031. Selecione os três Sukamon do lixo na modal central e confirme Assembly. O custo cai de 7 para 3; as três cartas ficam sob KingSukamon. Recuse o efeito opcional para encerrar o fluxo. Bug 1557077795321024543.",
+    en: "End breeding and play EX13-031 KingSukamon. Select the three Sukamon trash cards in the central dialog and confirm Assembly. Play cost falls from 7 to 3; the three cards go under KingSukamon. Decline the optional effect to finish the flow. Bug 1557077795321024543.",
+  },
+  "arena-oct06-chuumon-trash-revival": {
+    ptBR: "Encerre a criação e ataque o MetalGreymon suspenso com Etemon. Etemon é deletado; aceite a herança do Chuumon EX5, selecione Chuumon BT3 no lixo e confirme. Ele entra em campo suspenso sem custo. Bug 1557077795321024543.",
+    en: "End breeding and attack suspended MetalGreymon with Etemon. Etemon is deleted; accept EX5 Chuumon’s inherited effect, select BT3 Chuumon from trash and confirm. It enters the field suspended for free. Bug 1557077795321024543.",
+  },
+  "arena-oct06-dorbickmon-digixros": {
+    ptBR: "Encerre a criação e jogue Dorbickmon EX3-014. Selecione os cinco Digimon de nomes diferentes da mão na modal central. Confirme DigiXros: custo 3, memória 7 e cinco cartas sob Dorbickmon. Bug 1557085470129922229.",
+    en: "End breeding and play EX3-014 Dorbickmon. Select the five differently named hand Digimon in the central dialog. Confirm DigiXros: cost 3, memory 7 and five cards under Dorbickmon. Bug 1557085470129922229.",
+  },
+  "arena-oct06-snow-goblimon-reveal": {
+    ptBR: "Encerre a criação e jogue SnowGoblimon BT24-021. Nas três reveladas, escolha Aegiochusmon e confirme; depois MetalGreymon e confirme. Ambos entram na mão; o restante vai ao fundo do deck. Selecione Agumon na mão e confirme o descarte obrigatório. Bug 1557076811341500428.",
+    en: "End breeding and play BT24-021 SnowGoblimon. From the three revealed cards, choose Aegiochusmon and confirm, then MetalGreymon and confirm. Both enter your hand; the rest returns to the deck bottom. Select hand Agumon and confirm the required discard. Bug 1557076811341500428.",
+  },
+  "arena-oct06-sukamon-bt11-deletion-search": {
+    ptBR: "Encerre a criação e ataque o Agumon suspenso com Sukamon BT11-040. Sukamon perde a batalha e é deletado. Nas três cartas reveladas do deck, escolha Chuumon ou Sukamon e confirme: a escolhida vai à mão e as outras duas vão ao lixo.",
+    en: "End breeding and attack suspended Agumon with BT11-040 Sukamon. Sukamon loses the battle and is deleted. From the three revealed deck cards, choose Chuumon or Sukamon and confirm: the selected card enters your hand and the other two go to trash.",
+  },
+  "arena-oct06-sukamon-bt3-deletion-search": {
+    ptBR: "Encerre a criação e ataque o Agumon suspenso com Sukamon BT3-063. Ele é deletado e revela três cartas do deck. Escolha um dos Chuumon e confirme para jogá-lo sem custo. Ordene e confirme as outras duas cartas no fundo do deck. Você também pode recusar a seleção.",
+    en: "End breeding and attack suspended Agumon with BT3-063 Sukamon. It is deleted and reveals three deck cards. Select either Chuumon and confirm to play it for free. Order and confirm the other two cards at the deck bottom. You may also decline the selection.",
+  },
+  "arena-oct06-sukamon-ex13-deletion-search": {
+    ptBR: "Encerre a criação e ataque o Agumon suspenso com Sukamon EX13-028. Ele é deletado e revela três cartas do deck. Escolha Chuumon ou Sukamon BT14-034 e confirme para jogá-lo sem custo; as outras duas cartas vão ao lixo. Você também pode recusar a seleção.",
+    en: "End breeding and attack suspended Agumon with EX13-028 Sukamon. It is deleted and reveals three deck cards. Select Chuumon or BT14-034 Sukamon and confirm to play it for free; the other two cards go to trash. You may also decline the selection.",
+  },
+  "arena-oct06-trash-recovery": {
+    ptBR: "Encerre a criação e jogue Matt Ishida BT2. Escolha Gabumon ou Night Raid no lixo e confirme. A carta escolhida deve ir à mão; Agumon vermelho não é um alvo legal. A seleção deve continuar marcada após Visualizar mesa e Voltar à decisão. Bug 1557059213266522233.",
+    en: "End breeding and play BT2 Matt Ishida. Select Gabumon or Night Raid from trash and confirm. The chosen card must enter your hand; red Agumon is illegal. Your pick must survive View board and Return to decision. Bug 1557059213266522233.",
+  },
+  "arena-oct06-revealed-search": {
+    ptBR: "Encerre a criação e jogue Davis BT3. Nas três cartas reveladas, escolha Armadillomon para a busca azul e confirme; depois escolha Goblimon para a busca verde e confirme. Ambas vão à mão e Agumon volta ao fundo do deck. Bug 1557059213266522233.",
+    en: "End breeding and play BT3 Davis. From the three revealed cards, select Armadillomon for the blue search and confirm; then select Goblimon for the green search and confirm. Both enter your hand and Agumon returns to the deck bottom. Bug 1557059213266522233.",
+  },
+  "arena-oct06-mastemon-owner-security": {
+    ptBR: "Ataque com Mastemon e aceite All Turns. Escolha Gabumon do oponente: ele deve ir ao fundo da segurança do oponente. Os dois Tamers são alvos ilegais. Bug 1557044001453113455.",
+    en: "Attack with Mastemon and accept All Turns. Choose the opponent's Gabumon: it must go to the bottom of its owner's security. Both Tamers are illegal targets. Bug 1557044001453113455.",
+  },
+  "arena-oct06-kyo-barrier": {
+    ptBR: "Ataque a segurança com Aegiomon e aceite Barrier. Aceite Kyo e selecione Gabumon: ele deve receber Security A. -1. Bug 1557051530291585105.",
+    en: "Attack security with Aegiomon and accept Barrier. Accept Kyo and select Gabumon: it must receive Security A. -1. Bug 1557051530291585105.",
+  },
+  "arena-oct06-millennium-deck-order": {
+    ptBR: "Faça DNA de Kimeramon e Machinedramon em Millenniummon. Aceite devolver os três níveis do lixo do oponente. Você deve ordenar as três cartas no topo do deck dele e ganhar 3 memórias. Bug 1557034399055216700.",
+    en: "DNA digivolve Kimeramon and Machinedramon into Millenniummon. Accept returning all three levels from the opponent's trash. You must choose their order on top of that deck and gain 3 memory. Bug 1557034399055216700.",
+  },
+  "arena-oct06-kazemon-blast": {
+    ptBR: "Ataque com Aldamon. O oponente pode usar Blast de Zephagamon ACE e devolver Aldamon ao fundo. Aceite Kazemon para jogar Takuya das fontes. O timeout não pode encerrar um Counter que já foi aceito e ainda resolve. Bug 1557040872820842556.",
+    en: "Attack with Aldamon. The opponent can Blast into Zephagamon ACE and return Aldamon to the bottom. Accept Kazemon to play Takuya from its sources. The timeout must wait for an accepted Counter to finish resolving. Bug 1557040872820842556.",
+  },
+  "arena-oct06-asuna-jupiter": {
+    ptBR: "Recuse Start of Main da Asuna. Ative seu Main, vire Asuna e descarte a Option. Evolua Aegiochusmon no Jupitermon do lixo usando o custo alternativo: com 1 segurança e redução de 1, o custo é 0. Bug 1557017861220737085.",
+    en: "Decline Asuna's Start of Main. Activate her Main, suspend Asuna and trash the Option. Evolve Aegiochusmon into Jupitermon from trash using the alternate cost: with 1 security and a reduction of 1, the cost is 0. Bug 1557017861220737085.",
+  },
+  "arena-oct06-giromon-assembly": {
+    ptBR: "Jogue P-220 por Assembly usando os três Digimon do lixo. Aceite a deleção de Millenniummon nele mesmo. O herdado de Giromon deve descartar a segurança superior do oponente antes da deleção. Bug 1557032910413107332.",
+    en: "Play P-220 by Assembly using the three Digimon from trash. Accept Millenniummon's deletion targeting itself. Giromon's inherited effect must trash the opponent's top security before the deletion. Bug 1557032910413107332.",
+  },
+
   "arena-oct06-blue-scramble-decline": {
     ptBR: "No início do turno, ative um Blue Scramble e recuse o outro na ordenação. Devolva Armadillomon BT1-027 ao topo. Na seleção de Monmon BT1-031, escolha Nenhuma seleção: ele deve continuar no lixo mesmo sendo a única opção. Bug 1556998094070095964.",
     en: "At turn start, activate one Blue Scramble and decline the other in the ordering plan. Return BT1-027 Armadillomon to the top. Choose no card in the BT1-031 Monmon selection: it must remain in trash even as the sole candidate. Bug 1556998094070095964.",
@@ -1282,6 +1343,21 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-oct06-king-sukamon-assembly", "06/10 · KingSukamon · Assembly do lixo"],
+  ["arena-oct06-chuumon-trash-revival", "06/10 · Chuumon EX5 · herança e jogar do lixo"],
+  ["arena-oct06-dorbickmon-digixros", "06/10 · Dorbickmon EX3 · cinco materiais DigiXros"],
+  ["arena-oct06-snow-goblimon-reveal", "06/10 · SnowGoblimon · revelar e selecionar"],
+  ["arena-oct06-trash-recovery", "06/10 · Interface · selecionar do lixo"],
+  ["arena-oct06-sukamon-bt11-deletion-search", "06/10 · Sukamon BT11 · deleção e busca no deck"],
+  ["arena-oct06-sukamon-bt3-deletion-search", "06/10 · Sukamon BT3 · deleção e jogar revelada"],
+  ["arena-oct06-sukamon-ex13-deletion-search", "06/10 · Sukamon EX13 · deleção e jogar revelada"],
+  ["arena-oct06-revealed-search", "06/10 · Interface · selecionar reveladas do deck"],
+  ["arena-oct06-mastemon-owner-security", "06/10 · Mastemon · segurança do dono"],
+  ["arena-oct06-kyo-barrier", "06/10 · Kyo · Barrier"],
+  ["arena-oct06-millennium-deck-order", "06/10 · Millenniummon · ordem no deck"],
+  ["arena-oct06-kazemon-blast", "06/10 · Kazemon · Blast em resolução"],
+  ["arena-oct06-asuna-jupiter", "06/10 · Asuna · Jupitermon por 0"],
+  ["arena-oct06-giromon-assembly", "06/10 · Giromon · Assembly e deleção"],
   ["arena-oct06-blue-scramble-decline", "06/10 · Blue Scramble · recusar único rookie"],
   ["arena-oct06-rina-decline", "06/10 · Rina · comprar e recusar evolução"],
   ["arena-oct06-vortex-opt-decline", "06/10 · Vortexdramon · recusa preserva OPT"],

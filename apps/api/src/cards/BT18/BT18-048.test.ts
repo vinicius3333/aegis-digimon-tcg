@@ -433,3 +433,43 @@ describe("BT18-048 Kazemon — KB Q&A rulings", () => {
     expect(await tamerPlayedAfterBattleDeletion(false)).toBe(false);
   });
 });
+
+it("Discord 1557040872820842556: accepted Counter resists timeout and Kazemon plays Takuya before Aldamon leaves", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "AD1-002", as: "aldamon", under: [{ card: "BT12-088", as: "takuya" }, "BT18-048"] }] },
+      1: {
+        battleArea: [{ card: "ST18-11", as: "base" }],
+        hand: [{ card: "BT20-101", as: "zephagamon" }],
+        security: ["BT1-009"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("aldamon").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.engine.combat.hasOpenCounterWindow);
+  const window = s.events.find((e) => e.kind === "counterWindowOpened");
+  if (window?.kind !== "counterWindowOpened") throw new Error("Missing Counter window");
+  const counter = window.eligibleCounters.find((c) => c.instanceId === s.inst("zephagamon").instanceId)!;
+  expect(
+    s.engine.applyIntent(1, {
+      type: "respondCounter",
+      sourceInstanceId: counter.instanceId,
+      effectKey: counter.effectKey,
+    }),
+  ).toEqual({ ok: true });
+  expect(s.engine.expireCombatWindow()).toBe(false);
+  await settle(() => s.events.some((e) => e.kind === "effectActivated" && e.sourceCardId === "BT20-101"));
+  await advance(s.engine).finishAttack();
+  expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("takuya").instanceId);
+  expect(s.state.players[0]!.deck.some((c) => c.instanceId === s.inst("aldamon").instanceId)).toBe(true);
+  expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("takuya").instanceId)).toBe(false);
+});

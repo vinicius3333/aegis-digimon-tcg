@@ -236,20 +236,20 @@ export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean)
 /**
  * A `Static` effect whose only job is a digivolve-cost CostModifier (e.g. BT7-040's
  * "When digivolving into this card from your hand, the cost = your security count")
- * is HAND-RESIDENT: the source is the digivolution target sitting in hand, so it must
+ * is loose-zone resident: the destination stays in hand or its declared resident zones, so it must
  * NOT carry the on-field base guard that `staticModifier` applies (which would make it
  * inert). Detect that shape so the IR routes it through `digivolveCostStatic`.
  */
-function isHandResidentDigivolveCostStatic(effect: CardEffect): boolean {
+function isLooseResidentDigivolveCostStatic(effect: CardEffect): boolean {
   const isStaticTrigger = effect.trigger === "Static" || effect.trigger === "Rule";
   if (!isStaticTrigger) return false;
   const actions = effect.actions ?? [];
   if (actions.length === 0) return false;
-  // Gate on the POSITIVE hand-resident marker the runtime record emits (documented behavior
+  // Gate on an explicit loose-zone residency marker (documented behavior
   // `HandCards.Contains(card)` + `cardSource == card`), not merely on "all actions are
   // digivolve CostModifiers". An on-field digivolve-cost static (which lacks the marker)
   // must NOT lose its on-field base guard via this hand-permissive route (WR-01).
-  return actions.every((a) => a.kind === "CostModifier" && a.handResident === true);
+  return actions.every((a) => a.kind === "CostModifier" && (a.handResident === true || a.residentZones !== undefined));
 }
 
 /**
@@ -261,7 +261,7 @@ function isHandResidentDigivolveCostStatic(effect: CardEffect): boolean {
  * (digivolve.ts), i.e. while the card is off the battle area. Requiring on-field presence
  * first makes the waiver permanently inert for that moment (see `colorWaiverStatic` in
  * builders.ts for the full writeup). Scoped narrowly, mirroring
- * `isHandResidentDigivolveCostStatic`: an ordinary Static effect that ALSO does something
+ * `isLooseResidentDigivolveCostStatic`: an ordinary Static effect that ALSO does something
  * else keeps the on-field guard untouched.
  */
 function isColorWaiverStatic(effect: CardEffect): boolean {
@@ -277,7 +277,7 @@ function isColorWaiverStatic(effect: CardEffect): boolean {
  * install for the hand-resident event "when this card is trashed from the hand"
  * (BT24-013/-026/-045) must not carry `staticModifier`'s on-field
  * base guard: the watching card is resident in HAND when these events are relevant, never
- * on the battle area (the same shape `isColorWaiverStatic`/`isHandResidentDigivolveCostStatic`
+ * on the battle area (the same shape `isColorWaiverStatic`/`isLooseResidentDigivolveCostStatic`
  * handle one gate over). Without this, `canTrigger` fails before the effect ever reaches
  * `resolve()`, so the eighth-gap anchor-less `subscribeSubTrigger` fix never gets a chance
  * to install the watcher at all — proven empirically (BT24-013 registered in hand, trashed,
@@ -342,7 +342,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
   ) {
     return activated;
   }
-  if (isHandResidentDigivolveCostStatic(effect)) return digivolveCostStatic;
+  if (isLooseResidentDigivolveCostStatic(effect)) return digivolveCostStatic;
   if (isColorWaiverStatic(effect)) return colorWaiverStatic;
   if (isDigiXrosZoneStatic(effect)) return digiXrosZoneStatic;
   if (isHandTrashWatcherHost(effect)) return onAddHand;

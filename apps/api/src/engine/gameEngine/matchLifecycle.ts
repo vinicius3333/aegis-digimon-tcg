@@ -354,6 +354,9 @@ export function handleDisconnect(engine: GameEngine, seat: Seat, consented: bool
  * backstop). Returns whether a window was open to close.
  */
 export function expireCombatWindow(engine: GameEngine): boolean {
+  // An accepted Counter owns this window until its asynchronous effects finish. Closing it
+  // here resumes the attack alongside the Blast and mixes their effect controller contexts.
+  if (engine.counterResolutionInFlight) return false;
   return engine.combat.expireOpenWindow();
 }
 

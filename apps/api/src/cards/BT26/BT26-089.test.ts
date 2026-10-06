@@ -338,3 +338,37 @@ describe("BT26-089 Kyo Sawashiro — KB Q&A rulings", () => {
     await finish();
   });
 });
+
+it("Discord 1557051530291585105: Barrier removes security by an effect, so Kyo gives Security A. -1", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT26-089", as: "kyo" },
+          { card: "P-194", as: "aegiomon" },
+        ],
+        security: ["BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
+      },
+      1: { battleArea: [{ card: "BT1-030", as: "target" }], security: ["BT1-082"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("aegiomon").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.some((e) => e.kind === "barrierPrompt"));
+  expect(
+    s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("aegiomon").permanentId, accept: true }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  expect(s.state.players[0]!.security).toHaveLength(0);
+  expect(s.perm("kyo").isSuspended).toBe(true);
+  expect(s.perm("kyo").stack).toHaveLength(1);
+  expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+});

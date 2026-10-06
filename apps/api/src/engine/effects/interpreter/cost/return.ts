@@ -219,7 +219,7 @@ export async function payReturnCost(ctx: EffectContext, cost: Cost, out?: { paid
       }
       const want = cost.target.count === "all" ? groups.size : cost.target.count;
       if (want <= 0 || groups.size < want) return false;
-      const chosen: string[] = [];
+      let chosen: string[] = [];
       for (const group of [...groups.values()].slice(0, want)) {
         if (group.length === 1) {
           chosen.push(group[0]!.instanceId);
@@ -234,7 +234,19 @@ export async function payReturnCost(ctx: EffectContext, cost: Cost, out?: { paid
         if (id === undefined) return false;
         chosen.push(id);
       }
-      await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+      const toTop = await returnToTop();
+      if (cost.orderReturnedCards === true && chosen.length > 1) {
+        chosen =
+          (await ctx.ask.orderCards?.(ctx, {
+            candidates: chosen,
+            visibleCards: candidates
+              .filter((candidate) => chosen.includes(candidate.instanceId))
+              .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+            destination: toTop ? "deckTop" : "deckBottom",
+          })) ?? chosen;
+      }
+      // The decision supplies top-to-bottom order; the primitive prepends each card.
+      await ctx.fx.returnToDeck(cost.orderReturnedCards === true && toTop ? [...chosen].reverse() : chosen, { toTop });
       bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
       // The "all distinct levels/names" pool is only known at pay time, so a dependent
       // `scaling: { unit: "namedCount" }` reads the count from here (BT18-019 gains 1
