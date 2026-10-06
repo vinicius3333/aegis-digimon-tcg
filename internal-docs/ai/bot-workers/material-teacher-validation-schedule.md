@@ -1,6 +1,6 @@
 # Validation seat-1 effect DigiXros: schedule diagnosis
 
-**The gap is structural.** Every 880-game block starts at producer index 0. The validation fold follows the original `index % 5 == 0` rule. So every block replays the same four validation seat-1 cells for the only two recipes that can produce effect DigiXros. Only the seed changes. The helper is not at fault.
+What is proven: every 880-game block starts at producer index 0, and the validation fold follows the original `index % 5 == 0` rule. So every block replays the same four validation seat-1 cells for the only two recipes that can produce effect DigiXros; only the seed changes. That restriction is proven. What caused zero labels in those cells is not: the four matchups may be unfavorable, or the zero may be chance. This note does not clear or blame the expert helper.
 
 This is a source and receipt diagnosis only. I made no remote reads or mutations and ran no jobs or models. The `collect.py`, `bridge.py`, `learning_mechanisms.py`, qualified source and expert entry/policy are all unchanged.
 
@@ -46,27 +46,32 @@ An 880-game block only reaches opponent offsets 0–9. Across all six 880 blocks
 | 880 | 4 | 4 (always the same) | 16 | 4.55 |
 | 1760 | 8 | 8 (adds Purple BEATBREAK, BT26 Chronomon, DS Sangomon, EX13 Mamemon) | 32 | 4.55 |
 | 2640 | 12 | 12 | 48 | 4.55 |
-| 3872 (= 88 × 44) | 18 | 18 | 70 | 4.65 |
+| 3872 (= 88 × 44; rejected, see below) | 18 | 18 | 70 | 4.65 |
+| **3960 (= 9 × 440, ROOT's choice)** | 18 | 18 (14 never scheduled before) | 72 | 4.55 |
 | 4400 | 20 | 20 | 80 | 4.55 |
 
-The yield per game is the same for every block length. A longer block does not make validation seat-1 games cheaper; it spreads them over new opponents instead of replaying the four that have given zero across about 16 expert-era games. At 3872 games, each learner meets every opponent once per seat.
+The yield per game is the same for every block length. A longer block does not make validation seat-1 games cheaper; it spreads them over new opponents instead of replaying the four that have given zero across about 16 expert-era games. At 3872 games or more, each learner meets every opponent at least once per seat.
 
 **A targeted cohort is not possible with the unchanged CLI.** There is no start-index, learner or opponent filter, and selecting games by seed would change only the seed, not the cell. Any cohort would need new producer code, which is outside this scope.
 
-## Recommended next producer (ROOT decides and launches)
+## Next producer (ROOT decides and launches)
 
-Run **one fresh block with the unchanged CLI and `--games 3872`**. Use the reviewed expert entry (`180c…`), `--curriculum`, a new contiguous seed interval, and no checkpoint or device.
+**Correction.** My earlier recommendation of `--games 3872` was invalid. The original operator's `blocks()` guard requires every context expansion to be a multiple of 440, so that the original schedule and `index % 5` fold periods are preserved. 3872 is not a multiple of 440.
 
-**Why 3872:** it is the smallest block that rotates through all 44 opponent offsets. That gives 18 distinct validation seat-1 matchups for recipes 18 and 40, 14 of them never scheduled before.
+ROOT chose **3960**, the next multiple of 440 that is at least 3872. It still covers all 44 opponent offsets for both learner recipes and seats. The block is contexts-7: seed 6005280, games 3960, seeds 6005280–6009239. It stays clear of 6202400+ and the reserved final 6210000–6213871. ROOT's fresh seed scanner must still confirm the interval before launch.
 
-**What it keeps:** natural games and original `index % 5` folds. Indices 0–879 include every cell an 880 block has, so it is a superset of earlier coverage, including the 181 training identities and the eight families. The qualified source, fingerprint, four checkpoints and expert behavior are unchanged, and no model is imported.
+**What it keeps:**
 
-**Cheaper option:** `--games 1760` costs about half and adds 4 new matchups, but its chance of closing the gap is lower.
+- **Folds.** Natural games and the original `index % 5` folds.
+- **Coverage.** Indices 0–879 contain every cell of an 880-game block, so earlier coverage, including the 181 training identities and the eight families, is a superset.
+- **Unchanged inputs.** The qualified source and fingerprint, the four checkpoints and the expert entry/policy are unchanged, and no model is imported.
 
-**Seeds:** contexts-6 used 6004400–6005279, so the next contiguous interval is 6005280–6009151. That stays clear of 6202400+ and the final 6210000–6213871. ROOT's fresh scanner must still confirm it before launch.
+The operator is `tools/bot-training/operators/material-teacher-rotation-learning.py`; see `material-teacher-rotation-learning.md`.
+
+**A targeted cohort is still not possible with the unchanged CLI.** There is no start-index, learner or opponent option.
 
 ## Evidence limits
 
 - **Rows vs games.** Coverage counts rows, not games, and I did not read raw episodes.
-- **Chance of success.** From contexts-3 to contexts-6, TRAIN seat 1 produced 12 rows in 64 games (about 0.19 per game), against 0 rows in the 16 repeated validation games. If rows behaved like independent games, zero would have about a 5% chance. Both explanations remain: the four fixed matchups may be unfavorable, or this may be chance. The 14 new matchups in a 3872-game block give roughly 2–3 expected rows. That is a probability, not a guarantee.
+- **Chance of success.** From contexts-3 to contexts-6, training seat 1 produced 12 labelled rows across 64 scheduled games, while the 16 repeated validation games produced none. Rows and games are not equivalent, so I make no probability claim. A 3960-game block offers 14 new validation matchups; it carries no guarantee of a validation seat-1 label.
 - **Expert phases.** I assumed the expert entry was active from contexts-3 on, which matches the adapter's expert phases. The receipts record the driver as `teacher` and do not name the entry.
