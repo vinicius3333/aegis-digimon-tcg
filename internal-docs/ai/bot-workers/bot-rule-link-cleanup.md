@@ -73,10 +73,39 @@ checkpoint bytes. CPU unit fixtures are runtime tests, not primary-model evidenc
 This documentation update does not change the qualified engine or Python module
 bytes and does not require another build or metadata-copy generation.
 
+## Actual checkpoint bindings
+
+The CPU-only run `/home/vinicius/aegis-bot-lab/runs/rule-link-current-aa2e56463-bind`
+and its strict closure reader both exited 0. The unchanged SHA-pinned V35 `For`
+loop and V25 recursive `same` function preserved model tensors, Adam, and every
+saved field except metadata and the migration receipt. Actual before/reload
+choices matched on all 28 original pinned windows for each of six checkpoints.
+`CheckpointScorer` loaded the qualified source's actual inference/features/model
+paths and checked finite model parameters; CUDA remained uninitialized.
+No optimizer update or game was performed, and no strength claim is made.
+
+- Operator SHA-256: `4f9b11974bdd63e134a54b224d01ae72e7ae6fe866a1ae18017c108b9794158f`.
+- Request SHA-256: `497b3952be5af2780d3b6553235ad7323550882a86733671b3304b480976e648`.
+- Identity SHA-256: `d02ae49989d2b21a4f31839497ff15a1ec601233aea2ad639605172274c965fa` (whole PID 692/start ticks 327).
+- Completion SHA-256: `2f50fa90706a8c6812839dce7d7c1bee61f28440963b5938cdb806a029bf697e`.
+- Report SHA-256: `d12917bfc30235bbfc82104a2f51e375689576fe6a8e0a6efd79162749751dd9`.
+- Query fixture SHA-256: `f4f3a13f7efcd80935955d5bc7ed714fa1e1991cf7cb6f63e1da85c4ddefc0c5`.
+
+All paths below are under that new binding run; original checkpoints remain unchanged.
+
+| Checkpoint | Actual SHA-256 |
+| --- | --- |
+| `primary-before.pt` | `c2bdb217911d5def38ae0fda8ed76189bfbe329a906329f2cfb0b04a4de622d4` |
+| `v17-reference.pt` | `3b9d75a50354a521c784e1ddc8ae7086717d6a36c8d786704f3632ebf5bf62b9` |
+| `source-challenger.pt` | `da76daf3ca1f1f781d33d4617eb83c1b8c6b3ada6c1a1953236e8c5df0d29a68` |
+| `fitted-reference.pt` | `089ded9c2f478d7aed34a0da732b34e5853cbd4fde7a44400e75bd3e0bdf609d` |
+| `imitation-candidate.pt` | `0e3cab723e6899b347d8615347dd79b6300f196dfd1c152eb00d67d8355c7d73` |
+| `trained-candidate.pt` | `8490902dc7b6fa67c96ed141407e5684380e8ac761ff6b5191d13d77ce14bb34` |
+
 ## Remaining work
 
-Primary checkpoints still require binding to this changed engine and actual
-preservation queries before any new model evaluation.
+Reproduce the original development effect-draw case on the corrected runtime,
+then diagnose imitation/PPO per-deck performance and produce an accepted candidate.
 The original frozen archive, checkpoints, diagnostic receipts, and failed
 comparison remain immutable; that failed comparison is not relabeled successful.
 Then diagnose and correct the per-deck regressions, obtain strict gains for all
