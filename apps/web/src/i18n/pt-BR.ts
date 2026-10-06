@@ -121,6 +121,13 @@ export const ptBR: Record<keyof typeof en, string> = {
   "home.shortcuts.collection.copy": "Explore a coleção",
   "home.footer.legal":
     "Projeto de f\u00e3s gratuito, sem afilia\u00e7\u00e3o com a Bandai. Digimon, o Digimon Card Game e as imagens das cartas pertencem \u00e0 Bandai e aos seus detentores. Se voc\u00ea curte o Aegis, apoie o jogo oficial.",
+  "releases.1.14.0-beta.summary": releaseMessages["releases.1.14.0-beta.summary"]["pt-BR"],
+  "releases.1.14.0-beta.feature.dragOrdering": releaseMessages["releases.1.14.0-beta.feature.dragOrdering"]["pt-BR"],
+  "releases.1.14.0-beta.fix.selections": releaseMessages["releases.1.14.0-beta.fix.selections"]["pt-BR"],
+  "releases.1.14.0-beta.fix.compactPrompts": releaseMessages["releases.1.14.0-beta.fix.compactPrompts"]["pt-BR"],
+  "releases.1.14.0-beta.fix.sourceHighlight": releaseMessages["releases.1.14.0-beta.fix.sourceHighlight"]["pt-BR"],
+  "releases.1.14.0-beta.fix.cardEffects": releaseMessages["releases.1.14.0-beta.fix.cardEffects"]["pt-BR"],
+  "releases.1.14.0-beta.fix.counterTimeout": releaseMessages["releases.1.14.0-beta.fix.counterTimeout"]["pt-BR"],
   "releases.1.13.0-beta.summary": releaseMessages["releases.1.13.0-beta.summary"]["pt-BR"],
   "releases.1.13.0-beta.feature.mobilePrompts": releaseMessages["releases.1.13.0-beta.feature.mobilePrompts"]["pt-BR"],
   "releases.1.13.0-beta.feature.fieldChoices": releaseMessages["releases.1.13.0-beta.feature.fieldChoices"]["pt-BR"],
