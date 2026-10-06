@@ -126,6 +126,7 @@ export function Hand({
           const hoverKey = `${entry.instanceId}/${entry.artId ?? ""}`;
           const showHover =
             hov &&
+            !touchLayout &&
             !reducedMotion &&
             !sourcePreparing &&
             sourceEntry !== entry &&
@@ -182,7 +183,7 @@ export function Hand({
               if (event.detail === 0) selectCard?.(i);
             },
             onPointerEnter: (event) => {
-              if (event.pointerType === "touch") return;
+              if (event.pointerType === "touch" || touchLayout) return;
               if (!sourcePreparing && hoveredInstanceId !== entry.instanceId) {
                 setCoveredHoverKey(null);
                 setHoveredInstanceId(entry.instanceId);

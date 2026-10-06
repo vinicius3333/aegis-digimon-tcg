@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../i18n";
 import { Hand } from "./Hand";
+import { TOUCH_LAYOUT_QUERY } from "../../design/useMediaQuery";
 import type { HandEntry } from "./types";
 
 vi.mock("../../design/cards", () => ({
@@ -139,4 +140,20 @@ it("ignores touch hover and preserves the physical source's preparation lock", (
   hover("b");
   expect(document.querySelector('[data-hand-hover-instance-id="b"]')).toBeTruthy();
   expect(document.querySelectorAll(".game-hand-source-focus")).toHaveLength(1);
+});
+
+it("keeps the physical hand visible on phone layouts instead of covering decision controls with a hover face", () => {
+  vi.stubGlobal("matchMedia", (media: string) => ({
+    matches: media === TOUCH_LAYOUT_QUERY,
+    media,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+  const onToggle = vi.fn();
+  render(view({ selection: { selectableInstanceIds: ["a"], pickedInstanceIds: [], onToggle } }));
+  hover("a");
+  expect(document.querySelector(".game-hand-hover")).toBeNull();
+  expect(origin("a").dataset.handHoverCovered).toBeUndefined();
+  fireEvent.keyDown(origin("a"), { key: "Enter" });
+  expect(onToggle).toHaveBeenCalledExactlyOnceWith("a");
 });
