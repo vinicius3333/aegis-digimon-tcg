@@ -80,6 +80,15 @@ export interface ResolutionOrderEntry {
   description?: string;
 }
 
+/** The public faces of an effect battle's two Digimon, read at the comparison. */
+export interface EffectBattleParticipants {
+  attackerSeat: Seat;
+  attackerCardId: string;
+  attackerArtId?: string;
+  defenderCardId: string;
+  defenderArtId?: string;
+}
+
 export type ServerEvent =
   | { kind: "matchStarted"; firstSeat: Seat }
   | { kind: "phaseChanged"; phase: string; turnSeat: Seat; turnCount: number }
@@ -171,14 +180,17 @@ export type ServerEvent =
   | { kind: "evadeResolved"; permanentId: string; accepted: boolean }
   | { kind: "barrierPrompt"; permanentId: string }
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
-  /** A declared attack's permanent battle, before optional deletion protection.
+  /** A permanent battle, before optional deletion protection.
    * Losers are deletion candidates after unconditional immunity, and may still survive
-   * Barrier/Evade/etc. combatResolved carries the final deletions. */
+   * Barrier/Evade/etc. combatResolved carries a declared attack's final deletions.
+   * `effectBattle` marks a battle an effect started (for example EX13-076): it is never the
+   * open attack's own battle, even against the same pair, and closes no attack. */
   | {
       kind: "battleCompared";
       attackerPermanentId: string;
       defenderPermanentId: string;
       loserPermanentIds: string[];
+      effectBattle?: EffectBattleParticipants;
     }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
   /**

@@ -1283,13 +1283,23 @@ export class CombatController {
 
     // The blow precedes the "would be deleted" questions. Final deletions are published
     // later, so they cannot tell the client which surviving protected card took that blow.
-    if (isAttackBattle)
-      this.hooks.emit({
-        kind: "battleCompared",
-        attackerPermanentId: attacker.permanentId,
-        defenderPermanentId: defender.permanentId,
-        loserPermanentIds: [...outcome.deletedPermanentIds],
-      });
+    this.hooks.emit({
+      kind: "battleCompared",
+      attackerPermanentId: attacker.permanentId,
+      defenderPermanentId: defender.permanentId,
+      loserPermanentIds: [...outcome.deletedPermanentIds],
+      ...(isAttackBattle
+        ? {}
+        : {
+            effectBattle: {
+              attackerSeat: attacker.controllerSeat,
+              attackerCardId: attacker.topCard.cardId,
+              ...(attacker.topCard.artId ? { attackerArtId: attacker.topCard.artId } : {}),
+              defenderCardId: defender.topCard.cardId,
+              ...(defender.topCard.artId ? { defenderArtId: defender.topCard.artId } : {}),
+            },
+          }),
+    });
 
     // Capture the winner now, but publish only after every "would be deleted/leave" replacement
     // has resolved (Q7022). The win is based on the comparison, not successful deletion (Q7023).

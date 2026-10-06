@@ -154,7 +154,7 @@ async function flush(): Promise<void> {
 }
 
 describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
-  it("announces only the declared battle when the same pair battles by effect during the attack", async () => {
+  it("marks an effect battle between the declared pair apart from the attack's own battle", async () => {
     let effectBattle = async () => {};
     const h = harness({ preventBattleDeletion: true, onAttackTiming: () => effectBattle() });
     const attacker = digimon(0, 9000);
@@ -167,8 +167,17 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
       effectComparisons = h.events.filter((event) => event.kind === "battleCompared");
     };
     await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
-    expect(effectComparisons).toEqual([]);
+    const effectComparison = {
+      kind: "battleCompared",
+      attackerPermanentId: attacker.permanentId,
+      defenderPermanentId: defender.permanentId,
+      loserPermanentIds: [defender.permanentId],
+      effectBattle: { attackerSeat: 0, attackerCardId: DIGIMON_A, defenderCardId: DIGIMON_A },
+    };
+    expect(effectComparisons).toEqual([effectComparison]);
+    // Protection spared the defender from both blows, so the attack's battle is compared too.
     expect(h.events.filter((event) => event.kind === "battleCompared")).toEqual([
+      effectComparison,
       {
         kind: "battleCompared",
         attackerPermanentId: attacker.permanentId,
