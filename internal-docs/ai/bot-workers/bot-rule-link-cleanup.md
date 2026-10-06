@@ -130,11 +130,38 @@ Those fixtures are explicitly synthetic and are separate from the actual game.
 The original failed comparison, frozen diagnostic runs, checkpoints, and output
 maps remain unchanged. The failed comparison is not relabeled successful.
 
+## Actual CUDA greedy parity
+
+The query-only run
+`/home/vinicius/aegis-bot-lab/runs/rule-link-current-aa2e56463-cuda-parity-r2`
+and its strict closure reader both exited 0. The six actual frozen checkpoints
+produced identical choices through the qualified source's original `infer`
+function and `greedy_action` on CUDA: 336 comparisons and 672 model forwards.
+Each policy used the 28 original captured seat-1 windows and 28 explicitly
+synthetic seat-mirrored inputs. The synthetic inputs do not establish actual
+seat-0 games or mechanism mastery. Empty candidate lists, wrong observation
+schema, and nonfinite input fixtures were rejected by both routines.
+
+All 12 finite tensors per policy and all checkpoint bytes were preserved.
+Actual imported training/features/model/bridge paths were the qualified source.
+No game, optimizer update, final seed, or strength acceptance occurred.
+
+- Operator SHA-256: `770bbce9b6b6757d70971dedc0b39d68cc9e44e53f2ecb3d2fedb783273db411`.
+- Request SHA-256: `dfbd5584a79583ec52b9a262d1a84609fcc4827bb721ba9fde45f187445470ec`.
+- Identity SHA-256: `ab224b37f9cb3c76e2b7f7865cc4eb38c499a927cb31eb4e0d74891e8e5e9886` (PID 680/start ticks 16212).
+- Completion SHA-256: `19be4270d73739e503b9de5e7dd0c93d84ca5f7531c1bc5f6779baa5c2c5a666`.
+
+The first query run exited 1 because the external checker read the wrong
+`Transition` attribute (`log_prob` rather than `log_probability`). That failed
+run and its absent completion remain intact. The corrected external checker
+passed nine synthetic guards, including a full fake-model worker using the
+actual source's `Transition` field contract; that test also reproduced the
+original checker failure. No engine archive or checkpoint changed for this fix.
+
 ## Remaining work
 
-Establish actual CUDA parity for `infer` and `greedy_action`, then diagnose
-imitation/PPO per-deck performance and produce an accepted candidate. Obtain
-strict gains for all 44 recipes against all four references, and complete
+Diagnose imitation/PPO per-deck performance and produce an accepted candidate.
+Obtain strict gains for all 44 recipes against all four references, and complete
 both-seat mechanisms, physical custody, 26 managed rooms, current-serving
 compatibility, and the reserved final blind evaluation. Final seeds
 `6210000..6213871` remain untouched.
