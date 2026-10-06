@@ -60,10 +60,6 @@ PPO training explicitly enables `forfeitOnCostRefusal`. If the learner refuses a
 
 Tests cover the information boundary, complete small selection/order trees, joint constraints, actual alternate digivolution, and the Negamon breeding play/transfer. They do not yet prove every effect branch of every scoped card. The encoder now includes 18 public status flags, explicit engine-vocabulary keyword features, security-attack counts, breeding/entry state, per-seat board summaries, and block target kind plus the attacked permanent’s live card state and visible evolution sources. Permitted reveals fill missing identities without replacing live DP or statuses. Observation schema 4 and feature version 6 include permitted history: the latest 64 allowlisted broadcast events and persistent unique card identities seen through public events or the existing filtered observation. Numeric history inputs distinguish recency and acting seat. A separate persistent map retains distinct physical copies from filtered observations and their last observed ownership. The encoder receives own/opponent/unknown-owner card counts, never instance-ID strings or current hidden locations. Repeated observations do not add copies; ownerless reveals preserve known ownership. Events without instance IDs only update card-type knowledge, so copy counts are a lower bound on observed identifiable copies, and event eviction loses older ordering details. Old checkpoints and datasets require their archived encoder/runtime. The next gates are a per-mechanic coverage matrix, initialization from competent demonstrations, reliable greedy checkpoint play, held-out comparisons, and complete validation of the opt-in Aegis integration.
 
-The initial desktop evidence is `/home/vinicius/aegis-bot-lab/runs/2026-09-26-training-pilot/`. A successful pilot or a nonzero weight update is not evidence of a strong policy.
-
-The updated v2 evidence is `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v2/`: 16 completed training games, 543 decisions, one win, exact checkpoint reload; greedy evaluation produced seven losses and one decision-limit truncation in eight games. Node 26 build/typecheck, 44 TypeScript tests, and four Python tests passed. A shared-runtime mutation check confirmed fingerprint sensitivity. See the [training plan](../../docs/plans/2026-09-26-local-bot-training-design.md) for source hashes and remaining acceptance gates.
-
 Feature version 7 adds the three new action types and ordered compound-material identities, live card state and inherited stacks. It intentionally invalidates older checkpoints. Keyword vocabulary and public-status field order are recorded in worker metadata; unexpected keywords fail explicitly. Observation schema 4 uses only permitted history, public engine projections and the existing authorized card-identity boundary. These changes improve the information available for decisions; they do not establish that the model has learned good decisions.
 
 ## Demonstrations and imitation initialization
@@ -88,8 +84,6 @@ Add `--checkpoint /path/to/checkpoint.pt --device cuda` to collection to let a f
 Imitation uses cross-entropy over the same masked candidate scorer. Every fifth complete episode by its original collection index belongs to validation; no decisions from that episode enter training. Single-action windows are omitted from the loss and accuracy metrics. Checkpoint selection uses validation loss, and the configuration records the exact SHA-256 of each input file. Validation accuracy measures agreement with this heuristic, not match win rate or human strength. Teacher labels are excluded from model features and are absent during ordinary PPO/evaluation. Evaluate the resulting `checkpoint.pt` using the command above on separate seeds; use it with PPO's `--checkpoint` to continue training.
 
 Encoded imitation features are stored in `encoded-samples.f32` and accessed through read-only memory maps. Large curriculum cycles exceed the desktop's available RAM if all features remain resident; optimization copies only its current batch. The cache is reproducible from the hashed source episodes and encoder. Configuration records cache size and trainer/encoder/model implementation hashes. A frozen baseline comparison reproduces all epoch metrics and the selected model/optimizer tensors exactly after this storage change.
-
-The first imitation run is archived under `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v4/`: 80 complete demonstration games, 4,097 decisions, zero missing teacher labels; 64/16 episode split; 75.2% validation agreement after 20 epochs. Its checkpoint won four of 16 separate development-evaluation games, with all games completing. PPO successfully continued from it and reloaded the updated checkpoint exactly. These small runs do not meet the release strength or full-coverage gates.
 
 ## Continue imitation from a selected checkpoint
 
@@ -123,8 +117,6 @@ Migration requires identical deck/keyword/status/schema metadata and feature ver
 
 `imitate.py --adapt-card-id ID` selects registered identity columns explicitly, including identities already present before migration. Repeat the option for each chosen card. It requires a source checkpoint and cannot be combined with `--new-card-columns-only`. All nonselected weights and Adam moment columns remain exact, with the same zero-selected-input retention boundary. Configuration and every saved checkpoint record the selected scope and IDs; the vocabulary migration receipt keeps its original meaning. For the current curriculum, all 70 identities absent from the 26 catalog recipes (66 BT26/EX13 cards and the four fusion partners) can therefore receive actual updates without unfreezing the other 409 identities. Obtain this list from the pinned recipes, retain episode-separated validation, and measure strength and engine execution independently of imitation accuracy.
 
-The recorded v8/v9 imitation comparisons regress below the selected 69/104 development baseline. Restricted v10 executes 891 CUDA updates, retains every old catalog outcome/choice count in three comparisons and has exact CPU/CUDA parity across 4,064 old windows. Its single validation Link/Fusion examples improve, but broader learned compound play and held-out per-deck strength remain unverified. See the [expanded training evidence](../../docs/plans/2026-10-03-bt26-ex13-bot-design.md#conservative-imitation-and-isolated-identity-adaptation) for exact sources, seeds, folds, archives and open gates.
-
 ## Evaluate through the asynchronous checkpoint worker
 
 After building the exact runtime used to produce the checkpoint:
@@ -142,8 +134,6 @@ This loads a persistent local CPU scorer and connects its greedy choices to `cre
 Requests have unique IDs, bounded frames and queue size, and validated candidate indices. Cancellation rejects queued work immediately and discards the active request's late answer; a two-second worker deadline kills an unresponsive process. The driver's one-second policy deadline remains in force, and evaluation fails if it uses any timeout/error fallback. The worker closes when evaluation finishes or fails.
 
 `config.json` records the checkpoint hash and runtime metadata. `results.json` records completed games, decision/turn-limit truncations, engine failures, rejected actions, and fallback counts separately. A rules-defined draw is terminal even without a winner. Per-query latency includes serialization and Python scoring, but excludes observation construction and the remainder of a multi-choice policy decision; it does not prove the release end-to-end latency gates. The decision budget bounds repeated legal-action loops without removing candidates or inventing a move.
-
-The v10 desktop run is archived at `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v10-inference-final`, with its matching checkout under `checkouts/bt26-training-v10-inference-final`. It collected 80 complete games and 4,307 demonstrations, trained on CUDA, and completed 16 CPU inference matches with seven wins, nine losses, 1,058 choices, and no rejected actions, errors, fallback, or truncation. A separate one-decision-budget run verified cancellation. This is a working checkpoint integration, not proof of exhaustive deck coverage or superior play.
 
 ## Opt-in playable room integration
 
@@ -173,15 +163,25 @@ node tools/bot-training/room-smoke.mjs \
 
 The verifier creates each Aegis room through an isolated local Colyseus matchmaker and seats the checkpoint bot through `addBot`, with normal presentation pacing, policy deadlines and Main-action limits. A scripted heuristic drives the human seat through the room's intent and private-decision channels; human decks rotate against each pinned bot recipe. Results include checkpoint/runtime hashes, terminal outcomes, model queries, selected action families, latency samples, synchronous refused intents, asynchronous rejection events and fallback counts. It verifies the finished-room lock and framework disposal/deregistration before writing results. Any rejection, fallback, match deadline or lifecycle failure stops the run with partial evidence preserved. This checks the in-process room boundary; it does not exercise browser/WebSocket transport or prove per-card tactical coverage. Use a fresh output directory for every run.
 
-The matching v11 checkpoint is `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v11-room-inference/imitation/checkpoint.pt`; use it with `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v11-room-inference-final`. That runtime passed 179 focused tests and a complete real-room match with 32 model queries, no rejected actions, and no fallback. The room smoke used a scripted human-side opponent and normal bot pacing; browser UI validation and exhaustive action coverage remain open.
-
-The corrected DUAL runtime and v12 checkpoint are archived under `checkouts/bt26-training-v12-dual-training` and `runs/2026-09-27-training-v12-dual-attached`. It collected 80 complete games (4,073 decisions), trained on CUDA, and completed 16 development inference games with ten wins and no errors, rejection, fallback, or truncation. Use that exact archived runtime with its `imitation/checkpoint.pt`; later builds can have a different fingerprint even after test-only changes. Its separate 1,000-game reliability run completed with 57,445 model decisions and no errors, rejection, fallback, or truncation. It won 432 games (43.2%), so stronger play remains unproven. Detailed seed, fingerprint, and matchup evidence is in the training plan.
-
 Keep the SSH/WSL session attached while running desktop jobs. A detached shell was stopped when WSL closed, leaving a partial episode despite an exit-code file. Verify expected episode counts and checkpoint/evaluation artifacts, not just process exit status.
 
-The last completed three-deck desktop run is `/home/vinicius/aegis-bot-lab/runs/2026-10-03-league-v5-main`, with matching runtime `checkouts/bt26-2026-10-03-e4f87c606` (version 1.9.0-beta). It warm-started from league v4 and completed another 1,008 CUDA PPO games; its checkpoint is `ppo/checkpoint.pt`. The 36-game asynchronous inference check completed without errors or fallbacks. The larger evaluations recorded two failed episodes and one decision-limit truncation; see the [training plan](../../docs/plans/2026-09-26-local-bot-training-design.md#main-refresh-and-resumed-league-2026-10-03) for exact results, seeds, hashes, and remaining reliability issues.
+## Package a candidate checkpoint
 
-The expanded scope and acceptance gates are tracked in the [BT26/EX13 design](../../docs/plans/2026-10-03-bt26-ex13-bot-design.md). No expanded-scope strength or release claim follows from the historical three-deck results.
+`delivery.mjs` packages a checkpoint with its built runtime and provenance. The JSON request uses absolute paths for `runtime`, `checkpoint`, `provenance`, `output` and `python`, plus `checkpointSha256` and `version`. Provenance contains `sourceCommit`, `sourceArchiveSha256`, `originalCheckpointSha256` and an `evidence` array whose entries have `role`, `path` and `sha256`. Use a fresh output directory and retain the returned manifest digest.
+
+```sh
+node tools/bot-training/delivery.mjs pack --request /absolute/path/to/request.json
+node tools/bot-training/delivery.mjs validate \
+  --package /absolute/path/to/package --manifest-sha256 MANIFEST_SHA
+node tools/bot-training/delivery.mjs probe \
+  --package /absolute/path/to/package --manifest-sha256 MANIFEST_SHA \
+  --allow-candidate --queries /absolute/path/to/windows.json \
+  --output /absolute/path/to/new-probe
+node tools/bot-training/delivery.mjs launch \
+  --package /absolute/path/to/package --manifest-sha256 MANIFEST_SHA --allow-candidate
+```
+
+Validation checks file and runtime pins without loading a model. Probes use a CPU scorer for the supplied inference windows. Launch uses the existing API entry point and checkpoint environment variables; candidate packages require `--allow-candidate` and cannot launch with `NODE_ENV=production`.
 
 ## Mechanism supervision and bounded evaluation
 
