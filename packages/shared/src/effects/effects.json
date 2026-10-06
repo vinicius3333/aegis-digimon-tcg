@@ -224559,7 +224559,10 @@
     "residual": [],
     "appFusionRequirement": [{ "names": ["Weathermon", "Rocketmon", "Newsmon"], "cost": 0 }],
     "assemblyRequirement": [
-      { "reduceCost": 2, "materials": [{ "traits": ["Navi", "System", "Seven Code"], "level": 3, "count": 1 }] }
+      {
+        "reduceCost": 2,
+        "materials": [{ "kinds": ["Digimon"], "traits": ["Navi", "System", "Seven Code"], "level": 3, "count": 1 }]
+      }
     ],
     "linkRequirement": [{ "traits": ["Appmon"], "cost": 3 }]
   },
@@ -225671,7 +225674,9 @@
     "assemblyRequirement": [
       {
         "reduceCost": 6,
-        "materials": [{ "traits": ["Larva", "Insectoid", "Titan"], "count": 4, "differentLevels": true }]
+        "materials": [
+          { "kinds": ["Digimon"], "traits": ["Larva", "Insectoid", "Titan"], "count": 4, "differentLevels": true }
+        ]
       }
     ]
   },
@@ -227893,6 +227898,7 @@
         "reduceCost": 2,
         "materials": [
           {
+            "kinds": ["Digimon"],
             "levelMax": 4,
             "nameOrTrait": [
               { "tokens": ["Chronomon"], "match": "text" },

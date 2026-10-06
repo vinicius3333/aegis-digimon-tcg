@@ -55,6 +55,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
         reduceCost: 2,
         materials: [
           {
+            kinds: ["Digimon"],
             levelMax: 4,
             nameOrTrait: [
               { tokens: ["Chronomon"], match: "text" },
@@ -115,6 +116,26 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     const dark = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-073");
     expect(dark?.stack.map(({ cardId }) => cardId)).toEqual(["BT26-069"]);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("#5167 rejects Yokomon as Assembly material without changing zones or memory", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-001", as: "egg" }] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dark").instanceId,
+        assembly: { materialInstanceIds: [s.inst("egg").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("dark").instanceId);
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("egg").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("Q7098 keeps the level-4 ceiling on the TS side of the Assembly union", () => {

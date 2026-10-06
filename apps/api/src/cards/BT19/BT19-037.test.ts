@@ -17,6 +17,61 @@ import { compiled } from "./BT19-037.js";
 const DECK = ["BT1-009", "BT1-010", "BT1-012", "BT1-013", "BT1-014", "BT1-009"];
 
 describe("BT19-037 Taomon", () => {
+  it("#5171 uses Famis's single green Option face for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "green" }],
+          hand: [
+            { card: "BT19-037", as: "taomon" },
+            { card: "BT26-032", as: "famis" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "enemy" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, declinePrompts: ["Arts Digivolve"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("taomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("famis").instanceId);
+    expect(s.perm("enemy").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each(["BT26-033", "BT26-050", "BT26-032"])(
+    "#5171 preserves color-count, use-cost and color-requirement gates for %s",
+    async (card) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT19-037", as: "taomon" },
+              { card, as: "option" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("taomon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("option").instanceId);
+      expect(s.state.memory).toBe(5);
+      expect(s.decisions.flatMap((d) => d.req.options?.candidateInstanceIds ?? [])).not.toContain(
+        s.inst("option").instanceId,
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("matches the catalog printed identity, ACE overflow and text", () => {
     expect(getCardDefinition("BT19-037")).toMatchObject({
       cardId: "BT19-037",

@@ -25,6 +25,17 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5167-assembly-digimon": {
+    memory: 10,
+    players: [{ hand: ["BT26-073"], trash: ["BT26-001", "BT26-069"] }, {}],
+  },
+  "arena-issue-5171-taomon-famis": {
+    memory: 10,
+    players: [
+      { field: [{ card: "BT1-051" }, { card: "BT1-064" }], hand: ["BT19-037", "BT26-032", "BT26-033"] },
+      { field: [{ card: "BT1-010" }, { card: "BT1-011" }] },
+    ],
+  },
   "arena-issue-5127-opponent-suspend-cost": {
     memory: 8,
     players: [
