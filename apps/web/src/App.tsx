@@ -410,6 +410,7 @@ export function AegisClient({
               signedIn={!!account}
               onPlay={() => navigateScreen("lobby")}
               onBuildDeck={() => navigateScreen("deck")}
+              onOpenCollection={() => navigateScreen("collection")}
               onSignIn={() => navigateScreen("login")}
               onReportBug={() => setBugReportOpen(true)}
               onOpenReleases={() => navigateScreen("releases")}

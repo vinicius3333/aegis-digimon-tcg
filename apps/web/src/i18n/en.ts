@@ -110,6 +110,13 @@ export const en = {
   "home.signInAction": "Connect",
   "home.footer.discord": "Discord community",
   "home.footer.github": "GitHub",
+  "home.shortcuts.aria": "Shortcuts",
+  "home.shortcuts.play.title": "Live matches",
+  "home.shortcuts.play.copy": "Find an opponent now",
+  "home.shortcuts.decks.title": "Deck builder",
+  "home.shortcuts.decks.copy": "Start from a starter list",
+  "home.shortcuts.collection.title": "{count} cards",
+  "home.shortcuts.collection.copy": "Browse the collection",
   "home.footer.legal":
     "Free fan project with no affiliation to Bandai. Digimon, the Digimon Card Game and the card images belong to Bandai and their respective owners. If you enjoy Aegis, support the official game.",
   "releases.1.12.0-beta.summary": releaseMessages["releases.1.12.0-beta.summary"]["en"],

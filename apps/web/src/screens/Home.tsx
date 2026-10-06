@@ -1,22 +1,22 @@
-/* Home v2: a single landing pitch instead of a dashboard. A visitor gets the
-   promise, the two things worth doing first, and — while they are still a guest —
-   one quiet nudge to connect an account. Decks, collection and stats live behind
-   the nav, so nothing is duplicated here. */
+/* Home v3: the landing pitch, three shortcuts into the main screens, and —
+   while they are still a guest — one quiet nudge to connect an account. The
+   page itself has no background: the app's bits backdrop shows through. */
 
+import type { ReactNode } from "react";
 import { Button } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { BetaBanner } from "../design/BetaBanner";
-import { Panel } from "../design/surfaces";
 import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from "../community";
 import { useTranslation } from "../i18n";
-import "./home.css";
 import { currentRelease, displayVersion } from "../releases/catalog";
+import "./home.css";
 
 export function Home({
   collectionSize,
   signedIn,
   onPlay,
   onBuildDeck,
+  onOpenCollection,
   onSignIn,
   onReportBug,
   onOpenReleases,
@@ -25,6 +25,7 @@ export function Home({
   signedIn: boolean;
   onPlay: () => void;
   onBuildDeck: () => void;
+  onOpenCollection: () => void;
   onSignIn: () => void;
   onReportBug?: () => void;
   onOpenReleases?: () => void;
@@ -35,11 +36,11 @@ export function Home({
   return (
     <main className="home-page">
       <div className="home-page__column">
-        <Panel className="home-hero">
+        <section className="home-hero">
           <div className="home-hero__copy">
             <span className="aegis-eyebrow">{t("home.eyebrow")}</span>
             <h1>{t("home.title")}</h1>
-            <p className="home-hero__lede aegis-hero-panel__muted">{t("home.lede", { count: cardCount })}</p>
+            <p className="home-hero__lede">{t("home.lede", { count: cardCount })}</p>
             <div className="home-hero__actions">
               <Button size="lg" icon={Icons.Play} onClick={onPlay}>
                 {t("home.playNow")}
@@ -50,7 +51,28 @@ export function Home({
             </div>
             <p className="home-hero__note">{t("home.guestNote")}</p>
           </div>
-        </Panel>
+        </section>
+
+        <nav className="home-shortcuts" aria-label={t("home.shortcuts.aria")}>
+          <Shortcut
+            icon={<Icons.Swords size={20} />}
+            title={t("home.shortcuts.play.title")}
+            copy={t("home.shortcuts.play.copy")}
+            onClick={onPlay}
+          />
+          <Shortcut
+            icon={<Icons.LayoutGrid size={20} />}
+            title={t("home.shortcuts.decks.title")}
+            copy={t("home.shortcuts.decks.copy")}
+            onClick={onBuildDeck}
+          />
+          <Shortcut
+            icon={<Icons.BookOpen size={20} />}
+            title={t("home.shortcuts.collection.title", { count: cardCount })}
+            copy={t("home.shortcuts.collection.copy")}
+            onClick={onOpenCollection}
+          />
+        </nav>
 
         {signedIn ? null : (
           <section className="home-signin">
@@ -97,5 +119,30 @@ export function Home({
         <p>{t("home.footer.legal")}</p>
       </footer>
     </main>
+  );
+}
+
+function Shortcut({
+  icon,
+  title,
+  copy,
+  onClick,
+}: {
+  icon: ReactNode;
+  title: string;
+  copy: string;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" className="home-shortcut" onClick={onClick}>
+      <span className="home-shortcut__icon" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="home-shortcut__text">
+        <strong>{title}</strong>
+        <span>{copy}</span>
+      </span>
+      <Icons.ArrowRight size={16} aria-hidden="true" />
+    </button>
   );
 }

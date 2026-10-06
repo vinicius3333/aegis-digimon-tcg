@@ -9,7 +9,7 @@
    sits at the top of the page instead of being centred in the leftover height. */
 .home-page__column {
   display: grid;
-  width: min(100%, calc(1080px + 2 * var(--ds-gutter-desktop)));
+  width: min(100%, calc(1180px + 2 * var(--ds-gutter-desktop)));
   gap: var(--ds-space-5);
   margin-inline: auto;
   padding: var(--ds-space-10) var(--ds-gutter-desktop) var(--ds-space-12);
@@ -17,7 +17,7 @@
 
 .home-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  padding-block: var(--ds-space-8) var(--ds-space-10);
 }
 
 .home-hero__copy {
@@ -30,16 +30,19 @@
 .home-hero h1 {
   max-width: 20ch;
   margin: 0;
-  color: var(--aegis-panel-fg);
-  font: 800 clamp(2rem, 4.2vw, 3rem) / 1.05 var(--ds-font-display);
+  color: var(--ds-fg);
+  font: 800 clamp(2.25rem, 5vw, 4rem) / 1 var(--ds-font-display);
   letter-spacing: var(--ds-tracking-display);
   text-transform: uppercase;
   text-wrap: balance;
 }
 
 .home-hero__lede {
-  max-width: 48ch;
-  font-size: var(--ds-text-base);
+  max-width: 46ch;
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-lg);
+  line-height: var(--ds-leading-body);
 }
 
 .home-hero__actions {
@@ -51,8 +54,66 @@
 
 .home-hero__note {
   margin: 0;
-  color: var(--aegis-panel-muted);
+  color: var(--ds-fg-muted);
   font-size: var(--ds-text-xs);
+}
+
+.home-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.home-shortcut {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  color: var(--ds-fg);
+  text-align: left;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-motion-fast),
+    transform 100ms ease-out;
+}
+
+.home-shortcut:hover {
+  border-color: var(--ds-accent);
+}
+
+.home-shortcut:active {
+  transform: translateY(1px);
+}
+
+.home-shortcut:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.home-shortcut__icon {
+  display: grid;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: var(--ds-accent);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-accent-surface);
+}
+
+.home-shortcut__text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  font-size: var(--ds-text-sm);
+}
+
+.home-shortcut__text > span,
+.home-shortcut > svg {
+  color: var(--ds-fg-muted);
 }
 
 .home-signin {
@@ -166,6 +227,10 @@
     padding: var(--ds-space-8) var(--ds-gutter-tablet) var(--ds-space-10);
   }
 
+  .home-shortcuts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .home-footer {
     padding-inline: var(--ds-gutter-tablet);
   }
@@ -177,17 +242,12 @@
     padding: var(--ds-space-5) var(--ds-gutter-phone) var(--ds-space-8);
   }
 
-  /* Room for the bottom-left circuit node, which would otherwise sit on the note. */
-  .home-hero {
-    padding-bottom: var(--ds-space-10);
-  }
-
   .home-hero__copy {
     gap: var(--ds-space-4);
   }
 
   .home-hero__lede {
-    font-size: var(--ds-text-sm);
+    font-size: var(--ds-text-base);
   }
 
   .home-hero__actions {
@@ -216,5 +276,11 @@
 
   .home-footer > p {
     text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-shortcut {
+    transition: none;
   }
 }

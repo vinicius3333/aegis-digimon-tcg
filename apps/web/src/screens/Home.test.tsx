@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Home } from "./Home";
@@ -10,6 +10,7 @@ function renderHome(overrides: Partial<Parameters<typeof Home>[0]> = {}) {
     signedIn: false,
     onPlay: vi.fn<() => void>(),
     onBuildDeck: vi.fn<() => void>(),
+    onOpenCollection: vi.fn<() => void>(),
     onSignIn: vi.fn<() => void>(),
     onReportBug: vi.fn<() => void>(),
     ...overrides,
@@ -56,5 +57,16 @@ describe("the home screen", () => {
     const props = renderHome();
     fireEvent.click(screen.getByRole("button", { name: "Send feedback" }));
     expect(props.onReportBug).toHaveBeenCalled();
+  });
+
+  it("opens each main screen from the shortcuts", () => {
+    const props = renderHome();
+    const shortcuts = screen.getByRole("navigation", { name: "Shortcuts" });
+    fireEvent.click(within(shortcuts).getByRole("button", { name: /Live matches/ }));
+    fireEvent.click(within(shortcuts).getByRole("button", { name: /Deck builder/ }));
+    fireEvent.click(within(shortcuts).getByRole("button", { name: /4,388 cards/ }));
+    expect(props.onPlay).toHaveBeenCalled();
+    expect(props.onBuildDeck).toHaveBeenCalled();
+    expect(props.onOpenCollection).toHaveBeenCalled();
   });
 });
