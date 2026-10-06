@@ -54,3 +54,6 @@ export const LANDSCAPE_PHONE_QUERY =
 
 /** Card width in a battle row on a landscape phone. */
 export const LANDSCAPE_PHONE_PERMANENT_WIDTH = 58;
+
+/** An upright or sideways phone: its battle areas always draw a single lane. */
+export const SINGLE_LANE_PHONE_QUERY = `(width < 600px) and (orientation: portrait), ${LANDSCAPE_PHONE_QUERY}`;

@@ -35,17 +35,46 @@ describe("fitLanes", () => {
     }
   });
 
-  it("keeps portrait shelves when there is height for two readable rows", () => {
+  it("keeps a tall phone row in one lane of readable cards", () => {
     const lanes = fitLanes({ width: 288, height: 270 }, 76, {
       ...crowded,
       supportScale: 1,
       reserveSupport: true,
       preferStacked: true,
       overlapLanes: true,
+      singleLane: true,
     });
-    expect(lanes.placement).toBe(LanePlacement.Stacked);
-    expect(lanes.digimon).toBeGreaterThanOrEqual(65);
+    expect(lanes).toEqual({ placement: LanePlacement.Merged, digimon: 91, support: 91 });
+  });
+
+  it("grows one desktop lane's cards a little past the layout's card size, never to the row's height", () => {
+    const content = { ...crowded, supportScale: 1, reserveSupport: true, overlapLanes: true, singleLane: true };
+    for (const height of [323, 480, 900]) {
+      expect(fitLanes({ width: 1257, height }, 116, content)).toEqual({
+        placement: LanePlacement.Merged,
+        digimon: 139,
+        support: 139,
+      });
+    }
+    expect(fitLanes({ width: 1257, height: 0 }, 116, content)).toMatchObject({ placement: LanePlacement.Merged });
+    const twoLanes = fitLanes({ width: 1257, height: 323 }, 116, { ...content, singleLane: false });
+    expect(twoLanes.placement).toBe(LanePlacement.Stacked);
+    expect(twoLanes.digimon).toBeLessThan(116);
+  });
+
+  it("fits one short desktop lane's sources, links and suspension inside its height", () => {
+    const height = 120;
+    const lanes = fitLanes({ width: 1257, height }, 116, {
+      ...crowded,
+      digimonSources: 3,
+      supportSources: 6,
+      supportLinks: 2,
+      singleLane: true,
+    });
+    expect(lanes.placement).toBe(LanePlacement.Merged);
     expect(lanes.support).toBe(lanes.digimon);
+    const fan = 6 + 5 * Math.min(4, sourceFanStepLimit(lanes.digimon, 6));
+    expect(Math.ceil(lanes.digimon * 1.4) + 22 + fan).toBeLessThanOrEqual(height);
   });
 
   it("keeps uniform cards in compact stacked and side-by-side rows, including deep support stacks", () => {

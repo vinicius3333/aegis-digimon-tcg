@@ -1,6 +1,8 @@
-/* One side's battle area as two lanes: Digimon, and a smaller lane of grouped Tamers
-   and Options. The outer element keeps the row's class, so every breakpoint still
-   places and sizes it as the single row it replaces; each lane scrolls on its own. */
+/* One side's battle area as two lanes: Digimon, and a lane of grouped Tamers and
+   Options. A player who chooses one lane, and every phone, gets a single lane with
+   the groups after the Digimon. The outer element keeps the row's class, so every
+   breakpoint still places and sizes it as the single row it replaces; each lane
+   scrolls on its own. */
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import type { Permanent } from "@aegis/shared";
@@ -11,6 +13,8 @@ import { linkCardOverhang, linkCardSlots, sourceFanStepLimit } from "../../board
 import { COPY_EDGE_STEP, copyEdgeCount } from "../../piece/PermanentCopies";
 import { reportFieldCardWidth, useFieldCardWidth } from "./fieldCardWidth";
 import { CARD_SUSPEND_MOTION } from "../../../design/cardMotion";
+import { BattleLanes } from "../../../design/battleLanes";
+import { useBattleLanes } from "../hooks/useBattleLanes";
 
 const CARD_ASPECT = 1.4;
 /** The design's --ds-touch-target minimum also applies to each permanent's button wrapper. */
@@ -26,11 +30,13 @@ const MIN_PORTRAIT_CARD_WIDTH = 65;
 const LANE_INLINE_PADDING = 12;
 const DIGIMON_GAP_SHARE = 0.25;
 const SUPPORT_GAP_SHARE = 0.3;
+/** One lane has the row's whole height, so its cards may grow past the layout's card width, up to this share. */
+const SINGLE_LANE_GROWTH = 1.2;
 
 /**
  * Stacked puts the support lane under the Digimon (above them for the opponent). A row
- * too short for two lanes, like a phone on its side, puts the lanes side by side. An
- * upright phone too short to stack merges both into one lane, Digimon first.
+ * too short for two lanes puts the lanes side by side. Merged draws one lane, Digimon
+ * first: the player's one-lane choice, and every phone.
  */
 export enum LanePlacement {
   Stacked = "stacked",
@@ -484,6 +490,8 @@ interface LaneContent {
   overlapLanes?: boolean;
   /** Shrink crowded lanes' cards, down to a floor, before they scroll. */
   fitWidth?: boolean;
+  /** Draw one merged lane whatever the row's height. */
+  singleLane?: boolean;
 }
 
 /** What a card adds to its lane's width beyond the card itself. */
@@ -693,6 +701,12 @@ function sideBySideLanes(rowHeight: number, layoutWidth: number, content: LaneCo
  * merging copies cannot flip the lanes or change every Digimon's size.
  */
 export function fitLanes(row: { width: number; height: number }, layoutWidth: number, drawn: LaneContent): LaneLayout {
+  if (drawn.singleLane) {
+    const ceiling = Math.round(layoutWidth * SINGLE_LANE_GROWTH);
+    return row.height <= 0
+      ? { placement: LanePlacement.Merged, digimon: ceiling, support: ceiling }
+      : mergedLanes(row.height, ceiling, drawn);
+  }
   const content = drawn.reserveSupport
     ? { ...drawn, digimonCount: Math.max(1, drawn.digimonCount), supportCount: Math.max(1, drawn.supportCount) }
     : drawn;
@@ -811,6 +825,7 @@ export function OrganizedBattleRow({
   isSuspended: (permanent: Permanent) => boolean;
 }) {
   const { ref, size } = useRowSize();
+  const singleLane = useBattleLanes() === BattleLanes.One;
   const previous = useRef<PreviousPlacement>(new Map());
   // A card stays split-off for as long as it is drawn: dropping the flag on a later
   // render would restart the entrance animation it skipped.
@@ -846,6 +861,7 @@ export function OrganizedBattleRow({
     reserveSupport: size.reserveSupport,
     overlapLanes: size.overlapLanes,
     fitWidth: size.fitWidth,
+    singleLane,
   };
   const laneCard = (members: readonly Permanent[]): LaneCard => ({
     suspended: isSuspended(members[0]!),
@@ -853,29 +869,30 @@ export function OrganizedBattleRow({
     links: members[0]!.linked.length,
     copies: members.length,
   });
+  const laneCards = {
+    digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
+    support: arrangement.support.map((group) => laneCard(group.members)),
+  };
   const heightFitted = fitLanes(size, layoutWidth, content);
-  const ownLanes = fitLanesToWidth(
-    heightFitted,
-    size.width,
-    {
-      digimon: arrangement.digimon.map((permanent) => laneCard([permanent])),
-      support: arrangement.support.map((group) => laneCard(group.members)),
-    },
-    content,
-  );
+  const ownLanes = fitLanesToWidth(heightFitted, size.width, laneCards, content);
+  // Raising and security keep the size two lanes would give them; only a single lane's own cards grow.
+  const twoLaneContent = { ...content, singleLane: false };
+  const twoLaneHeightFitted = singleLane ? fitLanes(size, layoutWidth, twoLaneContent) : heightFitted;
+  const twoLanes = singleLane ? fitLanesToWidth(twoLaneHeightFitted, size.width, laneCards, twoLaneContent) : ownLanes;
   const rowKey = useId();
   const reports = size.reserveSupport && size.height > 0;
-  const reportedHeightFitted = reports ? heightFitted.digimon : undefined;
+  const reportedHeightFitted = reports ? twoLaneHeightFitted.digimon : undefined;
   const reportedWidth = reports ? ownLanes.digimon : undefined;
+  const reportedBeside = reports ? twoLanes.digimon : undefined;
   useEffect(
     () =>
       reportFieldCardWidth(
         rowKey,
-        reportedHeightFitted === undefined || reportedWidth === undefined
+        reportedHeightFitted === undefined || reportedWidth === undefined || reportedBeside === undefined
           ? undefined
-          : { heightFitted: reportedHeightFitted, drawn: reportedWidth },
+          : { heightFitted: reportedHeightFitted, drawn: reportedWidth, beside: reportedBeside },
       ),
-    [rowKey, reportedHeightFitted, reportedWidth],
+    [rowKey, reportedHeightFitted, reportedWidth, reportedBeside],
   );
   useEffect(() => () => reportFieldCardWidth(rowKey, undefined), [rowKey]);
   // Rows sharing one card size follow the narrowest of them.
@@ -912,6 +929,9 @@ export function OrganizedBattleRow({
     return Math.max(drawn.length === 0 ? 1 : 0, count);
   }
   const digimonSlots = emptySlots(merged ? cards : digimonCards, lanes.digimon, DIGIMON_GAP_SHARE);
+  // Two lanes always draw the support lane, outlining its places like the Digimon lane's.
+  const drawsSupportLane = !merged && (hasSupport || content.reserveSupport);
+  const supportSlots = emptySlots(supportCards, lanes.support, SUPPORT_GAP_SHARE);
   useFieldMotion(ref, previous, cards, isSuspended, size);
   useLayoutEffect(() => {
     splitKeys.current = new Set(cards.filter((drawn) => drawn.splitOff).map((drawn) => drawn.fieldKey));
@@ -951,29 +971,30 @@ export function OrganizedBattleRow({
   );
 
   const showsDigimonLane = merged || content.digimonCount > 0 || !hasSupport || keepsDigimonSlot;
-  const supportLane =
-    hasSupport && !merged ? (
-      <BattleRow
-        key="support"
-        className="game-battle-row game-battle-lane game-battle-lane--support"
-        role="group"
-        aria-label={supportLabel}
-        edgeClearance={edge(lanes.support, content.supportSources)}
-        style={{
-          flex: "0 1 auto",
-          display: "flex",
-          gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
-          justifyContent: "safe center",
-          alignItems: "center",
-          ...({
-            "--field-lane-top": `${metrics.supportPadding.top}px`,
-            "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
-          } as React.CSSProperties),
-        }}
-      >
-        {supportCards.map(renderCard)}
-      </BattleRow>
-    ) : null;
+  const supportLane = drawsSupportLane ? (
+    <BattleRow
+      key="support"
+      className="game-battle-row game-battle-lane game-battle-lane--support"
+      role="group"
+      aria-label={supportLabel}
+      cardWidth={lanes.support}
+      emptySlotCount={supportSlots}
+      edgeClearance={edge(lanes.support, content.supportSources)}
+      style={{
+        flex: "0 1 auto",
+        display: "flex",
+        gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
+        justifyContent: "safe center",
+        alignItems: "center",
+        ...({
+          "--field-lane-top": `${metrics.supportPadding.top}px`,
+          "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
+        } as React.CSSProperties),
+      }}
+    >
+      {supportCards.map(renderCard)}
+    </BattleRow>
+  ) : null;
 
   return (
     <div
@@ -985,7 +1006,7 @@ export function OrganizedBattleRow({
         ...rowProps.style,
         gap: LANE_GAP,
         ...({
-          "--field-lane-overlap": `${hasSupport ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
+          "--field-lane-overlap": `${drawsSupportLane ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
         } as React.CSSProperties),
       }}
     >
