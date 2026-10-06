@@ -185,7 +185,7 @@ describe("board prompt scrim", () => {
 });
 
 describe("BoardSelectionRail board view", () => {
-  it("keeps the field effect collapsed until the player asks for it", () => {
+  it("shows the field effect without an expand or collapse action", () => {
     const { container } = renderIn(
       <BoardSelectionRail
         fieldSelection
@@ -201,13 +201,10 @@ describe("BoardSelectionRail board view", () => {
       />,
     );
 
-    const rail = container.querySelector(".board-prompt--target-selection");
-    expect(rail?.classList.contains("board-prompt--effect-expanded")).toBe(false);
-    const toggle = screen.getByRole("button", { name: "View effect" });
-    expect(toggle.getAttribute("aria-expanded")).toBe("false");
-    fireEvent.click(toggle);
-    expect(rail?.classList.contains("board-prompt--effect-expanded")).toBe(true);
-    expect(screen.getByRole("button", { name: "Hide effect" }).getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByText("Draw 1 card.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "View effect" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Hide effect" })).toBeNull();
+    expect(container.querySelector(".board-prompt--target-selection")).toBeTruthy();
   });
 
   it("temporarily hides the confirmation rail and offers a return to the pending decision", () => {
@@ -224,7 +221,7 @@ describe("BoardSelectionRail board view", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "View board" }));
+    fireEvent.click(screen.getByRole("button", { name: "Select on board" }));
     expect(screen.queryByRole("region", { name: "Confirm targets" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
     expect(screen.getByRole("region", { name: "Confirm targets" })).toBeTruthy();

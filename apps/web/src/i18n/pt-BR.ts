@@ -980,6 +980,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.continue": "Continuar",
   "overlay.effect": "Efeito",
   "overlay.viewBoard": "Visualizar mesa",
+  "overlay.selectOnBoard": "Selecionar na mesa",
   "overlay.chooseSourceHost": "Escolha um Digimon",
   "overlay.chooseSourceHostPrompt": "Toque no Digimon cujas cartas de digievolução você quer usar.",
   "overlay.chooseAnotherSourceHost": "Escolher outro Digimon",

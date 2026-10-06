@@ -32,7 +32,9 @@ class MobileInspectionArena {
       .toBeLessThanOrEqual(1);
     expect(
       await targets.evaluate((element) => {
-        const count = element.querySelector(".board-prompt__detail")!.getBoundingClientRect();
+        const count = element
+          .querySelector(window.innerWidth < 768 ? ".board-prompt__clause" : ".board-prompt__detail")!
+          .getBoundingClientRect();
         const actions = element.querySelector(".board-prompt__actions")!.getBoundingClientRect();
         return actions.top - count.bottom;
       }),
@@ -51,21 +53,20 @@ class MobileInspectionArena {
       expect(crop.height).toBe(48);
       const heading = (await targets.locator(".board-prompt__heading").boundingBox())!;
       expect(heading.x).toBeGreaterThanOrEqual(crop.x + crop.width);
-      const collapsedHeight = (await targets.boundingBox())!.height;
-      expect(collapsedHeight).toBeLessThan(260);
-      await targets.getByRole("button", { name: "View effect", exact: true }).tap();
       await expect(targets.locator(".board-prompt__clause")).toBeVisible();
-      expect((await art.boundingBox())!.height).toBe(48);
-      expect(await targets.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1);
-      const confirm = (await targets.getByRole("button", { name: "Confirm targets", exact: true }).boundingBox())!;
-      const pass = (await targets.getByRole("button", { name: "Pass", exact: true }).boundingBox())!;
-      expect(confirm.y).toBeCloseTo(pass.y, 0);
-      await targets.getByRole("button", { name: "Hide effect", exact: true }).tap();
-      expect((await targets.boundingBox())!.height).toBeCloseTo(collapsedHeight, 0);
+      await expect(targets.getByRole("button", { name: "View effect", exact: true })).toHaveCount(0);
+      await expect(targets.getByRole("button", { name: "Hide effect", exact: true })).toHaveCount(0);
+      const sheet = (await targets.boundingBox())!;
+      expect(sheet.x).toBe(0);
+      expect(sheet.width).toBe(this.page.viewportSize()!.width);
+      expect(sheet.y + sheet.height).toBeCloseTo(this.page.viewportSize()!.height, 0);
     }
     await expect(this.page.getByRole("button", { name: "Use", exact: true })).toHaveCount(0);
     await expect(this.page.getByRole("dialog")).toHaveCount(0);
+    await targets.getByRole("button", { name: "Select on board", exact: true }).tap();
+    await expect(targets).toHaveCount(0);
     await this.alphamon().getByRole("img", { name: "Alphamon", exact: true }).tap();
+    await this.page.getByRole("button", { name: "Return to decision", exact: true }).tap();
     await expect(targets.getByRole("button", { name: "Confirm targets", exact: true })).toBeEnabled();
     await targets.getByRole("button", { name: "Confirm targets", exact: true }).tap();
     await expect(this.alphamon()).toHaveAttribute("data-suspended", "true");
@@ -82,7 +83,7 @@ class MobileInspectionArena {
       .getByRole("img", { name: "Dorumon", exact: true })
       .tap();
     await expect(targets.getByRole("button", { name: "Confirm targets", exact: true })).toBeEnabled();
-    await this.page.getByRole("button", { name: "View board", exact: true }).tap();
+    await this.page.getByRole("button", { name: "Select on board", exact: true }).tap();
     await expect(this.page.getByRole("button", { name: "Return to decision", exact: true })).toBeVisible();
     await expect(this.alphamon().getByRole("button", { name: "Read Alphamon", exact: true })).toBeVisible();
     await expect(this.page.getByRole("button", { name: "Read Coredramon", exact: true })).toBeVisible();

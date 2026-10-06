@@ -23,8 +23,8 @@ for (const viewport of [
       const panel = page.locator("[data-prompt-surface]");
       await expect(panel).toBeVisible();
       const bounds = (await panel.boundingBox())!;
-      expect(bounds.x).toBeCloseTo(8, 0);
-      expect(bounds.y + bounds.height).toBeCloseTo(viewport.height - 8, 0);
+      expect(bounds.x).toBeCloseTo(viewport.width < 768 ? 0 : 8, 0);
+      expect(bounds.y + bounds.height).toBeCloseTo(viewport.height - (viewport.width < 768 ? 0 : 8), 0);
       if (!expectedSize) expectedSize = { width: bounds.width, height: bounds.height };
       expect(bounds.width).toBeCloseTo(expectedSize.width, 0);
       if (await panel.getAttribute("data-variant")) {
@@ -35,7 +35,10 @@ for (const viewport of [
       if (specimen === "decision-action-confirmation" && viewport.width >= 768) {
         expect(await panel.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1);
       }
-      const viewBoard = panel.getByRole("button", { name: "View board", exact: true });
+      const viewBoard = panel.getByRole("button", {
+        name: specimen === "decision-field-budget" ? "Select on board" : "View board",
+        exact: true,
+      });
       if (specimen === "decision-field-budget") {
         const count = (await panel.getByText("1 selected of 0–3", { exact: true }).boundingBox())!;
         const budget = (await panel.getByRole("status").boundingBox())!;

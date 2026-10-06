@@ -954,6 +954,7 @@ export const en = {
   "overlay.continue": "Continue",
   "overlay.effect": "Effect",
   "overlay.viewBoard": "View board",
+  "overlay.selectOnBoard": "Select on board",
   "overlay.chooseSourceHost": "Choose a Digimon",
   "overlay.chooseSourceHostPrompt": "Tap the Digimon whose digivolution cards you want to use.",
   "overlay.chooseAnotherSourceHost": "Choose another Digimon",

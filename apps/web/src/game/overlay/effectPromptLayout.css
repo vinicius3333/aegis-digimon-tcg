@@ -742,9 +742,34 @@ body:has([data-prompt-surface], .mulligan-sheet) .game-battle-scroll-arrow {
   padding-block: var(--ds-space-2);
 }
 @media (width < 768px) {
+  :root {
+    --effect-prompt-height: min(28rem, calc(56dvh - var(--ds-space-4)));
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface],
+  .game-modal__panel.effect-prompt-family.decision-overlay--wide[data-prompt-surface],
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface],
+  .board-prompt[data-prompt-surface][data-variant],
+  .board-prompt.combat-prompt[data-prompt-surface][data-variant] {
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0 !important;
+    border-bottom: 0 !important;
+  }
   .board-prompt[data-prompt-surface][data-variant="field-selection"] .board-prompt__actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
+    .board-prompt__actions
+    > button:first-child:nth-last-child(odd) {
+    grid-column: auto;
+  }
+  .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"]
+    .board-prompt__select-on-board {
+    grid-column: 1 / -1;
   }
   .board-prompt.board-prompt--target-selection[data-prompt-surface][data-variant="field-selection"] {
     display: grid;
