@@ -961,6 +961,7 @@ export const en = {
   "overlay.decline": "No, decline",
   "overlay.activate": "Yes, activate",
   "overlay.confirmTargets": "Confirm targets",
+  "overlay.activatePartitionPrompt": "Do you want to activate Partition?",
   "overlay.activateBlitzPrompt": "Do you want to activate Blitz?",
   "overlay.deckTop": "Top of the deck",
   "overlay.deckBottom": "Bottom of the deck",

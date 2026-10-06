@@ -579,8 +579,8 @@ export interface DecisionRequest {
     differentColors?: boolean; // prevent selecting cards that share a color with an already-picked card
     distinctCardIds?: boolean; // prevent selecting multiple instances with the same card number
     distinctNames?: boolean; // prevent selecting cards sharing a name, including exact-name aliases
-    /** Lets the client use a dedicated in-board interaction without inferring semantics from prompt text. */
-    selectionContext?: "attackSource" | "attackTarget";
+    /** Lets the client present a dedicated interaction without inferring semantics from prompt text. */
+    selectionContext?: "attackSource" | "attackTarget" | "partitionActivation";
     orderDestination?: "deckTop" | "deckBottom" | "stackTop" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
     /** `chooseOption` only: the zone whose ends the "top" and "bottom" choices name. */

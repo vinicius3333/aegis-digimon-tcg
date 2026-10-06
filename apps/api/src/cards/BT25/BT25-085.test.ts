@@ -324,3 +324,48 @@ describe("BT25-085 BeelStarmon — KB Q&A rulings", () => {
     expect(s.perm("attacker").stack).toHaveLength(1);
   });
 });
+
+describe("Discord 1556772689731915896: nested Fly Bullet Option identity", () => {
+  it.each(["hand", "digivolutionCards"] as const)(
+    "uses Fly Bullet from %s against Digimon-effect immunity",
+    async (origin) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: CARD_ID,
+                as: "beel",
+                ...(origin === "digivolutionCards" ? { under: [{ card: CARD_ID, as: "bullet" }] } : {}),
+              },
+            ],
+            ...(origin === "hand" ? { hand: [{ card: CARD_ID, as: "bullet" }] } : {}),
+          },
+          1: { battleArea: [{ card: "EX8-073", as: "immune" }], security: ["BT1-009"] },
+        },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          declinePrompts: ["Place 1 card(s) under", "trashing 1 Option card", "Arts Digivolve"],
+        },
+      );
+      s.state.memory = 8;
+      await s.ready();
+      expect(observe(s.engine).isRestrictedByEffect(s.perm("immune"), "beAffected", "Digimon")).toBe(true);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("beel").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("immune").permanentId)).toBe(false);
+      expect(s.state.players[1]!.trash.map((c) => c.cardId)).toContain("EX8-073");
+      expect(s.state.players[0]!.trash.filter((c) => c.instanceId === s.inst("bullet").instanceId)).toHaveLength(1);
+      expect(s.state.memory).toBe(8);
+      expect(observe(s.engine).resolvingEffectSourceKinds()).toBeUndefined();
+    },
+  );
+});

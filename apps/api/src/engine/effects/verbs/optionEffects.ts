@@ -199,6 +199,10 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
         cardId: resolvingCard.cardId,
         ...(resolvingCard.artId ? { artId: resolvingCard.artId } : {}),
       });
+      // Using an Option opens its own effect identity even when a Digimon or Tamer
+      // initiated the use. Source-kind immunity and modifiers must read the Option
+      // frame; restore the caller before Arts Digivolve and subsequent actions.
+      pc.fx.enterEffectResolution?.(ctx.source.ownerSeat, [CardKind.Option]);
       try {
         if (usedDefinition === undefined) {
           await resolveCardEffect(ctx, usedCard.cardId, EffectTiming.OnUseOption);
@@ -269,6 +273,8 @@ export function createOptionEffectsVerbs(pc: PrimitivesContext) {
         // Preserve the normal error surface, but finish the §9-1-4 routing first so a failed
         // Option effect cannot strand its identity outside every zone.
         resolutionError = error;
+      } finally {
+        pc.fx.leaveEffectResolution?.();
       }
     }
     // An Option that moved itself into a real area while resolving (e.g. an Option-permanent

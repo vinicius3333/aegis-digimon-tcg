@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition, Phase, type Intent } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -432,6 +432,83 @@ describe("BT23-013 Jesmon", () => {
     expect(token.isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+
+  it.each([false, true])(
+    "Discord 1556831312008974437: attacks after Gankoomon X suppresses Wingdramon's lock (Q4395), planned answers=%s",
+    async (plannedAnswers) => {
+      const config = {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        preferTriggerKeys: ["BT20-057"],
+      };
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "EX13-021", as: "wing" }], deck: Array(10).fill("BT1-010") },
+          1: {
+            battleArea: [{ card: "BT23-013", as: "jesmon" }],
+            hand: [
+              { card: "BT20-057", as: "gankoo" },
+              { card: "BT20-059", as: "gankooX" },
+            ],
+            deck: Array(10).fill("BT1-010"),
+          },
+        },
+        config,
+      );
+      function accept(intent: Intent) {
+        expect(s.engine.applyIntent(1, intent)).toEqual({ ok: true });
+      }
+      s.state.memory = 10;
+      const loop = s.engine.startTurnLoop();
+      try {
+        await advance(s.engine).waitForMainPhase(0);
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wing").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => observe(s.engine).isRestricted(s.perm("jesmon"), "suspend") && !s.state.pendingDecision);
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await advance(s.engine).waitForMainPhase(1);
+        expect(
+          s.engine.applyIntent(1, {
+            type: "attack",
+            attackerPermanentId: s.perm("jesmon").permanentId,
+            target: { kind: "player" },
+          }).ok,
+        ).toBe(false);
+        config.autoOrderTriggers = !plannedAnswers;
+        expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gankoo").instanceId })).toEqual({
+          ok: true,
+        });
+        if (plannedAnswers) {
+          await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+          const decision = s.decisions.at(-1)!.req;
+          const order = decision.options!.triggerKeys!;
+          config.autoOrderTriggers = true;
+          accept({
+            type: "respondDecision",
+            decisionId: decision.decisionId,
+            response: {
+              kind: "orderTriggers",
+              order,
+              optionalAnswers: Object.fromEntries(order.map((key) => [key, true])),
+            },
+          });
+        }
+        await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT20-059"));
+        expect(observe(s.engine).isRestrictedByEffect(s.perm("jesmon"), "beAffected", "Digimon")).toBe(true);
+        expect(s.events.filter((e) => e.kind === "attackDeclared")).toHaveLength(1);
+        expect(s.perm("jesmon").isSuspended).toBe(true);
+        expect(s.state.turnSeat).toBe(1);
+        expect(s.state.memory).toBe(-5);
+        await advance(s.engine).finishAttack();
+      } finally {
+        s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+        await loop;
+      }
+    },
+  );
 
   it("attacks once after another friendly Digimon is played", async () => {
     const s = setupEngine(

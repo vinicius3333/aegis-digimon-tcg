@@ -177,7 +177,7 @@ export interface DigivolveDeps {
     target: Permanent,
     base: number,
     into?: CardDefinition,
-    opts?: { consumeOnce?: boolean },
+    opts?: { consumeOnce?: boolean; costDelta?: number },
   ): number;
   /** A matching would-digivolve interruption resolves before final affordability is checked. */
   deferAffordabilityForWouldDigivolve?(state: GameState, seat: Seat, target: Permanent, into: CardDefinition): boolean;

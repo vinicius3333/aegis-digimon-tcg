@@ -125,6 +125,8 @@ export interface ArmedSubTrigger {
     oncePerTurnSnapshotKeys: ReadonlySet<string>;
     /** Shared success ledger for ordered bodies resolving this same event snapshot. */
     oncePerTurnSuccessfulKeys: Set<string>;
+    /** Exact watcher bodies already retired from this event, including declined activations. */
+    resolvedWatcherKeys: Set<string>;
   };
   /**
    * The trash arrival of a source that this event just put in the trash ("when this card is

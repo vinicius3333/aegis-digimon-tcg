@@ -90,6 +90,11 @@ export function DecisionOverlay({
     choiceClauses.length === choices.length &&
     choiceClauses.some(Boolean);
   const isSelect = request.kind === "chooseTargets" || request.kind === "selectCards";
+  const partitionCandidate = request.options?.candidateInstanceIds?.[0];
+  const isPartitionActivation =
+    request.kind === "selectCards" &&
+    request.options?.selectionContext === "partitionActivation" &&
+    partitionCandidate !== undefined;
   const isOrderCards = request.kind === "orderCards";
   const isOrderTriggers = request.kind === "orderTriggers";
   const isResolutionPlan = isOrderTriggers && request.options?.acceptsResolutionPlan === true;
@@ -170,8 +175,9 @@ export function DecisionOverlay({
   );
   // The eyebrow above already names the source card; repeating it as the title says nothing twice.
   const specificPrompt = playerFacingPromptText(request.promptText, request.kind);
-  const promptText =
-    request.options?.promptKey === "activateBlitz"
+  const promptText = isPartitionActivation
+    ? t("overlay.activatePartitionPrompt")
+    : request.options?.promptKey === "activateBlitz"
       ? t("overlay.activateBlitzPrompt")
       : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
         ? genericPrompt
@@ -260,7 +266,9 @@ export function DecisionOverlay({
         </div>
       </div>
 
-      {isSelect ? (
+      {isPartitionActivation ? (
+        <DecisionChoiceCards candidates={candidates} wideDialog={wideDialog} />
+      ) : isSelect ? (
         <DecisionCandidateGrid
           candidates={candidates}
           picks={picks}
@@ -320,7 +328,15 @@ export function DecisionOverlay({
 
       {isOptional ? <DecisionOptionalFooter onRespond={onRespond} onOpenBoard={() => setIsViewingBoard(true)} /> : null}
 
-      {isSelect ? (
+      {isPartitionActivation ? (
+        <DecisionOptionalFooter
+          onRespond={(response) => {
+            if (response.kind !== "optional") return;
+            onRespond({ kind: "selectCards", instanceIds: response.accept ? [partitionCandidate] : [] });
+          }}
+          onOpenBoard={() => setIsViewingBoard(true)}
+        />
+      ) : isSelect ? (
         <DecisionSelectFooter
           canConfirm={canConfirm}
           onConfirm={confirmSelect}

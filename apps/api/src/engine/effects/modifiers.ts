@@ -918,7 +918,7 @@ export class ModifierLedger {
   evoCostFor(
     target: Permanent,
     into?: CardDefinition,
-    opts?: { consumeOnce?: boolean },
+    opts?: { consumeOnce?: boolean; costDelta?: number },
   ): { delta: number } | { fixed: number } | undefined {
     const m: EvoCostMatch = { target, into };
     let delta = 0;
@@ -946,16 +946,21 @@ export class ModifierLedger {
         delta += a.delta;
       }
     }
-    if (!matched) return undefined;
+    const declaredDelta = opts?.costDelta ?? 0;
+    if (!matched && declaredDelta === 0) return undefined;
     if (consumeIds.length > 0) {
       const consumed = new Set(consumeIds);
       this.evoCostAdjustments = this.evoCostAdjustments.filter((a) => !consumed.has(a.id));
       for (const cb of consumeCallbacks) cb(m);
     }
     const ownerSeat = target.controllerSeat;
-    if (this.continuous?.blocksCostReduction(ownerSeat, "digivolve") && delta < 0) {
+    const reductionsBlocked = this.continuous?.blocksCostReduction(ownerSeat, "digivolve");
+    if (reductionsBlocked && delta < 0) {
       delta = 0;
     }
+    // Fold a resolving effect's signed adjustment after the SET base, together
+    // with ledger adjustments, before flooring the final cost (BT24-003/Q1568).
+    delta += reductionsBlocked ? Math.max(0, declaredDelta) : declaredDelta;
     if (fixed !== undefined) {
       const folded = fixed + delta;
       return { fixed: folded < 0 ? 0 : folded };

@@ -11,7 +11,7 @@ import { Edge } from "./edge";
 const EDGE_PORT = 2569;
 const SERVER_PORT = 2570;
 
-export async function startBrowserServer() {
+export async function startBrowserServer({ holdBotAllTurns = true } = {}) {
   const queued: { bot: BotPlayer; request: DecisionRequest }[] = [];
   const originalDecision = BotPlayer.prototype.onDecisionRequested;
   const http = createServer();
@@ -30,7 +30,7 @@ export async function startBrowserServer() {
   await edge.start();
   // Test pacing only: hold each reactive answer until the browser has inspected the scene.
   BotPlayer.prototype.onDecisionRequested = function (request) {
-    if (request.options?.timing === "AllTurns") queued.push({ bot: this, request });
+    if (holdBotAllTurns && request.options?.timing === "AllTurns") queued.push({ bot: this, request });
     else originalDecision.call(this, request);
   };
 

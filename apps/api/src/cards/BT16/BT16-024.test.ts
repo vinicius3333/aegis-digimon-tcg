@@ -5,6 +5,35 @@ import { compiled } from "./BT16-024.js";
 import "../index.js";
 
 describe("BT16-024", () => {
+  it("Discord 1556811259867955282 sweep: privately inspects security even with no Angel target", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT16-024", as: "magna" }],
+        security: ["BT1-009", "BT1-013"],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const request = s.decisions.at(-1)!.req;
+    expect(request.seat).toBe(0);
+    expect(request.options).toMatchObject({ min: 0, max: 0, candidateInstanceIds: [] });
+    expect(request.options?.visibleCards?.map((c) => c.cardId).sort()).toEqual(["BT1-009", "BT1-013"]);
+    expect(s.state.players[0]!.security.every((c) => !c.faceUp)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("magna").topCard.cardId).toBe("BT16-024");
+    expect(s.state.players[0]!.security.every((c) => !c.faceUp)).toBe(true);
+  });
+
   it("searches security and optionally digivolves into an Angel", () => {
     for (const effect of compiled.effects.slice(0, 2)) {
       expect(effect.actions?.[0]).toMatchObject({

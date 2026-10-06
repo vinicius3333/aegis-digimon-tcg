@@ -143,6 +143,55 @@ describe("ContinuousEffectLedger", () => {
 
     expect(effectiveTraits(ledger, "P1", ["Beastkin", "glowing dawn"])).toEqual(["Beastkin", "glowing dawn", "ts"]);
   });
+  it.each([
+    ["Digimon", 1, true],
+    ["Option", 1, false],
+    ["Digimon", 0, false],
+  ] as const)(
+    "Q4395/Q4396: player-wide Digimon immunity suppresses only the applicable %s restriction from seat %s",
+    (sourceKind, originSeat, suppressed) => {
+      const { state, permanentId } = boardWithOnePermanent();
+      const ledger = new ContinuousEffectLedger((id) => (id === permanentId ? 0 : undefined));
+      ledger.addRestriction(permanentId, "suspend", EffectDuration.UntilEachTurnEnd, {
+        originSeat,
+        sourceKinds: [sourceKind],
+      });
+      expect(ledger.hasRestriction(permanentId, "suspend")).toBe(true);
+      ledger.addPlayerRestriction(0, 0, "beAffected", EffectDuration.UntilEndAttack, () => true, {
+        fromSourceKind: ["Digimon"],
+        byOpponentEffectsOnly: true,
+      });
+      expect(ledger.hasRestriction(permanentId, "suspend")).toBe(!suppressed);
+      expect(ledger.hasRestriction(permanentId, "beSuspended")).toBe(!suppressed);
+      expect(ledger.restrictionCount(permanentId, "suspend")).toBe(suppressed ? 0 : 1);
+      expect(ledger.storedRestrictionCount(permanentId, "suspend")).toBe(1);
+      ledger.sweep(state, "endAttack", 0);
+      expect(ledger.hasRestriction(permanentId, "suspend")).toBe(true);
+      ledger.sweep(state, "eachTurnEnd", 0);
+      expect(ledger.hasRestriction(permanentId, "suspend")).toBe(false);
+    },
+  );
+
+  it("honors a live immunity filter instead of suppressing every permanent's restriction", () => {
+    const ledger = new ContinuousEffectLedger(() => 0);
+    for (const permanentId of ["MATCH", "OTHER"]) {
+      ledger.addRestriction(permanentId, "attack", EffectDuration.Permanent, {
+        originSeat: 1,
+        sourceKinds: ["Digimon"],
+      });
+    }
+    let matches = false;
+    ledger.addPlayerRestriction(0, 0, "beAffected", EffectDuration.Permanent, (id) => matches && id === "MATCH", {
+      byOpponentEffectsOnly: true,
+    });
+    expect(ledger.hasRestriction("MATCH", "attack")).toBe(true);
+    matches = true;
+    expect(ledger.hasRestriction("MATCH", "attack")).toBe(false);
+    expect(ledger.hasRestriction("OTHER", "attack")).toBe(true);
+    matches = false;
+    expect(ledger.hasRestriction("MATCH", "attack")).toBe(true);
+  });
+
   it("records and reports restrictions", () => {
     const ledger = new ContinuousEffectLedger();
     ledger.addRestriction("P1", "attack", EffectDuration.UntilOpponentTurnEnd);

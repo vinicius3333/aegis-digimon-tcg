@@ -46,6 +46,159 @@ describe("BT14-033", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
+  it.each([0, 1, 2])(
+    "Discord 1556811259867955282: searches all security privately before deciding with %s evolution targets",
+    async (targets) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT14-033", as: "patamon" }],
+          security: [...Array(targets).fill("BT14-035"), "BT1-009", "BT1-010"],
+          hand: ["BT1-009"],
+          deck: Array(6).fill("BT1-009"),
+        },
+        1: { hand: ["BT1-009"], deck: Array(6).fill("BT1-009") },
+      });
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const request = s.decisions.at(-1)?.req;
+      expect(request?.kind).toBe("selectCards");
+      expect(request?.options?.candidateInstanceIds).toHaveLength(targets);
+      expect(request?.options?.min).toBe(0);
+      expect(request?.options?.max).toBe(Math.min(1, targets));
+      expect(request?.options?.visibleCards?.map((c) => c.cardId).sort()).toEqual(
+        [...Array(targets).fill("BT14-035"), "BT1-009", "BT1-010"].sort(),
+      );
+      expect(s.perm("patamon").topCard.cardId).toBe("BT14-033");
+      expect(s.state.players[0]!.security.every((c) => c.faceUp === false)).toBe(true);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: request!.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT14-033")).toHaveLength(1);
+      expect(s.perm("patamon").topCard.cardId).toBe("BT14-033");
+      expect(s.state.players[0]!.security.every((c) => c.faceUp === false)).toBe(true);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    },
+  );
+
+  it.each([1, 2])(
+    "evolves into the chosen security instance directly from the single search with %s targets",
+    async (targets) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT14-033", as: "patamon" }],
+            security: [
+              ...Array.from({ length: targets }, (_, index) => ({ card: "BT14-035", as: `vaccine-${index}` })),
+              { card: "BT1-009", as: "ineligible" },
+            ],
+            deck: Array(5).fill("BT1-009"),
+          },
+          1: { hand: ["BT1-009"], deck: Array(5).fill("BT1-009") },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 5;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const search = s.decisions.at(-1)!.req;
+      const handBefore = s.state.players[0]!.hand.length;
+      const chosen = s.inst(`vaccine-${targets - 1}`).instanceId;
+      expect(search.options?.candidateInstanceIds).toHaveLength(targets);
+      expect(search.options?.candidateInstanceIds).not.toContain(s.inst("ineligible").instanceId);
+      expect(search.options?.visibleCards).toHaveLength(targets + 1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: search.decisionId,
+          response: { kind: "selectCards", instanceIds: [chosen] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT14-033"),
+      );
+      expect(s.perm("patamon").topCard.instanceId).toBe(chosen);
+      expect(s.state.players[0]!.security).toHaveLength(targets);
+      expect(s.state.players[0]!.security.every((card) => !card.faceUp)).toBe(true);
+      expect(s.state.memory).toBe(5);
+      expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
+      expect(
+        s.decisions.filter(({ req }) => req.sourceCardId === "BT14-033" && req.kind === "selectCards"),
+      ).toHaveLength(1);
+      expect(
+        s.decisions
+          .filter(({ req }) => req.sourceCardId === "BT14-033" && req.kind === "optional")
+          .map(({ req }) => req.options?.effectTextPart),
+      ).toEqual([
+        "If digivolved by this effect, you may place 1 yellow card with the [Vaccine] trait from your hand at the bottom of your security stack.",
+      ]);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+      assertNoLoudGap(s);
+    },
+  );
+
+  it("Discord 1556811259867955282: a resolution-plan No still inspects security before skipping evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-033", as: "patamon" },
+            { card: "BT26-090", as: "kanan" },
+          ],
+          security: ["BT14-035", "BT1-009"],
+          hand: ["BT1-009"],
+          deck: Array(5).fill("BT1-009"),
+        },
+        1: { hand: ["BT1-009"], deck: Array(5).fill("BT1-009") },
+      },
+      { autoOrderTriggers: false },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const order = s.decisions.at(-1)!.req;
+    expect(order.kind).toBe("orderTriggers");
+    const keys = order.options!.triggerKeys!;
+    const patamonKey = keys[order.options!.triggerCardIds!.indexOf("BT14-033")]!;
+    expect(patamonKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: {
+          kind: "orderTriggers",
+          order: [patamonKey, ...keys.filter((k) => k !== patamonKey)],
+          optionalAnswers: { [patamonKey]: false },
+        },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    const inspection = s.decisions.at(-1)!.req;
+    expect(inspection.kind).toBe("selectCards");
+    expect(inspection.options?.visibleCards?.map((c) => c.cardId).sort()).toEqual(["BT1-009", "BT14-035"]);
+    expect(s.state.players[0]!.security.every((c) => !c.faceUp)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: inspection.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("patamon").topCard.cardId).toBe("BT14-033");
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT14-033")).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("Q2407 may decline the security digivolution and still shuffles every searched card back", async () => {
     const s = setupEngine(
       {
@@ -58,7 +211,7 @@ describe("BT14-033", () => {
           hand: [{ card: "BT14-037", as: "handVaccine" }],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true, declinePrompts: ["Patamon"] },
     );
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
@@ -115,7 +268,6 @@ describe("BT14-033", () => {
         .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT14-033")
         .map(({ req }) => req.options?.effectTextPart),
     ).toEqual([
-      "[Start of Your Main Phase] Search your security stack. This Digimon may digivolve into a yellow Digimon card with the [Vaccine] trait among them without paying the cost.",
       "If digivolved by this effect, you may place 1 yellow card with the [Vaccine] trait from your hand at the bottom of your security stack.",
     ]);
   });

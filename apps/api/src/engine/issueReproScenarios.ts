@@ -156,6 +156,162 @@ const ISSUE_LAYOUTS = {
     ],
     memory: 8,
   },
+  "arena-examon-bt23-partition-choice": {
+    memory: 3,
+    players: [
+      {
+        field: [{ card: "BT23-047", under: ["EX13-005", "BT20-007", "BT21-046", "EX13-018", "EX13-021", "BT20-042"] }],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      {
+        field: [{ card: "AD1-011" }],
+        hand: ["AD1-024"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
+  "arena-discord-1556831312008974437-jesmon-gankoomon-immunity": {
+    memory: 3,
+    players: [
+      {
+        field: [{ card: "BT23-013" }],
+        hand: ["BT20-057", "BT20-059"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      {
+        field: [{ card: "EX13-018" }],
+        hand: ["EX13-021"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
+  "arena-discord-1556821976922849360-tsunomon-jupitermon": {
+    memory: 8,
+    players: [
+      {
+        field: [
+          { card: "P-213", under: ["BT24-003", "P-194"] },
+          { card: "BT24-022", under: ["BT24-031"] },
+        ],
+        hand: ["BT24-101"],
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      { security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
+  "arena-discord-1556821976922849360-tsunomon-jupitermon-zero": {
+    memory: 8,
+    players: [
+      {
+        field: [
+          { card: "P-213", under: ["BT24-003", "P-194"] },
+          { card: "BT24-022", under: ["BT24-031"] },
+        ],
+        hand: ["BT24-101"],
+        security: ["BT1-009", "BT1-009"],
+      },
+      { security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+  },
+  "arena-discord-1556810241952194590-cerberusmon-alphamon": {
+    memory: 8,
+    players: [
+      {
+        field: [{ card: "EX13-055", under: ["EX13-049"] }],
+        hand: ["EX13-057", "EX13-060"],
+        security: ["BT1-009", "BT1-010", "BT1-013"],
+      },
+      {
+        field: [{ card: "BT26-090" }],
+        hand: ["BT26-056", "BT1-009"],
+        security: ["BT1-009", "BT1-010", "BT1-013"],
+      },
+    ],
+  },
+  "arena-discord-1556811259867955282-patamon-zero": {
+    memory: 5,
+    players: [
+      { field: [{ card: "BT14-033" }], hand: ["BT14-037"], security: ["BT1-009", "BT1-010", "BT1-013"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556811259867955282-patamon-one": {
+    memory: 5,
+    players: [
+      { field: [{ card: "BT14-033" }], hand: ["BT14-037"], security: ["BT14-035", "BT1-009", "BT1-013"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556811259867955282-patamon-multiple": {
+    memory: 5,
+    players: [
+      { field: [{ card: "BT14-033" }], hand: ["BT14-037"], security: ["BT14-035", "BT14-035", "BT1-009"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556798361435373630-mococomon-once-per-turn": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "EX12-043", under: ["EX12-002"] }],
+        hand: ["EX12-045", "EX12-056", "EX12-034", "EX12-034"],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      {
+        field: [{ card: "BT24-101" }, { card: "BT24-101", under: ["BT26-029"] }],
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+    ],
+  },
+  "arena-discord-1556782829713621082-digilab-breeding": {
+    memory: 5,
+    players: [
+      { breeding: { card: "EX13-017", under: ["EX13-002"] }, hand: ["P-225"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556772689731915896-fly-bullet-hand": {
+    memory: 8,
+    players: [
+      { field: [{ card: "BT25-083" }], hand: ["BT25-085"] },
+      { field: [{ card: "EX8-073" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556772689731915896-fly-bullet-sources": {
+    memory: 8,
+    players: [
+      { field: [{ card: "BT25-085", under: ["BT25-085"] }] },
+      { field: [{ card: "EX8-073" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556772182607011971-asuna": {
+    memory: 8,
+    players: [
+      { field: [{ card: "BT25-092" }, { card: "BT25-083", under: ["BT25-100"] }], trash: ["BT25-085"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556772182607011971-image-training": {
+    memory: 8,
+    players: [
+      { field: [{ card: "LM-056" }, { card: "BT25-083" }], hand: ["BT25-085"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556772182607011971-breathing-training": {
+    memory: 8,
+    players: [
+      { field: [{ card: "LM-062" }, { card: "BT25-083" }], hand: ["BT25-085"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-discord-1556772182607011971-pagumon": {
+    memory: 8,
+    players: [
+      { field: [{ card: "BT25-083", under: ["BT25-005"] }], hand: ["BT25-085", "BT25-085"], trash: ["EX7-066"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
   "arena-discord-1556745762682183811-giant-slayer-execute": {
     players: [
       { hand: ["BT26-085", "BT26-060"], trash: ["BT26-078"], security: ["BT1-009", "BT1-009"] },

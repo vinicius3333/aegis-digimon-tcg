@@ -442,6 +442,7 @@ export function armedSubTriggers(
     windowToken: engine.effectBodyTokens.at(-1) ?? engine.activeWindowToken,
     oncePerTurnSnapshotKeys,
     oncePerTurnSuccessfulKeys: new Set<string>(),
+    resolvedWatcherKeys: new Set<string>(),
   };
 
   for (const sub of subs) {
@@ -590,6 +591,7 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
           return (
             !item.activationStarted &&
             !sourceDeparted &&
+            !subTriggerOccurrenceResolved(item) &&
             !oncePerTurnSpentByAnotherOccurrence(engine, item) &&
             subTriggerHasLegalOutcome(item)
           );
@@ -880,12 +882,22 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
  * rest of the window any effect that drops out of its pool once (CR §15-4-4-5).
  */
 export function subTriggerStillPending(engine: GameEngine, item: ArmedSubTrigger): boolean {
-  if (item.activationStarted === true) return false;
+  if (item.activationStarted === true || subTriggerOccurrenceResolved(item)) return false;
   const ctx = item.contextAtFireTime();
   if (ctx === undefined) return false;
   if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
   if (oncePerTurnSpentByAnotherOccurrence(engine, item)) return false;
   return item.sub.canFire === undefined || item.sub.canFire(ctx);
+}
+
+function subTriggerOccurrenceResolved(item: ArmedSubTrigger): boolean {
+  return item.occurrence.resolvedWatcherKeys.has(resolvedWatcherKey(item.sub, item.ctx.trigger));
+}
+
+function resolvedWatcherKey(sub: SubTriggerSubscription, trigger: TriggerInfo): string {
+  // Anonymous subscriptions with identical prose can still be independent effects.
+  // Printed OPT watchers need the stable identity that survives continuous recomputes.
+  return sub.oncePerTurnKey === undefined ? `subscription/${sub.id}` : subTriggerIdentity(sub, trigger);
 }
 
 /**
@@ -1040,6 +1052,12 @@ export async function fireOneSubTrigger(
   // have separate armed entries and retain their own resolution.
   item.activationStarted = true;
   const { sub, ctx: armedContext, contextAtFireTime, occurrence } = item;
+  // Nested attack windows can resolve a watcher held in an enclosing pool. That pool may
+  // restore its earlier array afterwards; the shared OPT success key permits sibling action
+  // paths, but must never reactivate the exact body that already resolved (Discord 1556798361435373630).
+  const watcherKey = resolvedWatcherKey(sub, armedContext.trigger);
+  if (occurrence.resolvedWatcherKeys.has(watcherKey)) return;
+  occurrence.resolvedWatcherKeys.add(watcherKey);
   if (engine.subTriggerWindowDepth > 0)
     engine.consumedSubTriggerKeys.add(subTriggerIdentity(sub, armedContext.trigger));
   const drainCurrentTimingWindow = opts.drainCurrentTimingWindow;
