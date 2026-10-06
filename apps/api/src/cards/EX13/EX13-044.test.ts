@@ -611,7 +611,8 @@ describe("EX13-044 Breakdramon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "breakdramon" }] },
+        // Survive Aegismon's -6000 DP/deletion reaction to the Barrier security cost.
+        0: { battleArea: [{ card: cardId, as: "breakdramon", dp: 19000 }] },
         1: {
           battleArea: [
             { card: NON_MATCH, dp: 5000, suspended: true, as: "effectDefender" },

@@ -17,6 +17,85 @@ import { compiled } from "./EX11-074.js";
 import "./EX11-062.js";
 
 describe("EX11-074 Vortexdramon", () => {
+  it("Discord 1557002713047502968: declining battle while already unsuspended preserves OPT", async () => {
+    const declinedPrompts = ["Battle"];
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-074", as: "source" }],
+          hand: [
+            { card: "BT1-110", as: "first" },
+            { card: "BT1-110", as: "second" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-010", as: "secondTarget" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: declinedPrompts,
+        preferInstanceIds: preferred,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    preferred.push(s.perm("firstTarget").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.trash.some((c) => c.instanceId === firstId) && s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    declinedPrompts.length = 0;
+    preferred.splice(0, preferred.length, s.perm("secondTarget").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.trash.some((c) => c.instanceId === secondId) && s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toContain(s.inst("secondTarget").instanceId);
+    expect(
+      s.events.filter(
+        (e) => e.kind === "effectTriggered" && e.sourceCardId === "EX11-074" && e.timing === "whenSuspended",
+      ),
+    ).toHaveLength(1);
+    expect(s.events.filter((e) => e.kind === "securityChecked")).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("Discord 1557002713047502968: pending Piercing survives deletion of the original attack target (CR 16-7-4)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX11-074", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true }], security: ["BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Suspend"] },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.events.filter((e) => e.kind === "battleCompared")).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toContain(s.inst("victim").instanceId);
+    expect(s.events.filter((e) => e.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
   it("preserves the printed level 7 Digimon and complete compiled coverage", () => {
     expect(getCardDefinition("EX11-074")).toMatchObject({
       nameEn: "Vortexdramon",

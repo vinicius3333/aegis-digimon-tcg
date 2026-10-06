@@ -757,6 +757,7 @@ export class CombatController {
         }
 
         // 4. Battle resolution (AttackProcess.DetermineAttackOutcome, cs:407-468).
+        let ordinarySecurityProcessed = false;
         if (!this.defenderStillValid(effectiveTarget, defender)) {
           // Comprehensive Rules §11-2-6: even though the attack target Digimon was removed
           // mid-resolution (e.g. deleted/bounced during When Attacking or the block window),
@@ -764,6 +765,7 @@ export class CombatController {
           // back to a player-directed security check just because `defender` is undefined.
         } else if (defender === undefined) {
           // Player-directed, unblocked: hand off to security-and-win-check.
+          ordinarySecurityProcessed = true;
           await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "attack");
         } else if (
           this.access.isBattleAreaDigimon(defender, this.hooks.continuous) &&
@@ -774,15 +776,20 @@ export class CombatController {
           // §11-1-4: the battle's [On Deletion] windows were parked behind the ordering
           // effect's window token; activate them before Piercing and End of Attack.
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          // A direct effect battle during this same attack can satisfy Piercing even
-          // when the ordinary battle's loser is protected (BT25-020 Q6280/Q6281).
-          // Process it once, after a successful Digimon attack, before End of Attack.
-          if (this.currentAttack?.piercingTriggered && !this.endRequested) {
-            this.currentAttack.piercingTriggered = false;
-            await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "piercing", {
-              allowMissingAttacker: true,
-            });
-          }
+        }
+
+        // CR 16-7-4: Piercing triggered by a direct effect battle remains pending
+        // even if that battle removed the original attack target. The official attack
+        // flowchart routes an unsuccessful attack through this step before End of Attack.
+        // A normal player attack already used this attack's one security transition.
+        if (
+          this.currentAttack?.piercingTriggered &&
+          !this.endRequested &&
+          !ordinarySecurityProcessed &&
+          this.attackerStillValid(attacker)
+        ) {
+          this.currentAttack.piercingTriggered = false;
+          await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "piercing");
         }
 
         // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
