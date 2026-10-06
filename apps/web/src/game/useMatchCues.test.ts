@@ -6288,7 +6288,8 @@ describe("a permanent an opponent's clause deletes", () => {
     expect(result.current.heldDeletions.size).toBe(1);
     expect(result.current.deleteBursts).toEqual([]);
     await advance(20);
-    expect(result.current.heldDeletions.size).toBe(0);
+    // The hold stays, marked departed, until paced presentation catches up; the board omits it.
+    expect([...result.current.heldDeletions.values()]).toMatchObject([{ departed: true }]);
     expect(result.current.deleteBursts).toHaveLength(1);
   });
 
@@ -6300,7 +6301,7 @@ describe("a permanent an opponent's clause deletes", () => {
     rerender([OPP_CLAUSE, VIEWER_DELETED]);
     await advance(0);
     expect(result.current.deleteBursts).toHaveLength(1);
-    expect(result.current.heldDeletions.size).toBe(0);
+    expect([...result.current.heldDeletions.values()]).toMatchObject([{ departed: true }]);
   });
 });
 
