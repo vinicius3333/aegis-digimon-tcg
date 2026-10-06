@@ -23,6 +23,7 @@ try {
       if (!process.argv.includes("--refresh") && existsSync(path)) continue;
       await page.setViewportSize({ width, height });
       await page.goto(`http://localhost:5184${item.url}`);
+      await page.locator(item.url.startsWith("/dev/mobile") ? ".mobile-lab-frame" : ".effect-prompt-gallery").waitFor();
       if (item.answer !== undefined) {
         await page
           .getByRole("dialog")

@@ -21,6 +21,13 @@ describe("keyword reminders", () => {
     expect(keywordReminder("Vortex", t)).toBe(t("redesign.arena.keyword.unlisted"));
   });
 
+  it("keeps keyword rules in English when the interface uses Portuguese", () => {
+    const portuguese = translator("pt-BR");
+    for (const keyword of ["Blocker", "Rush", "Jamming", "Piercing", "Recovery", "Armor Purge", "Security Attack +1"])
+      expect(keywordReminder(keyword, portuguese)).toBe(keywordReminder(keyword, t));
+    expect(keywordReminder("SecurityAttack", portuguese, -2)).toBe("This Digimon checks 2 fewer security card(s).");
+  });
+
   it("prints full-width brackets as ASCII ones", () => {
     expect(normalizeKeywordBrackets("＜Draw 1＞")).toBe("<Draw 1>");
   });
