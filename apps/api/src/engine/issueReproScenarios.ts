@@ -32,6 +32,17 @@ const ISSUE_LAYOUTS = {
       {},
     ],
   },
+  "arena-issue-5173-cyber-engage": {
+    memory: 1,
+    players: [{ field: [{ card: "BT25-098" }], hand: ["BT26-010"] }, {}],
+  },
+  "arena-issue-5173-cyber-engage-psychemon": {
+    memory: 1,
+    players: [
+      { field: [{ card: "BT25-098" }], hand: ["BT26-010"] },
+      { field: [{ card: "BT8-071" }, { card: "BT8-071" }] },
+    ],
+  },
   "arena-issue-5127-opponent-suspend-cost": {
     memory: 8,
     players: [

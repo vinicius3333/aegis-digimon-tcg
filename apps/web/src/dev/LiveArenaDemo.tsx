@@ -120,6 +120,14 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "Select Mastemon and a DNA material. Choose Pair 2 (LadyDevimon with one digivolution card) and confirm. The other LadyDevimon must remain on the field. Also try with action confirmations disabled.",
     ptBR: "Selecione Mastemon e um material de DNA. Escolha o Par 2 (LadyDevimon com uma carta de digievolução) e confirme. A outra LadyDevimon deve ficar em campo. Teste também com as confirmações de ação desativadas.",
   },
+  "arena-issue-5173-cyber-engage": {
+    en: "Activate Cyber Engage's Delay and choose Roleplaymon. Pay 1 memory (1 → 0).",
+    ptBR: "Ative o Delay de Cyber Engage e escolha Roleplaymon. Pague 1 memória (1 → 0).",
+  },
+  "arena-issue-5173-cyber-engage-psychemon": {
+    en: "Activate Cyber Engage's Delay and choose Roleplaymon. The opposing Psychemon prevent cost reduction: pay 4 memory (1 → -3), matching the reported game.",
+    ptBR: "Ative o Delay de Cyber Engage e escolha Roleplaymon. Os Psychemon adversários impedem a redução: pague 4 memórias (1 → -3), como na partida reportada.",
+  },
   "arena-issue-5127-opponent-suspend-cost": {
     ptBR: "Use a metade Option de Zephagamon. Para reduzir o custo, suspenda os dois Digimon adversários. O custo deve cair de 6 para 4; depois trave o Tamer e devolva um dos Digimon ao fundo do deck.",
     en: "Use Zephagamon's Option side. Suspend both opposing Digimon for the reduction. The cost falls from 6 to 4; then lock the Tamer and bottom-deck one Digimon.",
@@ -1649,6 +1657,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-oct06-active-overflow", "06/10 · Overflow · início do turno"],
   ["arena-discord-1556882561995644928-mobile-inspection", "Mobile · read Alphamon during Leopardmon's decision"],
   ["arena-issue-5166-dna-material-pairs", "#5166 · DNA material pair choice"],
+  ["arena-issue-5173-cyber-engage", "#5173 · Cyber Engage reduced cost"],
+  ["arena-issue-5173-cyber-engage-psychemon", "#5173 · Cyber Engage vs Psychemon"],
   ["arena-issue-5127-opponent-suspend-cost", "GitHub #5127 · Opposing suspend cost"],
   ["arena-issue-5127-opponent-survival", "GitHub #5127 · Opposing survival cost"],
   ["arena-issue-5159-kudamon-moving", "GitHub #5159 · Kudamon moving reveal"],
