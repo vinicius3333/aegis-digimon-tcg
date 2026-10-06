@@ -77951,6 +77951,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "text" }]
               },
@@ -142481,6 +142482,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon"],
                 "nameOrTrait": [{ "tokens": ["Lucemon"], "match": "name" }]
               },
@@ -203371,6 +203373,7 @@
           "kind": "youHave",
           "filter": {
             "controller": "mine",
+            "zone": ["battleArea", "breeding"],
             "kind": ["Digimon", "Tamer"],
             "nameOrTrait": [{ "tokens": ["DM"], "match": "trait" }]
           },
@@ -205118,10 +205121,11 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
               },
-              "raw": "you have [CS] trait Digimon or Tamer"
+              "raw": "you have a [CS] trait Digimon or Tamer on the field"
             }
           }
         ]

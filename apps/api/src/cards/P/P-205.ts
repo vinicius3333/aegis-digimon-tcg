@@ -9,6 +9,7 @@ const compiled: CompiledCard = {
         kind: "youHave",
         filter: {
           controller: "mine",
+          zone: ["battleArea", "breeding"],
           kind: ["Digimon", "Tamer"],
           nameOrTrait: [{ tokens: ["DM"], match: "trait" }],
         },

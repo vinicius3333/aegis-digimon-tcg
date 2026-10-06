@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: ["battleArea", "breeding"],
               kind: ["Digimon", "Tamer"],
               nameOrTrait: [
                 {
@@ -27,7 +28,7 @@ const compiled: CompiledCard = {
                 },
               ],
             },
-            raw: "you have [CS] trait Digimon or Tamer",
+            raw: "you have a [CS] trait Digimon or Tamer on the field",
           },
         },
       ],

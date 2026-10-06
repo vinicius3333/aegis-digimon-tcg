@@ -99558,7 +99558,7 @@
     "forms": ["-"],
     "attributes": ["-"],
     "types": ["CS"],
-    "effectText": "While you have [CS] trait Digimon or Tamer, you can ignore this card's color requirements.\n[Main] ＜Draw 1＞ Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・By placing the top stacked card of any of your level 4 or higher [CS] Digimon as its bottom digivolution card, gain 2 memory.",
+    "effectText": "While you have a [CS] trait Digimon or Tamer on the field, you can ignore this card's color requirements.\n[Main] ＜Draw 1＞ Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・By placing the top stacked card of any of your level 4 or higher [CS] Digimon as its bottom digivolution card, gain 2 memory.",
     "securityEffectText": "[Security] Place this card in the battle area.",
     "rarity": "P",
     "maxCountInDeck": 4,
