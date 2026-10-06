@@ -105,7 +105,12 @@ export function createPartitionReactions(pc: PrimitivesContext) {
         0,
         1,
         "＜Partition＞: play the specified digivolution cards without paying their costs?",
-        { sourceCardId: partitionSourceCardId, sourceInstanceId: partitionSourceInstanceId },
+        {
+          sourceCardId: partitionSourceCardId,
+          sourceInstanceId: partitionSourceInstanceId,
+          selectionContext: "partitionActivation",
+          visibleInstanceIds: matchedInstanceIds,
+        },
       );
       if (chosen.length === 0) continue;
       // Q2860: Partition plays from digivolution cards even after the holder's deletion trashed them.

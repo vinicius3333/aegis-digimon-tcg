@@ -736,6 +736,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
             effectTextPart: provenance?.effectTextPart,
             isInherited: provenance?.isInherited,
             selectionContext: provenance?.selectionContext,
+            visibleInstanceIds: provenance?.visibleInstanceIds,
           },
         });
         return response.kind === "selectCards" ? response.instanceIds : [];

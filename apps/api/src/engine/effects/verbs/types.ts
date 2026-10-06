@@ -403,7 +403,9 @@ export interface SelectionPort {
       sourceInstanceId?: string;
       sourcePermanentId?: string;
       isInherited?: boolean;
-      selectionContext?: "attackTarget";
+      selectionContext?: "attackTarget" | "partitionActivation";
+      /** Preview the full group while a single candidate represents activating the keyword. */
+      visibleInstanceIds?: string[];
     },
   ): Promise<string[]>;
 }

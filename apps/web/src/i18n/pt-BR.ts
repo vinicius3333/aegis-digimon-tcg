@@ -987,6 +987,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.decline": "Não, recusar",
   "overlay.activate": "Sim, ativar",
   "overlay.confirmTargets": "Confirmar alvos",
+  "overlay.activatePartitionPrompt": "Você quer ativar Partition?",
   "overlay.activateBlitzPrompt": "Você quer ativar Blitz?",
   "overlay.deckTop": "Topo do deck",
   "overlay.deckBottom": "Fundo do deck",
