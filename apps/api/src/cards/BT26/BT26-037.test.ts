@@ -14,7 +14,10 @@ describe("BT26-037 Weatherdramon", () => {
   it("models App Fusion, Assembly, link windows, Blocker/Detach, and linked battle", () => {
     expect(appFusionCostFor("BT26-037", { topName: "Weathermon", linkedNames: ["Rocketmon"] })).toBe(0);
     expect(assemblyRequirementFor("BT26-037")).toEqual([
-      { reduceCost: 2, materials: [{ traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }] },
+      {
+        reduceCost: 2,
+        materials: [{ kinds: ["Digimon"], traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }],
+      },
     ]);
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Weathermon", "Rocketmon", "Newsmon"], cost: 0 }]);

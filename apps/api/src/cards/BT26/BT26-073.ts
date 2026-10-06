@@ -85,6 +85,7 @@ export const compiled: CompiledCard = {
       reduceCost: 2,
       materials: [
         {
+          kinds: ["Digimon"],
           levelMax: 4,
           nameOrTrait: [
             { tokens: ["Chronomon"], match: "text" },
