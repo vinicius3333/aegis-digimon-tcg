@@ -523,6 +523,58 @@ remain pending. The actual corrective learner remains the original session
 10576, whole 696/start14967, operator 715 and CUDA learner 778/start21144;
 its partial results are preserved as training in progress.
 
+## Completed actual corrective learning and admitted frozen evaluation
+
+The original corrective learning foreground session 10576 actually ended with
+exit zero. The unchanged full resident `rule-link-current-corrective-ppo.py
+--closed` consumer also passed with actual whole zero, exact source/runtime and
+all protected checkpoint byte guards, all 2,112 raw paired trajectories and
+actual final output map. Completion SHA-256 is
+`1792aadfadff90a164f95d1de22d06c065f13bdb13da8087e4b4f70e36c21018`.
+The saved local full consumer output is
+`/private/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-corrective-ppo-closed.actual.json`,
+SHA-256 `bab62874e2a6551219496a971b13e2904b77c0117eb5df0fdc8fea266ce21b8d`.
+
+The complete actual training summary has 1,267 wins and 845 losses, zero failed
+or unusable games and zero payment forfeits. It took 1,679.919 elapsed seconds.
+Every one of the 12 model tensors is finite and changed, and every Adam state
+has the same actual positive delta of **3,596** updates. Model reload is exact,
+and the current-source metadata, feature V7 and warm-start provenance remain
+verified. This is genuine further learning, not a metadata-copy generation.
+These training rewards are not per-recipe strength acceptance.
+
+The actual new checkpoint is
+`/home/vinicius/aegis-bot-lab/runs/rule-link-current-aa2e56463-corrective-ppo-r1/ppo/checkpoint.pt`,
+SHA-256 `e4effc446ef39f04c2853fb69b81e798ed06059e3b847b7cfbf9f5daa5f4b232`.
+Original checkpoint `8490902dc7b6fa67c96ed141407e5684380e8ac761ff6b5191d13d77ce14bb34`
+and all other preserved policies remain unchanged. No source archive, rebuild,
+engine fingerprint or additional checkpoint binding/migration was needed.
+
+The final frozen evaluator request is now sealed from that actual full consumer,
+SHA-256 `afd91d2baba7d47442bc7e1037e83d8eb27057a57ded24bd25965f5cf097a355`.
+Actual admitted read-only inspection passed with no primary model import or
+new game, and the exact command has 3,872 games, seed 6135000, all44 curriculum,
+both seats, streaming greedy evaluation, four workers and zero updates.
+The full actual inspection log SHA-256 is
+`d9219cfe340eefa821af03fa0916cd3f4177ad07ea7a8992b0102a1f93968661`.
+A fresh real idle inventory passed before the separate ROOT resource Go,
+SHA-256 `a464f4b311a2472c9b6d62ea5521ea0853c9306da690179048b83ce1e1a27e7b`.
+
+The new original evaluation foreground session is **97906**, and must remain
+attached. The actual whole is PID **691**, start ticks **218935**, identity SHA-256
+`a1e590f9e4805f9c0bdc8f4fcbd45b26b4fbeea095cc75eaa9a2ca0141eed5a1`;
+its operator is PID 710/start218940 with exact pinned argv and parent 691.
+The initial observer verifies the original whole and operator live during source
+admission. Actual subsequent observation verifies frozen evaluator child PID
+**778/start225982**, parent 710, with the exact all44 command and current new
+checkpoint hash. Its configuration has `evaluate: true`, `streamEvaluation:
+true`, no learner-deck restriction, CUDA and feature V7; real GPU inventory
+binds to this actual child. This is a different start-tick identity from the
+now-completed learner PID 778/start21144. Complete raw results, actual whole zero
+and strict gains for every recipe against each of the four references remain
+pending. Physical mechanisms, materials, managed rooms, serving, blind and
+final delivery acceptance also remain pending. Reserved final seeds remain unused.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
