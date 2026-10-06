@@ -146,6 +146,54 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
 });
 
 describe("BT17-102 Greymon — dynamic stack names", () => {
+  it.each([true, false])(
+    "GitHub bugs #5030 and #5019 evolve Agumon only with the granted Koromon name (%s)",
+    async (koromon) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: GREYMON, as: "base", under: koromon ? ["BT14-001"] : [] }],
+            hand: [{ card: "BT12-034", as: "agumon" }],
+            deck: ["BT1-009", "BT1-013"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+        useAlternateCost: true,
+      });
+      if (!koromon) {
+        expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
+        return;
+      }
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "BT12-034" && !s.state.pendingDecision);
+      expect(s.state.memory).toBe(5);
+      expect(s.perm("base").stack.map((c) => c.cardId)).toEqual(["BT14-001", GREYMON]);
+    },
+  );
+
+  it("does not apply Greymon's stack-name aura while the base remains in breeding", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: GREYMON, as: "base", under: ["BT14-001"] }, hand: [{ card: "BT12-034", as: "agumon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("has the names of level 3 and lower cards in its stack, including (Rule) aliases", async () => {
     const s = setupEngine({
       0: {

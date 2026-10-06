@@ -655,6 +655,23 @@ export function getDigivolveCostOptions(
     options.push({ type: "alternate", label: `${gate} · ${granted.cost} memory`, cost: granted.cost });
   }
 
+  // Live identity grants can open paths absent from the printed definition. The server
+  // already validates and prices these indexed routes against the current permanent.
+  for (const route of projectedRoutes ?? []) {
+    if (route.permanentId !== base.permanentId || route.alternateRequirementIndex < 0) continue;
+    if (options.some((option) => option.alternateRequirementIndex === route.alternateRequirementIndex)) continue;
+    const req = digivolutionRequirementsFor(handCardId)?.[route.alternateRequirementIndex];
+    if (!req) continue;
+    const option: EvoCostOption = {
+      type: "alternate",
+      label: alternateCostLabel(req, baseLevel),
+      cost: route.projectedCost,
+      alternateRequirementIndex: route.alternateRequirementIndex,
+    };
+    if (!digivolutionRequirementHasSideEffect(req)) interchangeableAlternates.add(option);
+    options.push(option);
+  }
+
   const priced = options.map((option) => priceFromServer(option, base.permanentId, projectedRoutes));
   // An alternate path that only sets the cost is no choice at all when a printed EvoCost costs
   // the same; the server takes the printed path without asking.

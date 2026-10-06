@@ -388,6 +388,8 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
  *   the base for a Blast Digivolve).
  */
 export interface AlternateDigivolveOptions {
+  /** Full name identities granted to the live base, separate from substring-only aliases. */
+  grantedBaseExactNames?: readonly string[];
   isBlastDigivolve?: boolean;
   /** Waive only level/levelMin/levelMax; preserve every color, trait, name, and live gate. */
   ignoreLevel?: boolean;
@@ -506,8 +508,8 @@ function matchGatedRequirement(
     // carries [X] inside its name, never as its name, so it cannot answer an exact route
     // (KB Q2868 — EX4-030 Kuzuhamon is not a [Sakuyamon]).
     if (req.namesExact && req.namesExact.length > 0) {
-      const baseExactNames = effectiveExactNames(baseDef);
-      if (!req.namesExact.some((n) => baseExactNames.some((name) => name === n))) continue;
+      const baseExactNames = [...effectiveExactNames(baseDef), ...(options?.grantedBaseExactNames ?? [])];
+      if (!req.namesExact.some((n) => baseExactNames.some((name) => name.toLowerCase() === n.toLowerCase()))) continue;
     }
 
     // Base play-cost gate: distinguishes same-name reprints ("Play cost 12 [Ceresmon]").
@@ -557,7 +559,7 @@ export function matchingAlternateDigivolutionRequirement(
   // Manual §"Token Cards": a token can't be digivolved onto, including by an alternate
   // (trait/name/text-gated) requirement.
   if (isTokenDefinition(baseDef)) return undefined;
-  const baseEffectiveNames = effectiveStaticNames(baseDef);
+  const baseEffectiveNames = [...effectiveStaticNames(baseDef), ...(options?.grantedBaseExactNames ?? [])];
 
   // `digivolutionRequirementsFor` (shared) returns the hand-authored override when one exists
   // (e.g. BT7-112's Tamer-gated requirement with its placement cost, REPLACING the gateless

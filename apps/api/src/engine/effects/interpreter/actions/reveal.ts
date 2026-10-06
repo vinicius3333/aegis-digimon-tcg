@@ -264,7 +264,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const base = ctx.game.definitionOf(host.topCard);
         return (
           matchingEvoCost(into, base) !== undefined ||
-          matchingAlternateDigivolutionRequirement(into, base) !== undefined
+          matchingAlternateDigivolutionRequirement(into, base, {
+            grantedBaseExactNames: ctx.game.effectiveNames?.(host) ?? [],
+          }) !== undefined
         );
       });
     });
@@ -357,7 +359,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           const base = ctx.game.definitionOf(host.topCard);
           return (
             matchingEvoCost(into, base) !== undefined ||
-            matchingAlternateDigivolutionRequirement(into, base) !== undefined
+            matchingAlternateDigivolutionRequirement(into, base, {
+              grantedBaseExactNames: ctx.game.effectiveNames?.(host) ?? [],
+            }) !== undefined
           );
         });
       });
@@ -842,7 +846,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const base = ctx.game.definitionOf(permanent.topCard);
         return (
           matchingEvoCost(into, base) !== undefined ||
-          matchingAlternateDigivolutionRequirement(into, base) !== undefined
+          matchingAlternateDigivolutionRequirement(into, base, {
+            grantedBaseExactNames: ctx.game.effectiveNames?.(permanent) ?? [],
+          }) !== undefined
         );
       },
     });

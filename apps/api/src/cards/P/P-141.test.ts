@@ -5,6 +5,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-131.js";
 import "./P-141.js";
+import "./P-113.js";
+import "../EX9/EX9-018.js";
 
 describe("P-141 MameTyramon", () => {
   it("encodes Collision, Blocker, and the Rule name treatment", () => {
@@ -59,13 +61,44 @@ describe("P-141 MameTyramon", () => {
     expect(s.perm("mame").isSuspended).toBe(false);
   });
 
-  it("exposes both printed battle keywords and the Mamemon/Tyrannomon rule names", async () => {
+  it("exposes both battle keywords and preserves inclusion-only Mamemon/Tyrannomon rule names", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "P-141", as: "mame" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("mame"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("mame"), "Blocker")).toBe(true);
-    expect(observe(s.engine).effectiveNames(s.perm("mame"))).toEqual(expect.arrayContaining(["mamemon", "tyrannomon"]));
+    expect(observe(s.engine).grantedNames(s.perm("mame"))).toEqual(expect.arrayContaining(["mamemon", "tyrannomon"]));
+    expect(observe(s.engine).effectiveNames(s.perm("mame"))).toEqual(["mametyramon"]);
   });
+
+  it.each([
+    { evolving: "P-113", accepted: true, memory: 2, top: "P-113" },
+    { evolving: "EX9-018", accepted: false, memory: 5, top: "P-141" },
+  ])(
+    "uses inclusion aliases without opening exact-name evolution into $evolving",
+    async ({ evolving, accepted, memory, top }) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "P-141", as: "mame" }],
+          hand: [{ card: evolving, as: "evolving" }],
+          deck: ["BT1-009", "BT1-013"],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("mame").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      });
+      expect(result).toEqual(accepted ? { ok: true } : { ok: false, reason: "invalid-evolution" });
+      await settle(() => s.perm("mame").topCard.cardId === top && s.state.pendingDecision === undefined);
+      expect(s.perm("mame").topCard.cardId).toBe(top);
+      expect(s.state.memory).toBe(memory);
+      expect(s.state.players[0]!.hand.some((card) => card.cardId === evolving)).toBe(!accepted);
+    },
+  );
 
   it("runs the inherited unsuspend trigger through a higher host", async () => {
     const s = setupEngine(
