@@ -787,6 +787,9 @@ export async function pickLoose(
     !target.upTo &&
     !requireDifferentColors &&
     target.forceSelection !== true &&
+    // A preset accepts "you may", but the card pick still permits backing out.
+    // Preserve that choice even when the pool contains only one eligible card.
+    !(ctx.pickingAcceptedOptional === true && ctx.presetOptionalAnswer === true) &&
     maxTotalPlayCost === undefined
   )
     return candidates.slice(0, want).map((c) => c.instanceId);

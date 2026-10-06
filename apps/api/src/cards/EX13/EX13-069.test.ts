@@ -10,7 +10,80 @@ const CARD_ID = "EX13-069";
 const STARTING_MEMORY = 3;
 const MEMORY_AFTER_FREE_DIGIVOLVE = STARTING_MEMORY + 1;
 
+async function declineSoleEvolutionCard(s: ReturnType<typeof setupEngine>) {
+  await settle(() => s.state.pendingDecision?.kind === "selectCards" || s.state.phase === "Main");
+  const destination = s.decisions.at(-1)!.req;
+  expect(destination.kind).toBe("selectCards");
+  expect(destination.options?.candidateInstanceIds).toEqual([s.inst("veedramon").instanceId]);
+  expect(destination.options?.min).toBe(0);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: destination.decisionId,
+      response: { kind: "selectCards", instanceIds: [] },
+    }),
+  ).toEqual({ ok: true });
+}
+
 describe("EX13-069 Rina Shinomiya", () => {
+  it.each(["base", "destination"] as const)(
+    "Discord 1556998094070095964: draw then decline the sole %s despite an activation preset",
+    async (declineAt) => {
+      const options = { autoOrderTriggers: false };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: CARD_ID, as: "rinaA" },
+              { card: CARD_ID, as: "rinaB" },
+              { card: "BT3-021", as: "veemon", suspended: true },
+            ],
+            hand: [{ card: "ST8-05", as: "veedramon" }],
+            deck: ["BT1-085", "BT1-085", "BT1-085"],
+          },
+          1: { deck: ["BT1-085"] },
+        },
+        options,
+      );
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const ordered = s.decisions.at(-1)!.req;
+      const keys = ordered.options!.triggerKeys!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: ordered.decisionId,
+          response: { kind: "orderTriggers", order: keys, optionalAnswers: { [keys[0]!]: true, [keys[1]!]: false } },
+        }),
+      ).toEqual({ ok: true });
+      options.autoOrderTriggers = true;
+      await settle(() => s.state.pendingDecision !== undefined || s.state.phase === "Main");
+      const base = s.decisions.at(-1)!.req;
+      expect(base.kind).toBe("chooseTargets");
+      expect(base.options?.min).toBe(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: base.decisionId,
+          response: { kind: "chooseTargets", instanceIds: declineAt === "base" ? [] : [s.perm("veemon").permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      if (declineAt === "destination") {
+        await declineSoleEvolutionCard(s);
+      }
+      await advance(s.engine).waitForMainPhase(0);
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.perm("rinaA").isSuspended).toBe(true);
+      expect(s.perm("rinaB").isSuspended).toBe(false);
+      expect(s.perm("veemon").topCard.cardId).toBe("BT3-021");
+      expect(s.state.players[0]!.deck).toHaveLength(2);
+      expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("veedramon").instanceId);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    },
+  );
+
   it("matches the printed catalog entry", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
       nameEn: "Rina Shinomiya",
