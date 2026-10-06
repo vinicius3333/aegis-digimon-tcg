@@ -575,6 +575,29 @@ and strict gains for every recipe against each of the four references remain
 pending. Physical mechanisms, materials, managed rooms, serving, blind and
 final delivery acceptance also remain pending. Reserved final seeds remain unused.
 
+## Corrective checkpoint physical admission data seam
+
+The old prepared physical operator is sealed against the old six-policy candidate
+labels and comparison. It must not be invoked with relabeled new model or forged
+old closure fields. A pure local `physical_corrective_admission.py` helper is
+prepared at `/private/tmp/aegis-material-teacher-active-goal-20261006`, SHA-256
+`6bf3a549f47db9f189430e48a39debaf61143625ff9937cbb9d206e570c77007`.
+Five bounded synthetic tests pass, including high aggregate wins with a single
+recipe tie, a missing fourth reference, false whole-zero fields, wrong checkpoint
+or learning origin, incomplete schedule and final seed consumption. Its fixture
+SHA-256 is `3603b1349a952b4ac0bc69b7a56f2a8e4014c5d9d73dbd6c66e179e465d832c9`.
+
+This data seam requires the unchanged full actual learning, new frozen evaluation
+and baseline closure consumers first; it does not substitute for them. It binds
+the actual 3,596-step learning closure and checkpoint
+`e4effc446ef39f04c2853fb69b81e798ed06059e3b847b7cfbf9f5daa5f4b232`, then
+recomputes strict all44 gains against each preserved reference. Physical,
+materials, rooms, serving, blind and delivery remain explicitly unaccepted.
+Actual physical runtime adaptation/inspection, fresh capture seeds and separate
+ROOT resource agreement remain pending after a passing actual full comparison.
+No model load, game, GPU job, checkpoint copy or source archive is produced by
+this helper; the sealed original physical operator remains unchanged.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
