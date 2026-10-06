@@ -155,6 +155,7 @@ export function presentServerBatch({
   heldOriginsRef,
   fieldClashKeyRef,
   openAttackRef,
+  combatLandedRef,
   lastVisibleArtRef,
   revealOnStageRef,
   pendingDigivolutionDrawRef,
@@ -272,6 +273,8 @@ export function presentServerBatch({
   heldOriginsRef: MutableRefObject<WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>>;
   fieldClashKeyRef: MutableRefObject<number>;
   openAttackRef: MutableRefObject<OpenAttack | null>;
+  /** Mutated: each battle loser's blow, kept until the battle deletion it causes takes it. */
+  combatLandedRef: MutableRefObject<Map<string, PresentationGate>>;
   lastVisibleArtRef: MutableRefObject<Map<string, string>>;
   revealOnStageRef: MutableRefObject<RevealOnStage | null>;
   pendingDigivolutionDrawRef: MutableRefObject<Map<Seat, PresentationGate>>;
@@ -530,13 +533,23 @@ export function presentServerBatch({
   });
   // Start the field battle before a Piercing continuation can enqueue its security scene.
   // The shield step observes this track and waits until Raid's redirected battle has landed.
-  const combatCompletionGate = enqueueCombatImpact({
+  const { completion: combatCompletionGate, landedByPermanent } = enqueueCombatImpact({
     clashScenes,
     beaten,
     setFieldClash,
     setCombatImpactIds,
     enqueue,
   });
+  for (const [permanentId, landed] of landedByPermanent) combatLandedRef.current.set(permanentId, landed);
+  // A battle deletion the server published a batch after its comparison still waits for that blow.
+  const battleGate =
+    combatCompletionGate ??
+    fresh
+      .flatMap((event) =>
+        event.kind === "cardsMoved" && event.battleDeletion === true ? (event.deletedPermanents ?? []) : [],
+      )
+      .map(({ permanentId }) => combatLandedRef.current.get(permanentId))
+      .find((landed) => landed !== undefined && !landed.open);
   // Notices a security check owns. They read as what the revealed card did, so they
   // are handed to the centre-stage sequence below instead of being raised here, where
   // they would talk over — or ahead of — the reveal they describe.
@@ -725,7 +738,7 @@ export function presentServerBatch({
       batchId,
       raised,
       combatLeadInMs,
-      combatCompletionGate,
+      combatCompletionGate: battleGate,
       securityReveal: securityPresentation,
       securityBlowRef,
       queue,
@@ -759,7 +772,7 @@ export function presentServerBatch({
       groupedTriggers: sequenced?.grouped.map(({ eventIndex }) => fresh[eventIndex]!) ?? [],
       usedOption,
       combatLeadInMs,
-      combatCompletionGate,
+      combatCompletionGate: battleGate,
       cardSiteRef,
       effectSourceKeyRef,
       setEffectSources,
@@ -872,7 +885,7 @@ export function presentServerBatch({
         firstArrivalIndex,
         zoneChanges,
         combatLeadInMs,
-        combatCompletionGate,
+        combatCompletionGate: battleGate,
         securityReveal: securityPresentation,
         revealOnStageRef,
         noticeSequenceRef,
@@ -1033,6 +1046,7 @@ export function presentServerBatch({
     beaten,
     clashLoserIds,
     clashLeadInMsByPermanent,
+    combatLandedRef,
     playLeadInMs,
     anchors,
     deleteBurstKeyRef,

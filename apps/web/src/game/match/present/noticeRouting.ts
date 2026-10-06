@@ -168,7 +168,7 @@ export function routeBatchNotices({
         : 0,
     };
   }
-  if (combatLeadInMs > 0 && presenting) {
+  if ((combatLeadInMs > 0 || combatCompletionGate !== undefined) && presenting) {
     // These read as what the battle caused, so they are raised once the blow has landed.
     // Their clock starts there too, not at the batch that carried them.
     noticeSequenceRef.current += 1;

@@ -3,6 +3,7 @@ import type { Seat, ServerEvent } from "@aegis/shared";
 import {
   buildBattleDeletionScene,
   buildComparedBattleScene,
+  buildEffectBattleScene,
   buildFieldClashScene,
   trackOpenAttack,
   fieldClashDurationMs,
@@ -58,10 +59,19 @@ export function combatScenes({
     clashScenes.push(scene);
     for (const permanentId of scene.loserPermanentIds) clashLoserIds.add(permanentId);
     const open = openAttackRef.current;
-    if (open) openAttackRef.current = { ...open, staged: true };
+    if (!open) return;
+    openAttackRef.current = scene.effectBattle
+      ? { ...open, effectStruckIds: [...(open.effectStruckIds ?? []), ...scene.loserPermanentIds] }
+      : { ...open, staged: true };
   };
   for (const event of fresh) {
-    if (event.kind === "battleCompared") {
+    if (event.kind === "battleCompared" && event.effectBattle) {
+      const scene = buildEffectBattleScene({ key: fieldClashKeyRef.current + 1, event, viewerSeat });
+      if (scene) {
+        fieldClashKeyRef.current += 1;
+        stage(scene);
+      }
+    } else if (event.kind === "battleCompared") {
       const scene = buildComparedBattleScene({
         key: fieldClashKeyRef.current + 1,
         open: openAttackRef.current,

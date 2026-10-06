@@ -14,7 +14,7 @@ import {
   type PresentationGate,
 } from "../presentationGate";
 import { startRemoval, waitForRemovalTurn, type RemovalTurn } from "../removalChain";
-import { waitForCombatImpactClock } from "../present/combatImpactClock";
+import { waitForCombatImpactClock, waitForCombatLanded } from "../present/combatImpactClock";
 import { waitForFieldShatterClock } from "../../fieldShatter";
 
 /**
@@ -49,6 +49,7 @@ export function deleteBurstStep({
   removal,
   readBeforeBreak = true,
   fieldImpact = false,
+  combatLanded,
 }: {
   queue: AnimationQueue;
   anchors: MatchCueAnchors;
@@ -85,6 +86,8 @@ export function deleteBurstStep({
   readBeforeBreak?: boolean;
   /** Match the painted field impact before replacing its held face with shards. */
   fieldImpact?: boolean;
+  /** The battle blow this loser takes; it may still be queued behind an earlier blow. */
+  combatLanded?: PresentationGate;
 }): AnimationStep | null {
   const center = anchors.permanentCenter?.(anchorId);
   if (!center) return null;
@@ -157,6 +160,7 @@ export function deleteBurstStep({
       }
       if (context.cancelled) return leaveUnshown();
       await waitForStackStrips({ queue, context, throughKey: key, permanentId: anchorId });
+      if (combatLanded) await waitForCombatLanded(combatLanded, context);
       if (fieldImpact) await waitForCombatImpactClock([anchorId], context);
       if (context.cancelled) return leaveUnshown();
       if (removal) await waitForRemovalTurn(removal, context);

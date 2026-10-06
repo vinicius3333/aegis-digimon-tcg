@@ -26,11 +26,13 @@ describe("EX13-076 forced battle trigger ordering (Q7463)", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const paladinPermanentId = s.perm("base").permanentId;
+    const leomonPermanentId = s.perm("leomon").permanentId;
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("base").permanentId,
+        permanentId: paladinPermanentId,
         instanceId: s.inst("paladin").instanceId,
       }),
     ).toEqual({ ok: true });
@@ -49,6 +51,17 @@ describe("EX13-076 forced battle trigger ordering (Q7463)", () => {
       (event) =>
         event.kind === "effectResolved" && event.sourceCardId === "BT1-035" && event.timing === "OnDestroyedAnyone",
     );
+    const comparisonIndex = s.events.findIndex((event) => event.kind === "battleCompared");
+    const deletionMoveIndex = s.events.findIndex((event) => event.kind === "cardsMoved" && event.battleDeletion);
+    expect(s.events[comparisonIndex]).toEqual({
+      kind: "battleCompared",
+      attackerPermanentId: paladinPermanentId,
+      defenderPermanentId: leomonPermanentId,
+      loserPermanentIds: [leomonPermanentId],
+      effectBattle: { attackerSeat: 0, attackerCardId: paladinId, defenderCardId: "BT1-035" },
+    });
+    expect(comparisonIndex).toBeLessThan(deletionMoveIndex);
+    expect(s.events.some((event) => event.kind === "attackDeclared" || event.kind === "combatResolved")).toBe(false);
     expect(winTriggerIndex).toBeGreaterThanOrEqual(0);
     expect(deletionIndex).toBeGreaterThan(winTriggerIndex);
     assertNoLoudGap(s);

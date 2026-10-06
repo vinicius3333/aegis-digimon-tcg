@@ -111,6 +111,7 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
   ["effects-lab-prod-attack-stack", "Effects lab · production attack, 4 When Attacking"],
   ["effects-lab-prod-security-removed", "Effects lab · production security removed, 3 watchers"],
   ["effects-lab-prod-titan-cascade", "Effects lab · production Titan hand-trash cascade"],
+  ["effects-lab-paladin-battle", "Effects lab · EX13-076 effect battle"],
   ["arena-bt24-asuna-return-play", "BT24 Asuna · return to deck, then play from trash"],
   ["arena-ex13-deletion-trigger-ordering", "EX13 Kings · deletion trigger ordering"],
   ["arena-gate-deadly-sins-effect-order", "EX6 Gate of Deadly Sins · effect resolution plan"],
@@ -282,6 +283,10 @@ const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "effects-lab-prod-titan-cascade": {
     en: "Production chain. Pass breeding, then attack the player with Plutomon. Trash Dobermon and play Witchmon from the trash: five effects trigger together.",
     ptBR: "Cadeia de produção. Passe a criação e ataque o jogador com Plutomon. Descarte Dobermon e jogue Witchmon do lixo: cinco efeitos disparam juntos.",
+  },
+  "effects-lab-paladin-battle": {
+    en: "Pass breeding, then digivolve UlforceVeedramon into Imperialdramon: Paladin Mode. Accept its effect: BeelStarmon is suspended, loses its digivolution cards and battles Imperialdramon. No attack is declared.",
+    ptBR: "Passe a criação e digievolua UlforceVeedramon em Imperialdramon: Paladin Mode. Aceite o efeito: BeelStarmon é suspenso, perde suas cartas de digievolução e batalha com Imperialdramon. Nenhum ataque é declarado.",
   },
 };
 

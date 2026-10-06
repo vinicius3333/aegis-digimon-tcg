@@ -222,5 +222,6 @@ export interface AegisJoinOptions {
     | "effects-lab-prod-attack-stack"
     | "effects-lab-prod-security-removed"
     | "effects-lab-prod-titan-cascade"
+    | "effects-lab-paladin-battle"
     | "security-chain";
 }
