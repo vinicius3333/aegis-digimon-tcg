@@ -37,10 +37,46 @@ finite convergence, effect-only restrictions, absolute restrictions, and the
 ordinary opponent-effect negative control. These are local regression fixtures,
 not model or game qualification evidence.
 
+## Actual current-source runtime qualification
+
+The correction was combined with the current CPU-serving changes in source commit
+`aa2e56463176046ea5a01419d271a53a164efbae`, preserving the removal of retired
+operators and documents. That source was archived once and built in the fresh desktop
+checkout `/home/vinicius/aegis-bot-lab/checkouts/rule-link-current-aa2e56463`.
+The external operator and launch wrapper were excluded from the source archive.
+
+The actual run `/home/vinicius/aegis-bot-lab/runs/rule-link-current-aa2e56463-prepare`
+and its full closure reader both exited 0. Evidence:
+
+- Archive SHA-256: `41b1490c7171312e569faf005e0d1844a5f6a21d29c1cd184511770e0fd786f3` (43,539,071 bytes; 12,327 regular files and one symlink).
+- Source manifest SHA-256: `8db9d03c558991b2f9fd5ffe8b3145f942204b774b388a858163523848d4cb41`.
+- Reviewed delta SHA-256: `f1c6c9963bc4cffb220a9e6a72bef6367b0004f182dfe116c33cb4e00256f642`.
+- Operator SHA-256: `6f45a14e9b7980974e63739d16652cfe9e074fe9816e4fbb1f712c9e55a534d0`.
+- Request SHA-256: `097a350f7f49370bc4fc0aa05dfaae876ef0ddc7d6549dc5052e175ce2382c4b`.
+- Whole identity SHA-256: `8a1409ddbbf4f330f91ca035c17a7646db2d24adbb3dcb5e19427609ac5c7eea` (wrapper PID 687/start ticks 342).
+- Completion SHA-256: `cefcd65a1c037b8936697cdb6c21c7e71686b2b654fcdba031830cac2e7c1ebf`.
+- Report SHA-256: `c0dda021ed8cc07c380e13fc85376e51e726ccbf71d6b4257e873d736c86c125`.
+- Actual engine fingerprint: `4536a92429c1b62041212e983b63f46206dd4f2eefe959d42b3cc1a7f13c6a2c`.
+- Runtime map SHA-256: `838414a949ba0b1dbc6dc192d23f41553f147387072852612fd1206f532175d0`.
+
+Actual Node 26.10.0/Python 3.12.14 phases passed: frozen/offline/ignored-scripts
+install, shared/API builds, API/web typechecks, image/mirror checks, 13,815 engine
+and audit tests across 822 files, all 77 current Python tests, 18 delivery tests,
+both named teacher suites in both seats, and real describe/curriculum commands.
+Metadata and curriculum changed only their engine fingerprint; all 479 card
+identities, 44 recipes, keyword/status/schema fields, and Feature 7 remained intact.
+All source and compiled-runtime maps were checked before/after execution. Original
+full closure consumers verified the historical source/model basis without importing
+primary Torch. Four references and the rejected PPO candidate retained their original
+checkpoint bytes. CPU unit fixtures are runtime tests, not primary-model evidence.
+
+This documentation update does not change the qualified engine or Python module
+bytes and does not require another build or metadata-copy generation.
+
 ## Remaining work
 
-Engine bytes have changed. A fresh source/runtime qualification and declared
-engine fingerprint are required before using this runtime for model evaluation.
+Primary checkpoints still require binding to this changed engine and actual
+preservation queries before any new model evaluation.
 The original frozen archive, checkpoints, diagnostic receipts, and failed
 comparison remain immutable; that failed comparison is not relabeled successful.
 Then diagnose and correct the per-deck regressions, obtain strict gains for all
