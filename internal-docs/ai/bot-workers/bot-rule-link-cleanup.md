@@ -480,6 +480,49 @@ aggregate reward, targeted schedule, penalties or changed weights cannot
 accept strength, payment mastery, physical mechanisms, rooms, serving or blind
 qualification. Reserved final seeds remain untouched.
 
+## Prepared full-all44 corrective candidate evaluation
+
+A separate frozen evaluation operator is prepared outside the qualified archive:
+`/home/vinicius/aegis-bot-lab/transfers/rule-link-current-corrective-strength.py`,
+SHA-256 `a7acf69c568ee73f6e733223fdbac03924f91168b518ddaa4097b00358eaa47e`.
+It consumes the unchanged actual corrective learning `--closed` reader before
+any new primary import or game. Actual learning completion and new checkpoint
+hashes are obtained only from that full original whole-zero consumer. The
+pending request deliberately contains null values for both hashes and is
+rejected before model imports. Actual runtime/source/old checkpoint identities
+remain the existing qualified byte maps; no archive build or checkpoint metadata
+migration is added.
+
+The original all44 command and complete raw-record consumer are reused for
+one newly learned frozen candidate, with all **3,872** development games,
+44 recipes, all44 opponents and both seats. Evaluation seed 6135000 and the
+entire original schedule remain identical to the actual completed six-policy
+comparison. The four original reference results are reused only through that
+unchanged actual full closure chain, preserving every per-recipe count and
+reference checkpoint byte. No unchanged reference games are duplicated.
+Strict gains are still required for every one of the 44 recipes against each
+of the four references; neither targeted training nor aggregate wins narrow
+that requirement. Frozen evaluation authorizes zero learning updates and has
+its own separate actual ROOT resource agreement.
+
+Seven synthetic operator guards and four synthetic assessment guards pass.
+The real desktop Python 3.12.14 stdlib import and Bash syntax check pass; the
+pending request is actually rejected before Torch imports, with no evaluation
+job or output directory created. These checks are source/admission preparation,
+not actual new model, game or future closure proof. The wrapper SHA-256 is
+`3dd8a36d3591afa09ed5fb58b4532136c3500d3f1a56649672e0953059f8e01a`,
+and ROOT source review SHA-256 is
+`e3d6ef280ca319af998c649e7e51b42ca39226d6d213aed2af311feac6173c5b`.
+The pure local `assess_corrective_all44.py` helper (SHA-256
+`34949e8d479b3859cc93053822c82723c4e9f0feb5f76b79d0d355fb56814abc`)
+also preserves explicit physical, rooms, serving, blind and delivery non-acceptance.
+
+Final sealed request, actual new learning completion/CP pins, real admitted
+read-only inspect, ROOT resource Go, actual evaluation identity and launch
+remain pending. The actual corrective learner remains the original session
+10576, whole 696/start14967, operator 715 and CUDA learner 778/start21144;
+its partial results are preserved as training in progress.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
