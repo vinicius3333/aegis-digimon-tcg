@@ -2,7 +2,7 @@
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getCardSleeveId, setCardSleeveId } from "../design/sleeve";
+import { clearCustomCardSleeve, getCardSleeveId, setCardSleeveId, setCustomCardSleeve } from "../design/sleeve";
 import { getDeckBuilderPreferences, setDeckBuilderPreferences } from "../screens/deckBuilderPreferences";
 import { I18nProvider, useTranslation } from "../i18n";
 import { accountApi, type AccountPreferences } from "./client";
@@ -32,6 +32,7 @@ function echoUpdates(stored: AccountPreferences) {
 }
 
 beforeEach(() => {
+  clearCustomCardSleeve();
   localStorage.clear();
   setCardSleeveId("digimon-standard");
   setDeckBuilderPreferences({ deckShare: 0.45, deckView: "grid", deckSort: "releaseDate" });
@@ -87,5 +88,28 @@ describe("usePreferencesSync", () => {
     act(() => setDeckBuilderPreferences({ deckView: "list" }));
     await waitFor(() => expect(update).toHaveBeenLastCalledWith({ deckView: "list" }));
     expect(update).toHaveBeenCalledTimes(3);
+  });
+  it("keeps a device's custom sleeve on sign-in and excludes it from account updates", async () => {
+    setCustomCardSleeve("data:image/webp;base64,Y3VzdG9t");
+    const stored = {
+      darkMode: false,
+      locale: "en",
+      sleeve: "omnimon",
+      deckShare: 0.45,
+      deckView: "grid" as const,
+      deckSort: "releaseDate",
+    };
+    const load = vi.spyOn(accountApi, "preferences").mockResolvedValue(stored);
+    const update = echoUpdates(stored);
+    const { result } = renderSync("account-1");
+    await act(async () => {
+      await load.mock.results[0]!.value;
+    });
+    expect(getCardSleeveId()).toBe("custom");
+    expect(update).not.toHaveBeenCalled();
+    act(() => result.current.setDark(true));
+    await waitFor(() => expect(update).toHaveBeenCalledWith({ darkMode: true }));
+    act(() => setCardSleeveId("alphamon"));
+    await waitFor(() => expect(update).toHaveBeenLastCalledWith({ sleeve: "alphamon" }));
   });
 });

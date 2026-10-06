@@ -67,6 +67,7 @@
     font-weight: 700;
   }
   .game-mobile-surrender,
+  .game-mobile-share,
   .game-mobile-log,
   .game-mobile-bug {
     display: grid;
@@ -619,7 +620,14 @@
   }
   .aegis-arena
     .game-opponent-bar
-    :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-fullscreen, .game-mobile-surrender) {
+    :is(
+      .game-mobile-share,
+      .game-mobile-log,
+      .game-mobile-bug,
+      .game-mobile-look,
+      .game-mobile-fullscreen,
+      .game-mobile-surrender
+    ) {
     min-width: 36px;
     width: 36px;
     min-height: 36px;
@@ -654,7 +662,14 @@
   }
   .aegis-arena
     .game-opponent-bar
-    :is(.game-mobile-log, .game-mobile-bug, .game-mobile-look, .game-mobile-fullscreen, .game-mobile-surrender) {
+    :is(
+      .game-mobile-share,
+      .game-mobile-log,
+      .game-mobile-bug,
+      .game-mobile-look,
+      .game-mobile-fullscreen,
+      .game-mobile-surrender
+    ) {
     min-width: 30px;
     width: 30px;
     min-height: 30px;

@@ -4,6 +4,8 @@
    short desktop moves the deck and trash down from the right rail the same way. */
 
 import type { ReactNode, RefObject } from "react";
+import { CardBack } from "../../../design/cards";
+import { useTranslation } from "../../../i18n";
 import { ArenaCounters } from "../../ArenaCounters";
 import { Hand, type HandEntry } from "../../piece";
 import { Side } from "../../side";
@@ -12,6 +14,7 @@ import { PlayerLine } from "./PlayerLine";
 import type { EffectActivation } from "../../effectSource";
 
 export function PlayerDock({
+  spectating = false,
   timer,
   playerName,
   playerAvatarId,
@@ -37,6 +40,7 @@ export function PlayerDock({
   selectCard,
   onHoverChange,
 }: {
+  spectating?: boolean;
   timer?: ReactNode;
   /** The viewer's name for the line over the tray, when the screen knows it. */
   playerName?: string;
@@ -73,6 +77,7 @@ export function PlayerDock({
   selectCard: (index: number) => void;
   onHoverChange: (instanceId: string | undefined) => void;
 }) {
+  const { t } = useTranslation();
   const counters = (
     <ArenaCounters side={Side.Viewer} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
   );
@@ -101,20 +106,28 @@ export function PlayerDock({
         ) : reserveActionBarSpace ? (
           <div className="game-action-bar game-action-bar--idle" aria-hidden />
         ) : null}
-        <Hand
-          cardWidth={cardWidth}
-          minExposure={minExposure}
-          cards={cards}
-          selectedInstanceId={selectedInstanceId}
-          effectSourceInstanceId={effectSourceInstanceId}
-          effectSource={effectSource}
-          selection={selection}
-          startDrag={startDrag}
-          selectCard={selectCard}
-          draggingInstanceId={draggingInstanceId}
-          shakeInstanceId={shakeInstanceId}
-          onHoverChange={onHoverChange}
-        />
+        {spectating ? (
+          <div className="game-spectator-hand" aria-label={t("game.handCount", { count: handCount })}>
+            {Array.from({ length: handCount }, (_, index) => (
+              <CardBack key={index} width={40} useSelectedSleeve={false} />
+            ))}
+          </div>
+        ) : (
+          <Hand
+            cardWidth={cardWidth}
+            minExposure={minExposure}
+            cards={cards}
+            selectedInstanceId={selectedInstanceId}
+            effectSourceInstanceId={effectSourceInstanceId}
+            effectSource={effectSource}
+            selection={selection}
+            startDrag={startDrag}
+            selectCard={selectCard}
+            draggingInstanceId={draggingInstanceId}
+            shakeInstanceId={shakeInstanceId}
+            onHoverChange={onHoverChange}
+          />
+        )}
       </div>
       {pileDock ? (
         // The counters stack under the docked deck and trash, so the column is as wide as

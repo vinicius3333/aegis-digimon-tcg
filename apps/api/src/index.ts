@@ -1,3 +1,4 @@
+import { installSpectatorRoutes } from "./rooms/spectatorRoutes.js";
 import { createServer } from "node:http";
 import { matchMaker } from "colyseus";
 import { defineAegisRooms } from "./rooms/defineAegisRooms.js";
@@ -172,13 +173,20 @@ app.post("/room/lookup", async (req, res) => {
   // Asked of the matchmaker rather than this process's registry: in a cluster the room is
   // usually somewhere else, and the driver is the only place that knows its seat count.
   const [listing] = await matchMaker.query({ roomId });
-  if (listing === undefined || listing.clients >= 2) {
+  if (listing === undefined) {
     roomCodeDirectory().release(code, roomId);
+    res.status(404).json({ error: "room not available" });
+    return;
+  }
+  // A failed player join must not revoke a running match's spectator code.
+  if (listing.name !== ROOM_TYPE_PRIVATE || listing.clients >= 2 || listing.locked) {
     res.status(404).json({ error: "room not available" });
     return;
   }
   res.json({ roomId });
 });
+
+installSpectatorRoutes(app);
 
 const httpServer = createServer(app);
 const gameServer = new DeploymentServer(deploymentRuntime, {

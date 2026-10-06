@@ -813,11 +813,11 @@ export class GameEngine {
     return runOneTurn(this);
   }
 
-  makeStateView(seat: Seat): Client["view"] {
+  makeStateView(seat: Seat | undefined): Client["view"] {
     return makeStateView(this, seat);
   }
 
-  refreshStateView(view: Client["view"], seat: Seat): void {
+  refreshStateView(view: Client["view"], seat: Seat | undefined): void {
     return refreshStateView(this, view, seat);
   }
 
@@ -827,7 +827,7 @@ export class GameEngine {
 
   exposeCardToView(
     view: Client["view"],
-    viewerSeat: Seat,
+    viewerSeat: Seat | undefined,
     ownerSeat: Seat,
     zone: VisibilityZone,
     card: CardInstance,

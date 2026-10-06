@@ -40,6 +40,11 @@ function makeRoom(
   options: { botRoom?: boolean; betaBattleRoom?: boolean; private?: boolean; seed?: number } = {},
 ): AegisRoom {
   const room = new AegisRoom();
+  room.lock = vi.fn(async () => {});
+  room.unlock = vi.fn(async () => {});
+  room.setMatchmaking = vi.fn(async (updates) => {
+    if (updates.maxClients !== undefined) room.maxClients = updates.maxClients;
+  });
   const broadcastCalls: BroadcastCall[] = [];
   room.broadcast = vi.fn((type: string, message: unknown, broadcastOptions?: { afterNextPatch?: boolean }) => {
     broadcastCalls.push([type, message, broadcastOptions]);
@@ -967,4 +972,14 @@ describe("AegisRoom StateView lifecycle", () => {
     room.onDispose();
     expect(disposeStale).toHaveBeenCalledOnce();
   });
+});
+
+it("rechecks player capacity before a late join can overwrite an occupied seat", () => {
+  const room = makeRoom();
+  const [first, second] = joinBothSeats(room);
+  const intruder = fakeClient("third-client");
+  expect(() => room.onJoin(intruder, { displayName: "Third", deck: EMPTY_DECK })).toThrow("Player seats are full");
+  expect(room.state.players.map((player) => player.sessionId)).toEqual([first.sessionId, second.sessionId]);
+  expect(intruder.view).toBeUndefined();
+  room.onDispose();
 });

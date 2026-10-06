@@ -18,6 +18,11 @@ function room(
   },
 ) {
   const result = new AegisRoom();
+  result.lock = vi.fn(async () => {});
+  result.unlock = vi.fn(async () => {});
+  result.setMatchmaking = vi.fn(async (updates) => {
+    if (updates.maxClients !== undefined) result.maxClients = updates.maxClients;
+  });
   result.lock = vi.fn(async () => undefined) as AegisRoom["lock"];
   result.broadcast = vi.fn() as AegisRoom["broadcast"];
   result.onCreate({ seed: 1, ...options });

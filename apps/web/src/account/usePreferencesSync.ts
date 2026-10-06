@@ -1,5 +1,11 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { DEFAULT_CARD_SLEEVE, getCardSleeveId, setCardSleeveId, subscribeCardSleeve } from "../design/sleeve";
+import {
+  CUSTOM_CARD_SLEEVE_ID,
+  DEFAULT_CARD_SLEEVE,
+  getCardSleeveId,
+  setCardSleeveId,
+  subscribeCardSleeve,
+} from "../design/sleeve";
 import {
   sanitizeDeckBuilderPreferences,
   setDeckBuilderPreferences,
@@ -38,7 +44,7 @@ export function usePreferencesSync({
         if (cancelled) return;
         if (typeof preferences.darkMode === "boolean") setDark(preferences.darkMode);
         if (isLocale(preferences.locale)) setLocale(preferences.locale);
-        if (preferences.sleeve) setCardSleeveId(preferences.sleeve);
+        if (preferences.sleeve && getCardSleeveId() !== CUSTOM_CARD_SLEEVE_ID) setCardSleeveId(preferences.sleeve);
         setDeckBuilderPreferences(sanitizeDeckBuilderPreferences(preferences));
         setSynced({ accountId, preferences });
       })
@@ -50,7 +56,14 @@ export function usePreferencesSync({
 
   useEffect(() => {
     if (!accountId || !stored) return;
-    const current: AccountPreferences = { darkMode: dark, locale, sleeve, deckShare, deckView, deckSort };
+    const current: AccountPreferences = {
+      darkMode: dark,
+      locale,
+      ...(sleeve !== CUSTOM_CARD_SLEEVE_ID && { sleeve }),
+      deckShare,
+      deckView,
+      deckSort,
+    };
     const changes = Object.fromEntries(
       Object.entries(current).filter(([key, value]) => stored[key as keyof AccountPreferences] !== value),
     ) as AccountPreferences;

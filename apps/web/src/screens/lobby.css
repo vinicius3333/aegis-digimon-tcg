@@ -605,3 +605,21 @@ button.lobby-active-strip__jump {
   font-size: 0.875rem;
   line-height: 1.5;
 }
+
+.lobby-spectator-action {
+  flex-shrink: 0;
+}
+.lobby-spectator__body {
+  display: grid;
+  gap: var(--ds-space-4);
+}
+
+@media (width < 600px) {
+  .lobby-header .aegis-section-heading {
+    flex-wrap: wrap;
+  }
+
+  .lobby-header .aegis-section-heading__title {
+    flex-basis: 100%;
+  }
+}

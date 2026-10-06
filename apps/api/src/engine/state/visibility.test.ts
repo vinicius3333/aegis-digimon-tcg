@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { $changes, $refId, ArraySchema, Decoder, Encoder, type StateView } from "@colyseus/schema";
 import {
   GameState,
+  CombatWindow,
   PlayerState,
   CardInstance,
   AppFusionRoute,
@@ -860,5 +861,69 @@ describe("revealSecurityCardToOpponent", () => {
 
     expect(view.has(card)).toBe(true);
     expect(view.hasTag(card, CARD_ID_VIEW_TAG)).toBe(true);
+  });
+});
+
+describe("spectator visibility", () => {
+  it("encodes public counts but neither hand, hidden security, decisions nor counter candidates", () => {
+    const state = makeState();
+    syncPublicCounts(state);
+    const decision = new PendingDecision();
+    decision.decisionId = "private-question";
+    decision.seat = 0;
+    decision.kind = "selectCards";
+    decision.payloadJson = JSON.stringify({ cardIds: ["SECRET-HAND"] });
+    state.pendingDecision = decision;
+    const counter = new CombatWindow();
+    counter.seat = 0;
+    counter.kind = "counter";
+    counter.eligibleCountersJson = JSON.stringify([{ instanceId: "private-hand-card", effectKey: "blast" }]);
+    state.combatWindow = counter;
+    const targets = [0, 1, undefined].map((seat) => ({
+      view: buildStateView(state, seat as Seat | undefined),
+      decoder: new Decoder(new GameState()),
+    }));
+    encodeAllForViews(state, targets);
+    expect(targets[0]!.decoder.state.pendingDecision?.payloadJson).toContain("SECRET-HAND");
+    expect(targets[0]!.decoder.state.combatWindow?.eligibleCountersJson).toContain("private-hand-card");
+    for (const target of targets.slice(1)) {
+      expect(target.decoder.state.pendingDecision?.payloadJson ?? "").toBe("");
+      expect(target.decoder.state.combatWindow?.eligibleCountersJson ?? "").toBe("");
+    }
+    const watched = targets[2]!.decoder.state;
+    for (const player of watched.players) {
+      expect(player.hand.length).toBe(0);
+      expect(player.deck.length).toBe(0);
+      expect(player.eggDeck.length).toBe(0);
+      expect(player.security.length).toBe(0);
+      expect(player.handCount).toBe(5);
+      expect(player.securityCount).toBe(5);
+    }
+    for (const target of targets) target.view.dispose();
+  });
+
+  it("updates public card arrivals and face-up security without unlocking later draws", () => {
+    const state = makeState();
+    const view = buildStateView(state, undefined);
+    const decoder = new Decoder(new GameState());
+    syncPublicCounts(state);
+    encodeAllForView(state, view, decoder);
+    const player = state.players[0]!;
+    const played = player.hand.shift()!;
+    player.trash.push(played);
+    exposeCardInZone(view, undefined, 0, Zone.Trash, played);
+    const drawn = makeCard("new-private-hand", 0);
+    player.hand.push(drawn);
+    exposeCardInZone(view, undefined, 0, Zone.Hand, drawn);
+    player.security[0]!.faceUp = true;
+    syncPublicCounts(state);
+    refreshStateView(view, state, undefined);
+    encodePatchForView(state, view, decoder);
+    expect(decoder.state.players[0]!.trash[0]!.cardId).toBe("TEST-001");
+    expect(decoder.state.players[0]!.hand.length).toBe(0);
+    expect(decoder.state.players[0]!.handCount).toBe(5);
+    expect(decoder.state.players[0]!.securityView[0]!.cardId).toBe("TEST-001");
+    expect(decoder.state.players[0]!.securityView[1]!.cardId).toBe("");
+    view.dispose();
   });
 });

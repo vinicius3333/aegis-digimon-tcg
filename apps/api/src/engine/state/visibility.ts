@@ -256,8 +256,8 @@ export function syncPublicCounts(state: GameState): GameState {
  * matters — replacing the view wholesale loses track of cards that just left a
  * private zone and drops their removal from the next patch).
  */
-function unlockInto(view: StateView, state: GameState, seat: Seat, fullSnapshot: boolean): void {
-  const owner = state.players[seat];
+function unlockInto(view: StateView, state: GameState, seat: Seat | undefined, fullSnapshot: boolean): void {
+  const owner = seat === undefined ? undefined : state.players[seat];
   // A full snapshot walks the whole tree, so every card it touches has to be sound first.
   // Nothing below this walks cards on a plain refresh, so the sweep is snapshot-only; each
   // arriving card is repaired individually by `exposeCardInZone` instead.
@@ -297,8 +297,16 @@ function unlockInto(view: StateView, state: GameState, seat: Seat, fullSnapshot:
   // a decision sat open re-sent the entire blob 20 times a second. Later edits to the payload
   // still reach the view through the normal tagged-change path; the forced ADD is only needed
   // to make the object visible in the first place, and a new decision is a new ChangeTree.
-  if (state.pendingDecision?.seat === seat && !view.has(state.pendingDecision)) {
+  if (seat !== undefined && state.pendingDecision?.seat === seat && !view.has(state.pendingDecision)) {
     view.add(state.pendingDecision, PRIVATE_DECISION_VIEW_TAG);
+  }
+
+  if (
+    seat !== undefined &&
+    state.combatWindow?.seat === seat &&
+    !view.hasTag(state.combatWindow, PRIVATE_DECISION_VIEW_TAG)
+  ) {
+    view.add(state.combatWindow, PRIVATE_DECISION_VIEW_TAG);
   }
 
   // Reveal any security card already face-up to BOTH players (e.g. set face-up by a prior
@@ -341,7 +349,7 @@ function unlockInto(view: StateView, state: GameState, seat: Seat, fullSnapshot:
  *
  * Pure: constructs and returns a fresh StateView; mutates no GameState.
  */
-export function buildStateView(state: GameState, seat: Seat): StateView {
+export function buildStateView(state: GameState, seat: Seat | undefined): StateView {
   const view = new StateView();
   unlockInto(view, state, seat, true);
   return view;
@@ -368,7 +376,7 @@ export function buildStateView(state: GameState, seat: Seat): StateView {
  * `unlockInto` only ever calls `view.add(...)`, so calling it repeatedly on the
  * same instance is safe/idempotent and requires no matching `view.remove(...)`.
  */
-export function refreshStateView(view: StateView, state: GameState, seat: Seat): void {
+export function refreshStateView(view: StateView, state: GameState, seat: Seat | undefined): void {
   unlockInto(view, state, seat, false);
 }
 
@@ -387,7 +395,7 @@ export function refreshStateView(view: StateView, state: GameState, seat: Seat):
  */
 export function exposeCardInZone(
   view: StateView,
-  viewerSeat: Seat,
+  viewerSeat: Seat | undefined,
   ownerSeat: Seat,
   zone: VisibilityZone,
   card: CardInstance,
