@@ -1,5 +1,5 @@
-/* One location for answers, one for cards. Attribute selectors deliberately
-   outweigh the older per-overlay, board-density and phone-sheet rules. */
+/* Left action rails and central card galleries share one frame. Hand-only choices
+   keep their cards in the hand. Attribute selectors outweigh older layout rules. */
 .effect-prompt-layer {
   position: fixed !important;
   inset: 0;
@@ -535,5 +535,131 @@ body:has([data-prompt-surface], .mulligan-sheet) .game-battle-scroll-arrow {
   .game-modal__panel.effect-prompt-family[data-prompt-surface],
   .board-prompt[data-prompt-surface] {
     animation: none !important;
+  }
+}
+
+/* Hand-only effects keep the physical cards as their choices. Reserve the hand
+   dock measured by the rail, including its lift and scroll controls. */
+.board-prompt[data-prompt-surface="left"][data-variant="selection"] {
+  top: calc((100dvh - var(--decision-hand-clearance, 0px)) / 2) !important;
+  width: min(21rem, calc(100vw - var(--ds-space-8))) !important;
+  max-height: calc(100dvh - var(--decision-hand-clearance, 0px) - var(--ds-space-8)) !important;
+  padding: var(--ds-space-4) !important;
+  gap: var(--ds-space-2);
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__text {
+  font-size: 1.125rem !important;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__art > div {
+  width: 3.5rem !important;
+  height: auto !important;
+  aspect-ratio: 5 / 7;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(:has(.board-prompt__clause)) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "heading body"
+    "detail detail"
+    "actions actions";
+  align-items: center;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(:has(.board-prompt__clause)):has(
+    .board-prompt__budget
+  ) {
+  grid-template-areas:
+    "heading body"
+    "detail detail"
+    "budget budget"
+    "actions actions";
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(:has(.board-prompt__clause))
+  .board-prompt__heading {
+  grid-area: heading;
+  min-width: 0;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(:has(.board-prompt__clause))
+  .board-prompt__body {
+  grid-area: body;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(:has(.board-prompt__clause))
+  .board-prompt__detail {
+  grid-area: detail;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(:has(.board-prompt__clause))
+  .board-prompt__budget {
+  grid-area: budget;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"]:not(:has(.board-prompt__clause))
+  .board-prompt__actions {
+  grid-area: actions;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__detail {
+  color: var(--ds-card-rim-ready);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__actions {
+  position: sticky;
+  bottom: calc(-1 * var(--ds-space-4));
+  margin-bottom: calc(-1 * var(--ds-space-4));
+  padding-block: var(--ds-space-2) var(--ds-space-4);
+  background: var(--ds-surface);
+}
+.game-hand--selecting .game-hand-card:focus-visible {
+  outline: 3px solid var(--ds-focus-color);
+  outline-offset: 4px;
+}
+
+@media (max-width: 1023px) and (orientation: portrait), (height < 520px) and (orientation: landscape) {
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"] {
+    top: auto !important;
+    bottom: calc(var(--decision-hand-clearance, var(--game-hand-h, 11rem)) + var(--ds-space-2)) !important;
+    left: var(--ds-space-3) !important;
+    right: var(--ds-space-3) !important;
+    width: calc(100vw - var(--ds-space-6)) !important;
+    max-width: calc(100vw - var(--ds-space-6)) !important;
+    max-height: calc(
+      100dvh - var(--decision-hand-clearance, var(--game-hand-h, 11rem)) - var(--ds-space-6) -
+        env(safe-area-inset-top, 0px)
+    ) !important;
+    translate: none !important;
+  }
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ds-space-2);
+  }
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"]
+    .board-prompt__actions
+    > button:first-child:nth-last-child(odd) {
+    grid-column: 1 / -1;
+  }
+  .board-prompt-scrim[data-variant="selection"] {
+    pointer-events: none;
+  }
+}
+
+@media (height < 520px) and (orientation: landscape) {
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"] {
+    padding: var(--ds-space-3) !important;
+  }
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__art > div {
+    width: 2.5rem !important;
+  }
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"] .board-prompt__actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    bottom: calc(-1 * var(--ds-space-3));
+    margin-bottom: calc(-1 * var(--ds-space-3));
+    padding-bottom: var(--ds-space-3);
+  }
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"]
+    .board-prompt__actions
+    > button:first-child:nth-last-child(odd) {
+    grid-column: auto;
+  }
+  .board-prompt[data-prompt-surface="left"][data-variant="selection"]
+    .board-prompt__actions:has(> button:last-child:nth-child(2)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

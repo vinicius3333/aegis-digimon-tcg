@@ -28,6 +28,8 @@ import {
   playerFacingPromptText,
 } from "../../overlay";
 import type { DigiXrosCandidate, TriggerDetail } from "../../overlay";
+import { totalPlayCost } from "../../overlay/choice/decisionPlayCost";
+import { totalDP } from "../../overlay/choice/decisionDpBudget";
 
 /**
  * A one-card pick from the digivolution cards of several of the viewer's Digimon: the central
@@ -124,6 +126,21 @@ export function DecisionPrompts({
   const digiXrosRequirements = digiXrosCardId ? digiXrosRequirementFor(digiXrosCardId) : undefined;
   const isDigiXrosDecision = digiXrosCardId !== undefined && digiXrosRequirements !== undefined;
   const isMaterialDecision = isAssemblyDecision || isDigiXrosDecision;
+  const selectedPlayCost = totalPlayCost({ picks, candidates });
+  const permanentDetails = decisionPermanentDetails(permanents);
+  const selectedDP = totalDP({ picks, dpOf: (id) => permanentDetails.get(id)?.currentDP });
+  const maxPlayCost = decision?.options?.maxTotalPlayCost;
+  const maxDP = decision?.options?.maxTotalDP;
+  const budgetText = [
+    maxPlayCost === undefined
+      ? undefined
+      : t("overlay.playCostBudget", { selected: selectedPlayCost, max: maxPlayCost }),
+    maxDP === undefined
+      ? undefined
+      : t("overlay.dpBudget", { selected: selectedDP.toLocaleString(), max: maxDP.toLocaleString() }),
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <>
       {decision && !answerOnBoard && sourceHost?.picking ? (
@@ -165,7 +182,6 @@ export function DecisionPrompts({
       {decision && decision.kind !== "mulligan" && !answerOnBoard && !isMaterialDecision && !sourceHost?.picking
         ? (() => {
             const sourceCounts = decisionSourceCounts(permanents);
-            const permanentDetails = decisionPermanentDetails(permanents);
             return (
               <DecisionOverlay
                 key={decision.decisionId}
@@ -216,7 +232,14 @@ export function DecisionPrompts({
           min={min}
           max={max}
           pickCount={picks.length}
-          canConfirm={picks.length >= min && picks.length <= max}
+          canConfirm={
+            picks.length >= min &&
+            picks.length <= max &&
+            picks.every((id) => allowsPick(id)) &&
+            (maxPlayCost === undefined || selectedPlayCost <= maxPlayCost) &&
+            (maxDP === undefined || selectedDP <= maxDP)
+          }
+          budgetText={budgetText || undefined}
           confirmLabel={attackConfirmLabel}
           onConfirm={() => onRespond({ kind: boardSelectionKind, instanceIds: picks })}
           onNoSelection={() => onRespond({ kind: boardSelectionKind, instanceIds: [] })}

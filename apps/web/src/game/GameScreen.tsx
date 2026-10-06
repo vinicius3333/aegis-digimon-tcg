@@ -1329,7 +1329,10 @@ export function GameScreen({
               },
               onInspect: setHandPreview,
             }
-          : !fieldDecision && decisionView.answerOnBoard && decisionView.viewerDecision?.kind === "selectCards"
+          : !fieldDecision &&
+              decisionView.answerOnBoard &&
+              (decisionView.viewerDecision?.kind === "selectCards" ||
+                decisionView.viewerDecision?.kind === "chooseTargets")
             ? {
                 selectableInstanceIds: (decisionView.viewerDecision.options?.candidateInstanceIds ?? []).filter(
                   decisionAllowsPick,

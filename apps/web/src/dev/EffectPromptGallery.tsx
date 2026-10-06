@@ -44,12 +44,13 @@ export const EFFECT_PROMPT_CASES = [
   ["choose-clauses", "Choose option · printed clauses", "left"],
   ["choose-effects", "Choose option · borrowed effects", "center"],
   ["choose-revealed", "Choose option · revealed cards", "left"],
-  ["select-hand", "Select cards · hand", "center"],
+  ["select-hand", "Select cards · hand subset", "left"],
+  ["choose-targets-hand", "Choose targets · hand", "left"],
   ["select-field", "Choose targets · field", "center"],
   ["select-mixed", "Select cards · mixed zones", "center"],
   ["select-player", "Choose targets · player", "center"],
   ["select-dp-budget", "Choose targets · DP budget", "center"],
-  ["select-cost-budget", "Select cards · play cost budget", "center"],
+  ["select-cost-budget", "Select cards · hand play cost budget", "left"],
   ["select-empty", "Select cards · no legal candidates", "center"],
   ["order-cards", "Order cards · deck bottom", "center"],
   ["order-triggers", "Order triggers · next effect", "center"],
@@ -97,6 +98,34 @@ export function EffectPromptGallery() {
   const dark = useDarkMode();
   useEffect(applyDarkMode, []);
   const state = useMemo(() => createArenaDemoState(), []);
+  const handDecision = useMemo(() => {
+    if (!["select-hand", "choose-targets-hand", "select-cost-budget"].includes(caseId)) return undefined;
+    const hand = state.players[0]!.hand;
+    const candidates =
+      caseId === "select-hand"
+        ? hand.filter((_, index) => index % 2 === 0)
+        : caseId === "choose-targets-hand"
+          ? hand.slice(0, 3)
+          : hand;
+    const portuguese = locale === "pt-BR";
+    return {
+      decisionId: `gallery-${caseId}-${revision}`,
+      seat: 0,
+      kind: caseId === "choose-targets-hand" ? "chooseTargets" : "selectCards",
+      promptText: portuguese ? "Selecione até 2 cartas da sua mão" : "Select up to 2 cards from your hand",
+      sourceCardId: state.players[0]!.battleArea[0]!.topCard.cardId,
+      options: {
+        candidateInstanceIds: candidates.map((card) => card.instanceId),
+        min: caseId === "choose-targets-hand" ? 0 : 1,
+        max: 2,
+        ...(caseId === "select-cost-budget" ? { maxTotalPlayCost: 7 } : {}),
+        timing: "Main",
+        effectText: portuguese
+          ? "Prévia visual: escolha as cartas destacadas da mão. Nada é descartado."
+          : "Visual preview: choose the highlighted cards in hand. Nothing is trashed.",
+      },
+    } satisfies DecisionRequest;
+  }, [state, caseId, revision, locale]);
   const boardRef = useRef<HTMLDivElement>(null);
   const current = EFFECT_PROMPT_CASES.find(([id]) => id === caseId)!;
   function selectCase(id: CaseId) {
@@ -155,6 +184,7 @@ export function EffectPromptGallery() {
       </header>
       <div ref={boardRef} className="effect-prompt-gallery__board">
         <GameScreen
+          key={`${caseId}-${revision}`}
           joinOptions={{ displayName: "Effect gallery", deck: { mainDeck: [], eggDeck: [] } }}
           identityColor="Red"
           onExit={() => window.location.assign("/")}
@@ -164,7 +194,7 @@ export function EffectPromptGallery() {
             state,
             events: [],
             batches: [],
-            decision: undefined,
+            decision: active ? handDecision : undefined,
             respondDecision: respond,
             acknowledgeDecision: () => {},
             error: undefined,
@@ -173,7 +203,9 @@ export function EffectPromptGallery() {
           }}
         />
         {active ? (
-          <GalleryPrompt key={`${caseId}-${revision}`} caseId={caseId} board={boardRef.current} onRespond={respond} />
+          handDecision ? null : (
+            <GalleryPrompt key={`${caseId}-${revision}`} caseId={caseId} board={boardRef.current} onRespond={respond} />
+          )
         ) : (
           <section className="effect-prompt-gallery__response" role="status">
             <strong>{locale === "pt-BR" ? "Resposta enviada" : "Response sent"}</strong>

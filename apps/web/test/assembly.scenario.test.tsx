@@ -13,7 +13,7 @@ import {
   ownBattle,
   passOpponentTurn,
 } from "./scenarioHarness/connectedGame";
-import { findDecisionSurface } from "./scenarioHarness/decisions";
+import { decisionCandidates, findDecisionSurface } from "./scenarioHarness/decisions";
 import { tap } from "./scenarioHarness/tap";
 import { findEndBreedingControl, waitForBoardActions } from "./scenarioHarness/breedingStep";
 
@@ -48,8 +48,12 @@ scenario("assembly", () => {
     await chooseHandPlay(/^yuuki$/i);
     const costSurface = await findDecisionSurface();
     const costId = owner.state.pendingDecision!.decisionId;
-    fireEvent.click(within(costSurface).getByRole("button", { name: /^musyamon$/i }));
-    fireEvent.click(within(costSurface).getByRole("button", { name: /^confirm targets$/i }));
+    const material = decisionCandidates(costSurface).find(
+      (card) => card.getAttribute("data-hand-instance-id") === materialId,
+    );
+    expect(material).toBeTruthy();
+    fireEvent.click(material!);
+    fireEvent.click(within(costSurface).getByRole("button", { name: /^end selection$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(costId), {
       timeout: 10_000,
     });
@@ -59,9 +63,9 @@ scenario("assembly", () => {
     });
     await passOpponentTurn(opponent);
     fireEvent.click(await findEndBreedingControl());
-    // Yuuki's optional hand cost may be declined in the central selection.
+    // Yuuki's optional hand cost may be declined beside the highlighted hand.
     const surface = await findDecisionSurface();
-    fireEvent.click(within(surface).getByRole("button", { name: /^none$/i }));
+    fireEvent.click(within(surface).getByRole("button", { name: /^no selection$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision).toBeUndefined(), { timeout: 10_000 });
     await waitForBoardActions();
     const memoryBefore = owner.state.memory;

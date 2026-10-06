@@ -24,12 +24,14 @@ export function isDecoyDecision(decision: DecisionRequest | undefined): boolean 
   return decision?.kind === "selectCards" && /^[＜<]\s*Decoy(?:\s*[＞>]|\s*\()/i.test(decision.promptText ?? "");
 }
 
-/** Effect card selections always use the central dialog, regardless of their zone.
+/** Hand-only selections are answered by highlighting cards in the live hand.
+ * Other card selections retain the central dialog and its revealed context.
  * Simple optional actions use the left rail when their source is on the field.
  * Unknown decisions retain the dialog fallback.
  */
 export function decisionPresentation({
   decision,
+  handInstanceIds,
   sourcePermanentId,
 }: {
   decision: DecisionRequest;
@@ -37,6 +39,22 @@ export function decisionPresentation({
   sourcePermanentId?: string;
   fieldInstanceIds?: readonly string[];
 }): DecisionPresentation {
+  if (decision.kind === "selectCards" || decision.kind === "chooseTargets") {
+    const options = decision.options;
+    const candidates = options?.candidateInstanceIds ?? [];
+    const hand = new Set(handInstanceIds);
+    const visible = options?.visibleInstanceIds ?? candidates;
+    const material = options?.assemblyCardId !== undefined || options?.digiXrosCardId !== undefined;
+    if (
+      !material &&
+      options?.selectionContext !== "partitionActivation" &&
+      options?.selectionContext !== "attackTarget" &&
+      candidates.length > 0 &&
+      candidates.every((id) => hand.has(id)) &&
+      visible.every((id) => hand.has(id))
+    )
+      return "board";
+  }
   return decision.kind === "optional" && sourcePermanentId !== undefined ? "board" : "dialog";
 }
 

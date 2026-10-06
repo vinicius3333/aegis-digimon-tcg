@@ -36,7 +36,7 @@ export async function resolveNextTriggerThroughUi(opponent: HeadlessOpponent): P
   return true;
 }
 
-/** Card selections use the central dialog; optional field actions use the left rail. */
+/** Hand-only selections and optional field actions use the left rail; other card choices are central. */
 export async function findDecisionSurface(): Promise<HTMLElement> {
   return await waitFor(
     () => {

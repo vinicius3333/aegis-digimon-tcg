@@ -37,6 +37,9 @@ export function useOverlayState({
   /** Which player's security stack is open. */
   const [securityView, setSecurityView] = useState<Side | null>(null);
   const [picks, setPicks] = useState<string[]>([]);
+  useEffect(() => {
+    setPicks([]);
+  }, [decision?.decisionId]);
   // A board-mode decision the viewer asked to see in the dialog instead (Escape
   // or the rail's back arrow). Reset with every new decision.
   const [decisionAsDialog, setDecisionAsDialog] = useState(false);

@@ -1,8 +1,8 @@
-/* Simple actions use the left dialog. Legacy board-selection rails remain for
-   compatibility, while live card choices use the central gallery. The pill tells
+/* Simple actions use the left dialog. Hand-only choices highlight the live hand;
+   other card choices use the central gallery. The pill tells
    the viewer when the opponent is choosing. */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Button } from "../design/primitives";
 import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
@@ -64,6 +64,8 @@ export function BoardPromptRail({
   prompt,
   clause,
   detail,
+  budgetText,
+  handClearance,
   className,
   onOpenDialog,
   showDialogButton,
@@ -78,6 +80,8 @@ export function BoardPromptRail({
   prompt: string;
   clause?: string;
   detail?: string;
+  budgetText?: string;
+  handClearance?: number;
   className?: string;
   /** Escape hands the decision back to its dialog whenever this is set. */
   onOpenDialog?: () => void;
@@ -101,6 +105,11 @@ export function BoardPromptRail({
         data-testid="board-prompt"
         data-variant={variant}
         data-prompt-surface="left"
+        style={
+          {
+            "--decision-hand-clearance": handClearance === undefined ? undefined : `${handClearance}px`,
+          } as CSSProperties
+        }
       >
         <div className="board-prompt__grip" aria-hidden />
         {onOpenDialog && showDialogButton ? (
@@ -131,6 +140,11 @@ export function BoardPromptRail({
           </div>
         ) : null}
         {detail ? <p className="board-prompt__detail">{detail}</p> : null}
+        {budgetText ? (
+          <p className="board-prompt__detail board-prompt__budget" role="status">
+            {budgetText}
+          </p>
+        ) : null}
         <div className="board-prompt__actions">{children}</div>
       </section>
     </>
@@ -149,6 +163,7 @@ export function BoardSelectionRail({
   pickCount,
   canConfirm,
   confirmLabel,
+  budgetText,
   onConfirm,
   onNoSelection,
   onOpenDialog,
@@ -167,6 +182,7 @@ export function BoardSelectionRail({
   canConfirm: boolean;
   /** Names what confirming does, such as the attack it declares, in place of the generic confirm. */
   confirmLabel?: string;
+  budgetText?: string;
   onConfirm: () => void;
   onNoSelection: () => void;
   onOpenDialog?: () => void;
@@ -174,7 +190,28 @@ export function BoardSelectionRail({
   const { t } = useTranslation();
   const [isViewingBoard, setIsViewingBoard] = useState(false);
   const [isEffectExpanded, setIsEffectExpanded] = useState(false);
+  const [handClearance, setHandClearance] = useState<number>();
   const returnControlRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (fieldSelection || attackSelection || isViewingBoard) return;
+    const hand = document.querySelector<HTMLElement>(".game-hand-dock");
+    if (!hand) return;
+    const update = () => setHandClearance(Math.max(0, window.innerHeight - hand.getBoundingClientRect().top));
+    update();
+    const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(update);
+    observer?.observe(hand);
+    window.addEventListener("resize", update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [fieldSelection, attackSelection, isViewingBoard]);
+
+  useEffect(() => {
+    if (fieldSelection || attackSelection || isViewingBoard) return;
+    document.querySelector<HTMLElement>(".game-hand-dock .game-hand-card--pickable")?.focus({ preventScroll: true });
+  }, [fieldSelection, attackSelection, isViewingBoard]);
 
   useEffect(() => {
     if (isViewingBoard) returnControlRef.current?.querySelector("button")?.focus();
@@ -199,6 +236,8 @@ export function BoardSelectionRail({
       prompt={prompt}
       clause={clause}
       detail={t("overlay.selectedOfRange", { count: pickCount, range: min === max ? `${max}` : `${min}–${max}` })}
+      budgetText={budgetText}
+      handClearance={handClearance}
       onOpenDialog={onOpenDialog}
     >
       {/* Keep the confirm slot mounted so the rail does not jump when the first card is

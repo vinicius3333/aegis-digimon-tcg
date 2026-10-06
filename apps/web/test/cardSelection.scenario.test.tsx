@@ -92,13 +92,17 @@ scenario("card-selection", () => {
     const selectDialog = await vi.waitFor(
       () => {
         const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
-        expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+        expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
+        expect(screen.queryByRole("dialog")).toBeNull();
         expect(opponent.room.state.pendingDecision?.kind).toBe("selectCards");
         return dialog;
       },
       { timeout: 10_000 },
     );
     const [candidate] = decisionCandidates(selectDialog);
+    const physicalInstanceId = candidate!.getAttribute("data-hand-instance-id");
+    expect(physicalInstanceId).toBeTruthy();
+    expect(candidate!.classList.contains("game-hand-card--pickable")).toBe(true);
     const candidateLabel = candidate!.getAttribute("aria-label") ?? "";
     // The hand labels a pickable card "Pick {name}"; the trash below lists the
     // card by its bare name, so keep both forms.
@@ -107,12 +111,14 @@ scenario("card-selection", () => {
 
     fireEvent.click(candidate!);
     // Clicking marks it picked — the label gains ", selected" and aria-pressed flips.
-    expect(screen.getByRole("button", { name: `${candidateLabel}, selected`, pressed: true })).toBeTruthy();
+    expect(candidate!.getAttribute("aria-pressed")).toBe("true");
+    expect(candidate!.classList.contains("game-hand-card--picked")).toBe(true);
     const selectionDecisionId = opponent.room.state.pendingDecision?.decisionId;
     fireEvent.click(within(selectDialog).getByRole("button", { name: /confirm target|^end selection$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(selectionDecisionId), {
       timeout: 10_000,
     });
+    expect(opponent.room.state.players[0]!.trash.some((card) => card.instanceId === physicalInstanceId)).toBe(true);
 
     // A second copy of Yuuki's cost-bearing optional (its Start-of-Main-Phase
     // clause; see optionalDecision.scenario.test.tsx) may still be pending —

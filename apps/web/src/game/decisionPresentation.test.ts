@@ -108,8 +108,35 @@ describe("decisionPresentation", () => {
     );
   });
 
-  it("puts a hand-only selectCards decision in the central dialog", () => {
-    const request = decision({ options: { candidateInstanceIds: ["h1", "h2"], min: 1, max: 1 } });
+  it.each(["selectCards", "chooseTargets"] as const)("picks hand-only %s decisions in the physical hand", (kind) => {
+    const request = decision({ kind, options: { candidateInstanceIds: ["h1", "h2"], min: 1, max: 1 } });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("board");
+  });
+
+  it("keeps visible ineligible hand cards beside the highlighted candidates", () => {
+    const request = decision({
+      options: { candidateInstanceIds: ["h1"], visibleInstanceIds: ["h1", "h2", "h3"], min: 0, max: 1 },
+    });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("board");
+  });
+
+  it.each([
+    { assemblyCardId: "BT26-014" },
+    { digiXrosCardId: "BT10-009" },
+    { selectionContext: "partitionActivation" as const },
+    { selectionContext: "attackTarget" as const },
+  ])("preserves dedicated material and attack dialogs (%j)", (options) => {
+    const request = decision({ options: { candidateInstanceIds: ["h1"], min: 1, max: 1, ...options } });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("dialog");
+  });
+
+  it("does not confuse a printed card id with a physical card in the viewer's hand", () => {
+    const request = decision({ options: { candidateInstanceIds: ["ST1-07"], min: 1, max: 1 } });
+    expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("dialog");
+  });
+
+  it("keeps an opponent's hidden hand candidate in the dialog", () => {
+    const request = decision({ options: { candidateInstanceIds: ["opponent-hand"], min: 1, max: 1 } });
     expect(decisionPresentation({ decision: request, handInstanceIds: hand })).toBe("dialog");
   });
 
