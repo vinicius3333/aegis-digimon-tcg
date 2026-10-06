@@ -17,7 +17,7 @@ import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
-import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
+import type { Action, CardDefinition, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
 
 /** A foreign card eligible to lend a borrowed effect (its instance + the borrowable effects). */
 interface ForeignCandidate {
@@ -446,6 +446,14 @@ export async function runActivateEffect(
  * then goes to trash (the `playInstances` `isPermanentKind` gap). The use RESULT binds on
  * `ctx.lastOptionUsed` at use-time (KB EX8-037 Q4738) so an `ifThisEffectUsed` tail can gate.
  */
+// Loose DUAL cards carry both sides' colors in the catalog. When selecting an
+// Option to use, color predicates (including single-color) read its Option face.
+function optionUseDefinition(definition: CardDefinition): CardDefinition {
+  return definition.isDualCard && definition.optionColorRequirements !== undefined
+    ? { ...definition, colors: definition.optionColorRequirements }
+    : definition;
+}
+
 function optionUseCandidates(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
@@ -506,7 +514,11 @@ function optionUseCandidates(
     // Exact-cost filters ("an Option with a memory cost of 7") read the cost the card has in
     // hand, which excludes reductions that apply only when it would be used (Q1501).
     const inHandCost = ctx.fx.inHandCost?.(candidate.instanceId, seat) ?? def.playCost;
-    if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, { ...def, playCost: inHandCost })) return;
+    if (
+      effectiveFilter !== undefined &&
+      !definitionMatches(effectiveFilter, { ...optionUseDefinition(def), playCost: inHandCost })
+    )
+      return;
     if (!def.kinds.includes(CardKind.Option)) return;
     if (
       action.waiveColorRequirement !== true &&
@@ -520,7 +532,7 @@ function optionUseCandidates(
     const zoneCandidates =
       action.target === undefined
         ? looseCardsInZone(ctx, seat, zone)
-        : candidateLooseInstances(ctx, action.target, [zone]);
+        : candidateLooseInstances(ctx, action.target, [zone], optionUseDefinition);
     for (const candidate of zoneCandidates) {
       addIfEligible(candidate);
     }
