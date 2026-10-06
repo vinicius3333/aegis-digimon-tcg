@@ -27,6 +27,32 @@ export const compiled: CompiledCard = {
       ],
       isInherited: true,
     },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
+            {
+              filter: {
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Rock Dragon", "Earth Dragon", "Bird Dragon", "Machine Dragon", "Sky Dragon"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
+            },
+            { filter: { nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "nameExact" }] }, count: 1, to: "hand" },
+          ],
+          rest: "deckBottom",
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
