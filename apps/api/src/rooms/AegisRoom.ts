@@ -17,6 +17,7 @@ import {
   PRESENTATION_CHANNEL,
 } from "@aegis/shared";
 import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
+import { createIssueReproBotPolicy } from "../engine/issueReproBotPolicy.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
@@ -981,6 +982,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
             decks: [humanDeck, deck],
           })
         : undefined;
+    const scenarioPolicy = createIssueReproBotPolicy(this.devScenario);
     this.bots[this.BOT_SEAT] = new BotPlayer(
       this.BOT_SEAT,
       this.state,
@@ -993,7 +995,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
         this.rebuildClientViews();
         return result;
       },
-      modelOptions,
+      scenarioPolicy === undefined ? modelOptions : { policy: scenarioPolicy },
     );
 
     this.debug("bot.seated", { seat: this.BOT_SEAT, deck });

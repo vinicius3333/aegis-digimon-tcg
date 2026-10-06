@@ -16,6 +16,70 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-examon-bt23-partition-choice": {
+    ptBR: "Encerre a criação e seu turno. O bot evolui para Imperialdramon Fighter Mode AD1-024 e devolve Examon BT23-047 ao fundo do deck. Examon tem as mesmas seis fontes da partida de Sara#AllForWashu, incluindo Wingdramon EX13-021 e Groundramon BT20-042. A janela de Partition deve mostrar ambas e aguardar sua escolha explícita: Usar joga as duas gratuitamente; Não usar descarta as fontes. Este cenário usa a remoção de Imperialdramon para isolar a mesma escolha de Partition que Rosemon Burst gerou na partida.",
+    en: "End breeding and your turn. The bot evolves into AD1-024 Imperialdramon Fighter Mode and returns BT23-047 Examon to the bottom of the deck. Examon has the same six sources from Sara#AllForWashu's match, including EX13-021 Wingdramon and BT20-042 Groundramon. Partition must preview both and wait for your explicit choice: Use plays both for free; Don't use trashes the sources. This scenario uses Imperialdramon's removal to isolate the same Partition choice that Rosemon Burst raised in the match.",
+  },
+  "arena-discord-1556821976922849360-tsunomon-jupitermon": {
+    ptBR: "Encerre a criação. Ataque a segurança com Ikkakumon e aceite Elecmon para adicionar sua segurança à mão: restam 4 seguranças. Aceite Tsunomon para evoluir Aegiochusmon P-213 para Jupitermon BT24-101. O custo variável de 4 deve receber a redução de 1 e cobrar apenas 3. A memória vai de 8 para 5. Jupitermon depois descarta outra segurança; isso não recalcula o custo já pago. Recuse Decode se oferecido.",
+    en: "End breeding. Attack security with Ikkakumon and accept Elecmon to add your top security to hand: 4 security cards remain. Accept Tsunomon to digivolve P-213 Aegiochusmon into BT24-101 Jupitermon. The variable cost of 4 must receive the 1 reduction and charge only 3. Memory goes from 8 to 5. Jupitermon then trashes another security card; this does not recalculate the cost already paid. Decline Decode if offered.",
+  },
+  "arena-discord-1556821976922849360-tsunomon-jupitermon-zero": {
+    ptBR: "Encerre a criação. Ataque a segurança com Ikkakumon e aceite Elecmon para adicionar sua segurança à mão: resta 1 segurança. Aceite Tsunomon para evoluir Aegiochusmon P-213 para Jupitermon BT24-101. O custo variável de 1 menos a redução de 1 deve cobrar 0. A memória permanece em 8. Depois Jupitermon descarta a última segurança e recupera 2 do deck. Recuse Decode se oferecido.",
+    en: "End breeding. Attack security with Ikkakumon and accept Elecmon to add your top security to hand: 1 security card remains. Accept Tsunomon to digivolve P-213 Aegiochusmon into BT24-101 Jupitermon. The variable cost of 1 minus the 1 reduction must charge 0. Memory stays at 8. Jupitermon then trashes the last security and recovers 2 from the deck. Decline Decode if offered.",
+  },
+  "arena-discord-1556810241952194590-cerberusmon-alphamon": {
+    ptBR: "Encerre a criação e ataque a segurança com Raptordramon. Ordene os efeitos do ataque, resolvendo Raptordramon antes de Dorumon. Aceite evoluir para Grademon por 3: durante o ataque ele recebe imunidade a efeitos de Digimon adversários. No fim do ataque, evolua para Alphamon por 4. Encerre o turno. O bot usa Inferno Divide, lado Opção do Cerberusmon BT26-056, por 3 e descarta uma carta. De-Digivolve 3 deve remover Alphamon, Grademon e Raptordramon, deixando Dorumon EX13-049 em campo, apesar da imunidade a Digimon. Recuse a proteção herdada de Grademon se oferecida. A imunidade não bloqueia efeitos de Opção.",
+    en: "End breeding and attack security with Raptordramon. Order the attack effects, resolving Raptordramon before Dorumon. Accept digivolving into Grademon for 3: during the attack it gains immunity to opposing Digimon effects. At end of attack, digivolve into Alphamon for 4. End your turn. The bot uses Inferno Divide, BT26-056 Cerberusmon's Option side, for 3 and trashes a hand card. De-Digivolve 3 must remove Alphamon, Grademon and Raptordramon, leaving EX13-049 Dorumon in play despite Digimon immunity. Decline Grademon's inherited protection if offered. The immunity does not block Option effects.",
+  },
+  "arena-discord-1556831312008974437-jesmon-gankoomon-immunity": {
+    ptBR: "Encerre seu primeiro turno. O bot evolui Coredramon em Wingdramon EX13-021 e bloqueia a suspensão de Jesmon. No seu próximo turno, com 3 de memória, jogue Gankoomon BT20-057 (custa 8). Ordene Gankoomon antes do ataque de Jesmon e aceite ambos. Evolua o Gankoomon recém-jogado em Gankoomon X BT20-059 gratuitamente. A imunidade torna o bloqueio de Wingdramon inativo: Jesmon deve oferecer um alvo e atacar antes de passar o turno, mesmo com -5 de memória. Não use o efeito de jogar token nem Alliance para manter o cenário simples.",
+    en: "End your first turn. The bot evolves Coredramon into Wingdramon EX13-021 and prevents Jesmon from suspending. On your next turn, at 3 memory, play Gankoomon BT20-057 (cost 8). Order Gankoomon before Jesmon's attack and accept both effects. Evolve the newly played Gankoomon into Gankoomon X BT20-059 for free. Immunity makes Wingdramon's lock inactive: Jesmon must offer an attack target and attack before passing the turn, even at -5 memory. Decline the token play and Alliance to keep the scenario simple.",
+  },
+  "arena-discord-1556811259867955282-patamon-zero": {
+    ptBR: "Encerre a criação. Patamon deve mostrar em particular todas as 3 seguranças em uma única modal, com 0 alvo(s) de evolução selecionável(is). Selecione um Vaccine amarelo para evoluir ou escolha Nenhum para desistir: Patamon permanece em campo e a segurança é embaralhada virada para baixo. Também pode escolher um Vaccine amarelo para evoluir grátis e depois colocar a carta da mão no fundo da segurança.",
+    en: "End breeding. Patamon must privately show all 3 security cards in one modal, with 0 selectable evolution target(s). Pick a yellow Vaccine to digivolve or choose None to decline: Patamon must stay in play and all security must be shuffled face down. You may instead choose a yellow Vaccine to digivolve for free, then place the hand card at the bottom of security.",
+  },
+  "arena-discord-1556811259867955282-patamon-one": {
+    ptBR: "Encerre a criação. Patamon deve mostrar em particular todas as 3 seguranças em uma única modal, com 1 alvo(s) de evolução selecionável(is). Selecione um Vaccine amarelo para evoluir ou escolha Nenhum para desistir: Patamon permanece em campo e a segurança é embaralhada virada para baixo. Também pode escolher um Vaccine amarelo para evoluir grátis e depois colocar a carta da mão no fundo da segurança.",
+    en: "End breeding. Patamon must privately show all 3 security cards in one modal, with 1 selectable evolution target(s). Pick a yellow Vaccine to digivolve or choose None to decline: Patamon must stay in play and all security must be shuffled face down. You may instead choose a yellow Vaccine to digivolve for free, then place the hand card at the bottom of security.",
+  },
+  "arena-discord-1556811259867955282-patamon-multiple": {
+    ptBR: "Encerre a criação. Patamon deve mostrar em particular todas as 3 seguranças em uma única modal, com 2 alvo(s) de evolução selecionável(is). Selecione um Vaccine amarelo para evoluir ou escolha Nenhum para desistir: Patamon permanece em campo e a segurança é embaralhada virada para baixo. Também pode escolher um Vaccine amarelo para evoluir grátis e depois colocar a carta da mão no fundo da segurança.",
+    en: "End breeding. Patamon must privately show all 3 security cards in one modal, with 2 selectable evolution target(s). Pick a yellow Vaccine to digivolve or choose None to decline: Patamon must stay in play and all security must be shuffled face down. You may instead choose a yellow Vaccine to digivolve for free, then place the hand card at the bottom of security.",
+  },
+  "arena-discord-1556798361435373630-mococomon-once-per-turn": {
+    ptBR: "Encerre a criação. Evolua Gokuumon EX12-043 para Sanzomon EX12-045 por 3. Aceite retirar a segurança e jogar Cho-Hakkaimon por 5, sem DigiXros. No grupo simultâneo, resolva Cho-Hakkaimon antes do Mococomon; escolha o Jupitermon sem fontes para De-Digivolve, conceda Alliance ao Sanzomon e ataque a segurança. Durante os efeitos do ataque, resolva Mococomon e evolua para Erlangmon por 1. Aceite o Token e escolha o Jupitermon sem fontes para devolver ao deck. O bot paga a proteção; Aegiochusmon desfaz a evolução. O mesmo Mococomon NÃO pode resolver novamente: Sanzomon permanece em campo, o segundo Erlangmon continua na mão e a memória termina em 1. Recuse Barrier se oferecido.",
+    en: "End breeding. Digivolve EX12-043 Gokuumon into EX12-045 Sanzomon for 3. Accept removing security and playing Cho-Hakkaimon for 5, without DigiXros. In the simultaneous group, resolve Cho-Hakkaimon before Mococomon; choose the Jupitermon without sources for De-Digivolve, grant Sanzomon Alliance and attack security. During attack effects, resolve Mococomon and digivolve into Erlangmon for 1. Accept the Token and select the Jupitermon without sources to return to the deck. The bot pays for protection; Aegiochusmon undoes your evolution. The same Mococomon must NOT resolve again: Sanzomon stays in play, the second Erlangmon stays in hand and final memory is 1. Decline Barrier if offered.",
+  },
+  "arena-discord-1556782829713621082-digilab-breeding": {
+    ptBR: "Encerre a criação sem mover Veemon EX13-017. Sem Digimon ou Tamer na área de batalha, use DigiLab P-225 por 2: o Veemon CS na criação deve liberar a exigência de cor. Compre 1 carta, coloque DigiLab na área de batalha e mantenha Veemon na criação. Memória final: 3.",
+    en: "End breeding without moving EX13-017 Veemon. With no Digimon or Tamer in the battle area, use P-225 DigiLab for 2: the CS Veemon in breeding must waive its color requirements. Draw 1, place DigiLab in the battle area and keep Veemon in breeding. Final memory: 3.",
+  },
+  "arena-discord-1556772689731915896-fly-bullet-hand": {
+    ptBR: "Encerre a criação. Gallantmon X está imune a efeitos de Digimon adversários. Use Fly Bullet (lado Opção de BeelStarmon BT25-085) da mão por 6: Gallantmon X deve ser deletado e a memória fica em 2. Recuse colocar cartas sob LadyDevimon e a Digievolução Arts.",
+    en: "End breeding. Gallantmon X is immune to opposing Digimon effects. Use Fly Bullet (BT25-085 BeelStarmon’s Option side) from hand for 6: Gallantmon X must be deleted and memory ends at 2. Decline placing cards under LadyDevimon and Arts Digivolve.",
+  },
+  "arena-discord-1556772689731915896-fly-bullet-sources": {
+    ptBR: "Encerre a criação e ataque a segurança com BeelStarmon. Aceite usar uma Opção de graça e escolha o Fly Bullet sob ela. Gallantmon X deve ser deletado apesar da imunidade a efeitos de Digimon. Recuse colocar uma carta sob BeelStarmon, desvirá-la e a Digievolução Arts. A memória continua em 8.",
+    en: "End breeding and attack security with BeelStarmon. Accept using an Option for free and choose Fly Bullet under her. Gallantmon X must be deleted despite immunity to Digimon effects. Decline placing a card under BeelStarmon, unsuspending her and Arts Digivolve. Memory stays at 8.",
+  },
+  "arena-discord-1556772182607011971-asuna": {
+    ptBR: "Encerre a criação e recuse o efeito de início do Principal de Asuna. Ative o Principal de Asuna, suspenda-a e descarte Iron Slash debaixo de LadyDevimon. Escolha LadyDevimon e BeelStarmon da lixeira. Escolha custo alternativo 3, reduzido em 1: paga 2 e fica com 6 de memória (rota normal: paga 3, fica com 5). Recuse os efeitos seguintes de BeelStarmon.",
+    en: "End breeding and decline Asuna’s Start of Your Main Phase effect. Activate Asuna’s Main, suspend her and trash Iron Slash under LadyDevimon. Choose LadyDevimon and BeelStarmon from trash. Choose alternate cost 3, reduced by 1: pay 2 and keep 6 memory (ordinary route: pay 3, keep 5). Decline BeelStarmon’s following effects.",
+  },
+  "arena-discord-1556772182607011971-image-training": {
+    ptBR: "Encerre a criação. Ative o Delay de Image Training e escolha LadyDevimon → BeelStarmon da mão. As duas rotas devem aparecer: normal 4 − 2 = 2 (memória 6), alternativa TS 3 − 2 = 1 (memória 7). Recuse os efeitos seguintes de BeelStarmon.",
+    en: "End breeding. Activate Image Training’s Delay and choose LadyDevimon → BeelStarmon from hand. Both routes must appear: ordinary 4 − 2 = 2 (6 memory), alternate TS 3 − 2 = 1 (7 memory). Decline BeelStarmon’s following effects.",
+  },
+  "arena-discord-1556772182607011971-breathing-training": {
+    ptBR: "Encerre a criação. Ative o Delay de Breathing Training e escolha LadyDevimon → BeelStarmon da mão. Escolha a rota alternativa TS: 3 − 2 = 1, memória final 7. A rota normal também está disponível: 4 − 2 = 2, memória final 6. Recuse os efeitos seguintes.",
+    en: "End breeding. Activate Breathing Training’s Delay and choose LadyDevimon → BeelStarmon from hand. Choose the alternate TS route: 3 − 2 = 1, ending at 7 memory. The ordinary route is also available: 4 − 2 = 2, ending at 6 memory. Decline the following effects.",
+  },
+  "arena-discord-1556772182607011971-pagumon": {
+    ptBR: "Encerre a criação. Use Fly Bullet (BT25-085) por 6 e coloque Chaos Triangular EX7-066 da lixeira sob LadyDevimon. Aceite a evolução herdada de Pagumon para BeelStarmon. Escolha a rota alternativa TS: 3 − 2 = 1, memória final 1 (rota normal: 4 − 2 = 2, memória final 0). Recuse os efeitos seguintes.",
+    en: "End breeding. Use Fly Bullet (BT25-085) for 6 and place EX7-066 Chaos Triangular from trash under LadyDevimon. Accept Pagumon’s inherited evolution into BeelStarmon. Choose the alternate TS route: 3 − 2 = 1, ending at 1 memory (ordinary route: 4 − 2 = 2, ending at 0). Decline the following effects.",
+  },
   "arena-discord-1556745762682183811-giant-slayer-execute": {
     ptBR: "Jogue Giant Slayer por 12, passando 5 de memória. Aceite devolver Cherubimon da lixeira ao fundo do deck e conceda Rush e Execute ao Giant Slayer. Aceite Execute e ataque o jogador. No fim do ataque, aceite a proteção de Giant Slayer e evolua sem custo para Chronomon: Destroy Mode da mão. Execute deve resolver a deleção uma única vez: Destroy Mode permanece em campo.",
     en: "Play Giant Slayer for 12, passing 5 memory. Accept returning Cherubimon from trash to the deck bottom and grant Giant Slayer Rush and Execute. Accept Execute and attack the player. At the end of the attack, accept Giant Slayer’s protection and digivolve for free into Chronomon: Destroy Mode from hand. Execute’s deletion resolves once: Destroy Mode stays in play.",
@@ -1037,6 +1101,22 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
 };
 
 const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
+  ["arena-discord-1556821976922849360-tsunomon-jupitermon", "Tsunomon · Jupitermon cost 4 minus 1"],
+  ["arena-discord-1556821976922849360-tsunomon-jupitermon-zero", "Tsunomon · Jupitermon cost 1 minus 1"],
+  ["arena-discord-1556810241952194590-cerberusmon-alphamon", "Cerberusmon · Option versus protected Alphamon"],
+  ["arena-examon-bt23-partition-choice", "Examon BT23 · explicit Partition choice"],
+  ["arena-discord-1556831312008974437-jesmon-gankoomon-immunity", "Jesmon · attack after Gankoomon X immunity"],
+  ["arena-discord-1556811259867955282-patamon-zero", "Patamon · security search with 0 targets"],
+  ["arena-discord-1556811259867955282-patamon-one", "Patamon · security search with 1 targets"],
+  ["arena-discord-1556811259867955282-patamon-multiple", "Patamon · security search with 2 targets"],
+  ["arena-discord-1556798361435373630-mococomon-once-per-turn", "Mococomon · once per turn during a nested attack"],
+  ["arena-discord-1556782829713621082-digilab-breeding", "DigiLab · CS Veemon in breeding"],
+  ["arena-discord-1556772689731915896-fly-bullet-hand", "Fly Bullet · Option from hand"],
+  ["arena-discord-1556772689731915896-fly-bullet-sources", "Fly Bullet · Option from BeelStarmon’s sources"],
+  ["arena-discord-1556772182607011971-asuna", "Asuna \u00b7 alternate evolution cost"],
+  ["arena-discord-1556772182607011971-image-training", "Image Training \u00b7 alternate evolution cost"],
+  ["arena-discord-1556772182607011971-breathing-training", "Breathing Training \u00b7 alternate evolution cost"],
+  ["arena-discord-1556772182607011971-pagumon", "Pagumon \u00b7 alternate evolution cost"],
   ["arena-discord-1556702519952932885-rosemon-burst", "Rosemon \u00b7 Burst"],
   ["arena-discord-1556702519952932885-yoshino", "Yoshino \u00b7 reactive evolution"],
   ["arena-discord-1556702668754387095-machinedramon", "Machinedramon \u00b7 Chaosdramon X Fragment"],
