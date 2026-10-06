@@ -193,7 +193,6 @@ export function BoardSelectionRail({
 }) {
   const { t } = useTranslation();
   const [isViewingBoard, setIsViewingBoard] = useState(false);
-  const [isEffectExpanded, setIsEffectExpanded] = useState(false);
   const [handClearance, setHandClearance] = useState<number>();
   const returnControlRef = useRef<HTMLDivElement>(null);
 
@@ -233,7 +232,7 @@ export function BoardSelectionRail({
   return (
     <BoardPromptRail
       variant={fieldSelection || attackSelection ? "field-selection" : "selection"}
-      className={`${fieldSelection || attackSelection ? "board-prompt--target-selection" : ""}${isEffectExpanded ? " board-prompt--effect-expanded" : ""}`}
+      className={fieldSelection || attackSelection ? "board-prompt--target-selection" : ""}
       label={selectionLabel}
       eyebrow={selectionLabel}
       art={sourceCardId}
@@ -256,12 +255,15 @@ export function BoardSelectionRail({
           {t(fieldSelection || attackSelection ? "overlay.passNoSelection" : "overlay.noSelection")}
         </Button>
       ) : null}
-      <Button full variant="secondary" icon={Icons.Map} onClick={() => setIsViewingBoard(true)}>
-        {t("overlay.viewBoard")}
+      <Button
+        className="board-prompt__select-on-board"
+        full
+        variant="secondary"
+        icon={Icons.Map}
+        onClick={() => setIsViewingBoard(true)}
+      >
+        {t(fieldSelection || attackSelection ? "overlay.selectOnBoard" : "overlay.viewBoard")}
       </Button>
-      {(fieldSelection || attackSelection) && clause ? (
-        <EffectToggleButton expanded={isEffectExpanded} onToggle={() => setIsEffectExpanded((expanded) => !expanded)} />
-      ) : null}
     </BoardPromptRail>
   );
 }
@@ -344,23 +346,6 @@ function useBoardView() {
   return { boardReturn, viewBoard: () => setIsViewingBoard(true) };
 }
 
-/** Shown only on phones (see fieldDecisionRail.css), where a target rail folds its clause away. */
-function EffectToggleButton({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <Button
-      className="board-prompt__effect-toggle"
-      full
-      variant="secondary"
-      icon={expanded ? Icons.ChevronDown : Icons.Info}
-      aria-expanded={expanded}
-      onClick={onToggle}
-    >
-      {t(expanded ? "overlay.hideEffect" : "overlay.showEffect")}
-    </Button>
-  );
-}
-
 export function ViewBoardButton({ onClick }: { onClick: () => void }) {
   const { t } = useTranslation();
   return (
@@ -386,12 +371,11 @@ export function BoardSourceHostPrompt({
 }) {
   const { t } = useTranslation();
   const { boardReturn, viewBoard } = useBoardView();
-  const [isEffectExpanded, setIsEffectExpanded] = useState(false);
   if (boardReturn) return boardReturn;
   return (
     <BoardPromptRail
       variant="field-selection"
-      className={`board-prompt--target-selection${isEffectExpanded ? " board-prompt--effect-expanded" : ""}`}
+      className="board-prompt--target-selection"
       label={t("overlay.chooseSourceHost")}
       eyebrow={t("overlay.chooseSourceHost")}
       art={sourceCardId}
@@ -404,9 +388,6 @@ export function BoardSourceHostPrompt({
         </Button>
       ) : null}
       <ViewBoardButton onClick={viewBoard} />
-      {clause ? (
-        <EffectToggleButton expanded={isEffectExpanded} onToggle={() => setIsEffectExpanded((expanded) => !expanded)} />
-      ) : null}
     </BoardPromptRail>
   );
 }

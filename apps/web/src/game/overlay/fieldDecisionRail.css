@@ -63,9 +63,6 @@
   flex: 0 0 auto;
   white-space: normal;
 }
-.board-prompt[data-variant="field-selection"] .board-prompt__effect-toggle {
-  display: none;
-}
 .board-prompt--alliance[data-variant="field-selection"] .board-prompt__actions {
   width: auto;
   justify-self: end;
@@ -85,10 +82,6 @@
    one word per line. Give every field decision a clear vertical reading order
    before that pressure appears. */
 @media (width < 768px) {
-  .board-prompt[data-variant="field-selection"] .board-prompt__effect-toggle {
-    display: inline-flex;
-  }
-
   .board-prompt[data-variant="field-selection"] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
@@ -143,9 +136,8 @@
     max-width: none;
   }
 
-  /* Target picking happens on the board, so the board keeps the visual priority.
-     The printed clause is available on demand instead of permanently covering
-     the eligible cards. */
+  /* Target picking happens on the board. The sheet can step aside while the
+     player selects its cards, then return for confirmation. */
   .board-prompt--target-selection[data-variant="field-selection"] {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
@@ -165,35 +157,6 @@
     white-space: nowrap;
   }
 
-  /* Collapsed, the body is only the asking card's art, a small cue beside the question;
-     the clause waits behind "Show effect". */
-  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
-    .board-prompt__body {
-    display: block;
-  }
-
-  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
-    .board-prompt__clause {
-    display: none;
-  }
-
-  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
-    :is(.board-prompt__art .game-card-mini, .board-prompt__art > div) {
-    width: 2.5rem !important;
-  }
-
-  /* With the clause folded away, the prompt is the only line saying what to tap. */
-  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
-    .board-prompt__text[data-quiet] {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    margin: 0;
-    clip-path: none;
-    white-space: normal;
-  }
-
   .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -205,20 +168,6 @@
     .board-prompt__actions
     > button:first-child:nth-last-child(odd) {
     grid-column: 1 / -1;
-  }
-
-  .board-prompt--target-selection.board-prompt--effect-expanded[data-variant="field-selection"] {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "heading detail"
-      "body body"
-      "actions actions";
-    max-height: min(54dvh, 24rem);
-    overflow-y: auto;
-  }
-
-  .board-prompt--target-selection.board-prompt--effect-expanded[data-variant="field-selection"] .board-prompt__body {
-    display: grid;
   }
 }
 
