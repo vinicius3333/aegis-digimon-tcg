@@ -178,6 +178,13 @@
   min-width: 0;
 }
 
+/* Dock specimens have a board and hand, without the live match's header row. */
+@media (max-width: 1023px) and (orientation: portrait) {
+  .mobile-lab-surface__board:has(> .game-player-dock) {
+    grid-template-rows: minmax(0, 1fr) calc(var(--arena-hand-height) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .mobile-lab-fill {
   flex: 1;
   min-height: 0;
