@@ -521,6 +521,30 @@ adds four retained 50% scaled decoded/fallback stacks and four natural reduced-m
 cases. Source camera/materials, count/attachment cleanup and all leave branches
 still need a complete comparison.
 
+A card that an effect plays after paying with a deck return waits for that return. The
+return is the latest removal link, from an earlier batch, still flying or landed less
+than `TIMINGS.deckReturnLanding` (120 ms) ago. The play reveal starts once the stack has
+landed and that beat has passed. Only deck returns mark their link for this wait. Hand
+returns, deletions, older or finished links, skipped or discarded returns, and returns
+without geometry add no wait. The beat's start is the wall-clock landing time, so time
+the arrival spends queued after the landing counts toward it. A return and a play in the
+same server batch are not ordered by this beat. `deckReturnPlayPacing.test.ts` replays
+Asuna Shiroki's start-of-turn chain (return to the deck bottom, then play from trash) at
+the real hook, for both presentation pacings and both beat styles, and checks that a
+return to hand does not hold the play. The `arena-bt24-asuna-return-play` live arena
+scenario reproduces it against the real server. Measured painted clocks, before and
+after this change:
+
+| Viewport, speed | Flight    | Play reveal starts                      | Overlap frames |
+| --------------- | --------- | --------------------------------------- | -------------- |
+| 320 px, Normal  | 485 → 457 | at flight start → +118 ms after landing | 28 → 0         |
+| 1440 px, Normal | 492 → 503 | at flight start → +135 ms after landing | 29 → 0         |
+| 1440 px, Fast   | → 509     | → +128 ms after landing                 | → 0            |
+
+Fast scales clause beats only, so motion clocks match Normal. Reduced motion hides the
+flight. The new card settles on the field 49 ms after Asuna leaves it, and the queue
+does not wait.
+
 Field return-to-hand now uses the whole departing physical stack: a 250 ms OutQuad
 approach to the owner's actual hand dock, keeping each face/source/link orientation.
 The viewer's stack grows to 1.1 times its field size; the opponent's shrinks to 0.25.

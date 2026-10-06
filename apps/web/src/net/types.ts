@@ -49,6 +49,7 @@ export interface AegisJoinOptions {
     | "arena-bt16-phoenixmon-x-antibody-name"
     | "arena-bt21-davis-top-stack"
     | "arena-bt21-dracomon-start-main"
+    | "arena-bt24-asuna-return-play"
     | "arena-bt21-dogatchmon-link-attack"
     | "arena-bt24-sonic-shot-decline-link"
     | "arena-bt26-chronomon-dm-succession"

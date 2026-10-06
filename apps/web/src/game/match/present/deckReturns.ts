@@ -60,6 +60,7 @@ export function enqueueDeckReturns({
       const held = heldDeletionFrom({ snapshots, seat, permanentId });
       if (held) setHeldDeletions((current) => new Map(current).set(key, held));
       const removal = joinRemovalChain(removalChainRef, true);
+      removal.link.deckReturn = true;
       const card: DrawFlightCard = { cardId: returned.cardId, ...(returned.artId ? { artId: returned.artId } : {}) };
       enqueue({
         id: `deck-return-${key}`,
@@ -85,7 +86,7 @@ export function enqueueDeckReturns({
             startRemoval(removal);
             // The flying card takes over from the one on the board in the same commit.
             releaseHold();
-            if (from) await flyCardToDeck(card, from, seat, context);
+            if (from && (await flyCardToDeck(card, from, seat, context))) removal.link.landedAt = Date.now();
           } finally {
             startRemoval(removal);
             removal.link.finished?.release();

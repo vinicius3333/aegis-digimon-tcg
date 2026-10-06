@@ -305,6 +305,8 @@ export const TIMINGS = {
   stackStripPeel: 595,
   /** Full upright stack moves250ms, then its printed face fades160ms. */
   deckReturn: 410,
+  /** A card an effect plays after a paid return waits this long once the stack has landed. */
+  deckReturnLanding: 120,
   /** Whole stack approaches the hand250ms, then pauses100ms before hand entry. */
   handReturn: 250,
   handReturnPause: 100,

@@ -100,6 +100,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt16-phoenixmon-x-antibody-name",
   "arena-bt21-davis-top-stack",
   "arena-bt21-dracomon-start-main",
+  "arena-bt24-asuna-return-play",
   "arena-bt21-dogatchmon-link-attack",
   "arena-bt24-sonic-shot-decline-link",
   "arena-bt26-chronomon-dm-succession",
@@ -2278,6 +2279,19 @@ function layEx13MagnamonEndTurnScenario(state: GameState, decks: readonly [Deckl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * The bot's Asuna Shiroki pays its [Start of Your Turn] by returning itself to the bottom of
+ * the deck, then plays the other Asuna from the trash. The human only passes the turn.
+ */
+function layAsunaReturnPlayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 0);
+  const bot = state.players[1]!;
+  const asuna = establishedDigimon(1, ["BT24-088"], "-asuna");
+  asuna.permanentId = "opp-asuna";
+  placePermanent(bot, asuna);
+  insertCard(bot, Zone.Trash, faceUpCard("dev-asuna-trash", "BT25-092", 1));
 }
 
 /** Starts the human's turn with only suspended ＜Reboot＞ Digimon on their battle area. */
@@ -6326,6 +6340,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-marcus-alliance": layMarcusAllianceScenario,
   "arena-bt23-examon-partition-return": layBt23ExamonRemovalScenario,
+  "arena-bt24-asuna-return-play": layAsunaReturnPlayScenario,
   "arena-bt23-examon-piercing-end-turn": (state, decks) => layBt23ExamonRemovalScenario(state, decks, true),
   "arena-bt26-monimon-optional-cost": layBt26MonimonOptionalCostScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,

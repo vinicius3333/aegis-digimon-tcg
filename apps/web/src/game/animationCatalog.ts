@@ -101,8 +101,16 @@ export const ANIMATION_FAMILIES = {
   removal: {
     label: "Delete, trash and return",
     owner: "match/present/deletionBursts.ts",
-    timings: ["cardShatter", "deletionBurst", "removalStagger", "deckReturn", "handReturn", "handReturnPause"],
-    sequence: "Clause/impact → retain field card → shatter or return flight → remove",
+    timings: [
+      "cardShatter",
+      "deletionBurst",
+      "removalStagger",
+      "deckReturn",
+      "deckReturnLanding",
+      "handReturn",
+      "handReturnPause",
+    ],
+    sequence: "Clause/impact → retain field card → shatter or return flight → remove → paid play enters",
   },
   stack: {
     label: "Digivolution cards and links",
