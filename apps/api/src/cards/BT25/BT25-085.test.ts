@@ -369,3 +369,46 @@ describe("Discord 1556772689731915896: nested Fly Bullet Option identity", () =>
     },
   );
 });
+
+it.each(["hand", "digivolutionCards"].flatMap((from) => ["attack", "digivolve"].map((timing) => ({ from, timing }))))(
+  "GitHub bug #5039 immediately resolves Fortitude after Fly Bullet from $from during $timing",
+  async ({ from, timing }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: timing === "attack" ? "BT25-085" : "BT25-083",
+              as: "beel",
+              under: from === "digivolutionCards" ? [{ card: "BT25-085", as: "bullet" }] : [],
+            },
+          ],
+          hand: [
+            ...(from === "hand" ? [{ card: "BT25-085", as: "bullet" }] : []),
+            ...(timing === "digivolve" ? [{ card: "BT25-085", as: "evolution" }] : []),
+          ],
+        },
+        1: { battleArea: [{ card: "EX13-041", as: "ground", under: ["BT20-040"] }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["ir-2"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const oldId = s.perm("ground").permanentId,
+      topId = s.inst("ground").instanceId;
+    expect(
+      s.engine.applyIntent(
+        0,
+        timing === "attack"
+          ? { type: "attack", attackerPermanentId: s.perm("beel").permanentId, target: { kind: "player" } }
+          : { type: "digivolve", permanentId: s.perm("beel").permanentId, instanceId: s.inst("evolution").instanceId },
+      ),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === topId && p.permanentId !== oldId),
+    );
+    expect(s.state.players[1]!.battleArea.find((p) => p.topCard.instanceId === topId)!.stack).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "EX13-041")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  },
+);
