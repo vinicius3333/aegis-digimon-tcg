@@ -132,12 +132,16 @@ export function handCardEvolutionRoute(
   battleArea: readonly Permanent[],
   normal: boolean,
   projectedDnaRoutes?: readonly ProjectedDnaDigivolveRoute[],
+  preferredPermanentId?: string,
 ): HandCardEvolutionRoute {
+  const projectedRoute = projectedDnaRoutes?.find(
+    (route) => preferredPermanentId === undefined || route.materialPermanentIds.includes(preferredPermanentId),
+  );
   const materialPermanentIds =
     projectedDnaRoutes === undefined
       ? findDnaMaterialCombination(cardId, battleArea)
-      : projectedDnaRoutes[0]?.materialPermanentIds
-        ? [...projectedDnaRoutes[0].materialPermanentIds]
+      : projectedRoute?.materialPermanentIds
+        ? [...projectedRoute.materialPermanentIds]
         : undefined;
   if (normal && materialPermanentIds) return { kind: "both", materialPermanentIds };
   if (normal) return { kind: "normal" };
@@ -160,7 +164,7 @@ export function digivolveBasePermanentIds(
   const dnaMaterials =
     projectedDnaRoutes === undefined
       ? (findDnaMaterialCombination(cardId, battleArea) ?? [])
-      : [...(projectedDnaRoutes[0]?.materialPermanentIds ?? [])];
+      : projectedDnaRoutes.flatMap((route) => [...route.materialPermanentIds]);
   const bases = new Set([...serverBasePermanentIds, ...dnaMaterials]);
   return battleArea.filter((permanent) => bases.has(permanent.permanentId)).map((permanent) => permanent.permanentId);
 }

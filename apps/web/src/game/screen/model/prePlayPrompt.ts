@@ -18,7 +18,7 @@ import { DragKind } from "../enums";
 /** The question a play has to ask before it can be sent, if it has one. */
 export type PrePlayPrompt =
   | { kind: "dual"; instanceId: string; cardId: string }
-  | { kind: "dna"; instanceId: string; cardId: string; materialPermanentIds: string[] }
+  | { kind: "dna"; instanceId: string; cardId: string; routes: NonNullable<HandEntry["dnaDigivolveRoutes"]> }
   | {
       kind: "digiXros";
       instanceId: string;
@@ -64,9 +64,8 @@ export function prePlayPromptFor({
   if (!entry) return undefined;
   const { instanceId, cardId } = entry;
   if (getCardDefinition(cardId)?.isDualCard) return { kind: "dual", instanceId, cardId };
-  const materialPermanentIds = entry.dnaDigivolveRoutes?.[0]?.materialPermanentIds;
-  if (preferDna && materialPermanentIds)
-    return { kind: "dna", instanceId, cardId, materialPermanentIds: [...materialPermanentIds] };
+  const routes = entry.dnaDigivolveRoutes ?? [];
+  if (preferDna && routes.length > 0) return { kind: "dna", instanceId, cardId, routes };
   const requirements = digiXrosRequirementFor(cardId);
   if (requirements && requirements.length > 0)
     return {
@@ -90,7 +89,7 @@ export function prePlayPromptFor({
     if (assemblyPossible(assemblyRequirements, candidateDefinitions, getCardDefinition(cardId)))
       return { kind: "assembly", instanceId, cardId, requirements: [...assemblyRequirements], candidates };
   }
-  if (materialPermanentIds) return { kind: "dna", instanceId, cardId, materialPermanentIds: [...materialPermanentIds] };
+  if (routes.length > 0) return { kind: "dna", instanceId, cardId, routes };
   if (confirmDrop && actionConfirmationsEnabled) return { kind: DragKind.Play, instanceId, cardId };
   return undefined;
 }

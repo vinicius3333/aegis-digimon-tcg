@@ -67,6 +67,31 @@ const ISSUE_LAYOUTS = {
       { security: ["BT1-009", "BT1-009"] },
     ],
   },
+  "arena-issue-5176-king-drasil-ace": {
+    memory: 5,
+    players: [
+      { breeding: { card: "BT13-007" }, field: [{ card: "BT20-060", under: ["BT13-111"] }], hand: ["BT1-085"] },
+      {},
+    ],
+  },
+  "arena-issue-5166-dna-material-pairs": {
+    memory: 8,
+    players: [
+      { field: [{ card: "ST10-05" }, { card: "ST10-12" }, { card: "ST10-12", under: ["BT1-009"] }], hand: ["ST10-06"] },
+      {},
+    ],
+  },
+  "arena-issue-5173-cyber-engage": {
+    memory: 1,
+    players: [{ field: [{ card: "BT25-098" }], hand: ["BT26-010"] }, {}],
+  },
+  "arena-issue-5173-cyber-engage-psychemon": {
+    memory: 1,
+    players: [
+      { field: [{ card: "BT25-098" }], hand: ["BT26-010"] },
+      { field: [{ card: "BT8-071" }, { card: "BT8-071" }] },
+    ],
+  },
   "arena-issue-5127-opponent-suspend-cost": {
     memory: 8,
     players: [

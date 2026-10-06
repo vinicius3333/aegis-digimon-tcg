@@ -23,6 +23,10 @@ export interface AegisJoinOptions {
   presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
+    | "arena-issue-5176-king-drasil-ace"
+    | "arena-issue-5166-dna-material-pairs"
+    | "arena-issue-5173-cyber-engage"
+    | "arena-issue-5173-cyber-engage-psychemon"
     | "arena-issue-5161-larva-breeding"
     | "arena-issue-5104-alter-s-sources"
     | "arena-issue-5115-melting-trash"

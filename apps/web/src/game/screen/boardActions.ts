@@ -219,6 +219,7 @@ export function boardActions({
     const { target, id } = zone;
 
     if (d.kind === DragKind.Play) {
+      if (mainActionBlocked) return;
       const def = getCardDefinition(d.cardId);
       if (def?.kinds.includes(CardKind.DigiEgg)) {
         ping(t("game.hint.eggsHatch"));
@@ -242,11 +243,20 @@ export function boardActions({
                 viewer.battleArea,
                 digivolveTargetsOf(d.instanceId).includes(perm.permanentId),
                 handEntries.find((entry) => entry.instanceId === d.instanceId)?.dnaDigivolveRoutes,
+                perm.permanentId,
               )
             : undefined;
         if (perm && evolutionRoute?.kind === "normal")
           return digivolveWithChoice(perm.permanentId, d.instanceId, d.cardId, perm, true);
-        if (evolutionRoute?.kind === "dna") return playCard(d.instanceId, false, true);
+        if (evolutionRoute?.kind === "dna") {
+          setActionConfirm({
+            kind: "dna",
+            instanceId: d.instanceId,
+            cardId: d.cardId,
+            materialPermanentIds: evolutionRoute.materialPermanentIds,
+          });
+          return;
+        }
         if (perm && evolutionRoute?.kind === "both") {
           setActionConfirm({
             kind: "dna",
@@ -303,6 +313,7 @@ export function boardActions({
       return () => ping(t("game.hint.cantLinkHere"));
     }
     if (selCardId && handSel) {
+      if (mainActionBlocked) return undefined;
       if (appFusionHostIdsOf(handSel).includes(perm.permanentId)) {
         return () => openAppFusionChoice(handSel, perm.permanentId);
       }
@@ -311,6 +322,7 @@ export function boardActions({
         viewer.battleArea,
         eligibleBase(perm),
         handEntries.find((entry) => entry.instanceId === handSel)?.dnaDigivolveRoutes,
+        perm.permanentId,
       );
       if (route?.kind === "both")
         return () =>
@@ -321,7 +333,14 @@ export function boardActions({
             materialPermanentIds: route.materialPermanentIds,
             normalPermanentId: perm.permanentId,
           });
-      if (route?.kind === "dna") return () => playCard(handSel, false, true);
+      if (route?.kind === "dna")
+        return () =>
+          setActionConfirm({
+            kind: "dna",
+            instanceId: handSel,
+            cardId: selCardId,
+            materialPermanentIds: route.materialPermanentIds,
+          });
       if (route?.kind === "normal") return () => digivolveWithChoice(perm.permanentId, handSel, selCardId, perm);
     }
     if (handSel) return undefined;
