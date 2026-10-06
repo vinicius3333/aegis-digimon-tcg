@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, render, renderHook } from "@testing-library/react";
-import { Permanent } from "@aegis/shared";
+import { CardInstance, Permanent } from "@aegis/shared";
 import { OrganizedBattleRow } from "./OrganizedBattleRow";
 import { I18nProvider } from "../../../i18n";
 import { BattleLanes, setBattleLanes } from "../../../design/battleLanes";
@@ -152,7 +152,9 @@ describe("organized battle lanes", () => {
             } as React.CSSProperties,
           }}
           isSuspended={(member) => member.isSuspended}
-          renderCard={(card) => <div key={card.fieldKey} data-field-key={card.fieldKey} style={{ width: card.width }} />}
+          renderCard={(card) => (
+            <div key={card.fieldKey} data-field-key={card.fieldKey} style={{ width: card.width }} />
+          )}
         />
       </I18nProvider>
     );
@@ -164,7 +166,11 @@ describe("organized battle lanes", () => {
     lone.unmount();
     const crowded = Array.from({ length: 6 }, (_, index) => {
       const card = permanent(`crowd-${index}`);
-      for (let source = 0; source < 8; source++) card.stack.push(`source-${source}`);
+      for (let source = 0; source < 8; source++) {
+        const instance = new CardInstance();
+        instance.instanceId = `${card.permanentId}-source-${source}`;
+        card.stack.push(instance);
+      }
       return card;
     });
     const full = render(fixedRow(crowded));
