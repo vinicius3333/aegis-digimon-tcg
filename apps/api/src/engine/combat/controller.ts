@@ -1807,11 +1807,14 @@ export class CombatController {
     // Hold the completion payload until resolveAttack reaches its outer cleanup boundary.
     // Consumers use combatResolved as the end-of-attack seam, so publishing here would let
     // a second attack race the remaining OnEndAttack timing and controller cleanup.
-    this.completedCombat = {
-      seat: attacker.controllerSeat,
-      attackerPermanentId: attacker.permanentId,
-      deletedPermanentIds: deleted,
-    };
+    // Only the attack's own battle completes it: an effect battle during the attack (EX13-076)
+    // must not be published as that attack's result when the attack's battle never happens.
+    if (isAttackBattle)
+      this.completedCombat = {
+        seat: attacker.controllerSeat,
+        attackerPermanentId: attacker.permanentId,
+        deletedPermanentIds: deleted,
+      };
   }
 
   /**

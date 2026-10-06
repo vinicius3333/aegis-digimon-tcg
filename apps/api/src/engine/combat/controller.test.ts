@@ -177,6 +177,40 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
       },
     ]);
   });
+  it("publishes no attack result when an effect battle deletes the target before the attack's battle", async () => {
+    let effectBattle = async () => {};
+    const h = harness({ onAttackTiming: () => effectBattle() });
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 3000, { suspended: true });
+    h.state.players[0]!.battleArea.push(attacker);
+    h.state.players[1]!.battleArea.push(defender);
+    effectBattle = async () => {
+      effectBattle = async () => {};
+      await h.combat.resolveBattle(attacker, defender);
+    };
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+    expect(h.state.players[1]!.battleArea).toHaveLength(0);
+    expect(ids(h.events, "combatResolved")).toEqual([]);
+    expect(ids(h.events, "attackEnded")).toHaveLength(1);
+  });
+
+  it("publishes the attack's own battle as its result", async () => {
+    const h = harness();
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 3000, { suspended: true });
+    h.state.players[0]!.battleArea.push(attacker);
+    h.state.players[1]!.battleArea.push(defender);
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+    expect(ids(h.events, "combatResolved")).toEqual([
+      {
+        kind: "combatResolved",
+        seat: 0,
+        attackerPermanentId: attacker.permanentId,
+        deletedPermanentIds: [defender.permanentId],
+      },
+    ]);
+  });
+
   it("does not trigger Piercing acquired from a deleted Token's reaction", async () => {
     const h = harness({ piercingChange: { initial: false, afterDeletion: true } });
     const attacker = digimon(0, 9000);

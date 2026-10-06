@@ -143,7 +143,10 @@ describe("attack declaration suspension trigger ordering", () => {
     await settle(() => triggeredEvents(s, ["EX13-044"]).length > 0);
 
     expect(triggeredEvents(s, ["EX13-044"]).length).toBeGreaterThan(0);
-    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    await settle(() => s.events.some((event) => event.kind === "attackEnded"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    // EX13-044's battles are effect battles; the player-directed attack itself never battled.
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(false);
   });
 
   it("resolves a derived suspension watcher before the older pending attack watcher", async () => {
