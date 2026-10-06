@@ -231,9 +231,10 @@ and `8b8bdffbffab2c4d159f4c6c9edc4458cd1efa4e31e16a05792b725bdd54e4b7`.
 The local full single-policy observation SHA-256 is
 `dfac9d6f615ec021d6d93cc5087c3093b41074bec1f92c944d62afa7c120c4a9`.
 
-The first actual reference, primary-before, is now live at PID 56750/start
-ticks 563048, with exact argv verified. The whole six-policy comparison remains
-incomplete. A readonly comparison of the two completed candidate reports
+The first actual reference, primary-before, subsequently completed with exit
+zero; its original PID 56750/start ticks 563048 is gone. The full-record closure
+and per-recipe result are recorded below. The whole six-policy comparison
+remains incomplete. A readonly comparison of the two completed candidate reports
 finds PPO gains over imitation in 40 recipes, regressions in three and a tie
 in one. The regressions are CS HiAndromon (48 versus 51 wins), the DGO Chronomon
 recipe (70 versus 72) and Dynasmon (67 versus 69); Rosemon ties at 31 wins.
@@ -243,6 +244,62 @@ strength gate. Its report SHA-256 is
 Proposal counts do not establish reconstructed physical mechanics or mastery,
 and neither completed evaluation or their aggregate totals establishes final
 acceptance.
+
+## First actual completed reference and failed candidate strength gate
+
+The current-engine primary-before evaluation actually completed all 3,872
+natural decisive games with 2,343 wins, 1,529 losses, zero failures/payment
+forfeits and two recovered play rejections. Independent readonly invocation
+of the unchanged original full-record guard verified all 44 recipes with
+88 games each, exact commands/log receipt and zero weight changes. The actual
+phase is dead; no whole-comparison completion is claimed. Its local complete
+field report is `/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-primary-evaluation-completed.actual.json`,
+SHA-256 `a0d87e306b6b4ab942cb22d500e6b31a46dc6672827b5757513945931ca4b40e`.
+
+Against this first completed reference, PPO gains in 28 recipes, regresses in
+13 and ties in three. Imitation gains in ten, regresses in 31 and ties in
+three. Neither current candidate meets the required strict gains in all 44
+recipes against all four references. The higher aggregate PPO wins do not
+supersede that requirement. The descriptive comparison is
+`/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-first-reference-description.actual.json`,
+SHA-256 `143ad49ba67453817eba5c03623e0c205be851aacf8a252a4fe9fde55e8b70e2`.
+The remaining original comparison is preserved to diagnose the next learning
+change; no new model/game/GPU job or physical qualification was admitted.
+
+PPO non-improvements against primary-before (88 games per policy):
+
+| Recipe | PPO wins | Reference wins | Delta |
+| --- | ---: | ---: | ---: |
+| `bt26-dantemon-bandai@1` | 62 | 65 | -3 |
+| `bt26-dgo-2026-08-28-1-toho-braves@1` | 74 | 80 | -6 |
+| `bt26-dgo-2026-08-28-13-jupitermon@1` | 62 | 73 | -11 |
+| `bt26-dgo-2026-08-28-4-beelstarmon@1` | 58 | 63 | -5 |
+| `bt26-dgo-2026-08-28-8-plutomon@1` | 77 | 80 | -3 |
+| `curriculum-appmon-charismon@1` | 53 | 64 | -11 |
+| `curriculum-data-squad-ravemon@1` | 39 | 39 | +0 |
+| `curriculum-data-squad-rosemon@1` | 31 | 40 | -9 |
+| `curriculum-iliad-purple@1` | 41 | 45 | -4 |
+| `curriculum-iliad-yellow@1` | 25 | 29 | -4 |
+| `curriculum-nso-ghostmon@1` | 24 | 31 | -7 |
+| `curriculum-nsp-insects@1` | 40 | 40 | +0 |
+| `ex13-alphamon-royal-knights@1` | 61 | 65 | -4 |
+| `ex13-examon-royal-knights@1` | 74 | 76 | -2 |
+| `ex13-lordknightmon-royal-knights@1` | 49 | 50 | -1 |
+| `ex13-omnimon-royal-knights@1` | 53 | 53 | +0 |
+
+V17 started as the original next policy at PID 85160/start ticks 846164;
+its actual `/proc` argv and start ticks matched the sealed command. This is
+an observation of a live reference, not a successful full closure.
+
+The readonly provenance assembly helper also passed five local field/hostile
+mutation tests. It keeps original learning at source `1cec011c0fd0c6481e7297506ed4c825a4dfcdc7`
+and explicitly records the byte-exact model/Adam binding onto the qualified
+current source with zero additional updates. Its source review is
+`/tmp/aegis-material-teacher-active-goal-20261006/rule-link-current-provenance-source-review.json`,
+SHA-256 `a8f14c86f513d647b8c854ac99d4dd2a699d6eb0f21cff0c3361506cb706b23e`.
+These are field assembly checks, not fresh full closure consumption, primary
+model proof or a written package. Full resident consumers and actual remaining
+qualification gates are still required before packing; declarations stay pending.
 
 ## Current physical-capture preparation
 
