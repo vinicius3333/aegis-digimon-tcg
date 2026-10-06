@@ -1166,5 +1166,33 @@
   "releases.1.10.2-beta.fix.deployContinuity": {
     "en": "Updates can now deploy while matches on older versions continue running.",
     "pt-BR": "Agora as atualizações podem ser implantadas enquanto as partidas em versões anteriores continuam em andamento."
+  },
+  "releases.1.14.0-beta.summary": {
+    "en": "This minor release restores trash, revealed-card and material selections, adds drag-and-drop ordering and fixes reported effect resolution problems.",
+    "pt-BR": "Esta versão minor restaura a seleção no lixo, nas cartas reveladas e nos materiais, adiciona ordenação por arrastar e soltar e corrige problemas reportados na resolução de efeitos."
+  },
+  "releases.1.14.0-beta.feature.dragOrdering": {
+    "en": "Reorder cards in one column and drag pending effects into their resolution order. Lifted items follow your mouse or finger, and keyboard arrows remain available.",
+    "pt-BR": "Ordene cartas em uma coluna e arraste efeitos pendentes para definir a ordem de resolução. O item elevado acompanha o mouse ou o dedo, e as setas do teclado continuam disponíveis."
+  },
+  "releases.1.14.0-beta.fix.selections": {
+    "en": "Trash and revealed-card choices show their cards in centered dialogs with reachable actions, including KingSukamon Assembly, EX5 Chuumon, Dorbickmon DigiXros and SnowGoblimon.",
+    "pt-BR": "Escolhas do lixo e das cartas reveladas mostram as cartas em modais centrais com ações acessíveis, incluindo Assembly de KingSukamon, Chuumon EX5, DigiXros de Dorbickmon e SnowGoblimon."
+  },
+  "releases.1.14.0-beta.fix.compactPrompts": {
+    "en": "Decision panels fit their content, use compact artwork consistently and show dual-card Option artwork beside the effect text.",
+    "pt-BR": "Os painéis de decisão se ajustam ao conteúdo, usam arte compacta de forma consistente e exibem a arte de Opção das cartas duplas ao lado do texto do efeito."
+  },
+  "releases.1.14.0-beta.fix.sourceHighlight": {
+    "en": "The Digimon responsible for a decision stays highlighted on the field while its choice is pending.",
+    "pt-BR": "O Digimon responsável por uma decisão permanece destacado no campo enquanto a escolha está pendente."
+  },
+  "releases.1.14.0-beta.fix.cardEffects": {
+    "en": "Corrected Mastemon security ownership, Barrier effect timing, Millenniummon return costs and deck ordering, and Jupiter and Asuna trash interactions.",
+    "pt-BR": "Corrigidos o dono da segurança de Mastemon, o tempo de efeitos de Barrier, custos de retorno e ordenação do deck de Millenniummon e interações de Jupiter e Asuna com o lixo."
+  },
+  "releases.1.14.0-beta.fix.counterTimeout": {
+    "en": "Counter decisions that time out can finish without leaving the match waiting for an unanswered response.",
+    "pt-BR": "Decisões de Counter que expiram podem terminar sem deixar a partida aguardando uma resposta."
   }
 }
