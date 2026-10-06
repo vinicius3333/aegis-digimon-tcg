@@ -228,6 +228,7 @@ export interface AegisJoinOptions {
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
     | "arena-ex13-craniamon-assembly"
+    | "arena-ex13-craniamon-weregarurumon-assembly"
     | "arena-p220-millenniummon-assembly"
     | "arena-ex9-kimeramon-skullgreymon-assembly"
     | "arena-bt24-masterblimpmon-assembly"

@@ -194,6 +194,26 @@ describe("Assembly materials gated by a printed keyword", () => {
     expect([...eligibleAssemblyCandidateIds([craniamon()], candidates, [])]).not.toContain("EX13-050#2");
     expect(assemblyPossible([craniamon()], candidates)).toBe(false);
   });
+
+  it("Discord 1556898336567459890: offers BT23-056 WereGarurumon and completes Craniamon's Assembly", () => {
+    const candidates = trash(
+      "BT23-056",
+      "EX13-051",
+      "EX13-047",
+      "EX13-050",
+      "BT3-067",
+      "BT1-072",
+      "EX10-029",
+      "BT12-066",
+      "BT18-052",
+      "BT25-074",
+    );
+    const requirements = [craniamon()];
+    const selected = ["BT23-056#0", "EX13-051#1", "EX13-047#2"];
+    expect(eligibleAssemblyCandidateIds(requirements, candidates, [])).toEqual(new Set([...selected, "EX10-029#6"]));
+    expect(eligibleAssemblyCandidateIds(requirements, candidates, selected.slice(0, 2))).toEqual(new Set(selected));
+    expect(completedAssemblyRequirement(requirements, candidates, selected)).toBe(requirements[0]);
+  });
 });
 
 describe("Assembly recipes restored from the official images", () => {

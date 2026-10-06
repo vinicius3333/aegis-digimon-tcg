@@ -946,6 +946,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Compre BT1-009, encerre a criação e jogue Gotsumon. Na busca por Blocker, somente BT20-047 deve ser elegível; BT19-069 e EX8-046 têm Blocker apenas herdado e devem voltar ao fundo.",
     en: "Draw BT1-009, end breeding, and play Gotsumon. Only BT20-047 should be eligible for the Blocker search; BT19-069 and EX8-046 have inherited-only Blocker and must return to the bottom.",
   },
+  "arena-ex13-craniamon-weregarurumon-assembly": {
+    ptBR: "Compre a carta do turno e encerre a criação. Jogue Craniamon (EX13-062): selecione WereGarurumon BT23-056 (Lv.5), Guardromon EX13-051 (Lv.4) e Gotsumon EX13-047 (Lv.3) no lixo. WereGarurumon deve estar habilitado. Bokomon (Blocker só herdado) e Monmon (azul) não podem ser selecionados. Confirme Assembly: Craniamon custa 7, recebe os três materiais e a memória vai para 7 do oponente.",
+    en: "Draw the turn card and end breeding. Play Craniamon (EX13-062): select WereGarurumon BT23-056 (Lv.5), Guardromon EX13-051 (Lv.4), and Gotsumon EX13-047 (Lv.3) from the trash. WereGarurumon must be selectable. Bokomon (inherited-only Blocker) and Monmon (blue) must stay disabled. Confirm Assembly: Craniamon costs 7, receives all three materials, and memory goes to 7 on the opponent's side.",
+  },
   "arena-ex13-craniamon-assembly": {
     ptBR: "Compre a carta do turno e encerre a criação. Jogue Craniamon (EX13-062) com a memória em 0: o seletor de Assembly deve abrir. Somente Bulbmon (Lv.5), Guardromon (Lv.4) e Gotsumon (Lv.3) devem ser elegíveis; Bokomon (Blocker só herdado) e Monmon (azul) não. Escolha os três: Craniamon custa 7 e a memória vai para 7 do oponente.",
     en: "Draw the turn card and end breeding. Play Craniamon (EX13-062) with memory at 0: the Assembly picker must open. Only Bulbmon (Lv.5), Guardromon (Lv.4), and Gotsumon (Lv.3) may be eligible; Bokomon (inherited-only Blocker) and Monmon (blue) may not. Pick all three: Craniamon costs 7 and memory goes to 7 on the opponent's side.",
@@ -1404,6 +1408,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
+  ["arena-ex13-craniamon-weregarurumon-assembly", "EX13 Craniamon · WereGarurumon Assembly"],
   ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],
   ["arena-ex9-kimeramon-skullgreymon-assembly", "EX9 Kimeramon · SkullGreymon as Lv.4 material"],
   ["arena-bt24-masterblimpmon-assembly", "BT24 MasterBlimpmon · alternative Assembly recipes"],

@@ -157,6 +157,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-ouryuken-blast-dna-counter",
   "arena-ex13-gotsumon-blocker-search",
   "arena-ex13-craniamon-assembly",
+  "arena-ex13-craniamon-weregarurumon-assembly",
   "arena-p220-millenniummon-assembly",
   "arena-ex9-kimeramon-skullgreymon-assembly",
   "arena-bt24-masterblimpmon-assembly",
@@ -2788,6 +2789,32 @@ function layEx13CraniamonAssemblyScenario(state: GameState, decks: readonly [Dec
     insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv5", "BT20-054", 0));
     insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv4", "EX1-047", 0));
     insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv3", "BT13-061", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-inherited-blocker", "EX13-050", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-blue-blocker", "BT1-031", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
+/** Discord 1556898336567459890: BT23-056 has an unconditional printed Blocker. */
+function layEx13CraniamonWereGarurumonAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-craniamon", "EX13-062", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv5", "BT23-056", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv4", "EX13-051", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-lv3", "EX13-047", 0));
     insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-inherited-blocker", "EX13-050", 0));
     insertCard(human, Zone.Trash, faceUpCard("dev-craniamon-blue-blocker", "BT1-031", 0));
   }
@@ -6632,6 +6659,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-ouryuken-blast-dna-counter": layBt20OuryukenBlastDnaCounterScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
+  "arena-ex13-craniamon-weregarurumon-assembly": layEx13CraniamonWereGarurumonAssemblyScenario,
   "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,
   "arena-ex9-kimeramon-skullgreymon-assembly": layEx9KimeramonSkullGreymonAssemblyScenario,
   "arena-bt24-masterblimpmon-assembly": layBt24MasterBlimpmonAssemblyScenario,
