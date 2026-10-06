@@ -21,15 +21,15 @@ export function DecisionSelectFooter({
   const { t } = useTranslation();
   return (
     <div className="game-actions-row decision-overlay__footer decision-overlay__footer--selection">
-      <Button full size="lg" icon={Icons.Check} disabled={!canConfirm} onClick={onConfirm}>
-        {confirmLabel ?? t("overlay.confirmTargets")}
-      </Button>
       {min === 0 ? (
         <Button full size="lg" variant="ghost" onClick={onNone}>
           {t("common.none")}
         </Button>
       ) : null}
       <DecisionViewBoardButton onOpenBoard={onOpenBoard} />
+      <Button full size="lg" icon={Icons.Check} disabled={!canConfirm} onClick={onConfirm}>
+        {confirmLabel ?? t("overlay.confirmTargets")}
+      </Button>
     </div>
   );
 }

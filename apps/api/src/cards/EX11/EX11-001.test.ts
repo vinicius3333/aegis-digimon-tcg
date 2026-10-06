@@ -244,7 +244,7 @@ describe("EX11-001 Koromon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3_000 }], security: 5 },
       },
-      { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: false },
+      { autoAcceptOptional: false, autoSelectCards: false, autoChooseOption: true, autoOrderTriggers: false },
     );
     s.state.memory = 10;
     await s.ready();
@@ -280,9 +280,10 @@ describe("EX11-001 Koromon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "EX11-010");
-    await settle(() => s.decisions.some(({ req }) => req.sourceCardId === "EX11-010" && req.kind === "optional"));
+    await settle(() => s.decisions.some(({ req }) => req.sourceCardId === "EX11-010" && req.kind === "chooseTargets"));
     expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX11-010")).toBe(false);
-    expect(s.state.pendingDecision?.kind).toBe("optional");
+    expect(s.state.pendingDecision?.kind).toBe("chooseTargets");
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({ timing: "WhenDigivolving" });
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX11-001", "EX11-007", "EX11-009", "BT22-070"]);
     expect(s.perm("host").topCard.cardId).toBe("EX11-010");
@@ -293,7 +294,7 @@ describe("EX11-001 Koromon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: derivedDecision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -331,10 +332,11 @@ describe("EX11-001 Koromon — KB Q&A rulings", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3_000 }], security: 5 },
       },
-      { autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: ["BT22-070"] },
+      { autoSelectCards: false, autoChooseOption: true, preferTriggerKeys: ["BT22-070"] },
     );
     s.state.memory = 10;
     await s.ready();
+
     const offeredTimings: string[] = [];
     async function answerNextOptional(accept: boolean): Promise<void> {
       await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -358,7 +360,19 @@ describe("EX11-001 Koromon — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
     await answerNextOptional(true);
     await settle(() => s.perm("host").topCard.cardId === "EX11-010");
-    await answerNextOptional(false);
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const derived = s.state.pendingDecision!;
+    const derivedRequest = s.decisions.find(({ req }) => req.decisionId === derived.decisionId)!.req;
+    expect(derivedRequest.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    offeredTimings.push((JSON.parse(derived.payloadJson) as { timing: string }).timing);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: derived.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
     await answerNextOptional(true);
     await settle(() => s.perm("host").topCard.cardId === "EX11-011");
 

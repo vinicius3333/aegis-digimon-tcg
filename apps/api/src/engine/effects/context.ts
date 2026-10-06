@@ -410,6 +410,7 @@ export interface EffectEnvironment {
   continuous: ContinuousEffectLedger;
   hasKeyword?: (permanentId: string, keyword: string) => boolean;
   battleOpponentOf?: (permanentId: string) => Permanent | undefined;
+  baseGrantedDigivolve?: GameAccess["baseGrantedDigivolve"];
   digivolvedThisTurn?: (seat: Seat) => boolean;
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[];
   colorRequirementWaived?: (instanceId: string) => boolean;
@@ -501,7 +502,7 @@ export function gatherTriggeredEffects(
         permanent?.topCard === undefined ? printedKinds : requireCardDefinition(permanent.topCard.cardId).kinds,
       );
     },
-    undefined,
+    env.baseGrantedDigivolve,
     undefined,
     (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
     (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),

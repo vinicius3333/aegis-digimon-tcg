@@ -127,7 +127,10 @@ export function createSharedHelpers(pc: PrimitivesContext) {
           ];
     });
 
-  const filterBouncePrevented = async (instanceIds: string[]): Promise<string[]> => {
+  const filterBouncePrevented = async (
+    instanceIds: string[],
+    destination: "handOrDeck" | "security" = "handOrDeck",
+  ): Promise<string[]> => {
     const permByInstance = new Map<string, string>();
     for (const owner of state.players) {
       for (const p of owner.battleArea) {
@@ -137,13 +140,15 @@ export function createSharedHelpers(pc: PrimitivesContext) {
       }
     }
     // Ordinary return protection and the broader BT16-051 Q2642 leave lock both funnel through
-    // here. Applied before the prevent-reaction consult so a prohibited move never asks anyone
+    // here. Hand/deck return immunity does not prevent security placement. Applied before the
+    // prevent-reaction consult so a prohibited move never asks anyone
     // to pay a prevention cost. addSecurity also uses this seam for whole-permanent placement.
     instanceIds = instanceIds.filter((id) => {
       const permId = permByInstance.get(id);
       return (
         permId === undefined ||
-        (!isRestricted(permId, "beReturned") && !isRestricted(permId, "leaveBattleAreaExceptByDeletion"))
+        ((destination === "security" || !isRestricted(permId, "beReturned")) &&
+          !isRestricted(permId, "leaveBattleAreaExceptByDeletion"))
       );
     });
     if (!engine.consultLeavePrevention) return instanceIds;

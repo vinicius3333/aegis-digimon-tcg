@@ -64,4 +64,45 @@ describe("ST21-01 Tsunomon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["AD1-001", "ST21-01", "ST21-02"]);
   });
+  it("GitHub #5139: exposes the inherited ADVENTURE return after public battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST21-02", as: "host", under: ["ST21-01"], suspended: true }],
+          trash: [
+            { card: "AD1-001", as: "adventure" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "attacker", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.decisions.find(({ req }) => req.kind === "selectCards" && req.sourceCardId === "ST21-01")!.req;
+    expect(choice.options?.candidateInstanceIds).toContain(s.inst("adventure").instanceId);
+    expect(choice.options?.candidateInstanceIds).not.toContain(s.inst("unrelated").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("adventure").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("adventure").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("adventure").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "ST21-01", "ST21-02"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });

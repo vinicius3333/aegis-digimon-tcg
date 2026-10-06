@@ -188,9 +188,6 @@ export function AssemblyMaterialOverlay({
         </div>
         <div className="material-prompt__footer">
           <div className="game-actions-row">
-            <Button full icon={Icons.Sparkles} disabled={completed === undefined} onClick={() => onConfirm(picks)}>
-              {t("overlay.assemblyConfirm", { count: needed })}
-            </Button>
             <Button full variant="secondary" onClick={onSkip}>
               {t("overlay.assemblyPlayWithout")}
             </Button>
@@ -199,6 +196,9 @@ export function AssemblyMaterialOverlay({
                 {t("common.cancel")}
               </Button>
             ) : null}
+            <Button full icon={Icons.Sparkles} disabled={completed === undefined} onClick={() => onConfirm(picks)}>
+              {t("overlay.assemblyConfirm", { count: needed })}
+            </Button>
           </div>
           <div className="effect-prompt-family__board-action">
             <DecisionViewBoardButton onOpenBoard={openBoard} />

@@ -59,6 +59,8 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
           kind: "GrantStatic",
           target: {
             filter: {
@@ -116,6 +118,8 @@ const compiled: CompiledCard = {
           amount: 3,
         },
         {
+          effectTextPart:
+            "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
           kind: "GrantStatic",
           target: {
             filter: {

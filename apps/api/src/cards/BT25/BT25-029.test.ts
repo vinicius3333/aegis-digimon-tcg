@@ -262,15 +262,6 @@ describe("BT25-029 MirageGaogamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    const firstReturn = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: firstReturn.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
     const paidReturn = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
@@ -338,7 +329,9 @@ describe("BT25-029 MirageGaogamon", () => {
     expect(s.state.memory).toBe(0);
     expect(
       s.decisions
-        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-029")
+        .filter(
+          ({ req }) => (req.kind === "optional" || req.kind === "chooseTargets") && req.sourceCardId === "BT25-029",
+        )
         .map(({ req }) => req.options?.effectTextPart),
     ).toEqual(
       expect.arrayContaining([
@@ -391,19 +384,6 @@ describe("BT25-029 MirageGaogamon", () => {
     await settle(
       () =>
         s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== firstDecision.decisionId,
-    );
-    const returnDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: returnDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== returnDecision.decisionId,
     );
     const costDecision = s.state.pendingDecision!;
     expect(costDecision.kind).toBe("optional");

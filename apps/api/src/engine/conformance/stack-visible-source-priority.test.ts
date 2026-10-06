@@ -29,7 +29,7 @@ describe("public Succession source priority", () => {
           battleArea: [{ card: "BT26-080", as: "host", under: [{ card: "BT25-077", faceUp: false }, "BT25-077"] }],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false, autoSelectCards: false },
     );
     await s.ready();
     const hiddenId = s.perm("host").stack[0]!.instanceId;
@@ -41,15 +41,16 @@ describe("public Succession source priority", () => {
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([hiddenId, visibleId]);
     expect(s.inst("played").faceUp).toBe(true);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(decision.payloadJson).toContain("[All Turns] [Once Per Turn] When any Digimon are played or digivolve");
     expect(decision.payloadJson).not.toContain(hiddenId);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "optional", accept: true },
+        response: { kind: "chooseTargets", instanceIds: [s.perm("host").permanentId] },
       }),
     ).toEqual({ ok: true });
     await settle(
@@ -120,20 +121,21 @@ describe("public Succession source priority", () => {
           ],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false, autoSelectCards: false },
     );
     await s.ready();
     const playedId = s.inst("played").instanceId;
     const memoryBefore = s.state.memory;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(decision.payloadJson).toContain("[All Turns] [Once Per Turn] When any Digimon are played or digivolve");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(
@@ -151,6 +153,7 @@ describe("public Succession source priority", () => {
 
   it("proves the public Giromon-to-Succession producer chain", async () => {
     const preferred: string[] = [];
+    const options = { autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred };
     const s = setupEngine(
       {
         0: {
@@ -165,7 +168,7 @@ describe("public Succession source priority", () => {
           deck: ["BT1-028", "BT1-028", "BT1-028", "BT1-028"],
         },
       },
-      { autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+      options,
     );
     s.state.memory = 10;
     await s.ready();
@@ -209,6 +212,7 @@ describe("public Succession source priority", () => {
     expect(s.inst("played").faceUp).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === visibleBacchusmonId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === playedId)).toBe(true);
+    options.autoSelectCards = false;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -228,14 +232,15 @@ describe("public Succession source priority", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === visibleBacchusmonId);
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const copiedIntermediateDecision = s.state.pendingDecision!;
-    expect(copiedIntermediateDecision.kind).toBe("optional");
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(copiedIntermediateDecision.decisionId).not.toBe(nativeDecision.decisionId);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: copiedIntermediateDecision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
@@ -258,12 +263,24 @@ describe("public Succession source priority", () => {
     await settle(() => s.perm("base").topCard.instanceId === finalId);
     const copiedFinalDecision = s.state.pendingDecision!;
     expect(copiedFinalDecision.kind).toBe("optional");
+    expect(copiedFinalDecision.payloadJson).toContain("play 1 [TS]");
     expect(copiedFinalDecision.decisionId).not.toBe(finalDecision.decisionId);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: copiedFinalDecision.decisionId,
         response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const finalWatcher = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    expect(finalWatcher.payloadJson).toContain("[All Turns] [Once Per Turn]");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: finalWatcher.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
@@ -280,22 +297,13 @@ describe("public Succession source priority", () => {
     const nextTurn = s.engine.runOneTurn();
     try {
       await advance(s.engine).waitForMainPhase(0);
-      const staleDecision = s.state.pendingDecision!;
-      expect(staleDecision.kind).toBe("optional");
-      expect(staleDecision.payloadJson).toContain("[All Turns] [Once Per Turn]");
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: staleDecision.decisionId,
-          response: { kind: "optional", accept: false },
-        }),
-      ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision === undefined);
       const memoryBeforePlay = s.state.memory;
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const copiedDecision = s.state.pendingDecision!;
-      expect(copiedDecision.decisionId).not.toBe(staleDecision.decisionId);
+      expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+      expect(copiedDecision.decisionId).not.toBe(finalWatcher.decisionId);
       expect(copiedDecision.payloadJson).toContain(
         "[All Turns] [Once Per Turn] When any Digimon are played or digivolve",
       );
@@ -303,7 +311,7 @@ describe("public Succession source priority", () => {
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: copiedDecision.decisionId,
-          response: { kind: "optional", accept: true },
+          response: { kind: "chooseTargets", instanceIds: [s.perm("base").permanentId] },
         }),
       ).toEqual({ ok: true });
       await settle(

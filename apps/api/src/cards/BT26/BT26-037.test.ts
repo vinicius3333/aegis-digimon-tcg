@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { appFusionCostFor, assemblyRequirementFor, EffectDuration, EffectTiming } from "@aegis/shared";
+import {
+  appFusionCostFor,
+  assemblyRequirementFor,
+  EffectDuration,
+  EffectTiming,
+  getCardDefinition,
+} from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-037.js";
@@ -89,6 +95,12 @@ describe("BT26-037 Weatherdramon", () => {
     await settle(() => s.state.players[0]!.battleArea[0]!.linked.length === 1);
 
     expect(s.perm("recipient").linked.map((card) => card.cardId)).toEqual(["BT26-037"]);
+    const clause = getCardDefinition("BT26-037")!.linkEffect;
+    expect(s.decisions.find(({ req }) => req.kind === "optional")?.req.options?.effectText).toBe(clause);
+    expect(s.decisions.find(({ req }) => req.kind === "optional")?.req.options?.timing).toBe("WhenLinking");
+    expect(
+      s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-037"),
+    ).toMatchObject({ description: clause });
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

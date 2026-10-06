@@ -64,9 +64,9 @@ describe("ST18-01 Fluffymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "ST18-02", dp: 3000, as: "host", under: ["ST18-01"] }] },
-        1: { battleArea: [{ card: "ST18-03", dp: 2000, as: "victim" }] },
+        1: { security: ["BT1-001", "BT1-002"], battleArea: [{ card: "ST18-03", dp: 2000, as: "victim" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: false },
     );
     s.state.memory = 10;
     await s.ready();
@@ -77,12 +77,22 @@ describe("ST18-01 Fluffymon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle();
-    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST18-01")).toBe(true);
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const request = s.decisions.find(({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "ST18-01")!.req;
+    expect(request.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("victim").isSuspended).toBe(false);
   });
 
-  it("records and accepts the optional prompt, including an own-Digimon target", async () => {
+  it("records and accepts the optional target choice, including an own-Digimon target", async () => {
     const s = setupEngine(
       {
         0: {
@@ -93,7 +103,7 @@ describe("ST18-01 Fluffymon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: false },
     );
     s.state.memory = 10;
     await s.ready();
@@ -104,14 +114,14 @@ describe("ST18-01 Fluffymon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.decisions.at(-1)?.req.kind).toBe("optional");
-    const optional = s.state.pendingDecision!;
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    const targetChoice = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: optional.decisionId,
-        response: { kind: "optional", accept: true },
+        decisionId: targetChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("ownTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("ownTarget").isSuspended);

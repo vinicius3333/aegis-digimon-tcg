@@ -94,8 +94,8 @@ body:has(.decision-overlay--selection) .narration-slot {
 }
 
 /* A portrait tablet is already too narrow for the three long selection actions
-   in one row. Keep the commit action dominant, then share a second row between
-   the two secondary exits without abbreviating their labels. */
+   in one row. Share a row between the secondary exits, then keep the commit action
+   dominant on the final row without abbreviating their labels. */
 @media (width < 768px) {
   .decision-overlay__footer--selection {
     display: grid;
@@ -103,13 +103,13 @@ body:has(.decision-overlay--selection) .narration-slot {
     gap: var(--ds-space-2);
   }
 
-  .decision-overlay__footer--selection > .aegis-button:first-child {
+  .decision-overlay__footer--selection > .aegis-button:last-child {
     grid-column: 1 / -1;
   }
 
   /* A mandatory selection has no None action. Let its only secondary action use
      the whole row instead of leaving an unexplained empty half. */
-  .decision-overlay__footer--selection > .aegis-button:last-child:nth-child(2) {
+  .decision-overlay__footer--selection > .aegis-button:first-child:nth-last-child(2) {
     grid-column: 1 / -1;
   }
 

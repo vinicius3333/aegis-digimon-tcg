@@ -53,7 +53,7 @@ describe("LM-066 Zephagamon / Divine Tempest Ligero", () => {
           event: "wouldLeavePlay",
           mode: "prevent",
           leaveCause: "otherThanYourEffect",
-          cost: { kind: "suspend", target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } } },
+          cost: { kind: "suspend", target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } } },
         },
       ],
     });
@@ -295,7 +295,7 @@ describe("LM-066 Zephagamon / Divine Tempest Ligero", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "LM-066")).toBe(false);
   });
 
-  it("cannot pay the survival cost with the opponent's Digimon", async () => {
+  it("GitHub #5127: pays the survival cost with an opposing unsuspended Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-066", as: "source", dp: 13000, suspended: true }] },
@@ -320,10 +320,12 @@ describe("LM-066 Zephagamon / Divine Tempest Ligero", () => {
         target: { kind: "permanent", permanentId: s.perm("source").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "LM-066"));
+    await settle();
 
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.perm("spare").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("source").topCard.cardId).toBe("LM-066");
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("spare").isSuspended).toBe(true);
   });
 
   it("keeps a locked opposing Tamer suspended through the opponent's unsuspend step", async () => {
@@ -404,6 +406,42 @@ describe("LM-066 Zephagamon / Divine Tempest Ligero", () => {
       "BT1-010",
     ]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-088"]);
+  });
+
+  it("GitHub #5127: reduces Option cost by suspending two opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "green", suspended: true }],
+          hand: [{ card: "LM-066", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstPayer" },
+            { card: "BT1-011", as: "secondPayer" },
+            { card: "BT1-088", as: "tamer", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "LM-066"));
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[1]!.battleArea.filter(({ topCard }) => topCard.cardId !== "BT1-088")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId !== "BT1-088")!.isSuspended).toBe(true);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+    expect(s.state.players[1]!.deck[0]!.cardId).toMatch(/^BT1-01[01]$/);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("cannot be played as a Digimon, so the reducer has no non-Option play path", async () => {

@@ -1,6 +1,7 @@
 import { ArraySchema } from "@colyseus/schema";
 import {
   CardInstance,
+  CardKind,
   Permanent,
   Phase,
   Zone,
@@ -179,7 +180,9 @@ export function validateMoveFromBreeding(
   // §4-16-2: only a Digimon with DP can be moved. A normal Lv.2 Digi-Egg has
   // no DP, while EX2-007 Mother D-Reaper is the explicit level-less exception:
   // it is a Digi-Egg card that has DP and official Q3276 says it can move.
-  if (dpOf(def) <= 0) {
+  // The catalog uses 0 for both absent Digi-Egg DP and printed 0 DP.
+  // Digimon cards (including Lucemon: Larva) have DP even when it is zero.
+  if (!def.kinds.includes(CardKind.Digimon) && dpOf(def) <= 0) {
     return { ok: false, reason: "not-movable" };
   }
   // Seat-level move prohibition (RestrictPlay): the moving seat's own action is blocked.

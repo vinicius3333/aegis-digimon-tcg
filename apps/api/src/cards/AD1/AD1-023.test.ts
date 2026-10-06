@@ -9,6 +9,45 @@ import "../../cards/index.js";
 const CARD_ID = "AD1-023";
 
 describe("AD1-023 J.P., Koji, & Koichi", () => {
+  it("GitHub #5064: its inherited protection cannot save another Hybrid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-002", as: "host", under: [CARD_ID] },
+            { card: "AD1-002", as: "other" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: ["BT1-009"],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const otherId = s.perm("other").permanentId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets" || s.state.players[1]!.trash.length > 0);
+    // Leave the target choice manual so the other Hybrid is the actual victim.
+    const target = s.decisions.find(({ req }) => req.sourceCardId === "ST1-16" && req.kind === "chooseTargets");
+    expect(target).toBeDefined();
+    expect(s.state.pendingDecision?.decisionId).toBe(target!.req.decisionId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: target!.req.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [otherId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((c) => c.cardId === "ST1-16"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === otherId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("maps the catalog, KB color assignment, threshold, security, and inherited replacement", () => {
     const definition = getCardDefinition(CARD_ID);
     const compiled = registeredCompiledCards.get(CARD_ID)!;

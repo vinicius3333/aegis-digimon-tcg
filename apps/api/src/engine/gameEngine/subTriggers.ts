@@ -19,7 +19,12 @@ import {
   type ArmedSubTrigger,
 } from "./subTriggerIdentity.js";
 import { findLooseInstance } from "./intents.js";
-import { isInternalDescription, soleWatcherLine, triggerLabel } from "../effects/interpreter/describe.js";
+import {
+  isInternalDescription,
+  soleLinkingClause,
+  soleWatcherLine,
+  triggerLabel,
+} from "../effects/interpreter/describe.js";
 import { trashArrivalOf } from "../state/access.js";
 import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
@@ -955,7 +960,16 @@ export function playerFacingWatcherClause(sub: SubTriggerSubscription, ctx: Effe
   const description = subTriggerDescriptionFor(sub, ctx);
   if (!isInternalDescription(description)) return description;
   const definition = ctx.source.definition;
-  const box = sub.isInheritedSource === true ? definition.inheritedEffectText : definition.effectText;
+  const box =
+    sub.isLinkedSource === true
+      ? definition.linkEffect
+      : sub.isInheritedSource === true
+        ? definition.inheritedEffectText
+        : definition.effectText;
+  if (sub.isLinkedSource === true && sub.event === "whenLinked") {
+    const clause = soleLinkingClause(box);
+    if (clause !== undefined) return clause;
+  }
   return soleWatcherLine(box) ?? `${triggerLabel(sub.event)}: ${definition.nameEn}`;
 }
 

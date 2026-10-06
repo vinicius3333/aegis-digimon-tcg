@@ -199,7 +199,7 @@ test("Discord 1556831312008974437: Jesmon attacks at negative memory after gaini
     ).toBeVisible();
     await page.getByRole("button", { name: "2 cards", exact: true }).click();
     // The only legal attack target is preselected by the ordinary board selection UI.
-    await page.getByRole("button", { name: "Security Attack", exact: true }).click();
+    await page.getByRole("button", { name: "Attack", exact: true }).click();
     await expect(page.locator(".game-memory-gauge")).toHaveAttribute("aria-label", "Memory: -5");
     // Jesmon's optional When Attacking play and Alliance are independent of its watcher attack.
     await page.getByRole("button", { name: "Select all, top to bottom", exact: true }).click();

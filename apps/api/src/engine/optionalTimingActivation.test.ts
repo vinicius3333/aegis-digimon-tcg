@@ -20,9 +20,8 @@ describe("optional processing across shared timing limits", () => {
       },
       {
         autoAcceptOptional: true,
-        autoSelectCards: true,
+        autoSelectCards: false,
         autoChooseOption: true,
-        declinePrompts: ["suspend 1 Digimon", "return 1", ...(decline ? ["Leopardmon"] : [])],
       },
     );
     await s.ready();
@@ -34,11 +33,31 @@ describe("optional processing across shared timing limits", () => {
         instanceId: s.inst("leopardmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "EX13-043" && s.state.pendingDecision === undefined);
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspension = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspension.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
     const playOffers = () =>
       s.decisions.filter(({ req }) => req.kind === "selectCards" && req.promptText === "Leopardmon");
     await settle(() => playOffers().length === 1);
+    const play = s.state.pendingDecision!;
+    expect(play.kind).toBe("selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: play.decisionId,
+        response: { kind: "selectCards", instanceIds: decline ? [] : [s.inst("mammal").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX13-043" && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("mammal").instanceId)).toBe(decline);
+    expect(s.perm("base").isSuspended).toBe(false);
     // Choosing the modal branch activates the Once Per Turn effect. Declining the nested
     // optional play does not roll that activation back, so the attack timing offers no retry.
 

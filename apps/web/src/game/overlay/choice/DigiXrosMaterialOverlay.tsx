@@ -210,14 +210,6 @@ export function DigiXrosMaterialOverlay({
         </div>
         <div className="material-prompt__footer">
           <div className="game-actions-row">
-            <Button
-              full
-              icon={Icons.Sparkles}
-              disabled={picks.length === 0}
-              onClick={() => onConfirm(picks, chosenExpanderPermanentIds)}
-            >
-              {picks.length === 1 ? t("overlay.xrosConfirmOne") : t("overlay.xrosConfirm", { count: picks.length })}
-            </Button>
             <Button full variant="secondary" onClick={onSkip}>
               {t("overlay.xrosPlayWithout")}
             </Button>
@@ -226,6 +218,14 @@ export function DigiXrosMaterialOverlay({
                 {t("common.cancel")}
               </Button>
             ) : null}
+            <Button
+              full
+              icon={Icons.Sparkles}
+              disabled={picks.length === 0}
+              onClick={() => onConfirm(picks, chosenExpanderPermanentIds)}
+            >
+              {picks.length === 1 ? t("overlay.xrosConfirmOne") : t("overlay.xrosConfirm", { count: picks.length })}
+            </Button>
           </div>
           {eligibleExpanders.length > 0 ? (
             <Button

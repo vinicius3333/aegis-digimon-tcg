@@ -4,6 +4,7 @@ import type { Effect } from "../effects/Effect.js";
 import type { EffectContext } from "../effects/EffectContext.js";
 import { effectsOf } from "../effects/collect.js";
 import { UseTracker, canTrigger, canActivate } from "../effects/kernel.js";
+import { effectProvenanceKinds } from "../effects/effectProvenance.js";
 import type { CombatController } from "../combat/controller.js";
 
 /**
@@ -46,6 +47,8 @@ export interface RespondCounterDeps {
   makeContext(source: CardSource, effect: Effect): EffectContext;
   /** Per-turn use ledger (engine-owned; shared with the effect stack). */
   tracker: UseTracker;
+  /** Resolve one body and its derived reactions before combat resumes. */
+  resolveInWindow?(body: () => Promise<void>): Promise<void>;
 }
 
 /** The timing window [Counter] effects are keyed under (§11-3 Counter Timing). */
@@ -122,8 +125,22 @@ export async function applyRespondCounter(
   }
 
   const { source, effect, ctx } = check;
-  await effect.resolve(ctx);
-  deps.tracker.register(source.instanceId, effect.effectKey);
+  // Counter is a defending-player effect, even while the attacker owns the turn.
+  // Carry the same provenance as triggered effects so opponent-only immunity and
+  // source-kind restrictions see the actual card that is resolving (GitHub #5050).
+  const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
+  ctx.effectSourceKinds = sourceKinds;
+  const resolveBody = async () => {
+    ctx.fx.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);
+    try {
+      await effect.resolve(ctx);
+    } finally {
+      ctx.fx.leaveEffectResolution?.();
+    }
+    deps.tracker.register(source.instanceId, effect.effectKey);
+  };
+  if (deps.resolveInWindow) await deps.resolveInWindow(resolveBody);
+  else await resolveBody();
   deps.combat.resolveCounterActivated(seat);
 
   return {

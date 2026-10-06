@@ -461,8 +461,8 @@ function baseGrantedMatch(
   });
 }
 
-/** A hand-resident "set the digivolution cost to <count>" static, as the compiled IR records it:
- *  a CostModifier with `costType: "digivolve"`, `mode: "set"` and `handResident: true`. */
+/** A hand-resident "set the digivolution cost to <count>" static, declared through
+ *  `residentZones` or the legacy `handResident` flag. */
 interface HandResidentSetDigivolveCost {
   amount: number;
   scaling?: { per?: number; unit?: string; floor?: number };
@@ -481,12 +481,13 @@ function handResidentSetDigivolveCostOf(handCardId: string): HandResidentSetDigi
         costType?: string;
         mode?: string;
         handResident?: boolean;
+        residentZones?: ("hand" | "trash")[];
       };
       if (
         candidate.kind === "CostModifier" &&
         candidate.costType === "digivolve" &&
         candidate.mode === "set" &&
-        candidate.handResident === true
+        (candidate.residentZones?.includes("hand") ?? candidate.handResident === true)
       ) {
         return candidate;
       }

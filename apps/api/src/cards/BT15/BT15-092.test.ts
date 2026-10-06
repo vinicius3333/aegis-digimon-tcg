@@ -454,3 +454,45 @@ describe("GitHub #4924 — security inspection preserves play legality", () => {
     expect(s.state.players[0]!.security.map((c) => c.instanceId)).toEqual([s.inst("dual").instanceId]);
   });
 });
+
+describe("BT15-092 — Kari security placement after passing the search", () => {
+  it.each([
+    "BT15-084",
+    "BT16-084",
+    "BT17-093",
+    "BT2-087",
+    "BT4-097",
+    "BT6-089",
+    "BT8-090",
+    "BT9-084",
+    "EX6-063",
+    "P-127",
+    "ST20-12",
+  ])("places itself in security with %s after selecting no Digimon", async (kari) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: kari, as: "kari" },
+          { card: "BT1-045", as: "yellowSource" },
+        ],
+        hand: [{ card: "BT15-092", as: "light" }],
+        security: ["BT1-009"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const id = s.inst("light").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: id })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(id);
+    expect(s.state.players[0]!.trash.map((zoneCard) => zoneCard.instanceId)).not.toContain(id);
+  });
+});

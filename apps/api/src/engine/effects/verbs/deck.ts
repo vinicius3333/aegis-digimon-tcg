@@ -153,8 +153,8 @@ export function createDeckVerbs(pc: PrimitivesContext) {
           return permanentId === undefined ? [] : [[instanceId, permanentId] as const];
         }),
       );
-      const partitionCandidates = partition.captureReturns(instanceIds);
-      instanceIds = await filterBouncePrevented(instanceIds);
+      const partitionCandidates = partition.captureReturns(instanceIds, undefined, "security");
+      instanceIds = await filterBouncePrevented(instanceIds, "security");
       await partition.resolve(partitionCandidates);
       // A Partition play can replace the holder; placement cannot chase its old top into a new stack.
       instanceIds = instanceIds.filter((instanceId) => {

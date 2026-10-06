@@ -187,6 +187,28 @@ describe("open player bugs — playable production turn-loop scenarios", () => {
     await finish(run);
   });
 
+  it.each([true, false])("BT15-092 enters security with Kari after search (play: %s)", async (play) => {
+    const run = await start("arena-bt15-092-kari-security", { autoSelectCards: false });
+    const { s } = run;
+    const optionId = hand(s, "BT15-092").instanceId;
+    const gatomonId = s.state.players[0]!.security.find((card) => card.cardId === "BT15-033")!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: play ? [gatomonId] : [] },
+      }),
+    ).toEqual({ ok: true });
+    await resolved(s, "BT15-092");
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(optionId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === gatomonId)).toBe(play);
+    expect(s.state.players[0]!.security).toHaveLength(play ? 3 : 4);
+    await finish(run);
+  });
+
   it("#4924 sends private security faces to the selection", async () => {
     const run = await start("arena-issue-4924-revelation-security-faces");
     const { s } = run;

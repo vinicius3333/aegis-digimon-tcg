@@ -246,20 +246,6 @@ describe("BT25-027 MachGaogamon", () => {
       () =>
         s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== firstDecision.decisionId,
     );
-    const returnDecision = s.state.pendingDecision!;
-    expect(returnDecision.kind).toBe("optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: returnDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== returnDecision.decisionId,
-    );
     const costDecision = s.state.pendingDecision!;
     expect(costDecision.kind).toBe("optional");
     expect(
@@ -297,7 +283,7 @@ describe("BT25-027 MachGaogamon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: false, autoSelectCards: false },
     );
     s.state.memory = 3;
     await s.ready();
@@ -318,24 +304,18 @@ describe("BT25-027 MachGaogamon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== wholeEffectDecision.decisionId,
-    );
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const returnDecision = s.state.pendingDecision!;
+    const returnRequest = s.decisions.find(({ req }) => req.decisionId === returnDecision.decisionId)!.req;
+    expect(returnRequest.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: returnDecision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== returnDecision.decisionId,
-    );
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const unsuspendDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
@@ -366,7 +346,7 @@ describe("BT25-027 MachGaogamon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-001"] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: false },
     );
     s.state.memory = 3;
     await s.ready();
@@ -404,13 +384,16 @@ describe("BT25-027 MachGaogamon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const ret = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === ret.decisionId)!.req;
+    expect(request.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    expect(request.options?.candidateInstanceIds).toContain(s.perm("target").permanentId);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: ret.decisionId,
-        response: { kind: "optional", accept: true },
+        response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");

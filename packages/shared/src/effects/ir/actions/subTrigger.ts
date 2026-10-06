@@ -116,6 +116,8 @@ export interface SubTriggerAction extends ActionBase {
   sourceFilter?: Filter;
   /** For digivolution watchers: filter the Digimon being digivolved into (not the source Digimon). */
   digivolveIntoFilter?: Filter;
+  /** Require the evolution's base to be a Tamer, rather than a Digimon carrying a Tamer. */
+  requireDigivolvedFromTamer?: boolean;
   /** Restrict the permanent hosting this watcher to a live board filter. */
   hostFilter?: Filter;
   /** Do not fire if the watcher host is in the same simultaneous deletion batch. */

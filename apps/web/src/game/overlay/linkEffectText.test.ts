@@ -14,6 +14,16 @@ describe("[When Linking] printed text", () => {
     );
   });
 
+  it.each(["Static", "whenLinked"])("shows Medicmon's printed link clause for watcher timing %s", (timing) => {
+    const clause = getCardDefinition("BT26-028")!.linkEffect!;
+    expect(playerFacingEffectClause({ cardId: "BT26-028", timing, description: clause })).toBe(clause);
+  });
+
+  it.each(linkedCards)("renders $cardId's linked activation from its printed description", (card) => {
+    const clause = cardEffectClauseForTiming(card.cardId, "WhenLinking");
+    expect(playerFacingEffectClause({ cardId: card.cardId, timing: "Static", description: clause })).toBe(clause);
+  });
+
   it("finds the link-box clause for every card that prints [When Linking]", () => {
     expect(linkedCards.length).toBeGreaterThan(0);
     const missing = linkedCards

@@ -551,17 +551,18 @@ describe("BT25-060 Rebootmon", () => {
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
   });
 
-  it("When Digivolving publicly links the chosen legal hand source and unsuspends only this host", async () => {
+  it("When Digivolving links the chosen hand source to this host and unsuspends the selected Digimon", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT25-057", as: "base", suspended: true },
-            { card: "BT25-057", as: "other" },
+            { card: "BT25-057", as: "other", suspended: true },
           ],
           hand: [
             { card: CARD_ID, as: "reboot" },
             { card: VALID_LINK, as: "linked" },
+            { card: VALID_ALT_LINK, as: "otherLink" },
           ],
         },
       },
@@ -578,6 +579,33 @@ describe("BT25-060 Rebootmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === CARD_ID);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const linkChoice = s.state.pendingDecision!;
+    const linkRequest = s.decisions.find(({ req }) => req.decisionId === linkChoice.decisionId)!.req;
+    expect(linkRequest.options?.candidateInstanceIds).toContain(s.inst("linked").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: linkChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("linked").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== linkChoice.decisionId,
+    );
+    const unsuspendChoice = s.state.pendingDecision!;
+    const unsuspendRequest = s.decisions.find(({ req }) => req.decisionId === unsuspendChoice.decisionId)!.req;
+    expect(unsuspendRequest.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    expect(unsuspendRequest.options?.candidateInstanceIds).toContain(s.perm("other").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: unsuspendChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("base").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.perm("base").topCard?.cardId === CARD_ID &&
@@ -588,6 +616,7 @@ describe("BT25-060 Rebootmon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-057"]);
     expect(s.perm("other").stack.map((card) => card.cardId)).toEqual([]);
     expect(s.perm("other").linked).toHaveLength(0);
+    expect(s.perm("other").isSuspended).toBe(true);
     expect(s.perm("base").linked.map((card) => card.cardId)).toEqual([VALID_LINK]);
     expect(s.state.memory).toBe(0);
   });

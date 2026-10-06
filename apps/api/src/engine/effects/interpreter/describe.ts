@@ -2,6 +2,7 @@
 
 import {
   PRINTED_TIMING_LABELS,
+  splitPrintedClauses,
   type Action,
   type CardDefinition,
   type CardEffect,
@@ -97,6 +98,12 @@ export function soleWatcherLine(box: string | undefined): string | undefined {
     .map((line) => line.trim())
     .filter((line) => /^(?:\[[^\]]+\]\s*)*When\b/i.test(line));
   return lines.length === 1 ? lines[0] : undefined;
+}
+
+/** The unambiguous activation clause printed in a linked card's own box. */
+export function soleLinkingClause(box: string | undefined): string | undefined {
+  const clauses = splitPrintedClauses(box).filter((clause) => clause.labels.has("When Linking"));
+  return clauses.length === 1 ? clauses[0]!.text : undefined;
 }
 
 const costVerbByKind: Partial<Record<Cost["kind"], string>> = {

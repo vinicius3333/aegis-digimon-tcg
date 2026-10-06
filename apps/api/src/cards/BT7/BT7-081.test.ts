@@ -5,6 +5,35 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-081.js";
 
 describe("BT7-081 Bokomon", () => {
+  it("GitHub #5063: does not gain memory when a Digimon with a Tamer source digivolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT7-081", as: "bokomon" },
+            { card: "BT7-011", as: "hybrid", under: ["BT7-085"] },
+          ],
+          hand: [{ card: "BT7-014", as: "aldamon" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("hybrid").permanentId,
+        instanceId: s.inst("aldamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hybrid").topCard.cardId === "BT7-014" && s.state.pendingDecision === undefined);
+    await settle();
+    expect(s.state.memory).toBe(4);
+    expect(s.events.filter((e) => e.kind === "effectResolved" && e.sourceCardId === "BT7-081")).toHaveLength(0);
+  });
+
   it("uses trait-substring matching for the Hybrid or Ten Warriors search", () => {
     expect(runtimeCompiledCard("BT7-081")?.effects[0]?.actions[0]).toMatchObject({
       kind: "RevealAdd",

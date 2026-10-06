@@ -167,7 +167,7 @@
   .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface]
     .material-prompt__footer
     .game-actions-row
-    > button:first-child {
+    > button:last-child {
     grid-column: 1 / -1;
   }
   .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__footer--selection {

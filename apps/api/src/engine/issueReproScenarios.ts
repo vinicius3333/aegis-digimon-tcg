@@ -25,6 +25,111 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5127-opponent-suspend-cost": {
+    memory: 8,
+    players: [
+      { field: [{ card: "BT1-064", suspended: true }], hand: ["LM-066"] },
+      { field: [{ card: "BT1-010" }, { card: "BT1-011" }, { card: "BT1-088", suspended: true }] },
+    ],
+  },
+  "arena-issue-5127-opponent-survival": {
+    memory: 8,
+    players: [
+      { field: [{ card: "BT1-010", suspended: true }], hand: ["ST1-16"] },
+      { field: [{ card: "LM-066", suspended: true }] },
+    ],
+  },
+  "arena-issue-5159-kudamon-moving": {
+    memory: 8,
+    players: [
+      {
+        breeding: { card: "EX13-026", under: ["BT26-005"] },
+        deck: ["BT1-009", "BT1-009", "ST24-06", "ST24-13", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-5158-guilmon-x-reveal": {
+    memory: 8,
+    players: [{ hand: ["EX8-009"], deck: ["BT1-009", "BT1-009", "EX13-010", "BT9-109", "BT1-009"] }, {}],
+  },
+  "arena-issue-5050-counter-immunity": {
+    players: [
+      { field: [{ card: "EX11-074" }, { card: "BT1-009" }], security: ["BT1-009", "BT1-009"] },
+      { field: [{ card: "EX13-015" }], security: ["BT1-009", "BT1-009"] },
+    ],
+  },
+  "arena-issue-5059-angewomon-warp": {
+    memory: 10,
+    players: [
+      { field: [{ card: "ST20-10" }, { card: "ST21-10" }], hand: ["ST20-06", "ST20-11", "ST21-11"] },
+      { field: [{ card: "BT1-024" }] },
+    ],
+  },
+  "arena-issue-5058-davis-large-hand": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT16-085" }, { card: "BT1-038" }],
+        hand: [...Array.from({ length: 24 }, () => "BT1-010"), "BT3-021", "BT3-047"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-5070-lunamon-breeding": {
+    memory: 8,
+    players: [
+      {
+        breeding: { card: "BT1-003" },
+        hand: ["BT25-022", "BT25-022", "BT25-024"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT24-034", "BT26-029", "BT26-022", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-5067-treadmill-reveal": {
+    memory: 8,
+    players: [
+      {
+        breeding: { card: "BT1-003" },
+        hand: ["BT25-022", "LM-054"],
+        deck: ["BT1-009", "BT1-009", "BT13-069", "BT11-040", "BT1-009"],
+      },
+      {},
+    ],
+  },
+  "arena-issue-5066-shadow-reveal": {
+    memory: 8,
+    players: [
+      { hand: ["LM-060"], field: [{ card: "BT1-067" }], deck: ["BT1-009", "BT13-051", "BT13-048", "BT1-009"] },
+      {},
+    ],
+  },
+  "arena-issue-5063-bokomon-base": {
+    memory: 5,
+    players: [{ field: [{ card: "BT7-081" }, { card: "BT7-011", under: ["BT7-085"] }], hand: ["BT7-014"] }, {}],
+  },
+  "arena-issue-5064-hybrid-protection": {
+    memory: 10,
+    players: [
+      { field: [{ card: "BT1-009" }], hand: ["ST1-16"] },
+      { field: [{ card: "AD1-002" }, { card: "AD1-002", under: ["AD1-023"] }], security: ["BT1-009"] },
+    ],
+  },
+  "arena-issue-5060-exact-lucemon": {
+    players: [{ field: [{ card: "BT1-010" }] }, { security: ["EX10-071"], trash: ["EX10-013", "EX6-018", "BT7-111"] }],
+  },
+  "arena-issue-5047-richard-self": {
+    memory: 8,
+    players: [{ field: [{ card: "EX13-071" }], hand: ["EX13-071"] }, { field: [{ card: "BT1-009" }] }],
+  },
+  "arena-issue-5049-decline-dna": {
+    memory: 3,
+    players: [
+      { field: [{ card: "AD1-009" }, { card: "AD1-012" }], hand: ["EX9-021"] },
+      { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    ],
+  },
   "arena-issue-5011-agumon-search": {
     players: [{ hand: ["EX9-007"], deck: ["BT1-009", "EX9-014", "EX9-007", "BT1-009", "BT1-009", "BT1-009"] }, {}],
     memory: 8,
@@ -106,7 +211,6 @@ const ISSUE_LAYOUTS = {
     players: [{ breeding: { card: "EX11-037", under: ["EX11-004"] } }, { security: ["BT1-010", "BT1-010", "BT1-010"] }],
     memory: 8,
   },
-
   "arena-issue-4998-gammamon-breeding": {
     players: [{ breeding: { card: "LM-016" }, hand: ["BT21-090"] }, {}],
     memory: 8,
@@ -413,7 +517,6 @@ const ISSUE_LAYOUTS = {
     ],
     memory: 3,
   },
-
   "arena-discord-1556732255148179569-drasil-turn": {
     players: [
       {
@@ -425,7 +528,6 @@ const ISSUE_LAYOUTS = {
       { breeding: { card: "BT1-001" }, field: [{ card: "ST1-10" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
     ],
   },
-
   "arena-issue-4965-optional-raid": {
     memory: 10,
     players: [
@@ -772,6 +874,17 @@ const ISSUE_LAYOUTS = {
       },
     ],
   },
+  "arena-bt15-092-kari-security": {
+    memory: 10,
+    players: [
+      {
+        field: [{ card: "BT15-084" }, { card: "BT8-090" }],
+        hand: ["BT15-092"],
+        security: ["BT15-033", "BT1-009", "BT1-010"],
+      },
+      {},
+    ],
+  },
   "arena-issue-4924-revelation-security-faces": {
     players: [{ field: [{ card: "BT1-045" }], hand: ["BT15-092"], security: ["BT15-033", "BT15-033", "BT1-009"] }, {}],
   },
@@ -837,6 +950,495 @@ const ISSUE_LAYOUTS = {
       },
       { field: [{ card: "BT13-103" }, { card: "BT13-088" }], hand: ["BT1-009"] },
     ],
+  },
+  "arena-issue-5161-larva-breeding": {
+    players: [
+      {
+        breeding: { card: "BT18-086" },
+        field: [{ card: "BT7-111" }],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5104-alter-s-sources": {
+    players: [
+      {
+        field: [{ card: "EX9-021", under: ["AD1-001", "AD1-001", "AD1-010", "AD1-010"] }],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5115-melting-trash": {
+    players: [
+      {
+        field: [{ card: "P-232" }, { card: "BT19-052" }],
+        hand: ["BT20-090"],
+        trash: ["BT19-053", "BT19-053"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5129-hyogamon-trash": {
+    players: [
+      {
+        field: [{ card: "BT24-072", under: ["BT24-026"] }],
+        hand: ["BT24-045", "BT1-009"],
+        trash: ["P-209", "P-209"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5129-goblimon-trash": {
+    players: [
+      {
+        field: [{ card: "BT24-072", under: ["BT24-042"] }],
+        hand: ["BT24-045", "BT1-009"],
+        trash: ["P-209", "P-209"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5125-ulforce-gold": {
+    players: [
+      {
+        hand: ["EX13-023"],
+        trash: ["EX13-022", "EX4-027", "ST8-04"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5122-ulforce-bt13": {
+    players: [
+      {
+        hand: ["BT13-030"],
+        trash: ["EX13-022", "EX4-027", "ST8-04"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5125-ulforce-bt11": {
+    players: [
+      {
+        hand: ["BT11-032"],
+        trash: ["EX13-022", "EX4-027", "ST8-04"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5128-craniamon": {
+    players: [
+      {
+        hand: ["EX13-062"],
+        trash: ["BT20-054", "EX1-047", "BT13-061"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5145-slayerdramon": {
+    players: [
+      {
+        hand: ["EX13-024"],
+        trash: ["BT20-042", "BT20-023", "ST8-03"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5146-breakdramon": {
+    players: [
+      {
+        hand: ["EX13-044"],
+        trash: ["BT20-042", "BT20-023", "ST8-03"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5140-merciful": {
+    players: [
+      {
+        hand: ["EX13-077"],
+        trash: ["AD1-001", "AD1-010", "AD1-025", "AD1-014", "ST20-05", "ST20-07"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5154-dantemon": {
+    players: [
+      {
+        hand: ["BT26-086"],
+        trash: ["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5156-giant-slayer": {
+    players: [
+      {
+        hand: ["BT26-085"],
+        trash: ["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-016"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+      {
+        security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: Array<string>(20).fill("BT1-009"),
+      },
+    ],
+    memory: 10,
+  },
+  "arena-github-5160-super-hacking": {
+    players: [
+      { field: [{ card: "BT24-099" }, { card: "BT21-009" }], hand: ["BT6-095"], trash: ["BT24-071", "BT24-067"] },
+      { field: [{ card: "BT1-010" }] },
+    ],
+    memory: 10,
+  },
+  "arena-github-5162-gym-security": {
+    players: [{ field: [{ card: "BT1-009" }] }, { security: ["BT23-099"], hand: ["BT6-082"] }],
+    memory: 10,
+  },
+  "arena-github-5162-gym-empty": {
+    players: [{ field: [{ card: "BT1-009" }] }, { security: ["BT23-099"] }],
+    memory: 10,
+  },
+  "arena-github-5162-gym-suppressed": {
+    players: [{ field: [{ card: "EX13-060", under: ["BT20-015"] }] }, { security: ["BT23-099"] }],
+    memory: 10,
+  },
+  "arena-github-5111-jesmon": {
+    players: [{ field: [{ card: "BT6-015" }], hand: ["BT23-013"], trash: ["BT6-082", "BT6-082"] }, {}],
+    memory: 10,
+  },
+  "arena-github-5112-plutomon": {
+    players: [
+      { field: [{ card: "BT26-059" }], hand: ["BT1-001"], trash: ["BT26-021", "BT26-069"] },
+      { field: [{ card: "BT1-010", suspended: true }] },
+    ],
+    memory: 10,
+  },
+  "arena-github-5116-rizegreymon": {
+    players: [
+      {
+        field: [{ card: "ST24-13", under: ["BT1-001", "BT1-002"], faceDownUnder: true }],
+        hand: ["ST24-06", "ST24-07", "ST24-13"],
+      },
+      {},
+    ],
+    memory: 10,
+  },
+  "arena-github-5119-cerberusmon": {
+    players: [
+      { field: [{ card: "BT26-074" }], hand: ["BT1-001"], trash: ["BT26-100", "BT24-042"] },
+      { field: [{ card: "BT1-010", suspended: true }] },
+    ],
+    memory: 10,
+  },
+  "arena-github-5127-zephagamon-option": {
+    players: [
+      { breeding: { card: "BT1-064" }, hand: ["LM-066"] },
+      { field: [{ card: "BT1-010" }, { card: "BT1-011" }, { card: "BT1-088" }] },
+    ],
+    memory: 10,
+  },
+  "arena-github-5127-zephagamon-protection": {
+    players: [{ field: [{ card: "BT1-010" }], hand: ["BT6-095"] }, { field: [{ card: "LM-066", suspended: true }] }],
+    memory: 10,
+  },
+  "arena-github-5124-princemamemon": {
+    players: [
+      {
+        field: [{ card: "EX13-059" }],
+        hand: ["EX13-063"],
+        deck: ["BT1-009", "BT1-009", "EX13-059", "BT1-010", "BT1-009", "BT1-010", "BT1-011", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 10,
+  },
+  "arena-github-5124-bigmamemon": {
+    players: [
+      {
+        field: [{ card: "BT2-056" }],
+        hand: ["EX13-059"],
+        deck: ["BT1-009", "BT1-009", "EX13-050", "BT1-010", "BT1-009", "BT1-010", "BT1-011", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 10,
+  },
+  "arena-github-5136-greymon-recovery": {
+    players: [{ hand: ["AD1-001"], trash: ["EX9-021", "BT1-010", "AD1-010"] }, {}],
+    memory: 10,
+  },
+  "arena-github-5144-mastemon-infermon": {
+    players: [
+      { field: [{ card: "BT23-102" }, { card: "BT1-080" }] },
+      { field: [{ card: "BT5-090" }], hand: ["BT22-059"], security: ["BT1-009", "BT1-010"] },
+    ],
+    memory: 10,
+  },
+  "arena-github-5149-proto-form": {
+    players: [
+      { field: [{ card: "BT1-010", under: ["EX5-070", "BT1-009", "BT1-011"] }], hand: ["BT1-013"] },
+      { field: [{ card: "BT1-013" }], hand: ["BT6-095"] },
+    ],
+    memory: 10,
+  },
+  "arena-github-5151-examon-sources": {
+    players: [
+      { field: [{ card: "EX13-045", under: ["BT20-023", "BT20-023"] }] },
+      { field: [{ card: "BT1-013", suspended: true }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5106-chuumon-inherited": {
+    players: [
+      { field: [{ card: "EX1-052", under: ["EX5-045"] }], trash: ["EX5-045"] },
+      { field: [{ card: "BT1-084", suspended: true }] },
+    ],
+    memory: 8,
+  },
+  "arena-issue-5139-tsunomon-inherited": {
+    players: [
+      { field: [{ card: "ST21-02", under: ["ST21-01"] }], trash: ["AD1-001", "BT1-009"] },
+      { field: [{ card: "BT1-014", suspended: true }] },
+    ],
+    memory: 8,
+  },
+  "arena-issue-5141-ukkomon-moving": {
+    players: [
+      {
+        breeding: { card: "BT16-082", under: ["BT1-001"] },
+        deck: ["BT1-009", "BT1-010", "BT1-011", "ST1-16", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5126-yuuki-end-turn": {
+    players: [
+      { field: [{ card: "EX11-069" }], hand: ["BT1-010", "BT1-010"], trash: ["EX11-050", "EX11-050", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5123-ryugumon-watcher": {
+    players: [
+      { field: [{ card: "EX12-036" }], hand: ["BT1-010"] },
+      { field: [{ card: "BT1-014" }, { card: "BT1-015" }] },
+    ],
+    memory: 8,
+  },
+  "arena-issue-5113-weregarurumon-target": {
+    players: [{ hand: ["EX12-032"] }, { field: [{ card: "BT1-014" }, { card: "BT1-087" }] }],
+    memory: 8,
+  },
+  "arena-issue-5118-candlemon-main": {
+    players: [{ field: [{ card: "EX13-025" }], hand: ["EX13-025"], security: ["BT1-010", "BT1-011", "BT1-012"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-5142-bt10-087-search": {
+    players: [
+      {
+        hand: ["BT10-087"],
+        deck: ["BT1-009", "AD1-006", "AD1-013", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5155-bt12-021-search": {
+    players: [
+      { hand: ["BT12-021"], deck: ["BT1-009", "AD1-011", "BT12-090", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5117-bt13-048-search": {
+    players: [
+      { hand: ["BT13-048"], deck: ["BT1-009", "AD1-010", "AD1-008", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5148-bt24-043-search": {
+    players: [
+      { hand: ["BT24-043"], deck: ["BT1-009", "AD1-010", "BT24-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5132-bt24-044-search": {
+    players: [
+      { hand: ["BT24-044"], deck: ["BT1-009", "BT20-085", "BT1-012", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5121-bt24-058-search": {
+    players: [
+      { hand: ["BT24-058"], deck: ["BT1-009", "AD1-003", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5138-bt25-022-search": {
+    players: [
+      { hand: ["BT25-022"], deck: ["BT1-009", "BT24-011", "BT24-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5131-bt3-093-search": {
+    players: [
+      { hand: ["BT3-093"], deck: ["BT1-009", "AD1-006", "AD1-011", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5108-ex12-073-search": {
+    players: [
+      {
+        hand: ["EX12-073"],
+        deck: ["BT1-009", "BT18-041", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        field: [{ card: "BT18-041" }],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5137-ex13-027-search": {
+    players: [
+      { hand: ["EX13-027"], deck: ["BT1-009", "BT11-040", "BT11-041", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5107-ex2-008-search": {
+    players: [
+      {
+        hand: ["EX2-008"],
+        deck: ["BT1-009", "AD1-003", "BT12-089", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5109-ex4-038-search": {
+    players: [
+      { hand: ["EX4-038"], deck: ["BT1-009", "AD1-001", "AD1-010", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5135-st14-11-search": {
+    players: [
+      {
+        hand: ["ST14-11"],
+        deck: ["BT1-009", "AD1-002", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5132-st18-04-search": {
+    players: [
+      { hand: ["ST18-04"], deck: ["BT1-009", "BT1-012", "BT18-060", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5114-st20-02-search": {
+    players: [
+      { hand: ["ST20-02"], deck: ["BT1-009", "AD1-001", "AD1-019", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5152-lm-051-search": {
+    players: [
+      {
+        hand: ["LM-051"],
+        deck: ["BT1-009", "AD1-001", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        field: [{ card: "BT1-010" }],
+      },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-5132-lm-055-search": {
+    players: [
+      {
+        hand: ["LM-055"],
+        deck: ["BT1-009", "AD1-001", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        field: [{ card: "BT1-010" }],
+      },
+      {},
+    ],
+    memory: 8,
   },
 } satisfies Record<string, Layout>;
 

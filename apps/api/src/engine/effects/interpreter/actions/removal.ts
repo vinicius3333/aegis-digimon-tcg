@@ -202,7 +202,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const resolved =
         target.totalDpCap !== undefined
           ? await resolveTotalDpCapTargets(ctx, target)
-          : await resolvePermanentTargets(ctx, target, { preserveUnaffectableSelection: true });
+          : await resolvePermanentTargets(ctx, target, {
+              preserveUnaffectableSelection: true,
+              allowDecline: ctx.selectingOptionalTarget === true,
+            });
       const ids = survivorIds.length > 0 ? resolved.filter((id) => !survivorIds.includes(id)) : resolved;
       ctx.lastDeleteTargetSelected = ids.length > 0;
       ctx.lastDeletedPermanentSnapshots = [];

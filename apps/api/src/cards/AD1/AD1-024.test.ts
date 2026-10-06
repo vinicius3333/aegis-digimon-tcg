@@ -57,6 +57,7 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
     );
     s.state.memory = 10;
     const answered = new Set<string>();
+    const opponentId = s.perm("opponent").permanentId;
     let acceptedPlayedOccurrence = false;
     async function answerChoices() {
       for (let i = 0; i < 20; i++) {
@@ -94,10 +95,15 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
     const divider = allTurns.indexOf("Then,");
     const parts = new Set(
       s.decisions
-        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "AD1-024")
+        .filter(
+          ({ req }) => (req.kind === "optional" || req.kind === "chooseTargets") && req.sourceCardId === "AD1-024",
+        )
         .map(({ req }) => req.options?.effectTextPart),
     );
     expect(parts).toEqual(new Set([allTurns.slice(0, divider).trim(), allTurns.slice(divider).trim()]));
+    const returnChoice = s.decisions.find(({ req }) => req.sourceCardId === "AD1-024" && req.kind === "chooseTargets");
+    expect(returnChoice?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+    expect(returnChoice?.req.options?.candidateInstanceIds).toContain(opponentId);
     expect(s.perm("fighter").isSuspended).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("opponent").instanceId)).toBe(true);

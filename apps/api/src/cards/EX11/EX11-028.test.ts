@@ -259,19 +259,11 @@ describe("EX11-028 Galemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("galemon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const optional = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optional.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
 
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const selection = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === selection.decisionId)!.req;
+    expect(request.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(request.options?.candidateInstanceIds).toContain(s.perm("theirs").permanentId);
     expect(
       s.engine.applyIntent(0, {
@@ -311,18 +303,11 @@ describe("EX11-028 Galemon", () => {
         instanceId: s.inst("galemon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const optional = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optional.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
 
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const selection = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === selection.decisionId)!.req;
+    expect(request.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

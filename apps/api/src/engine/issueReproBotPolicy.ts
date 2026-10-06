@@ -2,6 +2,19 @@ import { createEvaluationPolicy, type BotPolicy } from "../bot/policy.js";
 
 /** Deterministic opponent actions for an arena reproduction, using ordinary intents. */
 export function createIssueReproBotPolicy(scenario: string | undefined): BotPolicy | undefined {
+  if (scenario === "arena-github-5149-proto-form" || scenario === "arena-github-5144-mastemon-infermon") {
+    const fallback = createEvaluationPolicy();
+    const cardId = scenario === "arena-github-5149-proto-form" ? "BT6-095" : "BT22-059";
+    return {
+      ...fallback,
+      name: `${scenario}-opponent`,
+      chooseBreedingAction: () => ({ type: "endPhase" }),
+      chooseMainAction(view) {
+        const card = view.hand.find((candidate) => candidate.cardId === cardId);
+        return card === undefined ? { type: "endPhase" } : { type: "playCard", instanceId: card.instanceId };
+      },
+    };
+  }
   if (scenario === "arena-examon-bt23-partition-choice") {
     const fallback = createEvaluationPolicy();
     return {

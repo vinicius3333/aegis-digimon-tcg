@@ -13,6 +13,7 @@ import { DecisionBoardReturn } from "./overlay/choice/DecisionBoardReturn";
 import { useEffectPromptFocus } from "./overlay/choice/useEffectPromptFocus";
 import "./overlay/fieldDecisionRail.css";
 import { usePromptHandSpace } from "./overlay/choice/usePromptHandSpace";
+import { useDecisionSourceMask } from "./overlay/choice/useDecisionSourceMask";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   useEffect(() => {
@@ -60,6 +61,7 @@ function BoardPromptArt({ cardId, width }: { cardId: string; width: number }) {
 
 export function BoardPromptRail({
   variant,
+  sourcePermanentId,
   label,
   art,
   artWidth = BOARD_PROMPT_ART_WIDTH,
@@ -76,6 +78,7 @@ export function BoardPromptRail({
   children,
 }: {
   variant: BoardPromptVariant;
+  sourcePermanentId?: string;
   label: string;
   /** The card asking the question. Its picture says which card this is, so the name does not have to. */
   art?: string;
@@ -97,11 +100,18 @@ export function BoardPromptRail({
   const { t } = useTranslation();
   useEscapeToDialog(onOpenDialog);
   const modal = variant === "prompt";
+  const sourceMask = useDecisionSourceMask(modal ? sourcePermanentId : undefined);
   const focusProps = useEffectPromptFocus(!modal);
   usePromptHandSpace(focusProps.ref, !modal);
   return (
     <>
-      <div className={modal ? "decision-overlay-backdrop" : "board-prompt-scrim"} data-variant={variant} aria-hidden />
+      <div
+        className={modal ? "decision-overlay-backdrop" : "board-prompt-scrim"}
+        data-variant={variant}
+        data-source-permanent-id={sourceMask ? sourcePermanentId : undefined}
+        style={sourceMask}
+        aria-hidden
+      />
       <section
         className={`board-prompt${variant === "field-selection" ? " combat-prompt" : ""}${className ? ` ${className}` : ""}`}
         aria-label={label}
@@ -408,6 +418,7 @@ export function BoardSourceHostPrompt({
 /** `optional` answered beside the field: the question over the clause, with Use / Not use. */
 export function BoardOptionalPrompt({
   sourceCardId,
+  sourcePermanentId,
   prompt,
   clause,
   onUse,
@@ -415,6 +426,7 @@ export function BoardOptionalPrompt({
   onOpenDialog,
 }: {
   sourceCardId?: string;
+  sourcePermanentId?: string;
   /** The engine's question, already filtered of internal summaries; falls back to a generic one. */
   prompt?: string;
   clause?: string;
@@ -429,6 +441,7 @@ export function BoardOptionalPrompt({
   return (
     <BoardPromptRail
       variant="prompt"
+      sourcePermanentId={sourcePermanentId}
       label={sourceName ? t("overlay.cardEffect", { name: sourceName }) : t("overlay.useEffectPrompt")}
       // The art is the card, so the name below it would only repeat the picture. The link
       // is kept when there is no art to show instead.

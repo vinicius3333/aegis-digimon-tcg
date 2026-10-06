@@ -61,6 +61,7 @@ export const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           mode: "prevent",
           sourceFilter: {
+            isSelfRef: true,
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],

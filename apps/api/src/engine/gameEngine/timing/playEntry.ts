@@ -183,7 +183,8 @@ export async function fireEnteredByEffectTiming(
     // Digimon is not tagged; callers that report nothing (App Fusion) fall back to the printed
     // base. The entering card's own [When Digivolving] window above, and the bonus draw
     // (Q6709), are unaffected.
-    const tamerDigivolved = digivolvedFromTamerBase(subjectPermanent) && opts?.baseWasDigimon !== true;
+    const fromTamer = digivolvedFromTamerBase(subjectPermanent);
+    const tamerDigivolved = fromTamer && opts?.baseWasDigimon !== true;
     const watcherTrigger = {
       subjectPermanentId,
       digivolvedInstanceId: instanceId,
@@ -193,6 +194,7 @@ export async function fireEnteredByEffectTiming(
         : { previousDigivolutionLevel: opts.previousDigivolutionLevel }),
       ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
+      ...(fromTamer ? { digivolvedFromTamer: true } : {}),
       ...(tamerDigivolved ? { tamerDigivolved: true } : {}),
     };
     await engine.fireSubTrigger("whenOneOfYoursDigivolves", watcherTrigger);

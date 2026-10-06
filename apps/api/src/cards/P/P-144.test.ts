@@ -112,6 +112,20 @@ describe("P-144 Gotsumon (X Antibody)", () => {
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("source").permanentId })).toEqual(
       { ok: true },
     );
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    expect(s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req.options).toMatchObject({
+      min: 0,
+      max: 1,
+      purpose: "optionalTarget",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.perm("source").isSuspended).toBe(false);
   });

@@ -847,3 +847,59 @@ describe("Discord 1557044001453113455: Mastemon security placement", () => {
     expect(s.state.players[owner === 0 ? 1 : 0]!.security.some((c) => c.instanceId === target.instanceId)).toBe(false);
   });
 });
+
+it("GitHub #5144: Mastemon places an Infermon with active DP/return protection as owner security", async () => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT23-102", as: "mastemon" },
+          { card: "BT1-080", as: "attacker" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: {
+        battleArea: [{ card: "BT5-090", as: "arata" }],
+        hand: [{ card: "BT22-059", as: "infermon" }],
+        security: ["BT1-009", "BT1-010"],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+  );
+  s.state.turnSeat = 1;
+  s.state.memory = 10;
+  await s.ready();
+  const opponentTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(1);
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("infermon").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle();
+  const infermon = s.state.players[1]!.battleArea.find((p) => p.topCard.cardId === "BT22-059")!;
+  expect(infermon).toBeDefined();
+  expect(observe(s.engine).isRestricted(infermon, "dpImmune")).toBe(true);
+  expect(observe(s.engine).isRestricted(infermon, "beReturned")).toBe(true);
+  preferred.push(infermon.permanentId);
+  advance(s.engine).endMainPhaseIfOpen(1);
+  await opponentTurn;
+  s.state.turnSeat = 0;
+  s.state.memory = 3;
+  const ownTurn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  expect(observe(s.engine).isRestricted(infermon, "beReturned")).toBe(true);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(s.state.players[1]!.security.at(-1)!.cardId).toBe("BT22-059");
+  expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT22-059")).toBe(false);
+  expect(s.state.pendingDecision).toBeUndefined();
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await ownTurn;
+});

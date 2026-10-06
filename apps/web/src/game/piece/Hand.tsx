@@ -59,6 +59,9 @@ export function Hand({
 }) {
   const { t } = useTranslation();
   const n = cards.length;
+  // Large effect selections need whole hit targets: a tightly fanned neighbor
+  // otherwise covers the card the player is trying to pick (GitHub #5058).
+  const spreadSelection = selection !== undefined && n > 6;
   const [hoveredInstanceId, setHoveredInstanceId] = useState<string | null>(null);
   const [coveredHoverKey, setCoveredHoverKey] = useState<string | null>(null);
   useLayoutEffect(() => {
@@ -81,8 +84,8 @@ export function Hand({
   const rowWidth = useElementWidth(rowEl);
   const drawn = useEnterAnimation(cards.map((entry) => entry.instanceId));
   const arrivalArtReady = useHandArrivalArt(rowEl, drawn);
-  // The strip only scrolls on the touch layout; everywhere else the fan is whole
-  // and the cues would point at nothing.
+  // Touch layouts use arrow cues; pointer layouts use the dock's scrollbar
+  // when a large selection spreads its cards beyond the available width.
   const touchLayout = useMediaQuery(TOUCH_LAYOUT_QUERY);
   const overflow = useScrollOverflow(touchLayout ? rowEl : null, n);
   const scrollByCard = (direction: -1 | 1) => {
@@ -94,7 +97,7 @@ export function Hand({
   const copyLabels = buildHandCopyLabels(cards, selection, t);
   // The hand tightens its own fan until it fits the dock. Without this a big hand
   // simply grew past the board and painted over the sidebar.
-  const overlap = handOverlap(n, rowWidth, cardWidth, minExposure);
+  const overlap = spreadSelection ? 0 : handOverlap(n, rowWidth, cardWidth, minExposure);
   const handOverflows = rowWidth > 0 && n * cardWidth - overlap * Math.max(0, n - 1) > rowWidth - HAND_TILT_BLEED * 2;
   const { pointerPicked, tapSelection, inspect, beginPick, movePick, finishPick, cancelPick } =
     useHandPickGesture(selection);

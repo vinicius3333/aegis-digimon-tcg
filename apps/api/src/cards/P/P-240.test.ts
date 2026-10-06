@@ -145,6 +145,12 @@ describe("P-240 engine behavior", () => {
         s.perm("target").stack.length === 0 &&
         s.state.pendingDecision === undefined,
     );
+    const processingCondition = s.decisions.find(({ req }) => req.kind === "optional");
+    expect(processingCondition?.req.options?.effectTextPart).toBe(
+      "Then, by placing 2 cards with [Gammamon] in its text or the [VB] trait from your trash as this Digimon's bottom digivolution cards, give 1 of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" until their turn ends.",
+    );
+    expect(processingCondition?.req.sourceInstanceId).toBe(s.inst("arcturusmon").instanceId);
+    expect(processingCondition?.req.sourcePermanentId).toBe(s.perm("arcturusmon").permanentId);
     expect(s.perm("target").stack).toHaveLength(0);
     expect(s.perm("arcturusmon").stack.map((card) => card.instanceId)).toEqual(sourceIds);
     for (const sourceId of sourceIds) {

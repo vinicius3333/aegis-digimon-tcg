@@ -111,7 +111,7 @@ export function canMoveFromBreeding(breeding: Permanent | undefined): boolean {
   // Printed DP is the client-visible movement criterion. This intentionally
   // includes EX2-007 Mother D-Reaper, a Digi-Egg card with 15000 DP that
   // official Q3276 permits to move without digivolving first.
-  return (definition.dp ?? 0) > 0;
+  return definition.kinds.includes(CardKind.Digimon) || (definition.dp ?? 0) > 0;
 }
 
 /**

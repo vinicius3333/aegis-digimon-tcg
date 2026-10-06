@@ -3,7 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const anyDigimon: Target = { filter: { kind: ["Digimon"] }, count: 1 };
-const yourDigimon: Filter = { controller: "mine", kind: ["Digimon"] };
+const anyCostDigimon: Filter = { controller: "any", kind: ["Digimon"] };
 const opponentDigimon: Filter = { controller: "opponent", kind: ["Digimon"] };
 const suspendedDigimon: Filter = { controller: "any", kind: ["Digimon"], suspended: true };
 
@@ -62,7 +62,7 @@ export const compiled: CompiledCard = {
           actions: [],
           cost: {
             kind: "suspend",
-            target: { filter: yourDigimon, count: 1 },
+            target: { filter: anyCostDigimon, count: 1 },
             raw: "by suspending 1 Digimon, it doesn't leave",
           },
         },
@@ -77,7 +77,7 @@ export const compiled: CompiledCard = {
           kind: "ReducePlayCost",
           payment: {
             kind: "payCost",
-            cost: { kind: "suspend", target: { filter: yourDigimon, count: 2 } },
+            cost: { kind: "suspend", target: { filter: anyCostDigimon, count: 2 } },
           },
           amount: { kind: "fixed", value: 2 },
         },

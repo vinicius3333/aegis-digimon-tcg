@@ -313,8 +313,29 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   const playProhibited = (card: import("@aegis/shared").CardInstance) =>
     ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, card.cardId, "play", "deck") === true;
 
+  const mayIntroduceTamer = action.add.some(
+    (slot) =>
+      slot.to === "play" ||
+      slot.to === "useOption" ||
+      slot.orDispositions?.some((choice) => choice.to === "play" || choice.to === "useOption"),
+  );
   const planSlot = (spec: (typeof action.add)[number]) => {
     if (spec.ifDigivolveDeclined === true && !digivolveDeclined) return undefined;
+    // Do not ask for a card whose only printed destination has no legal host.
+    // A reveal play or used Option can introduce a Tamer before placement, so
+    // retain the deferred host check for primary or alternative routes.
+    if (spec.to === "underTamer" && !spec.orDispositions?.length && !mayIntroduceTamer) {
+      const hasHost = ctx.game
+        .player(seat)
+        .battleArea.some(
+          (permanent) =>
+            permanent.topCard !== undefined &&
+            ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Tamer) &&
+            (spec.underFilter === undefined || permanentMatchesFilter(ctx, permanent, spec.underFilter, ctx.source)),
+        );
+      if (!hasHost) return undefined;
+    }
+
     const primaryFilter = materializePlayCostScaling(spec.filter);
     const alternativeFilters = (spec.orFilters ?? []).map(materializePlayCostScaling);
     const qualifies = (c: import("@aegis/shared").CardInstance) => {

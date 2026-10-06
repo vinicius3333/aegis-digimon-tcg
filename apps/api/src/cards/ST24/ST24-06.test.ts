@@ -262,3 +262,27 @@ describe("ST24-06 RizeGreymon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+it("GitHub #5116: RizeGreymon can use the DATA SQUAD DUAL card's Option side", async () => {
+  const s = rizeGreymonBoard(
+    [
+      {
+        card: "ST24-13",
+        under: [
+          { card: "BT1-001", as: "firstUnder", faceUp: false },
+          { card: "BT1-002", as: "secondUnder", faceUp: false },
+        ],
+      },
+    ],
+    [{ card: "ST24-07", as: "dualOption" }],
+    1,
+  );
+  const dualId = s.inst("dualOption").instanceId;
+  await playRizeGreymon(s);
+  expect(s.state.players[0]!.trash.some((c) => c.instanceId === dualId)).toBe(true);
+  expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toEqual(
+    expect.arrayContaining([s.inst("firstUnder").instanceId, s.inst("secondUnder").instanceId]),
+  );
+  expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === dualId)).toBe(false);
+  expect(s.state.pendingDecision).toBeUndefined();
+});

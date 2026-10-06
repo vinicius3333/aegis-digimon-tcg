@@ -454,7 +454,7 @@ describe("EX13-026 Kudamon", () => {
     assertNoLoudGap(s);
   });
 
-  it("will not save under a Tamer that lacks the [DATA SQUAD] trait and bottoms that card instead", async () => {
+  it("GitHub #5159: skips an unavailable DATA SQUAD Tamer destination and bottoms that card", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -483,6 +483,7 @@ describe("EX13-026 Kudamon", () => {
     await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === HOLY_BEAST));
     await settle(() => s.state.pendingDecision === undefined);
 
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === CARD_ID && req.kind === "selectCards")).toHaveLength(1);
     expect(s.perm("otherTamer").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("toHand").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(

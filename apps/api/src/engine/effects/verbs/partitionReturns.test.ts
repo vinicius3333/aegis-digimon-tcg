@@ -1,4 +1,4 @@
-import { Zone } from "@aegis/shared";
+import { EffectDuration, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../../../cards/index.js";
 import { advance } from "../../testkit/advance.js";
@@ -48,6 +48,12 @@ describe("Partition on non-deletion removal (Discord 1556039867106983976)", () =
       const holderId = s.perm("examon").topCard.instanceId;
       const sourceIds = s.perm("examon").stack.map(({ instanceId }) => instanceId);
       const beforeMemory = s.state.memory;
+      if (destination === "security")
+        advance(s.engine).verb.restrict(
+          s.perm("examon").permanentId,
+          "beReturned",
+          EffectDuration.UntilOpponentTurnEnd,
+        );
       if (destination !== "security") advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
       try {
         if (destination === "hand") await advance(s.engine).verb.returnToHand([holderId]);

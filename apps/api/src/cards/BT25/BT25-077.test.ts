@@ -409,7 +409,10 @@ describe("BT25-077 Bacchusmon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.cardId)).toEqual([HIGH]);
     expect(
       s.decisions
-        .filter(({ req }) => req.sourceCardId === CARD_ID && req.kind === "optional")
+        .filter(
+          ({ req }) =>
+            req.sourceCardId === CARD_ID && req.kind === "chooseTargets" && req.options?.purpose === "optionalTarget",
+        )
         .map(({ req }) => req.promptText),
     ).toHaveLength(1);
   });

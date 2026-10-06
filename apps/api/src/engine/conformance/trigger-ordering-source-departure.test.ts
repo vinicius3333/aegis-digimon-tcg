@@ -493,21 +493,10 @@ describe("bounded trigger ordering and pending source departure", () => {
           response: { kind: "chooseTargets", instanceIds: [] },
         }),
       ).toMatchObject({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
-      const ownWatcher = s.state.pendingDecision!;
-      expect(ownWatcher.seat).toBe(0);
-      expect(s.decisions.find(({ req }) => req.decisionId === ownWatcher.decisionId)?.req.sourceCardId).toBe(
-        "BT25-077",
-      );
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: ownWatcher.decisionId,
-          response: { kind: "optional", accept: true },
-        }),
-      ).toMatchObject({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const suspend = s.state.pendingDecision!;
+      expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT25-077");
+      expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
       expect(suspend.seat).toBe(0);
       expect(
         s.engine.applyIntent(0, {
@@ -591,20 +580,10 @@ describe("bounded trigger ordering and pending source departure", () => {
           response: { kind: "chooseTargets", instanceIds: [] },
         }),
       ).toMatchObject({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
-      const ownWatcher = s.state.pendingDecision!;
-      expect(s.decisions.find(({ req }) => req.decisionId === ownWatcher.decisionId)?.req.sourceCardId).toBe(
-        "BT25-077",
-      );
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: ownWatcher.decisionId,
-          response: { kind: "optional", accept: true },
-        }),
-      ).toMatchObject({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const suspend = s.state.pendingDecision!;
+      expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT25-077");
+      expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
@@ -612,8 +591,9 @@ describe("bounded trigger ordering and pending source departure", () => {
           response: { kind: "chooseTargets", instanceIds: [s.perm("ownBacchus").permanentId] },
         }),
       ).toMatchObject({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const enemyWatcher = s.state.pendingDecision!;
+      expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
       expect(enemyWatcher.seat).toBe(1);
       expect(s.decisions.find(({ req }) => req.decisionId === enemyWatcher.decisionId)?.req.sourceCardId).toBe(
         "BT25-077",
@@ -622,7 +602,7 @@ describe("bounded trigger ordering and pending source departure", () => {
         s.engine.applyIntent(1, {
           type: "respondDecision",
           decisionId: enemyWatcher.decisionId,
-          response: { kind: "optional", accept: false },
+          response: { kind: "chooseTargets", instanceIds: [] },
         }),
       ).toMatchObject({ ok: true });
       await settle(() => s.state.pendingDecision === undefined);
@@ -856,13 +836,15 @@ describe("bounded trigger ordering and pending source departure", () => {
           trash: [{ card: "ST5-10", as: "nativePayload" }],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true, autoOrderTriggers: false },
+      { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: false },
     );
     await s.ready();
     const loop = s.engine.startTurnLoop();
     try {
       await advance(s.engine).waitForMainPhase(0);
       const survivorId = s.inst("survivor").instanceId;
+      const hostId = s.perm("chronomon").permanentId;
+      const buriedSourceIds = s.perm("chronomon").stack.map((card) => card.instanceId);
       expect(
         s.engine.applyIntent(0, {
           type: "attack",
@@ -905,18 +887,25 @@ describe("bounded trigger ordering and pending source departure", () => {
           response: { kind: "optional", accept: false },
         }),
       ).toMatchObject({ ok: true });
-      await settle(() => s.state.pendingDecision?.kind === "optional");
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const copied = s.state.pendingDecision!;
-      expect(s.decisions.find(({ req }) => req.decisionId === copied.decisionId)?.req.sourceCardId).toBe("BT26-016");
+      const copiedRequest = s.decisions.find(({ req }) => req.decisionId === copied.decisionId)?.req;
+      expect(copiedRequest?.sourceCardId).toBe("BT26-016");
+      expect(copiedRequest?.sourcePermanentId).toBe(hostId);
+      expect(copiedRequest?.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+      expect(copiedRequest?.options?.candidateInstanceIds).toContain(s.perm("survivor").permanentId);
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: copied.decisionId,
-          response: { kind: "optional", accept: true },
+          response: { kind: "chooseTargets", instanceIds: [s.perm("survivor").permanentId] },
         }),
       ).toMatchObject({ ok: true });
       await settle();
       expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(survivorId);
+      expect(s.perm("chronomon").permanentId).toBe(hostId);
+      expect(s.perm("chronomon").topCard.cardId).toBe("BT26-060");
+      expect(s.perm("chronomon").stack.map((card) => card.instanceId)).toEqual(buriedSourceIds);
       const recovery = s.state.pendingDecision!;
       expect(recovery.kind).toBe("optional");
       expect(

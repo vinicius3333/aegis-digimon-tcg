@@ -37,28 +37,7 @@ describe("accepted optional picks (Discord 1555073882145423380)", () => {
     return { s, pick: pickFrom(s, "EX3-045")! };
   }
 
-  it("lets the controller back out of an accepted Suspend", async () => {
-    const { s, pick } = await hydramonSuspendPick();
-    expect(pick.kind).toBe("chooseTargets");
-    expect(pick.options).toMatchObject({ min: 0, max: 1, purpose: "acceptedOptional" });
-
-    const response = { kind: "chooseTargets" as const, instanceIds: [] as string[] };
-    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pick.decisionId, response })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.pendingDecision === undefined);
-    expect(s.perm("first").isSuspended).toBe(false);
-    expect(s.perm("second").isSuspended).toBe(false);
-  });
-
-  it("rejects an accepted pick that names only cards it did not offer", async () => {
-    const { s, pick } = await hydramonSuspendPick();
-    const response = { kind: "chooseTargets" as const, instanceIds: ["not-offered"] };
-    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pick.decisionId, response }).ok).toBe(false);
-    expect(s.state.pendingDecision?.decisionId).toBe(pick.decisionId);
-  });
-
-  it("lets the controller back out of an accepted Return from the trash", async () => {
+  async function greymonReturnPick() {
     const s = setupEngine(
       {
         0: {
@@ -78,7 +57,49 @@ describe("accepted optional picks (Discord 1555073882145423380)", () => {
       ok: true,
     });
     await settle(() => pickFrom(s, "AD1-001") !== undefined);
-    const pick = pickFrom(s, "AD1-001")!;
+    return { s, pick: pickFrom(s, "AD1-001")! };
+  }
+
+  it("lets the controller decline Suspend through its optional target pick", async () => {
+    const { s, pick } = await hydramonSuspendPick();
+    expect(pick.kind).toBe("chooseTargets");
+    expect(pick.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
+
+    const response = { kind: "chooseTargets" as const, instanceIds: [] as string[] };
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pick.decisionId, response })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("first").isSuspended).toBe(false);
+    expect(s.perm("second").isSuspended).toBe(false);
+  });
+
+  it("rejects an accepted pick that names only cards it did not offer", async () => {
+    const { s, pick } = await greymonReturnPick();
+    expect(pick.kind).toBe("selectCards");
+    expect(pick.options).toMatchObject({ min: 0, max: 1, purpose: "acceptedOptional" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pick.decisionId,
+        response: { kind: "selectCards", instanceIds: ["not-offered"] },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(pick.decisionId);
+
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pick.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+  });
+
+  it("lets the controller back out of an accepted Return from the trash", async () => {
+    const { s, pick } = await greymonReturnPick();
     expect(pick.kind).toBe("selectCards");
     expect(pick.options).toMatchObject({ min: 0, max: 1, purpose: "acceptedOptional" });
 

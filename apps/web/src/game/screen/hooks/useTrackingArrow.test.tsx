@@ -25,10 +25,11 @@ function Harness({
   sceneVisible = true,
   phasePending = false,
   closed = true,
+  defenderVisible = true,
 }) {
   const boardRef = useRef<HTMLDivElement>(null);
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const permCentersRef = useRef({});
+  const permCentersRef = useRef({ defender: { x: 650, y: 50 } });
   const viewerSecurityRef = useRef<HTMLDivElement>(null);
   const opponentSecurityRef = useRef<HTMLDivElement>(null);
   const scene = buildSecurityClashScene({
@@ -62,11 +63,14 @@ function Harness({
           permRefs.current.attacker = element;
         }}
       />
-      <div
-        ref={(element) => {
-          permRefs.current.defender = element;
-        }}
-      />
+      {defenderVisible ? (
+        <div
+          data-testid="defender"
+          ref={(element) => {
+            permRefs.current.defender = element;
+          }}
+        />
+      ) : null}
       <div ref={opponentSecurityRef} />
       <AttackArrowLayer preview={null} tracking={tracking} />
     </div>
@@ -146,5 +150,34 @@ it.each([0, 0.5, 1, 2].flatMap((rate) => [false, true].map((effect) => ({ rate, 
     screen.rerender(<Harness attack={{ ...declaration, attackerCardId: "ST1-10" }} />);
     tick();
     expect(screen.container.querySelector("svg")!.style.getPropertyValue("--attack-arrow-delay")).toBe("0ms");
+  },
+);
+
+it.each([false, true])(
+  "keeps the arrow at the defender's last visible bounds after deletion (effect: %s)",
+  (effect) => {
+    let frame: FrameRequestCallback | undefined;
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      frame = callback;
+      return 1;
+    });
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const left = this.dataset.testid === "defender" ? 300 : 0;
+      return { x: left, y: 0, left, top: 0, right: left + 100, bottom: 100, width: 100, height: 100, toJSON() {} };
+    });
+    const tick = () =>
+      act(() => {
+        frame?.(1000);
+      });
+    const attack = { ...declaration, target: { kind: "permanent" as const, permanentId: "defender" } };
+    const screen = render(<Harness effect={effect} attack={attack} sceneVisible={false} closed={false} />);
+    tick();
+    const geometry = screen.container.querySelector("svg")!.innerHTML;
+    screen.rerender(
+      <Harness effect={effect} attack={attack} sceneVisible={false} closed={false} defenderVisible={false} />,
+    );
+    tick();
+    expect(screen.container.querySelector("svg")!.innerHTML).toBe(geometry);
   },
 );

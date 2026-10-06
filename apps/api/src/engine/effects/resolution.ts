@@ -141,7 +141,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
           undefined,
           (permanentId, printedTraits) => effectiveTraits(env.continuous, permanentId, printedTraits),
           (permanentId, printedKinds) => effectiveKinds(env.continuous, permanentId, printedKinds),
-          undefined,
+          env.baseGrantedDigivolve,
           undefined,
           (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
           (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),

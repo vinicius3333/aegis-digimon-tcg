@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { playerFacingPromptText } from "./overlay";
 
+it("uses the generic activation question for Examon's printed optional clause", () => {
+  expect(
+    playerFacingPromptText(
+      "You may play or use 1 play or use cost 12 or lower [Dracomon] or [Examon] text card from your hand or its digivolution cards without paying the cost",
+      "optional",
+    ),
+  ).toBeUndefined();
+});
+
 describe("playerFacingPromptText", () => {
   it("keeps the engine's own question for an optional effect", () => {
     expect(playerFacingPromptText("Activate Blitz?", "optional")).toBe("Activate Blitz?");
