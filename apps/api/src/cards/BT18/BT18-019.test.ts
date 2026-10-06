@@ -510,3 +510,48 @@ describe("BT18-019 Millenniummon — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+it("Discord 1557034399055216700: the activating player orders all distinct levels returned to the opposing deck top", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT18-015", as: "kimera" },
+          { card: "BT11-072", as: "machine" },
+        ],
+        hand: [{ card: "BT18-019", as: "millennium" }],
+      },
+      1: {
+        trash: [
+          { card: "BT1-030", as: "three" },
+          { card: "BT1-032", as: "four" },
+          { card: "BT1-021", as: "five" },
+        ],
+        deck: [{ card: "BT1-009", as: "originalTop" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+  );
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "dnaDigivolve",
+      materialPermanentIds: [s.perm("kimera").permanentId, s.perm("machine").permanentId],
+      instanceId: s.inst("millennium").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(s.state.pendingDecision?.kind).toBe("orderCards");
+  expect(s.state.pendingDecision?.seat).toBe(0);
+  const order = [s.inst("five").instanceId, s.inst("three").instanceId, s.inst("four").instanceId];
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: s.state.pendingDecision!.decisionId,
+      response: { kind: "orderCards", order },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision === undefined);
+  expect(s.state.players[1]!.deck.map((c) => c.instanceId)).toEqual([...order, s.inst("originalTop").instanceId]);
+  expect(s.state.memory).toBe(3);
+});

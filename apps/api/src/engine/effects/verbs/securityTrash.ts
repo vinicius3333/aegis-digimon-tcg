@@ -46,7 +46,8 @@ export function createSecurityTrashVerbs(pc: PrimitivesContext) {
         artIds: moved.map((c) => c.artId || c.cardId),
         seat,
       });
-      await fireSecurityTrashedEvents(engine, seat, moved, opts?.cause !== "barrierCost");
+      // Barrier's processing cost is paid by an effect (CR 16-25-1/3), unlike a security check.
+      await fireSecurityTrashedEvents(engine, seat, moved, true);
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
       await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }

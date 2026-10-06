@@ -244,3 +244,43 @@ describe("BT25-092 Asuna Shiroki", () => {
     expect(s.perm("opponentHost").topCard?.cardId).toBe("BT24-009");
   });
 });
+
+// The report specifically evolves the destination from trash, rather than from hand.
+it.each([0, 1, 3])(
+  "Discord 1557017861220737085: Asuna respects Jupitermon's variable cost from trash at %i security",
+  async (security) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "asuna" },
+            { card: "BT24-014", as: "host" },
+          ],
+          hand: [{ card: "BT25-100", as: "cost" }],
+          trash: [{ card: "BT24-101", as: "jupiter" }],
+          security: Array.from({ length: security }, () => "BT1-009"),
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("cost").instanceId, s.perm("host").permanentId, s.inst("jupiter").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const source = (s.engine as unknown as { cardSourceOf(c: CardInstance): CardSource }).cardSourceOf(s.inst("asuna"));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((e) =>
+      e.effectKey.startsWith(CARD_ID + "/"),
+    )!.effectKey;
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("asuna").instanceId, effectKey }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").topCard.cardId === "BT24-101" &&
+        s.state.pendingDecision === undefined &&
+        s.engine.mainVerbContinuationsInFlight === 0,
+    );
+    expect(s.state.memory).toBe(10 - Math.max(0, security - 1));
+  },
+);

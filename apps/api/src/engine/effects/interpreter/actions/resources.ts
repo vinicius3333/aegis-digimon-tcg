@@ -407,12 +407,13 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             }
           : undefined;
       const selfRef = want.isSelf || filter.isSelfRef;
-      // A hand-resident digivolve-cost static (BT7-040) installs ONLY while its source
-      // `card.Owner.HandCards.Contains(card)`) — the candidate sweep also visits trash
-      // and face-up security, which must not arm the SET.
-      if (action.handResident === true) {
-        const inHand = ctx.game.player(ctx.source.ownerSeat).hand.some((c) => c.instanceId === ctx.source.instanceId);
-        if (!inHand) return false;
+      // Intrinsic costs install only from their declared loose zones. BT7-040 remains
+      // hand-only; BT24-101 also applies when an effect evolves it from trash.
+      const residentZones = action.residentZones ?? (action.handResident === true ? (["hand"] as const) : undefined);
+      if (residentZones !== undefined) {
+        const owner = ctx.game.player(ctx.source.ownerSeat);
+        if (!residentZones.some((zone) => owner[zone].some((card) => card.instanceId === ctx.source.instanceId)))
+          return false;
       }
       if (action.costType === "digivolve") {
         // Digivolve-cost form: the predicate matches the base battle-area permanent being
@@ -506,7 +507,7 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         }
         ctx.fx.changeEvoCost(predicate, delta, {
           ...modifierOpts,
-          ...(action.handResident === true && selfRef && !setMode && delta < 0
+          ...(residentZones !== undefined && selfRef && !setMode && delta < 0
             ? { intrinsicCardId: ctx.source.cardId, intrinsicEffectKey: action }
             : {}),
         });

@@ -421,3 +421,28 @@ describe("BT23-025 MarineAngemon", () => {
     await loop;
   });
 });
+
+it("Discord 1557052509246455868: winning a security battle resolves before MarineAngemon's end-of-battle play", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "EX13-045", as: "attacker", dp: 20000 }], hand: ["ST8-03"] },
+      1: { security: ["BT23-025"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Raid"] },
+  );
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  const won = s.events.findIndex(
+    (e) => e.kind === "effectResolved" && e.sourceCardId === "EX13-045" && e.timing === "whenBattleWon",
+  );
+  const played = s.events.findIndex((e) => e.kind === "cardPlayed" && e.cardId === "BT23-025");
+  expect(won).toBeGreaterThanOrEqual(0);
+  expect(played).toBeGreaterThan(won);
+});
