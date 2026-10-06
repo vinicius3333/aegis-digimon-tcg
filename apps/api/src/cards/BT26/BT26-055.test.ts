@@ -6,6 +6,56 @@ import { compiled } from "./BT26-055.js";
 import "../index.js";
 
 describe("BT26-055 Giromon", () => {
+  it("GitHub bugs #5041 and #5027 trash security before a public Millennium self-deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-073", as: "host", under: ["BT26-055"] }],
+          hand: [{ card: "P-220", as: "millennium" }],
+        },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("millennium").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("host").instanceId));
+    await settle(() => !s.state.pendingDecision);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it.each([true, false])(
+    "Giromon would-leave timing survives prevention and excludes a face-down source (%s)",
+    async (faceUp) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-056", as: "host", under: [{ card: "BT26-055", faceUp }, "EX13-057"] }],
+            security: ["BT1-009", "BT1-013", "BT1-014"],
+          },
+          1: { battleArea: ["BT1-009"], hand: [{ card: "ST1-16", as: "gaia" }], security: ["BT1-009", "BT1-013"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "ST1-16") && !s.state.pendingDecision,
+      );
+      expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("host").permanentId]);
+      expect(s.state.players[0]!.security).toHaveLength(2);
+      expect(s.state.players[1]!.security).toHaveLength(faceUp ? 1 : 2);
+    },
+  );
+
   it("shares the Once Per Turn body across play, digivolution, and Counter and inherits security trash", () => {
     expect(digivolutionRequirementsFor("BT26-055")).toContainEqual({
       level: 4,
@@ -33,7 +83,7 @@ describe("BT26-055 Giromon", () => {
       trigger: "AllTurns",
       isInherited: true,
       actions: [
-        { kind: "SubTrigger", event: "whenLeavesPlay", actions: [{ kind: "SecurityManipulation", op: "trashTop" }] },
+        { kind: "Replacement", event: "wouldLeavePlay", actions: [{ kind: "SecurityManipulation", op: "trashTop" }] },
       ],
     });
   });
