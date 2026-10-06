@@ -136,6 +136,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "home.shortcuts.collection.copy": "Explore a coleção",
   "home.footer.legal":
     "Projeto de f\u00e3s gratuito, sem afilia\u00e7\u00e3o com a Bandai. Digimon, o Digimon Card Game e as imagens das cartas pertencem \u00e0 Bandai e aos seus detentores. Se voc\u00ea curte o Aegis, apoie o jogo oficial.",
+  "releases.1.15.0-beta.summary": releaseMessages["releases.1.15.0-beta.summary"]["pt-BR"],
+  "releases.1.15.0-beta.feature.spectators": releaseMessages["releases.1.15.0-beta.feature.spectators"]["pt-BR"],
+  "releases.1.15.0-beta.feature.sleeves": releaseMessages["releases.1.15.0-beta.feature.sleeves"]["pt-BR"],
+  "releases.1.15.0-beta.feature.newLook": releaseMessages["releases.1.15.0-beta.feature.newLook"]["pt-BR"],
+  "releases.1.15.0-beta.fix.decisions": releaseMessages["releases.1.15.0-beta.fix.decisions"]["pt-BR"],
+  "releases.1.15.0-beta.fix.cards": releaseMessages["releases.1.15.0-beta.fix.cards"]["pt-BR"],
   "releases.1.14.1-beta.summary": releaseMessages["releases.1.14.1-beta.summary"]["pt-BR"],
   "releases.1.14.1-beta.fix.drawHandoff": releaseMessages["releases.1.14.1-beta.fix.drawHandoff"]["pt-BR"],
   "releases.1.14.1-beta.fix.botPacing": releaseMessages["releases.1.14.1-beta.fix.botPacing"]["pt-BR"],

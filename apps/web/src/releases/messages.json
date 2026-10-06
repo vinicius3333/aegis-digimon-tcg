@@ -1,4 +1,28 @@
 {
+  "releases.1.15.0-beta.summary": {
+    "en": "This minor release adds spectators, custom card sleeves and a new look built around the falling bits, and fixes reported card and prompt problems.",
+    "pt-BR": "Esta versão minor adiciona espectadores, capas de carta personalizadas e um novo visual em torno dos bits caindo, e corrige problemas reportados em cartas e prompts."
+  },
+  "releases.1.15.0-beta.feature.spectators": {
+    "en": "Share a six-character code or link from a casual or private match so friends can watch it live. Enter a code from the lobby to watch.",
+    "pt-BR": "Compartilhe um código de seis caracteres ou um link de uma partida casual ou privada para que amigos assistam ao vivo. Digite um código no lobby para assistir."
+  },
+  "releases.1.15.0-beta.feature.sleeves": {
+    "en": "Pick a custom sleeve for your deck's card backs.",
+    "pt-BR": "Escolha uma capa personalizada para o verso das cartas do seu deck."
+  },
+  "releases.1.15.0-beta.feature.newLook": {
+    "en": "A new magenta accent, calmer page surfaces and falling bits that stay in the margins so text is easier to read, in light and dark themes.",
+    "pt-BR": "Um novo destaque magenta, superfícies mais calmas e bits caindo que ficam nas margens para facilitar a leitura, nos temas claro e escuro."
+  },
+  "releases.1.15.0-beta.fix.decisions": {
+    "en": "Prompts highlight the active source and separate effect clauses. Confirm buttons sit on the right, and field selections fit the screen.",
+    "pt-BR": "Os prompts destacam a fonte ativa e separam as cláusulas dos efeitos. Os botões de confirmar ficam à direita, e as seleções no campo cabem na tela."
+  },
+  "releases.1.15.0-beta.fix.cards": {
+    "en": "Fixes reported problems with security ownership, nested effects, reveal destinations, costs and When Linking text.",
+    "pt-BR": "Corrige problemas reportados com dono da segurança, efeitos aninhados, destinos de cartas reveladas, custos e o texto When Linking."
+  },
   "releases.1.14.1-beta.summary": {
     "en": "This patch fixes drawn-card flicker after digivolution, bot animation pacing and excess space in action confirmations.",
     "pt-BR": "Este patch corrige cartas piscando após a compra de digivolução, o ritmo das animações do bot e o espaço excessivo nas confirmações de ações."
