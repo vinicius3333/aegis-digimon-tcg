@@ -842,6 +842,58 @@ separate ROOT evaluation resource Go remain pending. Final blind seeds remain
 untouched, and all44 strict strength, mechanisms/materials, rooms, serving and
 final delivery acceptance remain required.
 
+## Actual R2b learning closure and evaluation admission
+
+Original foreground training session 26324 has now exited zero. Its exact whole
+693/start573249, operator 713/start573263 and learner 869/start588939 are gone;
+the actual original nonlink whole trap is `0` and GPU inventory is empty.
+All three paired passes completed: **6,864 usable training games**, seed
+6009240..6016103, 4,625 wins and 2,239 losses, zero failed/unusable games.
+One attributable unaffordable-payment refusal remains a negative-reward loss;
+26 recovered play rejections remain in the records. Training action visibility
+and stochastic wins are not strength, physical-payment or mastery acceptance.
+
+The unchanged guarded full R2b closure consumer exited zero, with actual
+completion SHA-256
+`2fdceff3dc3fc2c014500f05170b10910e617a4bba5752a406981365b09c261b`.
+Its local output `rule-link-current-corrective-ppo-r2b-closed.actual.json` has
+SHA-256 `c0a1c00cae7b8c9dcf17e304641de20a2bb8a63429ea53cf6450ff6604089795`.
+The actual new checkpoint remains at
+`runs/rule-link-current-aa2e56463-corrective-ppo-r2b/ppo/checkpoint.pt`, SHA-256
+`948aa03ea52208321e4d47e3ece9fd2517ee45d3b941d5b608fe94368b65df45`.
+All 12 model tensors are finite and changed, exact checkpoint reload passed,
+and every preserved optimizer tensor has **11,792 positive actual Adam updates**
+beyond the restored R1 optimizer. Protected source/runtime and original checkpoints
+passed pre/post guards; no extra model migration or engine rebuild occurred.
+
+The prepared frozen full-all44 evaluator is now bound to that actual closure and
+checkpoint through an exclusive sealed final request, SHA-256
+`9358926a0a161e3b78951ed9197291878d212bae5dc48efa39d74ad38febc2aa`.
+Its reviewed external wrapper is sealed at
+`transfers/rule-link-current-aa2e56463-corrective-strength-r2b-launch.sh`, SHA-256
+`c9ddea2531b81f6bd07bd6709d07c44ead05e0b82e07c654dee6fb14892f9b32`;
+actual desktop Bash syntax validation passed without execution.
+Full read-only evaluation admission exited zero in session 66852. Its receipt
+SHA-256 is `e1cc5004658d3963fe0fd6edd12bdecc46198ab69b7ae51087b9731637259515`.
+The admitted command is exactly the original frozen all44 evaluation command,
+with only the actual new checkpoint and fresh output directory substituted.
+A second actual static idle check passed with empty GPU inventory and absent
+new evaluation outputs before the separate ROOT resource Go, SHA-256
+`a679a82f135062c144f9d8d2ee44138940455a8ec7517cac66880f65b77c3e7a`.
+
+Original foreground evaluation session **49750** is now attached. Actual whole
+**683/start1185904** launched operator **702/start1185911**, with verified exact
+argv and parentage; identity SHA-256 is
+`1fdcbda16c93ccbbbc1578cc933de5f5307eb5b30a4ef936c6b933991fd0ee2a`.
+The operator is performing its unchanged full predecessor admission; the first
+observer shows no evaluation child, game or CUDA load yet, and no whole exit.
+Keep that original foreground session attached and obtain actual later process
+and terminal evidence without restarting on observation timeout.
+The evaluation keeps all 44 recipes, four original complete reference rows,
+both seats and 3,872 identical development games, with zero weight updates.
+Actual full all44 results, whole-zero closure and strict gain acceptance remain
+pending; completion of learning alone does not qualify the new bot.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
