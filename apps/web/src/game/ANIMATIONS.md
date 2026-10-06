@@ -726,3 +726,42 @@ Evidence is under `.local/phase-pacing/`; the pacing summarizer now includes pha
 panels, native endpoints and hatch observations. Bot play, digivolution, raising
 movement and trained-policy phase coverage still need dedicated captures. Native
 keyword coverage remains 18/46; full reference review and original audio remain open.
+
+## Effect battle checkpoint, 2026-10-05
+
+Room RQT-ggviX: EX13-076 Imperialdramon: Paladin Mode's [When Digivolving] strips
+BeelStarmon's three sources and has Imperialdramon battle it. No attack is declared.
+The server sent only the battle deletion, so the loser shattered as an effect deletion
+with no arrow, claw or shake.
+
+The engine now sends `battleCompared` for every permanent battle. An effect battle
+carries `effectBattle` (attacker seat, public card and art IDs) and never stands for
+the open attack, even against the same pair. The client stages its scene under the
+`clash:<key>` arrow the renderer already draws, and the blow waits for that painted
+arrow. A comparison with no deletion candidate still meets with no card struck.
+Blows on the impact track queue instead of replacing each other.
+
+The server publishes the comparison one batch before the deletion. Each loser's
+landed gate is kept until its battle deletion takes it, so the burst and the
+deletion's notices wait for contact. That wait counts queue time, so a pause holds it.
+
+`/dev/effects-lab?scenario=effects-lab-paladin-battle` reproduces the room on a real
+server. Measured with a throwaway per-frame probe on private servers, Normal speed:
+
+| Run          | Arrow   | Defender struck (claw/shake clock) | Shatter |
+| ------------ | ------- | ---------------------------------- | ------- |
+| Before, 1440 | none    | none                               | 4682 ms |
+| Before, 320  | none    | none                               | 4033 ms |
+| After, 1440  | 3069 ms | 3469–3843 ms (250/250 ms)          | 3921 ms |
+| After, 320   | 3753 ms | 4152–4535 ms (250/250 ms)          | 4639 ms |
+
+The arrow's extend and tip clocks finish (310 ms) before the first struck frame. The
+attacker stays visible and the defender stays mounted until the shatter. Fast speed
+keeps the same order at both widths. Reduced motion skips the decoration and removes
+the defender with no errors. An 8 s pause after the arrow paints holds both the strike
+and the shatter until Resume.
+
+Limitations: the returned sources show only the defender's relayout (about 240 ms),
+which ends before the arrow; a dedicated return animation belongs to the deck-return
+work. The clash ghost can show for one frame before the arrow. Logs from before this
+change have no comparison receipt, so replaying them still shows no clash.
