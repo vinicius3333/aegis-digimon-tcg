@@ -530,7 +530,7 @@ export function presentServerBatch({
   });
   // Start the field battle before a Piercing continuation can enqueue its security scene.
   // The shield step observes this track and waits until Raid's redirected battle has landed.
-  const combatCompletionGate = enqueueCombatImpact({
+  const { completion: combatCompletionGate, landedByPermanent: combatLandedByPermanent } = enqueueCombatImpact({
     clashScenes,
     beaten,
     setFieldClash,
@@ -1032,6 +1032,7 @@ export function presentServerBatch({
     beaten,
     clashLoserIds,
     clashLeadInMsByPermanent,
+    combatLandedByPermanent,
     playLeadInMs,
     anchors,
     deleteBurstKeyRef,

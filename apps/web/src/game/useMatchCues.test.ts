@@ -3183,6 +3183,87 @@ describe("match cues", () => {
     expect(result.current.deleteBursts).toEqual([]);
   });
 
+  describe("an effect battle", () => {
+    const effectCompared = (loser: string): ServerEvent => ({
+      kind: "battleCompared",
+      attackerPermanentId: "perm-1",
+      defenderPermanentId: loser,
+      loserPermanentIds: [loser],
+      effectBattle: { attackerSeat: 1, attackerCardId: "EX13-076", defenderCardId: "BT1-020" },
+    });
+
+    it("strikes the loser after its arrow and breaks it only after the contact", async () => {
+      const { result, rerender } = renderCues();
+      await advance(0);
+
+      rerender([
+        effectCompared("perm-dead"),
+        {
+          kind: "cardsMoved",
+          instanceIds: ["inst-dead"],
+          from: "battleArea",
+          to: "trash",
+          battleDeletion: true,
+          deletedPermanents: [{ permanentId: "perm-dead", instanceId: "inst-dead", cardId: "BT1-020", seat: 0 }],
+        },
+      ]);
+      await advance(0);
+      expect(result.current.fieldClash).toMatchObject({
+        attacker: { permanentId: "perm-1", cardId: "EX13-076" },
+        defender: { permanentId: "perm-dead", cardId: "BT1-020" },
+        effectBattle: true,
+      });
+      expect(result.current.combatImpactIds.size).toBe(0);
+
+      await advance(FIELD_CLASH_IMPACT_AT_MS);
+      expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+      expect(result.current.combatImpactIds.has("perm-1")).toBe(false);
+      expect(result.current.deleteBursts).toEqual([]);
+
+      await advance(COMBAT_IMPACT_TOTAL_MS - 1);
+      expect(result.current.deleteBursts).toEqual([]);
+      await advance(1);
+      expect(result.current.fieldClash).toBeNull();
+      expect(result.current.combatImpactIds.size).toBe(0);
+      expect(result.current.deleteBursts).toHaveLength(1);
+    });
+
+    it.each([0, 100])(
+      "queues an attack's blow %ims later behind it, and that loser breaks after its own blow",
+      async (attackDelayMs) => {
+        const { result, rerender } = renderCues();
+        await advance(0);
+
+        const declare: ServerEvent = {
+          kind: "attackDeclared",
+          seat: 1,
+          attackerPermanentId: "perm-1",
+          attackerCardId: "BT1-010",
+          target: { kind: "permanent", permanentId: "perm-dead" },
+          targetCardId: "BT1-020",
+        };
+        rerender([declare, effectCompared("perm-struck")]);
+        await advance(attackDelayMs);
+        rerender([declare, effectCompared("perm-struck"), COMBAT]);
+        await advance(FIELD_CLASH_IMPACT_AT_MS - attackDelayMs);
+        expect(result.current.combatImpactIds.has("perm-struck")).toBe(true);
+
+        await advance(COMBAT_IMPACT_TOTAL_MS);
+        expect(result.current.fieldClash).toMatchObject({ defender: { permanentId: "perm-dead" } });
+        expect(result.current.combatImpactIds.size).toBe(0);
+
+        await advance(FIELD_CLASH_IMPACT_AT_MS);
+        expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+        // The fixed lead-in has passed; the burst still waits for the queued blow to land.
+        await advance(COMBAT_IMPACT_TOTAL_MS - 1);
+        expect(result.current.deleteBursts).toEqual([]);
+        await advance(1);
+        expect(result.current.fieldClash).toBeNull();
+        expect(result.current.deleteBursts).toHaveLength(1);
+      },
+    );
+  });
+
   it("lands the battle blow after the arrow, with no invented attacker movement or extra delay", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

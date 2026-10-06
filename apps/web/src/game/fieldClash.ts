@@ -29,6 +29,8 @@ export interface OpenAttack {
   targetArtId?: string;
   /** This battle's clash has already been staged; final deletion bookkeeping adds no blow. */
   staged?: true;
+  /** Permanents an effect battle already struck during this attack; their deletion is not this battle's. */
+  effectStruckIds?: readonly string[];
 }
 
 export interface FieldClashCombatant {
@@ -51,6 +53,8 @@ export interface FieldClashScene {
   /** Present only when this declaration already has a measured arrow on screen. */
   arrowClock?: AttackArrowClock;
   arrowKey?: string;
+  /** An effect started this battle, so it never stands for the open attack. */
+  effectBattle?: true;
 }
 
 export function fieldClashImpactAtMs(scene: FieldClashScene): number {
@@ -131,7 +135,7 @@ export function buildBattleDeletionScene({
   const combatants = new Set([open.attackerPermanentId, open.targetPermanentId]);
   const losers = (event.deletedPermanents ?? [])
     .map(({ permanentId }) => permanentId)
-    .filter((permanentId) => combatants.has(permanentId));
+    .filter((permanentId) => combatants.has(permanentId) && !open.effectStruckIds?.includes(permanentId));
   if (losers.length === 0) return null;
   return sceneOf({
     key,
@@ -161,6 +165,7 @@ export function buildComparedBattleScene({
   artIdOf?: (permanentId: string) => string | undefined;
 }): FieldClashScene | null {
   if (
+    event.effectBattle ||
     !open ||
     open.staged ||
     open.attackerPermanentId !== event.attackerPermanentId ||
@@ -176,6 +181,42 @@ export function buildComparedBattleScene({
     cardIdOf,
     artIdOf,
   });
+}
+
+/**
+ * An effect's battle (EX13-076 has its Digimon battle the one it stripped) opens no attack, so
+ * its participants come from the comparison itself. The scene owns the connecting arrow the
+ * renderer draws for any clash, and the blow waits for that arrow to be painted. A comparison
+ * with no deletion candidate still shows the two Digimon meeting, with no card struck.
+ */
+export function buildEffectBattleScene({
+  key,
+  event,
+  viewerSeat,
+}: {
+  key: number;
+  event: Extract<ServerEvent, { kind: "battleCompared" }>;
+  viewerSeat: Seat;
+}): FieldClashScene | null {
+  const participants = event.effectBattle;
+  if (!participants) return null;
+  return {
+    key,
+    attacker: {
+      permanentId: event.attackerPermanentId,
+      cardId: participants.attackerCardId,
+      ...(participants.attackerArtId ? { artId: participants.attackerArtId } : {}),
+    },
+    defender: {
+      permanentId: event.defenderPermanentId,
+      cardId: participants.defenderCardId,
+      ...(participants.defenderArtId ? { artId: participants.defenderArtId } : {}),
+    },
+    loserPermanentIds: event.loserPermanentIds,
+    direction: participants.attackerSeat === viewerSeat ? AttackDirection.Up : AttackDirection.Down,
+    arrowKey: `clash:${key}`,
+    effectBattle: true,
+  };
 }
 
 /**

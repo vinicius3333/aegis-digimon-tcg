@@ -12,7 +12,9 @@ import { waitForAttackArrowClock } from "../../attackArrowClock";
  * impact for a combat deletion with no scene to cut.
  *
  * Both are decoration — they play in `live` mode only — and both take the one impact track,
- * so a newer battle replaces whatever was mid-swing.
+ * where each blow queues behind any still landing: an effect's battle and the attack around
+ * it are both shown. A queued blow starts late, so each loser's burst waits on its own blow
+ * through `landedByPermanent`.
  */
 export function enqueueCombatImpact({
   clashScenes,
@@ -26,16 +28,17 @@ export function enqueueCombatImpact({
   setFieldClash: Dispatch<SetStateAction<FieldClashScene | null>>;
   setCombatImpactIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   enqueue: (step: AnimationStep) => void;
-}) {
+}): { completion?: PresentationGate; landedByPermanent: ReadonlyMap<string, PresentationGate> } {
   let completion: PresentationGate | undefined;
+  const landedByPermanent = new Map<string, PresentationGate>();
   for (const scene of clashScenes) {
     const landed = createPresentationGate();
     completion = landed;
     const impacted: ReadonlySet<string> = new Set(scene.loserPermanentIds);
+    for (const permanentId of impacted) landedByPermanent.set(permanentId, landed);
     enqueue({
       id: `field-clash-${scene.key}`,
       track: "combatImpact",
-      replace: true,
       onDiscard: () => landed.release(),
       async run(context) {
         try {
@@ -55,13 +58,13 @@ export function enqueueCombatImpact({
       },
     });
   }
-  if (beaten.size === 0) return completion;
+  if (beaten.size === 0) return { completion, landedByPermanent };
   const landed = createPresentationGate();
   const impacted: ReadonlySet<string> = new Set(beaten);
+  for (const permanentId of impacted) landedByPermanent.set(permanentId, landed);
   enqueue({
     id: `combat-impact-${[...beaten].join(",")}`,
     track: "combatImpact",
-    replace: true,
     onDiscard: () => landed.release(),
     async run(context) {
       try {
@@ -75,5 +78,5 @@ export function enqueueCombatImpact({
       }
     },
   });
-  return landed;
+  return { completion: landed, landedByPermanent };
 }

@@ -36,6 +36,7 @@ export function enqueueDeletionBursts({
   beaten,
   clashLoserIds,
   clashLeadInMsByPermanent,
+  combatLandedByPermanent,
   playLeadInMs,
   anchors,
   deleteBurstKeyRef,
@@ -58,6 +59,8 @@ export function enqueueDeletionBursts({
   beaten: ReadonlySet<string>;
   clashLoserIds: ReadonlySet<string>;
   clashLeadInMsByPermanent?: ReadonlyMap<string, number>;
+  /** Each battle loser's own blow; a blow queued behind another starts later than its lead-in. */
+  combatLandedByPermanent?: ReadonlyMap<string, PresentationGate>;
   playLeadInMs: number;
   anchors: MatchCueAnchors;
   /** Mutated: incremented per burst so each shatter gets its own key. */
@@ -141,6 +144,7 @@ export function enqueueDeletionBursts({
         metadataInstanceId: deleted?.instanceId,
         effectDeletion,
         fieldImpact: clashLoserIds.has(anchorId) || beaten.has(anchorId),
+        combatLanded: combatLandedByPermanent?.get(anchorId),
         blowKey,
         securityBlowRef,
         causingEffectGate: anchorId === costClause?.permanentId ? costClause.focused : causingEffectGate,
