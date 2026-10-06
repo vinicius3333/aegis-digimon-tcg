@@ -13,6 +13,7 @@ import {
 
 type FieldCard = { card: string; under?: string[]; linked?: string[]; faceDownUnder?: boolean; suspended?: boolean };
 type PlayerLayout = {
+  deck?: string[];
   field?: FieldCard[];
   breeding?: FieldCard;
   hand?: string[];
@@ -24,6 +25,137 @@ type Layout = { players: readonly [PlayerLayout, PlayerLayout]; memory?: number 
 
 // Reduced boards for reported issues. Each runs in the ordinary turn loop.
 const ISSUE_LAYOUTS = {
+  "arena-issue-5011-agumon-search": {
+    players: [{ hand: ["EX9-007"], deck: ["BT1-009", "EX9-014", "EX9-007", "BT1-009", "BT1-009", "BT1-009"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-5011-gabumon-search": {
+    players: [{ hand: ["EX9-014"], deck: ["BT1-009", "EX9-007", "EX9-014", "BT1-009", "BT1-009", "BT1-009"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-5014-digital-gate-cool-boy": {
+    players: [{ field: [{ card: "P-206" }, { card: "EX2-007" }], hand: ["BT20-091"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-4999-mother-option-color": {
+    players: [{ field: [{ card: "EX2-007" }], hand: ["BT24-100"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-5000-mother-marsmon-cost": {
+    players: [{ field: [{ card: "EX2-007" }], hand: ["BT25-020"] }, {}],
+    memory: 10,
+  },
+  "arena-issue-5001-gomamon-vikemon-search": {
+    players: [{ hand: ["EX8-018"], deck: ["BT1-010", "EX8-018", "LM-040", "BT14-026", "BT1-010", "BT1-010"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-5003-bacchus-pending-effects": {
+    players: [
+      { field: [{ card: "EX7-062" }], trash: ["BT2-067", "BT2-068"], hand: ["BT1-009"] },
+      { field: [{ card: "BT25-077" }] },
+    ],
+    memory: 8,
+  },
+  "arena-issue-5004-shine-burst-marcus": {
+    players: [{ field: [{ card: "ST24-07" }, { card: "ST24-13" }], hand: ["BT25-104"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-5005-mococomon-forced-attack": {
+    players: [
+      {
+        field: [{ card: "EX12-043", under: ["EX12-002"] }],
+        hand: ["EX12-045", "EX12-056", "EX12-034", "EX12-076"],
+        security: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+      { security: ["BT1-010", "BT1-010", "BT1-010"] },
+    ],
+    memory: 10,
+  },
+  "arena-issue-5007-armor-shakkoumon-order": {
+    players: [
+      { field: [{ card: "BT16-102", under: ["BT1-051", "BT23-032"] }] },
+      { field: [{ card: "BT1-084", suspended: true }] },
+    ],
+    memory: 8,
+  },
+  "arena-issue-5008-hand-trash-selection": {
+    players: [{ field: [{ card: "BT2-078" }], hand: ["EX7-062", "BT1-009", "BT1-010", "BT1-011"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-5009-pipe-fox-no-level": {
+    players: [{ hand: ["BT22-023"] }, { field: [{ card: "TOKEN-Pipe-Fox" }] }],
+    memory: 10,
+  },
+  "arena-issue-5010-kapurimon-security-flip": {
+    players: [{ breeding: { card: "EX11-037", under: ["EX11-004"] } }, { security: ["BT1-010", "BT1-010", "BT1-010"] }],
+    memory: 8,
+  },
+
+  "arena-issue-4998-gammamon-breeding": {
+    players: [{ breeding: { card: "LM-016" }, hand: ["BT21-090"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-4998-paradise-lost-breeding": {
+    players: [{ breeding: { card: "BT4-115" }, hand: ["EX10-071"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-4993-inferno-divide-immunity": {
+    players: [
+      {
+        field: [{ card: "EX13-060", under: ["EX13-049", "EX13-055", "EX13-057"] }, { card: "EX13-055" }],
+        hand: ["EX13-057"],
+        security: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+      {
+        field: [{ card: "BT26-074" }],
+        hand: ["BT1-010", "BT1-010"],
+        trash: ["BT26-056"],
+        security: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+    ],
+    memory: 8,
+  },
+  "arena-issue-4994-fly-bullet-immunity": {
+    players: [
+      {
+        field: [{ card: "BT25-077" }, { card: "BT1-013" }, { card: "BT2-090" }],
+        hand: ["BT25-059", "BT2-109"],
+        security: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+      {
+        field: [{ card: "BT25-085", under: ["BT25-085"] }, { card: "BT1-010" }],
+        hand: ["BT1-010"],
+        security: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+    ],
+    memory: 13,
+  },
+  "arena-issue-4995-image-training": {
+    players: [{ field: [{ card: "LM-056" }, { card: "BT25-078" }], hand: ["BT25-082"] }, {}],
+    memory: 5,
+  },
+  "arena-issue-4995-breathing-training": {
+    players: [{ field: [{ card: "LM-062" }, { card: "BT25-078" }], hand: ["BT25-082"] }, {}],
+    memory: 5,
+  },
+  "arena-issue-4995-asuna-evolution": {
+    players: [{ field: [{ card: "BT25-092" }, { card: "BT25-083" }], hand: ["BT26-056", "BT25-085"] }, {}],
+    memory: 8,
+  },
+  "arena-issue-4995-pagumon-evolution": {
+    players: [
+      { field: [{ card: "BT25-082", under: ["BT25-005"] }], hand: ["BT25-083", "BT25-085"], trash: ["BT25-085"] },
+      {},
+    ],
+    memory: 8,
+  },
+  "arena-issue-4996-heavy-metal-breeding": {
+    players: [
+      { field: [{ card: "LM-068" }], hand: ["BT1-010"], trash: ["BT11-079"] },
+      { security: ["BT1-010", "BT1-010", "BT1-010"] },
+    ],
+    memory: 8,
+  },
   "arena-discord-1556745762682183811-giant-slayer-execute": {
     players: [
       { hand: ["BT26-085", "BT26-060"], trash: ["BT26-078"], security: ["BT1-009", "BT1-009"] },
@@ -559,6 +691,11 @@ export function layIssueReproScenario(
     loadDeckInto(player, seat, decks[seat]);
     setSecurityStack(player);
     const spec = layout.players[seat];
+    if (spec.deck !== undefined) {
+      clearZone(player, Zone.Deck);
+      for (const [index, cardId] of spec.deck.entries())
+        insertCard(player, Zone.Deck, card(cardId, seat, "deck", index, false));
+    }
     clearZone(player, Zone.Hand);
     clearZone(player, Zone.Trash);
     clearBattleArea(player);
