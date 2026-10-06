@@ -167,9 +167,8 @@ describe("BT12-071 AncientWisemon — KB Q&A rulings", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT12-071", as: "ancient" }],
+          battleArea: [{ card: "BT12-071", as: "ancient" }, "BT5-042"],
           deck: [{ card: "AD1-018", as: "lordKnightmon" }, "BT1-009", "BT1-010"],
-          trash: ["AD1-018", "AD1-018", "AD1-018", "AD1-018"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
@@ -187,7 +186,7 @@ describe("BT12-071 AncientWisemon — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === 0);
     await settle();
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT12-071"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT12-071", "BT5-042"]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(lordKnightmonId);
     const offeredLordKnightmon = s.decisions.some(
       ({ req }) => req.kind === "selectCards" && JSON.stringify(req.options).includes(lordKnightmonId),
@@ -197,8 +196,8 @@ describe("BT12-071 AncientWisemon — KB Q&A rulings", () => {
     const reducedFromHand = setupEngine(
       {
         0: {
+          battleArea: ["BT5-042"], // Knightmon enables LordKnightmon's -5 play-cost reduction.
           hand: [{ card: "AD1-018", as: "lordKnightmon" }],
-          trash: ["AD1-018", "AD1-018", "AD1-018", "AD1-018"],
         },
       },
       { autoDeclineOptional: true, declineDigiXros: true },
@@ -211,7 +210,9 @@ describe("BT12-071 AncientWisemon — KB Q&A rulings", () => {
         instanceId: reducedFromHand.inst("lordKnightmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => reducedFromHand.state.players[0]!.battleArea.length === 1);
+    await settle(() =>
+      reducedFromHand.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "AD1-018"),
+    );
     expect(reducedFromHand.state.memory).toBe(0);
   });
 });

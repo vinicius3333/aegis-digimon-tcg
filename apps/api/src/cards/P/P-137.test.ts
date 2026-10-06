@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard, Phase } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./P-137.js";
 
@@ -54,7 +55,7 @@ describe("P-137 Flamedramon", () => {
           security: [{ card: "BT1-009", as: "security" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Raid"] },
     );
     await s.ready();
     expect(
@@ -64,7 +65,7 @@ describe("P-137 Flamedramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    await settle(() => observe(s.engine).blockingSeat() === 1);
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
     ).toEqual({
@@ -86,7 +87,7 @@ describe("P-137 Flamedramon", () => {
         },
         1: { battleArea: [{ card: "ST18-07", as: "blocker" }], security: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Raid"] },
     );
     s.state.turnSeat = 0;
     await s.ready();
@@ -97,7 +98,7 @@ describe("P-137 Flamedramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    await settle(() => observe(s.engine).blockingSeat() === 1);
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
     ).toEqual({ ok: true });
@@ -127,7 +128,7 @@ describe("P-137 Flamedramon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Raid"] },
     );
     s.state.turnSeat = 0;
     await s.ready();
@@ -145,7 +146,7 @@ describe("P-137 Flamedramon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+      await settle(() => observe(s.engine).blockingSeat() === 1);
       const blocker = `blocker${s.events.filter((event) => event.kind === "combatResolved").length + 1}`;
       expect(
         s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm(blocker).permanentId }),

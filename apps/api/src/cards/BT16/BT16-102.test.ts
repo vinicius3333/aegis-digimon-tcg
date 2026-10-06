@@ -506,10 +506,16 @@ async function raidIntoImmuneMagnamon(options: { acceptRaid: boolean }) {
   expect(
     s.engine.applyIntent(1, { type: "attack", attackerPermanentId: raiderId, target: { kind: "player" } }),
   ).toEqual({ ok: true });
-  await settle(() => observe(s.engine).blockingSeat() === 0);
-  expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+  let declineBlockResult: ReturnType<typeof s.engine.applyIntent> | undefined;
+  if (!options.acceptRaid) {
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    declineBlockResult = s.engine.applyIntent(0, { type: "declineBlock" });
+  }
+  expect(declineBlockResult).toEqual(options.acceptRaid ? undefined : { ok: true });
+  // After Raid, Magnamon is the attack target and cannot block that same attack.
   await settle(() => !observe(s.engine).isAttacking());
   await settle();
+  expect(s.events.filter((event) => event.kind === "blockWindowOpened")).toHaveLength(options.acceptRaid ? 0 : 1);
   return {
     raiderSurvived: s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === raiderId),
     defenderSecurityCount: s.state.players[0]!.security.length,

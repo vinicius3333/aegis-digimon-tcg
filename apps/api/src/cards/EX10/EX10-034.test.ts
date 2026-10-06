@@ -572,7 +572,7 @@ describe("EX10-034 Blastmon", () => {
           security: ["BT1-009", "BT1-013"],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, declinePrompts: ["Raid"] },
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);

@@ -139,8 +139,7 @@ describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck 
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).blockingSeat() === 0);
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    // Galacticmon is already the redirected target, so it cannot block this attack.
     await settleAcrossTimers(() => !observe(s.engine).isAttacking());
     expect(s.perm("galactic").isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("galactic"), "Blocker")).toBe(true);
@@ -155,7 +154,7 @@ describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck 
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    await settle(() => observe(s.engine).blockingSeat() === 0);
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: hostId })).toEqual({ ok: true });
     await settleAcrossTimers(() => !observe(s.engine).isAttacking());
     expect(s.perm("galactic").isSuspended).toBe(true);
@@ -195,8 +194,7 @@ describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck 
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).blockingSeat() === 0);
-    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    // Galacticmon is already the redirected target, so it cannot block this attack.
     await settleAcrossTimers(() => !observe(s.engine).isAttacking());
     expect(s.perm("galactic").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck.slice(-2).map(({ instanceId }) => instanceId)).toEqual(resetReturnIds);
