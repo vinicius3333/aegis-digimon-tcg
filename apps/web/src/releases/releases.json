@@ -1,5 +1,41 @@
 [
   {
+    "version": "1.13.0-beta",
+    "releasedAt": "2026-10-06",
+    "summaryKey": "releases.1.13.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.13.0-beta.feature.mobilePrompts"
+      },
+      {
+        "textKey": "releases.1.13.0-beta.feature.fieldChoices"
+      },
+      {
+        "textKey": "releases.1.13.0-beta.feature.home"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.13.0-beta.fix.hand"
+      },
+      {
+        "textKey": "releases.1.13.0-beta.fix.keywords"
+      },
+      {
+        "textKey": "releases.1.13.0-beta.fix.materials"
+      },
+      {
+        "textKey": "releases.1.13.0-beta.fix.timing"
+      },
+      {
+        "textKey": "releases.1.13.0-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.13.0-beta.fix.attackControls"
+      }
+    ]
+  },
+  {
     "version": "1.12.0-beta",
     "releasedAt": "2026-10-06",
     "summaryKey": "releases.1.12.0-beta.summary",

@@ -1,4 +1,44 @@
 {
+  "releases.1.13.0-beta.summary": {
+    "en": "This minor release makes match decisions compact on phones, moves field choices onto the board, refreshes the home screen and fixes card timing and legal choices.",
+    "pt-BR": "Esta versão minor deixa as decisões compactas no celular, permite escolher cartas diretamente no campo, renova a tela inicial e corrige tempos de efeitos e escolhas legais."
+  },
+  "releases.1.13.0-beta.feature.mobilePrompts": {
+    "en": "Mobile decisions use compact panels with short actions, cropped artwork and a board preview that preserves your choices.",
+    "pt-BR": "As decisões no celular usam painéis compactos, ações curtas, recortes da arte e um botão para ver a mesa sem perder suas escolhas."
+  },
+  "releases.1.13.0-beta.feature.fieldChoices": {
+    "en": "Choose Alliance allies, blockers, field targets and digivolution-source hosts directly on the board. Desktop card galleries and ordering dialogs open in the center.",
+    "pt-BR": "Escolha aliados de Alliance, bloqueadores, alvos em campo e Digimon com fontes diretamente na mesa. No desktop, galerias de cartas e janelas de ordenação abrem no centro."
+  },
+  "releases.1.13.0-beta.feature.home": {
+    "en": "The home screen has a simpler text introduction and shortcuts, with clearer page backgrounds and a new bits backdrop.",
+    "pt-BR": "A tela inicial tem uma apresentação mais simples e atalhos, com fundos de página mais legíveis e um novo fundo de bits."
+  },
+  "releases.1.13.0-beta.fix.hand": {
+    "en": "Hand selection keeps cards fully visible and undimmed. Other decisions no longer reserve empty space for the hand.",
+    "pt-BR": "A seleção na mão mantém as cartas inteiras e sem escurecimento. Outras decisões deixam de reservar espaço vazio para a mão."
+  },
+  "releases.1.13.0-beta.fix.keywords": {
+    "en": "Keyword reminders keep their original English text. Alliance skips its prompt when there is no eligible ally, and block and security-attack prompts use shorter actions.",
+    "pt-BR": "As regras de keywords mantêm o texto original em inglês. Alliance não abre um painel sem aliados elegíveis, e bloqueio e ataque à segurança usam ações mais curtas."
+  },
+  "releases.1.13.0-beta.fix.materials": {
+    "en": "DigiXros material selection no longer crowds its actions, and Assembly recognizes printed Blocker grants.",
+    "pt-BR": "A seleção de materiais de DigiXros não comprime mais as ações, e Assembly reconhece efeitos impressos que concedem Blocker."
+  },
+  "releases.1.13.0-beta.fix.timing": {
+    "en": "Optional single-target effects keep their choice, pending Piercing resolves before failed attacks end, and nested effects preserve turn and replacement timing.",
+    "pt-BR": "Efeitos opcionais com um único alvo mantêm a escolha, Piercing pendente resolve antes de ataques sem sucesso terminarem, e efeitos aninhados preservam o tempo do turno e das substituições."
+  },
+  "releases.1.13.0-beta.fix.cards": {
+    "en": "Corrected DNA and Gallantmon evolution materials, source-dependent protection, Lavorvomon searches, Giromon timing and declined Veemon costs.",
+    "pt-BR": "Corrigidos materiais de DNA e evolução de Gallantmon, proteções vinculadas à fonte, buscas de Lavorvomon, o tempo de Giromon e custos recusados de Veemon."
+  },
+  "releases.1.13.0-beta.fix.attackControls": {
+    "en": "Transformed Marcus can attack, Takato's granted Blitz appears separately, and Homeros borrowed-effect choices are clearer.",
+    "pt-BR": "Marcus transformado pode atacar, Blitz concedido por Takato aparece separadamente, e as escolhas de efeitos emprestados de Homeros ficam mais claras."
+  },
   "releases.1.12.0-beta.summary": {
     "en": "This minor release adds match settings for music, sound effects and battle lanes, new card sounds and music, and clearer effect and card animations. It also fixes several card effects and Partition.",
     "pt-BR": "Esta versão minor traz configurações da partida para música, efeitos sonoros e faixas de batalha, novos sons de cartas e música, e animações de efeitos e cartas mais claras. Também corrige vários efeitos de cartas e Partition."
