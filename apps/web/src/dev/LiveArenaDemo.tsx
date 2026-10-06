@@ -348,6 +348,10 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Mova Dracomon X da criação: os dois efeitos devem aparecer juntos. Resolva BT20-007 primeiro, descarte Dracomon EX13-008 e compre Coredramon. Depois resolva BT21-046 e aceite evoluir de graça. Reinicie para testar a ordem inversa: resolver BT21-046 antes da compra consome sua oportunidade.",
     en: "Move Dracomon X out of breeding: both effects should appear together. Resolve BT20-007 first, trash Dracomon EX13-008 and draw Coredramon. Then resolve BT21-046 and accept the free evolution. Reset to try the reverse order: resolving BT21-046 before the draw consumes its opportunity.",
   },
+  "arena-bt24-asuna-return-play": {
+    ptBR: "Encerre o turno. No início do turno do bot, Asuna Shiroki volta para o fundo do deck como custo e só depois a outra Asuna entra vinda do lixo. A pilha devolvida deve pousar no deck antes de a nova carta aparecer.",
+    en: "End your turn. At the start of the bot's turn, Asuna Shiroki returns to the bottom of the deck as its cost, and only then does the other Asuna enter from the trash. The returned stack must land in the deck before the new card appears.",
+  },
   "arena-mervamon-effect-assembly": {
     ptBR: "Jogue Mervamon, aceite o efeito, escolha Aegiochusmon: Dark no lixo e use o Lv.4 TB como material de Assembly.",
     en: "Play Mervamon, accept its effect, choose Aegiochusmon: Dark in trash, then use the Lv.4 TB card as its Assembly material.",
@@ -736,6 +740,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt16-phoenixmon-x-antibody-name", "BT16 Phoenixmon X · [X Antibody] name gate"],
   ["arena-bt21-davis-top-stack", "BT21 Davis · top stacked card regression"],
   ["arena-bt21-dracomon-start-main", "BT21 Dracomon X + BT20 Dracomon · start-main order"],
+  ["arena-bt24-asuna-return-play", "BT24 Asuna · return to deck, then play from trash"],
   ["arena-bt21-dogatchmon-link-attack", "BT21 DoGatchmon · link attack waits for pending effects"],
   ["arena-bt24-sonic-shot-decline-link", "BT24 Sonic Shot · decline Link after Dan & Kanan"],
   ["arena-bt26-chronomon-dm-succession", "BT26 Chronomon DM · Succession When Digivolving"],
