@@ -77,6 +77,8 @@ export interface AegisJoinOptions {
     | "arena-issue-5114-st20-02-search"
     | "arena-issue-5152-lm-051-search"
     | "arena-issue-5132-lm-055-search"
+    | "arena-issue-5167-assembly-digimon"
+    | "arena-issue-5171-taomon-famis"
     | "arena-issue-5127-opponent-suspend-cost"
     | "arena-issue-5127-opponent-survival"
     | "arena-issue-5159-kudamon-moving"
