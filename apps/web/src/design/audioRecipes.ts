@@ -19,6 +19,14 @@ export const SOUND_KINDS = [
   "sourceTrash",
   "deDigivolve",
   "delete",
+  "memory",
+  "block",
+  "protect",
+  "prompt",
+  "timerTick",
+  "phase",
+  "securityDeal",
+  "optionUse",
   "move",
   "draw",
   "shuffle",
@@ -38,6 +46,8 @@ export interface SoundDetails {
   sourceLevel?: number;
   targetLevel?: number;
   assembly?: boolean;
+  /** Memory points the gauge moved; only the count is heard, not the direction. */
+  steps?: number;
 }
 export type AudioDirection = "warm" | "crisp";
 type Texture = "paper" | "air" | "grain" | "body" | "pluck" | "glass" | "pad" | "recording";
@@ -88,6 +98,7 @@ export interface AudioRecipe {
   layers: AudioLayer[];
   duration: number;
 }
+export const MEMORY_TICK_LIMIT = 6;
 const finite = (n: number | undefined, fallback: number, low: number, high: number) =>
   Math.round(Math.min(high, Math.max(low, Number.isFinite(n) ? n! : fallback)));
 export function cueKey(kind: SoundKind, details: SoundDetails = {}): string {
@@ -95,6 +106,7 @@ export function cueKey(kind: SoundKind, details: SoundDetails = {}): string {
     return `${kind}-${finite(details.cost, 5, 0, 15)}-${details.assembly ? "assembly" : "plain"}`;
   if (kind === "digivolve")
     return `${kind}-${finite(details.sourceLevel, 3, 1, 7)}-${finite(details.targetLevel, 4, 2, 7)}`;
+  if (kind === "memory") return `${kind}-${finite(details.steps, 1, 1, MEMORY_TICK_LIMIT)}`;
   return kind;
 }
 const midi = (note: number) => 440 * 2 ** ((note - 69) / 12);
@@ -176,6 +188,39 @@ export function audioRecipe(
       break;
     case "attackDeclare":
       play("shove", 0, 0.36);
+      break;
+    case "memory": {
+      const steps = finite(details.steps, 1, 1, MEMORY_TICK_LIMIT);
+      for (let i = 0; i < steps; i++) play("tap", i * 0.048, 0.12 + i * 0.012);
+      break;
+    }
+    case "block":
+      play("placeFirm", 0, 0.36);
+      play("clack", 0.008, 0.12);
+      play("contact", 0.06, 0.24);
+      break;
+    case "protect":
+      play("flick", 0, 0.3);
+      play("slideBack", 0.05, 0.2);
+      break;
+    case "prompt":
+      play("touch", 0, 0.2);
+      play("tap", 0.09, 0.13);
+      break;
+    case "timerTick":
+      play("tap", 0, 0.2);
+      break;
+    case "phase":
+      play("slide", 0, 0.16);
+      play("tap", 0.06, 0.09);
+      break;
+    case "securityDeal":
+      play("placeLight", 0, 0.24);
+      break;
+    case "optionUse":
+      play("flick", 0, 0.3);
+      play("placeFirm", 0.06, 0.32);
+      play("tap", 0.14, 0.12);
       break;
     case "attack":
     case "impact":
@@ -460,9 +505,10 @@ export function renderMusic(sampleRate = 48000): Float32Array {
 }
 /** Bounded variations retain printed-cost weight and physical source/target level differences. */
 export function bankRecipes(): AudioRecipe[] {
-  const recipes = SOUND_KINDS.filter((kind) => kind !== "cardPlay" && kind !== "digivolve").map((kind) =>
-    audioRecipe(kind),
+  const recipes = SOUND_KINDS.filter((kind) => kind !== "cardPlay" && kind !== "digivolve" && kind !== "memory").map(
+    (kind) => audioRecipe(kind),
   );
+  for (let steps = 1; steps <= MEMORY_TICK_LIMIT; steps++) recipes.push(audioRecipe("memory", { steps }));
   for (let cost = 0; cost <= 15; cost++)
     for (const assembly of [false, true]) recipes.push(audioRecipe("cardPlay", { cost, assembly }));
   for (let sourceLevel = 1; sourceLevel <= 7; sourceLevel++)

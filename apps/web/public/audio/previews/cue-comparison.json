@@ -18,16 +18,16 @@
     "sha256": "1543d3e034ab14d9e8dceed0d6ed56f42025780791da1418230e10e4e21172c0"
   },
   "current": {
-    "url": "/audio/aegis-cues-v2.wav?v=03cbd5129ced",
-    "seconds": 46.87875,
+    "url": "/audio/aegis-cues-v2.wav?v=a5ac8baccc49",
+    "seconds": 50.39202083333333,
     "peak": 0.2015380859375,
     "peakDbFS": -13.912857407379239,
-    "rms": 0.009293860530194995,
-    "dc": -2.1729489939415957e-7,
+    "rms": 0.009135191928467729,
+    "dc": -2.129705218501441e-7,
     "maximumStep": 0.17291259765625,
     "boundaryStep": 0,
-    "bytes": 4500404,
-    "sha256": "03cbd5129ced89c1e9c3eae63a2296c0d649e092349ba670281cad56e0bdbc26"
+    "bytes": 4837678,
+    "sha256": "a5ac8baccc49c4f55deb577a3d8d05a74e53e900370941cb21668429ee5eb1b6"
   },
   "examples": [
     {
@@ -52,7 +52,7 @@
         "bytes": 15404
       },
       "current": {
-        "offset": 6.805541666666667,
+        "offset": 8.8906875,
         "duration": 0.139375,
         "metrics": {
           "seconds": 0.139375,
@@ -89,7 +89,7 @@
         "bytes": 27308
       },
       "current": {
-        "offset": 12.499479166666667,
+        "offset": 16.01275,
         "duration": 0.18966666666666668,
         "metrics": {
           "seconds": 0.18966666666666668,
@@ -126,7 +126,7 @@
         "bytes": 38828
       },
       "current": {
-        "offset": 17.74625,
+        "offset": 21.259520833333333,
         "duration": 0.254625,
         "metrics": {
           "seconds": 0.254625,
@@ -374,7 +374,7 @@
         "bytes": 75884
       },
       "current": {
-        "offset": 29.365583333333333,
+        "offset": 32.87885416666666,
         "duration": 0.414625,
         "metrics": {
           "seconds": 0.414625,
@@ -412,7 +412,7 @@
         "bytes": 77804
       },
       "current": {
-        "offset": 33.28970833333333,
+        "offset": 36.80297916666667,
         "duration": 0.512625,
         "metrics": {
           "seconds": 0.512625,
@@ -450,7 +450,7 @@
         "bytes": 79724
       },
       "current": {
-        "offset": 37.43183333333333,
+        "offset": 40.94510416666667,
         "duration": 0.8929583333333333,
         "metrics": {
           "seconds": 0.8929583333333333,
@@ -488,7 +488,7 @@
         "bytes": 86444
       },
       "current": {
-        "offset": 30.324833333333334,
+        "offset": 33.83810416666667,
         "duration": 0.8449583333333334,
         "metrics": {
           "seconds": 0.8449583333333334,
