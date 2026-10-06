@@ -12,7 +12,9 @@ import {
   type SequencedServerEvent,
   type ServerEvent,
 } from "@aegis/shared";
-import { AegisRoom, roomCodeDirectory } from "./AegisRoom.js";
+import { AegisRoom, roomCodeDirectory, setRoomCodeDirectory } from "./AegisRoom.js";
+import { setRoomCreationAdmission } from "../deployment/admission.js";
+import type { RoomCodeDirectory } from "../cluster/roomCodes.js";
 import type { DecisionManager } from "../engine/decisions/index.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { DEFAULT_MAX_ACTION_DELAY_MS } from "../bot/BotPlayer.js";
@@ -76,6 +78,90 @@ function joinBothSeats(room: AegisRoom): [Client, Client] {
   room.onJoin(b, { displayName: "B", deck: EMPTY_DECK });
   return [a, b];
 }
+
+describe("AegisRoom patch lifecycle", () => {
+  const originalDirectory = roomCodeDirectory();
+
+  afterEach(() => {
+    setRoomCodeDirectory(originalDirectory);
+    setRoomCreationAdmission(() => true);
+  });
+
+  it("allows a patch before room creation", () => {
+    const room = new AegisRoom();
+    expect(() => room.broadcastPatch()).not.toThrow();
+    expect(room.broadcastPatch()).toBe(false);
+  });
+
+  it("allows patches while a private room code lookup is pending, then syncs counts", async () => {
+    let finishLookup!: (owner: string | undefined) => void;
+    setRoomCodeDirectory({
+      claim: vi.fn<RoomCodeDirectory["claim"]>(),
+      release: vi.fn<RoomCodeDirectory["release"]>(),
+      resolve: () =>
+        new Promise((resolve) => {
+          finishLookup = resolve;
+        }),
+    });
+    const room = new AegisRoom();
+    const creation = room.onCreate({ seed: 1, private: true, roomCode: "ABCDEF" });
+    try {
+      try {
+        expect(() => room.broadcastPatch()).not.toThrow();
+      } finally {
+        finishLookup(undefined);
+        await creation;
+      }
+      joinBothSeats(room);
+      const player = room.state.players[0]!;
+      player.deckCount = -1;
+      room.broadcastPatch();
+      expect(player.deckCount).toBe(player.deck.length);
+    } finally {
+      room.onDispose();
+    }
+  });
+
+  it("cleans up the Colyseus patch timer when a private room code is refused before state exists", async () => {
+    vi.useFakeTimers();
+    const room = new AegisRoom();
+    const patch = vi.spyOn(room, "broadcastPatch");
+    const events = Reflect.get(room, "_events") as {
+      once(event: string, listener: () => void): void;
+      emit(event: string): void;
+    };
+    setRoomCodeDirectory({
+      claim: vi.fn<RoomCodeDirectory["claim"]>(),
+      release: vi.fn<RoomCodeDirectory["release"]>(),
+      resolve: async () => "live-room",
+    });
+    const initialize = Reflect.get(room, "__init") as () => void;
+    initialize.call(room);
+    try {
+      await expect(room.onCreate({ private: true, roomCode: "ABCDEF" })).rejects.toThrow("still in use");
+      // MatchMaker emits dispose when onCreate rejects; Room clears its timers after onDispose.
+      const disposed = new Promise<void>((resolve) => events.once("disconnect", resolve));
+      events.emit("dispose");
+      await disposed;
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(patch).not.toHaveBeenCalled();
+    } finally {
+      vi.clearAllTimers();
+      vi.useRealTimers();
+    }
+  });
+
+  it("allows patches after room creation is refused by the deployment gate", () => {
+    setRoomCreationAdmission(() => false);
+    const room = new AegisRoom();
+    expect(() => room.onCreate({})).toThrow("draining");
+    try {
+      expect(() => room.broadcastPatch()).not.toThrow();
+    } finally {
+      room.onDispose();
+    }
+  });
+});
 
 describe("AegisRoom ready-gated match start", () => {
   afterEach(() => vi.useRealTimers());

@@ -772,7 +772,9 @@ export class AegisRoom extends Room<{ state: GameState }> {
 
   override onDispose(): void {
     for (const bot of this.bots) bot?.dispose();
-    this.debug("room.disposed");
+    // A refused private-code lookup can dispose the room before initialize creates its state.
+    // This hook must return normally so Colyseus can clear the room's patch timer.
+    if (this.state) this.debug("room.disposed");
     this.readyTimeout?.clear();
     this.waitingRoomTimeout?.clear();
     this.matchClockInterval?.clear();
@@ -786,7 +788,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     roomRegistry.delete(this.roomId);
     for (const view of this.issuedViews) view.dispose();
     this.issuedViews.clear();
-    if (this.state.roomCode) {
+    if (this.state?.roomCode) {
       roomCodes.release(this.state.roomCode, this.roomId);
     }
   }
@@ -1100,6 +1102,9 @@ export class AegisRoom extends Room<{ state: GameState }> {
    * ARCHITECTURE.md section 6). Colyseus calls this once per patch.
    */
   override onBeforePatch(): void {
+    // Colyseus starts its patch timer before onCreate, which can await a private-code lookup
+    // or reject before the engine exists. There is nothing to synchronize until it is ready.
+    if (!this.engine) return;
     this.engine.syncCounts();
     // Refresh every view before the patch is encoded, not only after the three events that
     // happen to name a move. A StateView must still recognise a card as visible at the moment
