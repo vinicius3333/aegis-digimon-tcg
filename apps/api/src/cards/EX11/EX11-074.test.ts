@@ -796,7 +796,9 @@ describe("EX11-074 Vortexdramon", () => {
       (event) =>
         event.kind === "effectTriggered" && event.timing === "whenSuspended" && event.sourceCardId === "EX11-074",
     ).length;
-    declinePrompts.push("Suspend");
+    // The optional field pick uses the source name as its prompt. Decline this
+    // attack's Suspend so Vortex cannot reinstall protection before the grant fires.
+    declinePrompts.push("Vortexdramon");
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -806,6 +808,7 @@ describe("EX11-074 Vortexdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("base").isSuspended).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("base"), "beAffected", "Digimon")).toBe(false);
     expect(s.state.memory).toBe(4);
     expect(
       s.events.filter(
@@ -861,7 +864,7 @@ describe("EX11-074 Vortexdramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("producerA").instanceId })).toEqual({
       ok: true,
     });
-    await optional(0, true);
+    // The producer asks its optional suspension through the target selection.
     await settle(() => s.perm("source").isSuspended);
     await optional(0, false);
     expect(s.perm("source").isSuspended).toBe(true);
@@ -886,7 +889,7 @@ describe("EX11-074 Vortexdramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("producerB").instanceId })).toEqual({
       ok: true,
     });
-    await optional(0, true);
+    // The producer asks its optional suspension through the target selection.
     await settle(() => s.perm("source").isSuspended);
     await optional(0, false);
     await optional(0, false);
@@ -1207,7 +1210,7 @@ describe("EX11-074 Vortexdramon — KB Q&A rulings", () => {
         autoAcceptOptional: true,
         autoSelectCards: true,
         preferInstanceIds: preferred,
-        declinePrompts: ["Vortex", "Unsuspend", "unsuspend", "Battle", "battle"],
+        declinePrompts: ["Attack with this Digimon", "Unsuspend", "unsuspend", "Battle", "battle"],
       },
     );
     preferred.push(s.perm("ally").permanentId);

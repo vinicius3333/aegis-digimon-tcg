@@ -128,6 +128,9 @@ it.each(["BT1-009", "BT1-010"])(
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     respond(s, { kind: "selectCards", instanceIds: [attackTarget] });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)!.req.options?.purpose).toBe("optionalTarget");
+    respond(s, { kind: "chooseTargets", instanceIds: [] }); // Decline When Attacking suspension.
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     respond(s, { kind: "chooseTargets", instanceIds: [directId] });
     await settle(() => s.events.some((e) => e.kind === "attackEnded") && s.state.pendingDecision === undefined);
     expect(s.events.filter((e) => e.kind === "securityChecked")).toHaveLength(1);
