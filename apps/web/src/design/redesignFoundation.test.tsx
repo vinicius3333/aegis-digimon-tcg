@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, fireEvent, render, renderHook, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { I18nProvider } from "../i18n";
 import { en } from "../i18n/en";
 import { ptBR } from "../i18n/pt-BR";
@@ -22,16 +22,8 @@ import {
   setCustomBattlefield,
 } from "./battlefield";
 import { ArenaLookSettings } from "./ArenaLookSettings";
-import { CircuitBackdrop } from "./CircuitBackdrop";
 import { InfoNote, Panel, SectionHeading, StatStrip } from "./surfaces";
 import { AegisLogo } from "./AegisLogo";
-
-function stubMatchMedia(matches = false) {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn(() => ({ matches, addEventListener: () => {}, removeEventListener: () => {} })),
-  );
-}
 
 describe("arena palette store", () => {
   beforeEach(() => setArenaPaletteId("aegis"));
@@ -170,40 +162,5 @@ describe("surfaces", () => {
     );
     expect(screen.getByText("Decks stay on this device.")).toBeTruthy();
     expect(screen.getByText("AEGIS")).toBeTruthy();
-  });
-});
-
-describe("CircuitBackdrop", () => {
-  beforeEach(() => {
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
-  });
-
-  afterEach(() => {
-    cleanup();
-    vi.restoreAllMocks();
-    vi.unstubAllGlobals();
-    localStorage.removeItem("aegis.backdropPaused");
-  });
-
-  it("toggles pause with translated labels and remembers it", () => {
-    stubMatchMedia(false);
-    render(
-      <I18nProvider>
-        <CircuitBackdrop />
-      </I18nProvider>,
-    );
-    fireEvent.click(screen.getByRole("button", { name: en["redesign.foundation.backdrop.pause"] }));
-    expect(screen.getByRole("button", { name: en["redesign.foundation.backdrop.resume"] })).toBeTruthy();
-    expect(localStorage.getItem("aegis.backdropPaused")).toBe("true");
-  });
-
-  it("hides the toggle when the player prefers reduced motion", () => {
-    stubMatchMedia(true);
-    render(
-      <I18nProvider>
-        <CircuitBackdrop />
-      </I18nProvider>,
-    );
-    expect(screen.queryByRole("button")).toBeNull();
   });
 });

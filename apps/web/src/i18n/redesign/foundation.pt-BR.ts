@@ -1,8 +1,6 @@
 import type { foundationEn } from "./foundation.en";
 
 export const foundationPtBR: Record<keyof typeof foundationEn, string> = {
-  "redesign.foundation.backdrop.pause": "Pausar a animação de fundo",
-  "redesign.foundation.backdrop.resume": "Retomar a animação de fundo",
   "redesign.foundation.arena.preview": "Prévia do tabuleiro com suas cores e campo de batalha",
   "redesign.foundation.arena.opponent": "Oponente",
   "redesign.foundation.arena.you": "Você",

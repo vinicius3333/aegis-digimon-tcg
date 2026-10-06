@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { installAudioLifecycle } from "./design/sound";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
 import { AegisEmblem } from "./design/AegisLogo";
-import { CircuitBackdrop } from "./design/CircuitBackdrop";
+import { PixelBackdrop } from "./design/PixelBackdrop";
 import { colorKey, type ColorName } from "./design/theme";
 import {
   activeCollectionCards,
@@ -388,7 +388,7 @@ export function AegisClient({
 
   return (
     <Stage>
-      {screen === "game" ? null : <CircuitBackdrop />}
+      {screen === "game" ? null : <PixelBackdrop />}
       {showNav ? (
         <TopNav
           screen={screen}

@@ -109,6 +109,12 @@ parallax, particles, and ambient drift. Preserve static color, label, position,
 and opacity cues. No functional surface may contain indefinite decorative
 motion.
 
+One product-owner exception: the page backdrop (`PixelBackdrop`) animates its
+bits glyphs continuously behind every screen except the match. It stays at
+10 fps, behind all content, never takes pointer events, stops while the tab
+is hidden, and never runs under reduced motion. Do not extend this exception
+to any other surface.
+
 ## State coverage
 
 Every surface that loads, filters, transforms, or accepts data accounts for

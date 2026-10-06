@@ -1,6 +1,4 @@
 export const foundationEn = {
-  "redesign.foundation.backdrop.pause": "Pause background animation",
-  "redesign.foundation.backdrop.resume": "Resume background animation",
   "redesign.foundation.arena.preview": "Board preview with your colors and battlefield",
   "redesign.foundation.arena.opponent": "Opponent",
   "redesign.foundation.arena.you": "You",
