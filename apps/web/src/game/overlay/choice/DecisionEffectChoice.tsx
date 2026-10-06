@@ -34,7 +34,7 @@ export function DecisionEffectChoice({
 }) {
   const { t } = useTranslation();
   return (
-    <div>
+    <div className="decision-overlay__choice-layout">
       <ol className="effect-choice" aria-label={t("overlay.chooseEffectPrompt")}>
         {choices.map((label, index) => {
           const effect = choiceEffects[index];

@@ -110,7 +110,9 @@ export function AssemblyMaterialOverlay({
         }}
       >
         <div className="material-prompt__header">
-          <CardArt cardId={playingCardId} width={64} />
+          <span className="mobile-prompt-art">
+            <CardArt cardId={playingCardId} width={64} />
+          </span>
           <div>
             <div
               id={titleId}
@@ -125,79 +127,82 @@ export function AssemblyMaterialOverlay({
           </div>
         </div>
 
-        {candidates.length === 0 ? (
-          <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-fg-disabled)" }}>
-            {t("overlay.assemblyNoMaterials")}
-          </div>
-        ) : (
-          <div className="material-prompt__grid">
-            {candidates.map((candidate) => {
-              const selected = picks.includes(candidate.instanceId);
-              const disabled = !selected && !eligibleIds.has(candidate.instanceId);
-              const accessibleName = t("overlay.xrosMaterialLabel", {
-                name: printedCardName(candidate.cardId),
-                zone: t("overlay.zone.trash"),
-              });
-              return (
-                <button
-                  key={candidate.instanceId}
-                  onClick={() => !disabled && toggle(candidate.instanceId)}
-                  disabled={disabled}
-                  aria-label={accessibleName}
-                  aria-pressed={selected}
-                  title={accessibleName}
-                  style={{
-                    padding: 4,
-                    borderRadius: 10,
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? 0.45 : 1,
-                    filter: disabled ? "grayscale(0.6)" : "none",
-                    background: selected ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
-                    border: `2px solid ${selected ? "var(--ds-accent)" : "transparent"}`,
-                    transition: "background 100ms, border-color 100ms",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 3,
-                  }}
-                >
-                  <CardArt cardId={candidate.cardId} artId={candidate.artId} width={72} />
-                  <span
+        <div className="material-prompt__body">
+          {candidates.length === 0 ? (
+            <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-fg-disabled)" }}>
+              {t("overlay.assemblyNoMaterials")}
+            </div>
+          ) : (
+            <div className="material-prompt__grid">
+              {candidates.map((candidate) => {
+                const selected = picks.includes(candidate.instanceId);
+                const disabled = !selected && !eligibleIds.has(candidate.instanceId);
+                const accessibleName = t("overlay.xrosMaterialLabel", {
+                  name: printedCardName(candidate.cardId),
+                  zone: t("overlay.zone.trash"),
+                });
+                return (
+                  <button
+                    key={candidate.instanceId}
+                    onClick={() => !disabled && toggle(candidate.instanceId)}
+                    disabled={disabled}
+                    aria-label={accessibleName}
+                    aria-pressed={selected}
+                    title={accessibleName}
                     style={{
-                      fontSize: 9.5,
-                      fontWeight: 600,
-                      color: selected ? "var(--ds-accent)" : "var(--ds-fg-muted)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
+                      padding: 4,
+                      borderRadius: 10,
+                      cursor: disabled ? "not-allowed" : "pointer",
+                      opacity: disabled ? 0.45 : 1,
+                      filter: disabled ? "grayscale(0.6)" : "none",
+                      background: selected ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+                      border: `2px solid ${selected ? "var(--ds-accent)" : "transparent"}`,
+                      transition: "background 100ms, border-color 100ms",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 3,
                     }}
                   >
-                    {selected ? `${picks.indexOf(candidate.instanceId) + 1}` : t("overlay.zone.trash")}
-                  </span>
-                </button>
-              );
-            })}
+                    <CardArt cardId={candidate.cardId} artId={candidate.artId} width={72} />
+                    <span
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 600,
+                        color: selected ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {selected ? `${picks.indexOf(candidate.instanceId) + 1}` : t("overlay.zone.trash")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ fontSize: 12, color: "var(--ds-fg-muted)" }}>
+            {t("overlay.assemblySelected", { count: picks.length, needed })}
           </div>
-        )}
-
-        <div style={{ fontSize: 12, color: "var(--ds-fg-muted)" }}>
-          {t("overlay.assemblySelected", { count: picks.length, needed })}
         </div>
-
-        <div className="game-actions-row">
-          <Button full icon={Icons.Sparkles} disabled={completed === undefined} onClick={() => onConfirm(picks)}>
-            {t("overlay.assemblyConfirm", { count: needed })}
-          </Button>
-          <Button full variant="secondary" onClick={onSkip}>
-            {t("overlay.assemblyPlayWithout")}
-          </Button>
-          {onCancel ? (
-            <Button full variant="ghost" onClick={onCancel}>
-              {t("common.cancel")}
+        <div className="material-prompt__footer">
+          <div className="game-actions-row">
+            <Button full icon={Icons.Sparkles} disabled={completed === undefined} onClick={() => onConfirm(picks)}>
+              {t("overlay.assemblyConfirm", { count: needed })}
             </Button>
-          ) : null}
-        </div>
-        <div className="effect-prompt-family__board-action">
-          <DecisionViewBoardButton onOpenBoard={openBoard} />
+            <Button full variant="secondary" onClick={onSkip}>
+              {t("overlay.assemblyPlayWithout")}
+            </Button>
+            {onCancel ? (
+              <Button full variant="ghost" onClick={onCancel}>
+                {t("common.cancel")}
+              </Button>
+            ) : null}
+          </div>
+          <div className="effect-prompt-family__board-action">
+            <DecisionViewBoardButton onOpenBoard={openBoard} />
+          </div>
         </div>
       </div>
     </Scrim>

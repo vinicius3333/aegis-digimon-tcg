@@ -1,4 +1,4 @@
-import { CardFull } from "../../../design/cards";
+import { CardBack, CardFull } from "../../../design/cards";
 import { NARROW_DIALOG_QUERY, useMediaQuery } from "../../../design/useMediaQuery";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
@@ -171,7 +171,7 @@ export function DecisionCandidateGrid({
                 ].filter((label): label is string => label !== undefined);
                 return (
                   <button
-                    className="decision-overlay__candidate"
+                    className={`decision-overlay__candidate${abstractLabel ? " decision-overlay__candidate--security" : ""}`}
                     data-instance-id={cand.instanceId}
                     type="button"
                     aria-label={`${abstractLabel ?? (cand.cardId ? printedCardName(cand.cardId) : t("overlay.card"))}${liveLabels.length ? `, ${liveLabels.join(", ")}` : ""}${copyLabel ? `, ${copyLabel}` : ""}${on ? t("overlay.selected") : ""}`}
@@ -179,7 +179,7 @@ export function DecisionCandidateGrid({
                     disabled={!selectable}
                     key={cand.instanceId}
                     style={{
-                      width: candidateCardWidth,
+                      width: abstractLabel ? undefined : candidateCardWidth,
                       cursor: selectable ? "pointer" : "not-allowed",
                       opacity: selectable ? 1 : 0.4,
                       filter: selectable ? "none" : "grayscale(0.85)",
@@ -187,27 +187,10 @@ export function DecisionCandidateGrid({
                     onClick={() => selectable && onTogglePick(cand.instanceId)}
                   >
                     {abstractLabel ? (
-                      <span
-                        style={{
-                          width: candidateCardWidth,
-                          minHeight: candidateCardWidth * 1.4,
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 10,
-                          padding: 12,
-                          borderRadius: 10,
-                          border: `2px solid ${on ? "var(--ds-accent)" : "var(--ds-border)"}`,
-                          background: "var(--ds-surface-muted)",
-                          color: on ? "var(--ds-accent)" : "var(--ds-fg-secondary)",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          textAlign: "center",
-                        }}
-                      >
-                        <Icons.Shield size={30} />
-                        {abstractLabel}
+                      <span className="decision-security-target">
+                        <CardBack width={48} useSelectedSleeve={false} />
+                        <span>{abstractLabel}</span>
+                        {on ? <Icons.Check size={18} aria-hidden="true" /> : null}
                       </span>
                     ) : (
                       <CardFull

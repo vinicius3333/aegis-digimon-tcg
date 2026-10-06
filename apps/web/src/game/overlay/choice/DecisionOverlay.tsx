@@ -12,6 +12,7 @@ import { playerFacingEffectClause, playerFacingPromptText } from "../effectText"
 import { printedCardName } from "../printedCardName";
 import type { TriggerDetail } from "../types";
 import { DecisionBoardReturn } from "./DecisionBoardReturn";
+import { abstractTargetLabel } from "./decisionCandidateLabels";
 import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
 import { DecisionChoiceCards } from "./DecisionChoiceCards";
 import { DecisionChooseFooter } from "./DecisionChooseFooter";
@@ -28,6 +29,7 @@ import { DecisionSelectFooter } from "./DecisionSelectFooter";
 import { DecisionTriggerChooser, type WaitingTrigger } from "./DecisionTriggerChooser";
 import type { DecisionCandidate } from "./decisionTypes";
 import "../effectPromptFamily.css";
+import { usePromptHandSpace } from "./usePromptHandSpace";
 
 /** The art of the card asking the question, big enough to recognise beside its clause. */
 const DECISION_SOURCE_ART_WIDTH = 72;
@@ -93,8 +95,11 @@ export function DecisionOverlay({
   const choiceClauses = request.options?.choiceClauses;
   const isOptional = request.kind === "optional";
   const isChoose = request.kind === "chooseOption";
-  const surface = effectDecisionSurface(request);
-  const docksOnRail = surface === "left";
+  const isCardChoice =
+    isChoose &&
+    choiceEffects === undefined &&
+    candidates.length > 0 &&
+    request.options?.digivolveCostChoice === undefined;
   const choosesPrintedBullet =
     isChoose &&
     choiceEffects === undefined &&
@@ -102,6 +107,10 @@ export function DecisionOverlay({
     choiceClauses.length === choices.length &&
     choiceClauses.some(Boolean);
   const isSelect = request.kind === "chooseTargets" || request.kind === "selectCards";
+  const isSecurityChoice =
+    isSelect &&
+    candidates.length === 1 &&
+    abstractTargetLabel({ instanceId: candidates[0]!.instanceId, t }) !== undefined;
   const partitionCandidate = request.options?.candidateInstanceIds?.[0];
   const isPartitionActivation =
     request.kind === "selectCards" &&
@@ -110,6 +119,9 @@ export function DecisionOverlay({
   const isOrderCards = request.kind === "orderCards";
   const isOrderTriggers = request.kind === "orderTriggers";
   const isResolutionPlan = isOrderTriggers && request.options?.acceptsResolutionPlan === true;
+  const isOrdering = isOrderCards || isOrderTriggers;
+  const surface = isCardChoice || isOrdering ? "center" : effectDecisionSurface(request);
+  const docksOnRail = surface === "left";
   const triggerKeys = request.options?.triggerKeys ?? [];
   const triggerCardIds = request.options?.triggerCardIds ?? [];
   const maxTotalPlayCost = request.options?.maxTotalPlayCost;
@@ -130,6 +142,7 @@ export function DecisionOverlay({
   const [cardOrder, setCardOrder] = useState<string[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const returnControlRef = useRef<HTMLDivElement>(null);
+  usePromptHandSpace(panelRef, !isViewingBoard);
   useEffect(() => {
     setIsViewingBoard(false);
   }, [request.decisionId]);
@@ -179,48 +192,56 @@ export function DecisionOverlay({
 
   // A choice with a decline entry is an optional effect asking which way to use it.
   const genericPrompt = t(
-    isOptional || (isChoose && declineIndex !== undefined)
-      ? "overlay.useEffectPrompt"
-      : isChoose
-        ? "overlay.chooseEffectPrompt"
-        : isOrderCards
-          ? "overlay.chooseCardOrderPrompt"
-          : "overlay.resolveEffect",
+    request.options?.selectionContext === "attackTarget"
+      ? "overlay.declareAttack"
+      : isOptional || (isChoose && declineIndex !== undefined)
+        ? "overlay.useEffectPrompt"
+        : isChoose
+          ? "overlay.chooseEffectPrompt"
+          : isOrderCards
+            ? "overlay.chooseCardOrderPrompt"
+            : "overlay.resolveEffect",
   );
   // The eyebrow above already names the source card; repeating it as the title says nothing twice.
   const specificPrompt = playerFacingPromptText(request.promptText, request.kind);
-  const promptText = isPartitionActivation
-    ? t("overlay.activatePartitionPrompt")
-    : request.options?.promptKey === "activateBlitz"
-      ? t("overlay.activateBlitzPrompt")
-      : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
-        ? genericPrompt
-        : specificPrompt;
+  const promptText =
+    request.options?.selectionContext === "attackTarget"
+      ? t("overlay.declareAttack")
+      : isPartitionActivation
+        ? t("overlay.activatePartitionPrompt")
+        : request.options?.promptKey === "activateBlitz"
+          ? t("overlay.activateBlitzPrompt")
+          : !specificPrompt || (sourceCardId && specificPrompt === printedCardName(sourceCardId))
+            ? genericPrompt
+            : specificPrompt;
 
-  if (isViewingBoard) {
-    return <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />;
-  }
+  const boardReturn = isViewingBoard ? (
+    <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />
+  ) : null;
 
   const digivolveCostChoice = isChoose ? request.options?.digivolveCostChoice : undefined;
   if (digivolveCostChoice !== undefined && digivolveCostChoice.costs.length === choices.length) {
     return (
       <>
-        <DecisionBackdrop side />
-        <div
-          ref={panelRef}
-          tabIndex={-1}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("game.digivolve")}
-          data-prompt-surface="left"
-          className="game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family decision-overlay--side"
-          onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
-        >
-          <DecisionDigivolveCostChoice
-            choice={digivolveCostChoice}
-            onChoose={(optionIndex) => onRespond({ kind: "chooseOption", optionIndex })}
-            onViewBoard={() => setIsViewingBoard(true)}
-          />
+        {boardReturn}
+        <div hidden={isViewingBoard}>
+          <DecisionBackdrop side />
+          <div
+            ref={panelRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("game.digivolve")}
+            data-prompt-surface="left"
+            className="game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family decision-overlay--side"
+            onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
+          >
+            <DecisionDigivolveCostChoice
+              choice={digivolveCostChoice}
+              onChoose={(optionIndex) => onRespond({ kind: "chooseOption", optionIndex })}
+              onViewBoard={() => setIsViewingBoard(true)}
+            />
+          </div>
         </div>
       </>
     );
@@ -228,175 +249,185 @@ export function DecisionOverlay({
 
   return (
     <>
-      <DecisionBackdrop side={docksOnRail} />
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={dialogLabel}
-        data-prompt-surface={surface}
-        className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
-        onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
-        /* Geometry, surface and entrance all live in game.css: inline values could not be
+      {boardReturn}
+      <div hidden={isViewingBoard}>
+        <DecisionBackdrop side={docksOnRail} />
+        <div
+          ref={panelRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label={dialogLabel}
+          data-prompt-surface={surface}
+          className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isCardChoice ? " decision-overlay--card-choice" : ""}${isOrdering ? " decision-overlay--ordering" : ""}${isSecurityChoice ? " decision-overlay--security-choice" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${docksOnRail ? " decision-overlay--side" : ""}`}
+          onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
+          /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
          hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
-        style={{
-          width: dialogWidth({
-            docksOnRail,
-            isResolutionPlan,
-            wideDialog,
-            itemCount: Math.max(candidates.length, triggerKeys.length),
-          }),
-        }}
-      >
-        {/* Artwork and the question share the same compact header as combat prompts. */}
-        <div className="decision-overlay__header">
-          {sourceCardId ? (
-            /* The art is now the only mention of the card, so it carries the link that the
+          style={{
+            width: dialogWidth({
+              docksOnRail,
+              isResolutionPlan,
+              wideDialog,
+              itemCount: Math.max(candidates.length, triggerKeys.length),
+            }),
+          }}
+        >
+          {/* Artwork and the question share the same compact header as combat prompts. */}
+          <div className="decision-overlay__header">
+            {sourceCardId ? (
+              /* The art is now the only mention of the card, so it carries the link that the
              spelled-out name used to: same route to the full card, one less line to read. */
-            openCard ? (
-              <button
-                type="button"
-                className="decision-overlay__source-art"
-                aria-label={t("feed.openCard", { card: printedCardName(sourceCardId) })}
-                onClick={() => openCard(sourceCardId)}
-              >
-                <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
-              </button>
-            ) : (
-              <span className="decision-overlay__source-art" aria-hidden="true">
-                <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
-              </span>
-            )
-          ) : null}
-          <div className="decision-overlay__question">
-            <div className="decision-overlay__heading">
-              <h2 className="decision-overlay__title">
-                {isResolutionPlan ? t("overlay.orderPendingEffects") : promptText}
-              </h2>
+              openCard ? (
+                <button
+                  type="button"
+                  className="decision-overlay__source-art"
+                  aria-label={t("feed.openCard", { card: printedCardName(sourceCardId) })}
+                  onClick={() => openCard(sourceCardId)}
+                >
+                  <span className="mobile-prompt-art">
+                    <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
+                  </span>
+                </button>
+              ) : (
+                <span className="decision-overlay__source-art" aria-hidden="true">
+                  <span className="mobile-prompt-art">
+                    <CardMini cardId={sourceCardId} width={DECISION_SOURCE_ART_WIDTH} zoomOnHover={false} />
+                  </span>
+                </span>
+              )
+            ) : null}
+            <div className="decision-overlay__question">
+              <div className="decision-overlay__heading">
+                <h2 className="decision-overlay__title">
+                  {isResolutionPlan ? t("overlay.orderPendingEffects") : promptText}
+                </h2>
+              </div>
+              {!isOrderTriggers && sourceEffectText && onChangeSourceHost === undefined ? (
+                <p className="decision-overlay__effect-text">{sourceEffectText}</p>
+              ) : null}
+              {onChangeSourceHost ? (
+                <Button size="sm" variant="ghost" icon={Icons.ArrowLeft} onClick={onChangeSourceHost}>
+                  {t("overlay.chooseAnotherSourceHost")}
+                </Button>
+              ) : null}
             </div>
-            {!isOrderTriggers && sourceEffectText && onChangeSourceHost === undefined ? (
-              <p className="decision-overlay__effect-text">{sourceEffectText}</p>
-            ) : null}
-            {onChangeSourceHost ? (
-              <Button size="sm" variant="ghost" icon={Icons.ArrowLeft} onClick={onChangeSourceHost}>
-                {t("overlay.chooseAnotherSourceHost")}
-              </Button>
-            ) : null}
           </div>
+
+          {isPartitionActivation ? (
+            <DecisionChoiceCards candidates={candidates} wideDialog={wideDialog} />
+          ) : isSelect ? (
+            <DecisionCandidateGrid
+              candidates={candidates}
+              picks={picks}
+              min={min}
+              max={max}
+              maxTotalPlayCost={maxTotalPlayCost}
+              selectedPlayCost={selectedPlayCost}
+              withinPlayCostBudget={withinPlayCostBudget}
+              maxTotalDP={maxTotalDP}
+              selectedDP={selectedDP}
+              wideDialog={wideDialog}
+              fateBadge={fateBadge}
+              onTogglePick={onTogglePick}
+            />
+          ) : null}
+
+          {isOrderCards ? (
+            <DecisionOrderCardsPanel
+              candidates={candidates}
+              cardOrder={cardOrder}
+              wideDialog={wideDialog}
+              orderDestination={request.options?.orderDestination}
+              onMove={moveOrderedCard}
+            />
+          ) : null}
+
+          {/* A choice about revealed cards shows them; the player must not decide blind. */}
+          {isChoose && choiceEffects === undefined && candidates.length > 0 ? (
+            <DecisionChoiceCards candidates={candidates} wideDialog={wideDialog} largeCards={isCardChoice} />
+          ) : null}
+
+          {isChoose && choiceEffects !== undefined ? (
+            <DecisionEffectChoice
+              choices={choices}
+              choiceEffects={choiceEffects}
+              wideDialog={wideDialog}
+              onRespond={onRespond}
+              onOpenBoard={() => setIsViewingBoard(true)}
+            />
+          ) : choosesPrintedBullet ? (
+            <DecisionClauseChoice
+              choices={choices}
+              choiceClauses={choiceClauses}
+              declineIndex={declineIndex}
+              onRespond={onRespond}
+              onOpenBoard={() => setIsViewingBoard(true)}
+            />
+          ) : isChoose ? (
+            <DecisionChooseFooter
+              choices={choices}
+              declineIndex={declineIndex}
+              topBottomZone={request.options?.topBottomZone}
+              onRespond={onRespond}
+              onOpenBoard={() => setIsViewingBoard(true)}
+            />
+          ) : null}
+
+          {isOptional ? (
+            <DecisionOptionalFooter onRespond={onRespond} onOpenBoard={() => setIsViewingBoard(true)} />
+          ) : null}
+
+          {isPartitionActivation ? (
+            <DecisionOptionalFooter
+              onRespond={(response) => {
+                if (response.kind !== "optional") return;
+                onRespond({ kind: "selectCards", instanceIds: response.accept ? [partitionCandidate] : [] });
+              }}
+              onOpenBoard={() => setIsViewingBoard(true)}
+            />
+          ) : isSelect ? (
+            <DecisionSelectFooter
+              canConfirm={canConfirm}
+              confirmLabel={
+                confirmLabel ??
+                (request.options?.selectionContext === "attackTarget" ? t("overlay.declareAttack") : undefined)
+              }
+              onConfirm={confirmSelect}
+              min={min}
+              onNone={() =>
+                onRespond({ kind: request.kind === "selectCards" ? "selectCards" : "chooseTargets", instanceIds: [] })
+              }
+              onOpenBoard={() => setIsViewingBoard(true)}
+            />
+          ) : null}
+
+          {isOrderTriggers ? (
+            <DecisionTriggerChooser
+              key={request.decisionId}
+              triggerKeys={triggerKeys}
+              triggerCardIds={triggerCardIds}
+              triggerDetails={triggerDetails}
+              wideDialog={wideDialog}
+              timing={request.options?.timing}
+              triggerTimings={request.options?.triggerTimings}
+              triggerDescriptions={request.options?.triggerDescriptions}
+              triggerReasons={request.options?.triggerReasons}
+              triggerIsInherited={request.options?.triggerIsInherited}
+              triggerIsOptional={request.options?.triggerIsOptional}
+              waitingTriggers={waitingTriggersOf(request)}
+              acceptsResolutionPlan={isResolutionPlan}
+              onRespond={onRespond}
+              onOpenBoard={() => setIsViewingBoard(true)}
+            />
+          ) : null}
+          {isOrderCards ? (
+            <DecisionOrderCardsFooter
+              onConfirm={() => onRespond({ kind: "orderCards", order: cardOrder })}
+              onOpenBoard={() => setIsViewingBoard(true)}
+            />
+          ) : null}
         </div>
-
-        {isPartitionActivation ? (
-          <DecisionChoiceCards candidates={candidates} wideDialog={wideDialog} />
-        ) : isSelect ? (
-          <DecisionCandidateGrid
-            candidates={candidates}
-            picks={picks}
-            min={min}
-            max={max}
-            maxTotalPlayCost={maxTotalPlayCost}
-            selectedPlayCost={selectedPlayCost}
-            withinPlayCostBudget={withinPlayCostBudget}
-            maxTotalDP={maxTotalDP}
-            selectedDP={selectedDP}
-            wideDialog={wideDialog}
-            fateBadge={fateBadge}
-            onTogglePick={onTogglePick}
-          />
-        ) : null}
-
-        {isOrderCards ? (
-          <DecisionOrderCardsPanel
-            candidates={candidates}
-            cardOrder={cardOrder}
-            wideDialog={wideDialog}
-            orderDestination={request.options?.orderDestination}
-            onMove={moveOrderedCard}
-          />
-        ) : null}
-
-        {/* A choice about revealed cards shows them; the player must not decide blind. */}
-        {isChoose && choiceEffects === undefined && candidates.length > 0 ? (
-          <DecisionChoiceCards candidates={candidates} wideDialog={wideDialog} />
-        ) : null}
-
-        {isChoose && choiceEffects !== undefined ? (
-          <DecisionEffectChoice
-            choices={choices}
-            choiceEffects={choiceEffects}
-            wideDialog={wideDialog}
-            onRespond={onRespond}
-            onOpenBoard={() => setIsViewingBoard(true)}
-          />
-        ) : choosesPrintedBullet ? (
-          <DecisionClauseChoice
-            choices={choices}
-            choiceClauses={choiceClauses}
-            declineIndex={declineIndex}
-            onRespond={onRespond}
-            onOpenBoard={() => setIsViewingBoard(true)}
-          />
-        ) : isChoose ? (
-          <DecisionChooseFooter
-            choices={choices}
-            declineIndex={declineIndex}
-            topBottomZone={request.options?.topBottomZone}
-            onRespond={onRespond}
-            onOpenBoard={() => setIsViewingBoard(true)}
-          />
-        ) : null}
-
-        {isOptional ? (
-          <DecisionOptionalFooter onRespond={onRespond} onOpenBoard={() => setIsViewingBoard(true)} />
-        ) : null}
-
-        {isPartitionActivation ? (
-          <DecisionOptionalFooter
-            onRespond={(response) => {
-              if (response.kind !== "optional") return;
-              onRespond({ kind: "selectCards", instanceIds: response.accept ? [partitionCandidate] : [] });
-            }}
-            onOpenBoard={() => setIsViewingBoard(true)}
-          />
-        ) : isSelect ? (
-          <DecisionSelectFooter
-            canConfirm={canConfirm}
-            confirmLabel={confirmLabel}
-            onConfirm={confirmSelect}
-            min={min}
-            onNone={() =>
-              onRespond({ kind: request.kind === "selectCards" ? "selectCards" : "chooseTargets", instanceIds: [] })
-            }
-            onOpenBoard={() => setIsViewingBoard(true)}
-          />
-        ) : null}
-
-        {isOrderTriggers ? (
-          <DecisionTriggerChooser
-            key={request.decisionId}
-            triggerKeys={triggerKeys}
-            triggerCardIds={triggerCardIds}
-            triggerDetails={triggerDetails}
-            wideDialog={wideDialog}
-            timing={request.options?.timing}
-            triggerTimings={request.options?.triggerTimings}
-            triggerDescriptions={request.options?.triggerDescriptions}
-            triggerReasons={request.options?.triggerReasons}
-            triggerIsInherited={request.options?.triggerIsInherited}
-            triggerIsOptional={request.options?.triggerIsOptional}
-            waitingTriggers={waitingTriggersOf(request)}
-            acceptsResolutionPlan={isResolutionPlan}
-            onRespond={onRespond}
-            onOpenBoard={() => setIsViewingBoard(true)}
-          />
-        ) : null}
-        {isOrderCards ? (
-          <DecisionOrderCardsFooter
-            onConfirm={() => onRespond({ kind: "orderCards", order: cardOrder })}
-            onOpenBoard={() => setIsViewingBoard(true)}
-          />
-        ) : null}
       </div>
     </>
   );

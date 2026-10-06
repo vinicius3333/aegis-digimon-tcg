@@ -1,0 +1,344 @@
+.board-prompt.keyword-save-overlay[data-prompt-surface] .board-prompt__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.board-prompt.keyword-save-overlay[data-prompt-surface] .board-prompt__actions > button:last-child {
+  grid-column: 1 / -1;
+}
+/* Static mobile prompts fit their contents and leave a selecting hand visible.
+   Candidate lists scroll independently of the actions that answer the decision. */
+@media (width < 768px), (height < 520px) and (orientation: landscape) {
+  .board-prompt-scrim[data-variant="selection"] {
+    display: none;
+  }
+  .decision-overlay-backdrop,
+  .effect-prompt-layer {
+    bottom: var(--mobile-prompt-hand-clearance, 0px) !important;
+  }
+  .game-hand--selecting .game-hand-card--unpickable {
+    opacity: 1;
+    scale: 1;
+  }
+  .game-hand--selecting .game-hand-card--unpickable > * {
+    filter: none;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface],
+  .game-modal__panel.effect-prompt-family.decision-overlay--wide[data-prompt-surface],
+  .game-modal__panel.effect-prompt-family.decision-overlay--resolution-plan[data-prompt-surface],
+  .board-prompt[data-prompt-surface][data-variant],
+  .board-prompt.combat-prompt[data-prompt-surface][data-variant] {
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: var(--mobile-prompt-hand-clearance, 0px) !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: auto !important;
+    max-height: min(
+      78dvh,
+      calc(100dvh - var(--mobile-prompt-hand-clearance, 0px) - 4rem - env(safe-area-inset-top, 0px))
+    ) !important;
+    padding: var(--ds-space-4) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0 !important;
+    border-bottom: 0 !important;
+    overflow: hidden auto !important;
+    translate: none !important;
+    transform: none !important;
+    scrollbar-width: thin;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-2);
+    justify-content: flex-start;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface]
+    :is(.decision-overlay__header, .counter-overlay__header, .action-confirmation__header, .material-prompt__header) {
+    flex: none;
+    margin: 0 !important;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface] .material-prompt__header {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    align-items: start;
+  }
+  .mobile-prompt-art {
+    display: block;
+    flex: none;
+    width: 4rem;
+    height: 3rem;
+    overflow: hidden;
+    border-radius: var(--ds-radius-md);
+  }
+  .mobile-prompt-art > div {
+    width: 4rem !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+    transform: translateY(calc(-1 * var(--ds-space-2)));
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface]
+    :is(
+      .decision-overlay__footer,
+      .trigger-chooser__footer,
+      .counter-overlay__board-action,
+      .effect-prompt-family__board-action,
+      .material-prompt__footer,
+      .game-actions-row
+    ) {
+    position: static !important;
+    flex: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    bottom: auto !important;
+    gap: var(--ds-space-2);
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__choices > button {
+    padding: var(--ds-space-3);
+    font-size: var(--ds-text-sm);
+    text-align: left;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface]
+    :is(.decision-overlay__choice-layout, .trigger-chooser__layout) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 0;
+    gap: var(--ds-space-3);
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface]
+    :is(
+      .decision-overlay__selection,
+      .decision-overlay__choice-cards,
+      .decision-overlay__order-list,
+      .effect-choice,
+      .trigger-chooser,
+      .material-prompt__body,
+      .counter-overlay__gallery,
+      .app-fusion-choice__routes
+    ) {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0 !important;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .material-prompt__body {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: var(--ds-space-3);
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface]
+    :is(.material-prompt__footer, .action-confirmation__copy) {
+    min-width: 0;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .material-prompt__footer {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface] .material-prompt__body > * {
+    flex: none;
+    min-width: 0;
+    margin-block: 0;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface] .material-prompt__grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface]
+    .material-prompt__grid
+    > button
+    > :first-child {
+    width: 4.5rem !important;
+    max-width: 100%;
+    height: auto !important;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface]
+    .material-prompt__footer
+    .game-actions-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface]
+    .material-prompt__footer
+    .game-actions-row
+    > button:first-child {
+    grid-column: 1 / -1;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__footer--selection {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .decision-overlay__footer--selection > button {
+    grid-column: auto;
+    width: 100%;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface]
+    .decision-overlay__footer--selection
+    > button:last-child {
+    grid-column: 1 / -1;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .effect-choice__option {
+    padding: var(--ds-space-3);
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] > .aegis-button {
+    flex: none;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .digivolve-cost-choice {
+    padding-top: 0;
+    gap: var(--ds-space-3);
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .digivolve-cost-choice__cards > div {
+    width: 4rem !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .game-modal__panel.effect-prompt-family[data-prompt-surface] .digivolve-cost-choice__view-board {
+    min-height: var(--ds-touch-target);
+  }
+  .board-prompt[data-prompt-surface][data-variant] .board-prompt__actions {
+    flex: none;
+  }
+  .board-prompt[data-prompt-surface][data-variant="field-selection"]:not(.board-prompt--target-selection) {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (height < 520px) and (orientation: landscape) {
+  .game-modal__panel.effect-prompt-family[data-prompt-surface],
+  .board-prompt[data-prompt-surface][data-variant] {
+    max-height: calc(
+      100dvh - var(--mobile-prompt-hand-clearance, 0px) - var(--ds-space-4) - env(safe-area-inset-top, 0px)
+    ) !important;
+  }
+}
+
+@media (height < 520px) and (orientation: landscape) {
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface] {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.65fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "header footer" "body footer";
+    gap: var(--ds-space-3) !important;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface] .material-prompt__header {
+    grid-area: header;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface] .material-prompt__body {
+    grid-area: body;
+  }
+  .game-modal__panel.material-prompt.effect-prompt-family[data-prompt-surface] .material-prompt__footer {
+    grid-area: footer;
+    align-self: start;
+  }
+}
+
+/* An attack on a single security pile needs one compact target, not a card grid. */
+.decision-overlay__candidate--security {
+  width: 100%;
+  min-width: 0;
+}
+.decision-security-target {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  width: 100%;
+  padding: var(--ds-space-2);
+  border: 2px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  color: var(--ds-fg-secondary);
+  text-align: left;
+  font-size: var(--ds-text-sm);
+  font-weight: 700;
+}
+.decision-security-target > div {
+  flex: none;
+}
+.decision-security-target > span {
+  flex: 1;
+  min-width: 0;
+}
+.decision-overlay__candidate--security[aria-pressed="true"] .decision-security-target {
+  border-color: var(--ds-accent);
+  color: var(--ds-accent);
+}
+.game-modal__panel.effect-prompt-family.decision-overlay--security-choice[data-prompt-surface] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  height: auto !important;
+  min-height: 0;
+  overflow: auto;
+}
+.game-modal__panel.effect-prompt-family.decision-overlay--security-choice[data-prompt-surface]
+  :is(.decision-overlay__header, .decision-overlay__selection) {
+  flex: none;
+  margin: 0 !important;
+}
+.game-modal__panel.effect-prompt-family.decision-overlay--security-choice[data-prompt-surface] .mobile-prompt-art {
+  display: block;
+  width: 4rem;
+  height: 3rem;
+  overflow: hidden;
+  border-radius: var(--ds-radius-md);
+}
+.game-modal__panel.effect-prompt-family.decision-overlay--security-choice[data-prompt-surface]
+  .mobile-prompt-art
+  > div {
+  width: 4rem !important;
+  height: auto !important;
+  transform: translateY(calc(-1 * var(--ds-space-2)));
+}
+.game-modal__panel.effect-prompt-family.decision-overlay--security-choice[data-prompt-surface]
+  .decision-overlay__footer {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-2);
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0;
+}
+.game-modal__panel.effect-prompt-family.decision-overlay--security-choice[data-prompt-surface]
+  .decision-overlay__footer
+  > button {
+  grid-column: auto !important;
+  min-width: 0;
+  padding: var(--ds-space-2);
+}
+
+/* An unavailable block needs only the status and the two actions. */
+.game-modal__panel.effect-prompt-family.block-overlay--empty[data-prompt-surface="left"] {
+  height: auto !important;
+  min-height: 0;
+}
+.block-overlay--empty .counter-overlay__header {
+  flex: none;
+  margin-bottom: 12px;
+}
+.block-overlay--empty .counter-overlay__header p:empty {
+  display: none;
+}
+.block-overlay--empty .counter-overlay__board-action {
+  margin-top: 8px;
+}
+.block-overlay--empty .mobile-prompt-art {
+  display: block;
+  width: 64px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+.block-overlay--empty .mobile-prompt-art img {
+  width: 64px;
+  height: 90px;
+  object-fit: cover;
+  transform: translateY(-14px);
+}

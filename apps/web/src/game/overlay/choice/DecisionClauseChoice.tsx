@@ -28,7 +28,7 @@ export function DecisionClauseChoice({
   const { t } = useTranslation();
   const hasDecline = declineIndex !== undefined && declineIndex >= 0 && declineIndex < choices.length;
   return (
-    <div>
+    <div className="decision-overlay__choice-layout">
       <ol className="effect-choice" aria-label={t("overlay.chooseEffectPrompt")}>
         {choices.map((label, index) => {
           if (hasDecline && index === declineIndex) return null;

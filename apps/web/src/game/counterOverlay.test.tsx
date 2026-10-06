@@ -29,7 +29,7 @@ function CounterHarness(
 
 function counterDialog() {
   const dialog = screen.getByRole("dialog", { name: "Counter timing" });
-  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+  expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
   return within(dialog);
 }
 
@@ -103,14 +103,12 @@ function renderCombatGame(kind: "alliance" | "block" | "counter" = "alliance", m
   return { send, permanent };
 }
 
-it("selects only server-offered Alliance allies in the central dialog", () => {
-  const { send } = renderCombatGame();
-  const dialog = screen.getByRole("dialog", { name: "Alliance window" });
-  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
-  expect(within(dialog).queryByRole("button", { name: /Agumon|MetalTyrannomon/ })).toBeNull();
-  const ally = within(dialog).getByRole("button", { name: /MetalGreymon, 6,000 DP/ });
-  fireEvent.click(ally);
-  fireEvent.click(ally);
+it("selects only server-offered Alliance allies on the field", () => {
+  const { send, permanent } = renderCombatGame();
+  expect(screen.queryByRole("dialog", { name: "Alliance window" })).toBeNull();
+  expect(screen.getByRole("region", { name: "Alliance window" })).toBeTruthy();
+  fireEvent.click(permanent("ally"));
+  fireEvent.click(screen.getByRole("button", { name: /Use Alliance/i }));
   expect(send).toHaveBeenCalledWith("respondAlliance", { allyPermanentId: "ally" });
   expect(send).toHaveBeenCalledTimes(1);
 });
@@ -330,15 +328,14 @@ it("chooses between identical field counters centrally and cancels back without 
   expect(activate).toHaveBeenCalledWith("first-top", "EX13-036/counter");
 });
 
-it.each([false, true])("uses server-authorized blockers centrally and preserves Collision (%s)", (mustBlock) => {
-  const { send } = renderCombatGame("block", mustBlock);
-  const dialog = screen.getByRole("dialog", { name: "Block window" });
-  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
-  const decline = within(dialog).queryByRole("button", { name: /take the attack/i });
+it.each([false, true])("uses server-authorized blockers on the field and preserves Collision (%s)", (mustBlock) => {
+  const { send, permanent } = renderCombatGame("block", mustBlock);
+  expect(screen.queryByRole("dialog", { name: "Block window" })).toBeNull();
+  const rail = screen.getByRole("region", { name: "Block window" });
+  const decline = within(rail).queryByRole("button", { name: /take the attack/i });
   expect(Boolean(decline)).toBe(!mustBlock);
-  // MetalGreymon does not print Blocker; eligibility comes exclusively from the server.
-  expect(within(dialog).queryByRole("button", { name: /MetalTyrannomon|^Greymon,/ })).toBeNull();
-  fireEvent.click(within(dialog).getByRole("button", { name: /MetalGreymon, 6,000 DP/ }));
+  expect(within(rail).queryByRole("button", { name: /MetalGreymon/ })).toBeNull();
+  fireEvent.click(permanent("ally"));
   expect(send).toHaveBeenCalledWith("declareBlock", { blockerPermanentId: "ally" });
 });
 
@@ -364,19 +361,22 @@ it("puts the lone take-attack action on the left when no server-authorized block
   expect(decline).toHaveBeenCalledOnce();
 });
 
-it("puts the lone Alliance pass action on the left when no eligible ally remains", () => {
+it("passes an empty Alliance window once without rendering a modal", () => {
   const pass = vi.fn<() => void>();
-  const choose = vi.fn<(id: string) => void>();
-  render(
+  const view = render(
     <I18nProvider>
-      <AllianceOverlay allies={[]} onChoose={choose} onPass={pass} />
+      <AllianceOverlay allies={[]} onPass={pass} />
     </I18nProvider>,
   );
-  const dialog = screen.getByRole("dialog", { name: "Alliance window" });
-  expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
-  fireEvent.click(within(dialog).getByRole("button", { name: "Pass" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.queryByRole("region")).toBeNull();
   expect(pass).toHaveBeenCalledOnce();
-  expect(choose).not.toHaveBeenCalled();
+  view.rerender(
+    <I18nProvider>
+      <AllianceOverlay allies={[]} onPass={pass} />
+    </I18nProvider>,
+  );
+  expect(pass).toHaveBeenCalledOnce();
 });
 
 it("keeps the lone Counter pass action on the left when no legal route remains", () => {

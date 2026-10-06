@@ -760,7 +760,7 @@ describe("generic engine selection prompts", () => {
       );
 
       expect(screen.queryByText("Choose the card order")).toBeNull();
-      expect(screen.getByText("Escolha a ordem das cartas")).toBeTruthy();
+      expect(screen.getByText("Ordenar cartas")).toBeTruthy();
     } finally {
       localStorage.removeItem("aegis:locale");
     }
@@ -3498,7 +3498,7 @@ describe("decision board preview", () => {
     );
 
     expect(screen.getByRole("dialog", { name: "Block window" })).toBeTruthy();
-    expect(screen.getByText(/Choose a <Blocker> to redirect the attack, or take the hit/i)).toBeTruthy();
+    expect(screen.getByText(/When an opponent's Digimon attacks/i)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Coredramon, 6,000 DP, 1 source/i }));
     expect(onBlock).toHaveBeenCalledWith("coredramon-permanent");
   });
@@ -3517,7 +3517,7 @@ describe("decision board preview", () => {
     );
 
     expect(screen.queryByRole("button", { name: "Take the attack, no block" })).toBeNull();
-    expect(screen.getByText(/you must block while one can/i)).toBeTruthy();
+    expect(screen.getByText(/must block if possible/i)).toBeTruthy();
     expect(screen.getByText("Mandatory")).toBeTruthy();
   });
 
@@ -4288,3 +4288,15 @@ it.each(["Add 1 yellow card with the [Data] trait", "1 card with the [Witchelny]
     expect(screen.queryByText(/Return the rest to the bottom/)).toBeNull();
   },
 );
+
+it("uses a concise attack heading even when the engine supplies its forced-attack prompt", () => {
+  renderDecision({
+    decisionId: "forced-attack-heading",
+    seat: 0,
+    kind: "chooseTargets",
+    promptText: "Choose the attack target for the forced attack.",
+    options: { selectionContext: "attackTarget", candidateInstanceIds: ["player"], min: 1, max: 1 },
+  });
+  expect(screen.getByRole("heading", { name: "Attack" })).toBeTruthy();
+  expect(screen.queryByText("Choose the attack target for the forced attack.")).toBeNull();
+});

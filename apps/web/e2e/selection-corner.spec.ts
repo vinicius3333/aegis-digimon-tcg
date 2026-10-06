@@ -24,10 +24,22 @@ for (const viewport of [
       await expect(panel).toBeVisible();
       const bounds = (await panel.boundingBox())!;
       expect(bounds.x).toBeCloseTo(viewport.width < 768 ? 0 : 8, 0);
-      expect(bounds.y + bounds.height).toBeCloseTo(viewport.height - (viewport.width < 768 ? 0 : 8), 0);
+      if (viewport.width < 768) {
+        const hand = page.locator(".game-hand--selecting");
+        if (await hand.count()) {
+          const dock = (await page.locator(".game-hand-dock").boundingBox())!;
+          expect(bounds.y + bounds.height).toBeLessThanOrEqual(dock.y + 1);
+        } else {
+          expect(bounds.y + bounds.height).toBeCloseTo(viewport.height, 0);
+        }
+      } else {
+        expect(bounds.y + bounds.height).toBeCloseTo(viewport.height - 8, 0);
+      }
       if (!expectedSize) expectedSize = { width: bounds.width, height: bounds.height };
       expect(bounds.width).toBeCloseTo(expectedSize.width, 0);
-      if (await panel.getAttribute("data-variant")) {
+      if (viewport.width < 768) {
+        expect(bounds.height).toBeLessThanOrEqual(viewport.height * 0.78);
+      } else if (await panel.getAttribute("data-variant")) {
         expect(bounds.height).toBeLessThanOrEqual(expectedSize.height);
       } else {
         expect(bounds.height).toBeCloseTo(expectedSize.height, 0);

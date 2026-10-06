@@ -11,12 +11,15 @@ import type { DecisionCandidate } from "./decisionTypes";
 export function DecisionChoiceCards({
   candidates,
   wideDialog,
+  largeCards = false,
 }: {
   candidates: readonly DecisionCandidate[];
   wideDialog: boolean;
+  largeCards?: boolean;
 }) {
   const { t } = useTranslation();
-  const cardWidth = wideDialog && candidates.length > 3 ? 132 : 104;
+  const cardWidth =
+    wideDialog && largeCards ? (candidates.length > 5 ? 144 : 180) : wideDialog && candidates.length > 3 ? 132 : 104;
   // A digivolution-requirement question is about a card in the player's own hand, which
   // was never revealed; label the strip by what the question is about.
   const allInHand = candidates.length > 0 && candidates.every((candidate) => candidate.zone === "hand");

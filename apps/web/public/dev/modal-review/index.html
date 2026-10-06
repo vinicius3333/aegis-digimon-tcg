@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Modais do Aegis · revisão visual</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+        background: #0c1424;
+        color: #eaf0ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      header {
+        padding: 40px max(20px, calc((100vw - 1360px) / 2));
+        background: #152139;
+        border-bottom: 1px solid #334767;
+      }
+      h1 {
+        font-size: clamp(26px, 4vw, 40px);
+        line-height: 1.15;
+        margin: 4px 0 12px;
+      }
+      header p {
+        margin: 0;
+        color: #afbfda;
+      }
+      .eyebrow {
+        color: #6daeff;
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .controls {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #0c1424f2;
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid #334767;
+      }
+      .controls-inner {
+        max-width: 1400px;
+        margin: auto;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 16px 20px;
+      }
+      label {
+        font-size: 13px;
+        color: #afbfda;
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        color: inherit;
+        border: 1px solid #42638f;
+        border-radius: 8px;
+        background: #182740;
+        padding: 10px 12px;
+        min-height: 44px;
+      }
+      input {
+        min-width: 220px;
+        flex: 1;
+      }
+      input:focus,
+      select:focus,
+      button:focus,
+      a:focus {
+        outline: 3px solid #8ac5ff;
+        outline-offset: 3px;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        background: #243e63;
+      }
+      #count {
+        margin-left: auto;
+        font-size: 13px;
+        color: #afbfda;
+      }
+      main {
+        max-width: 1400px;
+        margin: auto;
+        padding: 24px 20px 64px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+      }
+      article {
+        background: #152139;
+        border: 1px solid #334767;
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      article header {
+        padding: 18px 20px;
+        background: none;
+        border: 0;
+      }
+      h2 {
+        font-size: 18px;
+        margin: 0 0 8px;
+      }
+      article header a {
+        font-size: 13px;
+        color: #83b8ff;
+      }
+      article[hidden] {
+        display: none;
+      }
+      .prints {
+        display: grid;
+        grid-template-columns: minmax(100px, 1fr) minmax(0, 2fr);
+        gap: 12px;
+        padding: 0 16px 18px;
+        align-items: start;
+      }
+      figure {
+        margin: 0;
+        min-width: 0;
+      }
+      figcaption {
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 11px;
+        color: #afbfda;
+        margin-bottom: 8px;
+      }
+      .print {
+        display: block;
+        padding: 0;
+        width: 100%;
+        min-height: 0;
+        border: 1px solid #42638f;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #0c1424;
+      }
+      .print img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .prints[data-view="mobile"] {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .prints[data-view="mobile"] figure.mobile {
+        max-width: 280px;
+        margin: auto;
+        width: 100%;
+      }
+      .prints[data-view="desktop"] {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .prints[data-view="mobile"] .desktop,
+      .prints[data-view="desktop"] .mobile {
+        display: none;
+      }
+      dialog {
+        width: min(96vw, 1550px);
+        height: 94dvh;
+        max-width: none;
+        max-height: 94dvh;
+        padding: 16px;
+        background: #0c1424;
+        border: 1px solid #42638f;
+        border-radius: 12px;
+        color: #eaf0ff;
+      }
+      dialog::backdrop {
+        background: #000c;
+      }
+      dialog .dialog-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      dialog h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+      dialog img {
+        display: block;
+        max-width: 100%;
+        max-height: calc(94dvh - 100px);
+        height: auto;
+        width: auto;
+        margin: auto;
+      }
+      dialog a {
+        color: #83b8ff;
+        font-size: 13px;
+      }
+      .empty {
+        grid-column: 1/-1;
+        text-align: center;
+        color: #afbfda;
+        padding: 64px;
+      }
+      .pending {
+        color: #afbfda;
+        padding: 24px;
+        display: block;
+        font-size: 12px;
+      }
+      @media (max-width: 900px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+        .controls-inner {
+          gap: 8px;
+        }
+        #count {
+          width: 100%;
+          margin: 0;
+        }
+        header {
+          padding: 24px 20px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="eyebrow">Aegis · revisão visual</div>
+      <h1>Modais no mobile e desktop</h1>
+      <p>Compare os layouts. Toque em qualquer print para ampliar ou abra o cenário para experimentar.</p>
+    </header>
+    <div class="controls">
+      <div class="controls-inner">
+        <label for="search">Buscar</label
+        ><input id="search" type="search" placeholder="Keyword, seleção, DigiXros…" /><label for="view">Formato</label
+        ><select id="view">
+          <option value="both">Mobile + desktop</option>
+          <option value="mobile">Só mobile</option>
+          <option value="desktop">Só desktop</option></select
+        ><output id="count" aria-live="polite">Carregando prints…</output>
+      </div>
+    </div>
+    <main id="gallery"><p class="empty">Carregando a galeria…</p></main>
+    <dialog id="zoom">
+      <div class="dialog-bar">
+        <div>
+          <h2 id="zoom-title"></h2>
+          <a id="download" download>Baixar print</a>
+        </div>
+        <button id="close" aria-label="Fechar print ampliado">Fechar</button>
+      </div>
+      <img id="zoom-image" alt="" />
+    </dialog>
+    <script type="module">
+      const gallery = document.querySelector("#gallery"),
+        search = document.querySelector("#search"),
+        view = document.querySelector("#view"),
+        count = document.querySelector("#count"),
+        zoom = document.querySelector("#zoom");
+      const cases = await fetch("./manifest.json").then((r) => {
+        if (!r.ok) throw new Error("Manifesto indisponível");
+        return r.json();
+      });
+      gallery.replaceChildren();
+      for (const item of cases) {
+        const article = document.createElement("article");
+        article.id = item.id;
+        article.dataset.search = `${item.title} ${item.id}`.toLocaleLowerCase("pt-BR");
+        const heading = document.createElement("header"),
+          title = document.createElement("h2"),
+          link = document.createElement("a");
+        title.textContent = item.title;
+        link.textContent = "Abrir cenário ↗";
+        link.href = item.url;
+        link.target = "_blank";
+        link.rel = "noopener";
+        heading.append(title, link);
+        article.append(heading);
+        const prints = document.createElement("div");
+        prints.className = "prints";
+        prints.dataset.view = "both";
+        for (const [format, label, size] of [
+          ["mobile", "Mobile", "390 × 844"],
+          ["desktop", "Desktop", "1440 × 1000"],
+        ]) {
+          const figure = document.createElement("figure");
+          figure.className = format;
+          const caption = document.createElement("figcaption");
+          caption.textContent = `${label} · ${size}`;
+          const button = document.createElement("button");
+          button.className = "print";
+          button.setAttribute("aria-label", `Ampliar ${item.title} no ${label.toLowerCase()}`);
+          const img = document.createElement("img");
+          img.src = `./${item.id}-${format}.png`;
+          img.alt = `${item.title} — ${label}`;
+          img.loading = "lazy";
+          img.width = format === "mobile" ? 390 : 1440;
+          img.height = format === "mobile" ? 844 : 1000;
+          img.addEventListener(
+            "error",
+            () => {
+              img.hidden = true;
+              const pending = document.createElement("span");
+              pending.className = "pending";
+              pending.textContent = "Print em captura";
+              button.append(pending);
+            },
+            { once: true },
+          );
+          img.addEventListener("load", () => {
+            img.hidden = false;
+            button.querySelector(".pending")?.remove();
+          });
+          button.append(img);
+          button.addEventListener("click", () => {
+            if (img.hidden) return;
+            document.querySelector("#zoom-title").textContent = `${item.title} · ${label}`;
+            const full = document.querySelector("#zoom-image");
+            full.src = img.src;
+            full.alt = img.alt;
+            document.querySelector("#download").href = img.src;
+            zoom.showModal();
+          });
+          figure.append(caption, button);
+          prints.append(figure);
+        }
+        article.append(prints);
+        gallery.append(article);
+      }
+      function filter() {
+        let visible = 0;
+        for (const article of gallery.children) {
+          article.hidden = !article.dataset.search.includes(search.value.toLocaleLowerCase("pt-BR"));
+          article.querySelector(".prints").dataset.view = view.value;
+          if (!article.hidden) visible++;
+        }
+        count.textContent = `${visible} de ${cases.length} cenários · ${cases.length * 2} prints`;
+      }
+      search.addEventListener("input", filter);
+      view.addEventListener("change", filter);
+      document.querySelector("#close").addEventListener("click", () => zoom.close());
+      zoom.addEventListener("click", (event) => {
+        if (event.target === zoom) zoom.close();
+      });
+      filter();
+      setInterval(() => {
+        for (const image of gallery.querySelectorAll("img[hidden]"))
+          image.src = image.src.split("?")[0] + "?refresh=" + Date.now();
+      }, 15000);
+    </script>
+  </body>
+</html>

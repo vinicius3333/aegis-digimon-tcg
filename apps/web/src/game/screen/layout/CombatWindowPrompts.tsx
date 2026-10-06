@@ -5,6 +5,7 @@
    one while a decision is unanswered — so at most one of these is ever on screen. */
 
 import type { GameState } from "@aegis/shared";
+import { BoardBlockPrompt } from "../../BoardDecisionRail";
 import { instanceCardId, instancePermanentId, permCardId } from "../../decisionModel";
 import { BarrierOverlay, BlockOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
 import { AllianceOverlay } from "../../overlay/combat/AllianceOverlay";
@@ -49,25 +50,21 @@ export function CombatWindowPrompts({
   return (
     <>
       {blockWindow ? (
-        <BlockOverlay
-          attackerCardId={permCardId(state, blockWindow.attackerPermanentId)}
-          mustBlock={blockWindow.mustBlock}
-          blockers={blockWindow.eligibleBlockerIds.flatMap((id) => {
-            const permanent = findPermanentInState(state, id);
-            return permanent
-              ? [
-                  {
-                    permanentId: id,
-                    cardId: permanent.topCard.cardId,
-                    currentDP: permanent.currentDP,
-                    sourceCount: permanent.stack.length,
-                  },
-                ]
-              : [];
-          })}
-          onBlock={onBlock}
-          onDecline={() => onBlock()}
-        />
+        blockWindow.eligibleBlockerIds.length ? (
+          <BoardBlockPrompt
+            attackerCardId={permCardId(state, blockWindow.attackerPermanentId)}
+            mustBlock={blockWindow.mustBlock}
+            onDecline={() => onBlock()}
+          />
+        ) : (
+          <BlockOverlay
+            attackerCardId={permCardId(state, blockWindow.attackerPermanentId)}
+            mustBlock={blockWindow.mustBlock}
+            blockers={[]}
+            onBlock={onBlock}
+            onDecline={() => onBlock()}
+          />
+        )
       ) : null}
 
       {counterWindow ? (
@@ -94,15 +91,12 @@ export function CombatWindowPrompts({
               ? [{ permanentId: id, cardId: permanent.topCard.cardId, currentDP: permanent.currentDP }]
               : [];
           })}
-          onChoose={onAlliance}
           onPass={() => onAlliance()}
         />
       ) : null}
 
       {evadeWindow ? (
         <EvadeOverlay
-          permanentId={evadeWindow.permanentId}
-          getCardId={(pid) => permCardId(state, pid)}
           onAccept={() => onEvade(evadeWindow.permanentId, true)}
           onDecline={() => onEvade(evadeWindow.permanentId, false)}
         />
@@ -110,8 +104,6 @@ export function CombatWindowPrompts({
 
       {barrierWindow ? (
         <BarrierOverlay
-          permanentId={barrierWindow.permanentId}
-          getCardId={(pid) => permCardId(state, pid)}
           onAccept={() => onBarrier(barrierWindow.permanentId, true)}
           onDecline={() => onBarrier(barrierWindow.permanentId, false)}
         />

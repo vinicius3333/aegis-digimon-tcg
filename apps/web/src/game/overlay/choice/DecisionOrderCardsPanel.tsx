@@ -23,7 +23,7 @@ export function DecisionOrderCardsPanel({
 }) {
   const { t } = useTranslation();
   return (
-    <div style={{ marginBottom: 18 }}>
+    <div className="decision-overlay__order-list" style={{ marginBottom: 18 }}>
       <div style={{ fontSize: 12, color: "var(--ds-fg-secondary)", marginBottom: 10 }}>
         {t(orderHintKey(orderDestination))}
       </div>
