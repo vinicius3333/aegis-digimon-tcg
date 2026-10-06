@@ -146,6 +146,12 @@ describe("authored original bank", () => {
       renderCue("turnChange", {}, "warm", 48000, sources),
     );
 
+    const gestureCount = (sourceLevel: number, targetLevel: number) =>
+      audioRecipe("digivolve", { sourceLevel, targetLevel }).layers.length;
+    expect(gestureCount(3, 4)).toBeLessThan(gestureCount(4, 5));
+    expect(gestureCount(4, 5)).toBeLessThan(gestureCount(5, 6));
+    expect(gestureCount(5, 6)).toBe(gestureCount(6, 7));
+
     expect(cueKey("digivolve", { sourceLevel: NaN, targetLevel: Infinity })).toBe("digivolve-3-4");
     expect(cueKey("cardPlay", { cost: Infinity })).toBe("cardPlay-5-plain");
     expect(measures(renderCue("effectActivate", {}, "crisp", 48000, sources)).energy).toBeLessThan(

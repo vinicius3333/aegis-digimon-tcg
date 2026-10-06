@@ -159,8 +159,9 @@ export function audioRecipe(
     case "digivolve": {
       const source = finite(details.sourceLevel, 3, 1, 7),
         target = finite(details.targetLevel, 4, 2, 7);
+      // The build-up grows with the arriving level (3->4 stays short, 5->6 swells) and with skipped levels.
       const jump = Math.max(1, target - source),
-        stages = Math.min(4, jump + 1),
+        stages = Math.min(4, Math.max(target - 2, jump + 1)),
         gap = 0.062 + source * 0.006;
       const gestures: FoleyKind[] = ["slide", "cut", "flick", "placeFirm"];
       for (let i = 0; i < stages; i++) play(gestures[i]!, i * gap, 0.22 + i * 0.04);

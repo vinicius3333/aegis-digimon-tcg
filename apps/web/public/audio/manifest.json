@@ -4,7 +4,7 @@
   "arrangement": "Aegis arrangements of licensed CC0 recorded card/object foley",
   "recordedSourceProvenance": "sources/recorded-provenance.json",
   "renderer": "apps/web/src/design/audioRecipes.ts",
-  "rendererSha256": "a8ff0e21833beba3908ab34b7f02e438634dede87045702b865cde424fe4aae5",
+  "rendererSha256": "f47f770901b98a14faa29ce78ad2eeba641d8a12b4385dbe93e96a11124bc788",
   "sampleRate": 48000,
   "channels": 1,
   "seedMethod": "FNV-1a cue identity followed by xorshift32",
@@ -39,15 +39,15 @@
   "directionReason": "Natural-rate recorded card flicks, slides, cuts and placements; restrained acoustic object punctuation; no synthesized everyday cue layers",
   "bank": {
     "file": "aegis-cues-v2.wav",
-    "seconds": 45.32875,
+    "seconds": 46.87875,
     "peak": 0.2015380859375,
     "peakDbFS": -13.912857407379239,
-    "rms": 0.009268024741572761,
-    "dc": -2.2624003123305206e-7,
+    "rms": 0.009293860530194995,
+    "dc": -2.1729489939415957e-7,
     "maximumStep": 0.17291259765625,
     "boundaryStep": 0,
-    "bytes": 4351604,
-    "sha256": "4422087ab1cc1963ccc0d548c265223d48d4cf206fc1e115077534c3d24db31f"
+    "bytes": 4500404,
+    "sha256": "03cbd5129ced89c1e9c3eae63a2296c0d649e092349ba670281cad56e0bdbc26"
   },
   "music": {
     "file": "aegis-music-v3.wav",
@@ -3542,8 +3542,16 @@
         },
         {
           "texture": "recording",
-          "source": "placeHeavy",
+          "source": "flick",
           "at": 0.172,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.258,
           "duration": 0.236625,
           "gain": 0.39,
           "hz": 1
@@ -3551,21 +3559,21 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.207,
+          "at": 0.29300000000000004,
           "duration": 0.07533333333333334,
           "gain": 0.14,
           "hz": 1
         }
       ],
-      "duration": 0.426625,
+      "duration": 0.512625,
       "offset": 33.28970833333333,
       "metrics": {
-        "seconds": 0.426625,
-        "peak": 0.13837167620658875,
-        "peakDbFS": -17.179055961465775,
-        "rms": 0.009532103913034906,
-        "dc": 1.4014532141724177e-7,
-        "maximumStep": 0.10154391452670097,
+        "seconds": 0.512625,
+        "peak": 0.13837236166000366,
+        "peakDbFS": -17.179012934177745,
+        "rms": 0.009953105529470374,
+        "dc": 1.1666857660513357e-7,
+        "maximumStep": 0.10938820242881775,
         "boundaryStep": 0
       }
     },
@@ -3603,8 +3611,16 @@
         },
         {
           "texture": "recording",
-          "source": "placeStack",
+          "source": "placeFirm",
           "at": 0.258,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.344,
           "duration": 0.5069583333333333,
           "gain": 0.408,
           "hz": 1
@@ -3612,20 +3628,20 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.29300000000000004,
+          "at": 0.379,
           "duration": 0.07533333333333334,
           "gain": 0.14800000000000002,
           "hz": 1
         }
       ],
-      "duration": 0.7829583333333333,
-      "offset": 33.74133333333333,
+      "duration": 0.8689583333333334,
+      "offset": 33.827333333333335,
       "metrics": {
-        "seconds": 0.7829583333333333,
+        "seconds": 0.8689583333333334,
         "peak": 0.14731572568416595,
         "peakDbFS": -16.635017810829392,
-        "rms": 0.008591813605606107,
-        "dc": -3.537090079830261e-7,
+        "rms": 0.008612898866385712,
+        "dc": -3.1870304850622184e-7,
         "maximumStep": 0.11659239046275616,
         "boundaryStep": 0
       }
@@ -3688,7 +3704,7 @@
         }
       ],
       "duration": 0.8689583333333334,
-      "offset": 34.54929166666667,
+      "offset": 34.721291666666666,
       "metrics": {
         "seconds": 0.8689583333333334,
         "peak": 0.15381495654582977,
@@ -3741,7 +3757,7 @@
         }
       ],
       "duration": 0.37366666666666665,
-      "offset": 35.44325,
+      "offset": 35.61525,
       "metrics": {
         "seconds": 0.37366666666666665,
         "peak": 0.12281792610883713,
@@ -3794,7 +3810,7 @@
         }
       ],
       "duration": 0.37366666666666665,
-      "offset": 35.84191666666667,
+      "offset": 36.01391666666667,
       "metrics": {
         "seconds": 0.37366666666666665,
         "peak": 0.1294027417898178,
@@ -3847,7 +3863,7 @@
         }
       ],
       "duration": 0.438625,
-      "offset": 36.24058333333333,
+      "offset": 36.41258333333333,
       "metrics": {
         "seconds": 0.438625,
         "peak": 0.13198529183864594,
@@ -3884,8 +3900,16 @@
         },
         {
           "texture": "recording",
-          "source": "placeHeavy",
+          "source": "flick",
           "at": 0.184,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.276,
           "duration": 0.236625,
           "gain": 0.39,
           "hz": 1
@@ -3893,21 +3917,21 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.219,
+          "at": 0.31100000000000005,
           "duration": 0.07533333333333334,
           "gain": 0.14,
           "hz": 1
         }
       ],
-      "duration": 0.438625,
-      "offset": 36.704208333333334,
+      "duration": 0.530625,
+      "offset": 36.87620833333333,
       "metrics": {
-        "seconds": 0.438625,
-        "peak": 0.13837167620658875,
-        "peakDbFS": -17.179055961465775,
-        "rms": 0.009392451132106315,
-        "dc": 1.3630802460605333e-7,
-        "maximumStep": 0.10154391638934612,
+        "seconds": 0.530625,
+        "peak": 0.13837210834026337,
+        "peakDbFS": -17.17902883554197,
+        "rms": 0.009772102460708115,
+        "dc": 1.1269814927380501e-7,
+        "maximumStep": 0.10961491242051125,
         "boundaryStep": 0
       }
     },
@@ -3937,8 +3961,24 @@
         },
         {
           "texture": "recording",
-          "source": "placeStack",
+          "source": "flick",
           "at": 0.184,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.276,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.368,
           "duration": 0.5069583333333333,
           "gain": 0.408,
           "hz": 1
@@ -3946,20 +3986,20 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.219,
+          "at": 0.403,
           "duration": 0.07533333333333334,
           "gain": 0.14800000000000002,
           "hz": 1
         }
       ],
-      "duration": 0.7089583333333334,
-      "offset": 37.167833333333334,
+      "duration": 0.8929583333333333,
+      "offset": 37.43183333333333,
       "metrics": {
-        "seconds": 0.7089583333333334,
+        "seconds": 0.8929583333333333,
         "peak": 0.14731572568416595,
         "peakDbFS": -16.635017810829392,
-        "rms": 0.008025426912206124,
-        "dc": -3.9062911145965185e-7,
+        "rms": 0.008500170295341648,
+        "dc": -3.1013801313896024e-7,
         "maximumStep": 0.11659239046275616,
         "boundaryStep": 0
       }
@@ -3998,8 +4038,16 @@
         },
         {
           "texture": "recording",
-          "source": "placeStack",
+          "source": "placeFirm",
           "at": 0.276,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.368,
           "duration": 0.5069583333333333,
           "gain": 0.426,
           "hz": 1
@@ -4007,20 +4055,20 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.31100000000000005,
+          "at": 0.403,
           "duration": 0.07533333333333334,
           "gain": 0.156,
           "hz": 1
         }
       ],
-      "duration": 0.8009583333333333,
-      "offset": 37.90179166666667,
+      "duration": 0.8929583333333333,
+      "offset": 38.34979166666667,
       "metrics": {
-        "seconds": 0.8009583333333333,
+        "seconds": 0.8929583333333333,
         "peak": 0.15381495654582977,
         "peakDbFS": -16.26002865746582,
-        "rms": 0.008615161820208725,
-        "dc": -3.6383437850703646e-7,
+        "rms": 0.008618879325422522,
+        "dc": -3.263492913113207e-7,
         "maximumStep": 0.12173616886138916,
         "boundaryStep": 0
       }
@@ -4067,7 +4115,7 @@
         }
       ],
       "duration": 0.38566666666666666,
-      "offset": 38.72775,
+      "offset": 39.26775,
       "metrics": {
         "seconds": 0.38566666666666666,
         "peak": 0.12281863391399384,
@@ -4120,7 +4168,7 @@
         }
       ],
       "duration": 0.38566666666666666,
-      "offset": 39.138416666666664,
+      "offset": 39.678416666666664,
       "metrics": {
         "seconds": 0.38566666666666666,
         "peak": 0.12940345704555511,
@@ -4173,7 +4221,7 @@
         }
       ],
       "duration": 0.450625,
-      "offset": 39.549083333333336,
+      "offset": 40.089083333333335,
       "metrics": {
         "seconds": 0.450625,
         "peak": 0.13198529183864594,
@@ -4210,8 +4258,16 @@
         },
         {
           "texture": "recording",
-          "source": "placeHeavy",
+          "source": "flick",
           "at": 0.196,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.29400000000000004,
           "duration": 0.236625,
           "gain": 0.39,
           "hz": 1
@@ -4219,21 +4275,21 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.231,
+          "at": 0.32900000000000007,
           "duration": 0.07533333333333334,
           "gain": 0.14,
           "hz": 1
         }
       ],
-      "duration": 0.450625,
-      "offset": 40.024708333333336,
+      "duration": 0.548625,
+      "offset": 40.564708333333336,
       "metrics": {
-        "seconds": 0.450625,
-        "peak": 0.13837167620658875,
-        "peakDbFS": -17.179055961465775,
-        "rms": 0.009264461676749262,
-        "dc": 1.326812597121747e-7,
-        "maximumStep": 0.1015439173206687,
+        "seconds": 0.548625,
+        "peak": 0.13837194442749023,
+        "peakDbFS": -17.179039124675512,
+        "rms": 0.009618864243286814,
+        "dc": 1.0899541140096991e-7,
+        "maximumStep": 0.10994690284132957,
         "boundaryStep": 0
       }
     },
@@ -4263,8 +4319,24 @@
         },
         {
           "texture": "recording",
-          "source": "placeStack",
+          "source": "flick",
           "at": 0.196,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.29400000000000004,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.392,
           "duration": 0.5069583333333333,
           "gain": 0.408,
           "hz": 1
@@ -4272,20 +4344,20 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.231,
+          "at": 0.42700000000000005,
           "duration": 0.07533333333333334,
           "gain": 0.14800000000000002,
           "hz": 1
         }
       ],
-      "duration": 0.7209583333333334,
-      "offset": 40.50033333333333,
+      "duration": 0.9169583333333333,
+      "offset": 41.138333333333335,
       "metrics": {
-        "seconds": 0.7209583333333334,
+        "seconds": 0.9169583333333333,
         "peak": 0.14731572568416595,
         "peakDbFS": -16.635017810829392,
-        "rms": 0.007960996206623815,
-        "dc": -3.841266110506501e-7,
+        "rms": 0.008375710193509857,
+        "dc": -3.0201878050104484e-7,
         "maximumStep": 0.11659239046275616,
         "boundaryStep": 0
       }
@@ -4316,8 +4388,24 @@
         },
         {
           "texture": "recording",
-          "source": "placeStack",
+          "source": "flick",
           "at": 0.196,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.29400000000000004,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.392,
           "duration": 0.5069583333333333,
           "gain": 0.426,
           "hz": 1
@@ -4325,20 +4413,20 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.231,
+          "at": 0.42700000000000005,
           "duration": 0.07533333333333334,
           "gain": 0.156,
           "hz": 1
         }
       ],
-      "duration": 0.7209583333333334,
-      "offset": 41.246291666666664,
+      "duration": 0.9169583333333333,
+      "offset": 42.08029166666667,
       "metrics": {
-        "seconds": 0.7209583333333334,
+        "seconds": 0.9169583333333333,
         "peak": 0.15381495654582977,
         "peakDbFS": -16.26002865746582,
-        "rms": 0.008117428750757386,
-        "dc": -4.0420573405561446e-7,
+        "rms": 0.008492861766924516,
+        "dc": -3.178058644560446e-7,
         "maximumStep": 0.12173616886138916,
         "boundaryStep": 0
       }
@@ -4385,7 +4473,7 @@
         }
       ],
       "duration": 0.39766666666666667,
-      "offset": 41.99225,
+      "offset": 43.02225,
       "metrics": {
         "seconds": 0.39766666666666667,
         "peak": 0.12281908839941025,
@@ -4438,7 +4526,7 @@
         }
       ],
       "duration": 0.39766666666666667,
-      "offset": 42.41491666666667,
+      "offset": 43.444916666666664,
       "metrics": {
         "seconds": 0.39766666666666667,
         "peak": 0.12940390408039093,
@@ -4491,7 +4579,7 @@
         }
       ],
       "duration": 0.462625,
-      "offset": 42.837583333333335,
+      "offset": 43.867583333333336,
       "metrics": {
         "seconds": 0.462625,
         "peak": 0.13198529183864594,
@@ -4528,8 +4616,16 @@
         },
         {
           "texture": "recording",
-          "source": "placeHeavy",
+          "source": "flick",
           "at": 0.20800000000000002,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeHeavy",
+          "at": 0.31200000000000006,
           "duration": 0.236625,
           "gain": 0.39,
           "hz": 1
@@ -4537,21 +4633,21 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.24300000000000002,
+          "at": 0.3470000000000001,
           "duration": 0.07533333333333334,
           "gain": 0.14,
           "hz": 1
         }
       ],
-      "duration": 0.462625,
-      "offset": 43.325208333333336,
+      "duration": 0.566625,
+      "offset": 44.35520833333333,
       "metrics": {
-        "seconds": 0.462625,
-        "peak": 0.13837167620658875,
-        "peakDbFS": -17.179055961465775,
-        "rms": 0.009152474160994696,
-        "dc": 1.2923860193469436e-7,
-        "maximumStep": 0.1015439173206687,
+        "seconds": 0.566625,
+        "peak": 0.13837185502052307,
+        "peakDbFS": -17.179044736935303,
+        "rms": 0.009456809613352374,
+        "dc": 1.0552372570489053e-7,
+        "maximumStep": 0.10911475867033005,
         "boundaryStep": 0
       }
     },
@@ -4581,8 +4677,24 @@
         },
         {
           "texture": "recording",
-          "source": "placeStack",
+          "source": "flick",
           "at": 0.20800000000000002,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.31200000000000006,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.41600000000000004,
           "duration": 0.5069583333333333,
           "gain": 0.408,
           "hz": 1
@@ -4590,20 +4702,20 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.24300000000000002,
+          "at": 0.45100000000000007,
           "duration": 0.07533333333333334,
           "gain": 0.14800000000000002,
           "hz": 1
         }
       ],
-      "duration": 0.7329583333333334,
-      "offset": 43.81283333333333,
+      "duration": 0.9409583333333333,
+      "offset": 44.94683333333333,
       "metrics": {
-        "seconds": 0.7329583333333334,
+        "seconds": 0.9409583333333333,
         "peak": 0.14731572568416595,
         "peakDbFS": -16.635017810829392,
-        "rms": 0.007893552367902406,
-        "dc": -3.7783799969331033e-7,
+        "rms": 0.008288737654651428,
+        "dc": -2.943165614739407e-7,
         "maximumStep": 0.11659239046275616,
         "boundaryStep": 0
       }
@@ -4634,8 +4746,24 @@
         },
         {
           "texture": "recording",
-          "source": "placeStack",
+          "source": "flick",
           "at": 0.20800000000000002,
+          "duration": 0.2011875,
+          "gain": 0.3,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeFirm",
+          "at": 0.31200000000000006,
+          "duration": 0.21627083333333333,
+          "gain": 0.33999999999999997,
+          "hz": 1
+        },
+        {
+          "texture": "recording",
+          "source": "placeStack",
+          "at": 0.41600000000000004,
           "duration": 0.5069583333333333,
           "gain": 0.426,
           "hz": 1
@@ -4643,20 +4771,20 @@
         {
           "texture": "recording",
           "source": "stack",
-          "at": 0.24300000000000002,
+          "at": 0.45100000000000007,
           "duration": 0.07533333333333334,
           "gain": 0.156,
           "hz": 1
         }
       ],
-      "duration": 0.7329583333333334,
-      "offset": 44.570791666666665,
+      "duration": 0.9409583333333333,
+      "offset": 45.912791666666664,
       "metrics": {
-        "seconds": 0.7329583333333334,
+        "seconds": 0.9409583333333333,
         "peak": 0.15381495654582977,
         "peakDbFS": -16.26002865746582,
-        "rms": 0.008048658765632448,
-        "dc": -3.9758782473551364e-7,
+        "rms": 0.008404129168593734,
+        "dc": -3.0970162113280405e-7,
         "maximumStep": 0.12173616886138916,
         "boundaryStep": 0
       }
