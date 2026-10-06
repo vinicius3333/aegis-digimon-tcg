@@ -177,40 +177,44 @@ export class TurnStateMachine {
 
   /** One full turn: four phases followed by turn-end processing. Visible for testing. */
   async runTurn(): Promise<void> {
-    await this.activePhase();
+    let activePhaseCompleted = await this.activePhase();
     if (this.hooks.isGameOver()) return;
-
-    await this.drawPhase();
-    if (this.hooks.isGameOver()) return;
-
-    await this.breedingPhase();
-    if (this.hooks.isGameOver()) return;
-
-    // §6-1-4-1: once all processing has resolved for the current phase and the memory is at 1
-    // or more on the opponent's side, "the turn will end with the current phase". A breeding
-    // action that pushes the gauge across therefore ends the turn IN the breeding phase — the
-    // main phase never takes place, so no [Start of Your Main Phase] effect activates and the
-    // turn player takes no main-phase action (official Q&A Q1770, asked of BT8-094 Digimon
-    // Emperor's [Opponent's Turn] "gain 2 memory" on a breeding move).
+    let drawPhaseRan = false;
+    let breedingPhaseRan = false;
     let mainPhaseRan = false;
-    let ending: MainPhaseEnd = "crossed";
-    if (!this.memory.hasCrossedToOpponent()) {
-      ending = await this.mainPhase();
-      mainPhaseRan = true;
-      if (this.hooks.isGameOver()) return;
-    }
 
-    // §6-6-4: an OnEndTurn effect can move the memory back to 0 or more on the turn player's
-    // side, which postpones the end of the turn and continues the current phase. Each
-    // postponement resumes Main input and re-opens the end-of-turn window without
-    // starting a new Main phase or triggering its start effects again. When the turn had
-    // ended before Main ever opened, the postponed turn continues into a normal main phase
-    // instead, start-of-main effects included.
+    // CR 6-2-1-2 / 6-1-4-1: memory can end a turn in any phase. Resume from
+    // that boundary if an end-turn effect postpones the handoff (CR 6-6-4).
+    // Entry effects and completed phase procedures must not run a second time.
+    const continuePhases = async (): Promise<MainPhaseEnd> => {
+      if (this.memory.hasCrossedToOpponent()) return "crossed";
+      if (!activePhaseCompleted) {
+        await this.completeActivePhase();
+        activePhaseCompleted = true;
+      }
+      if (this.hooks.isGameOver() || this.memory.hasCrossedToOpponent()) return "crossed";
+      if (!drawPhaseRan) {
+        drawPhaseRan = true;
+        await this.drawPhase();
+      }
+      if (this.hooks.isGameOver() || this.memory.hasCrossedToOpponent()) return "crossed";
+      if (!breedingPhaseRan) {
+        breedingPhaseRan = true;
+        await this.breedingPhase();
+      }
+      // Q1770: a breeding action that crosses memory cannot open Main unless
+      // end-turn processing returns the memory to the current player.
+      if (this.hooks.isGameOver() || this.memory.hasCrossedToOpponent()) return "crossed";
+      const ending = await this.mainPhase(mainPhaseRan);
+      mainPhaseRan = true;
+      return ending;
+    };
+    let ending = await continuePhases();
+    if (this.hooks.isGameOver()) return;
     for (let postponements = 0; postponements < MAX_END_TURN_POSTPONEMENTS; postponements++) {
       if (!(await this.endTurnWindow(ending))) break;
       if (this.hooks.isGameOver()) return;
-      ending = await this.mainPhase(mainPhaseRan);
-      mainPhaseRan = true;
+      ending = await continuePhases();
       if (this.hooks.isGameOver()) return;
     }
 
@@ -220,14 +224,18 @@ export class TurnStateMachine {
   // --- Active phase -------------------------------------------------------------
   // source TurnStateMachine.ActivePhase: bump the turn counter, fire OnStartTurn, then
   // unsuspend the turn player's permanents.
-  private async activePhase(): Promise<void> {
+  private async activePhase(): Promise<boolean> {
     this.setPhase(Phase.Active);
     this.state.turnCount += 1;
     await this.hooks.clearDurations("ownerTurnStart");
 
     await this.hooks.fireTiming(EffectTiming.OnStartTurn);
-    if (this.hooks.isGameOver()) return;
+    if (this.hooks.isGameOver() || this.memory.hasCrossedToOpponent()) return false;
+    await this.completeActivePhase();
+    return true;
+  }
 
+  private async completeActivePhase(): Promise<void> {
     await this.hooks.unsuspendForActivePhase(this.state.turnSeat);
 
     await this.hooks.clearDurations("ownerActivePhaseEnd");

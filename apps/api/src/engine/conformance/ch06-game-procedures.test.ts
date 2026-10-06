@@ -197,6 +197,7 @@ describe("§6-3 Draw Phase (comprehensive-0106)", () => {
 
     // A later turn (isFirstPlayersFirstTurn cleared, as the real endPhase() does) draws normally.
     state.isFirstPlayersFirstTurn = false;
+    state.memory = 3; // Model the later turn after the memory gauge is reframed.
     const { hooks: laterHooks, log: laterLog } = recordingHooks();
     await new TurnStateMachine(state, laterHooks).runTurn();
     expect(laterLog).toContain("draw:1");

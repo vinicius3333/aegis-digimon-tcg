@@ -66,7 +66,11 @@ describe("EX5-003 Nyaromon", () => {
     await firstTurn;
 
     s.state.turnSeat = 1;
-    await s.engine.runOneTurn();
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(s.perm("opponentHost").isSuspended).toBe(false);
     s.state.turnSeat = 0;
     s.state.memory = 10;

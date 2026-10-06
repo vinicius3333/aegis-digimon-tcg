@@ -102,6 +102,7 @@ describe("first player draw-skip across a 2-turn run", () => {
     // Hand the turn to the second seat, mirroring what run()'s passTurn would do
     // between turns. The flag is already false after turn 1's End phase.
     state.turnSeat = 1;
+    state.memory = -state.memory; // passTurn also reframes the memory gauge.
     await machine.runTurn(); // turn 2 — second player (seat 1) draws
 
     expect(state.players[1]!.hand.length).toBe(OPENING_HAND + 1); // drew 1

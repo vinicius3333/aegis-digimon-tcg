@@ -154,7 +154,7 @@ export function createSharedHelpers(pc: PrimitivesContext) {
     const prevented = await engine.consultLeavePrevention(
       [...permByInstance.values()],
       "byEffect",
-      engine.controllerSeat(),
+      effectSeatStack.at(-1) ?? engine.controllerSeat(),
       { isBounce: true },
     );
     const notPrevented = instanceIds.filter((id) => {
