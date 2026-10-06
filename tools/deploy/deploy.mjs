@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describeSync, syncCardImages } from "./card-images.mjs";
 import { FIXED_SLOTS, isDeploymentSlot, readManifest, validateManifest, assertEmptySlot } from "./shared.mjs";
-import { API_MEMORY_MIB, REDIS_MEMORY_MIB, sampleHostCapacity, assertHostCapacity } from "./resources.mjs";
+import { API_MEMORY_MIB, REDIS_MEMORY_MIB, sampleHostCapacity, waitForHostCapacity } from "./resources.mjs";
 import { retainArtifacts } from "./retention.mjs";
 
 // Reserve the new services' full limits plus headroom for builds and host services.
@@ -251,8 +251,11 @@ export async function controller({
         ),
       );
     const checkCapacity = async (phase, needsGeneration = true) => {
-      assertOverflowCapacity(readFileSync(meminfoPath, "utf8"), needsGeneration ? OVERFLOW_REQUIRED_KIB : 2048 * 1024);
-      assertHostCapacity(await capacitySampler({ state }), phase);
+      const requiredKiB = needsGeneration ? OVERFLOW_REQUIRED_KIB : 2048 * 1024;
+      assertOverflowCapacity(readFileSync(meminfoPath, "utf8"), requiredKiB);
+      await waitForHostCapacity({ state, phase, capacitySampler });
+      // Host memory may change while waiting for CPU headroom.
+      assertOverflowCapacity(readFileSync(meminfoPath, "utf8"), requiredKiB);
     };
     async function buildWebRelease(config, webRevision) {
       const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
