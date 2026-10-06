@@ -19,6 +19,7 @@ function clientPort(overrides: Partial<ColyseusClientPort> = {}): ColyseusClient
     joinOrCreate: unavailable,
     create: unavailable,
     joinById: unavailable,
+    consumeSeatReservation: unavailable,
     reconnect: unavailable,
     ...overrides,
   };
@@ -271,4 +272,36 @@ describe("room-scoped deployment affinity", () => {
     expect(loadManifest).toHaveBeenCalledTimes(2);
     expect(connectionSlot(greenRoom)).toBe("green");
   });
+});
+
+it("reserves code-only spectator access on a draining slot and preserves its reconnect affinity", async () => {
+  const watched = room("watched-match");
+  const consume = vi.fn(async () => watched);
+  const fetcher = vi.fn(async (input: RequestInfo | URL) =>
+    String(input).includes("/green/")
+      ? new Response("{}", { status: 404 })
+      : new Response(JSON.stringify({ sessionId: "observer", roomId: "watched-match" })),
+  );
+  const client = new AegisConnectionRouter({
+    loadManifest: async () => ({
+      version: 1,
+      active: { slot: "green", revision: "new" },
+      draining: [{ slot: "blue", revision: "old" }],
+    }),
+    endpointForSlot: (slot) => ({
+      http: `https://example.test/api/${slot}`,
+      websocket: `wss://example.test/api/${slot}`,
+    }),
+    createClient: (_endpoint, slot) =>
+      slot === "blue" ? clientPort({ consumeSeatReservation: consume }) : clientPort(),
+    fetcher,
+  });
+  expect(await client.spectate({ roomCode: "ABCDEF" })).toBe(watched);
+  expect(connectionSlot(watched)).toBe("blue");
+  expect(fetcher).toHaveBeenNthCalledWith(
+    1,
+    "https://example.test/api/green/spectate/join",
+    expect.objectContaining({ body: JSON.stringify({ roomCode: "ABCDEF" }) }),
+  );
+  expect(consume).toHaveBeenCalledWith({ sessionId: "observer", roomId: "watched-match" });
 });

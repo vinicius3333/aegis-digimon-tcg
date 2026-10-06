@@ -42,7 +42,7 @@ export class CombatWindow extends Schema {
   /** Block: eligible blockers. Alliance: eligible allies. Empty otherwise. */
   @type(["string"]) eligiblePermanentIds = new ArraySchema<string>();
   /** Counter: the eligible `{ instanceId, effectKey, description }` entries, JSON-encoded. */
-  @type("string") eligibleCountersJson = "";
+  @view(PRIVATE_DECISION_VIEW_TAG) @type("string") eligibleCountersJson = "";
   /** ＜Collision＞: the block is compulsory, so declining is not offered. */
   @type("boolean") mustBlock = false;
 }
@@ -60,6 +60,7 @@ export function combatWindowKey(window: { kind: string; attackerPermanentId: str
 export class GameState extends Schema {
   @type("string") matchLogId = "";
   @type("string") matchId = "";
+  @type("string") spectatorCode = ""; // code-only observer access for public and private matches
   @type("string") roomCode = ""; // set for private rooms, empty for public
   @type("string") phase: Phase = Phase.None;
   @type("uint32") turnCount = 0;

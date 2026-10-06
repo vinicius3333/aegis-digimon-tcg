@@ -605,3 +605,13 @@ button.lobby-active-strip__jump {
   font-size: 0.875rem;
   line-height: 1.5;
 }
+
+.lobby-spectator {
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.lobby-spectator__body {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}

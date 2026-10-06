@@ -43,7 +43,9 @@ export function MatchStatusOverlays({
   /** The opponent's socket is gone and the match has not ended, so the board waits. */
   opponentDropped: boolean;
   /** The result and its stats, or nothing while the match is still running. */
-  gameOver: { result: GameOverOutcome; reason: string; stats: { value: number; label: string }[] } | undefined;
+  gameOver:
+    | { spectatorResult?: string; result: GameOverOutcome; reason: string; stats: { value: number; label: string }[] }
+    | undefined;
   onCloseHistory: () => void;
   onOpenCard: (cardId: string) => void;
   onCloseZoom: () => void;
@@ -70,6 +72,7 @@ export function MatchStatusOverlays({
 
       {gameOver ? (
         <GameOverOverlay
+          spectatorResult={gameOver.spectatorResult}
           result={gameOver.result}
           reason={gameOver.reason}
           stats={gameOver.stats}

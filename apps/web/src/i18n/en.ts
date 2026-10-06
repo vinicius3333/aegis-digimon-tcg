@@ -13,6 +13,22 @@ import { shellEn } from "./redesign/shell.en";
    error. Placeholders use {name} and are filled by `t(key, params)`. */
 
 export const en = {
+  "spectator.code": "Match code",
+  "spectator.share": "Invite spectators",
+  "spectator.shareHint": "Share this link or code to watch this match. Hidden cards stay private.",
+  "spectator.copy": "Copy spectator link",
+  "spectator.copied": "Link copied",
+  "spectator.copyError": "Copy the link above to share it.",
+  "spectator.title": "Watch a match",
+  "spectator.hint": "Watch live without playing. Both hands, decks and face-down security stay hidden.",
+  "spectator.watch": "Watch",
+  "spectator.watching": "Spectator mode",
+  "spectator.leave": "Stop watching",
+  "spectator.finished": "Match complete",
+  "spectator.winner": "Winner: {name}",
+  "spectator.draw": "Draw",
+  "spectator.back": "Back to lobby",
+
   "lobby.timer.label": "Match timer",
   "lobby.timer.with": "With timer",
   "lobby.timer.without": "Without timer",

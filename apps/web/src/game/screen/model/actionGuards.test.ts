@@ -28,3 +28,19 @@ describe("actionGuards", () => {
     expect(guardsAt(Phase.End, viewerWith(true)).mainActionBlocked).toBe(false);
   });
 });
+
+it("blocks every ordinary game action for an observer on the displayed player's turn", () => {
+  const guards = actionGuards({
+    spectating: true,
+    state: { gameOver: false, turnSeat: 0, phase: Phase.Main } as GameState,
+    viewer: viewerWith(true),
+    viewerSeat: 0,
+    decisionOpen: false,
+    presenting: false,
+    phasePresentationPending: false,
+  });
+  expect(guards.isMyTurn).toBe(false);
+  expect(guards.mainActionBlocked).toBe(true);
+  expect(guards.endPhaseBlocked).toBe(true);
+  expect(guards.breedingActionsOpen).toBe(false);
+});

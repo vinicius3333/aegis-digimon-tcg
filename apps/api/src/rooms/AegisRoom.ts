@@ -128,6 +128,7 @@ function combatWindowEvent(window: CombatWindow): ServerEvent | undefined {
  * brackets keep running until the manager takes them over.
  */
 export interface AegisJoinOptions extends SeatJoinOptions {
+  spectator?: boolean;
   matchTimer?: boolean;
   timerStartSeconds?: number;
   timerRefillSeconds?: number;
@@ -198,6 +199,7 @@ interface OpenBatch {
 export class AegisRoom extends Room<{ state: GameState }> {
   override maxClients = 2;
   private engine!: GameEngine;
+  private spectatorClients = new Set<string>();
   private seatByClient = new Map<string, Seat>(); // sessionId -> seat
   private presentationLogWindows = new Map<Seat, { start: number; count: number }>();
   private accountByClient = new Map<string, string>();
@@ -294,7 +296,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private combatWindowTimeoutKey: string | undefined;
 
   override async onAuth(client: Client, options: AegisJoinOptions): Promise<boolean> {
-    if (this.matchStartRequested || this.seatByClient.size >= this.maxClients) return false;
+    if (options.spectator === true) {
+      return this.spectatorInfo(options.roomCode) !== null;
+    }
+    if (this.matchStartRequested || this.seatByClient.size + this.occupiedBotSeats().length >= 2) return false;
     const identity = await this.resolveIdentity(options);
     if (!identity) return false;
     const account = identity.account;
@@ -453,6 +458,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
       roomCodes.claim(code, this.roomId);
       this.autoDispose = true;
     }
+    if (!this.isBotRoom && !this.isRankedRoom && !this.isTournamentRoom) {
+      this.state.spectatorCode = this.state.roomCode || generateRoomCode();
+      if (!this.isPrivate) roomCodes.claim(this.state.spectatorCode, this.roomId);
+    }
     if (!this.isTournamentRoom && this.devScenario === undefined) {
       this.waitingRoomTimeout = this.clock.setTimeout(() => {
         if (!this.matchStartRequested) void this.disconnect();
@@ -480,8 +489,21 @@ export class AegisRoom extends Room<{ state: GameState }> {
           );
           // Frees the code for the next game, which the players open from the same private room.
           if (this.state.roomCode) roomCodes.release(this.state.roomCode, this.roomId);
+          if (this.state.spectatorCode && !this.isPrivate) roomCodes.release(this.state.spectatorCode, this.roomId);
         }
-        this.broadcast(EVENT_CHANNEL, this.stamp(event));
+        if (event.kind === "counterWindowOpened") {
+          const stamped = this.stamp(event);
+          for (const client of this.clients) {
+            client.send(
+              EVENT_CHANNEL,
+              this.seatByClient.get(client.sessionId) === event.defendingSeat
+                ? stamped
+                : { ...stamped, eligibleCounters: [] },
+            );
+          }
+        } else {
+          this.broadcast(EVENT_CHANNEL, this.stamp(event));
+        }
         // Rebuild each client's StateView after any event that can move a CardInstance
         // into a public zone (battleArea/breeding topCard) from a private one
         // (hand/eggDeck). @colyseus/schema snapshots node visibility when the view is
@@ -788,12 +810,13 @@ export class AegisRoom extends Room<{ state: GameState }> {
     roomRegistry.delete(this.roomId);
     for (const view of this.issuedViews) view.dispose();
     this.issuedViews.clear();
+    if (this.state?.spectatorCode && !this.isPrivate) roomCodes.release(this.state.spectatorCode, this.roomId);
     if (this.state?.roomCode) {
       roomCodes.release(this.state.roomCode, this.roomId);
     }
   }
 
-  private assignView(client: Client, seat: Seat): void {
+  private assignView(client: Client, seat: Seat | undefined): void {
     if (client.view) {
       client.view.dispose();
       this.issuedViews.delete(client.view);
@@ -802,7 +825,38 @@ export class AegisRoom extends Room<{ state: GameState }> {
     if (client.view) this.issuedViews.add(client.view);
   }
 
+  /** Public information only; the HTTP gateway calls this through cluster RPC. */
+  spectatorInfo(roomCode?: string): { roomId: string; players: string[]; spectators: number } | null {
+    if (
+      this.isBotRoom ||
+      this.isRankedRoom ||
+      this.isTournamentRoom ||
+      !this.matchStartRequested ||
+      this.state.gameOver
+    )
+      return null;
+    if (!roomCode || roomCode !== this.state.spectatorCode) return null;
+    if (this.spectatorClients.size >= 20) return null;
+    return {
+      roomId: this.roomId,
+      players: this.state.players.map((player) => player.displayName),
+      spectators: this.spectatorClients.size,
+    };
+  }
+
   override onJoin(client: Client, options: AegisJoinOptions): void {
+    if (options.spectator === true) {
+      // Recheck after reservation: a match can end while the socket is connecting.
+      if (!this.spectatorInfo(options.roomCode)) throw new ServerError(403, "Match is not available to spectators");
+      this.spectatorClients.add(client.sessionId);
+      this.assignView(client, undefined);
+      if (this.openSecurityReveal)
+        this.withBatch(() => client.send(EVENT_CHANNEL, this.stamp(this.openSecurityReveal!)), client);
+      return;
+    }
+    if (this.matchStartRequested || this.seatByClient.size + this.occupiedBotSeats().length >= 2) {
+      throw new ServerError(403, "Player seats are full");
+    }
     this.debug("player.join", { sessionId: client.sessionId, deck: options.deck });
     // The room type, not the payload, decides whether unreleased cards are legal: a private
     // room accepts them and its clients never send the flag (onAuth already vetted the pair).
@@ -870,7 +924,15 @@ export class AegisRoom extends Room<{ state: GameState }> {
     this.readyTimeout?.clear();
     this.readyTimeout = undefined;
     // A started match never takes a new player, even if a reconnect left the room unlocked.
-    void this.lock().catch((error: unknown) => this.debugError("[AegisRoom] failed to lock started room", error));
+    void this.lock()
+      .then(async () => {
+        // Keep the two-player reservation boundary until the match is locked. Raising
+        // capacity while waiting would matchmake a third player into the same room.
+        if (!this.isBotRoom && !this.isRankedRoom && !this.isTournamentRoom) {
+          await this.setMatchmaking({ maxClients: 22 });
+        }
+      })
+      .catch((error: unknown) => this.debugError("[AegisRoom] failed to open observer capacity", error));
     // Advertise that the game is genuinely under way, so a scheduler can tell a room that never
     // started apart from one that started and stopped reporting.
     if (this.tournamentGameId)
@@ -882,6 +944,23 @@ export class AegisRoom extends Room<{ state: GameState }> {
 
   override async onLeave(client: Client, code?: number): Promise<void> {
     const consented = code === CloseCode.CONSENTED;
+    if (this.spectatorClients.has(client.sessionId)) {
+      try {
+        if (!consented && !this.state.gameOver) {
+          const reconnected = await this.allowReconnection(client, this.RECONNECT_GRACE_SECONDS);
+          this.assignView(reconnected, undefined);
+          return;
+        }
+      } catch {
+        // Spectator expiry has no effect on either player or the match clock.
+      }
+      this.spectatorClients.delete(client.sessionId);
+      if (client.view) {
+        client.view.dispose();
+        this.issuedViews.delete(client.view);
+      }
+      return;
+    }
     const seat = this.seatByClient.get(client.sessionId);
     const accountId = this.accountByClient.get(client.sessionId);
     const countsAsDodge =
@@ -931,8 +1010,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
       this.withBatch(() => this.engine.handleReconnect(seat));
       if (!this.matchStartRequested) {
         // Unlocking a full room lists it in matchmaking, where every join fails with "already full".
-        if (this.clients.length < this.maxClients) await this.unlock();
-        if (this.clients.length === 2)
+        if (this.seatByClient.size + this.occupiedBotSeats().length < 2) await this.unlock();
+        if (this.seatByClient.size + this.occupiedBotSeats().length === 2)
           this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
       }
       // Colyseus hands the reconnected socket a NEW Client carrying the old view. That view
@@ -1067,7 +1146,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private rebuildClientViews(): void {
     for (const client of this.clients) {
       const seat = this.seatByClient.get(client.sessionId);
-      if (seat === undefined) continue;
+      if (seat === undefined && !this.spectatorClients.has(client.sessionId)) continue;
       if (client.view) {
         this.engine.refreshStateView(client.view, seat);
       } else {
@@ -1089,7 +1168,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private readonly exposeCardToClients: VisibilityPort = (ownerSeat, zone, card) => {
     for (const client of this.clients) {
       const viewerSeat = this.seatByClient.get(client.sessionId);
-      if (viewerSeat === undefined || client.view === undefined) continue;
+      if (client.view === undefined || (viewerSeat === undefined && !this.spectatorClients.has(client.sessionId)))
+        continue;
       this.engine.exposeCardToView(client.view, viewerSeat, ownerSeat, zone, card);
     }
   };
@@ -1288,7 +1368,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       }
       try {
         const seat = this.seatByClient.get(client.sessionId);
-        if (seat !== undefined) this.assignView(client, seat);
+        if (seat !== undefined || this.spectatorClients.has(client.sessionId)) this.assignView(client, seat);
         sendFullState(client);
       } catch (error) {
         this.debugError(`[AegisRoom] full state sync failed again sessionId=${client.sessionId}; closing room`, error);

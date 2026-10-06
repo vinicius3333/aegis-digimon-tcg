@@ -12,6 +12,7 @@ import { gameOverSplash, type GameOverOutcome } from "../../gameOverSplash";
  * into words (game/gameOverSplash.ts).
  */
 export function GameOverOverlay({
+  spectatorResult,
   result,
   reason,
   stats,
@@ -19,6 +20,7 @@ export function GameOverOverlay({
   onRematch,
   returnsToRoom = false,
 }: {
+  spectatorResult?: string;
   result: GameOverOutcome;
   reason: string;
   stats: { value: number | string; label: string }[];
@@ -40,9 +42,9 @@ export function GameOverOverlay({
       <div className="game-result__panel">
         <p className="game-result__eyebrow">{t("overlay.matchComplete")}</p>
         <h1 id="aegis-game-over-title" className="game-result__title">
-          {t(splash.titleKey)}
+          {spectatorResult ? t("spectator.finished") : t(splash.titleKey)}
         </h1>
-        <p className="game-result__reason">{t(splash.reasonKey)}</p>
+        <p className="game-result__reason">{spectatorResult ?? t(splash.reasonKey)}</p>
         <div className="game-result__stats">
           {stats.map((entry) => (
             <div key={entry.label} className="game-result__stat">
@@ -53,7 +55,7 @@ export function GameOverOverlay({
         </div>
         <div className="game-actions-row">
           <Button full autoFocus icon={returnsToRoom ? Icons.Link2 : Icons.Swords} onClick={onRematch}>
-            {t(returnsToRoom ? "overlay.backToRoom" : "overlay.findRematch")}
+            {t(spectatorResult ? "spectator.back" : returnsToRoom ? "overlay.backToRoom" : "overlay.findRematch")}
           </Button>
           <Button full variant="secondary" icon={Icons.LayoutDashboard} onClick={onMenu}>
             {t("overlay.mainMenu")}

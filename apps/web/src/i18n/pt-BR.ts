@@ -15,6 +15,22 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  "spectator.code": "Código da partida",
+  "spectator.share": "Convidar espectadores",
+  "spectator.shareHint": "Compartilhe este link ou código para assistir à partida. Cartas ocultas continuam privadas.",
+  "spectator.copy": "Copiar link de espectador",
+  "spectator.copied": "Link copiado",
+  "spectator.copyError": "Copie o link acima para compartilhar.",
+  "spectator.title": "Assistir a uma partida",
+  "spectator.hint": "Acompanhe ao vivo como espectador. Mãos, decks e security virada para baixo ficam ocultos.",
+  "spectator.watch": "Assistir",
+  "spectator.watching": "Modo espectador",
+  "spectator.leave": "Parar de assistir",
+  "spectator.finished": "Partida encerrada",
+  "spectator.winner": "Vencedor: {name}",
+  "spectator.draw": "Empate",
+  "spectator.back": "Voltar ao lobby",
+
   "lobby.timer.label": "Tempo de partida",
   "lobby.timer.with": "Com timer",
   "lobby.timer.without": "Sem timer",

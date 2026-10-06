@@ -1,3 +1,4 @@
+import { spectate } from "./client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GameState } from "@aegis/shared";
 import { EVENT_CHANNEL, DECISION_CHANNEL, type SequencedServerEvent, type DecisionRequest } from "@aegis/shared";
@@ -108,7 +109,7 @@ export interface UseRoomResult {
   roomCode: string;
 }
 
-export type MatchMode = "casual" | "bot" | "private_host" | "private_guest";
+export type MatchMode = "casual" | "bot" | "private_host" | "private_guest" | "spectator";
 
 export interface MatchConfig {
   mode: MatchMode;
@@ -147,6 +148,9 @@ function connectRoom(
   isCancelled: () => boolean,
 ): Promise<AegisRoom> {
   switch (match?.mode) {
+    case "spectator":
+      if (!match.roomCode) throw new Error("roomCode required for spectator");
+      return spectate({ roomCode: match.roomCode });
     case "bot":
       return createBot(options);
     case "private_host":
@@ -205,6 +209,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         roomId: room.roomId,
         slot: roomSlotRef.current,
         savedAt: Date.now(),
+        spectator: options.spectator === true,
       };
       let gameOver = false;
       const stampSession = () => {
@@ -226,7 +231,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
         // Once per join, so the match start does not race the client's asset loading.
         if (!readySentRef.current) {
           readySentRef.current = true;
-          intents.ready(room);
+          if (!options.spectator) intents.ready(room);
         }
         if (next.roomCode) setRoomCode(next.roomCode);
         const pending = next.pendingDecision;
@@ -322,7 +327,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       }
       bindRoom(next);
       setStatus("connected");
-      flushIntents(next);
+      if (!options.spectator) flushIntents(next);
     };
 
     const resumeOrConnect = async (): Promise<AegisRoom> => {

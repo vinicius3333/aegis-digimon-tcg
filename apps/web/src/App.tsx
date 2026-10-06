@@ -1,3 +1,4 @@
+import { spectatorCodeFromSearch } from "./roomInvite";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { installAudioLifecycle } from "./design/sound";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
@@ -106,12 +107,14 @@ export function initialAppRoute({
   pathname,
   invitedRoomCode,
   hasReconnectSession,
+  spectatorCode,
 }: {
   pathname: string;
   invitedRoomCode: string | undefined;
   hasReconnectSession: boolean;
+  spectatorCode?: string;
 }): AppRoute {
-  if (invitedRoomCode) return { screen: "lobby" };
+  if (invitedRoomCode || spectatorCode) return { screen: "lobby" };
   const directRoute = routeFromPathname(pathname);
   if (directRoute?.screen === "game" && !hasReconnectSession) return { screen: "lobby" };
   return directRoute ?? { screen: "home" };
@@ -291,6 +294,7 @@ export function AegisClient({
     return initialAppRoute({
       pathname: window.location.pathname,
       invitedRoomCode,
+      spectatorCode: spectatorCodeFromSearch(window.location.search),
       hasReconnectSession: loadReconnectSession() !== undefined,
     });
   });

@@ -38,6 +38,7 @@ import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import { MatchTimerSettings } from "./MatchTimerSettings";
 import { loadMatchTimerPreference, saveMatchTimerPreference } from "./matchTimerPreference";
 import "./lobby.css";
+import { SpectatorPanel } from "./SpectatorPanel";
 
 /** The private room a finished match returns to. Its host reopens it under the same code. */
 export interface PrivateRoom {
@@ -45,7 +46,7 @@ export interface PrivateRoom {
   host: boolean;
 }
 
-export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
+export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest" | "spectator";
 export type RandomDeckPool = "mine" | "famous" | "all";
 
 export function deckHasBetaCards(deck: DeckListing): boolean {
@@ -504,6 +505,8 @@ export function Lobby({
             <span className="aegis-section-heading__rule" aria-hidden="true" />
           </div>
         </header>
+
+        <SpectatorPanel onWatch={(code) => onStart("spectator", code)} />
 
         <div className="lobby-modes">
           {MODES.map((m) => {
