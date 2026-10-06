@@ -99,13 +99,21 @@ export interface AudioRecipe {
   duration: number;
 }
 export const MEMORY_TICK_LIMIT = 6;
+/** The sound hears only the arriving level and whether levels were skipped, so one skip stands for any. */
+function evolutionLevels(details: SoundDetails): { sourceLevel: number; targetLevel: number } {
+  const targetLevel = finite(details.targetLevel, 4, 2, 7);
+  const skipped = Number.isFinite(details.sourceLevel) && details.sourceLevel! < targetLevel - 1 && targetLevel >= 3;
+  return { sourceLevel: targetLevel - (skipped ? 2 : 1), targetLevel };
+}
 const finite = (n: number | undefined, fallback: number, low: number, high: number) =>
   Math.round(Math.min(high, Math.max(low, Number.isFinite(n) ? n! : fallback)));
 export function cueKey(kind: SoundKind, details: SoundDetails = {}): string {
   if (kind === "cardPlay")
     return `${kind}-${finite(details.cost, 5, 0, 15)}-${details.assembly ? "assembly" : "plain"}`;
-  if (kind === "digivolve")
-    return `${kind}-${finite(details.sourceLevel, 3, 1, 7)}-${finite(details.targetLevel, 4, 2, 7)}`;
+  if (kind === "digivolve") {
+    const { sourceLevel, targetLevel } = evolutionLevels(details);
+    return `${kind}-${sourceLevel}-${targetLevel}`;
+  }
   if (kind === "memory") return `${kind}-${finite(details.steps, 1, 1, MEMORY_TICK_LIMIT)}`;
   return kind;
 }
@@ -188,9 +196,8 @@ export function audioRecipe(
       // An original digivolution in four beats: the digivice charges, a data cocoon sweeps up,
       // a crystal arpeggio spins, and the new form lands on a flash. Higher target levels and
       // skipped levels lengthen every beat and raise the key, so 3->4 stays short and 6->7 soars.
-      const source = finite(details.sourceLevel, 3, 1, 7),
-        target = finite(details.targetLevel, 4, 2, 7);
-      const jump = Math.max(1, target - source),
+      const { sourceLevel: source, targetLevel: target } = evolutionLevels(details);
+      const jump = target - source,
         intensity = Math.min(4, Math.max(0, target - 4) + (jump > 1 ? 1 : 0)),
         root = 60 + [0, 2, 4, 5, 7][intensity]!,
         major = [0, 4, 7];
@@ -561,9 +568,10 @@ export function bankRecipes(): AudioRecipe[] {
   for (let steps = 1; steps <= MEMORY_TICK_LIMIT; steps++) recipes.push(audioRecipe("memory", { steps }));
   for (let cost = 0; cost <= 15; cost++)
     for (const assembly of [false, true]) recipes.push(audioRecipe("cardPlay", { cost, assembly }));
-  for (let sourceLevel = 1; sourceLevel <= 7; sourceLevel++)
-    for (let targetLevel = 2; targetLevel <= 7; targetLevel++)
-      recipes.push(audioRecipe("digivolve", { sourceLevel, targetLevel }));
+  for (let targetLevel = 2; targetLevel <= 7; targetLevel++) {
+    recipes.push(audioRecipe("digivolve", { sourceLevel: targetLevel - 1, targetLevel }));
+    if (targetLevel >= 3) recipes.push(audioRecipe("digivolve", { sourceLevel: targetLevel - 2, targetLevel }));
+  }
   return recipes;
 }
 

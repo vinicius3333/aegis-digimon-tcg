@@ -162,6 +162,11 @@ describe("authored original bank", () => {
     expect(evolution(3, 5).duration).toBeGreaterThan(evolution(4, 5).duration);
 
     expect(cueKey("digivolve", { sourceLevel: NaN, targetLevel: Infinity })).toBe("digivolve-3-4");
+    expect(cueKey("digivolve", { sourceLevel: 2, targetLevel: 6 })).toBe(
+      cueKey("digivolve", { sourceLevel: 4, targetLevel: 6 }),
+    );
+    expect(cueKey("digivolve", { targetLevel: 6 })).toBe("digivolve-5-6");
+    expect(bankRecipes().filter((recipe) => recipe.kind === "digivolve")).toHaveLength(11);
     expect(cueKey("cardPlay", { cost: Infinity })).toBe("cardPlay-5-plain");
     expect(measures(renderCue("effectActivate", {}, "crisp", 48000, sources)).energy).toBeLessThan(
       measures(renderCue("effectActivate", {}, "warm", 48000, sources)).energy,

@@ -18,16 +18,16 @@
     "sha256": "1543d3e034ab14d9e8dceed0d6ed56f42025780791da1418230e10e4e21172c0"
   },
   "current": {
-    "url": "/audio/aegis-cues-v2.wav?v=1f37ddc39a09",
-    "seconds": 83.90952083333333,
+    "url": "/audio/aegis-cues-v2.wav?v=c6997e5a639e",
+    "seconds": 41.106520833333335,
     "peak": 0.2015380859375,
     "peakDbFS": -13.912857407379239,
-    "rms": 0.01596182588704468,
-    "dc": -2.1139844571856542e-8,
+    "rms": 0.013310638470393663,
+    "dc": -1.2541959888542876e-7,
     "maximumStep": 0.17291259765625,
     "boundaryStep": 0,
-    "bytes": 8055358,
-    "sha256": "1f37ddc39a093b174e75c48b44f33e88123702bd03a2b46807d4db0879671085"
+    "bytes": 3946270,
+    "sha256": "c6997e5a639e5bdccbac3bf97ba75074370fa20904f367333a7c77c56a900286"
   },
   "examples": [
     {
@@ -374,7 +374,7 @@
         "bytes": 75884
       },
       "current": {
-        "offset": 45.28552083333334,
+        "offset": 28.442520833333333,
         "duration": 0.988,
         "metrics": {
           "seconds": 0.988,
@@ -412,7 +412,7 @@
         "bytes": 77804
       },
       "current": {
-        "offset": 54.941520833333335,
+        "offset": 30.753520833333333,
         "duration": 1.273,
         "metrics": {
           "seconds": 1.273,
@@ -450,7 +450,7 @@
         "bytes": 79724
       },
       "current": {
-        "offset": 64.59752083333333,
+        "offset": 33.63452083333333,
         "duration": 1.558,
         "metrics": {
           "seconds": 1.558,
@@ -464,7 +464,7 @@
       }
     },
     {
-      "key": "digivolve-3-6",
+      "key": "digivolve-4-6",
       "kind": "digivolve",
       "details": {
         "sourceLevel": 3,
@@ -483,12 +483,12 @@
           "maximumStep": 0.07468526251614094,
           "boundaryStep": 0
         },
-        "url": "/audio/previews/prior-digivolve-3-6.wav?v=8ee48c24c8c5",
+        "url": "/audio/previews/prior-digivolve-4-6.wav?v=8ee48c24c8c5",
         "sha256": "8ee48c24c8c5e65fa1c5d79be78240a69e3f4a7b27d0de1fafeedaf41cd00ae6",
         "bytes": 86444
       },
       "current": {
-        "offset": 47.88152083333333,
+        "offset": 35.21752083333333,
         "duration": 1.843,
         "metrics": {
           "seconds": 1.843,
