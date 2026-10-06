@@ -58,7 +58,7 @@ import { presentSecurityAttack } from "./securityAttacker";
 import { enqueueCombatImpact } from "./combatImpact";
 import { traceCueBatch } from "../../cueTrace";
 import { enqueueDeletionBursts } from "./deletionBursts";
-import type { RemovalLink } from "../removalChain";
+import { landingFieldReturn, type RemovalLink } from "../removalChain";
 import { enqueueDeckReturns, type FlyCardToDeck } from "./deckReturns";
 import { enqueueHandReturns, planHandReturns, type FlyCardToHand } from "./handReturns";
 import { enqueueStackStripPeels } from "./stackStripPeels";
@@ -739,6 +739,7 @@ export function presentServerBatch({
       arrivalHoldIds,
       arrivalPresentations,
       causingEffectGate: precedingArrivalCause,
+      fieldReturn: landingFieldReturn(removalChainRef),
       releaseArrivalHoldsWhenIdle,
       narrate,
       enqueue,

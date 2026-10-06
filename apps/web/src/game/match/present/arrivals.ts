@@ -16,6 +16,7 @@ import { zoneChangeStep } from "../steps/zoneChangeStep";
 import type { RevealOnStage } from "../types";
 import { waitForGate, CONSEQUENCE_GATE_MAX_MS, type CostClause, type PresentationGate } from "../presentationGate";
 import type { ArrivalPresentation } from "../cardReveal";
+import type { RemovalLink } from "../removalChain";
 
 /** What the batch's arrivals leave for the narration routing below them to decide. */
 export type BatchArrivals = {
@@ -68,6 +69,7 @@ export function enqueueArrivals({
   costClause,
   arrivalPresentations,
   causingEffectGate,
+  fieldReturn,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
@@ -101,6 +103,8 @@ export function enqueueArrivals({
   costClause?: CostClause;
   arrivalPresentations: ReadonlyMap<ServerEvent, ArrivalPresentation>;
   causingEffectGate?: PresentationGate | null;
+  /** A paid field return from an earlier batch that is still flying to its pile. */
+  fieldReturn?: RemovalLink | undefined;
 }): BatchArrivals {
   let arriving = false;
   let showcased = false;
@@ -186,6 +190,7 @@ export function enqueueArrivals({
       burst,
       presentation: arrivalPresentations.get(event),
       ...(causingEffectGate ? { waitFor: causingEffectGate } : {}),
+      ...(fieldReturn && !securityReveal && (causingEffectGate || effectResult) ? { fieldReturn } : {}),
       combatCompletionGate,
       leadInMs: isTokenArrival || awaitsCostClause ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
       ...(isTokenArrival

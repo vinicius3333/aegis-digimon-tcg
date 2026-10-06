@@ -2,7 +2,8 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
 import { createAnimationQueue } from "../../animationQueue";
 import { createPresentationGate } from "../presentationGate";
-import type { RemovalLink } from "../removalChain";
+import { landingFieldReturn, waitForFieldReturnLanding, type RemovalLink } from "../removalChain";
+import { TIMINGS } from "../../timings";
 import type { HeldDeletion, MatchCueAnchors } from "../types";
 import { enqueueDeckReturns, type FlyCardToDeck } from "./deckReturns";
 
@@ -111,4 +112,54 @@ it("skipping a gated chain draws nothing and releases every removal", async () =
   await run.queue.idle();
   expect(fly).not.toHaveBeenCalled();
   expect(run.chain.current?.finished?.open).toBe(true);
+});
+
+it("an effect arrival waits for the landed stack, then the landing beat", async () => {
+  vi.useFakeTimers();
+  const run = fixture(async (_card, _from, _seat, context) => {
+    await context.wait(TIMINGS.deckReturn);
+    return true;
+  });
+  const link = landingFieldReturn(run.chain)!;
+  let enteredAt: number | undefined;
+  run.queue.enqueue({
+    id: "arrival",
+    track: "arrival",
+    async run(context) {
+      await waitForFieldReturnLanding(link, context);
+      enteredAt = Date.now();
+    },
+  });
+  const start = Date.now();
+  run.cause.release();
+  await vi.runAllTimersAsync();
+  await run.queue.idle();
+  expect(link.landedAt).toBeDefined();
+  expect(enteredAt! - link.landedAt!).toBeGreaterThanOrEqual(TIMINGS.deckReturnLanding);
+  expect(enteredAt! - start).toBeGreaterThanOrEqual(2 * TIMINGS.deckReturn);
+  expect(landingFieldReturn(run.chain)).toBeUndefined();
+});
+
+it("a return without geometry or a skipped return lets the arrival enter without a landing beat", async () => {
+  vi.useFakeTimers();
+  for (const finish of ["noGeometry", "skip"] as const) {
+    const run = fixture(async () => false);
+    const link = run.chain.current!;
+    let entered = false;
+    run.queue.enqueue({
+      id: "arrival",
+      track: "arrival",
+      async run(context) {
+        await waitForFieldReturnLanding(link, context);
+        entered = true;
+      },
+    });
+    if (finish === "skip") run.queue.skip();
+    else run.cause.release();
+    await vi.runAllTimersAsync();
+    await run.queue.idle();
+    expect(link.finished?.open).toBe(true);
+    expect(link.landedAt).toBeUndefined();
+    expect(entered).toBe(true);
+  }
 });
