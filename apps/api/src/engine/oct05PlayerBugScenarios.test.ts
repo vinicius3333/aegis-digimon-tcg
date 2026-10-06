@@ -44,7 +44,17 @@ async function resolved(s: ReturnType<typeof setupEngine>, id: string) {
 it("#4990 repeats end-of-turn timing after Main resumes, without starting a fifth phase", async () => {
   const run = await start("arena-issue-4990-end-of-turn-label", { declinePrompts: ["Attack"] });
   const { s } = run;
+  // A declined optional is explained by its decision and never announced, so each
+  // End of Turn window is counted by its activation confirmation.
   const engageWindows = () =>
+    s.decisions.filter(
+      ({ req }) =>
+        req.kind === "optional" &&
+        req.sourceCardId === "EX13-013" &&
+        req.options?.timing === "EndOfYourTurn" &&
+        req.options.activationConfirmation === true,
+    );
+  const engageAnnouncements = () =>
     s.events.filter(
       (e) =>
         e.kind === "effectTriggered" &&
@@ -67,6 +77,7 @@ it("#4990 repeats end-of-turn timing after Main resumes, without starting a fift
   });
   await main1(s);
   expect(engageWindows()).toHaveLength(2);
+  expect(engageAnnouncements()).toHaveLength(0);
   expect(
     s.events
       .filter((e) => e.kind === "phaseChanged" && e.turnSeat === 0)
