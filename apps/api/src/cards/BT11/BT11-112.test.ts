@@ -36,6 +36,47 @@ describe("BT11-112 [On Play] grant Blocker + Evade to a [Veemon]/[Veedramon] Dig
 
 const TARGET_CARD = "EX3-031";
 
+describe("GitHub #5016: Rina binds reactivation to the suspended Digimon", () => {
+  it("does not borrow an unsuspended Ulforce's effect when EX13 Veedramon attacks", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", as: "rina" },
+            { card: "EX13-023", as: "ulforce" },
+            { card: "EX13-019", as: "veedramon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-009", as: "opponent" }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: ["BT11-112"] },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("veedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("rina").isSuspended).toBe(true);
+    expect(s.perm("veedramon").isSuspended).toBe(true);
+    expect(s.perm("ulforce").isSuspended).toBe(false);
+    expect(s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX13-023")).toEqual(
+      [],
+    );
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT11-112" && req.kind === "chooseTargets")).toEqual(
+      [],
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+  });
+});
+
 describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate its [When Digivolving]", () => {
   const original = runtimeCompiledCard(TARGET_CARD);
   const stub: CompiledCard = {

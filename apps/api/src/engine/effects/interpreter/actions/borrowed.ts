@@ -14,6 +14,7 @@ import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js";
+import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
 import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
@@ -148,6 +149,7 @@ function borrowableFromCompiled(args: {
 function collectForeignCandidates(
   ctx: EffectContext,
   action: Extract<Action, { kind: "ActivateForeignEffect" }>,
+  lenderPermanentIds?: readonly string[],
 ): ForeignCandidate[] {
   const mine = ctx.source.ownerSeat;
   const seat = action.filter.controller === "opponent" ? ctx.game.opponentOf(mine) : mine;
@@ -175,6 +177,7 @@ function collectForeignCandidates(
     // "1 of your [Olympos XII] trait Digimon").
     const selfPermanentId = ctx.source.permanent()?.permanentId;
     for (const permanent of player.battleArea) {
+      if (lenderPermanentIds !== undefined && !lenderPermanentIds.includes(permanent.permanentId)) continue;
       if (action.filter.isSelfRef === true && permanent.permanentId !== selfPermanentId) continue;
       if (action.filter.boundRef !== undefined) {
         const bound = ctx.boundPlayed?.get(action.filter.boundRef);
@@ -248,11 +251,12 @@ function collectForeignCandidates(
 export async function runActivateForeignEffect(
   ctx: EffectContext,
   action: Extract<Action, { kind: "ActivateForeignEffect" }>,
+  lenderPermanentIds?: readonly string[],
 ): Promise<void> {
   // §15-15-7-2: each choice is made after the preceding borrowed effect has processed.
   // Recollect candidates because a payment, deletion, or once-per-turn use can change them.
   for (let activation = 0; activation < action.count; activation += 1) {
-    const candidates = collectForeignCandidates(ctx, action);
+    const candidates = collectForeignCandidates(ctx, action, lenderPermanentIds);
     if (candidates.length === 0) return;
 
     let chosen: ForeignCandidate | undefined;
@@ -408,17 +412,25 @@ export async function runActivateEffect(
     filter.controller = filter.controllerDefault;
   }
   const targetCount = typeof action.target.count === "number" ? action.target.count : 1;
-  await runActivateForeignEffect(ctx, {
-    ...action,
-    kind: "ActivateForeignEffect",
-    zone: filter.zone === "digivolutionCards" ? "digivolutionCards" : "battleArea",
-    fromTriggers: [trigger as EffectTrigger],
-    filter,
-    count: action.count ?? targetCount,
-    lastPlacedOnly: action.lastPlacedOnly,
-    asEffectOf: action.asEffectOf,
-    useLenderAsSource: action.useLenderAsSource,
-  });
+  // A fixed reference names the lender, not a filter over every card on the board.
+  // Resolve it after the cost, preserving the subject's current top card (Rina Q2143).
+  const lenderPermanentIds =
+    action.target.sourceRef === undefined ? undefined : await resolvePermanentTargets(ctx, action.target);
+  await runActivateForeignEffect(
+    ctx,
+    {
+      ...action,
+      kind: "ActivateForeignEffect",
+      zone: filter.zone === "digivolutionCards" ? "digivolutionCards" : "battleArea",
+      fromTriggers: [trigger as EffectTrigger],
+      filter,
+      count: action.count ?? targetCount,
+      lastPlacedOnly: action.lastPlacedOnly,
+      asEffectOf: action.asEffectOf,
+      useLenderAsSource: action.useLenderAsSource,
+    },
+    lenderPermanentIds,
+  );
 }
 
 /**
