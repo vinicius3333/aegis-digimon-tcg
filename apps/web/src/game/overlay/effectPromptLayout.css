@@ -718,13 +718,15 @@ body:has([data-prompt-surface]:not([hidden] *), .mulligan-sheet) .game-battle-sc
   padding-bottom: 0;
 }
 @media (width >= 768px) and (height >= 520px) {
-  .game-modal__panel.decision-overlay.effect-prompt-family[data-prompt-surface="left"] {
+  .game-modal__panel.decision-overlay.effect-prompt-family[data-prompt-surface="left"],
+  .game-modal__panel.action-confirmation.effect-prompt-family[data-prompt-surface="left"] {
     max-height: calc(100dvh - var(--ds-space-4)) !important;
   }
 }
 
 .game-modal__panel.action-confirmation.effect-prompt-family[data-prompt-surface] {
-  justify-content: space-between;
+  height: auto !important;
+  justify-content: flex-start;
 }
 .game-modal__panel.action-confirmation.effect-prompt-family[data-prompt-surface] > * {
   flex-shrink: 0;

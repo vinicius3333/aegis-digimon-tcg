@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   Phase,
+  CARD_ARRIVAL_NARRATION_MS,
   PHASE_NARRATION_MS,
   TURN_NARRATION_MS,
   SECURITY_CHECK_NARRATION_MS,
@@ -101,7 +102,41 @@ describe("BotPlayer action pacing and player attacks", () => {
     vi.useRealTimers();
   });
 
-  it("coalesces a sequential client's chain into one handover beat and extends it for a new scene", async () => {
+  it("waits for every sequential effect before declaring its next main action", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      ...FIXED_THINK,
+      clientPacesChains: true,
+    });
+    for (let index = 0; index < 3; index++) {
+      bot.onEvent({ kind: "effectTriggered", timing: "WhenDigivolving" } as ServerEvent);
+    }
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(3 * CHAIN_EFFECT_NARRATION_MS + PHASE_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("waits for a digivolution arrival even when it raises no triggered effects", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(PHASE_NARRATION_MS);
+    bot.onEvent({ kind: "digivolved", seat: 1, permanentId: "small", cardId: "ST1-07", mechanic: "normal" });
+    await advance(CARD_ARRIVAL_NARRATION_MS - 1);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toHaveLength(1);
+    bot.dispose();
+  });
+
+  it("extends the queued narration when a new scene arrives during its wait", async () => {
     vi.useFakeTimers();
     const { state } = botState();
     state.turnSeat = 0;
@@ -118,16 +153,14 @@ describe("BotPlayer action pacing and player attacks", () => {
         clientPacesChains: true,
       },
     );
-    for (let index = 0; index < 20; index++) {
+    for (let index = 0; index < 3; index++) {
       bot.onEvent({ kind: "effectTriggered", timing: "WhenDigivolving" } as ServerEvent);
     }
     state.turnSeat = 1;
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
     await advance(1_000);
     bot.onEvent({ kind: "securityChecked", resolution: "effect" } as ServerEvent);
-    await advance(CHAIN_EFFECT_NARRATION_MS - 1_000);
-    expect(intents).toEqual([]);
-    await advance(1_000 + SECURITY_EFFECT_NARRATION_MS - CHAIN_EFFECT_NARRATION_MS - 1);
+    await advance(3 * CHAIN_EFFECT_NARRATION_MS + PHASE_NARRATION_MS + SECURITY_EFFECT_NARRATION_MS - 1_001);
     expect(intents).toEqual([]);
     await advance(1);
     expect(intents).toHaveLength(1);
@@ -1071,7 +1104,7 @@ describe("BotPlayer action pacing and player attacks", () => {
 
   // An effect that spends a security stack is narrated card by card, so the whole run
   // owes its budget before the bot may play anything over it.
-  it("waits out one narration per security card an effect trashed", async () => {
+  it.each([false, true])("waits out each trashed security card, sequential client %s", async (clientPacesChains) => {
     vi.useFakeTimers();
     const { state, attackers } = botState();
     const intents: Intent[] = [];
@@ -1089,7 +1122,7 @@ describe("BotPlayer action pacing and player attacks", () => {
         }
         return { ok: true };
       },
-      FIXED_THINK,
+      { ...FIXED_THINK, clientPacesChains },
     );
 
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);

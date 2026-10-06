@@ -1415,6 +1415,105 @@ export function useMatchCues({
     return () => clearTimeout(timer);
   }, [rejection]);
 
+  // A patch can arrive before batchClosed. Reserve incoming draws immediately:
+  // the batch's measured flight takes over this hold before the next paint.
+  const incomingHandArrivals = new Map(heldHandArrivals);
+  if (cueBaselineRef.current && liveMode() === "live") {
+    const closed = new Set(batches.map((batch) => batch.id));
+    const opaqueClaims = new Map<Seat, number>();
+    for (const hold of heldHandArrivals.values()) {
+      const player = state?.players[hold.seat];
+      if (
+        !hold.instanceId &&
+        player &&
+        hold.stateVersion <= state!.stateVersion &&
+        hold.handCountAfter <= player.handCount &&
+        hold.deckCountAfter >= player.deckCount
+      )
+        opaqueClaims.set(hold.seat, (opaqueClaims.get(hold.seat) ?? 0) + 1);
+    }
+    let incomingKey = -1;
+    for (const event of phaseEvents ?? []) {
+      if (
+        event.kind !== "cardsMoved" ||
+        event.from !== "deck" ||
+        event.to !== "hand" ||
+        event.handAddition === "staging" ||
+        event.seat === undefined ||
+        !("batch" in event) ||
+        typeof event.batch !== "string" ||
+        !("seq" in event) ||
+        typeof event.seq !== "number" ||
+        !("stateVersion" in event) ||
+        typeof event.stateVersion !== "number" ||
+        closed.has(event.batch) ||
+        batchVersionsRef.current.has(event.batch)
+      )
+        continue;
+      const player = state?.players[event.seat];
+      if (!player) continue;
+      // Opaque opponent identities cannot prove the draw has reached the patch.
+      // Events are stamped before batchClosed advances the authoritative revision.
+      if (event.seat !== viewerSeat && state!.stateVersion <= event.stateVersion) continue;
+      for (const instanceId of event.instanceIds) {
+        if (
+          [...incomingHandArrivals.values()].some((hold) => hold.seat === event.seat && hold.instanceId === instanceId)
+        )
+          continue;
+        const opaque = opaqueClaims.get(event.seat) ?? 0;
+        if (opaque > 0) {
+          opaqueClaims.set(event.seat, opaque - 1);
+          continue;
+        }
+        incomingHandArrivals.set(incomingKey--, {
+          seat: event.seat,
+          instanceId,
+          stateVersion: event.stateVersion,
+          handCountAfter: player.handCount,
+          deckCountAfter: player.deckCount,
+        });
+      }
+    }
+    // Colyseus can mutate hand/deck fields before either React publishes the raw
+    // events or the batch increments its version. Compare physical membership
+    // against the frozen closed revision, including patches at that same version.
+    const closedVersion = batches.at(-1)?.stateVersion ?? snapshots?.[0]?.stateVersion;
+    const closedState = snapshots?.find((snapshot) => snapshot.stateVersion === closedVersion)?.state;
+    const previous = closedState?.players[viewerSeat];
+    const current = state?.players[viewerSeat];
+    if (previous && current && closedVersion !== undefined && state!.stateVersion >= closedVersion) {
+      const deckDraws = Math.max(0, previous.deckCount - current.deckCount);
+      const known = new Set(previous.hand?.map((card) => card.instanceId));
+      const pending = new Set(
+        [...incomingHandArrivals.values()].filter((hold) => hold.seat === viewerSeat).map((hold) => hold.instanceId),
+      );
+      const staged = new Set(
+        (phaseEvents ?? []).flatMap((event) =>
+          event.kind === "cardsMoved" &&
+          event.handAddition === "staging" &&
+          event.seat === viewerSeat &&
+          "batch" in event &&
+          typeof event.batch === "string" &&
+          !closed.has(event.batch) &&
+          !batchVersionsRef.current.has(event.batch)
+            ? event.instanceIds
+            : [],
+        ),
+      );
+      const added = current.hand.filter((card) => !known.has(card.instanceId) && !staged.has(card.instanceId));
+      for (const card of deckDraws > 0 ? added.slice(-deckDraws) : []) {
+        if (pending.has(card.instanceId)) continue;
+        incomingHandArrivals.set(incomingKey--, {
+          seat: viewerSeat,
+          instanceId: card.instanceId,
+          stateVersion: state!.stateVersion,
+          handCountAfter: current.handCount,
+          deckCountAfter: current.deckCount,
+        });
+      }
+    }
+  }
+
   return {
     narration,
     rejection,
@@ -1459,7 +1558,7 @@ export function useMatchCues({
     heldDeletions,
     heldStackStrips,
     heldTrashArrivals,
-    heldHandArrivals,
+    heldHandArrivals: incomingHandArrivals,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,
     displayedTurn: pendingPhaseBanners > 0 ? announcedTurn : state && { seat: state.turnSeat, count: state.turnCount },
     heldSuspendedIds,

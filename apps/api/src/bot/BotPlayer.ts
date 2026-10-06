@@ -261,23 +261,24 @@ export class BotPlayer {
         break;
       case "phaseChanged":
         if (event.phase !== Phase.None) {
-          this.deferForNarration(PHASE_NARRATION_MS, true);
+          this.deferForNarration(PHASE_NARRATION_MS);
         }
         if (event.turnSeat === this.seat) this.onOwnPhase(event.phase as Phase, event.turnCount);
         break;
       case "turnEnded":
-        this.deferForNarration(TURN_NARRATION_MS, true);
+        this.deferForNarration(TURN_NARRATION_MS);
         break;
       case "attackDeclared":
         this.pendingAttackTargetsPlayer = event.target.kind === "player";
         this.pendingAttackTargetPermanentId = event.target.kind === "permanent" ? event.target.permanentId : undefined;
         break;
       case "cardPlayed":
+      case "digivolved":
         this.deferForNarration(CARD_ARRIVAL_NARRATION_MS);
         break;
       case "effectTriggered":
-        // Sequential clients already queue each effect's actual playback. The server owes
-        // one bounded handover beat, rather than a second estimate of the whole chain.
+        // The client plays effects one by one, so every accepted effect adds a beat.
+        // Coalescing the chain lets a later action overtake its still-pending effects.
         if (this.clientPacesChains) {
           this.deferForNarration(CHAIN_EFFECT_NARRATION_MS);
         } else if (/on.?play|when.?digivolving/i.test(event.timing ?? "")) {
@@ -299,10 +300,7 @@ export class BotPlayer {
         // An effect that spends a security stack is narrated card by card, so a bot that
         // empties one owes the whole sequence before it may act again.
         if (event.from === Zone.Security && event.to === Zone.Trash) {
-          this.deferForNarration(
-            (this.clientPacesChains ? Math.min(1, event.instanceIds.length) : event.instanceIds.length) *
-              SECURITY_DESTRUCTION_NARRATION_MS,
-          );
+          this.deferForNarration(event.instanceIds.length * SECURITY_DESTRUCTION_NARRATION_MS);
         }
         break;
       case "blockWindowOpened":
@@ -646,14 +644,11 @@ export class BotPlayer {
     return this.pause(COMBAT_REFLEX_MIN_MS, COMBAT_REFLEX_MAX_MS);
   }
 
-  private deferForNarration(duration: number, serial = false): void {
+  private deferForNarration(duration: number): void {
     const now = Date.now();
     // Phase/turn ribbons share one serialized client track, including the outgoing
-    // resolution ahead of them. Sequential effect playback cannot overlap that track.
-    this.narrationUntil =
-      this.clientPacesChains && !serial
-        ? Math.max(this.narrationUntil, now + duration)
-        : Math.max(now, this.narrationUntil) + duration;
+    // resolution ahead of them. Card arrivals and consecutive effects also play in order.
+    this.narrationUntil = Math.max(now, this.narrationUntil) + duration;
   }
 
   /**

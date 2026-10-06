@@ -54,6 +54,23 @@ class MobilePromptPreview {
 }
 
 for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 720, height: 972 },
+  { width: 1440, height: 1000 },
+]) {
+  test(`action confirmation fits its content at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    const panel = await new MobilePromptPreview(page).open("confirm-action", "en");
+    const header = (await panel.locator(".action-confirmation__header").boundingBox())!;
+    const actions = (await panel.locator(".game-actions-row").boundingBox())!;
+    const board = (await panel.getByRole("button", { name: "View board", exact: true }).boundingBox())!;
+    expect(actions.y - (header.y + header.height)).toBeLessThanOrEqual(16);
+    expect(board.y - (actions.y + actions.height)).toBeLessThanOrEqual(16);
+    expect(await panel.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1);
+  });
+}
+
+for (const viewport of [
   { width: 320, height: 740 },
   { width: 390, height: 844 },
   { width: 720, height: 972 },
