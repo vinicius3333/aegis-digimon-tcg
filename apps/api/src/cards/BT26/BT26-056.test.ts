@@ -7,6 +7,70 @@ import { compiled } from "./BT26-056.js";
 import "../index.js";
 
 describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
+  it.each(["direct", "Kanan"] as const)(
+    "Discord 1556810241952194590: Inferno Divide used through %s affects Grademon-protected EX13 Alphamon",
+    async (origin) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT26-090", as: "kanan" }],
+            hand: [{ card: "BT26-056", as: "inferno" }, "BT1-009"],
+            deck: Array(8).fill("BT1-009"),
+            security: ["BT1-009", "BT1-010", "BT1-013"],
+          },
+          1: {
+            battleArea: [{ card: "EX13-055", as: "protected", under: ["EX13-049"] }],
+            hand: ["EX13-057", "EX13-060"],
+            deck: Array(8).fill("BT1-009"),
+            security: ["BT1-009", "BT1-010", "BT1-013"],
+          },
+        },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          declinePrompts: ["Arts Digivolve", "trashing your top security", "Barrier"],
+        },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("protected").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      await settle(() => s.perm("protected").topCard.cardId === "EX13-060" && s.state.pendingDecision === undefined);
+      expect(observe(s.engine).isRestrictedByEffect(s.perm("protected"), "beAffected", "Digimon")).toBe(true);
+      expect(observe(s.engine).isRestrictedByEffect(s.perm("protected"), "beAffected", "Option")).toBe(false);
+      s.state.turnSeat = 0;
+      s.state.memory = 6;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const intent =
+        origin === "direct"
+          ? { type: "playCard" as const, instanceId: s.inst("inferno").instanceId, useAs: "option" as const }
+          : { type: "endPhase" as const };
+      expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT26-056") &&
+          s.state.pendingDecision === undefined,
+      );
+      expect(s.perm("protected").topCard.cardId).toBe("EX13-049");
+      expect(s.perm("protected").stack.map((c) => c.cardId)).toEqual([]);
+      expect(s.state.players[1]!.trash.map((c) => c.cardId)).toEqual(
+        expect.arrayContaining(["EX13-060", "EX13-057", "EX13-055"]),
+      );
+      expect(observe(s.engine).resolvingEffectSourceKinds()).toBeUndefined();
+      if (origin === "direct") advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    },
+  );
+
   it("encodes the three keywords, Dark Animal rule trait, deletion play, TS waiver, and empty-hand-safe De-Digivolve Main", () => {
     expect(digivolutionRequirementsFor("BT26-056")).toEqual(
       expect.arrayContaining([
