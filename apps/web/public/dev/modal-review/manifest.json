@@ -1,0 +1,319 @@
+[
+  {
+    "id": "optional-field",
+    "title": "Optional effect · field",
+    "url": "/dev/effect-prompts?case=optional-field&controls=0"
+  },
+  {
+    "id": "optional-hidden",
+    "title": "Optional effect · hidden/revealed",
+    "url": "/dev/effect-prompts?case=optional-hidden&controls=0"
+  },
+  {
+    "id": "choose-yes-no",
+    "title": "Choose option · use / decline",
+    "url": "/dev/effect-prompts?case=choose-yes-no&controls=0"
+  },
+  {
+    "id": "choose-clauses",
+    "title": "Choose option · printed clauses",
+    "url": "/dev/effect-prompts?case=choose-clauses&controls=0"
+  },
+  {
+    "id": "choose-effects",
+    "title": "Choose option · borrowed effects",
+    "url": "/dev/effect-prompts?case=choose-effects&controls=0"
+  },
+  {
+    "id": "choose-revealed",
+    "title": "Choose option · revealed cards",
+    "url": "/dev/effect-prompts?case=choose-revealed&controls=0"
+  },
+  {
+    "id": "select-hand",
+    "title": "Select cards · hand subset",
+    "url": "/dev/effect-prompts?case=select-hand&controls=0"
+  },
+  {
+    "id": "choose-targets-hand",
+    "title": "Choose targets · hand",
+    "url": "/dev/effect-prompts?case=choose-targets-hand&controls=0"
+  },
+  {
+    "id": "select-field",
+    "title": "Choose targets · field",
+    "url": "/dev/effect-prompts?case=select-field&controls=0"
+  },
+  {
+    "id": "select-mixed",
+    "title": "Select cards · mixed zones",
+    "url": "/dev/effect-prompts?case=select-mixed&controls=0"
+  },
+  {
+    "id": "select-player",
+    "title": "Choose targets · player",
+    "url": "/dev/effect-prompts?case=select-player&controls=0"
+  },
+  {
+    "id": "select-dp-budget",
+    "title": "Choose targets · DP budget",
+    "url": "/dev/effect-prompts?case=select-dp-budget&controls=0"
+  },
+  {
+    "id": "select-cost-budget",
+    "title": "Select cards · hand play cost budget",
+    "url": "/dev/effect-prompts?case=select-cost-budget&controls=0"
+  },
+  {
+    "id": "select-empty",
+    "title": "Select cards · no legal candidates",
+    "url": "/dev/effect-prompts?case=select-empty&controls=0"
+  },
+  {
+    "id": "order-cards",
+    "title": "Order cards · deck bottom",
+    "url": "/dev/effect-prompts?case=order-cards&controls=0"
+  },
+  {
+    "id": "order-triggers",
+    "title": "Order triggers · next effect",
+    "url": "/dev/effect-prompts?case=order-triggers&controls=0"
+  },
+  {
+    "id": "order-same-card",
+    "title": "Order triggers · same permanent",
+    "url": "/dev/effect-prompts?case=order-same-card&controls=0"
+  },
+  {
+    "id": "resolution-plan",
+    "title": "Order triggers · complete plan",
+    "url": "/dev/effect-prompts?case=resolution-plan&controls=0"
+  },
+  {
+    "id": "partition",
+    "title": "Partition · use / decline",
+    "url": "/dev/effect-prompts?case=partition&controls=0"
+  },
+  {
+    "id": "confirm-action",
+    "title": "Action confirmation",
+    "url": "/dev/effect-prompts?case=confirm-action&controls=0"
+  },
+  {
+    "id": "dual-play",
+    "title": "Dual card · option play",
+    "url": "/dev/effect-prompts?case=dual-play&controls=0"
+  },
+  {
+    "id": "evo-cost",
+    "title": "Evolution · cost route",
+    "url": "/dev/effect-prompts?case=evo-cost&controls=0"
+  },
+  {
+    "id": "effect-evo-cost",
+    "title": "Effect evolution · cost route",
+    "url": "/dev/effect-prompts?case=effect-evo-cost&controls=0"
+  },
+  {
+    "id": "assembly",
+    "title": "Assembly · trash materials",
+    "url": "/dev/effect-prompts?case=assembly&controls=0"
+  },
+  {
+    "id": "digixros",
+    "title": "DigiXros · hand / field / locked materials",
+    "url": "/dev/effect-prompts?case=digixros&controls=0"
+  },
+  {
+    "id": "digixros-expander",
+    "title": "DigiXros · Tamer activation",
+    "url": "/dev/effect-prompts?case=digixros-expander&controls=0"
+  },
+  {
+    "id": "app-fusion",
+    "title": "App Fusion · linked material",
+    "url": "/dev/effect-prompts?case=app-fusion&controls=0"
+  },
+  {
+    "id": "app-fusion-empty",
+    "title": "App Fusion · unavailable route",
+    "url": "/dev/effect-prompts?case=app-fusion-empty&controls=0"
+  },
+  {
+    "id": "block",
+    "title": "Block · choose blocker on field",
+    "url": "/dev/effect-prompts?case=block&controls=0"
+  },
+  {
+    "id": "collision",
+    "title": "Collision · required block on field",
+    "url": "/dev/effect-prompts?case=collision&controls=0"
+  },
+  {
+    "id": "collision-empty",
+    "title": "Collision · no remaining blocker",
+    "url": "/dev/effect-prompts?case=collision-empty&controls=0"
+  },
+  {
+    "id": "alliance",
+    "title": "Alliance · choose ally on field",
+    "url": "/dev/effect-prompts?case=alliance&controls=0"
+  },
+  {
+    "id": "alliance-empty",
+    "title": "Alliance · no ally (automatic pass)",
+    "url": "/dev/effect-prompts?case=alliance-empty&controls=0"
+  },
+  {
+    "id": "counter-sources",
+    "title": "Counter · choose source",
+    "url": "/dev/effect-prompts?case=counter-sources&controls=0"
+  },
+  {
+    "id": "counter-blast",
+    "title": "Counter · multiple Blast routes",
+    "url": "/dev/effect-prompts?case=counter-blast&controls=0"
+  },
+  {
+    "id": "counter-field",
+    "title": "Counter · single field action",
+    "url": "/dev/effect-prompts?case=counter-field&controls=0"
+  },
+  {
+    "id": "counter-empty",
+    "title": "Counter · no remaining action",
+    "url": "/dev/effect-prompts?case=counter-empty&controls=0"
+  },
+  {
+    "id": "barrier",
+    "title": "Barrier · use / decline",
+    "url": "/dev/effect-prompts?case=barrier&controls=0"
+  },
+  {
+    "id": "evade",
+    "title": "Evade · use / decline",
+    "url": "/dev/effect-prompts?case=evade&controls=0"
+  },
+  {
+    "id": "source-host",
+    "title": "Digivolution cards · choose host on field",
+    "url": "/dev/effect-prompts?case=source-host&controls=0"
+  },
+  {
+    "id": "mulligan-first",
+    "title": "Mulligan · going first",
+    "url": "/dev/effect-prompts?case=mulligan-first&controls=0"
+  },
+  {
+    "id": "mulligan-second",
+    "title": "Mulligan · going second",
+    "url": "/dev/effect-prompts?case=mulligan-second&controls=0"
+  },
+  {
+    "id": "inherited-inspector",
+    "title": "Inspector · inherited effects",
+    "url": "/dev/effect-prompts?case=inherited-inspector&controls=0"
+  },
+  {
+    "id": "waiting",
+    "title": "Conexão · aguardando partida",
+    "url": "/dev/effect-prompts?case=waiting&controls=0"
+  },
+  {
+    "id": "waiting-error",
+    "title": "Conexão · erro e tentar novamente",
+    "url": "/dev/effect-prompts?case=waiting-error&controls=0"
+  },
+  {
+    "id": "arena-settings",
+    "title": "Configurações da partida · aparência e áudio",
+    "url": "/dev/effect-prompts?case=arena-settings&controls=0"
+  },
+  {
+    "id": "feedback",
+    "title": "Feedback · reportar bug",
+    "url": "/dev/effect-prompts?case=feedback&controls=0"
+  },
+  {
+    "id": "surrender",
+    "title": "Desistência · confirmar",
+    "url": "/dev/effect-prompts?case=surrender&controls=0"
+  },
+  {
+    "id": "digixros-materials",
+    "title": "DigiXros · materiais sem efeito do Tamer",
+    "url": "/dev/effect-prompts?case=digixros&controls=0",
+    "answer": false
+  },
+  {
+    "id": "digixros-expanded-materials",
+    "title": "DigiXros · materiais com efeito do Tamer",
+    "url": "/dev/effect-prompts?case=digixros&controls=0",
+    "answer": true
+  },
+  {
+    "id": "decision-selection-rail",
+    "title": "Seleção física de cartas · mão",
+    "url": "/dev/mobile?specimen=decision-selection-rail&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "decision-field-budget",
+    "title": "Seleção física de cartas · campo e limite de custo",
+    "url": "/dev/mobile?specimen=decision-field-budget&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "card-action-sheet",
+    "title": "Carta em campo · ações",
+    "url": "/dev/mobile?specimen=card-action-sheet&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "stack-viewer-sheet",
+    "title": "Fontes de digievolução · inspeção",
+    "url": "/dev/mobile?specimen=stack-viewer-sheet&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "trash-viewer-sheet",
+    "title": "Lixo · inspeção",
+    "url": "/dev/mobile?specimen=trash-viewer-sheet&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "card-zoom",
+    "title": "Carta ampliada",
+    "url": "/dev/mobile?specimen=card-zoom&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "play-log",
+    "title": "Histórico da partida",
+    "url": "/dev/mobile?specimen=play-log&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "hand-inspector-BT22-052",
+    "title": "Carta da mão · inspeção e ações",
+    "url": "/dev/mobile?specimen=hand-inspector-BT22-052&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "hand-inspector-EX5-030",
+    "title": "Carta da mão · efeitos longos",
+    "url": "/dev/mobile?specimen=hand-inspector-EX5-030&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "alliance-confirmation",
+    "title": "Alliance · confirmar aliado",
+    "url": "/dev/mobile?specimen=alliance-confirmation&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "game-over-win",
+    "title": "Fim da partida · vitória",
+    "url": "/dev/mobile?specimen=game-over-win&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "game-over-loss",
+    "title": "Fim da partida · derrota",
+    "url": "/dev/mobile?specimen=game-over-loss&frame=1&locale=pt-BR"
+  },
+  {
+    "id": "opponent-dropped",
+    "title": "Oponente desconectado",
+    "url": "/dev/mobile?specimen=opponent-dropped&frame=1&locale=pt-BR"
+  }
+]
