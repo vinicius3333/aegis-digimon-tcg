@@ -843,6 +843,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com UlforceVeedramon. Resolva primeiro a Rina BT11 e aceite suspendê-la. As duas opções devem mostrar textos diferentes: mudar orientação e devolver os Digimon com menos fontes. Escolha a segunda e aceite: só BT1-013 volta ao fundo do deck; BT1-011 com uma fonte fica. Depois resolva o Ao Atacar de Ulforce.",
     en: "End breeding and attack security with UlforceVeedramon. Resolve BT11 Rina first and accept suspending her. The two options must show different texts: change orientation and return the Digimon with the fewest sources. Choose the second and accept: only BT1-013 returns to the deck bottom; BT1-011 with one source stays. Then resolve Ulforce's When Attacking effect.",
   },
+  "arena-bt11-rina-mailmon-suspended-subject": {
+    ptBR: "Encerre a criação. Vincule Mailmon ao Gatchmon e escolha o UlforceVeedramon do bot: ele não pode suspender. Termine o turno. Quando Veedramon EX13 atacar, a Rina BT11 pode suspender, mas não pode ativar os efeitos do Ulforce ao lado: o Veedramon que atacou não tem Quando Digivolve. Ulforce deve continuar desvirado e Gatchmon deve permanecer no campo.",
+    en: "End breeding. Link Mailmon to Gatchmon and choose the bot's UlforceVeedramon: it cannot suspend. End the turn. When EX13 Veedramon attacks, BT11 Rina may suspend, but cannot activate the adjacent Ulforce's effects: the attacking Veedramon has no When Digivolving effect. Ulforce must stay unsuspended and Gatchmon must remain on the field.",
+  },
   "arena-bt11-rina-ulforce-immunity": {
     ptBR: "Encerre a criação e ataque a segurança com Rebootmon. Ao Atacar, vincule Logimon de graça e desuspenda Rebootmon (imunidade a efeitos de Digimon do oponente). Logimon suspende UlforceVeedramon; a Rina do bot ativa o Quando Digivolve de Ulforce. Rebootmon deve ficar; só BT1-013 volta ao fundo do deck.",
     en: "End breeding and attack security with Rebootmon. On When Attacking, link Logimon for free and unsuspend Rebootmon (immune to opponent Digimon effects). Logimon suspends UlforceVeedramon; the bot's Rina activates Ulforce's When Digivolving. Rebootmon must stay; only BT1-013 goes to the deck bottom.",
@@ -1322,6 +1326,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-marcus-alliance", "Alliance · Marcus treated as a Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-effect-choice", "BT11 Rina · EX13 Ulforce effect choice"],
+  ["arena-bt11-rina-mailmon-suspended-subject", "BT11 Rina · Mailmon and suspended Digimon"],
   ["arena-rina-evade-unsuspend", "Rina · Evade → next-turn unsuspend"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-ex12-diarbbitmon-option-trigger-timing", "EX12 Diarbbitmon · Option triggers wait for Arts"],

@@ -13,6 +13,46 @@ import "../BT1/BT1-025.js";
 import "../BT5/BT5-112.js";
 
 describe("EX3-065 Hina Kurihara", () => {
+  it("GitHub #5016 sweep: borrows only the evolved Dragon's On Play when another lender is present", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX3-065", as: "hina" },
+            { card: "BT2-018", as: "unrelatedDragon" },
+            { card: "EX3-047", as: "base" },
+          ],
+          hand: [{ card: "EX3-048", as: "jazardmon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-028", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jazardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hina").isSuspended && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT2-018")).toEqual(
+      [],
+    );
+    expect(
+      s.events.some(
+        (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX3-048" && event.timing === "OnPlay",
+      ),
+    ).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-065" && req.kind === "selectCards")).toEqual([]);
+    assertNoLoudGap(s);
+  });
+
   it("matches the official Tamer identity and all three printed clauses", () => {
     const definition = getCardDefinition("EX3-065")!;
     expect(definition).toMatchObject({

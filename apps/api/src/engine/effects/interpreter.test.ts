@@ -1821,6 +1821,27 @@ describe("Reveal action dispatch", () => {
 });
 
 describe("legacy action-kind dispatch", () => {
+  it("GitHub #5016: a missing triggerSubject cannot fall back to an unrelated lender", async () => {
+    const foreign = makeFakePermanent({
+      permanentId: "foreign",
+      controllerSeat: 0,
+      topCard: { instanceId: "foreign-card", cardId: "BT1-029" } as never,
+    });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source: makeSource({ cardId: "X-ACTIVATE-MISSING-SUBJECT" }),
+      recorder,
+      ownBattleArea: [foreign],
+      definitionOf: (id) => makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon] }),
+    });
+    await runAction(ctx, {
+      kind: "ActivateEffect",
+      target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
+      effectType: "OnPlay",
+    });
+    expect(recorder.calls).not.toContainEqual({ verb: "draw", args: [0, 1] });
+  });
+
   it("ActivateEffect normalizes to the server-side foreign effect runner", async () => {
     const foreign = makeFakePermanent({
       permanentId: "opp-foreign",

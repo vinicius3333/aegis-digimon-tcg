@@ -65,6 +65,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
   "arena-bt11-rina-ulforce-effect-choice",
+  "arena-bt11-rina-mailmon-suspended-subject",
   "arena-rina-evade-unsuspend",
   "arena-ex3-wingdramon-evade-suspend-lock",
   "arena-ex13-wingdramon-evade-suspend-lock",
@@ -3301,6 +3302,34 @@ function layBt11RinaUlforceEffectChoiceScenario(state: GameState, decks: readonl
   state.memory = 5;
 }
 
+/** GitHub #5016: Mailmon locks Ulforce while a different Veedramon suspends to attack. */
+function layBt11RinaMailmonSuspendedSubjectScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    clearZone(player, Zone.Hand);
+    clearZone(player, Zone.Security);
+    fillZone(player, Zone.Security, [faceDownCard(`dev-rina-mailmon-security-${seat}`, "BT1-009", seat)]);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT21-009"], "-rina-mailmon-host"));
+    insertCard(human, Zone.Hand, faceUpCard("dev-rina-mailmon-link", "BT26-019", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT11-112"], "-rina-mailmon-tamer"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-023"], "-rina-mailmon-ulforce"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-019"], "-rina-mailmon-veedramon"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 6;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /**
  * Discord bug 1555168521175048263: the human uses EX12-052 Diarbbitmon's Option side, which
  * suspends the bot's EX13-023 UlforceVeedramon. The bot's BT11-112 Rina Shinomiya and the
@@ -5804,6 +5833,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt11-rina-ulforce-effect-choice": layBt11RinaUlforceEffectChoiceScenario,
+  "arena-bt11-rina-mailmon-suspended-subject": layBt11RinaMailmonSuspendedSubjectScenario,
   "arena-rina-evade-unsuspend": layRinaEvadeUnsuspendScenario,
   "arena-ex3-wingdramon-evade-suspend-lock": layEx3WingdramonEvadeSuspendLockScenario,
   "arena-ex13-wingdramon-evade-suspend-lock": layEx13WingdramonEvadeSuspendLockScenario,
