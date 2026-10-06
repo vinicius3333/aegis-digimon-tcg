@@ -1710,3 +1710,12 @@ it("#4948 does not display Imperialdramon's alternate cost after its name is rew
     [{ type: "normal", cost: 6 }],
   );
 });
+
+it("GitHub bugs #5030/#5019 expose a server-projected Koromon alias evolution cost", () => {
+  const base = permOf("BT17-102");
+  expect(
+    getDigivolveCostOptions("BT12-034", base, undefined, undefined, [
+      { permanentId: base.permanentId, alternateRequirementIndex: 0, projectedCost: 0 },
+    ]),
+  ).toContainEqual(expect.objectContaining({ type: "alternate", alternateRequirementIndex: 0, cost: 0 }));
+});

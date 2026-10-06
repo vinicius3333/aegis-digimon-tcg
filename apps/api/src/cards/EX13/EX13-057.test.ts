@@ -1207,3 +1207,51 @@ describe("EX13-057 Grademon — KB Q&A rulings", () => {
     expect(s.perm("chronicle").currentDP).toBe(14_000);
   });
 });
+
+it("GitHub bug #5022 preserves Grademon's during-attack grant after evolving into Alphamon against Gallantmon Counter", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT20-012", as: "attacker", under: ["P-176"] }],
+        hand: [
+          { card: "EX13-057", as: "grademon" },
+          { card: "EX13-060", as: "alphamon" },
+        ],
+        deck: Array(5).fill("BT1-009"),
+        security: ["BT1-009", "BT1-013"],
+      },
+      1: { battleArea: [{ card: "EX13-015", as: "gallantmon" }], security: ["BT1-009", "BT1-013"] },
+    },
+    {
+      autoSelectCards: true,
+      autoAcceptOptional: true,
+      autoChooseOption: true,
+      preferOptionIndex: 1,
+      preferTriggerKeys: ["BT20-012", "EX13-057", "P-176"],
+      declinePrompts: ["Raid", "end of attack"],
+    },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  const attackerId = s.perm("attacker").permanentId;
+  expect(
+    s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.some((e) => e.kind === "counterWindowOpened"));
+  expect(s.perm("attacker").topCard.cardId).toBe("EX13-060");
+  expect(observe(s.engine).isRestrictedByEffect(s.perm("attacker"), "beAffected", "Digimon")).toBe(true);
+  const opened = s.events.find((e) => e.kind === "counterWindowOpened");
+  if (opened?.kind !== "counterWindowOpened") throw new Error("Counter did not open");
+  const counter = opened.eligibleCounters.find((e) => e.instanceId === s.inst("gallantmon").instanceId)!;
+  expect(
+    s.engine.applyIntent(1, {
+      type: "respondCounter",
+      sourceInstanceId: counter.instanceId,
+      effectKey: counter.effectKey,
+    }),
+  ).toEqual({ ok: true });
+  await advance(s.engine).finishAttack();
+  expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(true);
+  expect(s.perm("attacker").currentDP).toBe(20000);
+  expect(s.state.pendingDecision).toBeUndefined();
+});

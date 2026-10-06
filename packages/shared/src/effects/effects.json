@@ -108257,7 +108257,7 @@
                 }
               }
             ],
-            "raw": "[All Turns] When your hand is trashed from, delete 1 of your opponent's Digimon with the lowest DP."
+            "raw": "[All Turns] When your hand is trashed from, delete 1 of your opponent's lowest DP Digimon."
           }
         ]
       }
@@ -159131,6 +159131,36 @@
           }
         ],
         "isInherited": true
+      },
+      {
+        "trigger": "OnPlay",
+        "actions": [
+          {
+            "kind": "RevealAdd",
+            "revealCount": 4,
+            "add": [
+              {
+                "filter": {
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [
+                    {
+                      "tokens": ["Rock Dragon", "Earth Dragon", "Bird Dragon", "Machine Dragon", "Sky Dragon"],
+                      "match": "trait"
+                    }
+                  ]
+                },
+                "count": 1,
+                "to": "hand"
+              },
+              {
+                "filter": { "nameOrTrait": [{ "tokens": ["Hina Kurihara"], "match": "nameExact" }] },
+                "count": 1,
+                "to": "hand"
+              }
+            ],
+            "rest": "deckBottom"
+          }
+        ]
       }
     ],
     "coverage": "full",
@@ -184670,7 +184700,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Gallantmon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Gallantmon"], "cost": 1, "isAlternate": true }]
   },
   "EX8-074": {
     "effects": [
@@ -226386,8 +226416,8 @@
         "frequency": "OncePerTurn",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenLeavesPlay",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
             "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
@@ -231210,6 +231240,7 @@
               },
               "raw": "By trashing 1 card with [Veedramon] in its text or the [Armor Form] or [Free] trait from your hand"
             },
+            "optional": true,
             "abortOnDecline": true,
             "actions": [
               { "kind": "Draw", "controller": "mine", "amount": 1 },

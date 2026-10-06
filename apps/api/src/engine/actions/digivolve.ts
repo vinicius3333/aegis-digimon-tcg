@@ -165,6 +165,7 @@ export type DigivolveCheck =
  * boundaries clean (ARCHITECTURE.md section 3).
  */
 export interface DigivolveDeps {
+  grantedBaseExactNames?(state: GameState, permanent: Permanent): readonly string[];
   /**
    * Max memory the active seat may spend right now (source Player.MaxMemoryCost).
    * Returns how far the gauge can still travel toward the opponent's side.
@@ -541,6 +542,7 @@ export function validateDigivolve(
     | "burstDigivolveTamerPayable"
     | "digisorptionReduction"
     | "potentialInteractiveDigivolveReduction"
+    | "grantedBaseExactNames"
     | "baseGrantedDigivolve"
     | "costWaived"
     | "blastWindowAllowed"
@@ -629,6 +631,7 @@ export function validateDigivolve(
       ? matchingEvoCostIgnoringColor(definition, baseDef)
       : matchingEvoCost(definition, baseDef, derivedBaseColors);
   const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+    grantedBaseExactNames: deps.grantedBaseExactNames?.(state, permanent),
     ...(intent.alternateRequirementIndex === undefined ? {} : { requirementIndex: intent.alternateRequirementIndex }),
     isBlastDigivolve: intent.useBlastDigivolve === true,
   });

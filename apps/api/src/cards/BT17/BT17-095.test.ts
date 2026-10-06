@@ -6,6 +6,49 @@ import "../BT10/BT10-098.js";
 import "./index.js";
 
 describe("BT17-095 Miraculous Mega Knight", () => {
+  it("GitHub bug #5034 offers only legal hand DNA partners and preserves the second Delay", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-026", as: "metal" },
+            { card: "BT17-095", as: "delayA" },
+            { card: "BT17-095", as: "delayB" },
+          ],
+          hand: [
+            { card: "EX13-016", as: "omnimon" },
+            { card: "BT22-017", as: "wrong" },
+            { card: "BT22-013", as: "war1" },
+            { card: "BT17-015", as: "war2" },
+          ],
+        },
+        1: { battleArea: ["BT17-019"], hand: [{ card: "BT10-098", as: "returner" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("returner").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX13-016"));
+    const material = s.decisions.find(
+      ({ req }) =>
+        req.sourceCardId === "BT17-095" &&
+        req.kind === "selectCards" &&
+        req.options?.candidateInstanceIds?.includes(s.inst("war1").instanceId),
+    )!.req;
+    expect(material.options!.candidateInstanceIds).toEqual([s.inst("war1").instanceId, s.inst("war2").instanceId]);
+    const result = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX13-016")!;
+    expect(result.stack.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("metal").instanceId, s.inst("war1").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT17-095")).toHaveLength(1);
+    expect(s.state.players[0]!.trash.filter((c) => c.cardId === "BT17-095")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("keeps the Main play clause separate from the Omnimon Delay DNA effect", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Main",

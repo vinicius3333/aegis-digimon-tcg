@@ -355,6 +355,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
     // EvoCost color test (static-continuous-effects, LOCKED Q4 — KB BT3-040 Q1075). The
     // continuous tier is recomputed before each fired timing, so the store is current.
     derivedBaseColors: (_state, permanent) => effectiveColorsOf(engine, permanent),
+    grantedBaseExactNames: (_state, permanent) => engine.continuous.grantedExactNames(permanent.permanentId),
     effectiveBaseDefinition: (_state, permanent) =>
       effectiveDigivolutionBase(engine.continuous, permanent, definitionOf(permanent.topCard)),
     effectiveBaseKinds: (_state, permanent) =>

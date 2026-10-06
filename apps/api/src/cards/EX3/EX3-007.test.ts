@@ -5,6 +5,29 @@ import { compiled } from "./EX3-007.js";
 import "./EX3-011.js";
 
 describe("EX3-007 Lavorvomon", () => {
+  it.each([true, false])(
+    "GitHub bug #5035 searches dragons and Hina on public play (Hina present: %s)",
+    async (hina) => {
+      const revealed = ["EX3-011", ...(hina ? ["EX3-065"] : ["BT1-009"]), "BT1-009", "BT1-013"];
+      const s = setupEngine(
+        { 0: { hand: [{ card: "EX3-007", as: "lavorvomon" }], deck: [...revealed, "BT1-014"] } },
+        { autoSelectCards: true, autoOrderCards: true },
+      );
+      s.state.memory = 6;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lavorvomon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.hand.some((c) => c.cardId === "EX3-011"));
+      expect(s.state.players[0]!.hand.map((c) => c.cardId)).toEqual(hina ? ["EX3-011", "EX3-065"] : ["EX3-011"]);
+      expect(s.state.players[0]!.deck.map((c) => c.cardId)).toEqual([
+        "BT1-014",
+        ...revealed.filter((id) => id !== "EX3-011" && id !== "EX3-065"),
+      ]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("matches its official card identity and inherited text", () => {
     expect(getCardDefinition("EX3-007")).toMatchObject({
       nameEn: "Lavorvomon",
@@ -26,7 +49,7 @@ describe("EX3-007 Lavorvomon", () => {
   });
 
   it("publishes full inherited metadata with the typed On Play gate", () => {
-    expect(compiled).toMatchObject({
+    expect({ ...compiled, effects: compiled.effects.filter((effect) => effect.isInherited) }).toMatchObject({
       coverage: "full",
       residual: [],
       effects: [

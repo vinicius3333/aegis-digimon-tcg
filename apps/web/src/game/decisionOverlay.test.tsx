@@ -20,6 +20,44 @@ import { choiceLabel } from "./overlay/choice/decisionChoiceLabels";
 afterEach(() => cleanup());
 
 it.each([
+  ["EX13-015", 1],
+  ["AD1-003", 1],
+  ["EX8-012", 2],
+] as const)("GitHub bug #5043: selects granted Blitz before %s's printed effect (%s copies)", (cardId, copies) => {
+  const printed = buildTriggerKey("host", `${cardId}/ir-0`);
+  const blitzKeys = Array.from({ length: copies }, (_, index) =>
+    buildTriggerKey("host", `subtrigger/${3956 + index}/[When Digivolving] ＜Blitz＞`),
+  );
+  const { onRespond } = renderDecision({
+    decisionId: "takato-granted-blitz",
+    seat: 0,
+    kind: "orderTriggers",
+    promptText: "Choose the next pending effect to resolve.",
+    sourceCardId: cardId,
+    options: {
+      triggerKeys: [printed, ...blitzKeys],
+      triggerCardIds: Array.from({ length: copies + 1 }, () => cardId),
+      triggerTimings: ["WhenDigivolving", ...blitzKeys.map(() => "whenOneOfYoursDigivolves")],
+      triggerDescriptions: [
+        cardEffectClauseForTiming(cardId, "WhenDigivolving")!,
+        ...blitzKeys.map(() => "[When Digivolving] ＜Blitz＞"),
+      ],
+      triggerIsOptional: Array.from({ length: copies + 1 }, () => false),
+      acceptsResolutionPlan: true,
+      timing: "WhenDigivolving",
+    },
+  });
+  const blitzTexts = screen.getAllByText(/Blitz/);
+  expect(blitzTexts).toHaveLength(copies);
+  const blitzButton = blitzTexts.at(-1)!.closest("button")!;
+  expect(blitzButton).toBeTruthy();
+  expect(within(blitzButton).queryByText(/Delete 1 of your opponent/)).toBeNull();
+  fireEvent.click(blitzButton);
+  fireEvent.click(screen.getByRole("button", { name: /Resolve next effect/i }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [blitzKeys.at(-1)] });
+});
+
+it.each([
   [
     "legacy watcher",
     "[All Turns] When your hand is trashed from, delete 1 of your opponent's Digimon with the lowest DP.",

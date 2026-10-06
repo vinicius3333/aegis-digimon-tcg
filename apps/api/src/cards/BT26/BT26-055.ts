@@ -43,8 +43,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenLeavesPlay",
+          kind: "Replacement",
+          event: "wouldLeavePlay",
           sourceFilter: { isSelfRef: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
         },

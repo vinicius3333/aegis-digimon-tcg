@@ -1072,10 +1072,18 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             : undefined;
       if (definition === undefined) return false;
       const live = ctx.source.permanent();
-      const topNames =
+      const currentNames =
         live === undefined
           ? effectiveStaticNames(definition)
           : (ctx.game.effectiveNames?.(live) ?? effectiveStaticNames(definition));
+      // Rule inclusion aliases are not exact identities. They still satisfy "in its
+      // name" while the printed identity is live, but an original-name rewrite removes them.
+      const printedNameStillEffective = currentNames.some(
+        (name) => name.toLowerCase() === definition.nameEn.toLowerCase(),
+      );
+      const topNames = printedNameStillEffective
+        ? [...currentNames, ...effectiveStaticNames(definition)]
+        : currentNames;
       const names = cond.names ?? [];
       const excluded = cond.excludeNames ?? [];
       return (

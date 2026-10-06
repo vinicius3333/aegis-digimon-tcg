@@ -582,6 +582,38 @@ export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
   },
+  "arena-open-bugs-veemon-decline": {
+    ptBR: "Na entrada da fase principal, ordene Davis e Veemon e recuse Veemon. A carta Free deve ficar na mão; não há custo de descarte, compra nem memória de Veemon.",
+    en: "At Main entry, order Davis and Veemon and decline Veemon. Keep the Free card in hand; Veemon must not trash, draw or gain memory.",
+  },
+  "arena-open-bugs-lavorvomon-search": {
+    ptBR: "Jogue Lavorvomon. Adicione Volcanicdramon e Hina Kurihara à mão e ordene as duas cartas restantes no fundo do deck.",
+    en: "Play Lavorvomon. Add Volcanicdramon and Hina Kurihara to hand and order the two remaining cards at the bottom of the deck.",
+  },
+  "arena-open-bugs-giromon-leave": {
+    ptBR: "Jogue Millenniumon P-220 e escolha excluir seu host. O herdado de Giromon deve remover uma segurança do oponente antes da exclusão.",
+    en: "Play P-220 Millenniumon and choose to delete your host. Giromon must trash one opposing security before the deletion.",
+  },
+  "arena-open-bugs-koromon-evolution": {
+    ptBR: "Evolua Greymon para Agumon BT12-034 por 0. Koromon sob Greymon concede o nome exigido; a evolução deve manter as fontes e comprar uma carta.",
+    en: "Digivolve Greymon into BT12-034 Agumon for zero. Koromon beneath Greymon grants the required name; preserve the sources and draw one card.",
+  },
+  "arena-open-bugs-mega-knight-materials": {
+    ptBR: "Jogue Millenniumon P-220 e exclua seu MetalGarurumon. Use um Delay; escolha um WarGreymon da mão e depois Omnimon. Omnimon e o Rookie não podem ser materiais. O segundo Delay deve permanecer.",
+    en: "Play P-220 Millenniumon and delete your MetalGarurumon. Use one Delay, choose a WarGreymon from hand, then Omnimon. Omnimon and the Rookie must not be material candidates. The other Delay remains.",
+  },
+  "arena-open-bugs-marcus-attack": {
+    ptBR: "Clique ou arraste Marcus para atacar a segurança. Burst Mode o trata como Digimon com 12000 DP e Rush; recuse efeitos opcionais que evoluem ou jogam cartas.",
+    en: "Click or drag Marcus to attack security. Burst Mode treats him as a 12000-DP Digimon with Rush; decline optional effects that evolve or play cards.",
+  },
+  "arena-open-bugs-larva-immunity": {
+    ptBR: "Jogue LordKnightmon e dê imunidade a Larva. Passe o turno; pelo jogador 2, jogue Ebonwumon e resolva seu efeito. Larva deve sobreviver com Lucemon presente, inclusive após a imunidade expirar.",
+    en: "Play LordKnightmon and grant immunity to Larva. Pass the turn; as player 2, play Ebonwumon and resolve its effect. Larva must survive with Lucemon present, including after immunity expires.",
+  },
+  "arena-ex2-takato-blitz-order": {
+    ptBR: "Encerre a criação e evolua WarGrowlmon EX2-010 para Gallantmon EX13-015. A memória passa de 1 para -2. Escolha o efeito concedido [When Digivolving] Blitz antes do efeito impresso de Gallantmon, resolva e aceite Blitz. Declare o ataque à segurança. O efeito impresso deve resolver depois da declaração e antes da checagem: descarte 1 segurança e cheque outra. Gallantmon permanece suspenso, com WarGrowlmon na pilha. Reinicie para testar recusar Blitz ou resolver o efeito impresso primeiro.",
+    en: "End breeding and digivolve EX2-010 WarGrowlmon into EX13-015 Gallantmon. Memory moves from 1 to -2. Choose the granted [When Digivolving] Blitz before Gallantmon's printed effect, resolve it and accept Blitz. Declare an attack on security. The printed effect must resolve after declaration and before the check: trash 1 security and check another. Gallantmon stays suspended with WarGrowlmon in its stack. Reset to test declining Blitz or resolving the printed effect first.",
+  },
   "arena-ex9-metal-mamemon-face-down-deletion": {
     ptBR: "Encerre a fase de criação. Jogue EX12-076 Susanoomon com Assembly, escolhendo os 8 materiais diferentes da lixeira. O [Ao Jogar] dá -9000 DP ao MetalMamemon EX9-018 do bot e ele morre. Seu Kokuwamon EX13-046 estava virado para baixo: o herdado [Ao Ser Deletado] não deve ativar nem oferecer De-Digivolve. Susanoomon permanece no campo com os 8 materiais; as duas cartas vão viradas para cima para a lixeira do bot, visíveis para ambos os jogadores.",
     en: "End breeding. Play EX12-076 Susanoomon with Assembly, selecting all 8 different materials from trash. Its [On Play] gives the bot's EX9-018 MetalMamemon -9000 DP and deletes it. Its EX13-046 Kokuwamon was face down: the inherited [On Deletion] must not trigger or offer De-Digivolve. Susanoomon stays on the field with all 8 materials; both cards enter the bot's trash face up, visible to both players.",
@@ -1371,6 +1403,14 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-mervamon-trash-digixros", "Mervamon · DigiXros materials from trash"],
   ["arena-bt5-koromon-attack-draw", "BT5 Koromon · draw before security"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-open-bugs-veemon-decline", "Open bugs · veemon decline"],
+  ["arena-open-bugs-lavorvomon-search", "Open bugs · lavorvomon search"],
+  ["arena-open-bugs-giromon-leave", "Open bugs · giromon leave"],
+  ["arena-open-bugs-koromon-evolution", "Open bugs · koromon evolution"],
+  ["arena-open-bugs-mega-knight-materials", "Open bugs · mega knight materials"],
+  ["arena-open-bugs-marcus-attack", "Open bugs · marcus attack"],
+  ["arena-open-bugs-larva-immunity", "Open bugs · larva immunity"],
+  ["arena-ex2-takato-blitz-order", "EX2 Takato · granted Blitz before Gallantmon's effect"],
   ["arena-ex12-thetismon-mistymon-deletion", "EX12 Thetismon · Mistymon effect deletion before battle"],
   ["arena-ex12-thetismon-jamming-control", "EX12 Thetismon · Jamming security battle control"],
   ["arena-ex13-sampson-face-down-sources", "EX13 Richard Sampson · owner reads face-down cards"],

@@ -8,6 +8,32 @@ import { compiled } from "./BT11-069.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT11-069 MetalGreymon (X Antibody)", () => {
+  it("does not restore a Greymon inclusion alias after KingSukamon rewrites the host name", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-068", as: "host", under: ["BT11-069"], suspended: true }] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "opponent", suspended: true }],
+          hand: [{ card: "BT11-043", as: "king" }],
+          trash: ["BT11-040", "BT11-040", "BT11-040"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").originalNameOverride === "Sukamon" && s.state.pendingDecision === undefined);
+    expect(observe(s.engine).effectiveNames(s.perm("host"))).toEqual(["sukamon"]);
+
+    await advance(s.engine).verb.unsuspend([s.perm("opponent").permanentId]);
+    await settle();
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
   it.each(["BT22-014", "BT9-068", "EX4-048"])(
     "#4974 triggers the inheritance when %s Reboots with its Greymon Rule name",
     async (id) => {

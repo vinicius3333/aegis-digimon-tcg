@@ -1,4 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
+import { effectProvenanceKinds } from "../effects/effectProvenance.js";
 import { canActivate, canTrigger } from "../effects/kernel.js";
 import { collectConferredEffects, collectGrantedCustomEffects } from "../effects/collect.js";
 import { getEffectModule } from "../effects/registry.js";
@@ -185,7 +186,12 @@ async function derivePass(
     // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
     if (!canTrigger(effect, ctx, engine.tracker)) continue;
     if (!canActivate(effect, ctx, engine.tracker)) continue;
-    await effect.resolve(ctx);
+    const restoreSource = enterContinuousEffectSource(ctx, effect);
+    try {
+      await effect.resolve(ctx);
+    } finally {
+      restoreSource();
+    }
   }
   // A GrantStatic "gain all effects" source is established during the base static pass.
   // Its conferred card can itself have an [All Turns]/Static watcher (EX3-013 under
@@ -224,7 +230,12 @@ async function derivePass(
       conferredToPermanentId,
       conferralGranterInstanceId,
     };
-    await effect.resolve(ctx);
+    const restoreSource = enterContinuousEffectSource(ctx, effect);
+    try {
+      await effect.resolve(ctx);
+    } finally {
+      restoreSource();
+    }
   }
   // Named custom effect grants ("1 of your opponent's Digimon gains '[All Turns] When engine
   // Digimon becomes suspended, lose 2 memory.'"). Discrete timings already reach these through
@@ -253,7 +264,12 @@ async function derivePass(
       continuousPass: true,
     };
     if (!canActivate(effect, ctx, engine.tracker)) continue;
-    await effect.resolve(ctx);
+    const restoreSource = enterContinuousEffectSource(ctx, effect);
+    try {
+      await effect.resolve(ctx);
+    } finally {
+      restoreSource();
+    }
   }
 
   // BT23-024 suspend-restriction-with-superlative-exception: for every ARMED source, re-derive
@@ -282,4 +298,16 @@ async function derivePass(
     }
   }
   engine.modifiers.recomputeFilteredPlayerDp(engine.state);
+}
+
+/** A rebuilt aura belongs to its own source, even inside an opposing effect's resolution. */
+function enterContinuousEffectSource(ctx: EffectContext, effect: Effect): () => void {
+  const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
+  ctx.effectSourceKinds = sourceKinds;
+  ctx.fx.enterEffectResolution?.(
+    ctx.source.ownerSeat,
+    sourceKinds,
+    ctx.conferredToPermanentId ?? ctx.source.permanent()?.permanentId,
+  );
+  return () => ctx.fx.leaveEffectResolution?.();
 }
