@@ -798,6 +798,50 @@ remain unchanged; no metadata-copy generation or repeated engine build is needed
 Subsequent full all44 strength, physical mechanisms/materials, rooms, serving,
 untouched final blind and delivery acceptance remain required.
 
+## Prepared full evaluation for the actual R2b output
+
+Source-only evaluator `transfers/rule-link-current-corrective-strength-r2b.py`
+is now sealed, SHA-256
+`53895423e9bc11314112c8b2866d9103c92f0e6dc31c6d44d27b242dec78cab1`.
+Its local source remains under
+`/private/tmp/aegis-material-teacher-active-goal-20261006`. It preserves exact
+sealed R1 command, full raw-record, comparison report, whole, ROOT Go and closure
+functions. Only admission changes to the actual R2b learner, known request/whole
+identity/Go pins, 6,864-game fresh training schedule and measured R1 comparison
+origin. The R2b completion, checkpoint hash and actual positive Adam delta remain
+unknown until the unchanged full actual R2b closure consumer succeeds.
+
+Future evaluation remains 3,872 greedy frozen games, all44 learners versus all44
+opposing decks at both seats, identical development seed 6135000, four workers,
+zero learning updates and streaming results. The original four complete reference
+results are reused only with exact protected CP, runtime, source, curriculum and
+schedule identity. The fixed source archive, engine fingerprint and qualified
+full engine/Python/delivery proof remain unchanged. Neither a repeated unchanged
+engine build nor another metadata-copy generation is involved.
+
+Seven bounded synthetic tests passed, covering old R1 learning substitution,
+wrong comparison origin/checkpoint, partial or boolean whole status, optimizer
+reset/unknown positive actual step counts, scope shrinking/final seeds, null
+future hash rejection before any consumer, changed helper seams and separate
+new learning/parent comparison/original baseline completion pins. Fixture SHA-256
+is `238cdbe93c64abc9027e4063116a7ef39a2be89ebcd80be61ebe89a040bf951f`.
+These are explicit fake future closures, not actual R2b completion evidence.
+Actual desktop Python 3.12.14 syntax/stdlib loading and unchanged evaluation
+functions passed; the null future completion/checkpoint request was rejected
+before any closure consumer or model import. Actual source-review receipt
+`rule-link-current-corrective-strength-r2b-source-review.actual.json` has SHA-256
+`93dade2d9744acf7cf56b627fa08453c02a84d024d271d41280ee37c95295090`. No future evaluation job or model load was started.
+
+Actual R2b training remains the original attached session 26324, whole
+693/start573249, operator 713/start573263 and CUDA learner 869/start588939.
+A later actual observer confirms 676/6,864 training games, zero failures or
+payment forfeits and no whole exit yet. This is partial training, not qualified
+strength. The final future evaluation request, actual R2b completion/checkpoint
+pins, full admitted read-only runtime inspection, fresh idle inventory and
+separate ROOT evaluation resource Go remain pending. Final blind seeds remain
+untouched, and all44 strict strength, mechanisms/materials, rooms, serving and
+final delivery acceptance remain required.
+
 ## Remaining work
 
 Use the completed six-policy diagnosis for actual further learning and produce
