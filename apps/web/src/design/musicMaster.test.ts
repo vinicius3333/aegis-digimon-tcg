@@ -16,13 +16,16 @@ import {
 const root = new URL("../../public/audio/", import.meta.url);
 const provenance = JSON.parse(readFileSync(new URL("music-candidates/provenance.json", root), "utf8"));
 const manifest = JSON.parse(readFileSync(new URL("music-candidates/manifest.json", root), "utf8"));
+const PULSE_ID = "warm-drive-pulse-112";
 describe("original musical source mastering", () => {
   it("reproduces exact candidate PCM and selects the same content-hashed waveform for game and harness", () => {
-    const selected = manifest.candidates.find((row: { id: string }) => row.id === manifest.selectedId);
-    expect(MUSIC_URL).toBe(selected.url);
-    expect(manifest.runtimeUrl).toBe(selected.url);
+    const runtime = manifest.candidates.find((row: { id: string }) => row.id === manifest.selectedId);
+    expect(MUSIC_URL).toBe(runtime.url);
+    expect(manifest.runtimeUrl).toBe(runtime.url);
+    expect(runtime.role).toBe("selected");
+    const selected = manifest.candidates.find((row: { id: string }) => row.id === PULSE_ID);
     expect(selected.bpm).toBe(112);
-    expect(selected.role).toBe("selected");
+    expect(selected.role).toBe("alternative");
     expect(selected.finishedAnalysis.sha256).toBe(selected.sha256);
     expect(selected.finishedAnalysis.gridBpm).toBe(112);
     expect(selected.finishedAnalysis.measuredTempo.sha256).toBe(selected.sha256);
@@ -54,7 +57,7 @@ describe("original musical source mastering", () => {
   });
   it("preserves liked dry bytes and adds sparse natural-recorded accents on the measured score phase", () => {
     const dry = manifest.candidates.find((row: { id: string }) => row.id === "warm-drive");
-    const selected = manifest.candidates.find((row: { id: string }) => row.id === manifest.selectedId);
+    const selected = manifest.candidates.find((row: { id: string }) => row.id === PULSE_ID);
     const originalBytes = readFileSync(new URL(dry.file, root));
     expect(createHash("sha256").update(originalBytes).digest("hex")).toBe(
       "dfc22b914a38fd0c2e681022c3e630288c3fcf0a8f5cf73687bbabd9471a6715",
@@ -94,7 +97,7 @@ describe("original musical source mastering", () => {
     expect(analysis.phaseSeconds).toBeGreaterThan(0.1);
   });
   it("retains rhythmic energy across the circular boundary rather than inserting a silence gap", () => {
-    const selected = manifest.candidates.find((row: { id: string }) => row.id === manifest.selectedId);
+    const selected = manifest.candidates.find((row: { id: string }) => row.id === PULSE_ID);
     const pcm = decodeMusicWav(readFileSync(new URL(selected.file, root)));
     const frames = Math.round(pcm.sampleRate * 0.12);
     const rms = (data: Float32Array) => Math.sqrt(data.reduce((sum, sample) => sum + sample * sample, 0) / data.length);
