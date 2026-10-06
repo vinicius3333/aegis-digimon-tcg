@@ -4,7 +4,13 @@ import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { spectatorInviteUrl } from "../../../roomInvite";
 
-export function SpectatorInvite({ code }: { code: string }) {
+export function SpectatorInvite({
+  code,
+  variant = "desktop",
+}: {
+  code: string;
+  variant?: "desktop" | "mobile" | "menu";
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -23,7 +29,7 @@ export function SpectatorInvite({ code }: { code: string }) {
     <>
       <button
         type="button"
-        className="game-topbar-button"
+        className={variant === "menu" ? undefined : variant === "mobile" ? "game-mobile-share" : "game-topbar-button"}
         aria-label={t("spectator.share")}
         title={t("spectator.share")}
         onClick={() => {
@@ -32,14 +38,14 @@ export function SpectatorInvite({ code }: { code: string }) {
           setOpen(true);
         }}
       >
-        <Icons.Link2 size={17} />
+        <Icons.Link2 size={variant === "menu" ? 18 : variant === "mobile" ? 16 : 17} />
+        {variant === "menu" ? t("spectator.share") : null}
       </button>
       {open ? (
         <Dialog labelledBy="spectator-invite-title" onClose={() => setOpen(false)}>
           <h2 id="spectator-invite-title">{t("spectator.share")}</h2>
-          <p>{t("spectator.shareHint")}</p>
           <Field label={t("spectator.code")} value={code} readOnly />
-          <Field label={t("spectator.copy")} value={url} readOnly onFocus={(event) => event.target.select()} />
+          <Field label={t("spectator.link")} value={url} readOnly onFocus={(event) => event.target.select()} />
           <Button onClick={() => void copy()}>{t(copied ? "spectator.copied" : "spectator.copy")}</Button>
           {copyError ? <p role="status">{t("spectator.copyError")}</p> : null}
         </Dialog>

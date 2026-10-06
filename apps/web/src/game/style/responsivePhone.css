@@ -175,6 +175,7 @@
   /* Both match controls are square icons: the surrender label was as wide as the
      word it happened to be translated into, and the header shifted around it. */
   .game-mobile-surrender,
+  .game-mobile-share,
   .game-mobile-log,
   .game-mobile-bug {
     display: grid;

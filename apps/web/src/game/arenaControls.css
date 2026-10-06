@@ -91,7 +91,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender) {
+.game-opponent-bar
+  :is(.game-topbar-button, .game-mobile-share, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender) {
   border: 1px solid rgb(186 217 228 / 65%);
   color: #def8ff;
   background: linear-gradient(145deg, #354b59, #142b38);
@@ -104,13 +105,21 @@
     translate 150ms ease;
 }
 
-.game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):focus-visible,
+.game-opponent-bar
+  :is(
+    .game-topbar-button,
+    .game-mobile-share,
+    .game-mobile-log,
+    .game-mobile-bug,
+    .game-mobile-surrender
+  ):focus-visible,
 .game-board .game-end-turn-orb:focus-visible {
   outline: 3px solid #e5faff;
   outline-offset: 4px;
 }
 
-.game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):active {
+.game-opponent-bar
+  :is(.game-topbar-button, .game-mobile-share, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):active {
   translate: 0 2px;
 }
 
@@ -159,7 +168,8 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):hover,
+  .game-opponent-bar
+    :is(.game-topbar-button, .game-mobile-share, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender):hover,
   .game-board .game-end-turn-orb:hover:not(:disabled) {
     filter: brightness(1.15);
   }
@@ -192,7 +202,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .game-opponent-bar :is(.game-topbar-button, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender),
+  .game-opponent-bar
+    :is(.game-topbar-button, .game-mobile-share, .game-mobile-log, .game-mobile-bug, .game-mobile-surrender),
   .game-board .game-end-turn-orb {
     transition: none;
   }

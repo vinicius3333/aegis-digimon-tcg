@@ -90,7 +90,6 @@ export function OpponentBar({
         background: "var(--ds-surface)",
       }}
     >
-      {spectatorCode ? <SpectatorInvite code={spectatorCode} /> : null}
       <ArenaCounters side={Side.Opponent} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
       <PlayerLine
         name={opponentName}
@@ -174,6 +173,7 @@ export function OpponentBar({
             <Icons.MoreVertical size={20} />
           </summary>
           <div className="game-mobile-menu__actions">
+            {spectatorCode ? <SpectatorInvite code={spectatorCode} variant="menu" /> : null}
             {onResetScenario ? (
               <button type="button" onClick={onResetScenario}>
                 ↻ Reset battle
@@ -200,6 +200,7 @@ export function OpponentBar({
         </details>
       ) : narrowGameLayout ? (
         <>
+          {spectatorCode ? <SpectatorInvite code={spectatorCode} variant="mobile" /> : null}
           <button
             type="button"
             className="game-mobile-log"
@@ -230,6 +231,7 @@ export function OpponentBar({
         </>
       ) : (
         <div className="game-topbar-actions">
+          {spectatorCode ? <SpectatorInvite code={spectatorCode} /> : null}
           {onResetScenario ? (
             <button
               type="button"

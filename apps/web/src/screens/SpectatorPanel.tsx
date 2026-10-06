@@ -22,7 +22,6 @@ export function SpectatorPanel({ onWatch }: { onWatch: (code: string) => void })
             if (code.length === 6) onWatch(code);
           }}
         >
-          <p>{t("spectator.hint")}</p>
           <Field
             label={t("spectator.code")}
             name="spectatorCode"
