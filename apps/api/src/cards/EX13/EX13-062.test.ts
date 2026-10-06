@@ -193,52 +193,55 @@ describe("EX13-062 Craniamon", () => {
     expect(observe(s.engine).isRestrictedByEffect(s.perm("craniamon"), "beAffected", "Digimon")).toBe(true);
   });
 
-  it("plays by Assembly from the trash for 5 less, stacking the leftmost slot closest to the top", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [
-            { card: CARD_ID, as: "craniamon" },
-            { card: FILLER, as: "spare" },
-          ],
-          trash: [
-            { card: LV5_BLACK_BLOCKER, as: "lv5" },
-            { card: LV4_BLACK_BLOCKER, as: "lv4" },
-            { card: LV3_BLACK_BLOCKER, as: "lv3" },
-          ],
-          deck: DECK,
-          security: [FILLER],
+  it.each([LV5_BLACK_BLOCKER, "BT23-056"])(
+    "Discord 1556898336567459890: plays by Assembly with %s for 5 less, stacking the leftmost slot closest to the top",
+    async (lv5) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: CARD_ID, as: "craniamon" },
+              { card: FILLER, as: "spare" },
+            ],
+            trash: [
+              { card: lv5, as: "lv5" },
+              { card: LV4_BLACK_BLOCKER, as: "lv4" },
+              { card: LV3_BLACK_BLOCKER, as: "lv3" },
+            ],
+            deck: DECK,
+            security: [FILLER],
+          },
+          1: { deck: DECK, security: [FILLER, FILLER] },
         },
-        1: { deck: DECK, security: [FILLER, FILLER] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    s.state.memory = 8;
-    await s.ready();
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 8;
+      await s.ready();
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: s.inst("craniamon").instanceId,
-        assembly: {
-          materialInstanceIds: [s.inst("lv5").instanceId, s.inst("lv4").instanceId, s.inst("lv3").instanceId],
-        },
-      } as never),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
-    await settle(() => s.state.pendingDecision === undefined);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("craniamon").instanceId,
+          assembly: {
+            materialInstanceIds: [s.inst("lv5").instanceId, s.inst("lv4").instanceId, s.inst("lv3").instanceId],
+          },
+        } as never),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+      await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.state.memory).toBe(1);
-    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === CARD_ID)!;
-    expect(played.stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("lv3").instanceId,
-      s.inst("lv4").instanceId,
-      s.inst("lv5").instanceId,
-    ]);
-    expect(played.currentDP).toBe(12_000);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
+      expect(s.state.memory).toBe(1);
+      const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === CARD_ID)!;
+      expect(played.stack.map(({ instanceId }) => instanceId)).toEqual([
+        s.inst("lv3").instanceId,
+        s.inst("lv4").instanceId,
+        s.inst("lv5").instanceId,
+      ]);
+      expect(played.currentDP).toBe(12_000);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
 
   it("refuses Assembly declarations failing either printed predicate, the level order, the count or the zone", async () => {
     const cases: { label: string; trash: string[] }[] = [

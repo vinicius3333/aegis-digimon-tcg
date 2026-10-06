@@ -79,11 +79,34 @@ function declaresPrintedKeyword(definition: CardDefinition, keyword: string): bo
   if (compiled === undefined) {
     return (definition.effectText ?? "").toLowerCase().includes(`＜${keyword.toLowerCase()}`);
   }
-  return compiled.effects.some(
-    (effect) =>
-      effect.isInherited !== true &&
-      (effect.trigger === "Static" || effect.trigger === "Rule") &&
-      (effect.keywords ?? []).some((entry) => normalizeKeyword(entry.keyword) === requested),
+  const matchesRequested = (entry: { keyword?: string } | undefined): boolean =>
+    normalizeKeyword(entry?.keyword ?? "") === requested;
+  if ((compiled.keywords ?? []).some(matchesRequested)) return true;
+  return (
+    compiled.effects.some(
+      (effect) =>
+        effect.isInherited !== true &&
+        (effect.trigger === "Static" || effect.trigger === "Rule") &&
+        (effect.keywords ?? []).some(matchesRequested),
+    ) ||
+    compiled.effects.some(
+      (effect) =>
+        effect.isInherited !== true &&
+        effect.isLinked !== true &&
+        effect.isSecurity !== true &&
+        effect.isBreeding !== true &&
+        effect.isFromTrash !== true &&
+        effect.trigger === "Static" &&
+        effect.condition === undefined &&
+        effect.actions.some(
+          (action) =>
+            action.kind === "GainKeyword" &&
+            action.condition === undefined &&
+            action.target.isSelf === true &&
+            action.duration === "permanent" &&
+            [action.keyword, ...(action.keywords ?? [])].some(matchesRequested),
+        ),
+    )
   );
 }
 
