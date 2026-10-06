@@ -236,12 +236,28 @@ idle compute, fresh seed inventories and an attached actual whole before
 model imports. Pre/post guards preserve source, compiled runtime, checkpoint
 and proof bytes; the producer freezes and checks all twelve finite tensors.
 
-Eleven explicitly synthetic admission/whole/parent/pristine-row guards pass.
+Seventeen explicitly synthetic guards pass: eleven admission/whole/parent/
+pristine-row checks and six complete CPU worker-flow rehearsals using fake
+modules/models/capture. They reject wrong module paths before model loading,
+nonfinite initial tensors and wrong checkpoint bindings before capture, and
+changed tensors/checkpoint bytes after capture while retaining partial raw
+fixtures and emitting no success proof. Those fixtures are not actual CUDA
+models, games, physical custody or a future successful closure. The additional
+worker-fixture report SHA-256 is
+`65636840a1d48b587c362d049746aa949c1c5b534e5ab570e3740b48d18af230`.
 An actual readonly desktop inspection confirms all original helper pins,
 imports their static consumers without Torch, and constructs the unchanged
 440-cell schedule with all 44 recipes and 220 cells per seat. This is source
-preparation: the new operator has not been uploaded, fully admitted on the
-desktop or executed, and no physical matches or primary models were started.
+preparation: the new operator is now exclusively uploaded to
+`/home/vinicius/aegis-bot-lab/transfers/rule-link-current-physical.py`, with exact
+SHA-256 and 25,167 bytes independently rechecked and mode 0444. Its actual
+Python 3.12.14 syntax/stdlib import succeeds and its request guard rejects
+unknown selected-candidate/comparison pins before model imports. Upload
+receipt SHA-256 is
+`53931dd4d073ad9331036196ae717fa34ac4c6745a4038924b0a6e83752f8ac1`.
+The complete new qualification operator has not been admitted with an actual
+closed comparison or executed; no physical matches, runtime jobs or primary
+models were started by this preparation.
 The source-review report SHA-256 is
 `ee8dba2aaeb2b59bc432f3587a8fe3b531c3c9d8dab79537e410cefcff5de798`.
 The actual selected checkpoint, comparison completion, fresh request/inventory
