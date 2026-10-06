@@ -21,7 +21,11 @@ import type { VisibleBoard } from "./screen/model/visibleBoard";
 import { handEntriesOf } from "./screen/model/handEntries";
 import { presentedSeats } from "./screen/model/presentedSeats";
 
-vi.mock("../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
+vi.mock("../design/sound", () => ({
+  playSound: vi.fn<(kind: string) => void>(),
+  startMusic: vi.fn<() => void>(),
+  stopMusic: vi.fn<() => void>(),
+}));
 
 function card(instanceId: string, cardId = "ST1-07") {
   const value = new CardInstance();

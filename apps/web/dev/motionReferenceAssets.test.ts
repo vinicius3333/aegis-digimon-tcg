@@ -13,7 +13,7 @@ it("serves only reference assets and honors seek ranges and HEAD without exposin
     publicDir: false,
     appType: "custom",
     plugins: [motionReferenceAssets(directory, ["fixture"])],
-    server: { host: "127.0.0.1", port: 0, strictPort: true },
+    server: { host: "127.0.0.1", port: 0, strictPort: false },
   });
   try {
     await mkdir(path.join(directory, "fixture"));
