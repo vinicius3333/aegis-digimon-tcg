@@ -929,6 +929,9 @@ export function OrganizedBattleRow({
     return Math.max(drawn.length === 0 ? 1 : 0, count);
   }
   const digimonSlots = emptySlots(merged ? cards : digimonCards, lanes.digimon, DIGIMON_GAP_SHARE);
+  // Two lanes always draw the support lane, outlining its places like the Digimon lane's.
+  const drawsSupportLane = !merged && (hasSupport || content.reserveSupport);
+  const supportSlots = emptySlots(supportCards, lanes.support, SUPPORT_GAP_SHARE);
   useFieldMotion(ref, previous, cards, isSuspended, size);
   useLayoutEffect(() => {
     splitKeys.current = new Set(cards.filter((drawn) => drawn.splitOff).map((drawn) => drawn.fieldKey));
@@ -968,29 +971,30 @@ export function OrganizedBattleRow({
   );
 
   const showsDigimonLane = merged || content.digimonCount > 0 || !hasSupport || keepsDigimonSlot;
-  const supportLane =
-    hasSupport && !merged ? (
-      <BattleRow
-        key="support"
-        className="game-battle-row game-battle-lane game-battle-lane--support"
-        role="group"
-        aria-label={supportLabel}
-        edgeClearance={edge(lanes.support, content.supportSources)}
-        style={{
-          flex: "0 1 auto",
-          display: "flex",
-          gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
-          justifyContent: "safe center",
-          alignItems: "center",
-          ...({
-            "--field-lane-top": `${metrics.supportPadding.top}px`,
-            "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
-          } as React.CSSProperties),
-        }}
-      >
-        {supportCards.map(renderCard)}
-      </BattleRow>
-    ) : null;
+  const supportLane = drawsSupportLane ? (
+    <BattleRow
+      key="support"
+      className="game-battle-row game-battle-lane game-battle-lane--support"
+      role="group"
+      aria-label={supportLabel}
+      cardWidth={lanes.support}
+      emptySlotCount={supportSlots}
+      edgeClearance={edge(lanes.support, content.supportSources)}
+      style={{
+        flex: "0 1 auto",
+        display: "flex",
+        gap: laneGap(lanes.support, size.preferStacked, SUPPORT_GAP_SHARE),
+        justifyContent: "safe center",
+        alignItems: "center",
+        ...({
+          "--field-lane-top": `${metrics.supportPadding.top}px`,
+          "--field-lane-bottom": `${metrics.supportPadding.bottom}px`,
+        } as React.CSSProperties),
+      }}
+    >
+      {supportCards.map(renderCard)}
+    </BattleRow>
+  ) : null;
 
   return (
     <div
@@ -1002,7 +1006,7 @@ export function OrganizedBattleRow({
         ...rowProps.style,
         gap: LANE_GAP,
         ...({
-          "--field-lane-overlap": `${hasSupport ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
+          "--field-lane-overlap": `${drawsSupportLane ? laneOverlap(lanes.placement, content, metrics) : 0}px`,
         } as React.CSSProperties),
       }}
     >

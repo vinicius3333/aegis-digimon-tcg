@@ -69,6 +69,28 @@ afterEach(() => {
 });
 
 describe("organized battle lanes", () => {
+  it("outlines empty places in the support lane, like the Digimon lane", () => {
+    mockViewport({ phone: false });
+    const { container } = render(view([permanent("tamer")]));
+    const row = container.querySelector("[data-field-layout]")!;
+    expect(row.getAttribute("data-lanes")).toBe("stacked");
+    const support = container.querySelector(".game-battle-lane--support")!;
+    expect(support.hasAttribute("data-card-slots")).toBe(true);
+    expect(support.querySelectorAll(".game-field-card-slot").length).toBeGreaterThan(0);
+    expect(container.querySelectorAll(".game-battle-lane--digimon .game-field-card-slot").length).toBeGreaterThan(0);
+  });
+
+  it("keeps an empty support lane drawn with its places when two lanes are chosen", () => {
+    mockViewport({ phone: false });
+    for (const supportFirst of [false, true]) {
+      const { container, unmount } = render(view([], supportFirst));
+      const support = container.querySelector(".game-battle-lane--support");
+      expect(support).not.toBeNull();
+      expect(support!.querySelectorAll(".game-field-card-slot").length).toBeGreaterThan(0);
+      unmount();
+    }
+  });
+
   it("puts the groups after the Digimon in one lane when one lane is chosen", () => {
     mockViewport({ phone: false });
     setBattleLanes(BattleLanes.One);
@@ -90,6 +112,7 @@ describe("organized battle lanes", () => {
 
     act(() => resize(false));
     expect(lanes()).toBe("stacked");
+    expect(container.querySelector(".game-battle-lane--support .game-field-card-slot")).not.toBeNull();
   });
 
   it("grows a single lane's cards while the pieces beside the rows keep the two-lane size", () => {
