@@ -14,3 +14,12 @@ export function roomCodeFromSearch(search: string): string | undefined {
   const code = new URLSearchParams(search).get(ROOM_INVITE_PARAM)?.trim().toUpperCase();
   return code && /^[A-Z0-9]{4,8}$/.test(code) ? code : undefined;
 }
+
+export function spectatorInviteUrl(code: string, origin = window.location.origin): string {
+  return `${origin}${SCREEN_PATHS.lobby}?watch=${encodeURIComponent(code.toUpperCase())}`;
+}
+
+export function spectatorCodeFromSearch(search: string): string | undefined {
+  const code = new URLSearchParams(search).get("watch")?.trim().toUpperCase();
+  return code && /^[A-Z2-9]{6}$/.test(code) ? code : undefined;
+}

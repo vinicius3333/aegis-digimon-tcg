@@ -15,6 +15,21 @@ import { settingsPtBR } from "./redesign/settings.pt-BR";
 import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
+  "spectator.code": "Código da partida",
+  "spectator.share": "Compartilhar partida",
+  "spectator.link": "Link",
+  "spectator.copy": "Copiar link",
+  "spectator.copied": "Link copiado",
+  "spectator.copyError": "Copie o link acima.",
+  "spectator.title": "Assistir partida",
+  "spectator.watch": "Assistir",
+  "spectator.watching": "Espectador",
+  "spectator.leave": "Parar de assistir",
+  "spectator.finished": "Partida encerrada",
+  "spectator.winner": "Vencedor: {name}",
+  "spectator.draw": "Empate",
+  "spectator.back": "Voltar ao lobby",
+
   "lobby.timer.label": "Tempo de partida",
   "lobby.timer.with": "Com timer",
   "lobby.timer.without": "Sem timer",

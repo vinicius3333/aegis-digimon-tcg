@@ -27,6 +27,7 @@ export interface ColyseusClientPort {
   joinOrCreate: (roomName: string, options: AegisJoinOptions) => Promise<AegisRoom>;
   create: (roomName: string, options: AegisJoinOptions & { private?: boolean }) => Promise<AegisRoom>;
   joinById: (roomId: string, options: AegisJoinOptions & { roomCode?: string }) => Promise<AegisRoom>;
+  consumeSeatReservation: (reservation: Parameters<Client["consumeSeatReservation"]>[0]) => Promise<AegisRoom>;
   reconnect: (reconnectionToken: string) => Promise<AegisRoom>;
 }
 
@@ -128,6 +129,20 @@ export class AegisConnectionRouter {
       return this.remember(joined, slot);
     }
     throw new Error("room not found");
+  }
+
+  async spectate(target: { roomCode: string }): Promise<AegisRoom> {
+    const manifest = await this.dependencies.loadManifest();
+    const deployments = [manifest.active, ...manifest.draining];
+    for (const { slot } of deployments) {
+      const { http } = this.dependencies.endpointForSlot(slot);
+      const response = await this.fetch(`${http}/spectate/join`, spectatorJoinRequest(target));
+      if (response.status === 404) continue;
+      if (!response.ok) throw new Error("Match is not available to spectators");
+      const reservation = await response.json();
+      return this.remember(await this.client(slot).consumeSeatReservation(reservation), slot);
+    }
+    throw new Error("Match is not available to spectators");
   }
 
   async reconnect(reconnectionToken: string, slot: DeploymentSlot): Promise<AegisRoom> {
@@ -232,6 +247,7 @@ function getProductionRouter(): AegisConnectionRouter {
         joinOrCreate: (name, options) => client.joinOrCreate<GameState>(name, options, GameState),
         create: (name, options) => client.create<GameState>(name, options, GameState),
         joinById: (roomId, options) => client.joinById<GameState>(roomId, options, GameState),
+        consumeSeatReservation: (reservation) => client.consumeSeatReservation<GameState>(reservation, GameState),
         reconnect: (token) => client.reconnect<GameState>(token, GameState),
       };
     },
@@ -358,4 +374,18 @@ export function flushIntents(room: AegisRoom): void {
 
 export function clearPendingIntents(): void {
   pendingIntents.length = 0;
+}
+
+function spectatorJoinRequest(target: { roomCode: string }): RequestInit {
+  return { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(target) };
+}
+
+export async function spectate(target: { roomCode: string }): Promise<AegisRoom> {
+  if (useProductionRouter()) return getProductionRouter().spectate(target);
+  const response = await fetch(
+    `${legacyEndpoint().replace(/^ws/, "http")}/spectate/join`,
+    spectatorJoinRequest(target),
+  );
+  if (!response.ok) throw new Error("Match is not available to spectators");
+  return rememberLegacy(await getLegacyClient().consumeSeatReservation<GameState>(await response.json(), GameState));
 }

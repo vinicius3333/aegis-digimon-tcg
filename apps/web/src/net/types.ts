@@ -5,6 +5,7 @@
  * must agree on it.
  */
 export interface AegisJoinOptions {
+  spectator?: boolean;
   displayName: string;
   avatarId?: string;
   deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids

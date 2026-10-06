@@ -142,7 +142,7 @@ export function MatchOverlays({
   log: LogLine[];
   signedIn: boolean;
   opponentDropped: boolean;
-  gameOver: { result: GameOverOutcome; reason: string } | undefined;
+  gameOver: { spectatorResult?: string; result: GameOverOutcome; reason: string } | undefined;
   overlays: ReturnType<typeof useOverlayState>;
   selection: ReturnType<typeof useBoardSelection>;
   intents: ReturnType<typeof matchIntents>;
@@ -320,11 +320,13 @@ export function MatchOverlays({
           gameOver
             ? {
                 ...gameOver,
-                stats: [
-                  { value: state.turnCount, label: t("game.stats.turns") },
-                  { value: opponent.battleArea.length, label: t("game.stats.oppBoard") },
-                  { value: viewer.securityCount, label: t("game.stats.yourSecurity") },
-                ],
+                stats: gameOver.spectatorResult
+                  ? [{ value: state.turnCount, label: t("game.stats.turns") }]
+                  : [
+                      { value: state.turnCount, label: t("game.stats.turns") },
+                      { value: opponent.battleArea.length, label: t("game.stats.oppBoard") },
+                      { value: viewer.securityCount, label: t("game.stats.yourSecurity") },
+                    ],
               }
             : undefined
         }

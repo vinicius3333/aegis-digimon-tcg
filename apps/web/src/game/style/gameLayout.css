@@ -603,3 +603,11 @@
   font-size: var(--ds-text-xs);
   font-weight: 700;
 }
+
+.game-spectator-hand {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  overflow: hidden;
+}

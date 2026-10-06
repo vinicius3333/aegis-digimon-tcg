@@ -133,6 +133,8 @@ export interface HandDockInputs {
 }
 
 export function BoardStage({
+  spectating = false,
+  onLeaveSpectator,
   state,
   shownState,
   viewer,
@@ -171,6 +173,8 @@ export function BoardStage({
   viewerSeat: Seat;
   /** The card whose effect the viewer's open decision is about. */
   promptSourceCardId?: string | undefined;
+  spectating?: boolean;
+  onLeaveSpectator?: () => void;
   room: Parameters<typeof intents.surrender>[0] | undefined;
   look: ArenaBoardLook;
   layout: ReturnType<typeof useArenaLayout>;
@@ -237,6 +241,7 @@ export function BoardStage({
     // decision dialogs — opens it through this one blow-up.
     <CardOpenerProvider onOpenCard={onOpenCard}>
       <main
+        data-spectator={spectating || undefined}
         className="game-layout aegis-arena"
         data-viewer-seat={viewerSeat}
         style={{
@@ -265,6 +270,8 @@ export function BoardStage({
           }}
         >
           <OpponentBar
+            spectating={spectating}
+            spectatorCode={!state.gameOver ? state.spectatorCode : undefined}
             onResetScenario={onResetScenario}
             timer={state.matchTimer ? <MatchTimer state={state} seat={other} opponent /> : undefined}
             handStripRef={anchors.opponentHandStrip}
@@ -285,7 +292,7 @@ export function BoardStage({
             onOpenLog={() => overlays.setHistoryOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
             onOpenArenaLook={() => overlays.setArenaLookOpen(true)}
-            onSurrender={() => overlays.setSurrenderConfirmOpen(true)}
+            onSurrender={spectating ? () => onLeaveSpectator?.() : () => overlays.setSurrenderConfirmOpen(true)}
             onSkipPresentation={() => cues.skipAnimations()}
           />
 
@@ -477,6 +484,7 @@ export function BoardStage({
           </div>
 
           <PlayerDock
+            spectating={spectating}
             timer={state.matchTimer ? <MatchTimer state={state} seat={viewerSeat} /> : undefined}
             playerName={viewer.displayName || t("game.you")}
             playerAvatarId={viewer.avatarId}
@@ -495,7 +503,7 @@ export function BoardStage({
             actionBar={handDock.actionBar}
             reserveActionBarSpace={handDock.reserveActionBarSpace}
             eggDeckCount={breedingViewer.eggDeckCount}
-            handCount={seats.shownHandCount}
+            handCount={spectating ? shownViewer.handCount : seats.shownHandCount}
             deckCount={shownViewer.deckCount}
             trashCount={shownViewer.trash.length}
             startDrag={onStartHandDrag}
@@ -526,7 +534,7 @@ export function BoardStage({
         {/* Desktop plays without the sidebar — its controls moved to the header
             cluster and the end-turn orb; the log opens from the header.
             The narrow layout keeps it: there it collapses into the touch strip. */}
-        {layout.narrowGameLayout ? (
+        {layout.narrowGameLayout && !spectating ? (
           <Sidebar
             phase={state.phase}
             turnCount={state.turnCount}
@@ -538,7 +546,7 @@ export function BoardStage({
             narrow
             log={readouts.log}
             onHatchOrMove={actions.onBreeding}
-            onSurrender={() => overlays.setSurrenderConfirmOpen(true)}
+            onSurrender={spectating ? () => onLeaveSpectator?.() : () => overlays.setSurrenderConfirmOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
           />
         ) : null}

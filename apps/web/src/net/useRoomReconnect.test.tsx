@@ -11,10 +11,12 @@ import {
 import type { AegisRoom } from "./client";
 
 const joinOrCreate = vi.fn();
+const spectate = vi.fn<(...args: unknown[]) => Promise<AegisRoom>>();
 const createBot = vi.fn<(...args: unknown[]) => Promise<AegisRoom>>();
 const reconnect = vi.fn();
 
 vi.mock("./client", () => ({
+  spectate: (...args: unknown[]) => spectate(...args),
   joinOrCreate: (...args: unknown[]) => joinOrCreate(...args),
   createBot: (...args: unknown[]) => createBot(...args),
   createPrivate: vi.fn(),
@@ -341,4 +343,17 @@ describe("useRoom reconnection token persistence", () => {
     resumed.emitDecision(decision);
     expect(result.current.decision).toEqual(decision);
   });
+});
+
+it("joins as an observer without readying a player and persists its role", async () => {
+  const joined = fakeRoom("watched-match");
+  spectate.mockResolvedValue(joined.room);
+  const { result } = renderHook(() =>
+    useRoom({ ...OPTIONS, spectator: true }, { mode: "spectator", roomCode: "ABCDEF" }),
+  );
+  await waitFor(() => expect(result.current.status).toBe("connected"));
+  joined.emitState({ players: [] } as unknown as Partial<GameState>);
+  expect(spectate).toHaveBeenCalledWith({ roomCode: "ABCDEF" });
+  expect(joined.room.send).not.toHaveBeenCalled();
+  expect(loadReconnectSession()?.spectator).toBe(true);
 });

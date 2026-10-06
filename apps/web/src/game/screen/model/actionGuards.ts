@@ -11,6 +11,7 @@ import { canAttackWith, canMoveFromBreeding } from "../../boardModel";
 import { isBreedingWindow } from "../../turnControl";
 
 export function actionGuards({
+  spectating = false,
   state,
   viewer,
   viewerSeat,
@@ -18,6 +19,7 @@ export function actionGuards({
   presenting,
   phasePresentationPending,
 }: {
+  spectating?: boolean;
   state: GameState;
   viewer: PlayerState;
   viewerSeat: Seat;
@@ -28,7 +30,7 @@ export function actionGuards({
   /** A turn, phase or unsuspend ribbon is still queued or on screen. */
   phasePresentationPending: boolean;
 }) {
-  const isMyTurn = state.turnSeat === viewerSeat;
+  const isMyTurn = !spectating && state.turnSeat === viewerSeat;
   const turnActionBlocked =
     state.gameOver ||
     decisionOpen ||

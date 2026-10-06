@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { roomCodeFromSearch, roomInviteUrl } from "./roomInvite";
+import { roomCodeFromSearch, roomInviteUrl, spectatorCodeFromSearch, spectatorInviteUrl } from "./roomInvite";
 
 describe("room invite links", () => {
   it("builds a lobby link carrying the code", () => {
@@ -12,4 +12,13 @@ describe("room invite links", () => {
     expect(roomCodeFromSearch("?room=not%20a%20code")).toBeUndefined();
     expect(roomCodeFromSearch("")).toBeUndefined();
   });
+});
+
+it("shares observer links separately from player invitations", () => {
+  const url = spectatorInviteUrl("abcdef", "https://aegis.example");
+  expect(url).toBe("https://aegis.example/play?watch=ABCDEF");
+  expect(spectatorCodeFromSearch(new URL(url).search)).toBe("ABCDEF");
+  expect(roomCodeFromSearch(new URL(url).search)).toBeUndefined();
+  expect(spectatorCodeFromSearch("?watch=short")).toBeUndefined();
+  expect(spectatorCodeFromSearch("?watch=ABCDEF<script>")).toBeUndefined();
 });

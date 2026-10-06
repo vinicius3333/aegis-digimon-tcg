@@ -19,6 +19,7 @@ export interface ReconnectSession {
   roomId: string;
   slot: RoomSlot;
   savedAt: number;
+  spectator?: boolean;
 }
 
 export function isReconnectSessionFresh(session: ReconnectSession, now: number): boolean {
@@ -72,6 +73,7 @@ export function loadReconnectSession(now: number = Date.now()): ReconnectSession
     roomId: parsed.roomId,
     slot: parsed.slot as RoomSlot,
     savedAt: parsed.savedAt,
+    ...(parsed.spectator === true ? { spectator: true } : {}),
   };
   if (!isReconnectSessionFresh(session, now)) {
     clearReconnectSession();

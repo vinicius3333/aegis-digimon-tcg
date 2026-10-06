@@ -1,3 +1,4 @@
+import { SpectatorInvite } from "./SpectatorInvite";
 /* The bar across the top of the board: the opponent's counters, the fan of card
    backs that stands for their hand, and the match-level controls.
 
@@ -20,6 +21,8 @@ import { useFullscreen } from "../hooks/useFullscreen";
 const OPPONENT_NAME_MAX_LENGTH = 12;
 
 export function OpponentBar({
+  spectating = false,
+  spectatorCode,
   timer,
   handStripRef,
   opponentName,
@@ -43,6 +46,8 @@ export function OpponentBar({
   onSkipPresentation,
   onResetScenario,
 }: {
+  spectating?: boolean;
+  spectatorCode?: string;
   timer?: ReactNode;
   handStripRef: RefObject<HTMLDivElement | null>;
   opponentName: string;
@@ -139,7 +144,12 @@ export function OpponentBar({
       </div>
       <div className="game-mobile-turn">
         <strong>
-          {displayedTurnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")} · {displayedTurnCount}
+          {spectating
+            ? t("spectator.watching")
+            : displayedTurnSeat === viewerSeat
+              ? t("game.yourTurn")
+              : t("game.opponentsTurn")}{" "}
+          · {displayedTurnCount}
         </strong>
         <span>
           {t(`game.phase.${phase}` as const)} · {memory > 0 ? "+" : ""}
@@ -163,6 +173,7 @@ export function OpponentBar({
             <Icons.MoreVertical size={20} />
           </summary>
           <div className="game-mobile-menu__actions">
+            {spectatorCode ? <SpectatorInvite code={spectatorCode} variant="menu" /> : null}
             {onResetScenario ? (
               <button type="button" onClick={onResetScenario}>
                 ↻ Reset battle
@@ -183,12 +194,13 @@ export function OpponentBar({
               <Icons.Settings size={18} /> {t("redesign.arena.look.open")}
             </button>
             <button type="button" onClick={onSurrender}>
-              <Icons.LogOut size={18} /> {t("game.surrender")}
+              <Icons.LogOut size={18} /> {t(spectating ? "spectator.leave" : "game.surrender")}
             </button>
           </div>
         </details>
       ) : narrowGameLayout ? (
         <>
+          {spectatorCode ? <SpectatorInvite code={spectatorCode} variant="mobile" /> : null}
           <button
             type="button"
             className="game-mobile-log"
@@ -212,13 +224,14 @@ export function OpponentBar({
           <button
             className="game-mobile-surrender"
             onClick={onResetScenario ?? onSurrender}
-            aria-label={onResetScenario ? "Reset battle" : t("game.surrender")}
+            aria-label={onResetScenario ? "Reset battle" : t(spectating ? "spectator.leave" : "game.surrender")}
           >
             {onResetScenario ? "↻" : <Icons.LogOut size={16} />}
           </button>
         </>
       ) : (
         <div className="game-topbar-actions">
+          {spectatorCode ? <SpectatorInvite code={spectatorCode} /> : null}
           {onResetScenario ? (
             <button
               type="button"
@@ -272,7 +285,7 @@ export function OpponentBar({
           <button
             className="game-topbar-button game-topbar-button--danger"
             onClick={onSurrender}
-            aria-label={t("game.surrender")}
+            aria-label={t(spectating ? "spectator.leave" : "game.surrender")}
           >
             <Icons.LogOut size={17} />
           </button>

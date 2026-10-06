@@ -107,6 +107,7 @@ import { buildMatchLog, type LogLine } from "./matchLog";
 import { useMatchCues } from "./useMatchCues";
 import type { PresentationPacing, PresentationProbe } from "./presentationProbe";
 import { TIMINGS } from "./timings";
+import { loadReconnectSession } from "../net/reconnectSession";
 import { pendingFateBadges } from "./pendingFate";
 
 export function GameScreen({
@@ -160,10 +161,12 @@ export function GameScreen({
   presentationPacing?: PresentationPacing;
 }) {
   const { t } = useTranslation();
+  const [spectating] = useState(() => startMode === "spectator" || loadReconnectSession()?.spectator === true);
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
   const arenaLayout = useArenaLayout();
   const { narrowGameLayout, compactPiles, shortBoard, collapseNotices } = arenaLayout;
   const matchConfig = useMemo(() => {
+    if (startMode === "spectator") return { mode: "spectator" as const, roomCode };
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
     return { mode: startMode, roomCode, waitForHost };
@@ -171,15 +174,16 @@ export function GameScreen({
   const roomOptions = useMemo(
     () => ({
       ...joinOptions,
+      spectator: spectating,
       ranked: startMode === "ranked",
       betaBattleMode: startMode === "beta" || (startMode === "bot" && betaBattleMode === true),
       presentationPacing,
     }),
-    [joinOptions, startMode, betaBattleMode, presentationPacing],
+    [joinOptions, startMode, betaBattleMode, presentationPacing, spectating],
   );
   const liveConnection = useRoom(roomOptions, matchConfig, demoConnection !== undefined);
   const {
-    room,
+    room: connectedRoom,
     status,
     state,
     events,
@@ -191,6 +195,7 @@ export function GameScreen({
     roomCode: hostRoomCode,
     snapshots,
   } = demoConnection ?? liveConnection;
+  const room = spectating ? undefined : connectedRoom;
   // A demo or showcase fabricates events with no batch boundary of their own, so its list
   // is presented as the one moment it describes.
   const cueBatches = useMemo(() => batches ?? [singleServerBatch(events)], [batches, events]);
@@ -718,6 +723,7 @@ export function GameScreen({
   const displayedTurnSeat = cues.displayedTurn?.seat ?? shownState.turnSeat;
   const displayedTurnCount = cues.displayedTurn?.count ?? shownState.turnCount;
   const guards = actionGuards({
+    spectating,
     state,
     viewer: you,
     viewerSeat,
@@ -1177,7 +1183,7 @@ export function GameScreen({
       allowsPick={decisionAllowsPick}
       onTogglePick={toggleDecisionPick}
       combatWindows={combatWindows}
-      combatPromptsHeld={cues.decisionAnimationsPending}
+      combatPromptsHeld={spectating || cues.decisionAnimationsPending}
       sourceHost={
         sourceHostChoice
           ? {
@@ -1211,8 +1217,20 @@ export function GameScreen({
       collapseNotices={collapseNotices}
       log={log}
       signedIn={signedIn}
-      opponentDropped={!vsBot && !opp.connected && !state.gameOver}
-      gameOver={state.gameOver ? { result: gameOverResult, reason: gameOverReason } : undefined}
+      opponentDropped={!spectating && !vsBot && !opp.connected && !state.gameOver}
+      gameOver={
+        state.gameOver
+          ? {
+              result: gameOverResult,
+              reason: gameOverReason,
+              spectatorResult: spectating
+                ? state.winnerSeat < 0
+                  ? t("spectator.draw")
+                  : t("spectator.winner", { name: state.players[state.winnerSeat]?.displayName ?? "" })
+                : undefined,
+            }
+          : undefined
+      }
       overlays={overlayState}
       selection={selectionState}
       intents={matchSenders}
@@ -1239,7 +1257,11 @@ export function GameScreen({
       returnsToRoom={isPrivateMatch}
       arenaDeckColors={arenaLook.deckColors}
       onRematch={
-        onRematch ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined) : () => onExit("lobby")
+        spectating
+          ? () => onExit("lobby")
+          : onRematch
+            ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined)
+            : () => onExit("lobby")
       }
     />
   );
@@ -1279,7 +1301,9 @@ export function GameScreen({
       opponent={opp}
       viewerSeat={viewerSeat}
       promptSourceCardId={decision?.seat === viewerSeat ? decision.sourceCardId : undefined}
-      room={room}
+      spectating={spectating}
+      onLeaveSpectator={() => onExit("lobby")}
+      room={spectating ? undefined : room}
       look={arenaLook}
       layout={layout}
       anchors={anchors}

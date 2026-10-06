@@ -70,3 +70,8 @@ describe("reconnect session storage", () => {
     expect(isReconnectSessionFresh(session, session.savedAt - 1)).toBe(false);
   });
 });
+
+it("preserves the spectator role across a page reload", () => {
+  saveReconnectSession({ ...session, spectator: true });
+  expect(loadReconnectSession(session.savedAt + 1000)).toEqual({ ...session, spectator: true });
+});

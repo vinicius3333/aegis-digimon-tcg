@@ -253,7 +253,7 @@ export async function runOneTurn(engine: GameEngine): Promise<void> {
  * syncPublicCounts before each broadcast); that hook is owned by the
  * intent-protocol-and-room subsystem.
  */
-export function makeStateView(engine: GameEngine, seat: Seat): Client["view"] {
+export function makeStateView(engine: GameEngine, seat: Seat | undefined): Client["view"] {
   syncPublicCounts(engine.state);
   return buildStateView(engine.state, seat);
 }
@@ -266,7 +266,7 @@ export function makeStateView(engine: GameEngine, seat: Seat): Client["view"] {
  * that just left a `@view`-tagged zone (e.g. a card played from hand), and
  * `AegisRoom.rebuildClientViews` for the call site engine backs.
  */
-export function refreshStateView(engine: GameEngine, view: Client["view"], seat: Seat): void {
+export function refreshStateView(engine: GameEngine, view: Client["view"], seat: Seat | undefined): void {
   if (view === undefined) return;
   syncPublicCounts(engine.state);
   refreshStateViewInto(view, engine.state, seat);
@@ -293,7 +293,7 @@ export function installVisibility(engine: GameEngine, notify: VisibilityPort): v
 export function exposeCardToView(
   engine: GameEngine,
   view: Client["view"],
-  viewerSeat: Seat,
+  viewerSeat: Seat | undefined,
   ownerSeat: Seat,
   zone: VisibilityZone,
   card: CardInstance,
