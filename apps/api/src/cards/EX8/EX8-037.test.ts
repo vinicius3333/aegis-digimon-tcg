@@ -3,6 +3,7 @@ import { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT9/BT9-099.js";
 import "../BT11/BT11-100.js";
 import "../BT11/BT11-107.js";
 import "../LM/LM-029.js";
@@ -127,11 +128,13 @@ describe("EX8-037", () => {
           battleArea: [
             { card: "EX8-037", as: "sakuyamon" },
             { card: "ST23-09", as: "greenBlackSource" },
+            { card: "BT1-009", as: "redSource" },
           ],
           hand: [
             { card: "BT11-100", as: "costFive" },
             { card: "BT11-107", as: "multicolorOverLimit" },
-            { card: "ST23-09", as: "multicolorWithinLimit" },
+            { card: "BT9-099", as: "multicolorWithinLimit" },
+            { card: "ST23-09", as: "singleColorDualWithinLimit" },
             { card: "BT25-043", as: "singleColorOverLimit" },
           ],
         },
@@ -160,6 +163,8 @@ describe("EX8-037", () => {
       .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
     expect(optionCandidates).toContain(s.inst("costFive").instanceId);
     expect(optionCandidates).not.toContain(s.inst("multicolorWithinLimit").instanceId);
+    // Atratusmon has two Digimon colors, but its Eclipse Impact Option face is green.
+    expect(optionCandidates).toContain(s.inst("singleColorDualWithinLimit").instanceId);
     expect(optionCandidates).not.toContain(s.inst("singleColorOverLimit").instanceId);
     expect(s.perm("sakuyamon").isSuspended).toBe(false);
   });

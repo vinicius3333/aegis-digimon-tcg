@@ -46,13 +46,14 @@ describe("EX3-045 Hydramon", () => {
         instanceId: s.inst("hydramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const optional = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.options).toMatchObject({ min: 0, max: 1, purpose: "optionalTarget" });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: optional.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX3-045");
@@ -130,7 +131,7 @@ describe("EX3-045 Hydramon", () => {
     expect(s.perm("base").stack).toHaveLength(0);
   });
 
-  it("can decline the optional When Digivolving suspension without opening a target choice", async () => {
+  it("can decline the optional When Digivolving suspension by selecting no targets", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX3-043", as: "base" }],
@@ -149,24 +150,26 @@ describe("EX3-045 Hydramon", () => {
         instanceId: s.inst("hydramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const optional = s.state.pendingDecision!;
     expect(s.decisions.at(-1)?.req).toMatchObject({
-      kind: "optional",
+      kind: "chooseTargets",
       sourceCardId: "EX3-045",
-      options: { timing: "WhenDigivolving", effectText: whenDigivolving },
+      options: { timing: "WhenDigivolving", effectText: whenDigivolving, min: 0, max: 1, purpose: "optionalTarget" },
     });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: optional.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseTargets", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX3-045");
 
     expect(s.perm("opponent").isSuspended).toBe(false);
-    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(0);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("gains memory for every other suspended Vegetation or Fairy Digimon when an opponent suspends", async () => {

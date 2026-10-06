@@ -318,9 +318,10 @@ it("#4967 public Assembly play remains legal with DNA materials simultaneously o
   await finish(run);
 });
 it("#4986 a new link occurrence offers Dantemon alongside Tellermon before returning to older pending effects", async () => {
+  const declinePrompts = ["Attack", "Battle"];
   const run = await start("arena-issue-4981-dantemon-seven-code", {
     autoOrderTriggers: false,
-    declinePrompts: ["Attack", "Battle", "Delete 1 target(s)"],
+    declinePrompts,
   });
   const { s } = run;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: hand(s, "BT26-102").instanceId })).toEqual({
@@ -343,6 +344,8 @@ it("#4986 a new link occurrence offers Dantemon alongside Tellermon before retur
   );
   const nested = s.decisions.at(-1)!.req;
   expect(nested.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT26-086", "BT26-063"]));
+  // The link selection has finished; the next Dantemon selector is its optional deletion.
+  declinePrompts.push("Dantemon");
   for (let i = 0; i < 30; i++) {
     await settle();
     if (s.state.pendingDecision?.kind !== "orderTriggers") break;

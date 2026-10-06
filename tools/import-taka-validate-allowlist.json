@@ -208,5 +208,10 @@
     "cardId": "LM-065",
     "field": "effectText",
     "reason": "The community-DB snapshot doubles the verb in 'While you have don't have [...] in the battle area'. The official English printing of the same Training line (https://en.digimoncard.com/cardlist/?search=true&card_no=LM-054) reads 'While you don't have [...]'; the committed text uses that wording."
+  },
+  {
+    "cardId": "EX12-048",
+    "field": "effectText",
+    "reason": "Verified 2026-10-06 against the official English card page (https://world.digimoncard.com/cards/?card_no=EX12-048&search=true): the Assembly materials name Sagomon. The vendored community snapshot incorrectly says Sangomon; the committed catalog preserves the printed Sagomon requirement."
   }
 ]
