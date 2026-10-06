@@ -75,72 +75,62 @@ export const compiled: CompiledCard = {
             ],
             count: 1,
           },
-          fromOwnDigivolutionStack: true,
-          payCost: false,
-          optional: false,
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              levels: [4],
-              nameOrTrait: [
-                {
-                  tokens: ["Aqua"],
-                  match: "traitContains",
-                },
-              ],
-            },
-            orFilters: [
-              {
+          additionalSimultaneousTargets: [
+            {
+              filter: {
                 controller: "mine",
                 kind: ["Digimon"],
                 levels: [4],
                 nameOrTrait: [
                   {
-                    tokens: ["Sea Animal"],
+                    tokens: ["Aqua"],
                     match: "traitContains",
                   },
                 ],
               },
-            ],
-            count: 1,
-          },
-          fromOwnDigivolutionStack: true,
-          payCost: false,
-          optional: false,
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              levels: [5],
-              nameOrTrait: [
+              orFilters: [
                 {
-                  tokens: ["Aqua"],
-                  match: "traitContains",
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levels: [4],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Sea Animal"],
+                      match: "traitContains",
+                    },
+                  ],
                 },
               ],
+              count: 1,
             },
-            orFilters: [
-              {
+            {
+              filter: {
                 controller: "mine",
                 kind: ["Digimon"],
                 levels: [5],
                 nameOrTrait: [
                   {
-                    tokens: ["Sea Animal"],
+                    tokens: ["Aqua"],
                     match: "traitContains",
                   },
                 ],
               },
-            ],
-            count: 1,
-          },
+              orFilters: [
+                {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levels: [5],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Sea Animal"],
+                      match: "traitContains",
+                    },
+                  ],
+                },
+              ],
+              count: 1,
+            },
+          ],
           fromOwnDigivolutionStack: true,
           payCost: false,
           optional: false,
