@@ -1,7 +1,12 @@
 export const arenaEn = {
-  "redesign.arena.look.open": "Arena look",
-  "redesign.arena.look.title": "Arena look",
-  "redesign.arena.look.description": "Board colors and battlefield. Changes show on the board right away.",
+  "redesign.arena.look.open": "Match settings",
+  "redesign.arena.look.title": "Match settings",
+  "redesign.arena.look.description": "Board colors, battlefield and sound. Changes apply right away.",
+  "redesign.arena.audio.title": "Sound",
+  "redesign.arena.audio.music": "Music",
+  "redesign.arena.audio.musicVolume": "Music volume",
+  "redesign.arena.audio.effects": "Sound effects and cues",
+  "redesign.arena.audio.effectsVolume": "Effects volume",
 
   "redesign.arena.badge.stackTitle": "Digivolution stack",
   "redesign.arena.badge.stack": "{count} digivolution cards under this Digimon.",
