@@ -5,6 +5,8 @@ import { BoardPromptRail, type BoardPromptVariant } from "../../BoardDecisionRai
 import { CardArt } from "../CardArt";
 import { CardPromptFrame } from "./CardPromptFrame";
 import { cardDisplayName } from "../../cardLinks";
+import { useBoardPreview } from "../choice/useBoardPreview";
+import { DecisionViewBoardButton } from "../choice/DecisionViewBoardButton";
 
 type CounterChoice = { instanceId: string; effectKey: string; description: string };
 
@@ -76,6 +78,8 @@ export function CounterOverlay({
   onPass: () => void;
 }) {
   const { t } = useTranslation();
+  const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
+  if (isViewingBoard) return boardReturn;
   const { sourceKeyOf, sourceKeys, mustPickSource } = counterSources({
     eligibleCounters,
     handInstanceIds,
@@ -227,6 +231,7 @@ export function CounterOverlay({
           {t("overlay.passCounterShort")}
         </Button>
       )}
+      <DecisionViewBoardButton onOpenBoard={openBoard} />
     </BoardPromptRail>
   );
 }

@@ -89,7 +89,7 @@ it("keeps keyboard focus inside the central fusion choice when returning from bo
   const onCancel = vi.fn<() => void>();
   renderOverlay({ onConfirm, onCancel });
   const dialog = screen.getByRole("dialog", { name: /App Fusion/i });
-  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
+  expect(dialog.getAttribute("data-prompt-surface")).toBe("left");
   expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "View board" }));
   expect(screen.queryByRole("dialog")).toBeNull();

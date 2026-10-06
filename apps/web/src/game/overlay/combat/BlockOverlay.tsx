@@ -1,6 +1,7 @@
 import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
+import { en } from "../../../i18n/en";
 import { CardArt } from "../CardArt";
 import { printedCardName } from "../printedCardName";
 import { CardPromptFrame } from "./CardPromptFrame";
@@ -25,7 +26,7 @@ export function BlockOverlay({
     <CardPromptFrame
       cardId={attackerCardId}
       fallback={<Icons.Swords size={32} />}
-      className="block-overlay"
+      className={`block-overlay${blockers.length ? "" : " block-overlay--empty"}`}
       surface={blockers.length ? "center" : "left"}
       label={t("overlay.blockWindow")}
       eyebrow={
@@ -39,8 +40,12 @@ export function BlockOverlay({
           ) : null}
         </>
       }
-      title={t(blockers.length ? "overlay.blockChooseCard" : "overlay.takeAttack")}
-      description={t(forced ? "overlay.blockForcedPrompt" : "overlay.blockPrompt")}
+      title={t(blockers.length ? "overlay.blockChooseCard" : "overlay.noBlockers")}
+      description={
+        blockers.length ? (
+          <span lang="en">{en[forced ? "overlay.blockForcedPrompt" : "overlay.blockPrompt"]}</span>
+        ) : undefined
+      }
     >
       {blockers.length ? (
         <div className="counter-overlay__gallery block-overlay__gallery">
@@ -68,9 +73,7 @@ export function BlockOverlay({
             );
           })}
         </div>
-      ) : (
-        <p>{t("overlay.noBlockers")}</p>
-      )}
+      ) : null}
       {!forced ? (
         <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
           {t("overlay.takeAttack")}

@@ -1,7 +1,7 @@
 /* The viewer's open decision, in whichever surface answers it.
 
    Field targets use the physical cards and a confirmation rail. Selections from other
-   zones use the central dialog, including the host step for digivolution cards. The pill tells the viewer
+   zones use the dialog, after choosing any digivolution-card host on the field. The pill tells the viewer
    when the opponent has a question open. */
 
 import {
@@ -12,12 +12,14 @@ import {
   type Permanent,
 } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
-import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../../BoardDecisionRail";
+import {
+  BoardOptionalPrompt,
+  BoardSelectionRail,
+  BoardSourceHostPrompt,
+  OpponentSelectingPill,
+} from "../../BoardDecisionRail";
 import { cardDisplayName } from "../../cardLinks";
 import { decisionPermanentDetails, decisionSourceCounts, type CandidateZone } from "../../decisionModel";
-import { CardPromptFrame } from "../../overlay/combat/CardPromptFrame";
-import { CardArt } from "../../overlay/CardArt";
-import { Button } from "../../../design/primitives";
 import { securityAttackLabelKey } from "../../securityChrome";
 import { attackTargetPrompt, isPlayerAttackTarget } from "../model/attackTargetPrompt";
 import {
@@ -32,8 +34,8 @@ import { totalPlayCost } from "../../overlay/choice/decisionPlayCost";
 import { totalDP } from "../../overlay/choice/decisionDpBudget";
 
 /**
- * A one-card pick from the digivolution cards of several of the viewer's Digimon: the central
- * gallery picks the Digimon first (`picking`), then shows only the cards under it.
+ * A one-card pick from several Digimon's digivolution cards: the viewer picks the Digimon
+ * on the field first (`picking`), then the dialog shows only the cards under it.
  */
 export interface SourceHostStep {
   picking: boolean;
@@ -144,39 +146,13 @@ export function DecisionPrompts({
   return (
     <>
       {decision && !answerOnBoard && sourceHost?.picking ? (
-        <CardPromptFrame
-          cardId={sourceCardId}
-          label={t("overlay.chooseSourceHost")}
-          eyebrow={t("overlay.chooseSourceHost")}
-          title={t("overlay.chooseSourceHost")}
-          description={clause ?? t("overlay.chooseSourceHostPrompt")}
-        >
-          <div className="counter-overlay__gallery block-overlay__gallery">
-            {sourceHost.hostPermanentIds.map((id, index) => {
-              const host = permanents.find((permanent) => permanent.permanentId === id);
-              if (!host) return null;
-              return (
-                <button
-                  type="button"
-                  className="counter-overlay__card"
-                  key={id}
-                  onClick={() => sourceHost.onChooseHost(id)}
-                >
-                  <CardArt cardId={host.topCard.cardId} width={112} />
-                  <strong>{cardDisplayName(host.topCard.cardId, t)}</strong>
-                  <span>
-                    {host.currentDP.toLocaleString()} DP · {index + 1} / {sourceHost.hostPermanentIds.length}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {min === 0 && boardSelectionKind ? (
-            <Button full variant="secondary" onClick={() => onRespond({ kind: boardSelectionKind, instanceIds: [] })}>
-              {t("overlay.noSelection")}
-            </Button>
-          ) : null}
-        </CardPromptFrame>
+        <BoardSourceHostPrompt
+          sourceCardId={sourceCardId}
+          clause={clause}
+          onNoSelection={
+            min === 0 && boardSelectionKind ? () => onRespond({ kind: boardSelectionKind, instanceIds: [] }) : undefined
+          }
+        />
       ) : null}
 
       {decision && decision.kind !== "mulligan" && !answerOnBoard && !isMaterialDecision && !sourceHost?.picking

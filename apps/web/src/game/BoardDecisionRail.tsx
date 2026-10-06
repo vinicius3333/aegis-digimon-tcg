@@ -7,10 +7,12 @@ import { Button } from "../design/primitives";
 import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
+import { en } from "../i18n/en";
 import { cardDisplayName, useCardOpener } from "./cardLinks";
 import { DecisionBoardReturn } from "./overlay/choice/DecisionBoardReturn";
 import { useEffectPromptFocus } from "./overlay/choice/useEffectPromptFocus";
 import "./overlay/fieldDecisionRail.css";
+import { usePromptHandSpace } from "./overlay/choice/usePromptHandSpace";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   useEffect(() => {
@@ -25,10 +27,7 @@ function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   }, [onOpenDialog]);
 }
 
-/** What the viewer answers the decision with. A `selection` picks cards from
-    the hand, so the phone sheet must leave the hand uncovered; a `prompt` is
-    answered with the sheet's own buttons, so the sheet may cover the hand and
-    give the board the space instead. */
+/** Hand and field selections use physical cards; other prompts use their own buttons. */
 export type BoardPromptVariant = "prompt" | "selection" | "field-selection";
 
 /** A small illustration cue; the full card remains available through its opener. */
@@ -67,6 +66,7 @@ export function BoardPromptRail({
   eyebrow,
   prompt,
   clause,
+  clauseLang,
   detail,
   budgetText,
   handClearance,
@@ -83,6 +83,7 @@ export function BoardPromptRail({
   eyebrow?: ReactNode;
   prompt: string;
   clause?: string;
+  clauseLang?: string;
   detail?: string;
   budgetText?: string;
   handClearance?: number;
@@ -97,6 +98,7 @@ export function BoardPromptRail({
   useEscapeToDialog(onOpenDialog);
   const modal = variant === "prompt";
   const focusProps = useEffectPromptFocus(!modal);
+  usePromptHandSpace(focusProps.ref, !modal);
   return (
     <>
       <div className={modal ? "decision-overlay-backdrop" : "board-prompt-scrim"} data-variant={variant} aria-hidden />
@@ -106,6 +108,7 @@ export function BoardPromptRail({
         role={modal ? "dialog" : "region"}
         aria-modal={modal || undefined}
         {...(modal ? focusProps : {})}
+        ref={focusProps.ref}
         data-testid="board-prompt"
         data-variant={variant}
         data-prompt-surface="left"
@@ -139,7 +142,11 @@ export function BoardPromptRail({
             the player reads, the picture only says which card is asking. */}
         {clause || art ? (
           <div className="board-prompt__body">
-            {clause ? <p className="board-prompt__clause">{clause}</p> : null}
+            {clause ? (
+              <p className="board-prompt__clause" lang={clauseLang}>
+                {clause}
+              </p>
+            ) : null}
             {art ? <BoardPromptArt cardId={art} width={artWidth} /> : null}
           </div>
         ) : null}
@@ -279,21 +286,25 @@ export function BoardBlockPrompt({
   onDecline: () => void;
 }) {
   const { t } = useTranslation();
+  const { boardReturn, viewBoard } = useBoardView();
+  if (boardReturn) return boardReturn;
   return (
     <BoardPromptRail
       variant="field-selection"
       className="board-prompt--block"
       label={t("overlay.blockWindow")}
-      eyebrow={mustBlock ? `${t("overlay.blockWindow")} · ${t("overlay.blockForced")}` : t("overlay.blockWindow")}
+      eyebrow={mustBlock ? "＜Collision＞" : "＜Blocker＞"}
       art={attackerCardId}
       prompt={t("overlay.blockChooseCard")}
-      clause={t(mustBlock ? "overlay.blockForcedPrompt" : "overlay.blockPrompt")}
+      clause={en[mustBlock ? "overlay.blockForcedPrompt" : "overlay.blockPrompt"]}
+      clauseLang="en"
     >
       {!mustBlock ? (
         <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
           {t("overlay.takeAttack")}
         </Button>
       ) : null}
+      <ViewBoardButton onClick={viewBoard} />
     </BoardPromptRail>
   );
 }
@@ -318,7 +329,9 @@ export function BoardAlliancePrompt({ attackerCardId, onPass }: { attackerCardId
       label={t("overlay.allianceWindow")}
       eyebrow="＜Alliance＞"
       art={attackerCardId}
-      prompt={t("overlay.alliancePrompt")}
+      prompt={t("overlay.allianceChooseCard")}
+      clause={en["overlay.alliancePrompt"]}
+      clauseLang="en"
     >
       <Button variant="secondary" onClick={onPass}>
         {t("overlay.passAlliance")}

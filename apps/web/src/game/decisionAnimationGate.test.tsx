@@ -143,11 +143,11 @@ it.each([false, true])("presents the Barrier prompt safely (timed: %s)", async (
   await act(async () => {
     await vi.advanceTimersByTimeAsync(100);
   });
-  expect(screen.queryByText("Yes, trash security") !== null).toBe(timed);
+  expect(screen.queryByRole("button", { name: /^Use$/ }) !== null).toBe(timed);
   await act(async () => {
     await vi.advanceTimersByTimeAsync(2 * (SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS));
   });
-  expect(screen.getByRole("button", { name: "Yes, trash security" }).hasAttribute("disabled")).toBe(false);
+  expect(screen.getByRole("button", { name: /^Use$/ }).hasAttribute("disabled")).toBe(false);
 });
 
 it("makes a newly played target selectable on the field while a timed security sequence is still running", async () => {

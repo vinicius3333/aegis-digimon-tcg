@@ -1,25 +1,34 @@
 /* Interactive development fixtures for every match prompt surface. */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { assemblyRequirementFor, digiXrosRequirementFor, getCardDefinition, type DecisionRequest } from "@aegis/shared";
+import {
+  assemblyRequirementFor,
+  digiXrosRequirementFor,
+  getCardDefinition,
+  CombatWindow,
+  type DecisionRequest,
+} from "@aegis/shared";
 import { Button } from "../design/primitives";
 import { applyDarkMode, setDarkMode, useDarkMode } from "../design/darkMode";
 import { useTranslation } from "../i18n";
 import { GameScreen } from "../game/GameScreen";
+import type { AegisRoom } from "../net/client";
 import { DecisionPrompts } from "../game/screen/layout/DecisionPrompts";
 import {
   ActionConfirmationOverlay,
   AssemblyMaterialOverlay,
   BarrierOverlay,
-  BlockOverlay,
   CounterOverlay,
   DigiXrosMaterialOverlay,
   DualPlayChoiceOverlay,
   EvadeOverlay,
   EvoCostChoiceOverlay,
   MulliganOverlay,
+  WaitingOverlay,
 } from "../game/overlay";
-import { AllianceOverlay } from "../game/overlay/combat/AllianceOverlay";
 import { DigiXrosExpanderPrompt } from "../game/overlay/choice/DigiXrosExpanderPrompt";
+import { ArenaLookDialog } from "../game/screen/layout/ArenaLookDialog";
+import { SurrenderDialog } from "../game/screen/layout/SurrenderDialog";
+import { BugReportDialog } from "../bugs/BugReportDialog";
 import { AppFusionChoiceOverlay } from "../game/AppFusionChoiceOverlay";
 import { ArenaPermanentInspector } from "../game/ArenaPermanentInspector";
 import { CardZoomOverlay } from "../game/overlay";
@@ -43,7 +52,7 @@ export const EFFECT_PROMPT_CASES = [
   ["choose-yes-no", "Choose option · use / decline", "left"],
   ["choose-clauses", "Choose option · printed clauses", "left"],
   ["choose-effects", "Choose option · borrowed effects", "center"],
-  ["choose-revealed", "Choose option · revealed cards", "left"],
+  ["choose-revealed", "Choose option · revealed cards", "center"],
   ["select-hand", "Select cards · hand subset", "left"],
   ["choose-targets-hand", "Choose targets · hand", "left"],
   ["select-field", "Choose targets · field", "center"],
@@ -66,21 +75,26 @@ export const EFFECT_PROMPT_CASES = [
   ["digixros-expander", "DigiXros · Tamer activation", "left"],
   ["app-fusion", "App Fusion · linked material", "center"],
   ["app-fusion-empty", "App Fusion · unavailable route", "center"],
-  ["block", "Block · choose blocker", "center"],
-  ["collision", "Collision · required block", "center"],
+  ["block", "Block · choose blocker on field", "left"],
+  ["collision", "Collision · required block on field", "left"],
   ["collision-empty", "Collision · no remaining blocker", "left"],
-  ["alliance", "Alliance · choose ally", "center"],
-  ["alliance-empty", "Alliance · no remaining ally", "left"],
+  ["alliance", "Alliance · choose ally on field", "left"],
+  ["alliance-empty", "Alliance · no ally (automatic pass)", "none"],
   ["counter-sources", "Counter · choose source", "center"],
   ["counter-blast", "Counter · multiple Blast routes", "center"],
   ["counter-field", "Counter · single field action", "left"],
   ["counter-empty", "Counter · no remaining action", "left"],
   ["barrier", "Barrier · use / decline", "left"],
   ["evade", "Evade · use / decline", "left"],
-  ["source-host", "Digivolution cards · choose host", "center"],
+  ["source-host", "Digivolution cards · choose host on field", "left"],
   ["mulligan-first", "Mulligan · going first", "center"],
   ["mulligan-second", "Mulligan · going second", "center"],
   ["inherited-inspector", "Inspector · inherited effects", "inspector"],
+  ["waiting", "Conexão · aguardando partida", "center"],
+  ["waiting-error", "Conexão · erro e tentar novamente", "center"],
+  ["arena-settings", "Configurações da partida · aparência e áudio", "center"],
+  ["feedback", "Feedback · reportar bug", "center"],
+  ["surrender", "Desistência · confirmar", "center"],
 ] as const;
 type CaseId = (typeof EFFECT_PROMPT_CASES)[number][0];
 const isCaseId = (value: string | null): value is CaseId => EFFECT_PROMPT_CASES.some(([id]) => id === value);
@@ -97,8 +111,69 @@ export function EffectPromptGallery() {
   const { locale, setLocale } = useTranslation();
   const dark = useDarkMode();
   useEffect(applyDarkMode, []);
-  const state = useMemo(() => createArenaDemoState(), []);
+  const state = useMemo(() => {
+    const preview = createArenaDemoState();
+    if (caseId === "source-host") {
+      preview.players[0]!.battleArea.clear();
+      preview.players[0]!.battleArea.push(
+        permanent({
+          permanentId: "gallery-proximamon",
+          cardId: "EX12-077",
+          baseDP: 15000,
+          stackCardIds: ["EX12-018", "EX12-007"],
+        }),
+        permanent({
+          permanentId: "gallery-canoweissmon",
+          cardId: "EX12-014",
+          baseDP: 7000,
+          stackCardIds: ["EX12-013", "EX12-007"],
+        }),
+      );
+    }
+    if (active && ["alliance", "alliance-empty", "block", "collision", "collision-empty"].includes(caseId)) {
+      if (caseId.startsWith("alliance")) {
+        const attacker = preview.players[0]!.battleArea[0]!;
+        preview.players[0]!.battleArea[0] = permanent({
+          permanentId: attacker.permanentId,
+          cardId: "EX4-057",
+          baseDP: 8000,
+          stackCardIds: ["EX4-055", "EX4-052"],
+        });
+      } else preview.turnSeat = 1;
+      const window = new CombatWindow();
+      window.kind = caseId.startsWith("alliance") ? "alliance" : "block";
+      window.seat = 0;
+      window.attackerPermanentId = preview.players[caseId.startsWith("alliance") ? 0 : 1]!.battleArea[0]!.permanentId;
+      window.permanentId = window.attackerPermanentId;
+      window.mustBlock = caseId.startsWith("collision");
+      if (!caseId.endsWith("empty")) window.eligiblePermanentIds.push(preview.players[0]!.battleArea[1]!.permanentId);
+      preview.combatWindow = window;
+    }
+    return preview;
+  }, [caseId, active]);
+  const combatPreview = ["alliance", "alliance-empty", "block", "collision", "collision-empty"].includes(caseId);
   const handDecision = useMemo(() => {
+    if (caseId === "source-host") {
+      const sourceCardId = "EX12-077";
+      return {
+        decisionId: `gallery-source-host-${revision}`,
+        seat: 0,
+        kind: "selectCards",
+        sourceCardId,
+        promptText: locale === "pt-BR" ? "Selecione uma carta das fontes de evolução" : "Select 1 digivolution card",
+        options: {
+          min: 0,
+          max: 1,
+          timing: "WhenAttacking",
+          effectText: getCardDefinition(sourceCardId)?.effectText,
+          candidateInstanceIds: [...state.players[0]!.battleArea].flatMap((host) =>
+            [...host.stack]
+              .filter((card) => (getCardDefinition(card.cardId)?.playCost ?? Infinity) <= 10)
+              .map((card) => card.instanceId),
+          ),
+        },
+      } satisfies DecisionRequest;
+    }
     if (!["select-hand", "choose-targets-hand", "select-cost-budget"].includes(caseId)) return undefined;
     const hand = state.players[0]!.hand;
     const candidates =
@@ -189,7 +264,14 @@ export function EffectPromptGallery() {
           identityColor="Red"
           onExit={() => window.location.assign("/")}
           demoConnection={{
-            room: undefined,
+            room: combatPreview
+              ? ({
+                  connection: { isOpen: true },
+                  send: (type: string, payload: object) => {
+                    if (type === "respondAlliance" || type === "declareBlock") respond({ type, ...payload });
+                  },
+                } as unknown as AegisRoom)
+              : undefined,
             status: "connected",
             state,
             events: [],
@@ -203,7 +285,7 @@ export function EffectPromptGallery() {
           }}
         />
         {active ? (
-          handDecision ? null : (
+          handDecision || combatPreview ? null : (
             <GalleryPrompt key={`${caseId}-${revision}`} caseId={caseId} board={boardRef.current} onRespond={respond} />
           )
         ) : (
@@ -232,7 +314,6 @@ function GalleryPrompt({
   const { t } = useTranslation();
   const [picks, setPicks] = useState<string[]>([]);
   const [counterSource, setCounterSource] = useState<string>();
-  const [sourceHost, setSourceHost] = useState<string>();
   const [zoom, setZoom] = useState<string>();
   const [optionalDialog, setOptionalDialog] = useState(false);
   const permanents = useMemo(
@@ -261,42 +342,28 @@ function GalleryPrompt({
   );
   const close = () => onRespond({ action: "cancel" });
   const yesNo = (action: string) => onRespond({ action });
-  const blockers = permanents.slice(0, 2).map((entry) => ({
-    permanentId: entry.permanentId,
-    cardId: entry.topCard.cardId,
-    currentDP: entry.currentDP,
-    sourceCount: entry.stack.length,
-  }));
+  if (caseId === "waiting" || caseId === "waiting-error")
+    return (
+      <WaitingOverlay
+        title={caseId === "waiting" ? "Conectando à partida" : "Não foi possível conectar"}
+        detail={
+          caseId === "waiting" ? "Aguarde enquanto a conexão é estabelecida." : "Confira sua conexão e tente novamente."
+        }
+        spinner={caseId === "waiting"}
+        actionLabel={caseId === "waiting-error" ? "Tentar novamente" : undefined}
+        onAction={() => yesNo("retry")}
+        cancelLabel={t("common.cancel")}
+        onCancel={close}
+      />
+    );
+  if (caseId === "arena-settings")
+    return <ArenaLookDialog deckColors={{ player: "Red", opponent: "Purple" }} onClose={close} />;
+  if (caseId === "feedback") return <BugReportDialog signedIn={false} matchLogId="modal-preview" onClose={close} />;
+  if (caseId === "surrender") return <SurrenderDialog onConfirm={() => yesNo("surrender")} onClose={close} />;
   if (caseId === "barrier" || caseId === "evade") {
     const Component = caseId === "barrier" ? BarrierOverlay : EvadeOverlay;
-    return (
-      <Component
-        permanentId="gallery-host-1"
-        getCardId={() => CARDS.champion}
-        onAccept={() => yesNo("accept")}
-        onDecline={() => yesNo("decline")}
-      />
-    );
+    return <Component onAccept={() => yesNo("accept")} onDecline={() => yesNo("decline")} />;
   }
-  if (caseId === "block" || caseId.startsWith("collision"))
-    return (
-      <BlockOverlay
-        attackerCardId={CARDS.opponentUltimate}
-        mustBlock={caseId.startsWith("collision")}
-        blockers={caseId === "collision-empty" ? [] : blockers}
-        onBlock={(permanentId) => onRespond({ action: "block", permanentId })}
-        onDecline={() => yesNo("decline")}
-      />
-    );
-  if (caseId === "alliance" || caseId === "alliance-empty")
-    return (
-      <AllianceOverlay
-        attackerCardId={CARDS.mega}
-        allies={caseId === "alliance-empty" ? [] : blockers}
-        onChoose={(permanentId) => onRespond({ action: "alliance", permanentId })}
-        onPass={() => yesNo("pass")}
-      />
-    );
   if (caseId.startsWith("counter-")) {
     const eligibleCounters =
       caseId === "counter-empty"
@@ -512,7 +579,7 @@ function GalleryPrompt({
     request.options = { choices: ["top", "bottom"], topBottomZone: "deck" };
     candidates = candidates.slice(0, 3);
   }
-  if (caseId.startsWith("select-") || caseId === "source-host") {
+  if (caseId.startsWith("select-")) {
     request.kind = "selectCards";
     if (caseId === "select-field" || caseId === "select-dp-budget") {
       request.kind = "chooseTargets";
@@ -536,16 +603,6 @@ function GalleryPrompt({
     if (caseId === "select-empty") candidates = [];
     if (caseId === "select-dp-budget") request.options = { min: 1, max: 3, maxTotalDP: 12000, targetFate: "delete" };
     if (caseId === "select-cost-budget") request.options = { min: 0, max: 3, maxTotalPlayCost: 7 };
-    if (caseId === "source-host") {
-      request.options = { ...request.options, min: 1, max: 1 };
-      candidates = permanents.flatMap((entry) =>
-        [...entry.stack].map((card) => ({
-          instanceId: card.instanceId,
-          cardId: card.cardId,
-          zone: "digivolutionCards" as const,
-        })),
-      );
-    }
     request.options = { ...request.options, candidateInstanceIds: candidates.map((entry) => entry.instanceId) };
   }
   if (caseId === "order-cards") {
@@ -605,26 +662,6 @@ function GalleryPrompt({
       }
       onRespond={onRespond}
       onOpenDialog={() => setOptionalDialog(true)}
-      sourceHost={
-        caseId === "source-host"
-          ? {
-              picking: sourceHost === undefined,
-              cardIds: sourceHost
-                ? new Set(
-                    [...permanents.find((entry) => entry.permanentId === sourceHost)!.stack].map(
-                      (card) => card.instanceId,
-                    ),
-                  )
-                : undefined,
-              hostPermanentIds: permanents.slice(0, 2).map((entry) => entry.permanentId),
-              onChooseHost: setSourceHost,
-              onChangeHost: () => {
-                setSourceHost(undefined);
-                setPicks([]);
-              },
-            }
-          : undefined
-      }
     />
   );
 }

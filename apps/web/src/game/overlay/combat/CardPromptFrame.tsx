@@ -8,6 +8,7 @@ import { DecisionViewBoardButton } from "../choice/DecisionViewBoardButton";
 import { trapDialogFocus } from "../choice/decisionFocusTrap";
 import "./counterOverlay.css";
 import "../effectPromptFamily.css";
+import { usePromptHandSpace } from "../choice/usePromptHandSpace";
 
 /** Shared artwork header and keyboard boundary for the arena's combat questions. */
 export function CardPromptFrame({
@@ -38,6 +39,7 @@ export function CardPromptFrame({
   const openCard = useCardOpener();
   const { isViewingBoard, openBoard, boardReturn } = useBoardPreview();
   const panel = useRef<HTMLDivElement>(null);
+  usePromptHandSpace(panel, !isViewingBoard);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     const previous = document.activeElement;
@@ -79,10 +81,14 @@ export function CardPromptFrame({
                 aria-label={t("feed.openCard", { card: printedCardName(cardId) })}
                 onClick={() => openCard(cardId)}
               >
-                <CardArt cardId={cardId} width={64} />
+                <span className="mobile-prompt-art">
+                  <CardArt cardId={cardId} width={64} />
+                </span>
               </button>
             ) : (
-              <CardArt cardId={cardId} width={64} />
+              <span className="mobile-prompt-art">
+                <CardArt cardId={cardId} width={64} />
+              </span>
             )
           ) : (
             fallback

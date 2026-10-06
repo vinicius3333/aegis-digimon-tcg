@@ -876,17 +876,18 @@ export const en = {
   "overlay.allianceWindow": "Alliance window",
   "overlay.isAttacking": "{name} is attacking",
   "overlay.attackIncoming": "An attack is incoming",
-  "overlay.blockPrompt": "Choose a <Blocker> to redirect the attack, or take the hit.",
+  "overlay.blockPrompt":
+    "When an opponent's Digimon attacks, you may suspend this Digimon to force the opponent to attack it instead.",
   "overlay.blockForced": "Mandatory",
   "overlay.blockForcedPrompt":
-    "The attacker has <Collision>: every Digimon you control can block, and you must block while one can. Choose the Digimon that takes the attack.",
+    "During this Digimon's attack, all of your opponent's Digimon gain ＜Blocker＞, and must block if possible.",
   "overlay.noBlockers": "No eligible blockers.",
   "overlay.takeAttack": "Take the attack, no block",
   "overlay.dpBoost": "DP boost",
   "overlay.yourDigimon": "Your Digimon",
   "overlay.allianceAction": "is attacking",
   "overlay.alliancePrompt":
-    "Suspend 1 of your other Digimon to add its DP to this Digimon and gain ＜Security Attack +1＞ for the attack.",
+    "When this Digimon attacks, by suspending 1 of your other Digimon, this Digimon adds the suspended Digimon's DP and gains ＜Security Attack +1＞ for the attack.",
   "overlay.suspendAlly": "Suspend {name} for +{dp} DP",
   "overlay.noAllies": "No eligible allies to suspend.",
   "overlay.passAlliance": "Pass",

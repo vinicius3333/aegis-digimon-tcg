@@ -210,7 +210,7 @@ it("shows Taiki and the DigiXros instruction when selecting a material-zone Tame
   expect(container.querySelector('img[src*="P-224"]')).toBeNull();
 });
 
-it("chooses a source host centrally, filters its cards, and returns without answering", () => {
+it("asks for a source host on the board, filters its cards, and returns without answering", () => {
   const hosts = ["first", "second"].map((id) => {
     const host = new Permanent();
     host.permanentId = id;
@@ -260,11 +260,16 @@ it("chooses a source host centrally, filters its cards, and returns without answ
       <DecisionPrompts {...props} />
     </I18nProvider>,
   );
-  const dialog = screen.getByRole("dialog");
-  expect(dialog.getAttribute("data-prompt-surface")).toBe("center");
-  fireEvent.click(screen.getAllByRole("button", { name: /Greymon/ })[1]!);
-  expect(onChooseHost).toHaveBeenCalledExactlyOnceWith("second");
-  expect(onRespond).not.toHaveBeenCalled();
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByRole("region", { name: "Choose a Digimon" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: /Greymon/ })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "View board" }));
+  expect(screen.queryByRole("region", { name: "Choose a Digimon" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Return to decision" }));
+  fireEvent.click(screen.getByRole("button", { name: "No Selection" }));
+  expect(onRespond).toHaveBeenCalledExactlyOnceWith({ kind: "selectCards", instanceIds: [] });
+  expect(onChooseHost).not.toHaveBeenCalled();
+  onRespond.mockClear();
   view.rerender(
     <I18nProvider>
       <DecisionPrompts {...props} sourceHost={{ ...props.sourceHost, picking: false, cardIds: new Set(["b"]) }} />

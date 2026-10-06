@@ -159,7 +159,9 @@ export function DigiXrosMaterialOverlay({
         }}
       >
         <div className="material-prompt__header">
-          <CardArt cardId={playingCardId} width={64} />
+          <span className="mobile-prompt-art">
+            <CardArt cardId={playingCardId} width={64} />
+          </span>
           <div>
             <div
               id={titleId}
@@ -174,68 +176,71 @@ export function DigiXrosMaterialOverlay({
           </div>
         </div>
 
-        {chosenExpanderPermanentIds.length > 0 ? (
-          <p role="status">
-            {t("overlay.xrosTamersWillSuspend", {
-              names: eligibleExpanders
-                .filter((expander) => chosenExpanderPermanentIds.includes(expander.permanentId))
-                .map((expander) => printedCardName(expander.cardId))
-                .join(", "),
-            })}
-          </p>
-        ) : null}
+        <div className="material-prompt__body">
+          {chosenExpanderPermanentIds.length > 0 ? (
+            <p role="status">
+              {t("overlay.xrosTamersWillSuspend", {
+                names: eligibleExpanders
+                  .filter((expander) => chosenExpanderPermanentIds.includes(expander.permanentId))
+                  .map((expander) => printedCardName(expander.cardId))
+                  .join(", "),
+              })}
+            </p>
+          ) : null}
 
-        <DigiXrosCandidateGrid items={candidates} emptyText={t("overlay.xrosNoMaterials")} {...gridProps} />
-        <DigiXrosLockedZone
-          label={t("overlay.xrosZoneTrash")}
-          items={trashCandidates}
-          max={trashMax}
-          hasEligibleExpanders={false}
-          {...gridProps}
-        />
-        <DigiXrosLockedZone
-          label={t("overlay.xrosZoneUnderTamers")}
-          items={underTamerCandidates}
-          max={underTamerMax}
-          hasEligibleExpanders={false}
-          {...gridProps}
-        />
+          <DigiXrosCandidateGrid items={candidates} emptyText={t("overlay.xrosNoMaterials")} {...gridProps} />
+          <DigiXrosLockedZone
+            label={t("overlay.xrosZoneTrash")}
+            items={trashCandidates}
+            max={trashMax}
+            hasEligibleExpanders={false}
+            {...gridProps}
+          />
+          <DigiXrosLockedZone
+            label={t("overlay.xrosZoneUnderTamers")}
+            items={underTamerCandidates}
+            max={underTamerMax}
+            hasEligibleExpanders={false}
+            {...gridProps}
+          />
 
-        <div style={{ fontSize: 12, color: "var(--ds-fg-muted)" }}>
-          {picks.length === 0 ? t("overlay.xrosNoneSelected") : t("overlay.xrosSelected", { count: picks.length })}
+          <div style={{ fontSize: 12, color: "var(--ds-fg-muted)" }}>
+            {picks.length === 0 ? t("overlay.xrosNoneSelected") : t("overlay.xrosSelected", { count: picks.length })}
+          </div>
         </div>
-
-        <div className="game-actions-row">
-          <Button
-            full
-            icon={Icons.Sparkles}
-            disabled={picks.length === 0}
-            onClick={() => onConfirm(picks, chosenExpanderPermanentIds)}
-          >
-            {picks.length === 1 ? t("overlay.xrosConfirmOne") : t("overlay.xrosConfirm", { count: picks.length })}
-          </Button>
-          <Button full variant="secondary" onClick={onSkip}>
-            {t("overlay.xrosPlayWithout")}
-          </Button>
-          {onCancel ? (
-            <Button full variant="ghost" onClick={onCancel}>
-              {t("common.cancel")}
+        <div className="material-prompt__footer">
+          <div className="game-actions-row">
+            <Button
+              full
+              icon={Icons.Sparkles}
+              disabled={picks.length === 0}
+              onClick={() => onConfirm(picks, chosenExpanderPermanentIds)}
+            >
+              {picks.length === 1 ? t("overlay.xrosConfirmOne") : t("overlay.xrosConfirm", { count: picks.length })}
+            </Button>
+            <Button full variant="secondary" onClick={onSkip}>
+              {t("overlay.xrosPlayWithout")}
+            </Button>
+            {onCancel ? (
+              <Button full variant="ghost" onClick={onCancel}>
+                {t("common.cancel")}
+              </Button>
+            ) : null}
+          </div>
+          {eligibleExpanders.length > 0 ? (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setChosenExpanderPermanentIds([]);
+                setAnsweredExpanderPermanentIds([]);
+              }}
+            >
+              {t("overlay.xrosChangeTamerEffects")}
             </Button>
           ) : null}
-        </div>
-        {eligibleExpanders.length > 0 ? (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setChosenExpanderPermanentIds([]);
-              setAnsweredExpanderPermanentIds([]);
-            }}
-          >
-            {t("overlay.xrosChangeTamerEffects")}
-          </Button>
-        ) : null}
-        <div className="effect-prompt-family__board-action">
-          <DecisionViewBoardButton onOpenBoard={openBoard} />
+          <div className="effect-prompt-family__board-action">
+            <DecisionViewBoardButton onOpenBoard={openBoard} />
+          </div>
         </div>
       </div>
     </Scrim>

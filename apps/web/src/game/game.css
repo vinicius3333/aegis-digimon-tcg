@@ -22,3 +22,4 @@
 @import "./style/desktopNotices.css";
 /* Required decisions own their placement after the board's density rules. */
 @import "./overlay/effectPromptLayout.css";
+@import "./overlay/mobilePromptLayout.css";

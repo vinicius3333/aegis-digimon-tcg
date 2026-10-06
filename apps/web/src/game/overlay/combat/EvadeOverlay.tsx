@@ -1,25 +1,11 @@
-import { useTranslation } from "../../../i18n";
+import { en } from "../../../i18n/en";
 import { KeywordSavePrompt } from "./KeywordSavePrompt";
 
-export function EvadeOverlay({
-  permanentId,
-  getCardId,
-  onAccept,
-  onDecline,
-}: {
-  permanentId: string;
-  getCardId: (permanentId: string) => string | undefined;
-  onAccept: () => void;
-  onDecline: () => void;
-}) {
-  const { t } = useTranslation();
+export function EvadeOverlay({ onAccept, onDecline }: { onAccept: () => void; onDecline: () => void }) {
   return (
     <KeywordSavePrompt
       keyword="＜Evade＞"
-      cardId={getCardId(permanentId)}
-      rulesText={t("overlay.evadeRules")}
-      acceptLabel={t("overlay.suspendToEvade")}
-      declineLabel={t("overlay.letDeleted")}
+      rulesText={en["overlay.evadeRules"]}
       onAccept={onAccept}
       onDecline={onDecline}
     />
