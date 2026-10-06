@@ -178,6 +178,15 @@ Each physical hand card, hand count and deck count advances at the painted 210 m
 viewer / 170 ms opponent handoff, during the final 80 ms of the presentation.
 `DrawPresentationView.tsx`, `drawPresentationModel.ts` and
 `match/drawPresentationClock.ts` own this temporary face and its handoff.
+An incoming raw deck-to-hand event reserves its card before `batchClosed` arrives;
+the batch's measured flight then takes over the hold before paint. This prevents
+a digivolution's bonus draw from flashing in the hand between its patch and its
+presentation, even when playing the evolution leaves the hand count unchanged.
+Opaque opponent draws wait for the newer patch before holding public counts.
+When a schema patch arrives before its raw event, new hand identities and a deck
+decrease are compared with the frozen closed revision, including partial patches
+that still carry its version. Only current staging events bypass that reservation;
+an earlier reveal of the same physical card cannot bypass a later draw.
 Entry distances use the upright face's authored 0.45 scale: 60/(100×0.45)
 is 1⅓ face widths; the viewer's 40/(140×0.45) is 40/63 face heights.
 Translation remains in parent coordinates before rotation/scale, so those distances
@@ -719,9 +728,16 @@ remain open. No new audio or complete phase-pacing claim is made by this checkpo
 ## Phase and autonomous-opponent sequencing checkpoint, 2026-10-05
 
 Phase and turn narration now extends the bot's serialized deadline even when the
-client owns effect-chain pacing. Effect-chain deadlines still coalesce. Both modes
+client owns effect-chain pacing. Effect-chain deadlines coalesced at this checkpoint; the
+2026-10-06 correction below replaces that behavior. Both modes
 have a regression requiring the complete opening phase budget before breeding;
 all 47 BotPlayer tests passed. No thinking ranges or authored durations changed.
+
+The 2026-10-06 correction serializes accepted effect budgets instead of coalescing
+them and grants `digivolved` the same arrival budget as `cardPlayed`. The bot waits
+through the queued chain and every trashed security card before choosing its next Main action. Reflex answers
+inside a resolving effect or security check retain their existing clock so they
+can release the engine continuation. Headless injected delays remain unchanged.
 
 Turn and phase panels finish their actual keyed native animations before unmount
 and release. A raw attack publication waits for pending phase presentation; an
